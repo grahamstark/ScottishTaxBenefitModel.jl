@@ -1,5 +1,5 @@
 using Test
-import Model_Household: Household, Person, People_Dict, default_bu_allocation
+import ModelHousehold: Household, Person, People_Dict, default_bu_allocation
 import FRSHouseholdGetter
 import ExampleHouseholdGetter
 using Definitions
