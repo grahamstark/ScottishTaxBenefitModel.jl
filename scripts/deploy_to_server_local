@@ -1,0 +1,11 @@
+echo "updating oustb.."
+scripts/deploy_frontend
+#sh ./scripts/commit_and_build $1
+fping -c1 -t300 oustb &>/dev/null
+if [ "$?" = 0 ]
+then
+   cat scripts/remote_deploy | ssh oustb /bin/bash
+   rsync -ax -v  /var/www/ou/stb/ oustb:/var/www/ou/stb/
+else
+   echo "oustb down"
+fi

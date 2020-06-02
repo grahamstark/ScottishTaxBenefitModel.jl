@@ -8,8 +8,8 @@
 *.odt
 *.pdf
 *.swp
-*.tab
 *.xlsx
 .~lock*
 /docs/build/
 Manifest.toml
+model*.tab

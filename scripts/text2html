@@ -1,0 +1,4 @@
+#!/bin/sh
+# pandoc -s -S -w html $1.txt -o $1.xml
+
+pandoc -f markdown_mmd -t html5 --section-divs -s -S -c /styles/2016/vw.css -H /home/graham_s/etc/vw_header.txt  -A /home/graham_s/etc/vw_footer.txt $1.md -o $1.html

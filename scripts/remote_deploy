@@ -1,0 +1,5 @@
+#!/bin/sh
+cd ~/VirtualWorlds/projects/ou/stb.jl/
+git pull
+cd ~/VirtualWorlds/projects/TBComponents.jl/
+git pull
