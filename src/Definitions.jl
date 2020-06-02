@@ -11,11 +11,14 @@ export PRICES_DIR, MODEL_DATA_DIR, FRS_DIR, HBAI_DIR
 #
 # FIXME move this to some config file
 #
-const PROJECT_DIR="/home/graham_s/VirtualWorlds/projects/ou/stb.jl/"
-const PRICES_DIR="/mnt/data/prices/obr/"
+const MODEL_NAME="ScottishTaxBenefitModel"
+const PROJECT_DIR="/home/graham_s/julia/vw/$MODEL_NAME/"
 const MODEL_DATA_DIR="$(PROJECT_DIR)/data/"
-const FRS_DIR = "/mnt/data/frs/"
-const HBAI_DIR = "/mnt/data/hbai/"
+const PRICES_DIR="$MODEL_DATA_DIR/prices/obr/"
+
+const RAW_DATA = "/mnt/data/"
+const FRS_DIR = "$RAW_DATA/frs/"
+const HBAI_DIR = "$RAW_DATA/hbai/"
 
 export NUM_REPEATS
 const NUM_REPEATS = 30 # simulates a longer calculation
