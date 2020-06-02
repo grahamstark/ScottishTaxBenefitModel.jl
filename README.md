@@ -1,6 +1,6 @@
 # A  Microsimulation Model of the Scottish Fiscal System
 
-This is **in development**, has just been moved from an earlier version, and so will likely break in all sorts of unpleasant ways.
+This is **in development**, has just been moved from an earlier version, and so will likely break in all sorts of unpleasant ways. Builds and tests will certainly fail.
 
 Please bear with me, or better still, help.
 
