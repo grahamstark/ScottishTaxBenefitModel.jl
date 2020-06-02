@@ -1,0 +1,26 @@
+title,output,form,model,content
+"Introduction",,,,intro
+"Some Concepts",,,,concepts
+"Large Sample Datasets",,,,large-sample-datasets
+"Individuals, Families and Households",,,,households
+"Poverty",,,,poverty
+"Inequality",inequality-output,inequality-input,inequality,inequality
+"Inequality of What?",,,,income_wealth_welfare
+"Formal and Effective Incidence",,,,incidence
+"Incentives",,,,incentives
+"A Tax Benefit Model",,,,tax-benefit-intro
+"The Right Tool for the Job",,,,the-right-tool-for-the-job
+"What Could Possibly Go Wrong?",,,,tax-benefit-what-could-go-wrong
+"A Tax Benefit Model",,,,tax-benefit-intro-2
+"Budget Constraints - Introduction",bc-output,tax-only-form-zero,zbc,bc-intro
+"Budget Constraints - Adding Benefits",bc-output-500,benefits-only-form,zbc,bc-cash-benefits
+"Budget Constraints - Putting things together",bc-output,main-form,bc,bc-full
+"Welcome to Unicoria",,,,welcome-to-unicornia
+"The Main Model",main-output,main-form,stb,tax-benefit-tour
+"Modelling Direct Taxation",main-output,tax-only-form,stb,tax-benefit-direct-taxation
+"Modelling Benefits",main-output,benefits-only-form,stb,tax-benefit-benefits
+"Who is this for?",,,,roles-and-results
+"You are the Finance Secretary 1: Attacking Poverty",main-output,main-form,stb,tax-benefit-package-1-poverty
+"You are the Finance Secretary 2: Incentivising the Economy",main-output,main-form,stb,tax-benefit-package-2-incentives
+"You are the Finance Secretary 3: A Woman- and Child- Friendly Budget",main-output,main-form,stb,tax-benefit-package-3-women-and-children
+"Tax Benefit Models - Where Now?",,,,tax-benefit-extensions

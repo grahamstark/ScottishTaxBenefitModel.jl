@@ -1,0 +1,18 @@
+[Unit]
+Description=OU Model Server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+# Type=forking
+User=graham_s
+EnvironmentFile=/etc/systemd/user/gks_environment
+# The PID file is optional, but recommended in the manpage
+# "so that systemd can identify the main process of the daemon"
+PIDFile=/var/run/stb_server.pid
+ExecStart=/home/graham_s/julia/vw/ScottishTaxBenefitModel/scripts/run_server.sh
+ExecStop=/bin/kill -WINCH ${MAINPID}
+KillSignal=SIGKILL
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

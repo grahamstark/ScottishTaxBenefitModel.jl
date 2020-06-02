@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="keywords" content="OU, Stuff" />
+    <title>DD226 Microsim Demo</title>
+    <script type='text/javascript' src='/js/jquery.js'></script>
+    <script type='text/javascript' src='/js/jquery-ui/jquery-ui.min.js'></script>
+
+    <!-- vega graphics -->
+    <script type="text/javascript" src="/js/vega-lite.min.js"></script>
+    <script type="text/javascript" src="/js/vega.js"></script>
+    <script type="text/javascript" src="/js/vega-embed.min.js"></script>
+
+    <script type='text/javascript' src="/js/stb-support.js"></script>
+    <script type='text/javascript' src="/js/mustache.min.js"></script>
+    <script type='text/javascript' src="/js/numeral.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/stb.css" />
+    <!--
+    <link rel='stylesheet' href='/css/tacit.min.css'/>
+    -->
+    <link rel='stylesheet' href='/css/font-awsome-all.min.css'/>
+
+    <!-- templates -->
+    <script id="net-cost-t" type="x-tmpl-mustache">
+        <td><p class='{{udclass}}'><strong>{{which_thing}}: {{level-change}}</strong>({{pct-change}}), {{arrow}}</p><td>
+    </script>
+    <script id="marginal-rate-t" type="x-tmpl-mustache">
+        <td><p class='{{class}}'><strong>Average Marginal Rate: {{av_mr}}</strong>, {{arrow}}</p><td>
+    </script>
+    <script id="marginal-rate-t" type="x-tmpl-mustache">
+        <td><p class='{{class}}'><strong>Gainers and Losers: {{av_mr}}</strong>, {{arrow}}</p><td>
+    </script>
+
+</head>

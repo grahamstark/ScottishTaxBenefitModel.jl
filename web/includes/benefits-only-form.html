@@ -1,0 +1,20 @@
+<div id='params' class='params-block'>
+    <form>
+        <fieldset>
+            <legend>Mininum Income Benefit  (&#163;pw)</legend>
+            <label for='benefit1'>Payment</label><input type='number' min='0' max='500' step='0.10' name='benefit1' id='benefit1' value='0.00'/>
+        </fieldset>
+        <fieldset>
+            <legend>Tax Credit-type Benefit (&#163;pw)</legend>
+            <label for='benefit2'>Maximum Payment</label><input type='number' min='0' max='500' step='1' name='benefit2' id='benefit2' value="0.0"/>
+            <label for='ben2_min_hours'>Minimum Hours Needed</label><input type='number' min='0' max='100' step='1' name='ben2_min_hours' id='ben2_min_hours' value='0.0'/>
+            <label for='ben2_u_limit'>Upper Limit</label><input type='number' min='0' max='1000' step='1' name='ben2_u_limit' id='ben2_u_limit' value='0.00'/>
+            <label for='ben2_taper'>Taper above upper limit (%)</label><input type='number' min='0' max='100' step='1' name='ben2_taper' id='ben2_taper' value='0' />
+        </fieldset>
+        <fieldset>
+            <legend>Basic Income (&#163;pw)</legend>
+            <label for='basic_income'>Payment</label><input type='number' min='0' max='500' step='1' name='basic_income' id='basic_income' value='0.00'/>
+        </fieldset>
+        <button id='runbutton' name='runbutton' type="button">Run The Model</button>
+    </form>
+</div>
