@@ -1,0 +1,13 @@
+name = "ScottishTaxBenefitModel"
+uuid = "a734f2ee-4b7f-478f-84ca-797081d39f6e"
+authors = ["Graham Stark"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

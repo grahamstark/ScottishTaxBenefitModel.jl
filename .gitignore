@@ -1,0 +1,15 @@
+*.doc
+*.docx
+*.ini
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
+*.ods
+*.odt
+*.pdf
+*.swp
+*.tab
+*.xlsx
+.~lock*
+/docs/build/
+Manifest.toml
