@@ -13,3 +13,4 @@
 /docs/build/
 Manifest.toml
 model*.tab
+tmp.jl
