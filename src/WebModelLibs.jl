@@ -281,7 +281,7 @@ function local_makebc(
     tbparams :: MiniTB.TBParameters,
     settings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: NamedTuple
    data = Dict( :person=>person, :params=>tbparams )
-   bc = GeneralTaxComponents.makebc( data, local_getnet, settings )
+   bc = BudgetConstraints.makebc( data, local_getnet, settings )
    annotations = annotate_bc( bc )
    ( points = pointstoarray( bc ), annotations = annotations )
 end
