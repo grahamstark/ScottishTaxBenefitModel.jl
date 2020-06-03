@@ -1,11 +1,11 @@
-echo "updating oustb.mazegreenyachts.com.."
+echo "updating stb.virtual-worlds.scot.."
 scripts/deploy_frontend
 #sh ./scripts/commit_and_build $1
-fping -c1 -t300 oustb.mazegreenyachts.com &>/dev/null
+fping -c1 -t300 stb.virtual-worlds.scot &>/dev/null
 if [ "$?" = 0 ]
 then
-   cat scripts/remote_deploy | ssh oustb.mazegreenyachts.com /bin/bash
-   rsync -ax -v  /var/www/ou/stb/ oustb.mazegreenyachts.com:/var/www/ou/stb/
+   cat scripts/remote_deploy | ssh stb.virtual-worlds.scot /bin/bash
+   rsync -ax -v  /var/www/stb/ stb.virtual-worlds.scot:/var/www/stb/
 else
    echo "oustb down"
 fi
