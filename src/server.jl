@@ -155,7 +155,7 @@ function web_doineq( req  :: Dict ) :: AbstractString
       push!( pop, Float64(get_if_set("pop_$i", querydict, 0 )))
    end
    data = hcat( pop, inc )
-   ineq = GeneralTaxComponents.makeinequality( data, 1, 2 )
+   ineq = GeneralTaxComponents.make_inequality( data, 1, 2 )
    JSON.json( ( data=data, ineq=ineq ))
 end
 
