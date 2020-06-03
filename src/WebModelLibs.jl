@@ -128,13 +128,13 @@ function summarise_results!(; results::DataFrame, base_results :: DataFrame )::N
     poverty_line = deciles[1][5,3]*(2.0/3.0)
 
     inequality = []
-    push!( inequality, PovertyAndInequalityMeasures.makeinequality( results, :weight_1, :net_income_1 ))
-    push!( inequality, PovertyAndInequalityMeasures.makeinequality( results, :weight_1, :net_income_2 ))
+    push!( inequality, PovertyAndInequalityMeasures.make_inequality( results, :weight_1, :net_income_1 ))
+    push!( inequality, PovertyAndInequalityMeasures.make_inequality( results, :weight_1, :net_income_2 ))
     push!( inequality, diff_between( inequality[2], inequality[1] ))
 
     poverty = []
-    push!(poverty, PovertyAndInequalityMeasures.makepoverty( results, poverty_line, growth, :weight_1, :net_income_1  ))
-    push!( poverty, PovertyAndInequalityMeasures.makepoverty( results, poverty_line, growth, :weight_1, :net_income_2  ))
+    push!(poverty, PovertyAndInequalityMeasures.make_poverty( results, poverty_line, growth, :weight_1, :net_income_1  ))
+    push!( poverty, PovertyAndInequalityMeasures.make_poverty( results, poverty_line, growth, :weight_1, :net_income_2  ))
     push!( poverty, diff_between( poverty[2], poverty[1] ))
 
     totals = []
