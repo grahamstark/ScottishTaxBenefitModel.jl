@@ -2,7 +2,7 @@ using Test
 using STBParameters
 using JSON
 using Utils
-import TBComponents: WEEKS_PER_YEAR
+import GeneralTaxComponents: WEEKS_PER_YEAR
 
 @testset "IT Parameter Tests" begin
     itsysdir :: IncomeTaxSys = get_default_it_system( year=2019, scotland=true)

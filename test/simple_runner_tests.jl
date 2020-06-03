@@ -1,14 +1,12 @@
 using MiniTB
 using Test
-using TBComponents
+using GeneralTaxComponents
 using CSV
 using DataFrames
 using StatsBase
 using Utils
 using BenchmarkTools
-
-include("../src/web/web_model_libs.jl" )
-
+using WebModelLibs
 
 print_test = false
 

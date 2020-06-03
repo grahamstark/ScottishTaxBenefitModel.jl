@@ -1,4 +1,4 @@
-package WebModelLibs
+module WebModelLibs
 
 using JSON
 using FRSHouseholdGetter
