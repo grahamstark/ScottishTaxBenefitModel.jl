@@ -21,7 +21,7 @@ function initialise(
         start_year = -1 ) :: Tuple
 
     global MODEL_HOUSEHOLDS
-    hh_dataset = CSV.File("$MODEL_DATA_DIR)/$(household_name).tab" ) |> DataFrame
+    hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab" ) |> DataFrame
     # FIXME HORRIBLE HACK - correct (???) weights for num years in dataset
     # we need to generate our own weights here
     nyears = 2018 - start_year
