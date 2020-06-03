@@ -8,6 +8,7 @@ using HouseholdFromFrame
 
 export  initialise, get_household
 
+## FIXME make a constant? As per julia performance guide?
 MODEL_HOUSEHOLDS = Vector{Union{Missing,Household}}(missing,0)
 
 """
