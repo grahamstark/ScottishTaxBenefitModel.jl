@@ -4,8 +4,9 @@ scripts/deploy_frontend
 fping -c1 -t300 stb.virtual-worlds.scot &>/dev/null
 if [ "$?" = 0 ]
 then
-   cat scripts/remote_deploy | ssh stb.virtual-worlds.scot /bin/bash
-   rsync -ax -v  /var/www/stb/ stb.virtual-worlds.scot:/var/www/stb/
+   #  cat scripts/remote_deploy | ssh stb.virtual-worlds.scot /bin/bash
+   rsync -ax -v  /var/www/stb/ stb:/var/www/stb/
+   rsync -ax -v  /home/graham_s/julia/vw/ScottishTaxBenefitModel/ stb:julia/vw/ScottishTaxBenefitModel/
 else
    echo "stb down"
 fi
