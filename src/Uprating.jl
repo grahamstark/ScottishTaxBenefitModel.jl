@@ -95,7 +95,7 @@ function make_uprate_types() :: Dict
     d
 end
 
-UPRATE_MAPPINGS =  make_uprate_types()
+const UPRATE_MAPPINGS =  make_uprate_types()
 
 
 """
@@ -133,7 +133,7 @@ function load_prices() :: DataFrame
     obr
 end
 
-OBR_DATA = load_prices()
+const OBR_DATA = load_prices()
 
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number
     # FIXME this is likely much too slow..
@@ -147,7 +147,5 @@ function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate
     p = OBR_DATA[((OBR_DATA.year.==from_y).&(OBR_DATA.q.==from_q)), colsym][1]
     return item * p
 end
-
-
 
 end

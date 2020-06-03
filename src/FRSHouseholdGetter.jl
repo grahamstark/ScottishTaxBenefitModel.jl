@@ -3,7 +3,7 @@ module FRSHouseholdGetter
 using CSV
 import DataFrames: DataFrame
 using Definitions
-import ModelHousehold: Household
+import ModelHousehold: Household,uprate!
 using HouseholdFromFrame
 using Uprating
 
