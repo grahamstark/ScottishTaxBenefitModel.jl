@@ -279,7 +279,7 @@ end
 function local_makebc(
     person :: MiniTB.Person,
     tbparams :: MiniTB.TBParameters,
-    settings :: BCSettings = DEFAULT_SETTINGS ) :: NamedTuple
+    settings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: NamedTuple
    data = Dict( :person=>person, :params=>tbparams )
    bc = GeneralTaxComponents.makebc( data, local_getnet, settings )
    annotations = annotate_bc( bc )
