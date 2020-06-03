@@ -45,12 +45,12 @@ function basic_run( params, num_households, num_people, base_results)
 
 end # summary_output.timing summary_output.blockt = JSON.json( summary_output )
 
-example_names, num_households, num_people = load_data( load_examples = true, load_main = true, start_year = 2015 )
+example_names, total_num_households, total_num_people = load_data( load_examples = true, load_main = true, start_year = 2015 )
 
 params = deepcopy(DEFAULT_PARAMS)
 
 base_results = create_base_results( num_households, num_people )
 
-t = @benchmark basic_run( params, num_households, num_people, base_results ) seconds=120 samples=10 evals=1
+t = @benchmark basic_run( params, total_num_households, total_num_people, base_results ) seconds=120 samples=10 evals=1
 
 print(t)

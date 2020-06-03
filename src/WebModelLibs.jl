@@ -17,7 +17,7 @@ using Logging
 using PovertyAndInequalityMeasures
 using BudgetConstraints
 
-export do_one_run, load_data, print_output_to_csv
+export do_one_run, load_data, print_output_to_csv, create_base_results
 
 function load_data(; load_examples::Bool, load_main :: Bool, start_year = 2015 )
    example_names = Vector{AbstractString}()
