@@ -319,7 +319,7 @@ function do_one_run( tbparams::MiniTB.TBParameters, num_households :: Integer, n
             # break
             @goto end_of_calcs
          end
-         experson = maptoexample( frsperson )
+         experson = map_to_example( frsperson )
          rc = nothing
          for i in 1:num_repeats
             rc = MiniTB.calculate( experson, tbparams )
