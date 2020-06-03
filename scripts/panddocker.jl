@@ -14,7 +14,10 @@ const DEFAULT_OPTS = Dict(
     "data-dir"          => PANDOC_DIR,
     "css"               =>
             [
+                "/css/tufte.css",
+                "/css/latex.css",
                 "/css/stb.css"
+
             ],
     "include-in-header" => [ "$INCLUDE_DIR/stb-js-headers.html" ],
     "from"              => "markdown+yaml_metadata_block",
