@@ -12,6 +12,7 @@ using ModelHousehold
 using Utils
 using MiniTB
 using GeneralTaxComponents
+using BudgetConstraints
 using HttpCommon
 using Logging, LoggingExtras
 using WebModelLibs
