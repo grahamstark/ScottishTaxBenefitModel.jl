@@ -13,6 +13,7 @@ using Utils
 using MiniTB
 using GeneralTaxComponents
 using BudgetConstraints
+using PovertyAndInequalityMeasures
 using HttpCommon
 using Logging, LoggingExtras
 using WebModelLibs
@@ -155,7 +156,7 @@ function web_doineq( req  :: Dict ) :: AbstractString
       push!( pop, Float64(get_if_set("pop_$i", querydict, 0 )))
    end
    data = hcat( pop, inc )
-   ineq = GeneralTaxComponents.make_inequality( data, 1, 2 )
+   ineq = PovertyAndInequalityMeasures.make_inequality( data, 1, 2 )
    JSON.json( ( data=data, ineq=ineq ))
 end
 
