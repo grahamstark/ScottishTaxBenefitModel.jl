@@ -3,6 +3,7 @@ module ExampleHouseholdGetter
 using ModelHousehold
 using DataFrames
 using CSV
+using Definitions
 
 using HouseholdFromFrame
 

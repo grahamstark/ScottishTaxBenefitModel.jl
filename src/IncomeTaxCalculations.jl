@@ -87,16 +87,22 @@ function make_all_taxable()::Incomes_Dict
     all_t
 end
 
+## FIXME just use the dict..
+function guess_car_percentage_2020_21( sys :: IncomeTaxSys, company_car_fuel_type :: Fuel_Type )
+    return sys.company_car_charge_by_CO2_emissions[company_car_fuel_type]
+end
+
 function calculate_company_car_charge(
-    pers :: Person,
+    pers   :: Person,
+    sys    :: IncomeTaxSys,
     calculator :: Function = guess_car_percentage_2020_21 ) :: Real
     value = max(0.0, pers.company_car_value-
         pers.company_car_contribution )
     if pers.fuel_supplied > 0.0
         value += sys.fuel_imputation
     end
-    pct = calculator( pers.company_car_fuel_type )
-    value * pct
+    prop = calculator( sys, pers.company_car_fuel_type )
+    value * prop
 end
 
 function make_non_savings()::Incomes_Dict
