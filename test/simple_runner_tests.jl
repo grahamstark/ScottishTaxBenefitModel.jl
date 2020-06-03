@@ -21,7 +21,7 @@ function basic_run( params, num_households, num_people, base_results)
     json_out=missing
     results=missing
     params.it_rate[1] = 0.66
-    results = doonerun( params, num_households, num_people, num_repeats )
+    results = do_one_run( params, num_households, num_people, num_repeats )
     summary_output = summarise_results!( results=results, base_results=base_results )
 
     if print_test
