@@ -1,6 +1,6 @@
 using Test
 import ModelHousehold: Household, Person, People_Dict, default_bu_allocation
-import FRSHouseholdGetter
+# import FRSHouseholdGetter
 import ExampleHouseholdGetter
 using Definitions
 import Dates: Date
