@@ -3,4 +3,4 @@
 /bin/cp -f web/js/stb-support.js /var/www/stb/js/
 /bin/cp -arf web/images /var/www/stb/
 /bin/cp -f web/css/oustb.css /var/www/stb/css/
-/bin/cp -arf book/build/ /var/www/ou/stb/
+/bin/cp -arf book/build/ /var/www/stb/

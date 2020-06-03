@@ -1,11 +1,11 @@
-echo "updating oustb.."
+echo "updating stb.."
 scripts/deploy_frontend
 #sh ./scripts/commit_and_build $1
-fping -c1 -t300 oustb &>/dev/null
+fping -c1 -t300 stb &>/dev/null
 if [ "$?" = 0 ]
 then
-   cat scripts/remote_deploy | ssh oustb /bin/bash
-   rsync -ax -v  /var/www/ou/stb/ oustb:/var/www/ou/stb/
+   cat scripts/remote_deploy | ssh stb /bin/bash
+   rsync -ax -v  /var/www/stb/ stb:/var/www/stb/
 else
-   echo "oustb down"
+   echo "stb down"
 fi
