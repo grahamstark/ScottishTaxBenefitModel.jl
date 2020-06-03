@@ -174,7 +174,7 @@ function calc_income_tax(
     non_dividends = non_savings + savings
 
     adjusted_net_income = total_income
-    adjusted_net_income += calculate_company_car_charge(sys, pers)
+    adjusted_net_income += calculate_company_car_charge(pers, sys)
     # ...
 
     non_savings_tax = TaxResult(0.0, 0)
