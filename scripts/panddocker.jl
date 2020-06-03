@@ -1,11 +1,11 @@
 using CSV
 using DataFrames
 
-STB_DIR="/home/graham_s/STB/docs/"
+STB_DIR="book/src/"
 MD_DIR = "$STB_DIR/sections/"
 BIB_FILE = "$STB_DIR/data/stb.bib"
 META_FILE = "$STB_DIR/data/stb-metadata.yaml"
-OUT_DIR = "/var/www/ou/stb/"
+OUT_DIR = "book/build"
 INCLUDE_DIR = "/home/graham_s/julia/vw/ScottishTaxBenefitModel/web/includes/"
 PANDOC_DIR = "/home/graham_s/pandoc_data/"
 NullableString = Union{Missing,AbstractString}

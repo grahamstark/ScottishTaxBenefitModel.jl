@@ -105,6 +105,8 @@ function calculate_company_car_charge(
     value * prop
 end
 
+# TODO pension contributions
+
 function make_non_savings()::Incomes_Dict
     excl = union(Set(keys(DIVIDEND_INCOME)), Set( keys(SAVINGS_INCOME)))
     nsi = make_all_taxable()

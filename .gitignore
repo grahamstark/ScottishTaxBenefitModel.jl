@@ -11,6 +11,7 @@
 *.xlsx
 .~lock*
 /docs/build/
+/book/build/
 Manifest.toml
 model*.tab
 tmp.jl
