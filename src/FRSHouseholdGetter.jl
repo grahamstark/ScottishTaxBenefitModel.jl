@@ -5,6 +5,7 @@ import DataFrames: DataFrame
 using Definitions
 import ModelHousehold: Household
 using HouseholdFromFrame
+using Uprating
 
 export  initialise, get_household
 
