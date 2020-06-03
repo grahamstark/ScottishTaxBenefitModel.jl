@@ -14,7 +14,7 @@ start_year=2015
             people_name    = "model_people_scotland",
             start_year = start_year )
       end
-      println( "num_households=$num_households, num_people=$num_people")
+      println( "num_households=$num_households, num_people=$(total_num_people)")
       people_count = 0
       for hhno in 1:num_households
             hh = get_household( hhno )
