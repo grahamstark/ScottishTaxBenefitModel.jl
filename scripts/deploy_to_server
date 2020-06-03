@@ -7,5 +7,5 @@ then
    cat scripts/remote_deploy | ssh stb.virtual-worlds.scot /bin/bash
    rsync -ax -v  /var/www/stb/ stb.virtual-worlds.scot:/var/www/stb/
 else
-   echo "oustb down"
+   echo "stb down"
 fi

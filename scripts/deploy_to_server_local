@@ -1,6 +1,5 @@
 echo "updating stb.."
 scripts/deploy_frontend
-#sh ./scripts/commit_and_build $1
 fping -c1 -t300 stb &>/dev/null
 if [ "$?" = 0 ]
 then

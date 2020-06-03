@@ -4,7 +4,7 @@ using JSON
 import Base.Threads.@spawn
 
 const TEST_URL = "http://localhost:8000/stb"
-const LIVE_URL = "https://oustb.virtual-worlds.scot/oustb/stb/"
+const LIVE_URL = "https://stb.virtual-worlds.scot/stb/"
 
 function getdata( rate1:: Real, rate2 :: Real ) :: Dict
     url = "$(LIVE_URL)/?it_allow=12500&it_rate_1=$rate1&it_rate_$rate2&it_band=50000"

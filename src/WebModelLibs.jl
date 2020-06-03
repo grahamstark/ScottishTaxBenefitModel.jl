@@ -248,7 +248,7 @@ end
 function print_output_to_csv( output :: NamedTuple, dir :: AbstractString = "/var/tmp/" ) :: AbstractString
     datestr = basiccensor( "$(now())")
     randstr = randstring( 32 )
-    filename = "$dir/oustb_$(datestr)_$(randstr).tab"
+    filename = "$dir/stb_$(datestr)_$(randstr).tab"
     f = open( filename, write=true )
     #CSV.write( f, ["A","B"])
     CSV,write( f, [1 2 3; 4 5 6])

@@ -5,7 +5,7 @@ STB_DIR="book/src/"
 MD_DIR = "$STB_DIR/sections/"
 BIB_FILE = "$STB_DIR/data/stb.bib"
 META_FILE = "$STB_DIR/data/stb-metadata.yaml"
-OUT_DIR = "book/build"
+OUT_DIR = "book/build/"
 INCLUDE_DIR = "web/includes/"
 PANDOC_DIR = "/home/graham_s/pandoc_data/"
 NullableString = Union{Missing,AbstractString}
@@ -16,7 +16,7 @@ const DEFAULT_OPTS = Dict(
             [
                 "/css/stb.css"
             ],
-    "include-in-header" => [ "$INCLUDE_DIR/ou-js-headers.html" ],
+    "include-in-header" => [ "$INCLUDE_DIR/stb-js-headers.html" ],
     "from"              => "markdown+yaml_metadata_block",
     "section-divs"      => true,
     "standalone"        => true,

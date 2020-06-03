@@ -662,7 +662,7 @@ stb.runInequality = function( ){
     }
     console.log( "incomes="+JSON.stringify(inca));
     $.ajax(
-        { url: "/oustb/ineq/",
+        { url: "/stb/ineq/",
          method: 'get',
          dataType: 'json',
          data: { // can't get Julia to parse an json array correctly, so..
@@ -709,7 +709,7 @@ stb.runModel = function( which_action ){
     var basic_income = $("#basic_income").val();
     // $( '#output').html( "<div/>", {id:'loader'}); // a spinner
     $.ajax(
-        { url: "/oustb/"+which_action+"/",
+        { url: "/stb/"+which_action+"/",
          method: 'get',
          dataType: 'json',
          data: {
