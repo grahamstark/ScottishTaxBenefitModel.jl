@@ -197,7 +197,7 @@ LogLevel( Logging.Info )
 #
 # ourstack = stack(Mux.todict, errorCatch, Mux.splitquery, Mux.toresponse) # from DiffEq
 #
-@app dd226 = (
+@app stbdemo = (
    Mux.defaults,
    addqstrdict,
    page( respond("<h1>A Scottish Tax-Benefit Model</h1><p>; very early version</p>")),
@@ -218,7 +218,7 @@ if length(ARGS) > 0
    port = parse(Int64, ARGS[1])
 end
 
-serve(dd226, port)
+serve(stbdemo, port)
 
 while true # FIXME better way?
    @debug "main loop; server running on port $port"
