@@ -51,7 +51,7 @@ function poverty_targetting_adder( dfr :: DataFrameRow, data :: Dict ) :: Real
 end
 
 function create_base_results( num_households :: Integer, num_people :: Integer )
-   base_results = doonerun( MiniTB.DEFAULT_PARAMS, num_households, num_people, 1 )
+   base_results = do_one_run( MiniTB.DEFAULT_PARAMS, num_households, num_people, 1 )
    basenames = names( base_results )
    basenames = addsysnotoname( basenames, 1 )
    rename!( base_results, basenames )

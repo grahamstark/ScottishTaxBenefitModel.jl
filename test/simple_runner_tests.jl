@@ -49,7 +49,7 @@ example_names, total_num_households, total_num_people = load_data( load_examples
 
 params = deepcopy(DEFAULT_PARAMS)
 
-base_results = create_base_results( num_households, num_people )
+base_results = create_base_results( total_num_households, total_num_people )
 
 t = @benchmark basic_run( params, total_num_households, total_num_people, base_results ) seconds=120 samples=10 evals=1
 
