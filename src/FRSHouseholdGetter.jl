@@ -1,6 +1,6 @@
 module FRSHouseholdGetter
 
-import CSV
+using CSV
 import DataFrames: DataFrame
 using Definitions
 import ModelHousehold: Household
