@@ -279,3 +279,5 @@ function delete_thresholds_up_to( ; rates :: RateBands, thresholds :: RateBands,
    end
    rates, thresholds
 end
+
+end # module
