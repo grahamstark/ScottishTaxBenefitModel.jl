@@ -6,7 +6,7 @@ MD_DIR = "$STB_DIR/sections/"
 BIB_FILE = "$STB_DIR/data/stb.bib"
 META_FILE = "$STB_DIR/data/stb-metadata.yaml"
 OUT_DIR = "book/build"
-INCLUDE_DIR = "/home/graham_s/julia/vw/ScottishTaxBenefitModel/web/includes/"
+INCLUDE_DIR = "web/includes/"
 PANDOC_DIR = "/home/graham_s/pandoc_data/"
 NullableString = Union{Missing,AbstractString}
 
@@ -14,8 +14,7 @@ const DEFAULT_OPTS = Dict(
     "data-dir"          => PANDOC_DIR,
     "css"               =>
             [
-                "/css/ou-clone.css",
-                "/css/oustb.css"
+                "/css/stb.css"
             ],
     "include-in-header" => [ "$INCLUDE_DIR/ou-js-headers.html" ],
     "from"              => "markdown+yaml_metadata_block",
@@ -28,7 +27,7 @@ const DEFAULT_OPTS = Dict(
     "csl"               => "$PANDOC_DIR/chicago-note-bibliography.csl",
     "to"                => "html5",
     # FIXME this is broken "filter"            => "pandoc-citeproc",
-    "template"          => "$INCLUDE_DIR/ou-template.html"
+    "template"          => "$INCLUDE_DIR/stb-template.html"
 
 );
 
@@ -111,7 +110,7 @@ function addone(
     run( `$cmd` )
 end
 
-df = CSV.File( "$INCLUDE_DIR/ou-files.csv") |> DataFrame
+df = CSV.File( "$INCLUDE_DIR/stb-files.csv") |> DataFrame
 
 # addone( 1, 2, "Introduction",missing,missing,"intro",missing,missing)
 
