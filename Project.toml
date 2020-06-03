@@ -22,6 +22,7 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
 CSV = "0.6.2"
+CSVFiles = "1.0.0"
 DataFrames = "0.21.2"
 IterableTables = "1.0.0"
 IteratorInterfaceExtensions = "1.0.0"
