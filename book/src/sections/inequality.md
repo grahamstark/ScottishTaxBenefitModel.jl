@@ -59,7 +59,7 @@ There is a huge technical literature on inequality. Many other summary indexes h
 
 As with poverty measures, there's a tension between how sophisticated these measures are and how easy they are to explain to non-specialists. The Palma index, in particular, is very easy to explain, and so has become very popular, but arguably lacks a strong basis - it clearly violates Dalton's principle, for example, since upward redistributions within the bottom 40%, the middle 50, or the top 10%, do not change the value of the Palma.
 
-##### Activity
+#### Activity
 
 What happens to poverty, inequality, and mean and median incomes if:
 
