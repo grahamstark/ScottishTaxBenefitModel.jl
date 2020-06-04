@@ -36,6 +36,9 @@
 
 #input-section-if-any{
     /*width:100%;*/
+    font-family: "Gill Sans", "Gill Sans MT", sans-serif;
+    font-size: 12pt;
+
     display:inline-grid;
     padding: 10px;
     grid-template-columns: 35% auto;
@@ -54,11 +57,34 @@
 .stb-table{
     width: 95%;
     table-layout : fixed;
+    vertical-align: top;
+    text-align: left;
+    font-size: 11pt;
 }
 
 .stb-table td{
+    vertical-align: top;
+    text-align: left;
     min-height: 150px;
 }
+
+.stb-table td p, .stb-table td ul{
+    font-size: 11pt;
+    width: 100%;
+}
+
+.stb-table td ul{
+    list-style: none;
+    padding:0;
+}
+
+.stb-table td > h4{
+    font-size: 11pt;
+    align: center;
+}
+
+
+
 
 section{
     width:100%;
@@ -122,18 +148,22 @@ small hacks since we're appending notes and references to every page.
 }
 
 fieldset{
-    font-family: "Gill Sans", "Gill Sans MT", sans-serif;
     display: inline-table;
-    font-size: 10pt;
 }
 
 fieldset > label{
-    display: table-cell;
-    width: 50%;
-    font-weight: bold;
+    display: table-row;
+
 }
 
 fieldset > input{
     display: table-cell;
-    width: 40%;
+}
+
+fieldset > legend{
+    color: grey;
+}
+
+fieldset{
+    border: 1px solid silver;
 }
