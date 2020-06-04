@@ -8,7 +8,7 @@ User=graham_s
 EnvironmentFile=/etc/systemd/user/gks_environment
 # The PID file is optional, but recommended in the manpage
 # "so that systemd can identify the main process of the daemon"
-PIDFile=/var/run/stb_server.pid
+PIDFile=/run/stb.pid
 ExecStart=/home/graham_s/julia/vw/ScottishTaxBenefitModel/scripts/run_server.sh
 ExecStop=/bin/kill -WINCH ${MAINPID}
 KillSignal=SIGKILL
