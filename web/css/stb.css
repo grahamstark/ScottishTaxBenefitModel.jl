@@ -120,3 +120,20 @@ small hacks since we're appending notes and references to every page.
     font-style: italic;
     font
 }
+
+fieldset{
+    font-family: "Gill Sans", "Gill Sans MT", sans-serif;
+    display: inline-table;
+    font-size: 10pt;
+}
+
+fieldset > label{
+    display: table-cell;
+    width: 50%;
+    font-weight: bold;
+}
+
+fieldset > input{
+    display: table-cell;
+    width: 40%;
+}

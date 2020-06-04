@@ -112,17 +112,17 @@ const ZERO_DEFAULT_BC = local_makebc(MiniTB.DEFAULT_PERSON, MiniTB.ZERO_PARAMS)
 const ZERO_TAX_BC = local_makebc(MiniTB.DEFAULT_PERSON, ZERO_TAX_PARAMS, BC_500_SETTINGS )
 
 function main_run_to_json( tbparams :: MiniTB.TBParameters ):: String
-   results = doonerun( tbparams, num_households, num_people, NUM_REPEATS )
+   results = do_one_run( tbparams, num_households, num_people, NUM_REPEATS )
    summary_output = summarise_results!( results=results, base_results=BASE_RESULTS )
    JSON.json( summary_output )
 end
 
-function web_doonerun( req :: Dict ) :: AbstractString
-   @info "web_doonerun; running on thread $(Threads.threadid())"
+function web_do_one_run( req :: Dict ) :: AbstractString
+   @info "web_do_one_run; running on thread $(Threads.threadid())"
    tbparams = web_map_params( req )
    json = main_run_to_json( tbparams )
    # headers could include (e.g.) a timestamp, so add after caching
-end # doonerun
+end # do_one_run
 
 
 function web_makebc( req  :: Dict ) :: AbstractString
@@ -209,8 +209,8 @@ LogLevel( Logging.Info )
    page("/ztbc", req -> do_in_thread( web_makeztbc, req )),
    # handle main stb run a bit differently so we can
    # check & cache the results.
-   # page("/stb", req -> web_doonerun_cached( req )),
-   page("/stb", req -> do_in_thread( web_doonerun, req )),
+   # page("/stb", req -> web_do_one_run_cached( req )),
+   page("/stb", req -> do_in_thread( web_do_one_run, req )),
    Mux.notfound(),
 )
 
