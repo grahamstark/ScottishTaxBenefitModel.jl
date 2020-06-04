@@ -50,7 +50,6 @@ $if(next)$
    <a href='$next$'>Next</a>
 $endif$
   </nav>
-<div id="ou-org">
 $if(title)$
 <header>
 <h1 class="title">$title$</h1>
@@ -65,6 +64,7 @@ $if(date)$
 $endif$
 </header>
 $endif$
+$if(include-before)$
 <div id='input-section-if-any'>
 
   $for(include-before)$
@@ -72,12 +72,13 @@ $endif$
   $endfor$
 
 </div>
-<p>&nbsp;</p>
+$endif$
 $if(toc)$
 <nav id="$idprefix$TOC">
 $table-of-contents$
 </nav>
 $endif$
+
 $body$
 
 <hr/>
@@ -99,6 +100,5 @@ $endfor$
   $endif$
     </nav>
 </footer>
-</div><!-- ou div -->
 </body>
 </html>

@@ -91,15 +91,10 @@ section{
     display:block;
 }
 
-body{
-
-    padding:5pt;
-
-}
 
 .fixtable{
     border-collapse:collapse;
-    border:0'
+    border:0;
 
 }
 
@@ -126,7 +121,7 @@ small hacks since we're appending notes and references to every page.
 .references:before{
     font-weight:bold;
     font-size:110%;
-    content: 'References'
+    content: 'References';
 }
 
 .footnotes{
@@ -166,4 +161,8 @@ fieldset > legend{
 
 fieldset{
     border: 1px solid silver;
+}
+
+section{
+    text-align: justify;
 }
