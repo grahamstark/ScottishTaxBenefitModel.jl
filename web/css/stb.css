@@ -116,6 +116,8 @@ small hacks since we're appending notes and references to every page.
 **/
 .references{
     border-top: 2px solid silver;
+    width: 55%; /** note: this just aligns
+    the biblio with the p elements in the Tufte stuff **/
 }
 
 .references:before{
