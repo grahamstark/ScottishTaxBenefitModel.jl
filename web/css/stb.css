@@ -56,7 +56,7 @@
 /* see: https://stackoverflow.com/questions/5713410/how-to-equally-distribute-columns-width-in-html-table-when-the-number-of-them-is */
 .stb-table{
     width: 95%;
-    table-layout : fixed;
+    table-layout: fixed;
     vertical-align: top;
     text-align: left;
     font-size: 11pt;
