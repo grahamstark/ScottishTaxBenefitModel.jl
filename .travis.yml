@@ -8,6 +8,8 @@ os:
   - linux
 arch:
   - x64
+env:
+  - JULIA_LOAD_PATH=src/
 jobs:
   fast_finish: true
   allow_failures:
