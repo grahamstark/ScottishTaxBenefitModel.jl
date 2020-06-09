@@ -1,4 +1,8 @@
 # call each time on activating this package
 using Revise
-push!( LOAD_PATH, "src/")
-`git pull`
+
+##  for Travis - must be a better way ...
+if ! ( "src/" in LOAD_PATH )
+    push!( LOAD_PATH, "src/")
+#    push!( LOAD_PATH, "../src/")
+end

@@ -7,6 +7,6 @@ module SingleHouseholdCalculations
 using Definitions
 using Results
 using STBParameters
-using Household
+using ModelHousehold
 
 end

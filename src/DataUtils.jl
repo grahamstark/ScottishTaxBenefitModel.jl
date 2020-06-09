@@ -44,8 +44,6 @@ function add_to!( mms :: MinMaxes, addn :: Dict )
     end
 end
 
-import Base.show
-
 function show( io::IO, mms :: MinMaxes{T} ) where T
     s = ""
     ks = sort(collect(keys(mms.poscounts)))
