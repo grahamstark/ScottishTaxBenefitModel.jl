@@ -1,6 +1,7 @@
 module ScottishTaxBenefitModel
 
 import Definitions
+import Utils
 import ExampleHouseholdGetter
 import FRSHouseholdGetter
 import GeneralTaxComponents
