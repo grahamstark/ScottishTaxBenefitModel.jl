@@ -23,6 +23,4 @@ import Uprating
 import WebModelLibs
 import household_mapping_frs
 
-
-
 end

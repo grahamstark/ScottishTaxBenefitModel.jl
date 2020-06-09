@@ -8,8 +8,8 @@ os:
   - linux
 arch:
   - x64
-#env:
-#  - JULIA_LOAD_PATH="src/:$JULIA_LOAD_PATH"
+env:
+  - JULIA_LOAD_PATH="src/:$JULIA_LOAD_PATH"
 jobs:
   fast_finish: true
   allow_failures:
