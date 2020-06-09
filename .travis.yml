@@ -9,7 +9,7 @@ os:
 arch:
   - x64
 env:
-  - LOAD_PATH="src/:$LOAD_PATH"
+  - JULIA_LOAD_PATH="src/:$JULIA_LOAD_PATH"
 jobs:
   fast_finish: true
   allow_failures:
