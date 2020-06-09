@@ -1,10 +1,5 @@
 module ScottishTaxBenefitModel
 
-##  for Travis - must be a better way ...
-if ! ( "src/" in LOAD_PATH )
-    push!( LOAD_PATH, "src/")
-end
-
 import Definitions
 import ExampleHouseholdGetter
 import FRSHouseholdGetter
