@@ -1,21 +1,21 @@
 
-module ScottishTaxBenefitModel
+module ScottishTaxBenefitModelMain
 
+using Reexport
 
-import Definitions
-import Utils
-import DataUtils
-import ExampleHouseholdGetter
-import FRSHouseholdGetter
-import GeneralTaxComponents
-import HouseholdFromFrame
-import IncomeTaxCalculations
-import MiniTB
-import ModelHousehold
-import STBParameters
-import SingleHouseholdCalculations
-import Uprating
-import WebModelLibs
-import household_mapping_frs
+@reexport using Definitions
+@reexport using Utils
+@reexport using DataUtils
+@reexport using ExampleHouseholdGetter
+@reexport using FRSHouseholdGetter
+@reexport using GeneralTaxComponents
+@reexport using HouseholdFromFrame
+@reexport using IncomeTaxCalculations
+@reexport using MiniTB
+@reexport using ModelHousehold
+@reexport using STBParameters
+@reexport using SingleHouseholdCalculations
+@reexport using Uprating
+@reexport using WebModelLibs
 
 end
