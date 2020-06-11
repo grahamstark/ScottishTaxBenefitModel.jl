@@ -1,5 +1,5 @@
 
-module ScottishTaxBenefitModelMain
+module ScottishTaxBenefitModelExports
 
 using Reexport
 
