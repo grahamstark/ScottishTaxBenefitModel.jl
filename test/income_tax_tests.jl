@@ -1,11 +1,12 @@
 using Test
-import ModelHousehold: Household, Person, People_Dict, default_bu_allocation
+using ScottishTaxBenefitModel
+import ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, default_bu_allocation
 # import FRSHouseholdGetter
-import ExampleHouseholdGetter
-using Definitions
+import ScottishTaxBenefitModel.ExampleHouseholdGetter
+using ScottishTaxBenefitModel.Definitions
 import Dates: Date
-import IncomeTaxCalculations: old_enough_for_mca, apply_allowance, calc_income_tax
-import STBParameters: IncomeTaxSys, get_default_it_system
+import ScottishTaxBenefitModel.IncomeTaxCalculations: old_enough_for_mca, apply_allowance, calc_income_tax
+import ScottishTaxBenefitModel.STBParameters: IncomeTaxSys, get_default_it_system
 
 const RUK_PERSON = 100000001001
 const SCOT_HEAD = 100000001002

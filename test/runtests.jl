@@ -1,10 +1,6 @@
 # using ScottishTaxBenefitModel
 using Test
-
-##  for Travis - must be a better way ...
-if ! ( "src/" in LOAD_PATH )
-    push!( LOAD_PATH, "src/")
-end
+using ScottishTaxBenefitModel
 
 include( "income_tax_tests.jl")
 include( "parameter_tests.jl")

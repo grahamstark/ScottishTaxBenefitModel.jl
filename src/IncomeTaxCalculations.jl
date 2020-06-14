@@ -3,12 +3,12 @@ module IncomeTaxCalculations
 import Dates
 import Dates: Date, now, TimeType, Year
 
-import ModelHousehold: Person
-import STBParameters: IncomeTaxSys
-import GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
-import Parameters: @with_kw
+using ScottishTaxBenefitModel.Definitions
 
-using Definitions
+import ScottishTaxBenefitModel.ModelHousehold: Person
+import ScottishTaxBenefitModel.STBParameters: IncomeTaxSys
+import ScottishTaxBenefitModel.GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
+import Parameters: @with_kw
 
 export calc_income_tax, old_enough_for_mca, apply_allowance, ITResult
 export calculate_company_car_charge

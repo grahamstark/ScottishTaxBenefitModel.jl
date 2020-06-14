@@ -1,10 +1,11 @@
 #
+using ScottishTaxBenefitModel
 using DataFrames
 using CSV
 using CSVFiles # use this over CSV because of this bug: https://github.com/JuliaData/CSV.jl/issues/568
-using Utils
-using Definitions
-import GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+using ScottishTaxBenefitModel.Utils
+using ScottishTaxBenefitModel.Definitions
+import ScottishTaxBenefitModel.GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
 
 global MONTHS = Dict(
     "JAN" => 1,

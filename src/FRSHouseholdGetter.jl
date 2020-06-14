@@ -2,10 +2,11 @@ module FRSHouseholdGetter
 
 using CSV
 import DataFrames: DataFrame
-using Definitions
-import ModelHousehold: Household,uprate!
-using HouseholdFromFrame
-using Uprating
+
+using ScottishTaxBenefitModel.Definitions
+import ScottishTaxBenefitModel.ModelHousehold: Household,uprate!
+using ScottishTaxBenefitModel.HouseholdFromFrame
+using ScottishTaxBenefitModel.Uprating
 
 export  initialise, get_household
 

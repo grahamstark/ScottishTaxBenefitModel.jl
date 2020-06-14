@@ -1,12 +1,14 @@
-using MiniTB
 using Test
-using GeneralTaxComponents
 using CSV
 using DataFrames
 using StatsBase
 using Utils
 using BenchmarkTools
-using WebModelLibs
+
+using ScottishTaxBenefitModel
+using ScottishTaxBenefitModel.MiniTB
+using ScottishTaxBenefitModel.WebModelLibs
+using ScottishTaxBenefitModel.GeneralTaxComponents
 
 print_test = false
 
@@ -47,7 +49,7 @@ end # summary_output.timing summary_output.blockt = JSON.json( summary_output )
 
 example_names, total_num_households, total_num_people = load_data( load_examples = true, load_main = true, start_year = 2015 )
 
-params = deepcopy(DEFAULT_PARAMS)
+params = deepcopy(ScottishTaxBenefitModel.MiniTB.DEFAULT_PARAMS)
 
 base_results = create_base_results( total_num_households, total_num_people )
 

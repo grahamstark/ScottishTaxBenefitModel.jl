@@ -1,6 +1,6 @@
-import FRSHouseholdGetter: initialise, get_household
+import ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household
 import Test: @testset, @test
-import ModelHousehold: Household, Person, People_Dict, BUAllocation,
+import ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, BUAllocation,
       PeopleArray, printpids,
       BenefitUnit, BenefitUnits, default_bu_allocation,
       get_benefit_units, get_head, get_spouse, num_people

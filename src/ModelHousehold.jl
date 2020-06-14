@@ -1,8 +1,9 @@
 module ModelHousehold
 
-using Definitions
-using Uprating
 using Dates
+
+using ScottishTaxBenefitModel.Definitions
+using ScottishTaxBenefitModel.Uprating
 
 export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
@@ -296,7 +297,7 @@ function printpids( buas::BUAllocation )
         end
     end
 end
-  
-  
+
+
 
 end

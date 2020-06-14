@@ -1,7 +1,7 @@
 module MiniTB
 
-using GeneralTaxComponents
-using Parameters
+using ScottishTaxBenefitModel.GeneralTaxComponents
+import Parameters: @with_kw
 #
 # A toy tax-benefit system with outlines of the components
 # a real model would need: models of people (and households)
@@ -27,128 +27,47 @@ const NullableFloat = Union{Missing,Float64}
 const NullableInt = Union{Missing,Integer}
 const NullableArray = Union{Missing,Array{Float64}}
 
-mutable struct Person
-   pid::BigInt
-   wage::Float64
-   hours::Float64
-   age::Integer
-   sex::Gender
-end
-
-mutable struct Household
-   hid :: Integer
-   rent::Float64
-   people::Vector{Person}
-end
-
 const DEFAULT_HOURS = 30
 const DEFAULT_WAGE = 5.0
 
-const DEFAULT_PERSON = Person( BigInt(1), DEFAULT_HOURS*DEFAULT_WAGE, DEFAULT_HOURS, 40, Female)
-const DEFAULT_HOUSEHOLD = Household( 1, 200.0, [DEFAULT_PERSON])
 
-function modifiedcopy(
-   copyFrom::Person;
-   wage::NullableFloat = missing,
-   hours::NullableFloat,
-   age::NullableInt = missing,
-)::Person
+@with_kw mutable struct Person
+   pid::BigInt = 1
+   wage::Float64 = DEFAULT_WAGE
+   hours::Float64 = DEFAULT_HOURS
+   age::Integer = 40
+   sex::Gender = Male
+end
 
-   Person(
-      copyFrom.pid,
-      wage !== missing ? wage : copyFrom.wage,
-      hours !== missing ? hours : copyFrom.hours,
-      age !== missing ? age : copyFrom.age,
-      copyFrom.sex
-   )
+@with_kw mutable struct Household
+   hid :: Integer = 1
+   rent::Float64 = 100.0
+   people::Vector{Person} = [Person()]
+end
+
+const DEFAULT_PERSON = Person()
+const DEFAULT_HOUSEHOLD = Household()
+
+function weeklyise( x :: Real ) :: Real
+   x / (365.25/7)
+end
+
+@with_kw mutable struct TBParameters
+   it_allow::Float64 = weeklyise(12_500)
+   it_rate::RateBands = [0.20, 0.4]
+   it_band::RateBands = [weeklyise(50_000), 9999999999999999999.99]
+
+   benefit1::Float64 = 73.00
+   benefit2::Float64 = 101.0
+   ben2_min_hours::Float64 = 30.0
+   ben2_taper::Float64 = 0.41
+   ben2_u_limit::Float64 = 123.0
+   basic_income::Float64 = 0.0
+
 end
 
 
-mutable struct TBParameters
-   it_allow::Float64
-   it_rate::RateBands
-   it_band::RateBands
-
-   benefit1::Float64
-   benefit2::Float64
-   ben2_min_hours::Float64
-   ben2_taper::Float64
-   ben2_u_limit::Float64
-   basic_income::Float64
-
-   # attempt a constructor with named TBParameters
-   function TBParameters(
-      ;
-      it_allow::Float64,
-      it_rate::RateBands,
-      it_band::RateBands,
-
-      benefit1::Float64,
-      benefit2::Float64,
-      ben2_min_hours::Float64,
-      ben2_taper::Float64,
-      ben2_u_limit::Float64,
-      basic_income::Float64
-   )
-      new(
-         it_allow,
-         it_rate,
-         it_band,
-         benefit1,
-         benefit2,
-         ben2_min_hours,
-         ben2_taper,
-         ben2_u_limit,
-         basic_income
-      )
-   end
-end
-
-#
-# Just a test of an idea
-# e.g newpars = modifiedcopy( DEFAULT_PARAMS, it_allow=3_000 )
-#
-function modifiedcopy(
-   copyFrom::TBParameters;
-   it_allow::NullableFloat = missing,
-   it_rate::NullableArray = missing,
-   it_band::NullableArray = missing,
-
-   benefit1::NullableFloat = missing,
-   benefit2::NullableFloat = missing,
-   ben2_min_hours::NullableFloat = missing,
-   ben2_taper::NullableFloat = missing,
-   ben2_u_limit::NullableFloat = missing,
-   basic_income::NullableFloat = missing,
-
-)::TBParameters
-
-   x = it_allow !== missing ? it_allow : copyFrom.it_allow
-   TBParameters(
-      it_allow = it_allow !== missing ? it_allow : copyFrom.it_allow,
-      it_rate = it_rate !== missing ? it_rate : copyFrom.it_rate,
-      it_band = it_band !== missing ? it_band : copyFrom.it_band,
-
-      benefit1 = benefit1 !== missing ? benefit1 : copyFrom.benefit1,
-      benefit2 = benefit2 !== missing ? benefit2 : copyFrom.benefit2,
-      ben2_min_hours = ben2_min_hours !== missing ? ben2_min_hours : copyFrom.ben2_min_hours,
-      ben2_taper = ben2_taper !== missing ? ben2_taper : copyFrom.ben2_taper,
-      ben2_u_limit = ben2_u_limit !== missing ? ben2_u_limit : copyFrom.ben2_u_limit,
-      basic_income = basic_income !== missing ? basic_income : copyFrom.basic_income
-   )
-end
-
-const DEFAULT_PARAMS = TBParameters(
-   it_allow = weeklyise(12_500),
-   it_rate = [0.20, 0.4],
-   it_band = [weeklyise(50_000), 9999999999999999999.99],
-   benefit1 = 73.00,
-   benefit2 = 101.0, # weeklyise( 1_960.0+ 545+2_780.0),
-   ben2_min_hours = 30.0,
-   ben2_taper = 0.41,
-   ben2_u_limit = 123.00,
-   basic_income = 0.0
-)
+const DEFAULT_PARAMS = TBParameters()
 
 const ZERO_PARAMS = TBParameters(
    it_allow = 0.0,
@@ -162,7 +81,7 @@ const ZERO_PARAMS = TBParameters(
    basic_income = 0.0
 )
 
-# import Base.==
+import Base.==
 
 function equal( l :: TBParameters, r :: TBParameters ) :: Bool
    (l.it_allow == r.it_allow) &&
@@ -184,8 +103,6 @@ function ==( l::TBParameters, r::TBParameters)::Bool
 end
 
 const Results = Dict{Symbol,Any}
-
-## need to include taxcalcs higher up
 
 function calculatetax(pers::Person, params::TBParameters)::Float64
    taxable = max(0.0, pers.wage - params.it_allow)

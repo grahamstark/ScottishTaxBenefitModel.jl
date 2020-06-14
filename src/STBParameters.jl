@@ -1,11 +1,12 @@
 module STBParameters
 
-   import GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
    using Parameters
-   import Utils
    import JSON
 
-   using Definitions
+   import ScottishTaxBenefitModel.GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+   using ScottishTaxBenefitModel.Definitions
+   import ScottishTaxBenefitModel.Utils
+
 
    export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
    export weeklyise!, annualise!, fromJSON, get_default_it_system

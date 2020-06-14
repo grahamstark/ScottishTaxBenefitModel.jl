@@ -6,7 +6,7 @@ using Base.Unicode
 
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!
-export loadtoframe, age_in_years, isapprox, ≈
+export loadtoframe, age_in_years, isapprox #, ≈
 
 
 function addsysnotoname(names, sysno)::Array{Symbol,1}
@@ -29,7 +29,7 @@ function get_if_set(key, dict::Dict, default; operation=nothing)
    v
 end
 
-import Base.isapprox
+# import Base.isapprox
 
 """
 true if the keys are the same and all the elements
@@ -51,7 +51,7 @@ function isapprox( d1::Dict, d2::Dict ) :: Bool
    return true
 end
 
-const ≈ = isapprox
+# const ≈ = isapprox
 
 """
 return a dict with all the elements in common where m2[k]-m1[k] is possible.

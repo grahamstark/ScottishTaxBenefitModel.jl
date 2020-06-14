@@ -1,21 +1,23 @@
 module WebModelLibs
 
+
 using JSON
-using FRSHouseholdGetter
-using ExampleHouseholdGetter
-using ModelHousehold
-using Utils
-using MiniTB
 using DataFrames
-using GeneralTaxComponents
-using Definitions
 using CSV
-using MiniTB
 using StatsBase
 using Random
 using Logging
 using PovertyAndInequalityMeasures
 using BudgetConstraints
+
+using ScottishTaxBenefitModel
+using ScottishTaxBenefitModel.FRSHouseholdGetter
+using ScottishTaxBenefitModel.ExampleHouseholdGetter
+using ScottishTaxBenefitModel.ModelHousehold
+using ScottishTaxBenefitModel.Utils
+using ScottishTaxBenefitModel.MiniTB
+using ScottishTaxBenefitModel.GeneralTaxComponents
+using ScottishTaxBenefitModel.Definitions
 
 export do_one_run, local_makebc, load_data
 export print_output_to_csv, create_base_results, summarise_results!
@@ -91,7 +93,7 @@ function add_targetting( results :: DataFrame, total_spend:: AbstractArray, item
     end
     # targetting[3] = targetting[2]-targetting[1]
     for sys in 1:3
-        if !(total_spend[sys] ≈ 0)
+        if !(total_spend[sys] == 0.0)
             targetting[sys] /= total_spend[sys]
             targetting[sys] *= 100.0
         end
@@ -256,13 +258,13 @@ function print_output_to_csv( output :: NamedTuple, dir :: AbstractString = "/va
     filename
 end
 
-function map_to_example( modelpers :: ModelHousehold.Person ) :: MiniTB.Person
+function map_to_example( modelpers :: ScottishTaxBenefitModel.ModelHousehold.Person ) :: ScottishTaxBenefitModel.MiniTB.Person
    inc = 0.0
    for (k,v) in modelpers.income
       inc += v
    end
    sex = MiniTB.Female
-   if modelpers.sex == Definitions.Male ## easier way?
+   if modelpers.sex == ScottishTaxBenefitModel.Definitions.Male ## easier way?
       sex = MiniTB.Male
    end
    MiniTB.Person( modelpers.pid, inc, modelpers.usual_hours_worked, modelpers.age, sex )
@@ -309,7 +311,7 @@ function make_results_frame( n :: Integer ) :: DataFrame
      total_indirect = Vector{Union{Real,Missing}}(missing, n))
 end
 
-function do_one_run( tbparams::MiniTB.TBParameters, num_households :: Integer, num_people :: Integer, num_repeats :: Integer ) :: DataFrame
+function do_one_run( tbparams::ScottishTaxBenefitModel.MiniTB.TBParameters, num_households :: Integer, num_people :: Integer, num_repeats :: Integer ) :: DataFrame
    results = make_results_frame( num_people )
    pnum = 0
    for hhno in 1:num_households
