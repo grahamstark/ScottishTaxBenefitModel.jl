@@ -3,22 +3,24 @@
 # and:
 #
 using Mux
+import Mux.WebSockets
 using JSON
-
-using Definitions
-using FRSHouseholdGetter
-using ExampleHouseholdGetter
-using ModelHousehold
-using Utils
-using MiniTB
-using GeneralTaxComponents
-using BudgetConstraints
-using PovertyAndInequalityMeasures
 using HttpCommon
 using Logging, LoggingExtras
-using WebModelLibs
 
-import Mux.WebSockets
+using BudgetConstraints
+using PovertyAndInequalityMeasures
+
+using ScottishTaxBenefitModel: Definitions, FRSHouseholdGetter, ExampleHouseholdGetter
+   ModelHousehold, Utils, MiniTB, GeneralTaxComponents, WebModelLibs
+using .Definitions
+using .FRSHouseholdGetter
+using .ExampleHouseholdGetter
+using .ModelHousehold
+using .Utils
+using .MiniTB
+using .GeneralTaxComponents
+using .WebModelLibs
 
 
 ## !!! needs Julia 1.3:w
