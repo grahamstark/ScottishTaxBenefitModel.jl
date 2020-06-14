@@ -29,8 +29,8 @@ TableTraits = "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
+BenchmarkTools = "0.5.0"
 BudgetConstraints = "1.0"
-BenchmarkTools="0.5.0"
 CSV = "0.6.2"
 CSVFiles = "1.0.0"
 DataFrames = "0.21.2"
