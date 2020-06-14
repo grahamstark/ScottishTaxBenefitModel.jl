@@ -3,17 +3,16 @@ module FRSHouseholdGetter
 using CSV
 import DataFrames: DataFrame
 
-using ScottishTaxBenefitModel
+import ScottishTaxBenefitModel: ModelHousehold, Definitions, HouseholdFromFrame
 
 using .Definitions
-import .ModelHousehold: Household,uprate!
-using .HouseholdFromFrame
-using .Uprating
+import .ModelHousehold: Household, uprate!
+import .HouseholdFromFrame: load_hhld_from_frame
 
-export  initialise, get_household
+export initialise, get_household
 
 ## FIXME make a constant? As per julia performance guide?
-MODEL_HOUSEHOLDS = Vector{Union{Missing,Household}}(missing,0)
+MODEL_HOUSEHOLDS = Vector{Household}(undef,0)
 
 """
 return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
@@ -33,7 +32,7 @@ function initialise(
     people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab") |> DataFrame
     npeople = size( people_dataset)[1]
     nhhlds = size( hh_dataset )[1]
-    MODEL_HOUSEHOLDS = Vector{Union{Missing,Household}}(missing,nhhlds)
+    MODEL_HOUSEHOLDS = Vector{Household}(undef,nhhlds)
     for hseq in 1:nhhlds
         MODEL_HOUSEHOLDS[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset )
         uprate!( MODEL_HOUSEHOLDS[hseq] )

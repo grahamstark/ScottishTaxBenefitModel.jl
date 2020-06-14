@@ -3,10 +3,10 @@ module ExampleHouseholdGetter
 using DataFrames
 using CSV
 
-using ScottishTaxBenefitModel
-using .ModelHousehold
+import ScottishTaxBenefitModel: ModelHousehold, Definitions, HouseholdFromFrame
 using .Definitions
-using .HouseholdFromFrame
+import .ModelHousehold: Household
+import .HouseholdFromFrame: load_hhld_from_frame
 
 export  initialise, get_household
 

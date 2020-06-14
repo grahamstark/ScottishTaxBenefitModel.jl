@@ -3,7 +3,7 @@ module HouseholdFromFrame
 using DataFrames
 using CSVFiles
 
-using ScottishTaxBenefitModel
+import ScottishTaxBenefitModel: Definitions, ModelHousehold
 using .Definitions
 using .ModelHousehold
 
