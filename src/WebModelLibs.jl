@@ -258,13 +258,13 @@ function print_output_to_csv( output :: NamedTuple, dir :: AbstractString = "/va
     filename
 end
 
-function map_to_example( modelpers :: .ModelHousehold.Person ) :: .MiniTB.Person
+function map_to_example( modelpers :: ModelHousehold.Person ) :: MiniTB.Person
    inc = 0.0
    for (k,v) in modelpers.income
       inc += v
    end
    sex = MiniTB.Female
-   if modelpers.sex == .Definitions.Male ## easier way?
+   if modelpers.sex == Definitions.Male ## easier way?
       sex = MiniTB.Male
    end
    MiniTB.Person( modelpers.pid, inc, modelpers.usual_hours_worked, modelpers.age, sex )
@@ -311,7 +311,7 @@ function make_results_frame( n :: Integer ) :: DataFrame
      total_indirect = Vector{Union{Real,Missing}}(missing, n))
 end
 
-function do_one_run( tbparams::.MiniTB.TBParameters, num_households :: Integer, num_people :: Integer, num_repeats :: Integer ) :: DataFrame
+function do_one_run( tbparams::MiniTB.TBParameters, num_households :: Integer, num_people :: Integer, num_repeats :: Integer ) :: DataFrame
    results = make_results_frame( num_people )
    pnum = 0
    for hhno in 1:num_households
