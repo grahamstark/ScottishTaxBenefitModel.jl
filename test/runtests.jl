@@ -2,7 +2,7 @@
 using Test
 using ScottishTaxBenefitModel
 
-is_local = ENV['JULIA_IS_LOCALLY_INSTALLED'] == 1 # fixme param
+is_local = haskey( ENV, "JULIA_IS_LOCALLY_INSTALLED" ) # fixme param
 
 include( "income_tax_tests.jl")
 include( "parameter_tests.jl")
