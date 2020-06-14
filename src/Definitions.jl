@@ -1,6 +1,7 @@
 module Definitions
 #
 #
+using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
 
 export Employment_Status  # mapped from empstat

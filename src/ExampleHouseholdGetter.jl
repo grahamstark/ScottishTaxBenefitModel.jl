@@ -3,6 +3,7 @@ module ExampleHouseholdGetter
 using DataFrames
 using CSV
 
+using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.ModelHousehold
 using ScottishTaxBenefitModel.Definitions
 using ScottishTaxBenefitModel.HouseholdFromFrame

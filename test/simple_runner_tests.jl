@@ -2,13 +2,13 @@ using Test
 using CSV
 using DataFrames
 using StatsBase
-using Utils
 using BenchmarkTools
 
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.MiniTB
 using ScottishTaxBenefitModel.WebModelLibs
 using ScottishTaxBenefitModel.GeneralTaxComponents
+using .Utils
 
 print_test = false
 

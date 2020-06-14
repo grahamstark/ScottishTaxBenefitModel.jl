@@ -1,5 +1,6 @@
 module HouseholdFromFrame
 
+using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Definitions
 using ScottishTaxBenefitModel.ModelHousehold
 using DataFrames

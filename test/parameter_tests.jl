@@ -2,7 +2,8 @@ using Test
 using JSON
 
 using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.STBParameters: IncomeTaxSys,weeklyise!,annualise!,fromJSON
+using ScottishTaxBenefitModel.STBParameters:
+    IncomeTaxSys,weeklyise!,annualise!,fromJSON, get_default_it_system
 using ScottishTaxBenefitModel.Utils
 import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
 
@@ -23,5 +24,5 @@ import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
     itj = fromJSON( itj_dic )
     @test itj.non_savings_thresholds ≈ it.non_savings_thresholds
     @test itj.mca_minimum ≈ it.mca_minimum
-    @test itj.company_car_charge_by_CO2_emissions ≈ it.company_car_charge_by_CO2_emissions
+    @test isapprox(itj.company_car_charge_by_CO2_emissions, it.company_car_charge_by_CO2_emissions )
 end # example 1

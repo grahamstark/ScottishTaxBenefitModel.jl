@@ -3,6 +3,7 @@ module IncomeTaxCalculations
 import Dates
 import Dates: Date, now, TimeType, Year
 
+using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Definitions
 
 import ScottishTaxBenefitModel.ModelHousehold: Person

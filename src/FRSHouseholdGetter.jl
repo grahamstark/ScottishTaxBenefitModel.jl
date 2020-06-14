@@ -3,6 +3,8 @@ module FRSHouseholdGetter
 using CSV
 import DataFrames: DataFrame
 
+using ScottishTaxBenefitModel
+
 using ScottishTaxBenefitModel.Definitions
 import ScottishTaxBenefitModel.ModelHousehold: Household,uprate!
 using ScottishTaxBenefitModel.HouseholdFromFrame

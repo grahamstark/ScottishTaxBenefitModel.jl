@@ -2,6 +2,7 @@ module ModelHousehold
 
 using Dates
 
+using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Definitions
 using ScottishTaxBenefitModel.Uprating
 

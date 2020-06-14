@@ -2,9 +2,11 @@ module Uprating
 
 using DataFrames
 using CSV
-using Utils
 
+using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Definitions
+using ScottishTaxBenefitModel.Utils
+
 
 """
 Semi-complete indexing routine using OBR quarterly data.
