@@ -4,8 +4,8 @@ using DataFrames
 using CSV
 
 using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.Definitions
-using ScottishTaxBenefitModel.Utils
+using .Definitions
+using .Utils
 
 
 """

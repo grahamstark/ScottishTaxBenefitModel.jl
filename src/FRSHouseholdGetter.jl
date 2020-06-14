@@ -5,10 +5,10 @@ import DataFrames: DataFrame
 
 using ScottishTaxBenefitModel
 
-using ScottishTaxBenefitModel.Definitions
-import ScottishTaxBenefitModel.ModelHousehold: Household,uprate!
-using ScottishTaxBenefitModel.HouseholdFromFrame
-using ScottishTaxBenefitModel.Uprating
+using .Definitions
+import .ModelHousehold: Household,uprate!
+using .HouseholdFromFrame
+using .Uprating
 
 export  initialise, get_household
 

@@ -5,8 +5,9 @@ module DataUtils
 import DataFrames: DataFrame
 import Statistics: mean, median, std, quantile
 import Parameters: @with_kw
+
 using  ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.Definitions
+using  .Definitions
 
 export summarise_over_positive, add_to!
 export initialise, MinMaxes, show

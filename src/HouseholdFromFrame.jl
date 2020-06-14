@@ -1,10 +1,11 @@
 module HouseholdFromFrame
 
-using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.Definitions
-using ScottishTaxBenefitModel.ModelHousehold
 using DataFrames
 using CSVFiles
+
+using ScottishTaxBenefitModel
+using .Definitions
+using .ModelHousehold
 
 export load_hhld_from_frame, map_hhld
 

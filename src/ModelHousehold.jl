@@ -3,8 +3,8 @@ module ModelHousehold
 using Dates
 
 using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.Definitions
-using ScottishTaxBenefitModel.Uprating
+using .Definitions
+using .Uprating
 
 export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation

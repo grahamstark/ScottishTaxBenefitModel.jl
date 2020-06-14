@@ -6,9 +6,9 @@ module SingleHouseholdCalculations
 
 using ScottishTaxBenefitModel
 
-using ScottishTaxBenefitModel.Definitions
-using ScottishTaxBenefitModel.Results
-using ScottishTaxBenefitModel.STBParameters
-using ScottishTaxBenefitModel.ModelHousehold
+using .Definitions
+using .Results
+using .STBParameters
+using .ModelHousehold
 
 end

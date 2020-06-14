@@ -4,9 +4,9 @@ module STBParameters
    import JSON
 
    using ScottishTaxBenefitModel
-   import ScottishTaxBenefitModel.GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
-   using ScottishTaxBenefitModel.Definitions
-   import ScottishTaxBenefitModel.Utils
+   import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+   using .Definitions
+   import .Utils
 
 
    export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem

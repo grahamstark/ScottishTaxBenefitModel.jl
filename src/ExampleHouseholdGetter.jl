@@ -4,9 +4,9 @@ using DataFrames
 using CSV
 
 using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.ModelHousehold
-using ScottishTaxBenefitModel.Definitions
-using ScottishTaxBenefitModel.HouseholdFromFrame
+using .ModelHousehold
+using .Definitions
+using .HouseholdFromFrame
 
 export  initialise, get_household
 
