@@ -11,7 +11,7 @@ using PovertyAndInequalityMeasures
 using BudgetConstraints
 
 import ScottishTaxBenefitModel: FRSHouseholdGetter, ExampleHouseholdGetter,
-    ModelHousehold, Utils, MiniTB, GeneralTaxComponents, Defintions
+    ModelHousehold, Utils, MiniTB, GeneralTaxComponents, Definitions
 using .FRSHouseholdGetter
 using .ExampleHouseholdGetter
 using .ModelHousehold

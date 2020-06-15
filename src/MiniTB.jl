@@ -1,6 +1,7 @@
-MiniTB
+module MiniTB
 
-using ScottishTaxBenefitModel.GeneralTaxComponents
+import ScottishTaxBenefitModel.GeneralTaxComponents: calctaxdue, RateBands, TaxResult
+
 import Parameters: @with_kw
 #
 # A toy tax-benefit system with outlines of the components
@@ -20,7 +21,7 @@ export calculatetax, calculatebenefit1, calculatebenefit2, calculate_internal
 export equal,==
 
 @enum NetType NetIncome TotalTaxes BenefitsOnly
-@enum Gender MiMale MiFemale
+@enum Gender Male Female
 
 # experiment with types
 const NullableFloat = Union{Missing,Float64}
@@ -31,7 +32,7 @@ const DEFAULT_HOURS = 30
 const DEFAULT_WAGE = 5.0
 
 
-@with_kw mutable struct MiPerson
+@with_kw mutable struct Person
    pid::BigInt = 1
    wage::Float64 = DEFAULT_WAGE
    hours::Float64 = DEFAULT_HOURS
@@ -39,10 +40,10 @@ const DEFAULT_WAGE = 5.0
    sex::Gender = Male
 end
 
-@with_kw mutable struct MiHousehold
+@with_kw mutable struct Household
    hid :: Integer = 1
    rent::Float64 = 100.0
-   people::Vector{MiPerson} = [MiPerson()]
+   people::Vector{Person} = [Person()]
 end
 
 const DEFAULT_PERSON = Person()
@@ -54,8 +55,8 @@ end
 
 @with_kw mutable struct TBParameters
    it_allow::Float64 = weeklyise(12_500)
-   it_rate::RateBands = [0.20, 0.4]
-   it_band::RateBands = [weeklyise(50_000), 9999999999999999999.99]
+   it_rate = [0.20, 0.4]
+   it_band = [weeklyise(50_000), 9999999999999999999.99]
 
    benefit1::Float64 = 73.00
    benefit2::Float64 = 101.0
