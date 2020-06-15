@@ -2,9 +2,9 @@ module ModelHousehold
 
 using Dates
 
-using ScottishTaxBenefitModel
+import ScottishTaxBenefitModel: Definitions, Uprating
 using .Definitions
-using .Uprating
+using .Uprating: uprate, UPRATE_MAPPINGS
 
 export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation

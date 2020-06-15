@@ -11,7 +11,7 @@ using Logging, LoggingExtras
 using BudgetConstraints
 using PovertyAndInequalityMeasures
 
-using ScottishTaxBenefitModel: Definitions, FRSHouseholdGetter, ExampleHouseholdGetter
+import ScottishTaxBenefitModel: Definitions, FRSHouseholdGetter, ExampleHouseholdGetter
    ModelHousehold, Utils, MiniTB, GeneralTaxComponents, WebModelLibs
 using .Definitions
 using .FRSHouseholdGetter

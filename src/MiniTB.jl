@@ -1,4 +1,4 @@
-module MiniTB
+MiPersonmodule MiniTB
 
 using ScottishTaxBenefitModel.GeneralTaxComponents
 import Parameters: @with_kw
@@ -20,7 +20,7 @@ export calculatetax, calculatebenefit1, calculatebenefit2, calculate_internal
 export equal,==
 
 @enum NetType NetIncome TotalTaxes BenefitsOnly
-@enum Gender Male Female
+@enum Gender MiMale MiFemale
 
 # experiment with types
 const NullableFloat = Union{Missing,Float64}
@@ -31,7 +31,7 @@ const DEFAULT_HOURS = 30
 const DEFAULT_WAGE = 5.0
 
 
-@with_kw mutable struct Person
+@with_kw mutable struct MiPerson
    pid::BigInt = 1
    wage::Float64 = DEFAULT_WAGE
    hours::Float64 = DEFAULT_HOURS
@@ -39,10 +39,10 @@ const DEFAULT_WAGE = 5.0
    sex::Gender = Male
 end
 
-@with_kw mutable struct Household
+@with_kw mutable struct MiHousehold
    hid :: Integer = 1
    rent::Float64 = 100.0
-   people::Vector{Person} = [Person()]
+   people::Vector{MiPerson} = [MiPerson()]
 end
 
 const DEFAULT_PERSON = Person()

@@ -4,7 +4,7 @@ As this progresses, this will be the main entry point for calculations on a hous
 
 module SingleHouseholdCalculations
 
-using ScottishTaxBenefitModel
+import ScottishTaxBenefitModel: Definitions, Results, STBParameters, ModelHousehold
 
 using .Definitions
 using .Results
