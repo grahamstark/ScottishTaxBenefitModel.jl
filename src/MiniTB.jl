@@ -1,4 +1,4 @@
-MiPersonmodule MiniTB
+MiniTB
 
 using ScottishTaxBenefitModel.GeneralTaxComponents
 import Parameters: @with_kw
