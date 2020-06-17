@@ -1,5 +1,10 @@
 module ScottishTaxBenefitModel
 
+#
+# A microsimulation tax benefit model of Scotland.
+# Work in progress.
+#
+
 __precompile__(true)
 
 include("Utils.jl" )
