@@ -5,7 +5,7 @@ using Dates
 using Base.Unicode
 
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
-export addsysnotoname, diff_between, mult_dict!
+export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈
 
 
@@ -211,6 +211,16 @@ function age_in_years(
       age -= 1
    end
    age
+end
+
+# FIXME!! THIS TS TERRIBLE..
+function get_project_path()
+   path = splitpath(pwd())
+   n = size(path)[1]
+   if path[end] == "test"
+      n -= 1
+   end
+   "/"*join( path[2:n],"/")*"/"
 end
 
 end # module

@@ -14,7 +14,7 @@ export PRICES_DIR, MODEL_DATA_DIR, FRS_DIR, HBAI_DIR
 # FIXME move this to some config file
 #
 const MODEL_NAME="ScottishTaxBenefitModel"
-const PROJECT_DIR="/home/graham_s/julia/vw/$MODEL_NAME/"
+const PROJECT_DIR=Utils.get_project_path() #"//vw/$MODEL_NAME/"
 const MODEL_DATA_DIR="$(PROJECT_DIR)/data/"
 const PRICES_DIR="$MODEL_DATA_DIR/prices/obr/"
 
