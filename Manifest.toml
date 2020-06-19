@@ -478,7 +478,7 @@ version = "1.0.0"
 deps = ["Dates", "EzXML", "Mocking", "Printf", "RecipesBase", "Serialization", "Unicode"]
 git-tree-sha1 = "db7bc2051d4c2e5f336409224df81485c00de6cb"
 uuid = "f269a46b-ccf7-5d73-abea-4c690281aa53"
-version = "1.2.0"
+version = "1.2.0" 
 
 [[TranscodingStreams]]
 deps = ["Random", "Test"]
