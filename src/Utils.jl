@@ -220,7 +220,7 @@ function get_project_path()
    if path[end] == "test"
       n -= 1
    end
-   "/"*join( path[2:n],"/")*"/"
+   join( path[1:n],"/")*"/"
 end
 
 end # module
