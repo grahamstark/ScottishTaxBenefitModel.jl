@@ -1,6 +1,5 @@
 module Utils
 
-using CSV
 using DataFrames
 using Dates
 using Base.Unicode
