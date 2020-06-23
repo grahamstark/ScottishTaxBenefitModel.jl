@@ -169,23 +169,23 @@ function calculate_pension_taxation!(
     if ! haskey(pers.income, pension_contributions)
         return
     end
-    pencont =pers.income[pension_contributions]
+    eligigle_contribs = pers.income[pension_contributions]
 
     max_relief = sys.pension_contrib_annual_allowance
     if total_income < sys.pension_contrib_basic_amount
-        max_relief =sys.pension_contrib_basic_amount
+        max_relief = sys.pension_contrib_basic_amount
     end
     if total_income > sys.pension_contrib_threshold_income
         excess = total_income - sys.pension_contrib_threshold_income
         max_relief = max( sys.pension_contrib_annual_minimum,
             pension_contrib_annual_allowance - excess*pension_contrib_withdrawal_rate )
     end
-    pencont = min( pencont, max_relief );
-    itres.pension_eligible_for_relief = pencont
-    itres.pension_relief_at_source = pencont*sys.non_savings_rates[ sys.non_savings_basic_rate ]
-    itres.non_savings_thresholds .+= pencont
-    itres.savings_thresholds .+= pencont
-    itres.dividend_thresholds .+= pencont
+    eligigle_contribs = min( eligigle_contribs, max_relief );
+    itres.pension_eligible_for_relief = eligigle_contribs
+    itres.pension_relief_at_source = eligigle_contribs*sys.non_savings_rates[ sys.non_savings_basic_rate ]
+    itres.non_savings_thresholds .+= eligigle_contribs
+    itres.savings_thresholds .+= eligigle_contribs
+    itres.dividend_thresholds .+= eligigle_contribs
 
 end
 
