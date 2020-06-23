@@ -21,7 +21,7 @@ end
 """
 Does the ordering here follow stye guide
 """
-function get_if_set(key, dict::Dict, default; operation=nothing)
+function get_if_set(dict::Dict, key, default; operation=nothing)
    v = default
    if haskey(dict, key)
       v = dict[key]

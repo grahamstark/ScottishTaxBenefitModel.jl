@@ -9,6 +9,7 @@ using .Definitions
 import .ModelHousehold: Person
 import .STBParameters: IncomeTaxSys
 import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
+import .Utils: get_if_set
 
 export calc_income_tax, old_enough_for_mca, apply_allowance, ITResult
 export calculate_company_car_charge
@@ -165,11 +166,12 @@ function calculate_pension_taxation!(
     itres.savings_thresholds = copy( sys.savings_thresholds )
     itres.dividend_thresholds = copy( sys.dividend_thresholds )
     itres.non_savings_thresholds = copy( sys.non_savings_thresholds )
-
-    if ! haskey(pers.income, pension_contributions)
+    avc = get_if_set(pers.income, avcs, 0.0)
+    pen = get_if_set(pers.income, pension_contributions, 0.0)
+    eligible_contribs = avc + pen
+    if eligible_contribs <= 0.0
         return
     end
-    eligigle_contribs = pers.income[pension_contributions]
 
     max_relief = sys.pension_contrib_annual_allowance
     if total_income < sys.pension_contrib_basic_amount
@@ -178,14 +180,17 @@ function calculate_pension_taxation!(
     if total_income > sys.pension_contrib_threshold_income
         excess = total_income - sys.pension_contrib_threshold_income
         max_relief = max( sys.pension_contrib_annual_minimum,
-            pension_contrib_annual_allowance - excess*pension_contrib_withdrawal_rate )
+            sys.pension_contrib_annual_allowance - excess*sys.pension_contrib_withdrawal_rate )
     end
-    eligigle_contribs = min( eligigle_contribs, max_relief );
-    itres.pension_eligible_for_relief = eligigle_contribs
-    itres.pension_relief_at_source = eligigle_contribs*sys.non_savings_rates[ sys.non_savings_basic_rate ]
-    itres.non_savings_thresholds .+= eligigle_contribs
-    itres.savings_thresholds .+= eligigle_contribs
-    itres.dividend_thresholds .+= eligigle_contribs
+    eligible_contribs = min( eligible_contribs, max_relief );
+    itres.pension_eligible_for_relief = eligible_contribs
+    basic_rate = sys.non_savings_rates[ sys.non_savings_basic_rate ]
+    println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate")
+    gross_contribs = eligible_contribs/(1-basic_rate)
+    itres.pension_relief_at_source = gross_contribs - eligible_contribs
+    itres.non_savings_thresholds .+= gross_contribs
+    itres.savings_thresholds .+= gross_contribs
+    itres.dividend_thresholds .+= gross_contribs
 
 end
 

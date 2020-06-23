@@ -324,26 +324,29 @@ end
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     alana = scot.people[SCOT_HEAD]
+    alana.income = Incomes_Dict() # clear
     alana.income[self_employment_income] = 62_000.0
     alana.income[pension_contributions] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
     intermediate = Dict()
     res_uk = calc_income_tax( alana, nothing, itsys_ruk, intermediate );
     res_scot = calc_income_tax( alana, nothing, itsys_scot, intermediate );
     println( typeof( res_uk ))
-    @test res_uk.head.pension_relief_at_source ≈ 1200.0
-    @test res_uk.head.pension_eligible_for_relief ≈ 400.0*12
+    @test res_uk.head.pension_relief_at_source ≈ 960.0
+    @test res_uk.head.pension_eligible_for_relief ≈ 400.0*12*0.8
     @test res_scot.head.non_savings_thresholds[1] ≈ itsys_scot.non_savings_thresholds[1]+400.0*12
     @test res_scot.head.non_savings_thresholds[2] ≈ itsys_scot.non_savings_thresholds[2]+400.0*12
-    @test res_scot.head.pension_relief_at_source = 100.0*12
-    @test res_scot.head.pension_eligible_for_relief = 400.0*12
+    @test res_scot.head.pension_relief_at_source ≈ 960.0
+    @test res_scot.head.pension_eligible_for_relief ≈ 400.0*12*0.8
 
 end
 
 @testset "pension: Tax Relief Minima - Melville ch14 ex1(a)"  begin
+    itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
+    gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 27_800.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
     intermediate = Dict()
@@ -355,19 +358,21 @@ end
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
     res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
     res_scot = calc_income_tax( gordon, nothing, itsys_scot, intermediate );
-    @test res_uk.head.pension_eligible_for_relief ≈ 2_500.0
-    @test res_scot.head.pension_eligible_for_relief ≈ 2_500.0
+    @test res_uk.head.pension_eligible_for_relief ≈ 3_600.0
+    @test res_scot.head.pension_eligible_for_relief ≈ 3_600.0
 end
 
-"""
-no actual example for this and I'm not 100% sure this
-is exactly how it works, but should be near enough.
-"""
+#
+# no actual example for this and I'm not 100% sure this
+#is exactly how it works, but should be near enough.
+#
 @testset "pension: Tax Relief Annual Allowance Charge"  begin
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
+    itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
+    gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 60_000.0
     gordon.income[pension_contributions] =  50_000.00 # net contribs per month; expressed gross in example
     intermediate = Dict()

@@ -911,6 +911,7 @@ const Expenses = Incomes_Set([
    friendly_societies,
    self_employment_expenses,
    work_expenses,
+   pension_contributions,
    avcs,
    other_deductions,
    loan_repayments,
