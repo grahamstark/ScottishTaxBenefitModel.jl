@@ -5,9 +5,10 @@ Various Standard Tax calculations. Very incomplete.
 "
 
 export WEEKS_PER_YEAR, weeklyise, annualise, delete_thresholds_up_to
-export TaxResult, RateBands, IncomesDict
+export TaxResult, IncomesDict, RateBands
 export calctaxdue, calc_indirect, IndirResult,*,times
 
+# note: intialise like f::RateBands = zeros(0)
 const RateBands = AbstractArray{<:Real}
 
 const IncomesDict = Dict{Any,Number}

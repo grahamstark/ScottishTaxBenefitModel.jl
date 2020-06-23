@@ -20,7 +20,7 @@ function get_tax(; scotland = false ) :: IncomeTaxSys
     it.personal_allowance_withdrawal_rate /= 100.0
     it.mca_credit_rate /= 100.0
     it.mca_withdrawal_rate /= 100.0
-    
+
     it
 end
 
@@ -318,70 +318,70 @@ end
 
 ## TODO car tax; pension contributions
 
-@testset "pension contributions tax relief standard case:  - Melville ch14 example 2(b)"
+@testset "pension contributions tax relief standard case:  - Melville ch14 example 2(b)" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
     names = ExampleHouseholdGetter.initialise()
-    hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
+    scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     alana = scot.people[SCOT_HEAD]
     alana.income[self_employment_income] = 62_000.0
     alana.income[pension_contributions] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
     intermediate = Dict()
     res_uk = calc_income_tax( alana, nothing, itsys_ruk, intermediate );
     res_scot = calc_income_tax( alana, nothing, itsys_scot, intermediate );
-    @test res_uk.modified_bands[1] ≈ itsys_ruk.bands[1]+400.0*12
-    @test res_uk.pension_relief_at_source = 100.0*12
-    @test res_uk.pension_eligible_for_relief = 400.0*12
-    @test res_scot.non_savings_bands[1] ≈ itsys_scot.non_savings_bands[1]+400.0*12
-    @test res_scot.non_savings_bands[2] ≈ itsys_scot.non_savings_bands[2]+400.0*12
-    @test res_scot.pension_relief_at_source = 100.0*12
-    @test res_scot.pension_eligible_for_relief = 400.0*12
+    println( typeof( res_uk ))
+    @test res_uk.head.pension_relief_at_source ≈ 1200.0
+    @test res_uk.head.pension_eligible_for_relief ≈ 400.0*12
+    @test res_scot.head.non_savings_thresholds[1] ≈ itsys_scot.non_savings_thresholds[1]+400.0*12
+    @test res_scot.head.non_savings_thresholds[2] ≈ itsys_scot.non_savings_thresholds[2]+400.0*12
+    @test res_scot.head.pension_relief_at_source = 100.0*12
+    @test res_scot.head.pension_eligible_for_relief = 400.0*12
 
 end
 
-@testset "pension: Tax Relief Minima - Melville ch14 ex1(a)"
+@testset "pension: Tax Relief Minima - Melville ch14 ex1(a)"  begin
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
     names = ExampleHouseholdGetter.initialise()
-    hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
+    scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
     gordon.income[self_employment_income] = 27_800.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
     intermediate = Dict()
     res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
     res_scot = calc_income_tax( gordon, nothing, itsys_scot, intermediate );
-    @test res_uk.pension_eligible_for_relief ≈ 27_800.0
-    @test res_scot.pension_eligible_for_relief ≈ 27_800.0
+    @test res_uk.head.pension_eligible_for_relief ≈ 27_800.0
+    @test res_scot.head.pension_eligible_for_relief ≈ 27_800.0
     gordon.income[self_employment_income] = 2_500.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
     res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
     res_scot = calc_income_tax( gordon, nothing, itsys_scot, intermediate );
-    @test res_uk.pension_eligible_for_relief ≈ 2_500.0
-    @test res_scot.pension_eligible_for_relief ≈ 2_500.0
+    @test res_uk.head.pension_eligible_for_relief ≈ 2_500.0
+    @test res_scot.head.pension_eligible_for_relief ≈ 2_500.0
 end
 
 """
 no actual example for this and I'm not 100% sure this
 is exactly how it works, but should be near enough.
 """
-@testset "pension: Tax Relief Annual Allowance Charge"
+@testset "pension: Tax Relief Annual Allowance Charge"  begin
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
     names = ExampleHouseholdGetter.initialise()
-    hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
+    scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
     gordon.income[self_employment_income] = 60_000.0
     gordon.income[pension_contributions] =  50_000.00 # net contribs per month; expressed gross in example
     intermediate = Dict()
     res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
-    @test res_uk.pension_eligible_for_relief ≈ 40_000
+    @test res_uk.head.pension_eligible_for_relief ≈ 40_000
 
     gordon.income[self_employment_income] = 300_000.0
     res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
-    @test res_uk.pension_eligible_for_relief ≈ 10_000
+    @test res_uk.head.pension_eligible_for_relief ≈ 10_000
 
     gordon.income[self_employment_income] = 150_000.0
     res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
     # tapering thing seems really weird - this is approximarely right
-    @test res_uk.pension_eligible_for_relief ≈ 40_000
+    @test res_uk.head.pension_eligible_for_relief ≈ 40_000
 
 end
 

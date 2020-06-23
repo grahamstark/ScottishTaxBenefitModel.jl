@@ -18,6 +18,9 @@ function addsysnotoname(names, sysno)::Array{Symbol,1}
     # Symbol.(String.( names ).*"_sys_$sysno")
 end
 
+"""
+Does the ordering here follow stye guide
+"""
 function get_if_set(key, dict::Dict, default; operation=nothing)
    v = default
    if haskey(dict, key)

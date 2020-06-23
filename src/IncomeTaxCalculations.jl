@@ -30,9 +30,9 @@ export calculate_company_car_charge
     transferred_allowance :: Real = 0.0
     pension_eligible_for_relief :: Real = 0.0
     pension_relief_at_source :: Real = 0.0
-    non_savings_thresholds :: RateBands = []
-    savings_thresholds  :: RateBands = []
-    dividend_thresholds :: RateBands = []
+    non_savings_thresholds :: RateBands = zeros(0)
+    savings_thresholds  :: RateBands = zeros(0)
+    dividend_thresholds :: RateBands = zeros(0)
 
 end
 
@@ -151,26 +151,26 @@ function apply_allowance( allowance::Real, income::Real )::Tuple
 end
 
 """
-from melville, ch13. Add to some fields in the ITResult
-notes:
+  from Melville, ch13. Chjanges are in itres: add to pension fields and extend bands
+  notes:
   Melville talks of "earned income" - using non-savings income
 """
 function calculate_pension_taxation!(
     itres  ::ITResult,
-    sys    :: IncomeTaxSys
+    sys    :: IncomeTaxSys,
     pers   ::Person,
     total_income::Real,
     earned_income:: Real )
 
-    # 1 minima
-    pencont = pers.income[pension_contributions]
     itres.savings_thresholds = copy( sys.savings_thresholds )
     itres.dividend_thresholds = copy( sys.dividend_thresholds )
     itres.non_savings_thresholds = copy( sys.non_savings_thresholds )
 
-    if pencont <= 0
+    if ! haskey(pers.income, pension_contributions)
         return
     end
+    pencont =pers.income[pension_contributions]
+
     max_relief = sys.pension_contrib_annual_allowance
     if total_income < sys.pension_contrib_basic_amount
         max_relief =sys.pension_contrib_basic_amount
@@ -250,7 +250,7 @@ function calc_income_tax(
     intermediate["dividends"]=dividends
     # note: we copy from the expanded versions from pension_contributions
     savings_thresholds = deepcopy( itres.savings_thresholds )
-    savings_rates = deepcopy( itres.savings_rates )
+    savings_rates = deepcopy( sys.savings_rates )
     # FIXME model all this with parameters
     toprate = size( savings_thresholds )[1]
     if taxable_income > 0
@@ -298,7 +298,7 @@ function calc_income_tax(
         allowance,dividends_taxable =
             apply_allowance( allowance, dividends )
         dividend_rates=deepcopy(sys.dividend_rates)
-        dividend_thresholds=deepcopy(sys.dividend_thresholds )
+        dividend_thresholds=deepcopy(itres.dividend_thresholds )
         # always preserve any bottom zero rate
         add_back_zero_band = false
         zero_band = 0.0
