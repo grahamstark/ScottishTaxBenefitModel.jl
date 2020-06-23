@@ -30,7 +30,7 @@ export calculate_company_car_charge
     transferred_allowance :: Real = 0.0
     pension_eligible_for_relief :: Real = 0.0
     pension_relief_at_source :: Real = 0.0
-    modified_bands :: Vector{Real}(undef,0) = []
+    modified_bands :: Vector{Real} = []
 end
 
 ## FIXME all these constants should ultimately be parameters
