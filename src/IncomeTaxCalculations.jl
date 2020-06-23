@@ -30,7 +30,10 @@ export calculate_company_car_charge
     transferred_allowance :: Real = 0.0
     pension_eligible_for_relief :: Real = 0.0
     pension_relief_at_source :: Real = 0.0
-    modified_bands :: Vector{Real} = []
+    non_savings_thresholds :: RateBands = []
+    savings_thresholds  :: RateBands = []
+    dividend_thresholds :: RateBands = []
+
 end
 
 ## FIXME all these constants should ultimately be parameters
@@ -153,29 +156,36 @@ notes:
   Melville talks of "earned income" - using non-savings income
 """
 function calculate_pension_taxation!(
-    itres::ITResult,
-    pers::Person,
+    itres  ::ITResult,
+    sys    :: IncomeTaxSys
+    pers   ::Person,
     total_income::Real,
     earned_income:: Real )
 
     # 1 minima
-
     pencont = pers.income[pension_contributions]
-    pencont = min( pencont, earned_income )
-    pencont = max( pencont, pension_contrib_basic_amount )
+    itres.savings_thresholds = copy( sys.savings_thresholds )
+    itres.dividend_thresholds = copy( sys.dividend_thresholds )
+    itres.non_savings_thresholds = copy( sys.non_savings_thresholds )
+
+    if pencont <= 0
+        return
+    end
+    max_relief = sys.pension_contrib_annual_allowance
+    if total_income < sys.pension_contrib_basic_amount
+        max_relief =sys.pension_contrib_basic_amount
+    end
+    if total_income > sys.pension_contrib_threshold_income
+        excess = total_income - sys.pension_contrib_threshold_income
+        max_relief = max( sys.pension_contrib_annual_minimum,
+            pension_contrib_annual_allowance - excess*pension_contrib_withdrawal_rate )
+    end
+    pencont = min( pencont, max_relief );
     itres.pension_eligible_for_relief = pencont
-    # 2 annual allowance charge, kinda sorta
-    ann_allow = pension_contrib_annual_allowance
-
-    # note that in MV this is expressed as total net income + gross pension contributions
-    adjusted_income = total_income + pension_relief_at_source
-
-    pension_contrib_basic_amount = 3_600.00
-    pension_contrib_annual_allowance = 40_000.00
-    pension_contrib_annual_minimum = 10_000.00
-    pension_contrib_threshold_income = 150_000.00
-    pension_contrib_withdrawal_rate = 50.0
-    # 3 the calculation
+    itres.pension_relief_at_source = pencont*sys.non_savings_rates[ sys.non_savings_basic_rate ]
+    itres.non_savings_thresholds .+= pencont
+    itres.savings_thresholds .+= pencont
+    itres.dividend_thresholds .+= pencont
 
 end
 
@@ -212,7 +222,7 @@ function calc_income_tax(
 
     adjusted_net_income = total_income
 
-    calculate_pension_taxation!( itres, pers, total_income, non_savings )
+    calculate_pension_taxation!( itres, sys, pers, total_income, non_savings )
 
     adjusted_net_income -= itres.pension_eligible_for_relief
 
@@ -238,9 +248,9 @@ function calc_income_tax(
     intermediate["savings"]=savings
     intermediate["non_savings"]=non_savings
     intermediate["dividends"]=dividends
-
-    savings_thresholds = deepcopy( sys.savings_thresholds )
-    savings_rates = deepcopy( sys.savings_rates )
+    # note: we copy from the expanded versions from pension_contributions
+    savings_thresholds = deepcopy( itres.savings_thresholds )
+    savings_rates = deepcopy( itres.savings_rates )
     # FIXME model all this with parameters
     toprate = size( savings_thresholds )[1]
     if taxable_income > 0
@@ -248,7 +258,7 @@ function calc_income_tax(
         non_savings_tax = calctaxdue(
             taxable=non_savings_taxable,
             rates=sys.non_savings_rates,
-            thresholds=sys.non_savings_thresholds )
+            thresholds=itres.non_savings_thresholds )
 
         # horrific savings calculation see Melville Ch2 "Savings Income" & examples 2-3
         # FIXME Move to separate function

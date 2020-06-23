@@ -20,6 +20,7 @@ function get_tax(; scotland = false ) :: IncomeTaxSys
     it.personal_allowance_withdrawal_rate /= 100.0
     it.mca_credit_rate /= 100.0
     it.mca_withdrawal_rate /= 100.0
+    
     it
 end
 
@@ -331,8 +332,8 @@ end
     @test res_uk.modified_bands[1] ≈ itsys_ruk.bands[1]+400.0*12
     @test res_uk.pension_relief_at_source = 100.0*12
     @test res_uk.pension_eligible_for_relief = 400.0*12
-    @test res_scot.modified_bands[1] ≈ itsys_scot.bands[1]+400.0*12
-    @test res_scot.modified_bands[2] ≈ itsys_scot.bands[2]+400.0*12
+    @test res_scot.non_savings_bands[1] ≈ itsys_scot.non_savings_bands[1]+400.0*12
+    @test res_scot.non_savings_bands[2] ≈ itsys_scot.non_savings_bands[2]+400.0*12
     @test res_scot.pension_relief_at_source = 100.0*12
     @test res_scot.pension_eligible_for_relief = 400.0*12
 
@@ -352,6 +353,8 @@ end
     @test res_scot.pension_eligible_for_relief ≈ 27_800.0
     gordon.income[self_employment_income] = 2_500.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    res_scot = calc_income_tax( gordon, nothing, itsys_scot, intermediate );
     @test res_uk.pension_eligible_for_relief ≈ 2_500.0
     @test res_scot.pension_eligible_for_relief ≈ 2_500.0
 end
