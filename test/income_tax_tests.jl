@@ -317,7 +317,44 @@ end
 
 ## TODO car tax; pension contributions
 
+@testset "pension contributions:  - Melville ch14 example 2(b)"
+    itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
+    itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
+    names = ExampleHouseholdGetter.initialise()
+    hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
+    alana = scot.people[SCOT_HEAD]
+    alana.income[self_employment_income] = 62_000.0
+    alana.income[pension_contributions] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
+    intermediate = Dict()
+    res_uk = calc_income_tax( alana, nothing, itsys_ruk, intermediate );
+    res_scot = calc_income_tax( alana, nothing, itsys_scot, intermediate );
+    @test res_uk.modified_bands[1] ≈ itsys_ruk.bands[1]+400.0*12
+    @test res_uk.pension_relief_at_source = 100.0*12
+    @test res_uk.pension_eligible_for_relief = 400.0*12
+    @test res_scot.modified_bands[1] ≈ itsys_scot.bands[1]+400.0*12
+    @test res_scot.modified_bands[2] ≈ itsys_scot.bands[2]+400.0*12
+    @test res_scot.pension_relief_at_source = 100.0*12
+    @test res_scot.pension_eligible_for_relief = 400.0*12
 
+end
+
+@testset "pension: Tax Relief Minima - Melville ch14 ex1(a)"
+    itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
+    names = ExampleHouseholdGetter.initialise()
+    hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
+    gordon = scot.people[SCOT_HEAD]
+    gordon.income[self_employment_income] = 27_800.0
+    gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
+    intermediate = Dict()
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    res_scot = calc_income_tax( gordon, nothing, itsys_scot, intermediate );
+    @test res_uk.pension_eligible_for_relief ≈ 27_800.0
+    @test res_scot.pension_eligible_for_relief ≈ 27_800.0
+    gordon.income[self_employment_income] = 2_500.0
+    gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
+    @test res_uk.pension_eligible_for_relief ≈ 2_500.0
+    @test res_scot.pension_eligible_for_relief ≈ 2_500.0
+end
 
 @testset "Crude MCA Age Check" begin
     # cut-off for jan 2010 should be age 85
