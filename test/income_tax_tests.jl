@@ -317,7 +317,7 @@ end
 
 ## TODO car tax; pension contributions
 
-@testset "pension contributions:  - Melville ch14 example 2(b)"
+@testset "pension contributions tax relief standard case:  - Melville ch14 example 2(b)"
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
     names = ExampleHouseholdGetter.initialise()
@@ -355,6 +355,33 @@ end
     @test res_uk.pension_eligible_for_relief ≈ 2_500.0
     @test res_scot.pension_eligible_for_relief ≈ 2_500.0
 end
+
+"""
+no actual example for this and I'm not 100% sure this
+is exactly how it works, but should be near enough.
+"""
+@testset "pension: Tax Relief Annual Allowance Charge"
+    itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
+    names = ExampleHouseholdGetter.initialise()
+    hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
+    gordon = scot.people[SCOT_HEAD]
+    gordon.income[self_employment_income] = 60_000.0
+    gordon.income[pension_contributions] =  50_000.00 # net contribs per month; expressed gross in example
+    intermediate = Dict()
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    @test res_uk.pension_eligible_for_relief ≈ 40_000
+
+    gordon.income[self_employment_income] = 300_000.0
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    @test res_uk.pension_eligible_for_relief ≈ 10_000
+
+    gordon.income[self_employment_income] = 150_000.0
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    # tapering thing seems really weird - this is approximarely right
+    @test res_uk.pension_eligible_for_relief ≈ 40_000
+
+end
+
 
 @testset "Crude MCA Age Check" begin
     # cut-off for jan 2010 should be age 85

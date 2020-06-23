@@ -67,7 +67,7 @@ module STBParameters
       pension_contrib_basic_amount = 3_600.00
       pension_contrib_annual_allowance = 40_000.00
       pension_contrib_annual_minimum = 10_000.00
-      pension_contrib_threshold_income = 110_000.00
+      pension_contrib_threshold_income = 150_000.00
       pension_contrib_withdrawal_rate = 50.0
    end
 

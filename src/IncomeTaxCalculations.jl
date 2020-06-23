@@ -148,6 +148,38 @@ function apply_allowance( allowance::Real, income::Real )::Tuple
 end
 
 """
+from melville, ch13. Add to some fields in the ITResult
+notes:
+  Melville talks of "earned income" - using non-savings income
+"""
+function calculate_pension_taxation!(
+    itres::ITResult,
+    pers::Person,
+    total_income::Real,
+    earned_income:: Real )
+
+    # 1 minima
+
+    pencont = pers.income[pension_contributions]
+    pencont = min( pencont, earned_income )
+    pencont = max( pencont, pension_contrib_basic_amount )
+    itres.pension_eligible_for_relief = pencont
+    # 2 annual allowance charge, kinda sorta
+    ann_allow = pension_contrib_annual_allowance
+
+    # note that in MV this is expressed as total net income + gross pension contributions
+    adjusted_income = total_income + pension_relief_at_source
+
+    pension_contrib_basic_amount = 3_600.00
+    pension_contrib_annual_allowance = 40_000.00
+    pension_contrib_annual_minimum = 10_000.00
+    pension_contrib_threshold_income = 150_000.00
+    pension_contrib_withdrawal_rate = 50.0
+    # 3 the calculation
+
+end
+
+"""
 
 Complete(??) income tax calculation, based on the Scottish/UK 2019 system.
 Mostly taken from Melville (2019) chs 2-4.
@@ -179,6 +211,11 @@ function calc_income_tax(
     non_dividends = non_savings + savings
 
     adjusted_net_income = total_income
+
+    calculate_pension_taxation!( itres, pers, total_income, non_savings )
+
+    adjusted_net_income -= itres.pension_eligible_for_relief
+
     adjusted_net_income += calculate_company_car_charge(pers, sys)
     # ...
 
