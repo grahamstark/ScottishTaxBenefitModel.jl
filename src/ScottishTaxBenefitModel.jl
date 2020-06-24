@@ -43,6 +43,10 @@ export STBParameters
 include("IncomeTaxCalculations.jl" )
 export IncomeTaxCalculations
 
+include("NationalInsuranceCalculations.jl" )
+export NationalInsuranceCalculations
+
+
 include( "Results.jl")
 export Results
 
