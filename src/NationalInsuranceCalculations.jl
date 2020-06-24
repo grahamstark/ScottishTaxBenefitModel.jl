@@ -11,16 +11,17 @@ import .STBParameters: NationalInsuranceSys
 import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
 import .Utils: get_if_set
 
-export calc_ni, calc_class_1, , calc_class_2, calc_class_3, calc_class_4
+export calc_ni, calc_class_1,
+    calc_class_1a, calc_class_2, calc_class_3, calc_class_4
 
 @with_kw mutable struct NIResult
+    above_threshold :: Boolean = false
     total_ni :: Real = 0.0
-    taxable_income :: Real = 0.0
-    class_1  :: Real = 0.0
-    class_2  :: Real = 0.0
-    class_3  :: Real = 0.0
-    class_4  :: Real = 0.0
-
+    class_1   :: Real = 0.0
+    class_1a  :: Real = 0.0
+    class_2   :: Real = 0.0
+    class_3   :: Real = 0.0
+    class_4   :: Real = 0.0
 end
 
 end # module
