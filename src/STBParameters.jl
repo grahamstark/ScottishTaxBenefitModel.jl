@@ -94,6 +94,11 @@ module STBParameters
       for k in it.company_car_charge_by_CO2_emissions
          it.company_car_charge_by_CO2_emissions[k.first] *= WEEKS_PER_YEAR
       end
+      it.pension_contrib_basic_amount *= WEEKS_PER_YEAR
+      it.pension_contrib_annual_allowance *= WEEKS_PER_YEAR
+      it.pension_contrib_annual_minimum *= WEEKS_PER_YEAR
+      it.pension_contrib_threshold_income *= WEEKS_PER_YEAR
+      it.pension_contrib_withdrawal_rate *= 100.0
    end
 
    function weeklyise!( it :: IncomeTaxSys )
@@ -118,7 +123,10 @@ module STBParameters
          it.company_car_charge_by_CO2_emissions[k.first] /= WEEKS_PER_YEAR
       end
       it.pension_contrib_basic_amount /= WEEKS_PER_YEAR
-
+      it.pension_contrib_annual_allowance /= WEEKS_PER_YEAR
+      it.pension_contrib_annual_minimum /= WEEKS_PER_YEAR
+      it.pension_contrib_threshold_income /= WEEKS_PER_YEAR
+      it.pension_contrib_withdrawal_rate /= 100.0
    end
 
    function get_default_it_system(

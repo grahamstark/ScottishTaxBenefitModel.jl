@@ -20,6 +20,7 @@ function get_tax(; scotland = false ) :: IncomeTaxSys
     it.personal_allowance_withdrawal_rate /= 100.0
     it.mca_credit_rate /= 100.0
     it.mca_withdrawal_rate /= 100.0
+    it.pension_contrib_withdrawal_rate /= 100.0
 
     it
 end
@@ -387,6 +388,12 @@ end
     res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
     # tapering thing seems really weird - this is approximarely right
     @test res_uk.head.pension_eligible_for_relief ≈ 40_000
+
+    # complete-ish calc from combes, tutin&rowes, 2018 edn, p199, updated to 2019/20 rates
+    gordon.income[self_employment_income] = 180_000.0
+    gordon.income[pension_contributions] =  14_400.00 # net contribs per month; expressed gross in example
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    @test res_uk.head.total_tax ≈ 61_500.0
 
 end
 

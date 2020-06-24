@@ -152,9 +152,11 @@ function apply_allowance( allowance::Real, income::Real )::Tuple
 end
 
 """
-  from Melville, ch13. Chjanges are in itres: add to pension fields and extend bands
+  from Melville, ch13.
+  Changes are in itres: add to pension fields and extend bands
   notes:
   Melville talks of "earned income" - using non-savings income
+  FIXME: check: does the personal_allowance_income_limit get bumped up?
 """
 function calculate_pension_taxation!(
     itres  ::ITResult,
@@ -185,7 +187,7 @@ function calculate_pension_taxation!(
     eligible_contribs = min( eligible_contribs, max_relief );
     itres.pension_eligible_for_relief = eligible_contribs
     basic_rate = sys.non_savings_rates[ sys.non_savings_basic_rate ]
-    println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate")
+    println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate sys.pension_contrib_withdrawal_rate=$(sys.pension_contrib_withdrawal_rate)")
     gross_contribs = eligible_contribs/(1-basic_rate)
     itres.pension_relief_at_source = gross_contribs - eligible_contribs
     itres.non_savings_thresholds .+= gross_contribs
@@ -229,7 +231,7 @@ function calc_income_tax(
 
     calculate_pension_taxation!( itres, sys, pers, total_income, non_savings )
 
-    adjusted_net_income -= itres.pension_eligible_for_relief
+    # adjusted_net_income -= itres.pension_eligible_for_relief
 
     adjusted_net_income += calculate_company_car_charge(pers, sys)
     # ...
