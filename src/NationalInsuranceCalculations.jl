@@ -15,7 +15,7 @@ export calc_ni, calc_class_1,
     calc_class_1a, calc_class_2, calc_class_3, calc_class_4
 
 @with_kw mutable struct NIResult
-    above_threshold :: Boolean = false
+    above_threshold :: Bool = false
     total_ni :: Real = 0.0
     class_1   :: Real = 0.0
     class_1a  :: Real = 0.0
