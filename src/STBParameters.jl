@@ -3,6 +3,8 @@ module STBParameters
    using Parameters
    import JSON
 
+   import BudgetConstraints: BudgetConstraint
+
    import ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
    import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
    using .Definitions
@@ -213,6 +215,7 @@ module STBParameters
 
    @with_kw mutable struct NationalInsuranceSys
       rates :: RateBands = [1.0]
+      gross_to_net_lookup = BudgetConstraint(undef,0)
    end
 
    @with_kw mutable struct TaxBenefitSystem

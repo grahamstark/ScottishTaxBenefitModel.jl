@@ -187,7 +187,7 @@ function calculate_pension_taxation!(
     eligible_contribs = min( eligible_contribs, max_relief );
     itres.pension_eligible_for_relief = eligible_contribs
     basic_rate = sys.non_savings_rates[ sys.non_savings_basic_rate ]
-    println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate sys.pension_contrib_withdrawal_rate=$(sys.pension_contrib_withdrawal_rate)")
+    # println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate sys.pension_contrib_withdrawal_rate=$(sys.pension_contrib_withdrawal_rate)")
     gross_contribs = eligible_contribs/(1-basic_rate)
     itres.pension_relief_at_source = gross_contribs - eligible_contribs
     itres.non_savings_thresholds .+= gross_contribs
