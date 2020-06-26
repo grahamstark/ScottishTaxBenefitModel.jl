@@ -214,7 +214,9 @@ module STBParameters
    end
 
    @with_kw mutable struct NationalInsuranceSys
-      rates :: RateBands = [1.0]
+      class_a_rates :: RateBands = zeros(0)
+      class_a_bands :: RateBands = zeros(0)
+      
       gross_to_net_lookup = BudgetConstraint(undef,0)
    end
 

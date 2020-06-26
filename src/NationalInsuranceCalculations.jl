@@ -18,7 +18,7 @@ export calc_ni, calc_class_1_primary,
 @with_kw mutable struct NIResult
     above_threshold :: Bool = false
     total_ni :: Real = 0.0
-    class_1_primary   :: Real = 0.0
+    class_1_primary    :: Real = 0.0
     class_1_secondary  :: Real = 0.0
     class_2   :: Real = 0.0
     class_3   :: Real = 0.0
