@@ -28,9 +28,14 @@ function make_gross_earnings_bc( )
 
 end
 
-function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys ) :: NIResult
-    if size(sys.gross_to_net_lookup)[1] == 0 && size( sys.secondary_class_1_rates)[1] > 0 
+function makeClass1Secondary()
 
+end
+
+function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys ) :: NIResult
+    if size(sys.gross_to_net_lookup)[1] == 0 && size( sys.secondary_class_1_rates)[1] > 0
+        sys.gross_to_net_lookup = make_gross_earnings_bc( )
+    end
 
     primary_class_1_rates :: RateBands = [0.0, 0.0, 12.0, 2.0 ]
   primary_class_1_bands :: RateBands = [118.0, 166.0, 962.0, 99999999999.99 ]
