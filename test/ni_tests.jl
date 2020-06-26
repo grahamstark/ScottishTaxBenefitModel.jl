@@ -5,7 +5,7 @@ import ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, d
 import ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
 import Dates: Date
-using ScottishTaxBenefitModel.NationalInsuranceCalculations: old_enough_for_mca, apply_allowance, calc_income_tax
+using ScottishTaxBenefitModel.NationalInsuranceCalculations
 import ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys
 
 const RUK_PERSON = 100000001001
