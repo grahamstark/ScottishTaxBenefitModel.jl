@@ -214,9 +214,11 @@ module STBParameters
    end
 
    @with_kw mutable struct NationalInsuranceSys
-      class_a_rates :: RateBands = zeros(0)
-      class_a_bands :: RateBands = zeros(0)
-      
+      primary_class_1_rates :: RateBands = [0.0, 0.0, 12.0, 2.0 ]
+      primary_class_1_bands :: RateBands = [118.0, 166.0, 962.0, 99999999999.99 ]
+      secondary_class_1_rates :: RateBands = [0.0, 13.8, 13.8 ] # keep 2 so
+      secondary_class_1_bands :: RateBands = [166.0, 962.0, 99999999999.99 ]
+      ## some modelling of u21s and u25s in apprentiships here..
       gross_to_net_lookup = BudgetConstraint(undef,0)
    end
 
