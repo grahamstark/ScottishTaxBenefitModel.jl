@@ -224,7 +224,7 @@ module STBParameters
       class_2_threshold ::Real = 6_365.0;
       class_2_rate ::Real = 3.00;
       class_4_rates :: RateBands = [0.0, 9.0, 2.0 ]
-      class_4_bands :: RateBands = [0.0, 8_632.0, 50_000.0 ]
+      class_4_bands :: RateBands = [8_632.0, 50_000.0, 9999999999999.99 ]
       ## some modelling of u21s and u25s in apprentiships here..
       # gross_to_net_lookup = BudgetConstraint(undef,0)
    end
@@ -233,8 +233,8 @@ module STBParameters
       ni.primary_class_1_rates ./= 100.0
       ni.secondary_class_1_rates ./= 100.0
       ni.class_2_threshold /= WEEKS_PER_YEAR
-      class_4_rates /= 100.0
-      class_4_bands ./= WEEKS_PER_YEAR
+      ni.class_4_rates /= 100.0
+      ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
    @with_kw mutable struct TaxBenefitSystem

@@ -84,7 +84,7 @@ function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys
             nires.class_4 = calctaxdue(
                 taxable = pers.income[self_employment_income],
                 rates = sys.class_4_rates,
-                thresholds = sys.class_4_bands )
+                thresholds = sys.class_4_bands ).due
         end # self emp
     end
 
@@ -92,7 +92,7 @@ function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys
     # do something random for class 3
 
     # don't count employers NI here
-    nires.total_ni = ni_res.class_1_primary +
+    nires.total_ni = nires.class_1_primary +
         nires.class_2 +
         nires.class_4
 

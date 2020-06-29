@@ -7,10 +7,9 @@ using ScottishTaxBenefitModel.Definitions
 import Dates: Date
 using ScottishTaxBenefitModel.NationalInsuranceCalculations
 import ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys,weeklyise!
+import .GeneralTaxComponents: WEEKS_PER_YEAR
 
 const RUK_PERSON = 100000001001
-const SCOT_HEAD = 100000001002
-const SCOT_SPOUSE = 100000001003
 
 
 @testset "Melville 2019 ch16 examples 1; Class 1 NI" begin
@@ -24,8 +23,8 @@ const SCOT_SPOUSE = 100000001003
     ntests = size(income)[1]
     @test ntests == size( nidue )[1]
     hh = ExampleHouseholdGetter.get_household( "mel_c2" )
-    pers.age = 50
     pers = hh.people[RUK_PERSON]
+    pers.age = 50
     for i in 1:ntests
         pers.income[wages] = income[i]
         println( "case $i income = $(income[i])")
@@ -36,7 +35,17 @@ const SCOT_SPOUSE = 100000001003
         @test round(class1sec,digits=2) ≈ niclass1sec[i]
         print( nires )
     end
+end
+
+
+@testset "Melville 2019 ch16 examples 6,7; Class 2,4 NI" begin
+    # BASIC IT Calcaulation on
+    nisys = NationalInsuranceSys()
+    weeklyise!( nisys )
     # self employment testing
+    hh = ExampleHouseholdGetter.get_household( "mel_c2" )
+    pers = hh.people[RUK_PERSON]
+    pers.age = 50
     pers.employment_status = Full_time_Self_Employed
     seinc = [6_280.0, 7_200.0]
     class2 = [0.0,3.0]
@@ -57,4 +66,4 @@ const SCOT_SPOUSE = 100000001003
         @test nires.class_4 ≈ class4[i]
     end
 
-end # example 1
+end # example 6,7
