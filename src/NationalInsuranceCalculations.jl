@@ -58,6 +58,15 @@ end
 
 function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys ) :: NIResult
     nires = NIResult()
+
+    # employer's NI on any wages
+    bc = make_gross_wage_bc( pers, sys )
+    gross = gross_from_net( bc, pers.income[wages])
+    nires.class_1_secondary = calc_class1_secondary( gross, pers, sys )
+    @assert (gross-nires.class_1_secondary) ≈ pers.income[wages]
+    nires.assumed_gross_wage = gross
+
+    # class 1 on any wages, se only on main ..
     if pers.age < sys.state_pension_age
         tres = calctaxdue(
             taxable = pers.income[wages],
@@ -65,25 +74,21 @@ function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys
             thresholds = sys.primary_class_1_bands )
         nires.class_1_primary = tres.due
         nires.above_lower_earnings_limit = tres.end_band > 1
+
+        if( pers.employment_status in [Full_time_Self_Employed, Part_time_Self_Employed])
+           # maybe? pers.principal_employment_type != An_Employee
+           # FIXME do I need *any* check on whether someone is classed as SE, & not just se income present?
+            if pers.income[self_employment_income] > sys.class_2_threshold
+                nires.class_2 = sys.class_2_rate
+            end
+            nires.class_4 = calctaxdue(
+                taxable = pers.income[self_employment_income],
+                rates = sys.class_4_rates,
+                thresholds = sys.class_4_bands )
+        end # self emp
     end
 
-    bc = make_gross_wage_bc( pers, sys )
-    gross = gross_from_net( bc, pers.income[wages])
-    nires.class_1_secondary = calc_class1_secondary( gross, pers, sys )
-    @assert (gross-nires.class_1_secondary) ≈ pers.income[wages]
-    nires.assumed_gross_wage = gross
-    if  (pers.employment_status in [Full_time_Self_Employed,
-        Part_time_Self_Employed]) && (pers.age < sys.state_pension_age)
-       # maybe? pers.principal_employment_type != An_Employee
 
-        if pers.income[self_employment_income] > sys.class_2_threshold
-            nires.class_2 = sys.class_2_rate
-        end
-        nires.class_4 = calctaxdue(
-            taxable = pers.income[self_employment_income],
-            rates = sys.class_4_rates,
-            thresholds = sys.class_4_bands )
-    end
     # do something random for class 3
 
     # don't count employers NI here
