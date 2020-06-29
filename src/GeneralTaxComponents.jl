@@ -8,7 +8,7 @@ export WEEKS_PER_YEAR, weeklyise, annualise, delete_thresholds_up_to
 export TaxResult, IncomesDict, RateBands
 export calctaxdue, calc_indirect, IndirResult,*,times
 
-# note: intialise like f::RateBands = zeros(0)
+# note: intialise like f::RateBands = zeros
 const RateBands = AbstractArray{<:Real}
 
 const IncomesDict = Dict{Any,Number}

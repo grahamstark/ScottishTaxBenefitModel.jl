@@ -1,6 +1,6 @@
 module NationalInsuranceCalculations
 
-import BudgetConstraints: BudgetConstraint, get_x_from_y
+using BudgetConstraints #: BudgetConstraint, get_x_from_y
 import Dates
 import Dates: Date, now, TimeType, Year
 import Parameters: @with_kw
@@ -12,7 +12,7 @@ import .STBParameters: NationalInsuranceSys
 import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
 import .Utils: get_if_set
 
-export calculate_national_insurance
+export calculate_national_insurance, calc_class1_secondary
 
 @with_kw mutable struct NIResult
     above_lower_earnings_limit :: Bool = false
@@ -22,25 +22,76 @@ export calculate_national_insurance
     class_2   :: Real = 0.0
     class_3   :: Real = 0.0
     class_4   :: Real = 0.0
+    assumed_gross_wage :: Real = 0.0
 end
 
-function make_gross_earnings_bc( )
-
+function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsuranceSys ) :: Real
+    rates = copy( sys.secondary_class_1_rates )
+    # FIXME parameterise this
+    if pers.age <= 21 # or  age <= 25 and apprentice
+        rates[2] = 0.0
+    end
+    tres = calctaxdue(
+        taxable = pers.income[wages],
+        rates = rates,
+        thresholds = sys.secondary_class_1_bands )
+    tres.due
+    ## TODO apprentiships
 end
 
-function makeClass1Secondary()
-
+function make_one_net( data :: Dict, gross :: Real ) :: Real
+    pers = data[:pers]
+    sys  = data[:sys]
+    # pers.income[wage] = gross
+    ni = calc_class1_secondary( gross, pers, sys )
+    return gross - ni
 end
+
+function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: BudgetConstraint
+    data = Dict(
+        :pers=>pers,
+        :sys=>sys
+    )
+    return makebc( data, make_one_net )
+end
+
 
 function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys ) :: NIResult
-    if size(sys.gross_to_net_lookup)[1] == 0 && size( sys.secondary_class_1_rates)[1] > 0
-        sys.gross_to_net_lookup = make_gross_earnings_bc( )
+    nires = NIResult()
+    if pers.age < sys.state_pension_age
+        tres = calctaxdue(
+            taxable = pers.income[wages],
+            rates = sys.primary_class_1_rates,
+            thresholds = sys.primary_class_1_bands )
+        nires.class_1_primary = tres.due
+        nires.above_lower_earnings_limit = tres.end_band > 1
     end
 
-    primary_class_1_rates :: RateBands = [0.0, 0.0, 12.0, 2.0 ]
-  primary_class_1_bands :: RateBands = [118.0, 166.0, 962.0, 99999999999.99 ]
-  secondary_class_1_rates :: RateBands = [0.0, 13.8, 13.8 ] # keep 2 so
-  secondary_class_1_bands :: RateBands = [166.0, 962.0, 99999999999.99 ]
+    bc = make_gross_wage_bc( pers, sys )
+    gross = gross_from_net( bc, pers.income[wages])
+    nires.class_1_secondary = calc_class1_secondary( gross, pers, sys )
+    @assert (gross-nires.class_1_secondary) ≈ pers.income[wages]
+    nires.assumed_gross_wage = gross
+    if # maybe? pers.principal_employment_type != An_Employee
+       pers.employment_status in [Full_time_Self_Employed,
+        Part_time_Self_Employed]
+       and pers.age < sys.state_pension_age
+        if pers.income[self_employment_income] > sys.class_2_threshold
+            nires.class_2 = sys.class_2_rate
+        end
+        nires.class_4 = calctaxdue(
+            taxable = pers.income[self_employment_income],
+            rates = sys.class_4_rates,
+            thresholds = sys.class_4_bands )
+    end
+    # do something random for class 3
+
+    # don't count employers NI here
+    nires.total_ni = ni_res.class_1_primary +
+        nires.class_2 +
+        nires.class_4
+
+    return nires
 end
 
 function gross_from_net( bc :: BudgetConstraint, net :: Real )::Real

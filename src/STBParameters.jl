@@ -213,13 +213,28 @@ module STBParameters
       it
    end
 
+
+
    @with_kw mutable struct NationalInsuranceSys
       primary_class_1_rates :: RateBands = [0.0, 0.0, 12.0, 2.0 ]
       primary_class_1_bands :: RateBands = [118.0, 166.0, 962.0, 99999999999.99 ]
       secondary_class_1_rates :: RateBands = [0.0, 13.8, 13.8 ] # keep 2 so
       secondary_class_1_bands :: RateBands = [166.0, 962.0, 99999999999.99 ]
+      state_pension_age :: Integer = 66; # fixme move
+      class_2_threshold ::Real = 6_365.0;
+      class_2_rate ::Real = 3.00;
+      class_4_rates :: RateBands = [0.0, 9.0, 2.0 ]
+      class_4_bands :: RateBands = [0.0, 8_632.0, 50_000.0 ]
       ## some modelling of u21s and u25s in apprentiships here..
-      gross_to_net_lookup = BudgetConstraint(undef,0)
+      # gross_to_net_lookup = BudgetConstraint(undef,0)
+   end
+
+   function weeklyise!( ni :: NationalInsuranceSys )
+      ni.primary_class_1_rates ./= 100.0
+      ni.secondary_class_1_rates ./= 100.0
+      ni.class_2_threshold /= WEEKS_PER_YEAR
+      class_4_rates /= 100.0
+      class_4_bands ./= WEEKS_PER_YEAR
    end
 
    @with_kw mutable struct TaxBenefitSystem

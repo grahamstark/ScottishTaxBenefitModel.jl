@@ -6,7 +6,7 @@ import ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
 import Dates: Date
 using ScottishTaxBenefitModel.NationalInsuranceCalculations
-import ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys
+import ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys,weeklyise!
 
 const RUK_PERSON = 100000001001
 const SCOT_HEAD = 100000001002
@@ -16,20 +16,24 @@ const SCOT_SPOUSE = 100000001003
 @testset "Melville 2019 ch16 examples 1; Class 1 NI" begin
     # BASIC IT Calcaulation on
     nisys = NationalInsuranceSys()
+    weeklyise!( nisys )
     @time names = ExampleHouseholdGetter.initialise()
-    income = [11_730,14_493,30_000,33_150.0,58_600,231_400]
+    income = [110.0,145.0,325,755.0,1_000.0]
+    nidue = [(0.0,false),(0.0,true),(19.08,true),(70.68,true),(96.28,true)]
+    niclass1sec = [0.0,0.0,21.94,81.28,115.09]
     ntests = size(income)[1]
-    for i in 1:ntests-1
-        income[i] += itsys_scot.personal_allowance # weird way this is expessed in Melville
-    end
-    nidue = [2_346.0,2898.60,6_000,6_630.0,15_940.00,89_130.0]
-    @test size( income ) == size( taxes_ruk) == size( taxes_scotland )
+    @test ntests == size( nidue )[1]
     hh = ExampleHouseholdGetter.get_household( "mel_c2" )
-    pers = ruk.people[RUK_PERSON]
-    for i in size(income)[1]
+    pers = hh.people[RUK_PERSON]
+    for i in 1:ntests
         pers.income[wages] = income[i]
+        pers.age = 50
         println( "case $i income = $(income[i])")
-        due = calc_class_1_primary( pers, itsys_ruk ).total_tax
-        @test due == nidue[i]
+        nires = calculate_national_insurance( pers, nisys )
+        class1sec = calc_class1_secondary( income[i], pers, nisys )
+        @test nires.class_1_primary ≈ nidue[i][1]
+        @test nires.above_lower_earnings_limit == nidue[i][2]
+        @test round(class1sec,digits=2) ≈ niclass1sec[i]
+        print( nires )
     end
 end # example 1
