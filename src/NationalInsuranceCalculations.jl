@@ -72,10 +72,10 @@ function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys
     nires.class_1_secondary = calc_class1_secondary( gross, pers, sys )
     @assert (gross-nires.class_1_secondary) ≈ pers.income[wages]
     nires.assumed_gross_wage = gross
-    if # maybe? pers.principal_employment_type != An_Employee
-       pers.employment_status in [Full_time_Self_Employed,
-        Part_time_Self_Employed]
-       and pers.age < sys.state_pension_age
+    if  (pers.employment_status in [Full_time_Self_Employed,
+        Part_time_Self_Employed]) && (pers.age < sys.state_pension_age)
+       # maybe? pers.principal_employment_type != An_Employee
+
         if pers.income[self_employment_income] > sys.class_2_threshold
             nires.class_2 = sys.class_2_rate
         end

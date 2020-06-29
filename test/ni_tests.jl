@@ -24,10 +24,10 @@ const SCOT_SPOUSE = 100000001003
     ntests = size(income)[1]
     @test ntests == size( nidue )[1]
     hh = ExampleHouseholdGetter.get_household( "mel_c2" )
+    pers.age = 50
     pers = hh.people[RUK_PERSON]
     for i in 1:ntests
         pers.income[wages] = income[i]
-        pers.age = 50
         println( "case $i income = $(income[i])")
         nires = calculate_national_insurance( pers, nisys )
         class1sec = calc_class1_secondary( income[i], pers, nisys )
@@ -36,4 +36,25 @@ const SCOT_SPOUSE = 100000001003
         @test round(class1sec,digits=2) ≈ niclass1sec[i]
         print( nires )
     end
+    # self employment testing
+    pers.employment_status = Full_time_Self_Employed
+    seinc = [6_280.0, 7_200.0]
+    class2 = [0.0,3.0]
+    nisys.class_2_threshold *= WEEKS_PER_YEAR
+    nisys.class_4_bands *= WEEKS_PER_YEAR
+    for i in 1:size(seinc)[1]
+        pers.income[self_employment_income] = seinc[i]
+        println( "case $i seinc = $(seinc[i])")
+        nires = calculate_national_insurance( pers, nisys )
+        @test nires.class_2 ≈ class2[i]
+    end
+    seinc = [15_140.0, 55_000.0,7_500.0]
+    class4 = [585.72, 3_823.12, 0.0 ]
+    for i in 1:size(seinc)[1]
+        pers.income[self_employment_income] = seinc[i]
+        println( "case $i seinc = $(seinc[i])")
+        nires = calculate_national_insurance( pers, nisys )
+        @test nires.class_4 ≈ class4[i]
+    end
+
 end # example 1
