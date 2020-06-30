@@ -233,13 +233,21 @@ module STBParameters
       ni.primary_class_1_rates ./= 100.0
       ni.secondary_class_1_rates ./= 100.0
       ni.class_2_threshold /= WEEKS_PER_YEAR
-      ni.class_4_rates /= 100.0
+      ni.class_4_rates ./= 100.0
       ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
    function fromJSON( json :: Dict ) :: NationalInsuranceSys
       ni = NationalInsuranceSys()
-
+      ni.class_2_threshold = json["class_2_threshold"]
+      ni.class_2_rate = json["class_2_rate"]
+      ni.state_pension_age = json["state_pension_age"] # fixme move
+      ni.primary_class_1_rates = to_rate_bands( json["primary_class_1_rates"] )
+      ni.secondary_class_1_rates = to_rate_bands( json["secondary_class_1_rates"] )
+      ni.primary_class_1_bands = to_rate_bands( json["primary_class_1_bands"] )
+      ni.secondary_class_1_bands = to_rate_bands( json["secondary_class_1_bands"] )
+      ni.class_4_rates = to_rate_bands( json["class_4_rates"] )
+      ni.class_4_bands = to_rate_bands( json["class_4_bands"] )
       return ni
    end
 
