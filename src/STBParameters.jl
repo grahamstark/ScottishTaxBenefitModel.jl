@@ -237,6 +237,12 @@ module STBParameters
       ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
+   function fromJSON( json :: Dict ) :: NationalInsuranceSys
+      ni = NationalInsuranceSys()
+
+      return ni
+   end
+
    @with_kw mutable struct TaxBenefitSystem
       name :: AbstractString = "Scotland 2919/20"
       it   :: IncomeTaxSys = IncomeTaxSys()

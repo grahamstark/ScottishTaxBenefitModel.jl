@@ -11,7 +11,7 @@ import .GeneralTaxComponents: WEEKS_PER_YEAR
 const RUK_PERSON = 100000001001
 
 
-@testset "Melville 2019 ch16 examples 1; Class 1 NI" begin
+@testset "CPAG" begin
     # BASIC IT Calcaulation on
     nisys = NationalInsuranceSys()
     weeklyise!( nisys )
@@ -34,35 +34,4 @@ const RUK_PERSON = 100000001001
         @test round(class1sec,digits=2) ≈ niclass1sec[i]
         print( nires )
     end
-end
-
-
-@testset "Melville 2019 ch16 examples 6,7; Class 2,4 NI" begin
-    # BASIC IT Calcaulation on
-    nisys = NationalInsuranceSys()
-    weeklyise!( nisys )
-    # self employment testing
-    hh = ExampleHouseholdGetter.get_household( "mel_c2" )
-    pers = hh.people[RUK_PERSON]
-    pers.age = 50
-    pers.employment_status = Full_time_Self_Employed
-    seinc = [6_280.0, 7_200.0]
-    class2 = [0.0,3.0]
-    nisys.class_2_threshold *= WEEKS_PER_YEAR
-    nisys.class_4_bands *= WEEKS_PER_YEAR
-    for i in 1:size(seinc)[1]
-        pers.income[self_employment_income] = seinc[i]
-        println( "case $i seinc = $(seinc[i])")
-        nires = calculate_national_insurance( pers, nisys )
-        @test nires.class_2 ≈ class2[i]
-    end
-    seinc = [15_140.0, 55_000.0,7_500.0]
-    class4 = [585.72, 3_823.12, 0.0 ]
-    for i in 1:size(seinc)[1]
-        pers.income[self_employment_income] = seinc[i]
-        println( "case $i seinc = $(seinc[i])")
-        nires = calculate_national_insurance( pers, nisys )
-        @test nires.class_4 ≈ class4[i]
-    end
-
-end # example 6,7
+end # t1
