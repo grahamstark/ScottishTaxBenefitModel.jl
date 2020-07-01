@@ -25,6 +25,34 @@ const HBAI_DIR = "$RAW_DATA/hbai/"
 export NUM_REPEATS
 const NUM_REPEATS = 30 # simulates a longer calculation
 
+@enum PersonalAllowanceType begin
+   pa_age_18_24 = 1
+   pa_age_25_and_over = 2
+   pa_age_18_and_in_work_activity = 3
+   pa_over_pension_age = 4
+   pa_lone_parent = 5
+   pa_lone_parent_over_pension_age = 6
+   pa_couple_both_over_18 = 7
+   pa_couple_over_pension_age = 8
+   pa_couple_one_over_18_high = 9
+   pa_couple_one_over_18_med = 10
+   pa_couple_one_over_18_low = 11
+end
+
+export PersonalAllowanceType,
+   pa_age_18_24,
+   pa_age_25_and_over,
+   pa_age_18_and_in_work_activity,
+   pa_over_pension_age,
+   pa_lone_parent,
+   pa_lone_parent_over_pension_age,
+   pa_couple_both_over_18,
+   pa_couple_over_pension_age,
+   pa_couple_one_over_18_high,
+   pa_couple_one_over_18_med,
+   pa_couple_one_over_18_low
+
+
 
 @enum Employment_Status begin  # mapped from empstat
    Missing_Employment_Status = -1

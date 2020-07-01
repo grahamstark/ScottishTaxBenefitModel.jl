@@ -34,7 +34,7 @@ export calculate_company_car_charge
     non_savings_thresholds :: RateBands = zeros(0)
     savings_thresholds  :: RateBands = zeros(0)
     dividend_thresholds :: RateBands = zeros(0)
-
+    intermediate :: Dict = Dict()
 end
 
 ## FIXME all these constants should ultimately be parameters
@@ -215,7 +215,6 @@ in the `intermediate` dict
 function calc_income_tax(
     pers   :: Person,
     sys    :: IncomeTaxSys,
-    intermediate :: Dict,
     spouse_transfer :: Real = 0.0 ) :: ITResult
     itres :: ITResult = ITResult()
     total_income = ALL_TAXABLE*pers.income;
@@ -248,13 +247,13 @@ function calc_income_tax(
                         adjusted_net_income - sys.personal_allowance_income_limit ))
     end
     taxable_income = adjusted_net_income-allowance
-    intermediate["allowance"]=allowance
-    intermediate["total_income"]=total_income
-    intermediate["adjusted_net_income"]=adjusted_net_income
-    intermediate["taxable_income"]=taxable_income
-    intermediate["savings"]=savings
-    intermediate["non_savings"]=non_savings
-    intermediate["dividends"]=dividends
+    itres.intermediate["allowance"]=allowance
+    itres.intermediate["total_income"]=total_income
+    itres.intermediate["adjusted_net_income"]=adjusted_net_income
+    itres.intermediate["taxable_income"]=taxable_income
+    itres.intermediate["savings"]=savings
+    itres.intermediate["non_savings"]=non_savings
+    itres.intermediate["dividends"]=dividends
     # note: we copy from the expanded versions from pension_contributions
     savings_thresholds = deepcopy( itres.savings_thresholds )
     savings_rates = deepcopy( sys.savings_rates )
@@ -290,10 +289,10 @@ function calc_income_tax(
                     savings_rates = vcat([0.0], savings_rates )
                 end
             end
-            intermediate["personal_savings_allowance"] = psa
+            itres.intermediate["personal_savings_allowance"] = psa
         end # we have a personal_savings_allowance
-        intermediate["savings_rates"] = savings_rates
-        intermediate["savings_thresholds"] = savings_thresholds
+        itres.intermediate["savings_rates"] = savings_rates
+        itres.intermediate["savings_thresholds"] = savings_thresholds
         allowance,savings_taxable = apply_allowance( allowance, savings )
         savings_tax = calctaxdue(
             taxable=savings_taxable,
@@ -328,10 +327,10 @@ function calc_income_tax(
             dividend_thresholds .+= zero_band # push all up
             dividend_thresholds = vcat( zero_band, dividend_thresholds )
         end
-        intermediate["dividend_rates"]=dividend_rates
-        intermediate["dividend_thresholds"]=dividend_thresholds
-        intermediate["add_back_zero_band"]=add_back_zero_band
-        intermediate["dividends_taxable"]=dividends_taxable
+        itres.intermediate["dividend_rates"]=dividend_rates
+        itres.intermediate["dividend_thresholds"]=dividend_thresholds
+        itres.intermediate["add_back_zero_band"]=add_back_zero_band
+        itres.intermediate["dividends_taxable"]=dividends_taxable
 
         dividend_tax = calctaxdue(
             taxable=dividends_taxable,
@@ -340,9 +339,9 @@ function calc_income_tax(
     else # some allowance left
         allowance = -taxable_income # e.g. allowance - taxable_income
     end
-    intermediate["non_savings_tax"]=non_savings_tax.due
-    intermediate["savings_tax"]=savings_tax.due
-    intermediate["dividend_tax"]=dividend_tax.due
+    itres.intermediate["non_savings_tax"]=non_savings_tax.due
+    itres.intermediate["savings_tax"]=savings_tax.due
+    itres.intermediate["dividend_tax"]=dividend_tax.due
 
     #
     # tax reducers
@@ -403,11 +402,8 @@ end
 function calc_income_tax(
     head   :: Person,
     spouse :: Union{Nothing,Person},
-    sys    :: IncomeTaxSys,
-    intermediate :: Dict ) :: NamedTuple
-    head_intermed = Dict()
-    headtax = calc_income_tax( head, sys, head_intermed )
-    intermediate["head_tax"] = head_intermed
+    sys    :: IncomeTaxSys ) :: NamedTuple
+    headtax = calc_income_tax( head, sys )
     spousetax = nothing
     # FIXME the transferable stuff here
     # is not right as you can elect to transfer more than
@@ -415,9 +411,7 @@ function calc_income_tax(
     # also - add in restrictions on transferring to
     # higher rate payers.
     if spouse != nothing
-        spouse_intermed = Dict()
-        intermediate["spouse_tax"] = spouse_intermed
-        spousetax = calc_income_tax( spouse, sys, spouse_intermed )
+        spousetax = calc_income_tax( spouse, sys )
         # This is not quite right - you can't claim the
         # MCA AND transfer an allowance. We're assuming
         # always MCA first (I think it's always more valuable?)
@@ -437,11 +431,11 @@ function calc_income_tax(
             if allowed_to_transfer_allowance( sys, from=spousetax, to=headtax )
                 transferable_allow = min( spousetax.unused_allowance, sys.marriage_allowance )
                 headtax = calc_income_tax( head, sys, head_intermed, transferable_allow )
-                intermediate["transfer_spouse_to_head"] = transferable_allow
+                headtax.intermediate["transfer_spouse_to_head"] = transferable_allow
             elseif allowed_to_transfer_allowance( sys, from=headtax, to=spousetax )
                 transferable_allow = min( headtax.unused_allowance, sys.marriage_allowance )
                 spousetax = calc_income_tax( spouse, sys, spouse_intermed, transferable_allow )
-                intermediate["transfer_head_to_spouse"] = transferable_allow
+                spousetax.intermediate["transfer_head_to_spouse"] = transferable_allow
             end
         end
     end

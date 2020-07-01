@@ -47,13 +47,12 @@ end
     println( bus )
     # @test nbus == 1 == size( bus[1])[1]
     pers = bus[1][1]
-    intermediate = Dict()
     for i in 1:ntests
         pers.income[wages] = income[i]
-        due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
+        due = calc_income_tax( pers, itsys_scot ).total_tax
         println( "Scotland $i : calculated $due expected $(taxes_scotland[i])")
         @test due ≈ taxes_scotland[i]
-        due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
+        due = calc_income_tax( pers, itsys_ruk ).total_tax
         println( "rUK $i : calculated $due expected $(taxes_ruk[i])")
         @test due ≈ taxes_ruk[i]
         println( ruk.people[RUK_PERSON].income )
@@ -70,12 +69,12 @@ end # example 1
     psa = [1_000.0,500.0,500.0,0.0]
     @test size( income ) == size( psa ) # same Scotland and RUK
     pers = ruk.people[RUK_PERSON] # doesn't matter S/RUK
-    intermediate = Dict()
+
     for i in size(income)[1]
         pers.income[wages] = income[i]
         println( "case $i income = $(income[i])")
-        due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-        @test intermediate["personal_savings_allowance"] == psa[i]
+        res = calc_income_tax( pers, itsys_ruk )
+        @test res.intermediate["personal_savings_allowance"] == psa[i]
     end
 end # example 2
 
@@ -87,13 +86,12 @@ end # example 2
     pers = ruk.people[RUK_PERSON]
     pers.income[self_employment_income] = 40_000.00
     pers.income[bank_interest] = 1_250.00
-    intermediate = Dict()
     tax_due_scotland = 5680.07
-    due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_scot ).total_tax
+    #
     @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
+    #
     tax_due_ruk = 5_550.00
     @test due ≈ tax_due_ruk
 end # example 3
@@ -101,7 +99,7 @@ end # example 3
 @testset "ch2 example 4; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
+
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
@@ -109,18 +107,15 @@ end # example 3
     pers.income[bank_interest] = 1_100.00
     tax_due_ruk = 840.00
     tax_due_scotland = 819.51
-    due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_scot ).total_tax
     @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
     @test due ≈ tax_due_ruk
 end # example 4
 
 @testset "ch2 example 5; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
@@ -128,18 +123,15 @@ end # example 4
     pers.income[bank_interest] = 980.00
     tax_due_ruk = 11_232.00
     tax_due_scotland = 12_864.57
-    due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_scot ).total_tax
     @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
     @test due ≈ tax_due_ruk
 end # example 5
 
 @testset "ch2 example 6; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
@@ -148,18 +140,15 @@ end # example 5
 
     tax_due_ruk = 93_825.75
     tax_due_scotland = 97_397.17
-    due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_scot ).total_tax
     @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
     @test due ≈ tax_due_ruk
 end # example 6
 
 @testset "ch2 example 7; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
@@ -168,11 +157,9 @@ end # example 6
     pers.income[other_investment_income] = 36_680.00/0.8 # gross up at basic
     tax_due_ruk = 10_092.00 # inc already deducted at source
     tax_due_scotland = 10_092.00
-    due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_scot ).total_tax
     @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
     @test due ≈ tax_due_ruk
 end # example 7
 
@@ -183,7 +170,6 @@ end # example 7
 @testset "ch2 example 8; simple stocks_shares" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
@@ -192,18 +178,15 @@ end # example 7
     pers.income[stocks_shares] = 204_100.0 # gross up at basic
     tax_due_ruk = 74_834.94 # inc already deducted at source
     tax_due_scotland = 74_834.94+140.97
-    due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_scot ).total_tax
     @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
     @test due ≈ tax_due_ruk
 end # example 8
 
 @testset "ch2 example 9; simple stocks_shares" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
@@ -212,11 +195,9 @@ end # example 8
     pers.income[stocks_shares] = 1_600.0 # gross up at basic
     tax_due_ruk = 1_050.00 # inc already deducted at source
     tax_due_scotland = 1_050.00-20.49
-    due = calc_income_tax( pers, itsys_scot, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_scot ).total_tax
     @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
     @test due ≈ tax_due_ruk
 end # example 9
 
@@ -224,18 +205,18 @@ end # example 9
 @testset "ch3 personal allowances ex 1 - hr allowance withdrawal" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
+
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.income[self_employment_income] = 110_520.00
     tax_due_ruk = 33_812.00
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
+
     @test due ≈ tax_due_ruk
     pers.income[self_employment_income] += 100.0
-    due = calc_income_tax( pers, itsys_ruk, intermediate ).total_tax
-    println( intermediate )
+    due = calc_income_tax( pers, itsys_ruk ).total_tax
+
     tax_due_ruk = 33_812.00+60.0
     @test due ≈ tax_due_ruk
 
@@ -246,7 +227,7 @@ end # example1 ch3
 @testset "ch3 personal allowances ex 2 - marriage allowance" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
+
     names = ExampleHouseholdGetter.initialise()
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
@@ -257,22 +238,22 @@ end # example1 ch3
     spouse.income[self_employment_income] = 20_000.0
     spouse_tax_due_ruk = 1_258.0
 
-    result = calc_income_tax( head,spouse, itsys_ruk, intermediate )
+    result = calc_income_tax( head,spouse, itsys_ruk )
 
     println( result )
-    println( intermediate )
+
     @test result.spouse.total_tax ≈ spouse_tax_due_ruk
 end # example 2 ch3
 
 @testset "ch3 blind person" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
+
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.registered_blind = true
-    result = calc_income_tax( pers, nothing, itsys_ruk, intermediate )
+    result = calc_income_tax( pers, nothing, itsys_ruk )
     @test result.head.allowance == itsys_scot.personal_allowance + itsys_scot.blind_persons_allowance
     # test that tax is 2450xmr
 end
@@ -283,7 +264,7 @@ end
     # checl MCA only available if 1 spouse born before 6th April  1935
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    intermediate = Dict()
+
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     head = scot.people[SCOT_HEAD]
@@ -298,8 +279,8 @@ end
         # head.income[private_pension] = head_incomes[i]
         head.age = head_ages[i]
         spouse.age = spouse_ages[i]
-        result_ruk = calc_income_tax( head, spouse, itsys_ruk, intermediate )
-        result_scot = calc_income_tax( head, spouse, itsys_scot, intermediate )
+        result_ruk = calc_income_tax( head, spouse, itsys_ruk )
+        result_scot = calc_income_tax( head, spouse, itsys_scot )
         if i == 1
             @test result_ruk.head.mca ≈ 891.50 ≈ result_scot.head.mca
             @test result_ruk.spouse.mca ≈ 0 ≈ result_scot.spouse.mca
@@ -328,9 +309,9 @@ end
     alana.income = Incomes_Dict() # clear
     alana.income[self_employment_income] = 62_000.0
     alana.income[pension_contributions] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
-    intermediate = Dict()
-    res_uk = calc_income_tax( alana, nothing, itsys_ruk, intermediate );
-    res_scot = calc_income_tax( alana, nothing, itsys_scot, intermediate );
+
+    res_uk = calc_income_tax( alana, nothing, itsys_ruk );
+    res_scot = calc_income_tax( alana, nothing, itsys_scot );
     println( typeof( res_uk ))
     @test res_uk.head.pension_relief_at_source ≈ 960.0
     @test res_uk.head.pension_eligible_for_relief ≈ 400.0*12*0.8
@@ -350,15 +331,15 @@ end
     gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 27_800.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
-    intermediate = Dict()
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
-    res_scot = calc_income_tax( gordon, nothing, itsys_scot, intermediate );
+
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
+    res_scot = calc_income_tax( gordon, nothing, itsys_scot );
     @test res_uk.head.pension_eligible_for_relief ≈ 27_800.0
     @test res_scot.head.pension_eligible_for_relief ≈ 27_800.0
     gordon.income[self_employment_income] = 2_500.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
-    res_scot = calc_income_tax( gordon, nothing, itsys_scot, intermediate );
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
+    res_scot = calc_income_tax( gordon, nothing, itsys_scot );
     @test res_uk.head.pension_eligible_for_relief ≈ 3_600.0
     @test res_scot.head.pension_eligible_for_relief ≈ 3_600.0
 end
@@ -376,23 +357,23 @@ end
     gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 60_000.0
     gordon.income[pension_contributions] =  50_000.00 # net contribs per month; expressed gross in example
-    intermediate = Dict()
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
     @test res_uk.head.pension_eligible_for_relief ≈ 40_000
 
     gordon.income[self_employment_income] = 300_000.0
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
     @test res_uk.head.pension_eligible_for_relief ≈ 10_000
 
     gordon.income[self_employment_income] = 150_000.0
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
     # tapering thing seems really weird - this is approximarely right
     @test res_uk.head.pension_eligible_for_relief ≈ 40_000
 
     # complete-ish calc from combes, tutin&rowes, 2018 edn, p199, updated to 2019/20 rates
     gordon.income[self_employment_income] = 180_000.0
     gordon.income[pension_contributions] =  14_400.00 # net contribs per month; expressed gross in example
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk, intermediate );
+    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
     @test res_uk.head.total_tax ≈ 61_500.0
 
 end

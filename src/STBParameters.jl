@@ -237,6 +237,24 @@ module STBParameters
       ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
+   Credits_Allowances_Dict = Dict{PersonalAllowanceType, Real}
+
+   @with_kw mutable struct LegacyMeansTestedBenefitSystem
+       personal_allowances :: Credits_Allowances_Dict(
+         pa_age_18_24 => 1,
+         pa_age_25_and_over => 2,
+         pa_age_18_and_in_work_activity => 3,
+         pa_over_pension_age => 4,
+         pa_lone_parent => 5,
+         pa_lone_parent_over_pension_age => 6,
+         pa_couple_both_over_18 => 7,
+         pa_couple_over_pension_age => 8,
+         pa_couple_one_over_18_high => 9,
+         pa_couple_one_over_18_med => 10,
+         pa_couple_one_over_18_low => 11 )
+
+   end
+
    function fromJSON( json :: Dict ) :: NationalInsuranceSys
       ni = NationalInsuranceSys()
       ni.class_2_threshold = json["class_2_threshold"]
