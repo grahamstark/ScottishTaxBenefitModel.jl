@@ -1,24 +1,92 @@
 module STBParameters
 
-   using Parameters
-   import JSON
-   import JSON2
-   import BudgetConstraints: BudgetConstraint
+    import Dates
+    import Dates: Date, now, TimeType, Year
 
-   import ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
-   import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
-   using .Definitions
-   import .Utils
+    using Parameters
+    import JSON
+    # import JSON2
+    import BudgetConstraints: BudgetConstraint
+
+    import ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
+    import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+    using .Definitions
+    import .Utils
 
 
-   export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
-   export weeklyise!, annualise!, fromJSON, get_default_it_system
+    export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
+    export weeklyise!, annualise!, fromJSON, get_default_it_system
+    export MCA_DATE
+
+    const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
+
+    const SAVINGS_INCOME = Incomes_Dict(
+       bank_interest => 1.0,
+       bonds_and_gilts => 1.0,
+       other_investment_income => 1.0
+   )
+
+   const DIVIDEND_INCOME = Incomes_Dict(
+       stocks_shares => 1.0
+   )
+   const Exempt_Income = Incomes_Dict(
+       individual_savings_account=>1.0,
+       local_taxes=>1.0,
+       free_school_meals => 1.0,
+       dlaself_care => 1.0,
+       dlamobility => 1.0,
+       child_benefit => 1.0,
+       pension_credit => 1.0,
+       bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 1.0,
+       armed_forces_compensation_scheme => 1.0, # FIXME not in my list check this
+       war_widows_or_widowers_pension => 1.0,
+       severe_disability_allowance => 1.0,
+       attendence_allowance => 1.0,
+       industrial_injury_disablement_benefit => 1.0,
+       employment_and_support_allowance => 1.0,
+       incapacity_benefit => 1.0,## taxable after 29 weeks,
+       income_support => 1.0,
+       maternity_allowance => 1.0,
+       maternity_grant_from_social_fund => 1.0,
+       funeral_grant_from_social_fund => 1.0,
+       guardians_allowance => 1.0,
+       winter_fuel_payments => 1.0,
+       dwp_third_party_payments_is_or_pc => 1.0,
+       dwp_third_party_payments_jsa_or_esa => 1.0,
+       extended_hb => 1.0,
+       working_tax_credit => 1.0,
+       child_tax_credit => 1.0,
+       working_tax_credit_lump_sum => 1.0,
+       child_tax_credit_lump_sum => 1.0,
+       housing_benefit => 1.0,
+       universal_credit => 1.0,
+       personal_independence_payment_daily_living => 1.0,
+       personal_independence_payment_mobility => 1.0 )
+
+   function make_all_taxable()::Incomes_Dict
+       eis = union(Set( keys( Exempt_Income )), Definitions.Expenses )
+       all_t = Incomes_Dict()
+       for i in instances(Incomes_Type)
+           if ! (i ∈ eis )
+               all_t[i]=1.0
+           end
+       end
+       all_t
+   end
+
+    function make_non_savings()::Incomes_Dict
+       excl = union(Set(keys(DIVIDEND_INCOME)), Set( keys(SAVINGS_INCOME)))
+       nsi = make_all_taxable()
+       for i in excl
+           delete!( nsi, i )
+       end
+       nsi
+    end
 
    ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
    # using Unitful
 
-   Fuel_Dict = Dict{Fuel_Type,Real}
-   Default_Fuel_Dict_2020_21 = Fuel_Dict(
+   Default_Fuel_Dict_2020_21 = Dict{Fuel_Type,Real}(
          Missing_Fuel_Type=>0.1,
          No_Fuel=>0.1,
          Other=>0.1,
@@ -60,17 +128,22 @@ module STBParameters
       # FIXME better to have it straight from
       # the book with charges per CO2 range
       # and the data being an estimate of CO2 per type
-      company_car_charge_by_CO2_emissions :: FuelDict{ Fuel_Type, RT } = Default_Fuel_Dict_2020_21
+      company_car_charge_by_CO2_emissions :: Dict{ Fuel_Type, RT } = Default_Fuel_Dict_2020_21
       fuel_imputation  :: RT = 24_100.00
 
       #
       # pensions
       #
-      pension_contrib_basic_amount = 3_600.00
-      pension_contrib_annual_allowance = 40_000.00
-      pension_contrib_annual_minimum = 10_000.00
-      pension_contrib_threshold_income = 150_000.00
-      pension_contrib_withdrawal_rate = 50.0
+      pension_contrib_basic_amount :: RT = 3_600.00
+      pension_contrib_annual_allowance :: RT = 40_000.00
+      pension_contrib_annual_minimum :: RT = 10_000.00
+      pension_contrib_threshold_income :: RT = 150_000.00
+      pension_contrib_withdrawal_rate :: RT = 50.0
+
+      non_savings_income :: Dict{Incomes_Type,RT}= make_non_savings()
+      all_taxable :: Dict{Incomes_Type,RT} = make_non_savings()
+      savings_income :: Dict{Incomes_Type,RT} = SAVINGS_INCOME
+      dividend_income :: Dict{Incomes_Type,RT} = DIVIDEND_INCOME
    end
 
    function annualise!( it :: IncomeTaxSys )
@@ -133,7 +206,7 @@ module STBParameters
 
    function get_default_it_system(
       ;
-      year     :: IT=2019,
+      year     :: Integer=2019,
       scotland :: Bool = true,
       weekly   :: Bool = true )::Union{Nothing,IncomeTaxSys}
       it = nothing
@@ -238,7 +311,7 @@ module STBParameters
    end
 
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{IT<:Integer, RT<:Real}
-       personal_allowances :: Dict{PersonalAllowanceType, RT}(
+       personal_allowances :: Dict{PersonalAllowanceType, RT} = Dict(
          pa_age_18_24 => 1,
          pa_age_25_and_over => 2,
          pa_age_18_and_in_work_activity => 3,

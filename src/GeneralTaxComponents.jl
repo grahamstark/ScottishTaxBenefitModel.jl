@@ -30,13 +30,13 @@ end
    of eligible expenses
    FIXME I don't really understand why Dict{T,Number} works here but Dict{Any,Number} doesn't
 """
-function times( m1::Dict{T,Real}, m2::Dict{T,Real})::Real where T
-   m = 0.0
+function times( m1::Dict{T,R}, m2::Dict{T,R})::R where T where R<:Number
+   m = zero(R)
    ikey = intersect( keys(m1), keys(m2))
    for k in ikey
       m += m1[k]*m2[k]
    end
-   m
+   return m
 end
 
 import Base.*

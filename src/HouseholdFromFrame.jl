@@ -11,7 +11,7 @@ export load_hhld_from_frame, map_hhld
 
 function map_person( model_person :: DataFrameRow )
 
-    income = Dict{Incomes,Float64}()
+    income = Dict{Incomes_Type,Float64}()
     for i in instances(Incomes_Type)
         ikey = make_sym_for_frame("income", i)
         if ! ismissing(model_person[ikey])
@@ -27,7 +27,7 @@ function map_person( model_person :: DataFrameRow )
         end
     end
 
-    assets = Dict{Assset,Float64}()
+    assets = Dict{Asset_Type,Float64}()
     for i in instances(Asset_Type)
         if i != Missing_Asset_Type
             ikey = make_sym_for_asset( i )
@@ -43,7 +43,7 @@ function map_person( model_person :: DataFrameRow )
         end
     end
 
-    disabilities = Disability_Dict()
+    disabilities = Dict{Disability_Type,Bool}()
     for i in instances(Disability_Type)
         ikey = make_sym_for_frame("disability", i)
         if ! ismissing(model_person[ikey])

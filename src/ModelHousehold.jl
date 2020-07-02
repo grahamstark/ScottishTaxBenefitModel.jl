@@ -10,7 +10,7 @@ export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
 
-mutable struct Person{IT<:IT, RT<:RT}
+mutable struct Person{IT<:Integer, RT<:Real}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
     pno::IT # person number in household
@@ -156,7 +156,7 @@ function equivalence_scale( people :: People_Dict ) :: Dict{Equivalence_Scale_Ty
     get_equivalence_scales( eqp )
 end
 
-PeopleArray = AbstractArray{Person}
+PeopleArray = Vector{Person}
 
 struct BenefitUnit
     people :: People_Dict
@@ -181,8 +181,8 @@ function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}
 end
 
 
-BenefitUnits = AbstractArray{BenefitUnit}
-BUAllocation = AbstractArray{PeopleArray}
+BenefitUnits = Vector{BenefitUnit}
+BUAllocation = Vector{PeopleArray}
 
 
 #
