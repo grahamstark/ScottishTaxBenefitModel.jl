@@ -41,7 +41,7 @@ end
 
 import Base.*
 
-function *(m1::Dict{T,Real}, m2::Dict{T,Real}) :: Real where T
+function *( m1::Dict{T,R}, m2::Dict{T,R})::R where T where R<:Number
     times(m1, m2)
 end
 

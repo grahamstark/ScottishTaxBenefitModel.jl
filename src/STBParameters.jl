@@ -141,9 +141,11 @@ module STBParameters
       pension_contrib_withdrawal_rate :: RT = 50.0
 
       non_savings_income :: Dict{Incomes_Type,RT}= make_non_savings()
-      all_taxable :: Dict{Incomes_Type,RT} = make_non_savings()
+      all_taxable :: Dict{Incomes_Type,RT} = make_all_taxable()
       savings_income :: Dict{Incomes_Type,RT} = SAVINGS_INCOME
       dividend_income :: Dict{Incomes_Type,RT} = DIVIDEND_INCOME
+      mca_date = MCA_DATE
+
    end
 
    function annualise!( it :: IncomeTaxSys )

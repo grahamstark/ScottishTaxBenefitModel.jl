@@ -73,9 +73,10 @@ Very rough approximation to MCA age - ignores all months since we don't have tha
 TODO maybe overload this with age as a Date?
 """
 function old_enough_for_mca(
+    sys            :: IncomeTaxSys,
     age            :: Integer,
     model_run_date :: TimeType = now() ) :: Bool
-    (model_run_date - Year(age)) < MCA_DATE
+    (model_run_date - Year(age)) < sys.mca_date
 end
 
 function calculate_allowance( pers::Person, sys :: IncomeTaxSys ) :: Real
@@ -162,7 +163,7 @@ function calc_income_tax(
     non_savings = sys.non_savings_income*pers.income;
     savings = sys.savings_income*pers.income;
     dividends = sys.dividend_income*pers.income;
-    
+
     allowance = calculate_allowance( pers, sys )
     # allowance reductions goes here
 
@@ -357,7 +358,7 @@ function calc_income_tax(
         # This is not quite right - you can't claim the
         # MCA AND transfer an allowance. We're assuming
         # always MCA first (I think it's always more valuable?)
-        if old_enough_for_mca( head.age ) || old_enough_for_mca( spouse.age )
+        if old_enough_for_mca( sys, head.age ) || old_enough_for_mca( sys, spouse.age )
             # shoud usually just go to the head but.. some stuff about partner
             # with greater income if married after 2005 and you can elect to do this if
             # married before, so:
@@ -372,11 +373,11 @@ function calc_income_tax(
         if spousetax.mca == 0.0 == headtax.mca
             if allowed_to_transfer_allowance( sys, from=spousetax, to=headtax )
                 transferable_allow = min( spousetax.unused_allowance, sys.marriage_allowance )
-                headtax = calc_income_tax( head, sys, head_intermed, transferable_allow )
+                headtax = calc_income_tax( head, sys, transferable_allow )
                 headtax.intermediate["transfer_spouse_to_head"] = transferable_allow
             elseif allowed_to_transfer_allowance( sys, from=headtax, to=spousetax )
                 transferable_allow = min( headtax.unused_allowance, sys.marriage_allowance )
-                spousetax = calc_income_tax( spouse, sys, spouse_intermed, transferable_allow )
+                spousetax = calc_income_tax( spouse, sys, transferable_allow )
                 spousetax.intermediate["transfer_head_to_spouse"] = transferable_allow
             end
         end
