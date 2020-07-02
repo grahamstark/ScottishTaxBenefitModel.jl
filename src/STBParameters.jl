@@ -4,8 +4,6 @@ module STBParameters
     import Dates: Date, now, TimeType, Year
 
     using Parameters
-    import JSON
-    # import JSON2
     import BudgetConstraints: BudgetConstraint
 
     import ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
@@ -15,8 +13,7 @@ module STBParameters
 
 
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
-    export weeklyise!, annualise!, fromJSON, get_default_it_system
-    export MCA_DATE
+    export weeklyise!, annualise!, get_default_it_system
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -226,70 +223,6 @@ module STBParameters
       it
    end
 
-   function to_rate_bands( a :: Vector ) :: RateBands
-      n = size( a )[1]
-      rb :: RateBands{RT} =  zeros(n)
-      for i in 1:n
-         rb[i] =  Real(a[i])
-      end
-      rb
-   end
-
-   function to_fuel_charges( d :: Dict ) :: Fuel_Dict
-      fd = Fuel_Dict()
-      for i in instances(Fuel_Type)
-         k = String(Symbol(i))
-         fd[i] = d[k]
-      end
-      fd
-   end
-
-   """
-   Map from
-   """
-   function fromJSON( json :: Dict ) :: IncomeTaxSys
-      it = IncomeTaxSys()
-      println( typeof(json["non_savings_thresholds"]))
-      it.non_savings_rates = to_rate_bands( json["non_savings_rates"] )
-      it.non_savings_thresholds  = to_rate_bands( json["non_savings_thresholds"] )
-      it.non_savings_basic_rate = json["non_savings_basic_rate"]
-
-      it.savings_rates = to_rate_bands( json["savings_rates"] )
-      it.savings_thresholds = to_rate_bands( json["savings_thresholds"] )
-      it.savings_basic_rate = json["savings_basic_rate"]
-
-      it.dividend_rates = to_rate_bands( json["dividend_rates"] )
-      it.non_savings_thresholds = to_rate_bands( json["non_savings_thresholds"] )
-      it.dividend_basic_rate = json["dividend_basic_rate"]
-
-      it.savings_thresholds = to_rate_bands( json["savings_thresholds"] )
-      it.dividend_thresholds = to_rate_bands( json["dividend_thresholds"] )
-      it.personal_allowance = json["personal_allowance"]
-      it.personal_allowance_income_limit = json["personal_allowance_income_limit"]
-      it.personal_allowance_withdrawal_rate = json["personal_allowance_withdrawal_rate"]
-      it.blind_persons_allowance = json["blind_persons_allowance"]
-      it.married_couples_allowance = json["married_couples_allowance"]
-      it.mca_minimum = json["mca_minimum"]
-      it.marriage_allowance = json["marriage_allowance"]
-      it.personal_savings_allowance = json["personal_savings_allowance"]
-
-      it.mca_income_maximum = json["mca_income_maximum"]
-      it.mca_credit_rate = json["mca_credit_rate"]
-      it.mca_withdrawal_rate = json["mca_withdrawal_rate"]
-      ## CAREFUL!
-      it.fuel_imputation = json["fuel_imputation"]
-      it.company_car_charge_by_CO2_emissions =
-         to_fuel_charges(json["company_car_charge_by_CO2_emissions"])
-      it.pension_contrib_basic_amount = json["pension_contrib_basic_amount"]
-      it.pension_contrib_annual_allowance = json["pension_contrib_annual_allowance"]
-      it.pension_contrib_annual_minimum = json["pension_contrib_annual_allowance"]
-      it.pension_contrib_threshold_income = json["pension_contrib_threshold_income"]
-      it.pension_contrib_withdrawal_rate = json["pension_contrib_withdrawal_rate"]
-      it
-   end
-
-
-
    @with_kw mutable struct NationalInsuranceSys{IT<:Integer, RT<:Real}
       primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
       primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 99999999999.99 ]
@@ -328,34 +261,11 @@ module STBParameters
 
    end
 
-   function fromJSON( json :: Dict ) :: NationalInsuranceSys
-      ni = NationalInsuranceSys()
-      ni.class_2_threshold = json["class_2_threshold"]
-      ni.class_2_rate = json["class_2_rate"]
-      ni.state_pension_age = json["state_pension_age"] # fixme move
-      ni.primary_class_1_rates = to_rate_bands( json["primary_class_1_rates"] )
-      ni.secondary_class_1_rates = to_rate_bands( json["secondary_class_1_rates"] )
-      ni.primary_class_1_bands = to_rate_bands( json["primary_class_1_bands"] )
-      ni.secondary_class_1_bands = to_rate_bands( json["secondary_class_1_bands"] )
-      ni.class_4_rates = to_rate_bands( json["class_4_rates"] )
-      ni.class_4_bands = to_rate_bands( json["class_4_bands"] )
-      return ni
-   end
-
    @with_kw mutable struct TaxBenefitSystem{IT<:Integer, RT<:Real}
       name :: AbstractString = "Scotland 2919/20"
       it   :: IncomeTaxSys = IncomeTaxSys{IT,RT}()
       ni   :: NationalInsuranceSys = NationalInsuranceSys{IT,RT}()
    end
-
-   function save( filename :: AbstractString, sys :: TaxBenefitSystem )
-       JSON.print( filename, sys )
-   end
-
-
-   # include( "../default_params/default2019_20.jl")
-   # defsys = load()
-
 
 
 end
