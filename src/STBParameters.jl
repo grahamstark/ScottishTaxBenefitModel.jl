@@ -2,7 +2,7 @@ module STBParameters
 
    using Parameters
    import JSON
-
+   import JSON2
    import BudgetConstraints: BudgetConstraint
 
    import ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
@@ -237,10 +237,8 @@ module STBParameters
       ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
-   Credits_Allowances_Dict = Dict{PersonalAllowanceType, Real}
-
-   @with_kw mutable struct LegacyMeansTestedBenefitSystem
-       personal_allowances :: Credits_Allowances_Dict(
+   @with_kw mutable struct LegacyMeansTestedBenefitSystem{IT<:Integer, RT<:Real}
+       personal_allowances :: Dict{PersonalAllowanceType, RT}(
          pa_age_18_24 => 1,
          pa_age_25_and_over => 2,
          pa_age_18_and_in_work_activity => 3,

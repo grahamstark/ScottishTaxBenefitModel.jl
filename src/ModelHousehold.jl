@@ -10,12 +10,12 @@ export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
 
-mutable struct Person
+mutable struct Person{IT<:IT, RT<:RT}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
-    pno::Integer # person number in household
-    default_benefit_unit::Integer
-    age::Integer
+    pno::IT # person number in household
+    default_benefit_unit::IT
+    age::IT
 
     sex::Sex
     ethnic_group::Ethnic_Group
@@ -28,14 +28,14 @@ mutable struct Person
     principal_employment_type :: Employment_Type
 
     socio_economic_grouping::Socio_Economic_Group
-    age_completed_full_time_education::Integer
-    years_in_full_time_work::Integer
+    age_completed_full_time_education::IT
+    years_in_full_time_work::IT
     employment_status::ILO_Employment
-    actual_hours_worked::Real
-    usual_hours_worked::Real
+    actual_hours_worked::RT
+    usual_hours_worked::RT
 
-    income::Incomes_Dict
-    assets::Asset_Dict
+    income::Dict{Incomes_Type,RT}
+    assets::Dict{Asset_Type,RT}
     # contracted_out_of_serps::Bool
 
     registered_blind::Bool
@@ -48,49 +48,49 @@ mutable struct Person
     relationship_to_hoh :: Relationship;
     is_informal_carer::Bool
     receives_informal_care_from_non_householder::Bool
-    hours_of_care_received::Real
-    hours_of_care_given::Real
+    hours_of_care_received::RT
+    hours_of_care_given::RT
     #
     # Childcare fields; assigned to children
     #
-    hours_of_childcare :: Real
-    cost_of_childcare :: Real
+    hours_of_childcare :: RT
+    cost_of_childcare :: RT
     childcare_type :: Child_Care_Type
     employer_provides_child_care :: Bool
 
     company_car_fuel_type :: Fuel_Type
-    company_car_value :: Real
-    company_car_contribution :: Real
-    fuel_supplied :: Real
+    company_car_value :: RT
+    company_car_contribution :: RT
+    fuel_supplied :: RT
 end
 
 People_Dict = Dict{BigInt,Person}
 Pid_Array = Vector{BigInt}
 
-mutable struct Household
-    sequence::Integer # position in current generated dataset
+mutable struct Household{IT<:Integer, RT<:Real}
+    sequence::IT # position in current generated dataset
     hid::BigInt
-    interview_year::Integer
-    interview_month::Integer
-    quarter::Integer
+    interview_year::IT
+    interview_month::IT
+    quarter::IT
     tenure::Tenure_Type
     region::Standard_Region
     ct_band::CT_Band
-    council_tax::Real
-    water_and_sewerage ::Real
-    mortgage_payment::Real
-    mortgage_interest::Real
-    years_outstanding_on_mortgage::Integer
-    mortgage_outstanding::Real
-    year_house_bought::Integer
-    gross_rent::Real # rentg Gross rent including Housing Benefit  or rent Net amount of last rent payment
+    council_tax::RT
+    water_and_sewerage ::RT
+    mortgage_payment::RT
+    mortgage_interest::RT
+    years_outstanding_on_mortgage::IT
+    mortgage_outstanding::RT
+    year_house_bought::IT
+    gross_rent::RT # rentg Gross rent including Housing Benefit  or rent Net amount of last rent payment
     rent_includes_water_and_sewerage::Bool
-    other_housing_charges::Real # rent Net amount of last rent payment
-    gross_housing_costs::Real
-    total_income::Real
-    total_wealth::Real
-    house_value::Real
-    weight::Real
+    other_housing_charges::RT # rent Net amount of last rent payment
+    gross_housing_costs::RT
+    total_income::RT
+    total_wealth::RT
+    house_value::RT
+    weight::RT
     people::People_Dict
 
 end
@@ -156,7 +156,7 @@ function equivalence_scale( people :: People_Dict ) :: Dict{Equivalence_Scale_Ty
     get_equivalence_scales( eqp )
 end
 
-PeopleArray = Vector{Person}
+PeopleArray = AbstractArray{Person}
 
 struct BenefitUnit
     people :: People_Dict
@@ -181,8 +181,8 @@ function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}
 end
 
 
-BenefitUnits = Vector{BenefitUnit}
-BUAllocation = Vector{PeopleArray}
+BenefitUnits = AbstractArray{BenefitUnit}
+BUAllocation = AbstractArray{PeopleArray}
 
 
 #
