@@ -30,38 +30,38 @@ module STBParameters
          LPG=>0.02,
          Biofuel_eg_E85_fuel=>0.02 )
 
-   @with_kw mutable struct IncomeTaxSys
-      non_savings_rates :: RateBands = [19.0,20.0,21.0,41.0,46.0]
-      non_savings_thresholds :: RateBands = [2_049.0, 12_444.0, 30_930.0, 150_000.0]
-      non_savings_basic_rate :: Integer = 2 # above this counts as higher rate
+   @with_kw mutable struct IncomeTaxSys{IT<:Integer, RT<:Real}
+      non_savings_rates :: RateBands{RT} =  [19.0,20.0,21.0,41.0,46.0]
+      non_savings_thresholds :: RateBands{RT} =  [2_049.0, 12_444.0, 30_930.0, 150_000.0]
+      non_savings_basic_rate :: IT = 2 # above this counts as higher rate
 
-      savings_rates  :: RateBands = [0.0, 20.0, 40.0, 45.0]
-      savings_thresholds  :: RateBands = [5_000.0, 37_500.0, 150_000.0]
-      savings_basic_rate :: Integer = 2 # above this counts as higher rate
+      savings_rates  :: RateBands{RT} =  [0.0, 20.0, 40.0, 45.0]
+      savings_thresholds  :: RateBands{RT} =  [5_000.0, 37_500.0, 150_000.0]
+      savings_basic_rate :: IT = 2 # above this counts as higher rate
 
-      dividend_rates :: RateBands = [0.0, 7.5,32.5,38.1]
-      dividend_thresholds :: RateBands = [2_000.0, 37_500.0, 150_000.0]
-      dividend_basic_rate :: Integer = 2 # above this counts as higher rate
+      dividend_rates :: RateBands{RT} =  [0.0, 7.5,32.5,38.1]
+      dividend_thresholds :: RateBands{RT} =  [2_000.0, 37_500.0, 150_000.0]
+      dividend_basic_rate :: IT = 2 # above this counts as higher rate
 
-      personal_allowance          = 12_500.00
-      personal_allowance_income_limit = 100_000.00
-      personal_allowance_withdrawal_rate = 50.0
-      blind_persons_allowance     = 2_450.00
+      personal_allowance :: RT          = 12_500.00
+      personal_allowance_income_limit :: RT = 100_000.00
+      personal_allowance_withdrawal_rate  :: RT= 50.0
+      blind_persons_allowance    :: RT  = 2_450.00
 
-      married_couples_allowance   = 8_915.00
-      mca_minimum                 = 3_450.00
-      mca_income_maximum          = 29_600.00
-      mca_credit_rate             = 10.0
-      mca_withdrawal_rate         = 50.0
+      married_couples_allowance   :: RT = 8_915.00
+      mca_minimum                 :: RT = 3_450.00
+      mca_income_maximum          :: RT = 29_600.00
+      mca_credit_rate             :: RT = 10.0
+      mca_withdrawal_rate         :: RT= 50.0
 
-      marriage_allowance          = 1_250.00
-      personal_savings_allowance  = 1_000.00
+      marriage_allowance          :: RT = 1_250.00
+      personal_savings_allowance  :: RT = 1_000.00
 
       # FIXME better to have it straight from
       # the book with charges per CO2 range
       # and the data being an estimate of CO2 per type
-      company_car_charge_by_CO2_emissions = Default_Fuel_Dict_2020_21
-      fuel_imputation = 24_100.00
+      company_car_charge_by_CO2_emissions :: FuelDict{ Fuel_Type, RT } = Default_Fuel_Dict_2020_21
+      fuel_imputation  :: RT = 24_100.00
 
       #
       # pensions
@@ -133,12 +133,12 @@ module STBParameters
 
    function get_default_it_system(
       ;
-      year     :: Integer=2019,
+      year     :: IT=2019,
       scotland :: Bool = true,
       weekly   :: Bool = true )::Union{Nothing,IncomeTaxSys}
       it = nothing
       if year == 2019
-         it = IncomeTaxSys()
+         it = IncomeTaxSys{Int64,Float64}()
          if ! scotland
             it.non_savings_rates = [20.0,40.0,45.0]
             it.non_savings_thresholds = [37_500, 150_000.0]
@@ -153,7 +153,7 @@ module STBParameters
 
    function to_rate_bands( a :: Vector ) :: RateBands
       n = size( a )[1]
-      rb :: RateBands = zeros(n)
+      rb :: RateBands{RT} =  zeros(n)
       for i in 1:n
          rb[i] =  Real(a[i])
       end
@@ -215,16 +215,16 @@ module STBParameters
 
 
 
-   @with_kw mutable struct NationalInsuranceSys
-      primary_class_1_rates :: RateBands = [0.0, 0.0, 12.0, 2.0 ]
-      primary_class_1_bands :: RateBands = [118.0, 166.0, 962.0, 99999999999.99 ]
-      secondary_class_1_rates :: RateBands = [0.0, 13.8, 13.8 ] # keep 2 so
-      secondary_class_1_bands :: RateBands = [166.0, 962.0, 99999999999.99 ]
-      state_pension_age :: Integer = 66; # fixme move
-      class_2_threshold ::Real = 6_365.0;
-      class_2_rate ::Real = 3.00;
-      class_4_rates :: RateBands = [0.0, 9.0, 2.0 ]
-      class_4_bands :: RateBands = [8_632.0, 50_000.0, 9999999999999.99 ]
+   @with_kw mutable struct NationalInsuranceSys{IT<:Integer, RT<:Real}
+      primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
+      primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 99999999999.99 ]
+      secondary_class_1_rates :: RateBands{RT} = [0.0, 13.8, 13.8 ] # keep 2 so
+      secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, 99999999999.99 ]
+      state_pension_age :: IT = 66; # fixme move
+      class_2_threshold ::RT = 6_365.0;
+      class_2_rate ::RT = 3.00;
+      class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
+      class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, 9999999999999.99 ]
       ## some modelling of u21s and u25s in apprentiships here..
       # gross_to_net_lookup = BudgetConstraint(undef,0)
    end
@@ -269,10 +269,10 @@ module STBParameters
       return ni
    end
 
-   @with_kw mutable struct TaxBenefitSystem
+   @with_kw mutable struct TaxBenefitSystem{IT<:Integer, RT<:Real}
       name :: AbstractString = "Scotland 2919/20"
-      it   :: IncomeTaxSys = IncomeTaxSys()
-      ni   :: NationalInsuranceSys = NationalInsuranceSys()
+      it   :: IncomeTaxSys = IncomeTaxSys{IT,RT}()
+      ni   :: NationalInsuranceSys = NationalInsuranceSys{IT,RT}()
    end
 
    function save( filename :: AbstractString, sys :: TaxBenefitSystem )

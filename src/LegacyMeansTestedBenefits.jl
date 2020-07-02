@@ -1,30 +1,27 @@
 module LegacyMeansTestedBenefits
 
-using BudgetConstraints #: BudgetConstraint, get_x_from_y
-import Dates
-import Dates: Date, now, TimeType, Year
 import Parameters: @with_kw
 
 using ScottishTaxBenefitModel
 using .Definitions
 import .ModelHousehold: Person
-import .STBParameters: NationalInsuranceSys
+import .STBParameters: LegacyMeansTestedBenefitSystem
 import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
 import .Utils: get_if_set
 
-@with_kw mutable struct LMTResults
-    esa :: Real = 0.0
-    hb  :: Real = 0.0
-    jsa :: Real = 0.0
-    pc  :: Real = 0.0
-    ndds :: Real = 0.0
-    wtc :: Real = 0.0
-    ctc :: Real = 0.0
+export calc_legacy_means_tested_benefits, LMTResults
+
+@with_kw mutable struct LMTResults{IT<:Integer, RT<:Real}
+    esa :: RT = 0.0
+    hb  :: RT = 0.0
+    jsa :: RT = 0.0
+    pc  :: RT = 0.0
+    ndds :: RT = 0.0
+    wtc :: RT = 0.0
+    ctc :: RT = 0.0
     intermediate :: Dict = Dict()
 end
 
-
-export calc_legacy_means_tested_benefits, LMTResults
 
 
 function calc_ESA()
@@ -61,7 +58,7 @@ end
 
 function calc_legacy_means_tested_benefits(
     pers   :: Person,
-    sys    :: IncomeTaxSys ) :: LMTResults
+    sys    :: LegacyMeansTestedBenefitSystem ) :: LMTResults
 
 end
 
