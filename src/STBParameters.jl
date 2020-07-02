@@ -1,24 +1,89 @@
 module STBParameters
 
-   using Parameters
-   import JSON
+    import Dates
+    import Dates: Date, now, TimeType, Year
 
-   import BudgetConstraints: BudgetConstraint
+    using Parameters
+    import BudgetConstraints: BudgetConstraint
 
-   import ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
-   import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
-   using .Definitions
-   import .Utils
+    import ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
+    import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+    using .Definitions
+    import .Utils
 
 
-   export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
-   export weeklyise!, annualise!, fromJSON, get_default_it_system
+    export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
+    export weeklyise!, annualise!, get_default_it_system
+
+    const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
+
+    const SAVINGS_INCOME = Incomes_Dict(
+       bank_interest => 1.0,
+       bonds_and_gilts => 1.0,
+       other_investment_income => 1.0
+   )
+
+   const DIVIDEND_INCOME = Incomes_Dict(
+       stocks_shares => 1.0
+   )
+   const Exempt_Income = Incomes_Dict(
+       individual_savings_account=>1.0,
+       local_taxes=>1.0,
+       free_school_meals => 1.0,
+       dlaself_care => 1.0,
+       dlamobility => 1.0,
+       child_benefit => 1.0,
+       pension_credit => 1.0,
+       bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 1.0,
+       armed_forces_compensation_scheme => 1.0, # FIXME not in my list check this
+       war_widows_or_widowers_pension => 1.0,
+       severe_disability_allowance => 1.0,
+       attendence_allowance => 1.0,
+       industrial_injury_disablement_benefit => 1.0,
+       employment_and_support_allowance => 1.0,
+       incapacity_benefit => 1.0,## taxable after 29 weeks,
+       income_support => 1.0,
+       maternity_allowance => 1.0,
+       maternity_grant_from_social_fund => 1.0,
+       funeral_grant_from_social_fund => 1.0,
+       guardians_allowance => 1.0,
+       winter_fuel_payments => 1.0,
+       dwp_third_party_payments_is_or_pc => 1.0,
+       dwp_third_party_payments_jsa_or_esa => 1.0,
+       extended_hb => 1.0,
+       working_tax_credit => 1.0,
+       child_tax_credit => 1.0,
+       working_tax_credit_lump_sum => 1.0,
+       child_tax_credit_lump_sum => 1.0,
+       housing_benefit => 1.0,
+       universal_credit => 1.0,
+       personal_independence_payment_daily_living => 1.0,
+       personal_independence_payment_mobility => 1.0 )
+
+   function make_all_taxable()::Incomes_Dict
+       eis = union(Set( keys( Exempt_Income )), Definitions.Expenses )
+       all_t = Incomes_Dict()
+       for i in instances(Incomes_Type)
+           if ! (i ∈ eis )
+               all_t[i]=1.0
+           end
+       end
+       all_t
+   end
+
+    function make_non_savings()::Incomes_Dict
+       excl = union(Set(keys(DIVIDEND_INCOME)), Set( keys(SAVINGS_INCOME)))
+       nsi = make_all_taxable()
+       for i in excl
+           delete!( nsi, i )
+       end
+       nsi
+    end
 
    ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
    # using Unitful
 
-   Fuel_Dict = Dict{Fuel_Type,Real}
-   Default_Fuel_Dict_2020_21 = Fuel_Dict(
+   Default_Fuel_Dict_2020_21 = Dict{Fuel_Type,Real}(
          Missing_Fuel_Type=>0.1,
          No_Fuel=>0.1,
          Other=>0.1,
@@ -60,17 +125,24 @@ module STBParameters
       # FIXME better to have it straight from
       # the book with charges per CO2 range
       # and the data being an estimate of CO2 per type
-      company_car_charge_by_CO2_emissions :: FuelDict{ Fuel_Type, RT } = Default_Fuel_Dict_2020_21
+      company_car_charge_by_CO2_emissions :: Dict{ Fuel_Type, RT } = Default_Fuel_Dict_2020_21
       fuel_imputation  :: RT = 24_100.00
 
       #
       # pensions
       #
-      pension_contrib_basic_amount = 3_600.00
-      pension_contrib_annual_allowance = 40_000.00
-      pension_contrib_annual_minimum = 10_000.00
-      pension_contrib_threshold_income = 150_000.00
-      pension_contrib_withdrawal_rate = 50.0
+      pension_contrib_basic_amount :: RT = 3_600.00
+      pension_contrib_annual_allowance :: RT = 40_000.00
+      pension_contrib_annual_minimum :: RT = 10_000.00
+      pension_contrib_threshold_income :: RT = 150_000.00
+      pension_contrib_withdrawal_rate :: RT = 50.0
+
+      non_savings_income :: Dict{Incomes_Type,RT}= make_non_savings()
+      all_taxable :: Dict{Incomes_Type,RT} = make_all_taxable()
+      savings_income :: Dict{Incomes_Type,RT} = SAVINGS_INCOME
+      dividend_income :: Dict{Incomes_Type,RT} = DIVIDEND_INCOME
+      mca_date = MCA_DATE
+
    end
 
    function annualise!( it :: IncomeTaxSys )
@@ -133,7 +205,7 @@ module STBParameters
 
    function get_default_it_system(
       ;
-      year     :: IT=2019,
+      year     :: Integer=2019,
       scotland :: Bool = true,
       weekly   :: Bool = true )::Union{Nothing,IncomeTaxSys}
       it = nothing
@@ -150,70 +222,6 @@ module STBParameters
       end
       it
    end
-
-   function to_rate_bands( a :: Vector ) :: RateBands
-      n = size( a )[1]
-      rb :: RateBands{RT} =  zeros(n)
-      for i in 1:n
-         rb[i] =  Real(a[i])
-      end
-      rb
-   end
-
-   function to_fuel_charges( d :: Dict ) :: Fuel_Dict
-      fd = Fuel_Dict()
-      for i in instances(Fuel_Type)
-         k = String(Symbol(i))
-         fd[i] = d[k]
-      end
-      fd
-   end
-
-   """
-   Map from
-   """
-   function fromJSON( json :: Dict ) :: IncomeTaxSys
-      it = IncomeTaxSys()
-      println( typeof(json["non_savings_thresholds"]))
-      it.non_savings_rates = to_rate_bands( json["non_savings_rates"] )
-      it.non_savings_thresholds  = to_rate_bands( json["non_savings_thresholds"] )
-      it.non_savings_basic_rate = json["non_savings_basic_rate"]
-
-      it.savings_rates = to_rate_bands( json["savings_rates"] )
-      it.savings_thresholds = to_rate_bands( json["savings_thresholds"] )
-      it.savings_basic_rate = json["savings_basic_rate"]
-
-      it.dividend_rates = to_rate_bands( json["dividend_rates"] )
-      it.non_savings_thresholds = to_rate_bands( json["non_savings_thresholds"] )
-      it.dividend_basic_rate = json["dividend_basic_rate"]
-
-      it.savings_thresholds = to_rate_bands( json["savings_thresholds"] )
-      it.dividend_thresholds = to_rate_bands( json["dividend_thresholds"] )
-      it.personal_allowance = json["personal_allowance"]
-      it.personal_allowance_income_limit = json["personal_allowance_income_limit"]
-      it.personal_allowance_withdrawal_rate = json["personal_allowance_withdrawal_rate"]
-      it.blind_persons_allowance = json["blind_persons_allowance"]
-      it.married_couples_allowance = json["married_couples_allowance"]
-      it.mca_minimum = json["mca_minimum"]
-      it.marriage_allowance = json["marriage_allowance"]
-      it.personal_savings_allowance = json["personal_savings_allowance"]
-
-      it.mca_income_maximum = json["mca_income_maximum"]
-      it.mca_credit_rate = json["mca_credit_rate"]
-      it.mca_withdrawal_rate = json["mca_withdrawal_rate"]
-      ## CAREFUL!
-      it.fuel_imputation = json["fuel_imputation"]
-      it.company_car_charge_by_CO2_emissions =
-         to_fuel_charges(json["company_car_charge_by_CO2_emissions"])
-      it.pension_contrib_basic_amount = json["pension_contrib_basic_amount"]
-      it.pension_contrib_annual_allowance = json["pension_contrib_annual_allowance"]
-      it.pension_contrib_annual_minimum = json["pension_contrib_annual_allowance"]
-      it.pension_contrib_threshold_income = json["pension_contrib_threshold_income"]
-      it.pension_contrib_withdrawal_rate = json["pension_contrib_withdrawal_rate"]
-      it
-   end
-
-
 
    @with_kw mutable struct NationalInsuranceSys{IT<:Integer, RT<:Real}
       primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
@@ -237,10 +245,8 @@ module STBParameters
       ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
-   Credits_Allowances_Dict = Dict{PersonalAllowanceType, Real}
-
-   @with_kw mutable struct LegacyMeansTestedBenefitSystem
-       personal_allowances :: Credits_Allowances_Dict(
+   @with_kw mutable struct LegacyMeansTestedBenefitSystem{IT<:Integer, RT<:Real}
+       personal_allowances :: Dict{PersonalAllowanceType, RT} = Dict(
          pa_age_18_24 => 1,
          pa_age_25_and_over => 2,
          pa_age_18_and_in_work_activity => 3,
@@ -255,34 +261,11 @@ module STBParameters
 
    end
 
-   function fromJSON( json :: Dict ) :: NationalInsuranceSys
-      ni = NationalInsuranceSys()
-      ni.class_2_threshold = json["class_2_threshold"]
-      ni.class_2_rate = json["class_2_rate"]
-      ni.state_pension_age = json["state_pension_age"] # fixme move
-      ni.primary_class_1_rates = to_rate_bands( json["primary_class_1_rates"] )
-      ni.secondary_class_1_rates = to_rate_bands( json["secondary_class_1_rates"] )
-      ni.primary_class_1_bands = to_rate_bands( json["primary_class_1_bands"] )
-      ni.secondary_class_1_bands = to_rate_bands( json["secondary_class_1_bands"] )
-      ni.class_4_rates = to_rate_bands( json["class_4_rates"] )
-      ni.class_4_bands = to_rate_bands( json["class_4_bands"] )
-      return ni
-   end
-
    @with_kw mutable struct TaxBenefitSystem{IT<:Integer, RT<:Real}
       name :: AbstractString = "Scotland 2919/20"
       it   :: IncomeTaxSys = IncomeTaxSys{IT,RT}()
       ni   :: NationalInsuranceSys = NationalInsuranceSys{IT,RT}()
    end
-
-   function save( filename :: AbstractString, sys :: TaxBenefitSystem )
-       JSON.print( filename, sys )
-   end
-
-
-   # include( "../default_params/default2019_20.jl")
-   # defsys = load()
-
 
 
 end
