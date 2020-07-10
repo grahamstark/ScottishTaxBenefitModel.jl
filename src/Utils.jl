@@ -8,6 +8,13 @@ export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈
 
+# see 
+@generated function uprate_record(p::P, x::NR ) where P where NR<:AbstractFloat
+     assignments = [
+         :( p.$name *= x ) for name in fieldnames(P)
+     ]
+     quote $(assignments...) end
+end
 
 function addsysnotoname(names, sysno)::Array{Symbol,1}
    a = Array{Symbol,1}(undef, 0)

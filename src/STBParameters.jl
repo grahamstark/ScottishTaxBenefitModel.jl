@@ -83,7 +83,7 @@ module STBParameters
    ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
    # using Unitful
 
-   Default_Fuel_Dict_2020_21 = Dict{Fuel_Type,Real}(
+   Default_Fuel_Dict_2020_21 = Dict{Fuel_Type,RT<:Real}(
          Missing_Fuel_Type=>0.1,
          No_Fuel=>0.1,
          Other=>0.1,
@@ -246,25 +246,40 @@ module STBParameters
    end
 
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{IT<:Integer, RT<:Real}
+       # CPAG 2019/20 p335
        personal_allowances :: Dict{PersonalAllowanceType, RT} = Dict(
-         pa_age_18_24 => 1,
-         pa_age_25_and_over => 2,
-         pa_age_18_and_in_work_activity => 3,
-         pa_over_pension_age => 4,
-         pa_lone_parent => 5,
-         pa_lone_parent_over_pension_age => 6,
-         pa_couple_both_over_18 => 7,
-         pa_couple_over_pension_age => 8,
-         pa_couple_one_over_18_high => 9,
-         pa_couple_one_over_18_med => 10,
-         pa_couple_one_over_18_low => 11 )
+         pa_age_18_24 => 57.90,
+         pa_age_25_and_over => 73.10,
+         pa_age_18_and_in_work_activity => 73.10,
+         pa_over_pension_age => 181.10,
+         pa_lone_parent => 73.10,
+         pa_lone_parent_over_pension_age => 181.00,
+         pa_couple_both_over_18 => 114.85,
+         pa_couple_over_pension_age => 270.60,
+         pa_couple_one_over_18_high => 114.85,
+         pa_couple_one_over_18_med => 173.10,
+         pa_couple_one_over_18_low => 57.90 )
 
+      premia :: Dict{PremiumType,RT} = Dict(
+         prem_family => 17.45,
+         prem_disabled_child => 64.19,
+         prem_severe_disability_single => 65.85,
+         prem_severe_disability_couple => 131.70,
+         prem_carer_single => 36.85,
+         prem_carer_couple => 73.70,
+         prem_enhanced_disability_child => 26.04,
+         prem_enhanced_disability_single => 16.80,
+         prem_enhanced_disability_couple => 24.10,
+         prem_disability_single => 34.35,
+         prem_disability_couple => 48.95,
+         prem_pensioner_is => 140.40 )
    end
 
    @with_kw mutable struct TaxBenefitSystem{IT<:Integer, RT<:Real}
       name :: AbstractString = "Scotland 2919/20"
       it   :: IncomeTaxSys = IncomeTaxSys{IT,RT}()
       ni   :: NationalInsuranceSys = NationalInsuranceSys{IT,RT}()
+      lmt  :: LegacyMeansTestedBenefitSystem{IT,RT}()
    end
 
 

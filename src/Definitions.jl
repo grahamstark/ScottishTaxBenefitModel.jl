@@ -25,6 +25,38 @@ const HBAI_DIR = "$RAW_DATA/hbai/"
 export NUM_REPEATS
 const NUM_REPEATS = 30 # simulates a longer calculation
 
+@enum PremiumType
+   prem_family
+   prem_disabled_child
+   prem_severe_disability_single
+   prem_severe_disability_couple
+   prem_carer_single
+   prem_carer_couple
+   prem_enhanced_disability_child
+   prem_enhanced_disability_single
+   prem_enhanced_disability_couple
+   prem_disability_single
+   prem_disability_couple
+   prem_pensioner_is
+
+end
+
+export
+   PremiumType,
+   prem_family,
+   prem_disabled_child,
+   prem_severe_disability_single,
+   prem_severe_disability_couple,
+   prem_carer_single,
+   prem_carer_couple,
+   prem_enhanced_disability_child,
+   prem_enhanced_disability_single,
+   prem_enhanced_disability_couple,
+   prem_disability_single,
+   prem_disability_couple,
+   prem_pensioner_is
+
+
 @enum PersonalAllowanceType begin
    pa_age_18_24 = 1
    pa_age_25_and_over = 2
