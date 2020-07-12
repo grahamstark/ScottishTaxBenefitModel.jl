@@ -245,34 +245,40 @@ module STBParameters
       ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
+   @with_kw mutable struct PersonalAllowances{ RT:<Real }
+     age_18_24 :: RT = 57.90
+     age_25_and_over :: RT = 73.10
+     age_18_and_in_work_activity :: RT = 73.10
+     over_pension_age :: RT = 181.10
+     lone_parent :: RT = 73.10
+     lone_parent_over_pension_age :: RT = 181.00
+     couple_both_over_18 :: RT = 114.85
+     couple_over_pension_age :: RT = 270.60
+     couple_one_over_18_high :: RT = 114.85
+     couple_one_over_18_med :: RT = 173.10
+     pa_couple_one_over_18_low :: RT = 57.90
+  end
+
+  @with_kw mutable struct Premia{ RT:<Real }
+      family :: RT = 17.45
+      disabled_child :: RT = 64.19
+      severe_disability_single :: RT = 65.85
+      severe_disability_couple :: RT = 131.70
+      carer_single :: RT = 36.85
+      carer_couple :: RT = 73.70
+      enhanced_disability_child :: RT = 26.04
+      enhanced_disability_single :: RT = 16.80
+      enhanced_disability_couple :: RT = 24.10
+      disability_single :: RT = 34.35
+      disability_couple :: RT = 48.95
+      pensioner_is :: RT = 140.40
+   end
+
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{IT<:Integer, RT<:Real}
        # CPAG 2019/20 p335
-       personal_allowances :: Dict{PersonalAllowanceType, RT} = Dict(
-         pa_age_18_24 => 57.90,
-         pa_age_25_and_over => 73.10,
-         pa_age_18_and_in_work_activity => 73.10,
-         pa_over_pension_age => 181.10,
-         pa_lone_parent => 73.10,
-         pa_lone_parent_over_pension_age => 181.00,
-         pa_couple_both_over_18 => 114.85,
-         pa_couple_over_pension_age => 270.60,
-         pa_couple_one_over_18_high => 114.85,
-         pa_couple_one_over_18_med => 173.10,
-         pa_couple_one_over_18_low => 57.90 )
+       premia :: Premia{RT}()
+       allowances :: PersonalAllowances{RT}()
 
-      premia :: Dict{PremiumType,RT} = Dict(
-         prem_family => 17.45,
-         prem_disabled_child => 64.19,
-         prem_severe_disability_single => 65.85,
-         prem_severe_disability_couple => 131.70,
-         prem_carer_single => 36.85,
-         prem_carer_couple => 73.70,
-         prem_enhanced_disability_child => 26.04,
-         prem_enhanced_disability_single => 16.80,
-         prem_enhanced_disability_couple => 24.10,
-         prem_disability_single => 34.35,
-         prem_disability_couple => 48.95,
-         prem_pensioner_is => 140.40 )
    end
 
    @with_kw mutable struct TaxBenefitSystem{IT<:Integer, RT<:Real}
