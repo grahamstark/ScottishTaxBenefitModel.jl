@@ -6,10 +6,10 @@ using Base.Unicode
 
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
-export loadtoframe, age_in_years, isapprox, ≈
+export loadtoframe, age_in_years, isapprox, ≈, uprate_record!
 
-# see 
-@generated function uprate_record(p::P, x::NR ) where P where NR<:AbstractFloat
+# multiply all elements in p by x
+@generated function uprate_record!(p::P, x::NR ) where P where NR<:Number
      assignments = [
          :( p.$name *= x ) for name in fieldnames(P)
      ]

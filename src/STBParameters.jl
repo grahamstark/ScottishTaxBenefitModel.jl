@@ -245,7 +245,7 @@ module STBParameters
       ni.class_4_bands ./= WEEKS_PER_YEAR
    end
 
-   @with_kw mutable struct PersonalAllowances{ RT:<Real }
+   @with_kw mutable struct PersonalAllowances{ RT<:Real }
      age_18_24 :: RT = 57.90
      age_25_and_over :: RT = 73.10
      age_18_and_in_work_activity :: RT = 73.10
@@ -259,7 +259,7 @@ module STBParameters
      pa_couple_one_over_18_low :: RT = 57.90
   end
 
-  @with_kw mutable struct Premia{ RT:<Real }
+  @with_kw mutable struct Premia{ RT<:Real }
       family :: RT = 17.45
       disabled_child :: RT = 64.19
       severe_disability_single :: RT = 65.85
