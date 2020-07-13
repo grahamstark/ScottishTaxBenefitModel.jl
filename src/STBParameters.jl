@@ -83,7 +83,7 @@ module STBParameters
    ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
    # using Unitful
 
-   Default_Fuel_Dict_2020_21 = Dict{Fuel_Type,RT<:Real}(
+   Default_Fuel_Dict_2020_21 = Dict{Fuel_Type,Real}(
          Missing_Fuel_Type=>0.1,
          No_Fuel=>0.1,
          Other=>0.1,
@@ -276,8 +276,8 @@ module STBParameters
 
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{IT<:Integer, RT<:Real}
        # CPAG 2019/20 p335
-       premia :: Premia{RT}()
-       allowances :: PersonalAllowances{RT}()
+       premia :: Premia = Premia{RT}()
+       allowances :: PersonalAllowances = PersonalAllowances{RT}()
 
    end
 
@@ -285,7 +285,7 @@ module STBParameters
       name :: AbstractString = "Scotland 2919/20"
       it   :: IncomeTaxSys = IncomeTaxSys{IT,RT}()
       ni   :: NationalInsuranceSys = NationalInsuranceSys{IT,RT}()
-      lmt  :: LegacyMeansTestedBenefitSystem{IT,RT}()
+      lmt  :: LegacyMeansTestedBenefitSystem = LegacyMeansTestedBenefitSystem{IT,RT}()
    end
 
 

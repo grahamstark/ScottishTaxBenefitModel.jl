@@ -100,12 +100,12 @@ end
 
 const UPRATE_MAPPINGS =  make_uprate_types()
 
-
 """
 Load Quarterly OBR data into a dataframe, and recast everything relative to the target date (Y,Q).
 See docs/notes.md on the data. Dataframe is a private global.
 """
 function load_prices() :: DataFrame
+
     obr = CSV.File("$(PRICES_DIR)/merged_quarterly.tab"; delim = '\t', comment = "#") |>
           DataFrame
     nrows = size(obr)[1]
@@ -136,16 +136,20 @@ function load_prices() :: DataFrame
     obr
 end
 
-const OBR_DATA = load_prices()
+OBR_DATA = nothing
+#  = load_prices()
 
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number
     # FIXME this is likely much too slow..
+    global OBR_DATA
+    if OBR_DATA == nothing
+        OBR_DATA = load_prices()
+    end
     if itype == upr_no_uprate
         return item
     end
     global Uprate_Map
-    global OBR_DATA
-    global FROM_Y, FROM_Q
+    # global FROM_Y, FROM_Q
     colsym = Uprate_Map[itype]
     p = OBR_DATA[((OBR_DATA.year.==from_y).&(OBR_DATA.q.==from_q)), colsym][1]
     return item * p

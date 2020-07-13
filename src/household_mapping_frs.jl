@@ -925,6 +925,9 @@ function create_adults(
     adult_model[1:adno, :]
 end # proc create_adult
 
+#
+# FIXME This doesn't drop children from hhlds dropped from the HBAI; harmless but it confused me ...
+#
 function create_children(
     year::Integer,
     frs_children::DataFrame,
