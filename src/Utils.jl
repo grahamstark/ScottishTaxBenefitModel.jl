@@ -6,14 +6,33 @@ using Base.Unicode
 
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
-export loadtoframe, age_in_years, isapprox, ≈, uprate_record!
+export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
 
-# multiply all elements in p by x
-@generated function uprate_record!(p::P, x::NR ) where P where NR<:Number
+@generated function operate_on_struct!( rec::Rec, x::NR, f::Function ) where Rec where NR<:Number
      assignments = [
-         :( p.$name *= x ) for name in fieldnames(P)
+         :( rec.$name = f(rec.$name, x) ) for name in fieldnames(Rec)
      ]
      quote $(assignments...) end
+end
+
+function mult( v :: AbstractFloat, x :: NR )::NR where NR <: Number
+   v*x
+end
+
+function mult( v :: AbstractArray, x :: NR )::AbstractArray where NR <: Number
+   mult.( v, x )
+end
+
+function mult( v::Any, x :: NR )::Any where NR <: Number
+   v
+end
+
+function m( v :: Any, x :: NR ) where NR <: Number
+   mult( v, x )
+end
+
+function uprate_struct!( rec::Rec, x::NR ) where Rec where NR<:Number
+   operate_on_struct!( rec, x, m )
 end
 
 function addsysnotoname(names, sysno)::Array{Symbol,1}
