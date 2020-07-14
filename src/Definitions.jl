@@ -25,6 +25,29 @@ const HBAI_DIR = "$RAW_DATA/hbai/"
 export NUM_REPEATS
 const NUM_REPEATS = 30 # simulates a longer calculation
 
+
+export Illness_Length  # mapped from limitl
+export Less_than_six_months, Between_six_months_and_12_months, v_12_months_or_more
+export Missing_Illness_Length
+
+@enum Illness_Length begin  # mapped from limitl
+   Missing_Illness_Length = -1
+   Less_than_six_months = 1
+   Between_six_months_and_12_months = 2
+   v_12_months_or_more = 3
+end
+
+export ADLS_Inhibited  # mapped from condit
+export reduced_a_lot, reduced_a_little, not_reduced
+export Missing_ADLS_Inhibited
+
+@enum ADLS_Inhibited begin  # mapped from condit
+   Missing_ADLS_Inhibited = -1
+   reduced_a_lot = 1
+   reduced_a_little = 2
+   not_reduced = 3
+end
+
 @enum Employment_Status begin  # mapped from empstat
    Missing_Employment_Status = -1
    Employee = 1

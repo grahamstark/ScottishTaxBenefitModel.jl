@@ -215,6 +215,11 @@ function initialise_person(n::Integer)::DataFrame
         disability_socially = Vector{Union{Integer,Missing}}(missing, n),
         disability_other_difficulty = Vector{Union{Integer,Missing}}(missing, n),
         health_status = Vector{Union{Integer,Missing}}(missing, n),
+
+        has_long_standing_illness = Vector{Union{Integer,Missing}}(missing, n),
+        adls_are_reduced = Vector{Union{Integer,Missing}}(missing, n),
+        how_long_adls_reduced = Vector{Union{Integer,Missing}}(missing, n),
+
         is_informal_carer = Vector{Union{Integer,Missing}}(missing, n),
         receives_informal_care_from_non_householder = Vector{Union{Integer,Missing}}(
             missing,
@@ -226,6 +231,7 @@ function initialise_person(n::Integer)::DataFrame
         cost_of_childcare = Vector{Union{Real,Missing}}(missing, n),
         childcare_type = Vector{Union{Integer,Missing}}(missing, n),
         employer_provides_child_care = Vector{Union{Integer,Missing}}(missing, n),
+
 
 
         company_car_fuel_type = Vector{Union{Integer,Missing}}(missing, n),
@@ -912,6 +918,12 @@ function create_adults(
             model_adult.disability_mental_health = (frs_person.disd07 == 1 ? 1 : 0)
             model_adult.disability_stamina = (frs_person.disd08 == 1 ? 1 : 0)
             model_adult.disability_socially = (frs_person.disd09 == 1 ? 1 : 0)
+
+            model_adult.has_long_standing_illness = (frs_person.health1 == 1 ? 1 : 0)
+            model_adult.how_long_adls_reduced = (frs_person.limitl < 0 ? -1 : frs_person.limitl)
+            model_adult.adls_are_reduced = (frs_person.condit < 0 ? -1 : frs_person.condit) # missings to 'not at all'
+
+
             # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
             model_adult.health_status = safe_assign(frs_person.heathad)
             model_adult.hours_of_care_received = safe_inc(0.0, frs_person.hourcare)
@@ -926,7 +938,7 @@ function create_adults(
 end # proc create_adult
 
 #
-# FIXME This doesn't drop children from hhlds dropped from the HBAI; harmless but it confused me ...
+# FIXME This doesn't drop children from hhls dropped from the HBAI; harmless but it confused me ...
 #
 function create_children(
     year::Integer,

@@ -44,8 +44,13 @@ mutable struct Person{IT<:Integer, RT<:Real}
 
     disabilities::Disability_Dict
     health_status::Health_Status
+    
+    has_long_standing_illness :: Bool
+    adls_are_reduced :: ADLS_Inhibited
+    how_long_adls_reduced :: Illness_Length
+
     relationships::Relationship_Dict
-    relationship_to_hoh :: Relationship;
+    relationship_to_hoh :: Relationship
     is_informal_carer::Bool
     receives_informal_care_from_non_householder::Bool
     hours_of_care_received::RT

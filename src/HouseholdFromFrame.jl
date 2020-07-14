@@ -101,6 +101,11 @@ function map_person( model_person :: DataFrameRow )
 
         disabilities,
         Health_Status(safe_assign(model_person.health_status)),
+
+        safe_to_bool(model_person.has_long_standing_illness),
+        Illness_Length(model_person.how_long_adls_reduced).
+        ADLS_Inhibited(model_person.adls_are_reduced)
+
         relationships,
         Relationship(model_person.relationship_to_hoh),
         safe_to_bool(model_person.is_informal_carer),
@@ -115,7 +120,7 @@ function map_person( model_person :: DataFrameRow )
         Fuel_Type( m2z(model_person.company_car_fuel_type )),
         m2z(model_person.company_car_value),
         m2z(model_person.company_car_contribution),
-        m2z(model_person.fuel_supplied)
+        m2z(model_person.fuel_supplied),
 
     )
 
