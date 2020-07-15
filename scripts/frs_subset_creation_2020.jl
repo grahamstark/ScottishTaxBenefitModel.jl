@@ -5,12 +5,13 @@
 # files in the one format
 # SINGLE (LATEST) year only
 #
+using ScottishTaxBenefitModel
 using DataFrames
 using StatFiles
 using TableTraits
 using CSV
-using Utils
-using Definitions
+using .Utils
+using .Definitions
 using CSVFiles
 
 function loadfrs(which::AbstractString, year::Integer)::DataFrame

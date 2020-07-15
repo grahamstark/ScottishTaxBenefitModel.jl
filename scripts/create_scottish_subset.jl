@@ -1,6 +1,6 @@
 using CSV
 using DataFrames
-using Definitions
+using ScottishTaxBenefitModel.Definitions
 
 household_name = "model_households"
 people_name = "model_people"
