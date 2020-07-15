@@ -918,6 +918,7 @@ function create_adults(
             model_adult.disability_mental_health = (frs_person.disd07 == 1 ? 1 : 0)
             model_adult.disability_stamina = (frs_person.disd08 == 1 ? 1 : 0)
             model_adult.disability_socially = (frs_person.disd09 == 1 ? 1 : 0)
+            model_adult.disability_other_difficulty = (frs_person.disd10 == 1 ? 1 : 0)
 
             model_adult.has_long_standing_illness = (frs_person.health1 == 1 ? 1 : 0)
             model_adult.how_long_adls_reduced = (frs_person.limitl < 0 ? -1 : frs_person.limitl)
