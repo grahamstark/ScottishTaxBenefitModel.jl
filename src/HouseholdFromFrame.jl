@@ -103,8 +103,8 @@ function map_person( model_person :: DataFrameRow )
         Health_Status(safe_assign(model_person.health_status)),
 
         safe_to_bool(model_person.has_long_standing_illness),
-        Illness_Length(model_person.how_long_adls_reduced).
-        ADLS_Inhibited(model_person.adls_are_reduced)
+        Illness_Length(model_person.how_long_adls_reduced),
+        ADLS_Inhibited(model_person.adls_are_reduced),
 
         relationships,
         Relationship(model_person.relationship_to_hoh),

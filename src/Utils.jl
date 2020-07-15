@@ -3,6 +3,7 @@ module Utils
 using DataFrames
 using Dates
 using Base.Unicode
+using CSV
 
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path

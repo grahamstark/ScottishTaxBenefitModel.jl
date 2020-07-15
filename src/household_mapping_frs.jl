@@ -7,7 +7,7 @@ using CSVFiles # use this over CSV because of this bug: https://github.com/Julia
 using ScottishTaxBenefitModel
 using .Utils
 using .Definitions
-import .GeneralTaxComponents: RateBands. WEEKS_PER_YEAR
+import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
 
 global MONTHS = Dict(
     "JAN" => 1,
@@ -1237,10 +1237,10 @@ for year in 2015:2017
 end
 
 #  see this bug CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
-# CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
-# CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
+CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
+CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
 #
-CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_households.tab" ),
-    model_households, delim = "\t",  nastring="")
-CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_people.tab" ),
-    model_people, delim = "\t",  nastring="")
+#CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_households.tab" ),
+#    model_households, delim = "\t",  nastring="")
+#CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_people.tab" ),
+#    model_people, delim = "\t",  nastring="")
