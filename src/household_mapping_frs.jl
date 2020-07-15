@@ -975,6 +975,12 @@ function create_children(
         model_child.sex = safe_assign(frs_person.sex)
         # model_child.ethnic_group = safe_assign(frs_person.ethgr3)
         ## also for child
+
+        model_child.has_long_standing_illness = (frs_person.chealth1 == 1 ? 1 : 0)
+        model_child.how_long_adls_reduced = (frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
+        model_child.adls_are_reduced = (frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
+
+
         model_child.registered_blind = (frs_person.spcreg1 == 1 ? 1 : 0)
         model_child.registered_partially_sighted = (frs_person.spcreg2 == 1 ? 1 : 0)
         model_child.registered_deaf = (frs_person.spcreg3 == 1 ? 1 : 0)
