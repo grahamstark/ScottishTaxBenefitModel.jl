@@ -7,7 +7,49 @@ import ScottishTaxBenefitModel: Definitions, ModelHousehold
 using .Definitions
 using .ModelHousehold
 
-export load_hhld_from_frame, map_hhld
+export load_hhld_from_frame, map_hhld, create_regression_dataframe
+
+#
+# Create the dataframe used in the regressions for (e.g) disability
+# by joining the household and person frames, and adding
+# some disability fields
+#
+function create_regression_dataframe(
+    model_households :: DataFrame,
+    model_people :: DataFrame ) :: DataFrame
+
+    fm = innerjoin( model_households, model_people, on=[:data_year, :hid ] )
+
+    fm.deaf_blind=fm.registered_blind .| fm.registered_deaf .| fm.registered_partially_sighted
+    fm.yr = fm.data_year .- 2014
+    fm.any_dis = (
+        fm.disability_vision .|
+        fm.disability_hearing .|
+        fm.disability_mobility .|
+        fm.disability_dexterity .|
+        fm.disability_learning .|
+        fm.disability_memory .|
+        fm.disability_other_difficulty .|
+        fm.disability_mental_health .|
+        fm.disability_stamina .|
+        fm.disability_socially )
+    fm.adls_bad=fm.adls_are_reduced.==1
+    fm.adls_mid=fm.adls_are_reduced.==2
+    fm.rec_dla = ( fm.income_dlamobility.>0.0) .| ( fm.income_dlaself_care .>0.0 )
+    fm.rec_dla_care = ( fm.income_dlaself_care .>0.0 )
+    fm.rec_dla_mob = ( fm.income_dlamobility.>0.0 )
+    fm.rec_pip = ( fm.income_personal_independence_payment_mobility.>0.0) .| ( fm.income_personal_independence_payment_daily_living .>0.0 )
+    fm.rec_pip_care = ( fm.income_personal_independence_payment_daily_living .>0.0 )
+    fm.rec_pip_mob = ( fm.income_personal_independence_payment_mobility.>0.0)
+    fm.rec_esa = ( fm.income_employment_and_support_allowance.>0.0)
+    fm.rec_aa = ( fm.income_attendence_allowance.>0.0)
+    fm.rec_carers = ( fm.income_carers_allowance.>0.0)
+    fm_rec_aa = ( fm.income_attendence_allowance.>0.0)
+    fm.scotland = fm.region .== 299999999
+    fm.male = fm.sex .== 1
+
+    return fm
+end
 
 function map_person( model_person :: DataFrameRow )
 

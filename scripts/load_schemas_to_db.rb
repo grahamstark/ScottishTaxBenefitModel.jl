@@ -10,8 +10,11 @@ require 'utils'
 load 'conversion_constants.rb'
 
 
-datasets = [  "frs", 'lcf', 'shs' ]
-years = [2016,2017]
+# datasets = [  "frs", 'lcf', 'shs' ]
+# years = [2016,2017]
+datasets = [  "frs" ]
+years = [2018]
+
 #
 # parse all .tab files in a directory and load to ukds.dictionaries schema
 #

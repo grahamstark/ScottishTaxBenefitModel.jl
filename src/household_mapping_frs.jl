@@ -760,7 +760,7 @@ function create_adults(
     extchild::DataFrame,
     maint::DataFrame,
     penprov::DataFrame,
-    admin::DataFrame,
+    # admin::DataFrame,
     care::DataFrame,
     mortcont::DataFrame,
     pension::DataFrame,
@@ -976,7 +976,7 @@ function create_children(
         model_child.sex = safe_assign(frs_person.sex)
         # model_child.ethnic_group = safe_assign(frs_person.ethgr3)
         ## also for child
-
+        println( "frs_person.chlimitl='$(frs_person.chlimitl)'")
         model_child.has_long_standing_illness = (frs_person.chealth1 == 1 ? 1 : 0)
         model_child.how_long_adls_reduced = (frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
         model_child.adls_are_reduced = (frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
@@ -1155,7 +1155,8 @@ function loadfrs(which::AbstractString, year::Integer)::DataFrame
     loadtoframe(filename)
 end
 
-hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1718_all.tab")
+hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1819_all.tab")
+
 # hbai_household = loadtoframe("$(HBAI_DIR)/tab/h1718_all.tab")
 
 # prices = loadPrices("/mnt/data/prices/mm23/mm23_edited.csv")
@@ -1164,7 +1165,7 @@ hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1718_all.tab")
 model_households = initialise_household(0)
 model_people = initialise_person(0)
 
-for year in 2015:2017
+for year in 2015:2018
 
     print("on year $year ")
 
@@ -1177,7 +1178,7 @@ for year in 2015:2017
     maint = loadfrs("maint", year)
     penprov = loadfrs("penprov", year)
 
-    admin = loadfrs("admin", year)
+    # admin = loadfrs("admin", year)
     care = loadfrs("care", year)
     # frs1718 = loadfrs("frs1718", year)
     mortcont = loadfrs("mortcont", year)
@@ -1212,7 +1213,7 @@ for year in 2015:2017
         extchild,
         maint,
         penprov,
-        admin,
+        # admin,
         care,
         mortcont,
         pension,
