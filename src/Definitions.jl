@@ -794,7 +794,7 @@ export wages,
        armed_forces_compensation_scheme,
        war_widows_or_widowers_pension,
        severe_disability_allowance,
-       attendence_allowance,
+       attendence_allowance, ## FIXME SP!
        carers_allowance,
        jobseekers_allowance,
        industrial_injury_disablement_benefit,

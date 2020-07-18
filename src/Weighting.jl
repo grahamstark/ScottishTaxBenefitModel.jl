@@ -22,7 +22,7 @@ const TARGETS = [
     314_433, # 10 - las etc rented
     139_982, # 11 - M- 0 - 4
     153_297, # 12 - M- 5 - 9
-    150_487, # 13 - M- 0 – 4
+    150_487, # 13 - M- 10 – 14
     144_172, # 14 - M- 15 - 19
     176_066, # 15 - M- 20 - 24
     191_145, # 16 - M- 25 - 29
@@ -79,7 +79,7 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
         las_etc_rented = zeros(n),
         m_0_4 = zeros(n),
         m_5_9 = zeros(n),
-        m_0_4 = zeros(n),
+        m_10_14 = zeros(n),
         m_15_19 = zeros(n),
         m_20_24 = zeros(n),
         m_25_29 = zeros(n),
@@ -126,6 +126,149 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
 end
 
 function make_target_row!( row :: DataFrameRow, hh :: Household )
+    num_male_ads = 0
+    num_female_ads = 0
+    num_u_16s = 0
+    for pers in hh.people
+        if( pers.age < 16 )
+            num_u_16s += 1;
+        end
+        if pers.sex == Male
+
+            if( pers.age >= 16 )
+                num_male_ads += 1;
+            end
+            if pers.employment_status in [
+                Full_time_Employee = 1
+                Part_time_Employee = 2
+                Full_time_Self_Employed = 3
+                Part_time_Self_Employed = 4
+                ]
+                row.m_total_in_employment += 1
+            elseif pers.employment_status in [Unemployed]
+                row.m_total_unemployed += 1
+            else
+                row.m_total_economically_inactive += 1 # delete!
+            end
+            if pers.age <= 4
+                row.m_0_4 += 1
+            elseif pers.age <= 9
+                row.m_5_9 += 1
+            elseif pers.age <= 14
+                row.m_10_14 += 1
+            elseif pers.age <= 19
+                row.m_15_19 += 1
+            elseif pers.age <= 24
+                row.m_20_24 += 1
+            elseif pers.age <= 29
+                row.m_25_29 += 1
+            elseif pers.age <= 34
+                row.m_30_34 += 1
+            elseif pers.age <= 39
+                row.m_35_39 += 1
+            elseif pers.age <= 44
+                row.m_40_44 += 1
+            elseif pers.age <= 49
+                row.m_45_49 += 1
+            elseif pers.age <= 54
+                row.m_50_54 += 1
+            elseif pers.age <= 59
+                row.m_55_59 += 1
+            elseif pers.age <= 64
+                row.m_60_64 += 1
+            elseif pers.age <= 69
+                row.m_65_69 += 1
+            elseif pers.age <= 74
+                row.m_70_74 += 1
+            elseif pers.age <= 79
+                row.m_75_79 += 1
+            else
+                row.m_80_plus += 1
+            end
+        else  # female
+            if( pers.age >= 16 )
+                num_female_ads += 1;
+            end
+            if pers.employment_status in [
+                Full_time_Employee = 1
+                Part_time_Employee = 2
+                Full_time_Self_Employed = 3
+                Part_time_Self_Employed = 4
+                ]
+                row.f_total_in_employment += 1
+            elseif pers.employment_status in [Unemployed]
+                row.f_total_unemployed += 1
+            else
+                row.f_total_economically_inactive += 1
+            end
+            if pers.age <= 4
+                row.f_0_4 += 1
+            elseif pers.age <= 9
+                row.f_5_9 += 1
+            elseif pers.age <= 14
+                row.f_10_14 += 1
+            elseif pers.age <= 19
+                row.f_15_19 += 1
+            elseif pers.age <= 24
+                row.f_20_24 += 1
+            elseif pers.age <= 29
+                row.f_25_29 += 1
+            elseif pers.age <= 34
+                row.f_30_34 += 1
+            elseif pers.age <= 39
+                row.f_35_39 += 1
+            elseif pers.age <= 44
+                row.f_40_44 += 1
+            elseif pers.age <= 49
+                row.f_45_49 += 1
+            elseif pers.age <= 54
+                row.f_50_54 += 1
+            elseif pers.age <= 59
+                row.f_55_59 += 1
+            elseif pers.age <= 64
+                row.f_60_64 += 1
+            elseif pers.age <= 69
+                row.f_65_69 += 1
+            elseif pers.age <= 74
+                row.f_70_74 += 1
+            elseif pers.age <= 79
+                row.f_75_79 += 1
+            else
+                row.f_80_plus += 1
+            end
+
+
+        end # female
+        if pers.income[carers_allowance] > 0
+            row.carers_allowance += 1
+        end
+        if pers.income[attendance_allowance] > 0
+            row.attendance_allowance += 1
+        end
+        if pers.income[personal_independence_payment_daily_living] > 0 ||
+           pers.income[personal_independence_payment_mobility] > 0 ||
+           pers.income[dlaself_care] > 0 ||
+           pers.income[dlamobility] > 0
+           row.pip_or_dla += 1
+       end
+    end # people
+    if owner_occupier(hh.tenure)
+        row.owner_occupied = 1
+    elseif hh.tenure == LA_or_New_Town_or_NIHE_or_Council_rented
+        row.las_etc_rented = 1
+    elseif hh.tenure == Housing_Association_or_Co_Op_or_Trust_rented
+        row.housing_association = 1
+    else
+        row.private_rented_plus_rent_free = 1
+    end
+
+    row.v_1_adult_male = zeros(n),
+    row.v_1_adult_female = zeros(n),
+    row.v_2_adults = zeros(n),
+    row.v_1_adult_1_child = zeros(n),
+    row.v_1_adult_2_plus_children = zeros(n),
+    row.v_2_plus_adults_1_plus_children = zeros(n),
+    row.v_3_plus_adults = zeros(n),
 
 end
 
