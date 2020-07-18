@@ -6,7 +6,7 @@ using ScottishTaxBenefitModel
 using .ModelHousehold
 using .Definitions
 
-export generate_weights, make_target_dataset, TARGETS
+export generate_weights, make_target_dataset, TARGETS, initialise_target_dataframe
 
 # FIXME rewrite this to load from a file.
 const TARGETS = [
@@ -65,8 +65,67 @@ const TARGETS = [
     127_307, # 53 - AA
     431_461 ] # PIP or DLA
 
+function initialise_target_dataframe( n :: Integer ) :: DataFrame
+    df = DataFrame(
+        m_total_in_employment = zeros(n),
+        m_total_unemployed = zeros(n),
+        m_total_economically_inactive = zeros(n),
+        f_total_in_employment = zeros(n),
+        f_total_unemployed = zeros(n),
+        f_total_economically_inactive = zeros(n),
+        owner_occupied = zeros(n),
+        private_rented_plus_rent_free = zeros(n),
+        housing_association = zeros(n),
+        las_etc_rented = zeros(n),
+        m_0_4 = zeros(n),
+        m_5_9 = zeros(n),
+        m_0_4 = zeros(n),
+        m_15_19 = zeros(n),
+        m_20_24 = zeros(n),
+        m_25_29 = zeros(n),
+        m_30_34 = zeros(n),
+        m_35_39 = zeros(n),
+        m_40_44 = zeros(n),
+        m_45_49 = zeros(n),
+        m_50_54 = zeros(n),
+        m_55_59 = zeros(n),
+        m_60_64 = zeros(n),
+        m_65_69 = zeros(n),
+        m_70_74 = zeros(n),
+        m_75_79 = zeros(n),
+        m_80_plus = zeros(n),
+        f_0_4 = zeros(n),
+        f_5_9 = zeros(n),
+        f_10_14 = zeros(n),
+        f_15_19 = zeros(n),
+        f_20_24 = zeros(n),
+        f_25_29 = zeros(n),
+        f_30_34 = zeros(n),
+        f_35_39 = zeros(n),
+        f_40_44 = zeros(n),
+        f_45_49 = zeros(n),
+        f_50_54 = zeros(n),
+        f_55_59 = zeros(n),
+        f_60_64 = zeros(n),
+        f_65_69 = zeros(n),
+        f_70_74 = zeros(n),
+        f_75_79 = zeros(n),
+        f_80_plus = zeros(n),
+        v_1_adult_male = zeros(n),
+        v_1_adult_female = zeros(n),
+        v_2_adults = zeros(n),
+        v_1_adult_1_child = zeros(n),
+        v_1_adult_2_plus_children = zeros(n),
+        v_2_plus_adults_1_plus_children = zeros(n),
+        v_3_plus_adults = zeros(n),
+        carers_allowance = zeros(n),
+        aa = zeros(n),
+        pip_or_dla = zeros(n)
+    )
+    return df
+end
 
-function make_target_row!( data :: Matrix, hh :: Household, pos :: Integer )
+function make_target_row!( row :: DataFrameRow, hh :: Household )
 
 end
 
