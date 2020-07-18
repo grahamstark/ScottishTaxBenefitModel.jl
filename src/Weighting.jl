@@ -4,6 +4,7 @@ using SurveyDataWeighting,DataFrames
 
 using ScottishTaxBenefitModel
 using .ModelHousehold
+using .Definitions
 
 export generate_weights, make_target_dataset, TARGETS
 
@@ -65,7 +66,7 @@ const TARGETS = [
     431_461 ] # PIP or DLA
 
 
-function make_target_row!( data :: Matrix, hh :: ModelHousehold, pos :: Integer )
+function make_target_row!( data :: Matrix, hh :: Household, pos :: Integer )
 
 end
 
