@@ -58,4 +58,7 @@ export SingleHouseholdCalculations
 include("WebModelLibs.jl" )
 export WebModelLibs
 
+include( "Weighting.jl")
+export Weighting
+
 end
