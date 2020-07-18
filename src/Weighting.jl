@@ -1,14 +1,27 @@
 module Weighting
 
-using SurveyDataWeighting,DataFrames
+using Reexport
+
+@reexport using SurveyDataWeighting: do_reweighting, DistanceFunctionType, chi_square,
+    d_and_s_type_a, d_and_s_type_b, constrained_chi_square, d_and_s_constrained,
+    ITERATIONS_EXCEEDED
+
+using DataFrames
 
 using ScottishTaxBenefitModel
 using .ModelHousehold
 using .Definitions
 
+
+import
+
+
 export generate_weights, make_target_dataset, TARGETS, initialise_target_dataframe
 
 # FIXME rewrite this to load from a file.
+
+const NUM_HOUSEHOLDS = 2_477_000.0 # sum of all hhld types below
+
 const TARGETS = [
     1_340_609.0, # 1 - M- Total in employment- aged 16+
     60_635, # 2 - M- Total unemployed- aged 16+
@@ -287,11 +300,57 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
 end
 
 function make_target_dataset( nhhlds :: Integer ) :: Matrix
-
+    df :: DataFrame = initialise_target_dataframe( nhhlds )
+    for hno in 1:nhhlds
+        hh = FRSHouseholdGetter.get_household( hno )
+        make_target_row!( df[hno,:], hh )
+    end
+    return convert( Matrix, df )
 end
 
-function generate_weights( nhhlds :: Integer, targets :: Vector ) :: Vector
+#
+# generate weights for the dataset and
+#
+#
+function generate_weights(
+    nhhlds :: Integer;
+    weight_type :: DistanceFunctionType = constrained_chi_square,
+    lower_multiple :: Real = 0.20,
+    upper_multiple :: Real = 2.19,
+    targets :: Vector = DEFAULT_TARGETS  ) :: Vector
+    data :: Matrix = make_target_dataset( nhhlds )
+    nrows = size( data )[1]
+    ncols = size( data )[2]
+    ## FIXME parameterise this
+    initial_weights = ones(nhhlds)*NUM_HOUSEHOLDS/nhhlds
+     # any smaller min and d_and_s_constrained fails on this dataset
+    rw = do_reweighting(
+         data               = data,
+         initial_weights    = initial_weights,
+         target_populations = targets,
+         functiontype       = weight_type,
+         lower_multiple     = lower_multiple,
+         upper_multiple     = upper_multiple,
+         tolx               = 0.000001,
+         tolf               = 0.000001 )
+    println( "results for method $m = $rw" )
+    weights = rw.weights
+    weighted_popn = (weights' * data)'
+    println( "weighted_popn = $weighted_popn" )
+    @assert weighted_popn ≈ target_populations
 
+    if weight_type in [constrained_chi_square, d_and_s_constrained ]
+      # check the constrainted methods keep things inside ll and ul
+        for r in 1:nrows
+            @assert weights[r] .<= initial_weights[r]*upper_multiple
+            @assert weights[r] .>= initial_weights[r]*lower_multiple
+        end
+    end
+    for hno in 1:nhhlds
+        hh = FRSHouseholdGetter.get_household( hno )
+        hh.weight = weights[hno]
+    end
+    return weights
 end
 
 end # package

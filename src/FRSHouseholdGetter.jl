@@ -9,7 +9,7 @@ using .Definitions
 import .ModelHousehold: Household, uprate!
 import .HouseholdFromFrame: load_hhld_from_frame
 
-export initialise, get_household
+export initialise, get_household, num_households
 
 ## FIXME make a constant? As per julia performance guide?
 MODEL_HOUSEHOLDS = Vector{Household}(undef,0)
@@ -43,6 +43,10 @@ end
 function get_household( pos :: Integer ) :: Household
     global MODEL_HOUSEHOLDS
     MODEL_HOUSEHOLDS[pos]
+end
+
+function num_households()::Integer
+    return size( MODEL_HOUSEHOLDS )[1]
 end
 
 end
