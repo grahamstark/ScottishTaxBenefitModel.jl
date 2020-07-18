@@ -1,7 +1,7 @@
 import Test: @testset, @test
 import ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household
 import ScottishTaxBenefitModel.ModelHousehold: Household, Person
-import ScottishTaxBenefitModel.Weighting: generate_weights, make_target_dataset, Targets
+import ScottishTaxBenefitModel.Weighting: generate_weights, make_target_dataset, TARGETS
 
 start_year=2015
 
