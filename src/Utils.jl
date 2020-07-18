@@ -209,7 +209,7 @@ lower case
 """
 function loadtoframe(filename::AbstractString)::DataFrame
    println( "loading $filename")
-    df = CSV.File(filename, delim = '\t') |> DataFrame # , missingstrings=["", ]
+    df = CSV.File(filename, delim = '\t') |> DataFrame #
     lcnames = Symbol.(lowercase.(string.(names(df))))
     rename!(df, lcnames)
     df
