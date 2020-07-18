@@ -13,9 +13,6 @@ using .ModelHousehold
 using .Definitions
 
 
-import
-
-
 export generate_weights, make_target_dataset, TARGETS, initialise_target_dataframe
 
 # FIXME rewrite this to load from a file.
@@ -318,6 +315,7 @@ function generate_weights(
     lower_multiple :: Real = 0.20,
     upper_multiple :: Real = 2.19,
     targets :: Vector = DEFAULT_TARGETS  ) :: Vector
+
     data :: Matrix = make_target_dataset( nhhlds )
     nrows = size( data )[1]
     ncols = size( data )[2]

@@ -9,10 +9,10 @@ start_year=2015
 
 @testset "benefit unit allocations" begin
       rc = @timed begin
-         num_households,total_num_people,nhh2 = initialise(
-            household_name = "model_households_scotland",
-            people_name    = "model_people_scotland",
-            start_year = start_year )
+            num_households,total_num_people,nhh2 = initialise(
+                  household_name = "model_households_scotland",
+                  people_name    = "model_people_scotland",
+                  start_year = start_year )
       end
       println( "num_households=$num_households, num_people=$(total_num_people)")
       people_count = 0
