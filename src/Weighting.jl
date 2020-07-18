@@ -261,15 +261,29 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
     else
         row.private_rented_plus_rent_free = 1
     end
-
-    row.v_1_adult_male = zeros(n),
-    row.v_1_adult_female = zeros(n),
-    row.v_2_adults = zeros(n),
-    row.v_1_adult_1_child = zeros(n),
-    row.v_1_adult_2_plus_children = zeros(n),
-    row.v_2_plus_adults_1_plus_children = zeros(n),
-    row.v_3_plus_adults = zeros(n),
-
+    num_people = num_u_16s+num_male_ads+num_female_ads
+    num_adults = num_male_ads+num_female_ads
+    if num_people == 1
+        if num_male_ads == 1
+            row.v_1_adult_male = 1
+        else
+            row.v_1_adult_female = 1
+        end
+    elseif num_adults == 1
+        if num_u_16s == 1
+            row.v_1_adult_1_child = 1
+        else
+            row.v_1_adult_2_plus_children = 1
+        end
+    elseif num_adults == 2 && num_u_16s == 0
+        row.v_2_adults = 1
+    elseif num_adults > 2 && num_u_16s == 0
+        row.v_3_plus_adults = 1
+    elseif num_adults >= 2 && num_u_16s > 0
+        row.v_2_plus_adults_1_plus_children = 1
+    else
+        @assert false "should never get here num_male_ads=$num_male_ads num_female_ads=$num_female_ads num_u_16s=$num_u_16s"
+    end
 end
 
 function make_target_dataset( nhhlds :: Integer ) :: Matrix
