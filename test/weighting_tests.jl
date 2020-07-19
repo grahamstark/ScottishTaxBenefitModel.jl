@@ -24,7 +24,7 @@ end
     data = make_target_dataset( nhh )
     nr,nc = size(data)
 
-    @test nr == nnh
+    @test nr == nhh
     @test nc == size( DEFAULT_TARGETS )[1]
 
     initial_weights = ones(nhh)*hhlds_in_popn/nr

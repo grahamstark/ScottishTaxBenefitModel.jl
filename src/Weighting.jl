@@ -333,17 +333,18 @@ function generate_weights(
          upper_multiple     = upper_multiple,
          tolx               = 0.000001,
          tolf               = 0.000001 )
-    println( "results for method $weight_type = $rw" )
+    # println( "results for method $weight_type = $(rw.rc)" )
+    @assert rw.rc[:error] == 0 "non zero return code from weights gen $(rw.rc)"
     weights = rw.weights
     weighted_popn = (weights' * data)'
-    println( "weighted_popn = $weighted_popn" )
-    @assert weighted_popn ≈ target_populations
+    # println( "weighted_popn = $weighted_popn" )
+    @assert weighted_popn ≈ targets
 
     if weight_type in [constrained_chi_square, d_and_s_constrained ]
       # check the constrainted methods keep things inside ll and ul
         for r in 1:nrows
-            @assert weights[r] .<= initial_weights[r]*upper_multiple
-            @assert weights[r] .>= initial_weights[r]*lower_multiple
+            @assert weights[r] <= initial_weights[r]*upper_multiple
+            @assert weights[r] >= initial_weights[r]*lower_multiple
         end
     end
     for hno in 1:nhhlds
