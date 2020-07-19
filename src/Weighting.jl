@@ -19,7 +19,7 @@ export generate_weights, make_target_dataset, TARGETS, initialise_target_datafra
 
 const NUM_HOUSEHOLDS = 2_477_000.0 # sum of all hhld types below
 
-const TARGETS = [
+const DEFAULT_TARGETS = [
     1_340_609.0, # 1 - M- Total in employment- aged 16+
     60_635, # 2 - M- Total unemployed- aged 16+
     745_379, # 3 - M- Total economically inactive- aged 16+
@@ -149,10 +149,10 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
                 num_male_ads += 1;
             end
             if pers.employment_status in [
-                Full_time_Employee = 1
-                Part_time_Employee = 2
-                Full_time_Self_Employed = 3
-                Part_time_Self_Employed = 4
+                Full_time_Employee,
+                Part_time_Employee,
+                Full_time_Self_Employed,
+                Part_time_Self_Employed
                 ]
                 row.m_total_in_employment += 1
             elseif pers.employment_status in [Unemployed]
@@ -200,10 +200,10 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
                 num_female_ads += 1;
             end
             if pers.employment_status in [
-                Full_time_Employee = 1
-                Part_time_Employee = 2
-                Full_time_Self_Employed = 3
-                Part_time_Self_Employed = 4
+                Full_time_Employee,
+                Part_time_Employee,
+                Full_time_Self_Employed,
+                Part_time_Self_Employed
                 ]
                 row.f_total_in_employment += 1
             elseif pers.employment_status in [Unemployed]
