@@ -3,7 +3,7 @@ import ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household, nu
 import ScottishTaxBenefitModel.ModelHousehold: Household, Person
 import ScottishTaxBenefitModel.Weighting: generate_weights, make_target_dataset, DEFAULT_TARGETS, initialise_target_dataframe
 
-start_year=2015
+start_year=2017
 
 if num_households() == 0
       initialise()
@@ -11,7 +11,7 @@ end
 
 @testset "weighting tests" begin
 
-      df = initialise_target_dataframe(100)
       nhh = num_households()
+      df = initialise_target_dataframe(nhh)
       weights = generate_weights(nhh)
 end

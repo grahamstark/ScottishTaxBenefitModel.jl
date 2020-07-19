@@ -128,7 +128,7 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
         v_1_adult_2_plus_children = zeros(n),
         v_2_plus_adults_1_plus_children = zeros(n),
         v_3_plus_adults = zeros(n),
-        carers_allowance = zeros(n),
+        ca = zeros(n),
         aa = zeros(n),
         pip_or_dla = zeros(n)
     )
@@ -139,7 +139,7 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
     num_male_ads = 0
     num_female_ads = 0
     num_u_16s = 0
-    for pers in hh.people
+    for (pid,pers) in hh.people
         if( pers.age < 16 )
             num_u_16s += 1;
         end
@@ -250,7 +250,7 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
 
         end # female
         if pers.income[carers_allowance] > 0
-            row.carers_allowance += 1
+            row.ca += 1
         end
         if pers.income[attendance_allowance] > 0
             row.attendance_allowance += 1
