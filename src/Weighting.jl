@@ -23,57 +23,57 @@ const DEFAULT_TARGETS = [
     1_340_609.0, # 1 - M- Total in employment- aged 16+
     60_635, # 2 - M- Total unemployed- aged 16+
     # 745_379, # 3 - M- Total economically inactive- aged 16+
-    1_301_248, # 4 - F- Total in employment- aged 16+
-    59_302, # 5 - F- Total unemployed- aged 16+
+    1_301_248, # 3 - F- Total in employment- aged 16+
+    59_302, # 4 - F- Total unemployed- aged 16+
     # 974_767, # 6 - F- Total economically inactive- aged 16+
     # 1_540_890, # 7 - owner occupied
-    370_502, # 8 - private rented+rent free
-    282_482, # 9 - housing association
-    314_433, # 10 - las etc rented
-    139_982, # 11 - M- 0 - 4
-    153_297, # 12 - M- 5 - 9
-    150_487, # 13 - M- 10 – 14
-    144_172, # 14 - M- 15 - 19
-    176_066, # 15 - M- 20 - 24
-    191_145, # 16 - M- 25 - 29
-    182_635, # 17 -  M- 30 - 34
-    172_624, # 18 -  M- 35 - 39
-    156_790, # 19 - M- 40 - 44
-    174_812, # 20 -  M- 45 - 49
-    193_940, # 21 -  M- 50 - 54
-    190_775, # 22 -  M- 55 - 59
-    166_852, # 23 -  M- 60 - 64
-    144_460, # 24 -  M- 65 - 69
-    132_339, # 25 -  M- 70 - 74
-    87_886, # 26 -  M- 75 - 79
-    104_741, # 27 - M- 80’+
-    131_733, # 28 - F- 0 - 4
-    146_019, # 29 - F- 5 - 9
-    144_187, # 30 - F- 10 - 14
-    137_786, # 31 - F- 15 - 19
-    171_390, # 32 - F- 20 - 24
-    191_110, # 33 - F- 25 - 29
-    186_828, # 34 -  F- 30 - 34
-    179_898, # 35 -  F- 35 - 39
-    162_642, # 36 - F- 40 - 44
-    186_646, # 37 -  F- 45 - 49
-    207_150, # 38 -  F- 50 - 54
-    202_348, # 39 -  F- 55 - 59
-    177_841, # 40 -  F- 60 - 64
-    154_984, # 41 -  F- 65 - 69
-    146_517, # 42 -  F- 70 - 74
-    108_065, # 43 -  F- 75 - 79
-    165_153, # 44 -  F- 80+
-    439_000, # 45 - 1 adult: male
-    467_000, # 46 - 1 adult: female
-    797_000, # 47 - 2 adults
-    70_000, # 48 - 1 adult 1 child
-    66_000, # 49 - 1 adult 2+ children
-    448_000, # 50 - 2+ adults 1+ children
-    190_000, # 51 - 3+ adults
-    77_842, # 52 - CARER’S ALLOWANCE
-    127_307, # 53 - AA
-    431_461 ] # PIP or DLA
+    370_502, # 5 - private rented+rent free
+    282_482, # 6 - housing association
+    314_433, # 7 - las etc rented
+    139_982, # 8 - M- 0 - 4
+    153_297, # 9 - M- 5 - 9
+    150_487, # 10 - M- 10 – 14
+    144_172, # 11 - M- 15 - 19
+    176_066, # 12 - M- 20 - 24
+    191_145, # 13 - M- 25 - 29
+    182_635, # 14 -  M- 30 - 34
+    172_624, # 15 -  M- 35 - 39
+    156_790, # 16 - M- 40 - 44
+    174_812, # 17 -  M- 45 - 49
+    193_940, # 18 -  M- 50 - 54
+    190_775, # 19 -  M- 55 - 59
+    166_852, # 20 -  M- 60 - 64
+    144_460, # 21 -  M- 65 - 69
+    132_339, # 22 -  M- 70 - 74
+    87_886, # 23 -  M- 75 - 79
+    104_741, # 24 - M- 80’+
+    131_733, # 25 - F- 0 - 4
+    146_019, # 26 - F- 5 - 9
+    144_187, # 27 - F- 10 - 14
+    137_786, # 28 - F- 15 - 19
+    171_390, # 29 - F- 20 - 24
+    191_110, # 30 - F- 25 - 29
+    186_828, # 31 -  F- 30 - 34
+    179_898, # 32 -  F- 35 - 39
+    162_642, # 33 - F- 40 - 44
+    186_646, # 34 -  F- 45 - 49
+    207_150, # 35 -  F- 50 - 54
+    202_348, # 36 -  F- 55 - 59
+    177_841, # 37 -  F- 60 - 64
+    154_984, # 38 -  F- 65 - 69
+    146_517, # 39 -  F- 70 - 74
+    108_065, # 40 -  F- 75 - 79
+    165_153, # 41 -  F- 80+
+    439_000, # 42 - 1 adult: male
+    467_000, # 43 - 1 adult: female
+    797_000, # 44 - 2 adults
+    70_000, # 45 - 1 adult 1 child
+    66_000, # 46 - 1 adult 2+ children
+    448_000, # 47 - 2+ adults 1+ children
+    190_000, # 48 - 3+ adults
+    77_842, # 49 - CARER’S ALLOWANCE
+    127_307, # 50 - AA
+    431_461 ] # 51 PIP or DLA
 
 function initialise_target_dataframe( n :: Integer ) :: DataFrame
     df = DataFrame(
@@ -312,8 +312,8 @@ end
 function generate_weights(
     nhhlds :: Integer;
     weight_type :: DistanceFunctionType = constrained_chi_square,
-    lower_multiple :: Real = 0.20,
-    upper_multiple :: Real = 2.19,
+    lower_multiple :: Real = 0.20, # these values can be narrowed somewhat, to around 0.25-4.7
+    upper_multiple :: Real = 5,
     targets :: Vector = DEFAULT_TARGETS  ) :: Vector
 
     data :: Matrix = make_target_dataset( nhhlds )
@@ -321,6 +321,8 @@ function generate_weights(
     ncols = size( data )[2]
     ## FIXME parameterise this
     initial_weights = ones(nhhlds)*NUM_HOUSEHOLDS/nhhlds
+    println( "initial_weights $(initial_weights[1])")
+
      # any smaller min and d_and_s_constrained fails on this dataset
     rw = do_reweighting(
          data               = data,

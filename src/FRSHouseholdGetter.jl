@@ -45,7 +45,7 @@ function get_household( pos :: Integer ) :: Household
     MODEL_HOUSEHOLDS[pos]
 end
 
-function num_households()::Integer
+function get_num_households()::Integer
     return size( MODEL_HOUSEHOLDS )[1]
 end
 
