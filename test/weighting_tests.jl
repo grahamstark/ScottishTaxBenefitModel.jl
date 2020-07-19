@@ -46,8 +46,13 @@ end
         @test( sum(data[:,c]) > 0 )
     end
 
-    weights = generate_weights(nhh)
+    @time weights = generate_weights(nhh)
 
     weighted_popn = (weights' * data)'
     @test weighted_popn ≈ DEFAULT_TARGETS
+    for c in 1:nc
+        diffpc = 100*(weighted_popn[c]-DEFAULT_TARGETS[c])/DEFAULT_TARGETS[c]
+        println( "$c $(DEFAULT_TARGETS[c])\t$(weighted_popn[c])\t$diffpc%")
+    end
+
 end
