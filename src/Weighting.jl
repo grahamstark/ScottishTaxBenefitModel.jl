@@ -333,7 +333,7 @@ function generate_weights(
          upper_multiple     = upper_multiple,
          tolx               = 0.000001,
          tolf               = 0.000001 )
-    println( "results for method $m = $rw" )
+    println( "results for method $weight_type = $rw" )
     weights = rw.weights
     weighted_popn = (weights' * data)'
     println( "weighted_popn = $weighted_popn" )

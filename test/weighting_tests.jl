@@ -19,36 +19,35 @@ end
 
 
 @testset "weighting tests" begin
+    nhh = get_num_households()
+    hhlds_in_popn = sum( DEFAULT_TARGETS[42:48]) # sum of all hhld types
+    data = make_target_dataset( nhh )
+    nr,nc = size(data)
 
-      hhlds_in_popn = sum( DEFAULT_TARGETS[42:48])
+    @test nr == nnh
+    @test nc == size( DEFAULT_TARGETS )[1]
 
-      data = make_target_dataset( nhh )
+    initial_weights = ones(nhh)*hhlds_in_popn/nr
 
-      nr,nc = size(data)
+    initial_weighted_popn = (initial_weights' * data)'
 
-      initial_weights = ones(nhh)*hhlds_in_popn/nr
+    println( "initial-weighted_popn vs targets" )
+    println( "target\tinitial\t%diff" )
+    for c in 1:nc
+        diffpc = 100*(initial_weighted_popn[c]-DEFAULT_TARGETS[c])/DEFAULT_TARGETS[c]
+        println( "$c $(DEFAULT_TARGETS[c])\t$(initial_weighted_popn[c])\t$diffpc%")
+    end
 
-      initial_weighted_popn = (initial_weights' * data)'
+    # open( "data/scotmat.csv", "w" ) do io
+    #     writedlm(io, data)
+    # end
 
-      println( "initial-weighted_popn vs targets" )
-      for c in 1:nc
-            diffpc = 100*(initial_weighted_popn[c]-DEFAULT_TARGETS[c])/DEFAULT_TARGETS[c]
-            println( "$c $(TARGETS[c]) $(initial_weighted_popn[c]) $diffpc%")
-      end
+    for c in 1:nc
+        @test( sum(data[:,c]) > 0 )
+    end
 
+    weights = generate_weights(nhh)
 
-      # open( "data/scotmat.csv", "w" ) do io
-       #     writedlm(io, data)
-      # end
-
-      for c in 1:nc
-            @test( sum(data[:,c]) > 0 )
-      end
-      
-      weights = generate_weights(nhh)
-
-      weighted_popn = (weights' * data)'
-      @test weighted_popn ≈ DEFAULT_TARGETS
-
-
+    weighted_popn = (weights' * data)'
+    @test weighted_popn ≈ DEFAULT_TARGETS
 end
