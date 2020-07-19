@@ -19,17 +19,26 @@ export generate_weights, make_target_dataset, TARGETS, initialise_target_datafra
 
 const NUM_HOUSEHOLDS = 2_477_000.0 # sum of all hhld types below
 
+#
+#
+# see data/targets/target_set.ods for derivation of these targets.
+#
 const DEFAULT_TARGETS = [
-    1_340_609.0, # 1 - M- Total in employment- aged 16+
-    60_635, # 2 - M- Total unemployed- aged 16+
+    # 1.01337880471403 is nrs 16+ popn estimate/nomis count
+    # this scales to employment and popn numbers are consistent
+    # we drop 'inactive' because of collinearity
+    1_340_609.0*1.01337880471403, # 1 - M- Total in employment- aged 16+
+    60_635*1.01337880471403, # 2 - M- Total unemployed- aged 16+
     # 745_379, # 3 - M- Total economically inactive- aged 16+
-    1_301_248, # 3 - F- Total in employment- aged 16+
-    59_302, # 4 - F- Total unemployed- aged 16+
+    1_301_248*1.01337880471403, # 3 - F- Total in employment- aged 16+
+    59_302*1.01337880471403, # 4 - F- Total unemployed- aged 16+
     # 974_767, # 6 - F- Total economically inactive- aged 16+
     # 1_540_890, # 7 - owner occupied
-    370_502, # 5 - private rented+rent free
-    282_482, # 6 - housing association
-    314_433, # 7 - las etc rented
+    # 0.987518476103907 HERE is ratio of total hhls
+    # from tenure data and nrs hhld type counts
+    370_502*0.987518476103907, # 5 - private rented+rent free
+    282_482*0.987518476103907, # 6 - housing association
+    314_433*0.987518476103907, # 7 - las etc rented
     139_982, # 8 - M- 0 - 4
     153_297, # 9 - M- 5 - 9
     150_487, # 10 - M- 10 – 14
