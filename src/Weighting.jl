@@ -22,11 +22,11 @@ const NUM_HOUSEHOLDS = 2_477_000.0 # sum of all hhld types below
 const DEFAULT_TARGETS = [
     1_340_609.0, # 1 - M- Total in employment- aged 16+
     60_635, # 2 - M- Total unemployed- aged 16+
-    745_379, # 3 - M- Total economically inactive- aged 16+
+    # 745_379, # 3 - M- Total economically inactive- aged 16+
     1_301_248, # 4 - F- Total in employment- aged 16+
     59_302, # 5 - F- Total unemployed- aged 16+
-    974_767, # 6 - F- Total economically inactive- aged 16+
-    1_540_890, # 7 - owner occupied
+    # 974_767, # 6 - F- Total economically inactive- aged 16+
+    # 1_540_890, # 7 - owner occupied
     370_502, # 8 - private rented+rent free
     282_482, # 9 - housing association
     314_433, # 10 - las etc rented
@@ -79,11 +79,11 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
     df = DataFrame(
         m_total_in_employment = zeros(n),
         m_total_unemployed = zeros(n),
-        m_total_economically_inactive = zeros(n),
+        # m_total_economically_inactive = zeros(n),
         f_total_in_employment = zeros(n),
         f_total_unemployed = zeros(n),
-        f_total_economically_inactive = zeros(n),
-        owner_occupied = zeros(n),
+        # f_total_economically_inactive = zeros(n),
+        # owner_occupied = zeros(n),
         private_rented_plus_rent_free = zeros(n),
         housing_association = zeros(n),
         las_etc_rented = zeros(n),
@@ -158,7 +158,7 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
             elseif pers.employment_status in [Unemployed]
                 row.m_total_unemployed += 1
             else
-                row.m_total_economically_inactive += 1 # delete!
+                # row.m_total_economically_inactive += 1 # delete!
             end
             if pers.age <= 4
                 row.m_0_4 += 1
@@ -209,7 +209,7 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
             elseif pers.employment_status in [Unemployed]
                 row.f_total_unemployed += 1
             else
-                row.f_total_economically_inactive += 1
+                # row.f_total_economically_inactive += 1
             end
             if pers.age <= 4
                 row.f_0_4 += 1
@@ -249,21 +249,21 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
 
 
         end # female
-        if pers.income[carers_allowance] > 0
+        if get(pers.income,attendence_allowance,0.0) > 0 ### sp!!!!!
+            row.aa += 1
+        end
+        if get(pers.income,carers_allowance,0.0) > 0
             row.ca += 1
         end
-        if pers.income[attendance_allowance] > 0
-            row.attendance_allowance += 1
-        end
-        if pers.income[personal_independence_payment_daily_living] > 0 ||
-           pers.income[personal_independence_payment_mobility] > 0 ||
-           pers.income[dlaself_care] > 0 ||
-           pers.income[dlamobility] > 0
+        if get( pers.income, personal_independence_payment_daily_living, 0.0 ) > 0 ||
+           get( pers.income, personal_independence_payment_mobility, 0.0 ) > 0 ||
+           get( pers.income, dlaself_care, 0.0 ) > 0 ||
+           get( pers.income, dlamobility, 0.0 ) > 0
            row.pip_or_dla += 1
        end
     end # people
     if owner_occupier(hh.tenure)
-        row.owner_occupied = 1
+        # row.owner_occupied = 1
     elseif hh.tenure == LA_or_New_Town_or_NIHE_or_Council_rented
         row.las_etc_rented = 1
     elseif hh.tenure == Housing_Association_or_Co_Op_or_Trust_rented

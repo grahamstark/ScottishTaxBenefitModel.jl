@@ -671,7 +671,7 @@ export LA_or_New_Town_or_NIHE_or_Council_rented,
        Owned_outright,
        Rent_free,
        Squats
-export Missing_Tenure_Type
+export Missing_Tenure_Type,owner_occupier,renter
 
 @enum Tenure_Type begin  # mapped from tentyp2
    Missing_Tenure_Type = -1
@@ -690,7 +690,7 @@ function renting(tt::Tenure_Type)::Bool
 end
 
 function owner_occupier(tt::Tenure_Type)::Bool
-   tt in [Owned_with_a_mortgage_includes_part_rent_or_part_own, Owned_Outright]
+   tt in [Owned_with_a_mortgage_includes_part_rent_or_part_own, Owned_outright]
 end
 
 export CT_Band  # mapped from ctband
