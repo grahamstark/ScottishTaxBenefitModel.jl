@@ -300,7 +300,7 @@ function make_results_frame( n :: Integer ) :: DataFrame
 
      total_taxes = Vector{Union{Real,Missing}}(missing, n),
      total_benefits = Vector{Union{Real,Missing}}(missing, n),
-     tax = Vector{Union{Real,Missing}}(missing, n),
+     income_tax = Vector{Union{Real,Missing}}(missing, n),
      benefit1 = Vector{Union{Real,Missing}}(missing, n),
      benefit2 = Vector{Union{Real,Missing}}(missing, n),
      basic_income = Vector{Union{Real,Missing}}(missing, n),

@@ -14,7 +14,7 @@ import .Utils: get_if_set
 export calc_income_tax, old_enough_for_mca, apply_allowance, ITResult
 export calculate_company_car_charge
 
-@with_kw mutable struct ITResult{RT}
+@with_kw mutable struct ITResult{RT<:Real}
     total_tax :: RT = 0.0
     taxable_income :: RT = 0.0
     adjusted_net_income :: RT = 0.0
@@ -87,7 +87,7 @@ function calculate_allowance( pers::Person, sys :: IncomeTaxSys ) :: Real
     allowance
 end
 
-function apply_allowance( allowance::Real, income::Real )::Tuple where RT
+function apply_allowance( allowance::Real, income::Real )::Tuple where RT<:Real
     r = max( 0.0, income - allowance )
     allowance = max(0.0, allowance-income)
     allowance,r

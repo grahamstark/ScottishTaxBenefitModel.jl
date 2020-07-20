@@ -11,20 +11,69 @@ module Results
     using .IncomeTaxCalculations: ITResult
     using .NationalInsuranceCalculations: NIResult
 
-    export IndividualResults, BenefitUnitResults,HouseholdResults
+    export IndividualResult,
+        BenefitUnitResult,
+        HouseholdResult,
+        make_household_results_frame,
+        make_bu_results_frame,
+        make_individual_results_frame
 
-    @with_kw mutable struct IndividualResults{IT<:Integer, RT<:Real}
+    @with_kw mutable struct IndividualResult{IT<:Integer, RT<:Real}
        ni = NIResult{IT,RT}()
        it = ITResult{IT,RT}()
        # ...
     end
 
-    function make_household_results_frame()
+    @with_kw mutable struct BenefitUnitResult{RT<:Real}
+        net_income :: RT = zero(RT)
+        eq_net_income :: RT = zero(RT)
+    end
+
+    @with_kw mutable struct HouseholdResult{RT<:Real}
+        bhc_net_income :: RT = zero(RT)
+        eq_bhc_net_income :: RT = zero(RT)
+        ahc_net_income :: RT = zero(RT)
+        eq_ahc_net_income :: RT = zero(RT)
+    end
+
+    function make_household_results_frame( n :: Int ) :: DataFrame
+        make_household_results_frame( Float64, n )
+    end
+
+    function make_household_results_frame( RT :: DataType, n :: Int ) :: DataFrame
+        DataFrame(
+            hid       = zeros( BIGINT,n),
+            data_year = zeros( Int, n ),
+            weight    = zeros(RT,n),
+            hh_type   = zeros( Int, n ),
+            tenure    = zeros( Int, n ),
+            region    = zeros( Int, n ),
+            gross_decile = zeros( Int, n ),
+            bhc_net_income = zeros(RT,n),
+            ahc_net_income = zeros(RT,n),
+            eq_scale = zeros(RT,n),
+            eq_bhc_net_income = zeros(RT,n),
+            eq_ahc_net_income = zeros(RT,n)) # etc.
 
     end
 
-    function make_bu_results_frame( RT :: DataType, n :: Int ) :: DataFrame
+    function make_bu_results_frame( n :: Int ) :: DataFrame
+        return make_bu_results_frame( Float64, n )
+    end
 
+    function make_bu_results_frame( RT :: DataType, n :: Int ) :: DataFrame
+        DataFrame(
+            hid       = zeros(BIGINT,n),
+            buno      = zeros( Int, n ),
+            data_year = zeros( Int, n ),
+            weight    = zeros(RT,n),
+            bu_type   = zeros( Int, n ),
+            tenure    = zeros( Int, n ),
+            region    = zeros( Int, n ),
+            gross_decile = zeros( Int, n ),
+            net_income = zeros(RT,n),
+            eq_scale   = zeros(RT,n),
+            eq_net_income = zeros(RT,n)) # etc.
     end
 
     function make_individual_results_frame( n :: Int ) :: DataFrame
@@ -61,6 +110,13 @@ module Results
          basic_income = zeros(RT,n),
          gross_income = zeros(RT,n),
          net_income = zeros(RT,n),
+
+         bhc_net_income = zeros(RT,n),
+         ahc_net_income = zeros(RT,n),
+         eq_scale = zeros(RT,n),
+         eq_bhc_net_income = zeros(RT,n),
+         eq_ahc_net_income = zeros(RT,n)) # etc.
+
          metr = zeros(RT,n),
          tax_credit = zeros(RT,n),
          vat = zeros(RT,n),
