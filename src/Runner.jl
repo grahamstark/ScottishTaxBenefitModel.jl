@@ -19,11 +19,8 @@ import BudgetConstraints: BudgetConstraint
     using .Utils
     using .STBParameters
     import .Weighting: generate_weights
-    using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
-          PeopleArray, printpids,
-          BenefitUnit, BenefitUnits, default_bu_allocation,
-          get_benefit_units, get_head, get_spouse, num_people
-    using .Results: 
+    using .ModelHousehold: Household
+    using .Results:
 
 
     export do_one_run!,RunSettings
@@ -56,25 +53,9 @@ import BudgetConstraints: BudgetConstraint
 
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hhno )
-
-            bus = get_benefit_units( hh )
-            head = get_head( bu )
-            @test head.age >= 16
-            spouse = get_spouse( bu )
-            if spouse != nothing
-                  @test spouse.age >= 16
-            end
             for sys in params
-                calc_income_tax(
-                    head,
-                    spouse
-                    sys )
-            for chno in bu.children
-                  child = bu.people[chno]
-                  @test child.age <= 19
+                res = do_one_calc( hh, sys )
             end
-
-
         end
 
 
