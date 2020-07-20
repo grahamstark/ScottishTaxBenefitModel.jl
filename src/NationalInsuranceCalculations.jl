@@ -14,15 +14,15 @@ import .Utils: get_if_set
 
 export calculate_national_insurance, calc_class1_secondary
 
-@with_kw mutable struct NIResult
+@with_kw mutable struct NIResult{RT<:Real}
     above_lower_earnings_limit :: Bool = false
-    total_ni :: Real = 0.0
-    class_1_primary    :: Real = 0.0
-    class_1_secondary  :: Real = 0.0
-    class_2   :: Real = 0.0
-    class_3   :: Real = 0.0
-    class_4   :: Real = 0.0
-    assumed_gross_wage :: Real = 0.0
+    total_ni :: RT = 0.0
+    class_1_primary    :: RT = 0.0
+    class_1_secondary  :: RT = 0.0
+    class_2   :: RT = 0.0
+    class_3   :: RT = 0.0
+    class_4   :: RT = 0.0
+    assumed_gross_wage :: RT = 0.0
 end
 
 function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsuranceSys ) :: Real
@@ -56,8 +56,8 @@ function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: Bu
 end
 
 
-function calculate_national_insurance( pers::Person, sys :: NationalInsuranceSys ) :: NIResult
-    nires = NIResult()
+function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsuranceSys{IT,RT} ) :: NIResult{RT} where IT<:Integer where RT<:Real
+    nires = NIResult{RT}()
 
     # employer's NI on any wages
     bc = make_gross_wage_bc( pers, sys )
