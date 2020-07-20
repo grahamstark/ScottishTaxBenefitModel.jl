@@ -23,7 +23,7 @@ module Results
 
     end
 
-    function make_bu_results_frame()::DataFrame
+    function make_bu_results_frame( RT :: DataType, n :: Int ) :: DataFrame
 
     end
 
