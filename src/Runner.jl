@@ -8,10 +8,10 @@ import BudgetConstraints: BudgetConstraint
         Utils,
         STBParameters,
         Results,
-        FRSHousholdGetter,
+        FRSHouseholdGetter,
         ModelHousehold,
         SingleHouseholdCalculations
-        
+
     import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
     using .Definitions
     import .Utils

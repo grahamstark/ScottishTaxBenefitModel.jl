@@ -11,7 +11,7 @@ include( "legacy_mt_tests.jl")
 if is_local
 # This will only run locally
     include( "household_tests.jl")
-    include( "simple_runner_tests.jl")
+    # to be replaced include( "simple_runner_tests.jl")
     include( "weighting_tests.jl")
 end
 
