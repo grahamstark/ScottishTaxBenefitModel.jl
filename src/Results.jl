@@ -52,10 +52,6 @@ module Results
          assumed_gross_wage = zeros(NR,n)
 
 
-         national_insurance = zeros(NR,n),
-         ni_class_1 = zeros(NR,n),
-         ni_class_2 = zeros(NR,n),
-
          benefit1 = zeros(NR,n),
          benefit2 = zeros(NR,n),
          basic_income = zeros(NR,n),
