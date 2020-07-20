@@ -312,7 +312,7 @@ function make_results_frame( n :: Integer ) :: DataFrame
      total_indirect = Vector{Union{Real,Missing}}(missing, n))
 end
 
-function do_one_run( tbparams::TaxBenefitSystem, num_households :: Integer, num_people :: Integer ) :: DataFrame
+function do_one_run( tbparams::MiniTB.TBParameters, num_households :: Integer, num_people :: Integer, num_repeats :: Integer ) :: DataFrame
    results = make_results_frame( num_people )
    pnum = 0
    for hhno in 1:num_households
