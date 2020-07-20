@@ -14,26 +14,26 @@ import .Utils: get_if_set
 export calc_income_tax, old_enough_for_mca, apply_allowance, ITResult
 export calculate_company_car_charge
 
-@with_kw mutable struct ITResult
-    total_tax :: Real = 0.0
-    taxable_income :: Real = 0.0
-    adjusted_net_income :: Real = 0.0
-    total_income :: Real = 0.0
-    non_savings :: Real = 0.0
-    allowance   :: Real = 0.0
+@with_kw mutable struct ITResult{RT}
+    total_tax :: RT = 0.0
+    taxable_income :: RT = 0.0
+    adjusted_net_income :: RT = 0.0
+    total_income :: RT = 0.0
+    non_savings :: RT = 0.0
+    allowance   :: RT = 0.0
     non_savings_band :: Integer = 0
-    savings :: Real = 0.0
+    savings :: RT = 0.0
     savings_band :: Integer = 0
-    dividends :: Real = 0.0
+    dividends :: RT = 0.0
     dividend_band :: Integer = 0
-    unused_allowance :: Real = 0.0
-    mca :: Real = 0.0
-    transferred_allowance :: Real = 0.0
-    pension_eligible_for_relief :: Real = 0.0
-    pension_relief_at_source :: Real = 0.0
-    non_savings_thresholds :: RateBands = zeros(0)
-    savings_thresholds  :: RateBands = zeros(0)
-    dividend_thresholds :: RateBands = zeros(0)
+    unused_allowance :: RT = 0.0
+    mca :: RT = 0.0
+    transferred_allowance :: RT = 0.0
+    pension_eligible_for_relief :: RT = 0.0
+    pension_relief_at_source :: RT = 0.0
+    non_savings_thresholds :: RateBands = zeros(RT,0)
+    savings_thresholds  :: RateBands = zeros(RT,0)
+    dividend_thresholds :: RateBands = zeros(RT,0)
     intermediate :: Dict = Dict()
 end
 
@@ -87,7 +87,7 @@ function calculate_allowance( pers::Person, sys :: IncomeTaxSys ) :: Real
     allowance
 end
 
-function apply_allowance( allowance::Real, income::Real )::Tuple
+function apply_allowance( allowance::Real, income::Real )::Tuple where RT
     r = max( 0.0, income - allowance )
     allowance = max(0.0, allowance-income)
     allowance,r
@@ -155,10 +155,10 @@ in the `intermediate` dict
 
 """
 function calc_income_tax(
-    pers   :: Person,
-    sys    :: IncomeTaxSys,
-    spouse_transfer :: Real = 0.0 ) :: ITResult
-    itres :: ITResult = ITResult()
+    pers   :: Person{IT,RT},
+    sys    :: IncomeTaxSys{IT,RT},
+    spouse_transfer :: RT = 0.0 ) :: ITResult{RT} where IT<:Integer where RT<:Real
+    itres = ITResult{RT}()
     total_income = sys.all_taxable*pers.income;
     non_savings = sys.non_savings_income*pers.income;
     savings = sys.savings_income*pers.income;
@@ -343,9 +343,9 @@ function calculate_mca( pers :: Person, tax :: ITResult, sys :: IncomeTaxSys)::R
 end
 
 function calc_income_tax(
-    head   :: Person,
-    spouse :: Union{Nothing,Person},
-    sys    :: IncomeTaxSys ) :: NamedTuple
+    head   :: Person{IT,RT},
+    spouse :: Union{Nothing,Person{IT,RT}},
+    sys    :: IncomeTaxSys{IT,RT} ) :: NamedTuple  where IT<:Integer where RT<:Real
     headtax = calc_income_tax( head, sys )
     spousetax = nothing
     # FIXME the transferable stuff here

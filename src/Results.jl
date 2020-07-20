@@ -25,7 +25,11 @@ module Results
 
     end
 
-    function make_individual_results_frame( NR :: DataType=Float64; n :: IR ) :: DataFrame
+    function make_individual_results_frame( n :: IR ) :: DataFrame
+        make_individual_results_frame( Float64, n )
+    end
+
+    function make_individual_results_frame( NR :: DataType=Float64; n :: Int ) :: DataFrame
        DataFrame(
          pid = zeros(BIGINT,n),
          weight = zeros(NR,n),
