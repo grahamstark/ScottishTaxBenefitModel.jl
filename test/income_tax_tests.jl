@@ -381,8 +381,9 @@ end
 
 @testset "Crude MCA Age Check" begin
     # cut-off for jan 2010 should be age 85
+
     d = Date( 2020, 1, 28 )
-    itsys :: IncomeTaxSys = get_tax( scotland = true )
+    itsys :: IncomeTaxSys = get_tax( scotland = false )
     @test old_enough_for_mca( itsys, 85, d )
     @test ! old_enough_for_mca( itsys, 84, d )
     @test old_enough_for_mca( itsys, 86, d )

@@ -21,12 +21,19 @@ module Results
     @with_kw mutable struct IndividualResult{RT<:Real}
        ni = NIResult{RT}()
        it = ITResult{RT}()
+       income_taxes :: RT = zero(RT)
+       means_tested_benefits :: RT = zero(RT)
+       other_benefits  :: RT = zero(RT)
+       
        # ...
     end
 
     @with_kw mutable struct BenefitUnitResult{RT<:Real}
         net_income    :: RT = zero(RT)
         eq_net_income :: RT = zero(RT)
+        income_taxes :: RT = zero(RT)
+        means_tested_benefits :: RT = zero(RT)
+        other_benefits  :: RT = zero(RT)
         pers          = Dict{BigInt,IndividualResult{RT}}()
     end
 
@@ -35,6 +42,10 @@ module Results
         eq_bhc_net_income :: RT = zero(RT)
         ahc_net_income :: RT = zero(RT)
         eq_ahc_net_income :: RT = zero(RT)
+        net_housing_costs :: RT = zero(RT)
+        income_taxes :: RT = zero(RT)
+        means_tested_benefits :: RT = zero(RT)
+        other_benefits  :: RT = zero(RT)
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
 
@@ -52,6 +63,11 @@ module Results
             push!( hr.bus, bur )
         end
         return hr
+    end
+
+    function aggregate( hhr :: HouseholdResult )
+
+
     end
 
 

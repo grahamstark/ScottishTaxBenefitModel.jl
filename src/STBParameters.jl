@@ -13,7 +13,7 @@ module STBParameters
 
 
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
-    export weeklyise!, annualise!, get_default_it_system
+    export weeklyise!, annualise!
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -203,25 +203,7 @@ module STBParameters
       it.pension_contrib_withdrawal_rate /= 100.0
    end
 
-   function get_default_it_system(
-      ;
-      year     :: Integer=2019,
-      scotland :: Bool = true,
-      weekly   :: Bool = true )::Union{Nothing,IncomeTaxSys}
-      it = nothing
-      if year == 2019
-         it = IncomeTaxSys{Int64,Float64}()
-         if ! scotland
-            it.non_savings_rates = [20.0,40.0,45.0]
-            it.non_savings_thresholds = [37_500, 150_000.0]
-            it.non_savings_basic_rate = 1
-         end
-         if weekly
-            weeklyise!( it )
-         end
-      end
-      it
-   end
+
 
    @with_kw mutable struct NationalInsuranceSys{IT<:Integer, RT<:Real}
       primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
