@@ -6,7 +6,7 @@ import ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
 import Dates: Date
 import ScottishTaxBenefitModel.IncomeTaxCalculations: old_enough_for_mca, apply_allowance, calc_income_tax
-import ScottishTaxBenefitModel.STBParameters: IncomeTaxSys, get_default_it_system
+import ScottishTaxBenefitModel.STBParameters: IncomeTaxSys
 
 const RUK_PERSON = 100000001001
 const SCOT_HEAD = 100000001002

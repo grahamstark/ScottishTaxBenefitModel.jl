@@ -3,7 +3,7 @@ using JSON2
 
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.STBParameters:
-    IncomeTaxSys,weeklyise!,annualise!, get_default_it_system
+    IncomeTaxSys,weeklyise!,annualise!
 using ScottishTaxBenefitModel.Utils
 import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
 
