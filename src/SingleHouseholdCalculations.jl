@@ -4,10 +4,19 @@ As this progresses, this will be the main entry point for calculations on a hous
 
 module SingleHouseholdCalculations
 
-import ScottishTaxBenefitModel: Definitions, Results, STBParameters, ModelHousehold
+import ScottishTaxBenefitModel:
+    Definitions,
+    Results,
+    STBParameters,
+    ModelHousehold,
+    IncomeTaxCalculations,
+    NationalInsuranceCalculations
+
 
 using .Definitions
-using .Results:
+using .Results: IndividualResult,
+    BenefitUnitResult,
+    HouseholdResult
 using .STBParameters: TaxBenefitSystem
 using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       PeopleArray, printpids,

@@ -6,10 +6,12 @@ import ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
 import Dates: Date
 import ScottishTaxBenefitModel.STBParameters: TaxBenefitSystem, IncomeTaxSys, get_default_it_system
-import SingleHouseholdCalculations:do_one_calc
-using .Results: IndividualResult,
+import ScottishTaxBenefitModel.SingleHouseholdCalculations:do_one_calc
+using ScottishTaxBenefitModel.Results:
+    IndividualResult,
     BenefitUnitResult,
-    HouseholdResult
+    HouseholdResult,
+    init_household_result
 
 function get_tax(; scotland = false ) :: IncomeTaxSys
     it = get_default_it_system( year=2019, scotland=scotland, weekly=false )
@@ -28,6 +30,6 @@ end
 # examples from https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/812844/Income_Tax_Liabilities_Statistics_June_2019.pdf
 # table 2
 @testset "Reproduce HMRC 2019/20" begin
-    
+
 
 end
