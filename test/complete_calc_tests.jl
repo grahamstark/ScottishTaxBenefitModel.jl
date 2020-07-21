@@ -11,7 +11,23 @@ using .Results: IndividualResult,
     BenefitUnitResult,
     HouseholdResult
 
-@testset "Reproduce HMRC 2019/20" begin
+function get_tax(; scotland = false ) :: IncomeTaxSys
+    it = get_default_it_system( year=2019, scotland=scotland, weekly=false )
+    it.non_savings_rates ./= 100.0
+    it.savings_rates ./= 100.0
+    it.dividend_rates ./= 100.0
+    it.personal_allowance_withdrawal_rate /= 100.0
+    it.mca_credit_rate /= 100.0
+    it.mca_withdrawal_rate /= 100.0
+    it.pension_contrib_withdrawal_rate /= 100.0
 
+    it
+end
+
+
+# examples from https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/812844/Income_Tax_Liabilities_Statistics_June_2019.pdf
+# table 2
+@testset "Reproduce HMRC 2019/20" begin
+    
 
 end

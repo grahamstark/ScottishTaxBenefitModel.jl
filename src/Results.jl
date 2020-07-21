@@ -32,12 +32,12 @@ module Results
         pers          :: Dict{BigInt,IndividualResult{RT}}()
     end
 
-    @with_kw mutable struct HouseholdResult{RT<:Real}
+    @with_kw mutable struct HouseholdResult{IT<:Integer,RT<:Real}
         bhc_net_income :: RT = zero(RT)
         eq_bhc_net_income :: RT = zero(RT)
         ahc_net_income :: RT = zero(RT)
         eq_ahc_net_income :: RT = zero(RT)
-        bus :: Vector{BenefitUnitResult{RT}}(undef,0)
+        bus :: Vector{BenefitUnitResult{IT,RT}}(undef,0)
 
 
     end
@@ -135,7 +135,7 @@ module Results
          ahc_net_income = zeros(RT,n),
          eq_scale = zeros(RT,n),
          eq_bhc_net_income = zeros(RT,n),
-         eq_ahc_net_income = zeros(RT,n)) # etc.
+         eq_ahc_net_income = zeros(RT,n), # etc.
 
          metr = zeros(RT,n),
          tax_credit = zeros(RT,n),
