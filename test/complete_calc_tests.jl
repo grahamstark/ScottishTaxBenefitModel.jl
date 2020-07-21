@@ -1,6 +1,11 @@
 using Test
 using ScottishTaxBenefitModel
-import ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, default_bu_allocation
+import ScottishTaxBenefitModel.ModelHousehold:
+    Household,
+    Person,
+    People_Dict,
+    default_bu_allocation,
+    get_benefit_units
 # import FRSHouseholdGetter
 import ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
@@ -33,7 +38,7 @@ function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
     end
     buno = 1
     for bu in bus
-        if length(hhr.bus[bno].pers) == length(bu.people)
+        if length(hhr.bus[buno].pers) == length(bu.people)
             return true
         end
         buno += 1
@@ -45,6 +50,6 @@ end
 # table 2
 @testset "Reproduce HMRC 2019/20" begin
     hh = ExampleHouseholdGetter.get_household( "mel_c2" )
-    hhr = init_household_result( bus )
+    hhr = init_household_result( hh )
     @test hh_to_hhr_mismatch( hh, hhr )
 end

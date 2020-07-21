@@ -9,8 +9,9 @@ module Results
         NationalInsuranceCalculations,
         IncomeTaxCalculations
     using .Definitions
-    using .ModelHousehold: BenefitUnits
-
+    using .ModelHousehold: Household, BenefitUnits, get_benefit_units
+    using .IncomeTaxCalculations: ITResult
+    using .NationalInsuranceCalculations: NIResult
 
     export IndividualResult,
         BenefitUnitResult,
@@ -39,12 +40,14 @@ module Results
 
     # create results that mirror some
     # allocation of people to benefit units
-    function init_household_result( bus :: BenefitUnits )
-        hr = HouseholdResult()
+    function init_household_result( hh :: Household{IT,RT} ) :: HouseholdResult{RT} where IT <: Integer where RT <: Real
+        bus = get_benefit_units(hh)
+        hr = HouseholdResult{RT}()
         for bu in bus
-            bur = BenefitUnitResult()
+            bur = BenefitUnitResult{RT}()
             for pid in keys( bu.people )
-                bur[pid] = IndividualResult()
+                # println( "pid=$pid")
+                bur.pers[pid] = IndividualResult{RT}()
             end
             push!( hr.bus, bur )
         end

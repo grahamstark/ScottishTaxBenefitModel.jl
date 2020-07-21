@@ -32,7 +32,7 @@ export do_one_calc
 
 function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdResult
     bus = get_benefit_units( hh )
-    hres :: HouseholdResult = init_household_result(bus)
+    hres :: HouseholdResult = init_household_result(hh)
     buno = 1
     for bu in bus
         # income tax, with some nonsense for
