@@ -26,10 +26,25 @@ function get_tax(; scotland = false ) :: IncomeTaxSys
     it
 end
 
+function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
+    bus = get_benefit_units( hh )
+    if length(hhr.bus) != size( bus )[1]
+        return true
+    end
+    buno = 1
+    for bu in bus
+        if length(hhr.bus[bno].pers) == length(bu.people)
+            return true
+        end
+        buno += 1
+    end
+    false
+end
 
 # examples from https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/812844/Income_Tax_Liabilities_Statistics_June_2019.pdf
 # table 2
 @testset "Reproduce HMRC 2019/20" begin
-
-
+    hh = ExampleHouseholdGetter.get_household( "mel_c2" )
+    hhr = init_household_result( bus )
+    @test hh_to_hhr_mismatch( hh, hhr )
 end
