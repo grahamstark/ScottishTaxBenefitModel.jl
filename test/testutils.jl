@@ -1,5 +1,6 @@
 
-import ScottishTaxBenefitModel.STBParameters: IncomeTaxSys
+import ScottishTaxBenefitModel.STBParameters:
+   IncomeTaxSys, weeklyise!
 
 function get_default_it_system(
    ;

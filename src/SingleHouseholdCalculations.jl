@@ -16,7 +16,8 @@ import ScottishTaxBenefitModel:
 using .Definitions
 using .Results: IndividualResult,
     BenefitUnitResult,
-    HouseholdResult
+    HouseholdResult,
+    init_household_result
 using .STBParameters: TaxBenefitSystem
 using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       PeopleArray, printpids,
@@ -42,7 +43,7 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         itres = calc_income_tax(
             head,
             spouse,
-            sys )
+            sys.it )
         hres.bus[buno].pers[head.pid].it = itres.head
         if spouse != nothing
             hres.bus[buno].pers[spouse.pid].it = itres.head
@@ -52,17 +53,17 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
             itres = calc_income_tax(
                 child,
                 nothing,
-                sys )
+                sys.it )
             hres.bus[buno].pers[child.pid].it = itres.head
         end
         # national insurance
-        for pers in bu.people
+        for (pid,pers) in bu.people
             hres.bus[buno].pers[pers.pid].ni =
-                calculate_national_insurance( pers, sys )
+                calculate_national_insurance( pers, sys.ni )
         end
         buno += 1
     end # bus loop
-    return res
+    return hres
 end
 
 end

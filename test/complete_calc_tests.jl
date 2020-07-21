@@ -23,16 +23,18 @@ using ScottishTaxBenefitModel.Results:
     init_household_result
 using ScottishTaxBenefitModel.GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
 using ScottishTaxBenefitModel.SingleHouseholdCalculations: do_one_calc
+using ScottishTaxBenefitModel.Runner: do_one_run, RunSettings
 
 include( "testutils.jl")
 
-function get_system(; scotland = false ) :: TaxBenefitSystem
+function get_system( scotland = false ) :: TaxBenefitSystem
     tb = TaxBenefitSystem{Int,Float64}()
     println( tb.it )
     # overwrite IT to get RuK system as needed
     itn :: IncomeTaxSys{Int,Float64} = get_default_it_system( year=2019, scotland=scotland, weekly=true )
-    println( itn )
+    # println( itn )
     tb.it = itn
+    tb
 end
 
 function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
@@ -62,17 +64,21 @@ ExampleHouseholdGetter.initialise()
 
     sys = [get_system(), get_system( true )]
 
-    wage = [50_000.0, 40_000, 10_000]./WEEKS_PER_YEAR
-    savings = [0.0, 3_000, 10_000]./WEEKS_PER_YEAR
-    dividends = [0.0, 5_000, 0.0]./WEEKS_PER_YEAR
-    liabilities = [7_500,9_044,6_125,1_000]./WEEKS_PER_YEAR
-    for i in 1:3 loop
+    wage = [50_000.0, 40_000, 10_000,16_500]./WEEKS_PER_YEAR
+    savings = [0.0, 3_000, 10_000,3_000]./WEEKS_PER_YEAR
+    divs = [0.0, 5_000, 0.0, 0.0]./WEEKS_PER_YEAR
+    liabilities = [7_500,6_125,300,1_000]./WEEKS_PER_YEAR
+    for i in 1:4
         hh.people[ pid ].income[wages] = wage[i]
         hh.people[ pid ].income[bank_interest] = savings[i]
-        hh.people[ pid ].income[dividends] = dividends[i]
+        hh.people[ pid ].income[stocks_shares] = divs[i]
         hres = do_one_calc( hh, sys[1] )
         hres_scot = do_one_calc( hh, sys[2] )
-        @test hres.bu[1].pers[pid].it.total_tax ≈ liabilities[i]
+        if i == 1
+            @test round(hres_scot.bus[1].pers[pid].it.total_tax*WEEKS_PER_YEAR) ≈ 9_044
+        end
+        @test hres.bus[1].pers[pid].it.total_tax ≈ liabilities[i]
     end
+
 
 end

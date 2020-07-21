@@ -265,9 +265,9 @@ module STBParameters
 
    @with_kw mutable struct TaxBenefitSystem{IT<:Integer, RT<:Real}
       name :: AbstractString = "Scotland 2919/20"
-      it   :: IncomeTaxSys = IncomeTaxSys{IT,RT}()
-      ni   :: NationalInsuranceSys = NationalInsuranceSys{IT,RT}()
-      lmt  :: LegacyMeansTestedBenefitSystem = LegacyMeansTestedBenefitSystem{IT,RT}()
+      it   = IncomeTaxSys{IT,RT}()
+      ni   = NationalInsuranceSys{IT,RT}()
+      lmt  = LegacyMeansTestedBenefitSystem{IT,RT}()
    end
 
 
