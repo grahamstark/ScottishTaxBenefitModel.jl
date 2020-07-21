@@ -23,8 +23,8 @@ import BudgetConstraints: BudgetConstraint
     using .Results: IndividualResult,
         BenefitUnitResult,
         HouseholdResult
-
-
+    using .FRSHouseholdGetter: initialise, get_household, num_households
+    using .SingleHouseholdCalculations: do_one_calc
     export do_one_run!,RunSettings
 
     @with_kw mutable struct RunSettings
@@ -134,7 +134,7 @@ import BudgetConstraints: BudgetConstraint
         num_systems = size( params )[1]
 
         if settings.num_households == 0
-            @time settings.num_houseolds,
+            @time settings.num_households,
                 settings.num_people,
                 nhh2 = initialise(
                         household_name = settings.household_name,
@@ -144,7 +144,8 @@ import BudgetConstraints: BudgetConstraint
         end
 
         @time for hno in 1:settings.num_households
-            hh = FRSHouseholdGetter.get_household( hhno )
+            hh = FRSHouseholdGetter.get_household( hno )
+            print("$hh,")
             for sys in params
                 res = do_one_calc( hh, sys )
             end

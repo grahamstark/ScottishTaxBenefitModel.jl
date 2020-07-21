@@ -890,9 +890,8 @@ function create_adults(
             ## TODO allowances from absent spouses apamt apdamt
 
             ## TODO income_education_allowances
-            ## TODO income_foster_care_payments
-
-            model_adult.income_foster_care_payments = coalesce(frs_person.allpd3,0.0)
+            
+            model_adult.income_foster_care_payments = max(0.0,coalesce(frs_person.allpd3,0.0))
 
 
             ## TODO income_student_grants
