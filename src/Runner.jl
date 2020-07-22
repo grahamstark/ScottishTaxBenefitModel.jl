@@ -23,7 +23,7 @@ import BudgetConstraints: BudgetConstraint
     using .Results: IndividualResult,
         BenefitUnitResult,
         HouseholdResult
-    using .FRSHouseholdGetter: initialise, get_household, num_households
+    using .FRSHouseholdGetter: initialise, get_household
     using .SingleHouseholdCalculations: do_one_calc
     export do_one_run!,RunSettings
 

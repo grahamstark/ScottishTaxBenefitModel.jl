@@ -2,6 +2,10 @@
 import ScottishTaxBenefitModel.STBParameters:
    IncomeTaxSys, weeklyise!
 
+import ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household, get_num_households
+
+
+
 function get_default_it_system(
    ;
   year     :: Integer=2019,
@@ -20,4 +24,14 @@ function get_default_it_system(
      end
   end
   it
+end
+
+function init_data()
+   if get_num_households() == 0
+      @time nhh,total_num_people,nhh2 = initialise(
+            household_name = "model_households_scotland",
+            people_name    = "model_people_scotland",
+            start_year = start_year )
+   end
+   (nhh,num_people)
 end

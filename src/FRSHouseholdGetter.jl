@@ -27,8 +27,8 @@ function initialise(
     hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab" ) |> DataFrame
     # FIXME HORRIBLE HACK - correct (???) weights for num years in dataset
     # we need to generate our own weights here
-    nyears = 2018 - start_year
-    hh_dataset[!,:weight] ./= nyears
+    #nyears = 2018 - start_year
+    #hh_dataset[!,:weight] ./= nyears
     people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab") |> DataFrame
     npeople = size( people_dataset)[1]
     nhhlds = size( hh_dataset )[1]
