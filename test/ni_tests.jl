@@ -1,14 +1,47 @@
 using Test
 using ScottishTaxBenefitModel
-import ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, default_bu_allocation
-# import FRSHouseholdGetter
-import ScottishTaxBenefitModel.ExampleHouseholdGetter
+using ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, default_bu_allocation
+# using FRSHouseholdGetter
+using ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
 using ScottishTaxBenefitModel.NationalInsuranceCalculations
-import ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys,weeklyise!
-import .GeneralTaxComponents: WEEKS_PER_YEAR
+using ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys,weeklyise!
+using .GeneralTaxComponents: WEEKS_PER_YEAR
+using ScottishTaxBenefitModel.FRSHouseholdGetter: get_household
 
 const RUK_PERSON = 100000001001
+
+include( "testutils.jl")
+
+@testset "Run on actual Data" begin
+    nhhs,npeople = init_data()
+    nisys = NationalInsuranceSys()
+    weeklyise!( nisys )
+    hh = get_household(1)
+    person =  hh.people[120150000101]
+    println( person )
+    nires = calculate_national_insurance( person, nisys )
+    @test nires.class_1_primary >= 0.0
+    @test nires.class_1_secondary >= 0.0
+
+end
+
+
+@testset "Run on actual Data" begin
+    nhhs,npeople = init_data()
+    nisys = NationalInsuranceSys()
+    weeklyise!( nisys )
+    for hno in 1:nhhs
+        hh = get_household(hno)
+        for (pid,person) in hh.people
+            println( "on hh $hno; pid=$pid")
+            nires = calculate_national_insurance( person, nisys )
+            @test nires.class_1_primary >= 0.0
+            @test nires.class_1_secondary >= 0.0
+        end # people loop
+    end # hhld loop
+end #
+
 
 
 @testset "Melville 2019 ch16 examples 1; Class 1 NI" begin

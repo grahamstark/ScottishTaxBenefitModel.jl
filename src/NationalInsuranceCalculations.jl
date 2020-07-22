@@ -32,7 +32,7 @@ function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsu
         rates[2] = 0.0
     end
     tres = calctaxdue(
-        taxable = pers.income[wages],
+        taxable = gross, # get(pers.income,wages, 0.0)
         rates = rates,
         thresholds = sys.secondary_class_1_bands )
     tres.due
@@ -61,15 +61,16 @@ function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsur
 
     # employer's NI on any wages
     bc = make_gross_wage_bc( pers, sys )
-    gross = gross_from_net( bc, pers.income[wages])
+    wage = get(pers.income,wages,0.0)
+    gross = gross_from_net( bc, wage )
     nires.class_1_secondary = calc_class1_secondary( gross, pers, sys )
-    @assert (gross-nires.class_1_secondary) ≈ pers.income[wages]
+    @assert trunc((gross-nires.class_1_secondary),digits=2) ≈ round(wage, digits=2) "gross $gross wage $wage nires.class_1_secondary $(nires.class_1_secondary)"
     nires.assumed_gross_wage = gross
 
     # class 1 on any wages, se only on main ..
     if pers.age < sys.state_pension_age
         tres = calctaxdue(
-            taxable = pers.income[wages],
+            taxable = wage,
             rates = sys.primary_class_1_rates,
             thresholds = sys.primary_class_1_bands )
         nires.class_1_primary = tres.due
@@ -78,11 +79,12 @@ function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsur
         if( pers.employment_status in [Full_time_Self_Employed, Part_time_Self_Employed])
            # maybe? pers.principal_employment_type != An_Employee
            # FIXME do I need *any* check on whether someone is classed as SE, & not just se income present?
-            if pers.income[self_employment_income] > sys.class_2_threshold
+            seinc = get(pers.income,self_employment_income,0.0)
+            if seinc > sys.class_2_threshold
                 nires.class_2 = sys.class_2_rate
             end
             nires.class_4 = calctaxdue(
-                taxable = pers.income[self_employment_income],
+                taxable = seinc,
                 rates = sys.class_4_rates,
                 thresholds = sys.class_4_bands ).due
         end # self emp

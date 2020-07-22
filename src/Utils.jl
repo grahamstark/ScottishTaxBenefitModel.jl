@@ -8,6 +8,11 @@ using CSV
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
+export eq_nearest_p
+
+function eq_nearest_p( a :: Real, b :: Real )
+   round( a, digits=2) == round( b, digits=2 )
+end
 
 @generated function operate_on_struct!( rec::Rec, x::NR, f::Function ) where Rec where NR<:Number
      assignments = [

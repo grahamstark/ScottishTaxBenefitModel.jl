@@ -1,21 +1,21 @@
 using Test
 using ScottishTaxBenefitModel
-import ScottishTaxBenefitModel.ModelHousehold:
+using ScottishTaxBenefitModel.ModelHousehold:
     Household,
     Person,
     People_Dict,
     default_bu_allocation,
     get_benefit_units
-# import FRSHouseholdGetter
-import ScottishTaxBenefitModel.ExampleHouseholdGetter
+# using FRSHouseholdGetter
+using ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
-import Dates: Date
-import ScottishTaxBenefitModel.STBParameters:
+using Dates: Date
+using ScottishTaxBenefitModel.STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
     IncomeTaxSys,
     get_default_it_system
-import ScottishTaxBenefitModel.SingleHouseholdCalculations:do_one_calc
+using ScottishTaxBenefitModel.SingleHouseholdCalculations:do_one_calc
 using ScottishTaxBenefitModel.Results:
     IndividualResult,
     BenefitUnitResult,
@@ -26,16 +26,6 @@ using ScottishTaxBenefitModel.SingleHouseholdCalculations: do_one_calc
 using ScottishTaxBenefitModel.Runner: do_one_run, RunSettings
 
 include( "testutils.jl")
-
-function get_system( scotland = false ) :: TaxBenefitSystem
-    tb = TaxBenefitSystem{Int,Float64}()
-    println( tb.it )
-    # overwrite IT to get RuK system as needed
-    itn :: IncomeTaxSys{Int,Float64} = get_default_it_system( year=2019, scotland=scotland, weekly=true )
-    # println( itn )
-    tb.it = itn
-    tb
-end
 
 function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
     bus = get_benefit_units( hh )
