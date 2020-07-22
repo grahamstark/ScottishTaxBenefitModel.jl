@@ -56,6 +56,8 @@ end # summary_output.timing summary_output.blockt = JSON.json( summary_output )
 #
 # base_results = create_base_results( total_num_households, total_num_people )
 
-t = @benchmark basic_run()
+@testset "basic run timing" begin
+    t = @benchmark basic_run()
 
-print(t)
+    print(t)
+end

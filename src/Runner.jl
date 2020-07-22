@@ -145,7 +145,7 @@ import BudgetConstraints: BudgetConstraint
 
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
-            print("$hh,")
+            # print("$hh,")
             for sys in params
                 res = do_one_calc( hh, sys )
             end
