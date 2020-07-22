@@ -51,8 +51,8 @@ using BudgetConstraints: BudgetConstraint
 
     function make_household_results_frame( RT :: DataType, n :: Int ) :: DataFrame
         DataFrame(
-            hid       = zeros( BIGINT,n),
-            data_year = zeros( Int, n ),
+            hid       = zeros( BigInt, n ),
+            sequence  = zeros( Int, n ),
             weight    = zeros(RT,n),
             hh_type   = zeros( Int, n ),
             tenure    = fill( Missing_Tenure_Type, n ),
@@ -74,7 +74,7 @@ using BudgetConstraints: BudgetConstraint
 
     function make_bu_results_frame( RT :: DataType, n :: Int ) :: DataFrame
         DataFrame(
-            hid       = zeros(BIGINT,n),
+            hid       = zeros(BigInt,n),
             buno      = zeros( Int, n ),
             data_year = zeros( Int, n ),
             weight    = zeros(RT,n),
@@ -97,11 +97,12 @@ using BudgetConstraints: BudgetConstraint
 
     function make_individual_results_frame( RT :: DataType, n :: Int ) :: DataFrame
        DataFrame(
-         pid = zeros(BIGINT,n),
+         hid = zeros(BigInt,n),
+         pid = zeros(BigInt,n),
          weight = zeros(RT,n),
-         sex = zeros(Missing_Sex,n),
+         sex = fill(Missing_Sex,n),
          age_band  = zeros(Int,n),
-         employment = zeros(Missing_ILO_Employment,n),
+         employment = fill(Missing_ILO_Employment,n),
          # ... and so on
 
          income_taxes = zeros(RT,n),
@@ -143,14 +144,14 @@ using BudgetConstraints: BudgetConstraint
 
     function initialise_frames( settings :: RunSettings, num_systems :: Integer, RT::DataType  ) :: NamedTuple
         indiv = fill( make_individual_results_frame( RT, settings.num_people ), num_systems )
-        bu = fill( make_bu_results_frame, settings.num_people ) # overstates but we don't actually know this at the start
-        hh = fill( make_hh_results_frame, settings.num_households )
+        bu = fill( make_bu_results_frame( RT, settings.num_people ), num_systems ) # overstates but we don't actually know this at the start
+        hh = fill( make_household_results_frame( RT, settings.num_households ), num_systems )
         (hh=hh, bu=bu, indiv=indiv)
     end
 
     function fill_hh_frame_row!( hr :: DataFrameRow, hh :: Household, hres :: HouseholdResult )
         hr.hid = hh.hid
-        hr.data_year = hh.data_year
+        hr.sequence = hh.sequence
         hr.weight = hh.weight
         hr.hh_type = -1
         hr.tenure = hh.tenure
@@ -180,7 +181,7 @@ using BudgetConstraints: BudgetConstraint
         hh :: Household,
         pers :: Person,
         pres :: IndividualResult )
-
+        pr.hid = hh.hid
         pr.pid = pers.pid
         pr.weight = hh.weight
         pr.sex = pers.sex
@@ -226,15 +227,15 @@ using BudgetConstraints: BudgetConstraint
 
     function add_to_frames!(
         frames :: NamedTuple,
-        sysno  :: Integer,
         hh     :: Household,
         hres   :: HouseholdResult,
+        sysno  :: Integer,
         frame_starts :: FrameStarts )
 
         fill_hh_frame_row!( frames.hh[sysno][frame_starts.hh, :], hh, hres)
         bfno = frame_starts.bu
         pfno = frame_starts.pers
-        nbus = length(hres.bu)
+        nbus = length(hres.bus)
         npeople = 0
         bus = get_benefit_units( hh )
         for buno in 1:nbus
