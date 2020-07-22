@@ -13,8 +13,7 @@ using Dates: Date
 using ScottishTaxBenefitModel.STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
-    IncomeTaxSys,
-    get_default_it_system
+    IncomeTaxSys
 using ScottishTaxBenefitModel.SingleHouseholdCalculations:do_one_calc
 using ScottishTaxBenefitModel.Results:
     IndividualResult,
@@ -23,7 +22,7 @@ using ScottishTaxBenefitModel.Results:
     init_household_result
 using ScottishTaxBenefitModel.GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
 using ScottishTaxBenefitModel.SingleHouseholdCalculations: do_one_calc
-using ScottishTaxBenefitModel.Runner: do_one_run, RunSettings
+using ScottishTaxBenefitModel.Runner: do_one_run!, RunSettings
 
 include( "testutils.jl")
 

@@ -7,7 +7,7 @@ using BenchmarkTools
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.GeneralTaxComponents
 using ScottishTaxBenefitModel.STBParameters
-using ScottishTaxBenefitModel.Runner
+using ScottishTaxBenefitModel.Runner: do_one_run!, RunSettings
 
 using .Utils
 

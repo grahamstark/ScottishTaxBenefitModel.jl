@@ -1,6 +1,14 @@
 using Test
 using ScottishTaxBenefitModel
-import ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, default_bu_allocation
+import ScottishTaxBenefitModel.ModelHousehold:
+    Household,
+    Person,
+    People_Dict,
+    default_bu_allocation,
+    get_benefit_units,
+    get_head,
+    get_spouse,
+    num_people
 # import FRSHouseholdGetter
 import ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
@@ -11,6 +19,7 @@ import ScottishTaxBenefitModel.STBParameters: IncomeTaxSys
 const RUK_PERSON = 100000001001
 const SCOT_HEAD = 100000001002
 const SCOT_SPOUSE = 100000001003
+
 
 function get_tax(; scotland = false ) :: IncomeTaxSys
     it = get_default_it_system( year=2019, scotland=scotland, weekly=false )
@@ -401,3 +410,31 @@ end
     @test t3 == 3_000
     @test allowance == 0
 end
+
+
+@testset "Run on actual Data" begin
+    nhhs,npeople = init_data()
+    itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
+    for hno in 1:nhhs
+        hh = get_household(hno)
+        println( "hhno $hno")
+        bus = get_benefit_units( hh )
+        for bu in bus
+            # income tax, with some nonsense for
+            # what remains of joint taxation..
+            head = get_head( bu )
+            spouse = get_spouse( bu )
+            itres = calc_income_tax(
+                head,
+                spouse,
+                itsys_scot )
+            for chno in bu.children
+                child = bu.people[chno]
+                itres = calc_income_tax(
+                    child,
+                    nothing,
+                    itsys_scot )
+            end  # child loop
+        end # bus loop
+    end # hhld loop
+end #

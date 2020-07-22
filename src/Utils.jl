@@ -4,11 +4,18 @@ using DataFrames
 using Dates
 using Base.Unicode
 using CSV
+using BudgetConstraints
 
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
-export eq_nearest_p
+export eq_nearest_p, BC_SETTINGS
+
+#
+# this has a higher top income than the BC default
+#
+const BC_SETTINGS = BCSettings(0.0,20_000.0,DEFAULT_SETTINGS.increment,DEFAULT_SETTINGS.tolerance,true,DEFAULT_SETTINGS.maxdepth)
+
 
 function eq_nearest_p( a :: Real, b :: Real )
    round( a, digits=2) == round( b, digits=2 )

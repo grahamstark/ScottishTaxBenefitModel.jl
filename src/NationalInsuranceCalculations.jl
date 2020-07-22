@@ -10,9 +10,10 @@ using .Definitions
 import .ModelHousehold: Person
 import .STBParameters: NationalInsuranceSys
 import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
-import .Utils: get_if_set
+import .Utils: get_if_set, eq_nearest_p,BC_SETTINGS
 
 export calculate_national_insurance, calc_class1_secondary
+
 
 @with_kw mutable struct NIResult{RT<:Real}
     above_lower_earnings_limit :: Bool = false
@@ -52,7 +53,7 @@ function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: Bu
         :pers=>pers,
         :sys=>sys
     )
-    return makebc( data, make_one_net )
+    return makebc( data, make_one_net, Utils.BC_SETTINGS)
 end
 
 
@@ -64,7 +65,7 @@ function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsur
     wage = get(pers.income,wages,0.0)
     gross = gross_from_net( bc, wage )
     nires.class_1_secondary = calc_class1_secondary( gross, pers, sys )
-    @assert trunc((gross-nires.class_1_secondary),digits=2) ≈ round(wage, digits=2) "gross $gross wage $wage nires.class_1_secondary $(nires.class_1_secondary)"
+    @assert isapprox(gross - wage, nires.class_1_secondary, atol=3 ) "gross $gross wage $wage nires.class_1_secondary $(nires.class_1_secondary)"
     nires.assumed_gross_wage = gross
 
     # class 1 on any wages, se only on main ..
@@ -94,9 +95,9 @@ function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsur
     # do something random for class 3
 
     # don't count employers NI here
-    nires.total_ni = nires.class_1_primary +
-        nires.class_2 +
-        nires.class_4
+        nires.total_ni = nires.class_1_primary +
+            nires.class_2 +
+            nires.class_4
 
     return nires
 end

@@ -2,8 +2,8 @@ using ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household, get
 using ScottishTaxBenefitModel.STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
-    IncomeTaxSys,
-    get_default_it_system
+    IncomeTaxSys
+
 function get_default_it_system(
    ;
   year     :: Integer=2019,
@@ -38,6 +38,7 @@ end
 
 function get_system( scotland = false ) :: TaxBenefitSystem
     tb = TaxBenefitSystem{Int,Float64}()
+    weeklyise!(tb.ni)
     println( tb.it )
     # overwrite IT to get RuK system as needed
     itn :: IncomeTaxSys{Int,Float64} = get_default_it_system( year=2019, scotland=scotland, weekly=true )

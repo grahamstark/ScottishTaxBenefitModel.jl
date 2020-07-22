@@ -17,8 +17,8 @@ include( "testutils.jl")
     nhhs,npeople = init_data()
     nisys = NationalInsuranceSys()
     weeklyise!( nisys )
-    hh = get_household(1)
-    person =  hh.people[120150000101]
+    hh = get_household(27)
+    person =  hh.people[120150022701]
     println( person )
     nires = calculate_national_insurance( person, nisys )
     @test nires.class_1_primary >= 0.0
