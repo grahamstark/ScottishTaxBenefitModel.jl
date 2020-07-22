@@ -19,16 +19,19 @@ module Results
         init_household_result
 
     @with_kw mutable struct IndividualResult{RT<:Real}
+       eq_scale  :: RT = zero(RT)
+       net_income :: RT =zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
        income_taxes :: RT = zero(RT)
        means_tested_benefits :: RT = zero(RT)
        other_benefits  :: RT = zero(RT)
-       
+
        # ...
     end
 
     @with_kw mutable struct BenefitUnitResult{RT<:Real}
+        eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
         eq_net_income :: RT = zero(RT)
         income_taxes :: RT = zero(RT)
@@ -38,6 +41,7 @@ module Results
     end
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
+        eq_scale  :: RT = zero(RT)
         bhc_net_income :: RT = zero(RT)
         eq_bhc_net_income :: RT = zero(RT)
         ahc_net_income :: RT = zero(RT)
