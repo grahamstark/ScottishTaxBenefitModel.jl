@@ -1,10 +1,11 @@
 module Runner
 
-import BudgetConstraints: BudgetConstraint
+using BudgetConstraints: BudgetConstraint
 
     using Parameters: @with_kw
+    using DataFrames: DataFrame, DataFrameRow
 
-    import ScottishTaxBenefitModel:
+    using ScottishTaxBenefitModel:
         GeneralTaxComponents,
         Definitions,
         Utils,
@@ -18,8 +19,8 @@ import BudgetConstraints: BudgetConstraint
     using .Definitions
     using .Utils
     using .STBParameters
-    import .Weighting: generate_weights
-    using .ModelHousehold: Household
+    using .Weighting: generate_weights
+    using .ModelHousehold: Household, Person, get_benefit_units
     using .Results: IndividualResult,
         BenefitUnitResult,
         HouseholdResult
@@ -202,7 +203,7 @@ import BudgetConstraints: BudgetConstraint
         pr.ni_class_2  = pres.ni.class_2
         pr.ni_class_3  = pres.ni.class_3
         pr.ni_class_4  = pres.ni.class_4
-        pr.assumed_gross_wage = = pres.ni.assumed_gross_wage
+        pr.assumed_gross_wage = pres.ni.assumed_gross_wage
 
         # benefit1 = zeros(RT,n),
         # benefit2 = zeros(RT,n),
@@ -274,9 +275,7 @@ import BudgetConstraints: BudgetConstraint
                 res = do_one_calc( hh, params[sysno] )
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts )
             end
-        end
-
-
-    end
+        end #household loop
+    end # do one run
 
 end
