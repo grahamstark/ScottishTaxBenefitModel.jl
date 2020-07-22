@@ -271,7 +271,7 @@ using BudgetConstraints: BudgetConstraint
         frame_starts = FrameStarts(1,1,1)
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
-            # print("$hh,")
+            print("$(hh.hid)")
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts )
