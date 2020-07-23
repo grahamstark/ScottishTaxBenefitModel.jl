@@ -16,3 +16,4 @@
 Manifest.toml
 model*.tab
 tmp.jl
+/output/

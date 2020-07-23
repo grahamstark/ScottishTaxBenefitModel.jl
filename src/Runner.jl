@@ -4,6 +4,7 @@ using BudgetConstraints: BudgetConstraint
 
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow
+    using CSV
 
     using ScottishTaxBenefitModel:
         GeneralTaxComponents,
@@ -29,6 +30,7 @@ using BudgetConstraints: BudgetConstraint
     export do_one_run!,RunSettings
 
     @with_kw mutable struct RunSettings
+        run_name :: String = "default_run"
         start_year :: Integer = 2015
         end_year :: Integer = 2018
         scotland_only :: Bool = true
@@ -36,7 +38,7 @@ using BudgetConstraints: BudgetConstraint
         people_name    = "model_people_scotland"
         num_households :: Integer = 0
         num_people :: Integer = 0
-        # ...
+        # ... and so on
     end
 
     struct FrameStarts
@@ -235,7 +237,8 @@ using BudgetConstraints: BudgetConstraint
         hh     :: Household,
         hres   :: HouseholdResult,
         sysno  :: Integer,
-        frame_starts :: FrameStarts )
+        frame_starts :: FrameStarts,
+        num_systems :: Integer  )
 
         hfno = frame_starts.hh+1
         fill_hh_frame_row!( frames.hh[sysno][hfno, :], hh, hres)
@@ -257,17 +260,33 @@ using BudgetConstraints: BudgetConstraint
                     pers,
                     hres.bus[buno].pers[pid] )
             end # person loop
-        end #
-        println( "num people $np num bus $nbus pfno $pfno")
-        if pfno <= 5
-            println( frames.indiv[sysno][1:5,:] )
-        end
+            frames.indiv[sysno][pfno,:]
+        end # bu loop
+        # println( "num people $np num bus $nbus pfno $pfno")
+        # if pfno <= 5
+        #    println( frames.indiv[sysno][1:5,:] )
+        # end
         @assert (pfno - frame_starts.pers) == np "mismatch (pfno $pfno - frame_starts.pers $(frame_starts.pers) != $np"
         @assert pfbu == np "mismatch (pfbu $pfbu != np $np"
-        if sysno == 1
+        # send back an incremented set of positions only
+        # once we've done the last system
+        if sysno == num_systems
             return FrameStarts( hfno, bfno, pfno )
         else
             return frame_starts
+        end
+    end
+
+    ## FIXME eventually, move this to DrWatson
+    function dump_frames(
+        settings :: RunSettings,
+        frames :: NamedTuple,
+        output_dir :: String = "output/" )
+        ns = size( frames.indiv )[1]
+        fbase = basic_censor(settings.run_name)
+        for fno in 1:ns
+            fname = "$output_dir/$(fbase)_$(fno)_indiv.csv"
+            CSV.write( "fname", frames.indiv )
         end
     end
 
@@ -282,19 +301,22 @@ using BudgetConstraints: BudgetConstraint
                         household_name = settings.household_name,
                         people_name    = settings.people_name,
                         start_year     = settings.start_year )
+
                 @time weights = generate_weights( settings.num_households )
         end
-
+        # num_households=11048, num_people=23140
+        # println( "settings $settings")
         frames = initialise_frames( settings, num_systems, RT )
         frame_starts = FrameStarts(0,0,0)
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
-                frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts )
-                println( "hno $hno sysno $sysno frame_starts $frame_starts")
+                # println( "hno $hno sysno $sysno frame_starts $frame_starts")
+                frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts, num_systems )
             end
         end #household loop
-    end # do one run
 
+    end # do one run
+    dump_frames( settings, frames )
 end
