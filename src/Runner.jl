@@ -245,12 +245,16 @@ using BudgetConstraints: BudgetConstraint
         npeople = 0
         bus = get_benefit_units( hh )
         for buno in 1:nbus
+<<<<<<< HEAD
             bfno += 1
             fill_bu_frame( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
+=======
+            fill_bu_frame_row!( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
+>>>>>>> 90477617da183731fa640552a937a37b4756ceea
             for( pid, pers ) in bus[buno].people
                 pfno += 1
                 fill_pers_frame_row!(
-                    frames.pers[sysno][pfno,:],
+                    frames.indiv[sysno][pfno,:],
                     hh,
                     pers,
                     hres.bus[buno].pers[pid] )
@@ -277,7 +281,7 @@ using BudgetConstraints: BudgetConstraint
         frame_starts = FrameStarts(0,0,0)
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
-            # print("$hh,")
+            print("$(hh.hid)")
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts )
