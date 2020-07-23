@@ -103,6 +103,8 @@ using BudgetConstraints: BudgetConstraint
          pid = zeros(BigInt,n),
          weight = zeros(RT,n),
          sex = fill(Missing_Sex,n),
+         ethnic_group = fill(Missing_Ethnic_Group,n),
+         is_child = fill( false, n ),
          age_band  = zeros(Int,n),
          employment = fill(Missing_ILO_Employment,n),
          # ... and so on
@@ -182,13 +184,16 @@ using BudgetConstraints: BudgetConstraint
         pr :: DataFrameRow,
         hh :: Household,
         pers :: Person,
-        pres :: IndividualResult )
+        pres :: IndividualResult,
+        from_child_record :: Boolean )
         pr.hid = hh.hid
         pr.pid = pers.pid
         pr.weight = hh.weight
         pr.sex = pers.sex
         pr.age_band  = -1 # TODO
         pr.employment = pers.employment_status
+        pr.ethnic_group = pers.ethnic_group
+        pr.is_child = from_child_record
 
         pr.income_taxes = pres.income_taxes
         pr.means_tested_benefits = pres.means_tested_benefits
@@ -254,11 +259,13 @@ using BudgetConstraints: BudgetConstraint
             for( pid, pers ) in bus[buno].people
                 pfno += 1
                 pfbu += 1
+                from_child_record = pid in bus[buno].children
                 fill_pers_frame_row!(
                     frames.indiv[sysno][pfno,:],
                     hh,
                     pers,
-                    hres.bus[buno].pers[pid] )
+                    hres.bus[buno].pers[pid],
+                    from_child_record )
             end # person loop
             frames.indiv[sysno][pfno,:]
         end # bu loop
@@ -283,10 +290,14 @@ using BudgetConstraints: BudgetConstraint
         frames :: NamedTuple,
         output_dir :: String = "output/" )
         ns = size( frames.indiv )[1]
-        fbase = basic_censor(settings.run_name)
+        fbase = basiccensor(settings.run_name)
         for fno in 1:ns
-            fname = "$output_dir/$(fbase)_$(fno)_indiv.csv"
-            CSV.write( "fname", frames.indiv )
+            fname = "$output_dir/$(fbase)_$(fno)_hh.csv"
+            CSV.write( "fname", frames.hh[fno] )
+            fname = "$output_dir/$(fbase)_$(fno)_bu.csv"
+            CSV.write( "fname", frames.bu[fno] )
+            fname = "$output_dir/$(fbase)_$(fno)_pers.csv"
+            CSV.write( "fname", frames.indiv[fno] )
         end
     end
 
@@ -316,7 +327,7 @@ using BudgetConstraints: BudgetConstraint
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts, num_systems )
             end
         end #household loop
-
+        dump_frames( settings, frames )
     end # do one run
-    dump_frames( settings, frames )
-end
+
+end # module
