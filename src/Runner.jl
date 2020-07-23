@@ -225,6 +225,11 @@ using BudgetConstraints: BudgetConstraint
         # total_indirect = zeros(RT,n))
     end
 
+    #
+    # fill the rows in the output dataframes for this hhld
+    # frame_starts holds 1 minus the start positions for his hhld
+    # in the frames
+    #
     function add_to_frames!(
         frames :: NamedTuple,
         hh     :: Household,
@@ -232,25 +237,26 @@ using BudgetConstraints: BudgetConstraint
         sysno  :: Integer,
         frame_starts :: FrameStarts )
 
-        fill_hh_frame_row!( frames.hh[sysno][frame_starts.hh, :], hh, hres)
+        hfno = frame_starts.hh+1
+        fill_hh_frame_row!( frames.hh[sysno][hfno, :], hh, hres)
         bfno = frame_starts.bu
         pfno = frame_starts.pers
         nbus = length(hres.bus)
         npeople = 0
         bus = get_benefit_units( hh )
         for buno in 1:nbus
+            bfno += 1
             fill_bu_frame( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
             for( pid, pers ) in bus[buno].people
+                pfno += 1
                 fill_pers_frame_row!(
                     frames.pers[sysno][pfno,:],
                     hh,
                     pers,
                     hres.bus[buno].pers[pid] )
-                pfno += 1
             end # person loop
-            bfno += 1
         end # buno
-        return FrameStarts( frame_starts.hh + 1, bfno, pfno )
+        return FrameStarts( hfno, bfno, pfno )
     end
 
     function do_one_run!(
@@ -268,7 +274,7 @@ using BudgetConstraints: BudgetConstraint
         end
 
         frames = initialise_frames( settings, num_systems, RT )
-        frame_starts = FrameStarts(1,1,1)
+        frame_starts = FrameStarts(0,0,0)
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
             # print("$hh,")
