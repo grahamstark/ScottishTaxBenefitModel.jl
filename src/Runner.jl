@@ -185,7 +185,7 @@ using BudgetConstraints: BudgetConstraint
         hh :: Household,
         pers :: Person,
         pres :: IndividualResult,
-        from_child_record :: Boolean )
+        from_child_record :: Bool )
         pr.hid = hh.hid
         pr.pid = pers.pid
         pr.weight = hh.weight
@@ -293,11 +293,11 @@ using BudgetConstraints: BudgetConstraint
         fbase = basiccensor(settings.run_name)
         for fno in 1:ns
             fname = "$output_dir/$(fbase)_$(fno)_hh.csv"
-            CSV.write( "fname", frames.hh[fno] )
+            CSV.write( fname, frames.hh[fno] )
             fname = "$output_dir/$(fbase)_$(fno)_bu.csv"
-            CSV.write( "fname", frames.bu[fno] )
+            CSV.write( fname, frames.bu[fno] )
             fname = "$output_dir/$(fbase)_$(fno)_pers.csv"
-            CSV.write( "fname", frames.indiv[fno] )
+            CSV.write( fname, frames.indiv[fno] )
         end
     end
 
