@@ -242,21 +242,33 @@ using BudgetConstraints: BudgetConstraint
         bfno = frame_starts.bu
         pfno = frame_starts.pers
         nbus = length(hres.bus)
-        npeople = 0
+        np = length( hh.people )
         bus = get_benefit_units( hh )
+        pfbu = 0
         for buno in 1:nbus
             bfno += 1
             fill_bu_frame_row!( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
             for( pid, pers ) in bus[buno].people
                 pfno += 1
+                pfbu += 1
                 fill_pers_frame_row!(
                     frames.indiv[sysno][pfno,:],
                     hh,
                     pers,
                     hres.bus[buno].pers[pid] )
             end # person loop
-        end # buno
-        return FrameStarts( hfno, bfno, pfno )
+        end #
+        println( "num people $np num bus $nbus pfno $pfno")
+        if pfno <= 5
+            println( frames.indiv[sysno][1:5,:] )
+        end
+        @assert (pfno - frame_starts.pers) == np "mismatch (pfno $pfno - frame_starts.pers $(frame_starts.pers) != $np"
+        @assert pfbu == np "mismatch (pfbu $pfbu != np $np"
+        if sysno == 1
+            return FrameStarts( hfno, bfno, pfno )
+        else
+            return frame_starts
+        end
     end
 
     function do_one_run!(
@@ -277,10 +289,10 @@ using BudgetConstraints: BudgetConstraint
         frame_starts = FrameStarts(0,0,0)
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
-            print("$(hh.hid)")
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts )
+                println( "hno $hno sysno $sysno frame_starts $frame_starts")
             end
         end #household loop
     end # do one run
