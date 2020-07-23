@@ -245,12 +245,7 @@ using BudgetConstraints: BudgetConstraint
         npeople = 0
         bus = get_benefit_units( hh )
         for buno in 1:nbus
-<<<<<<< HEAD
-            bfno += 1
-            fill_bu_frame( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
-=======
             fill_bu_frame_row!( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
->>>>>>> 90477617da183731fa640552a937a37b4756ceea
             for( pid, pers ) in bus[buno].people
                 pfno += 1
                 fill_pers_frame_row!(
