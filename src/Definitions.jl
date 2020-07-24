@@ -1411,9 +1411,9 @@ end
 map missing values or (-9 to -2) to -1, else a
 used for mapping values to enums, where we add a missing enum with value -1
 """
-function safe_assign(a::Union{Number,Missing})
-   if ismissing(a) || a < -1
-      return -1
+function safe_assign(a::Union{Number,Missing,String},deflt=-1)
+   if ismissing(a) || a < -1 || a == " "
+      return deflt
    end
    a
 end

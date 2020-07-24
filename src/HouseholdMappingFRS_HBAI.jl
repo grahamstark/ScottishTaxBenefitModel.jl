@@ -24,18 +24,56 @@ const MONTHS = Dict(
     "SEP" => 9,
     "OCT" => 10,
     "NOV" => 11,
-    "DEC" => 12
-)
+    "DEC" => 12 )
 
+function is_in_hbai(
+  hbai_res :: DataFrame,
+  sernum::Integer,
+  benunit  :: Integer,
+  person :: Integer ) :: Bool
 
-function get_from_hbai_bu_level_data( hbai_res :: DataFrame, hid::BigInt, pno::Integer )::NamedTuple
-
+  ad_hbai = hbai_res[((hbai_res.sernum.==sernum ).&
+                      ((hbai_res.personhd.==person).|(hbai_res.personsp.==person)) .&
+                      (hbai_res.benunit.==benunit)), :]
+  size( ad_hbai )[1]>0
 
 end
 
-function is_in_hbai( hbai_res :: DataFrame, hid::BigInt ) :: Bool
+
+function is_in_hbai(
+  hbai_res :: DataFrame,
+  sernum::Integer   ) :: Bool
+
+  ad_hbai = hbai_res[(hbai_res.sernum.==sernum ), :]
+  size( ad_hbai )[1]>0
+
+end
 
 
+function get_incs_from_hbai(
+  hbai_res :: DataFrame,
+  sernum::Integer,
+  benunit  :: Integer,
+  person :: Integer ) :: NamedTuple
+
+   ad_hbai = hbai_res[((hbai_res.sernum.==sernum ).&
+                       ((hbai_res.personhd.==person).|(hbai_res.personsp.==person)) .&
+                       (hbai_res.benunit.==benunit)), :]
+   @assert size( ad_hbai )[1] > 0
+   ar = ad_hbai[1,:]
+   if ar.personhd == person
+      return (age=safe_assign(ar.agehd,0.0),
+        sex=safe_assign(ar.sexhd,0.0),
+        wages=safe_assign(ar.esgjobhd,0.0),
+        selfemp=safe_assign(ar.esgrsehd,0.0)
+   elseif ar.personsp == person
+     return (age=safe_assign(ar.agesp,0.0),
+       sex=safe_assign(ar.sexsp,0.0),
+       wages=safe_assign(ar.esgjobsp,0.0),
+       selfemp=safe_assign(ar.esgrsesp,0.0)
+   else
+       @assert false  "$person is neither head or spouse in hbai assignment; sernum=$sernum benunit=$benunit"
+   end
 end
 
 
@@ -788,7 +826,7 @@ function create_adults(
     benefits::DataFrame,
     endowmnt::DataFrame,
     job::DataFrame,
-    hbai_adults::DataFrame,
+    hbai_res::DataFrame,
     override_se_and_wage_with_hbai :: Bool = true
 )::DataFrame
 
@@ -804,13 +842,18 @@ function create_adults(
 
         frs_person = frs_adults[pn, :]
         sernum = frs_person.sernum
-        ad_hbai = hbai_adults[((hbai_adults.year.==hbai_year).&(hbai_adults.sernum.==sernum).&(hbai_adults.person.==frs_person.person).&(hbai_adults.benunit.==frs_person.benunit)), :]
-
-
-        nhbai = size(ad_hbai)[1]
-        @assert nhbai in [0, 1]
-
-        if nhbai == 1 # only non-missing in HBAI
+        # ad_hbai = hbai_adults[((hbai_adults.year.==hbai_year).&(hbai_adults.sernum.==sernum).&(hbai_adults.person.==frs_person.person).&(hbai_adults.benunit.==frs_person.benunit)), :]
+        #
+        #
+        # nhbai = size(ad_hbai)[1]
+        # @assert nhbai in [0, 1]
+        #
+        # if nhbai == 1 # only non-missing in HBAI
+        if is_in_hbai(
+            hbai_res,
+            frs_person.sernum,
+            frs_person.benunit,
+            frs_person.person ) # fixme probably only need to check sernum
             adno += 1
                 ## also for children
             model_adult = adult_model[adno, :]
@@ -825,9 +868,9 @@ function create_adults(
             model_adult.sex = safe_assign(frs_person.sex)
             model_adult.ethnic_group = safe_assign(frs_person.ethgr3)
             # plan 'B' wages and SE from HBAI; first work out hd/spouse so we can extract right ones
-            is_hbai_spouse = ( model_hbai.personsp == model_hbai.person )
-            is_hbai_head = ( model_hbai.personhd == model_hbai.person )
-            @assert is_hbai_head || is_hbai_spouse  "neither head nor spouse"
+            # is_hbai_spouse = ( model_hbai.personsp == model_hbai.person )
+            # is_hbai_head = ( model_hbai.personhd == model_hbai.person )
+            # @assert is_hbai_head || is_hbai_spouse  "neither head nor spouse"
 
             ## adult only
             a_job = job[((job.sernum.==frs_person.sernum).&(job.benunit.==frs_person.benunit).&(job.person.==frs_person.person)), :]
@@ -857,10 +900,15 @@ function create_adults(
             process_job_rec!(model_adult, a_job)
 
             if( override_se_and_wage_with_hbai )
-                hbai_wages = coalesce( is_hbai_head ? model_hbai.esgjobhd : model_hbai.esgjobsp, 0.0 )
-                hbai_se = coalesce( is_hbai_head ? model_hbai.esgrsehd : model_hbai.esgrsesp, 0.0 )
-                model_adult.income_wages = hbai_wages
-                model_adult.income_self_employment_income = hbai_se
+                data = get_incs_from_hbai(
+                    hbai_res,
+                    frs_person.sernum,
+                    frs_person.benunit,
+                    frs_person.person ) # fixme probably only need to check sernum
+                @assert model_adult.sex == data.sex
+                @assert model_adult.age == data.age
+                model_adult.income_wages = data.wages
+                model_adult.income_self_employment_income = data.selfemp
                 model_adult.income_self_employment_losses = 0.0
                 model_adult.income_self_employment_expenses = 0.0
             end
@@ -958,7 +1006,8 @@ end # proc create_adult
 function create_children(
     year::Integer,
     frs_children::DataFrame,
-    childcare::DataFrame
+    childcare::DataFrame,
+    hbai_res::DataFrame
 )::DataFrame
     # I don;t care if the child is in HBAI or not - we'll sort that out when we match with the
     # live benefit units
@@ -969,77 +1018,80 @@ function create_children(
         if chno % 1000 == 0
             println("on year $year, chno $chno")
         end
+        if is_in_hbai( hbai_res, frs_person.sernum
 
-        frs_person = frs_children[chno, :]
-
-        a_childcare = childcare[((childcare.sernum.==frs_person.sernum).&(childcare.benunit.==frs_person.benunit).&(childcare.person.==frs_person.person)), :]
-        nchildcares = size(a_childcare)[1]
-
-        sernum = frs_person.sernum
-        adno += 1
-            ## also for children
-        model_child = child_model[chno, :]
-        model_child.pno = frs_person.person
-        model_child.hid = frs_person.sernum
-        model_child.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
-        model_child.from_child_record = 1
-
-        model_child.data_year = year
-        model_child.default_benefit_unit = frs_person.benunit
-        model_child.age = frs_person.age
-        model_child.sex = safe_assign(frs_person.sex)
-        # model_child.ethnic_group = safe_assign(frs_person.ethgr3)
-        ## also for child
-        println( "frs_person.chlimitl='$(frs_person.chlimitl)'")
-        model_child.has_long_standing_illness = (frs_person.chealth1 == 1 ? 1 : 0)
-        model_child.how_long_adls_reduced = (frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
-        model_child.adls_are_reduced = (frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
+            frs_person = frs_children[chno, :]
 
 
-        model_child.registered_blind = (frs_person.spcreg1 == 1 ? 1 : 0)
-        model_child.registered_partially_sighted = (frs_person.spcreg2 == 1 ? 1 : 0)
-        model_child.registered_deaf = (frs_person.spcreg3 == 1 ? 1 : 0)
+            a_childcare = childcare[((childcare.sernum.==frs_person.sernum).&(childcare.benunit.==frs_person.benunit).&(childcare.person.==frs_person.person)), :]
+            nchildcares = size(a_childcare)[1]
 
-        model_child.disability_vision = (frs_person.cdisd01 == 1 ? 1 : 0) # cdisd kids ..
-        model_child.disability_hearing = (frs_person.cdisd02 == 1 ? 1 : 0)
-        model_child.disability_mobility = (frs_person.cdisd03 == 1 ? 1 : 0)
-        model_child.disability_dexterity = (frs_person.cdisd04 == 1 ? 1 : 0)
-        model_child.disability_learning = (frs_person.cdisd05 == 1 ? 1 : 0)
-        model_child.disability_memory = (frs_person.cdisd06 == 1 ? 1 : 0)
-        model_child.disability_mental_health = (frs_person.cdisd07 == 1 ? 1 : 0)
-        model_child.disability_stamina = (frs_person.cdisd08 == 1 ? 1 : 0)
-        model_child.disability_socially = (frs_person.cdisd09 == 1 ? 1 : 0)
-        # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
-        model_child.health_status = safe_assign(frs_person.heathch)
-        model_child.income_wages = safe_inc( 0.0, frs_person.chearns )
-        model_child.income_other_investment_income = safe_inc( 0.0, frs_person.chsave )
-        model_child.income_other_income = safe_inc( 0.0, frs_person.chrinc )
-        model_child.income_free_school_meals = 0.0
-        for t in [:fsbval,:fsfvval,:fsmlkval,:fsmval]
-            model_child.income_free_school_meals = safe_inc( model_child.income_free_school_meals, frs_person[t] )
-        end
-        model_child.is_informal_carer = (frs_person.carefl == 1 ? 1 : 0) # also kid
-        process_relationships!( model_child, frs_person )
-        # TODO education grants, all the other good child stuff EMA
+            sernum = frs_person.sernum
+            adno += 1
+                ## also for children
+            model_child = child_model[chno, :]
+            model_child.pno = frs_person.person
+            model_child.hid = frs_person.sernum
+            model_child.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
+            model_child.from_child_record = 1
 
-        model_child.cost_of_childcare = 0.0
-        model_child.hours_of_childcare = 0.0
-        for c in 1:nchildcares
-            if c == 1 # type of care from 1st instance
-                model_child.childcare_type =
-                    map_child_care( year, a_childcare[c, :chlook] )
-                model_child.employer_provides_child_care = (a_childcare[c, :emplprov] == 2 ?
-                                                            1 : 0)
+            model_child.data_year = year
+            model_child.default_benefit_unit = frs_person.benunit
+            model_child.age = frs_person.age
+            model_child.sex = safe_assign(frs_person.sex)
+            # model_child.ethnic_group = safe_assign(frs_person.ethgr3)
+            ## also for child
+            println( "frs_person.chlimitl='$(frs_person.chlimitl)'")
+            model_child.has_long_standing_illness = (frs_person.chealth1 == 1 ? 1 : 0)
+            model_child.how_long_adls_reduced = (frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
+            model_child.adls_are_reduced = (frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
+
+
+            model_child.registered_blind = (frs_person.spcreg1 == 1 ? 1 : 0)
+            model_child.registered_partially_sighted = (frs_person.spcreg2 == 1 ? 1 : 0)
+            model_child.registered_deaf = (frs_person.spcreg3 == 1 ? 1 : 0)
+
+            model_child.disability_vision = (frs_person.cdisd01 == 1 ? 1 : 0) # cdisd kids ..
+            model_child.disability_hearing = (frs_person.cdisd02 == 1 ? 1 : 0)
+            model_child.disability_mobility = (frs_person.cdisd03 == 1 ? 1 : 0)
+            model_child.disability_dexterity = (frs_person.cdisd04 == 1 ? 1 : 0)
+            model_child.disability_learning = (frs_person.cdisd05 == 1 ? 1 : 0)
+            model_child.disability_memory = (frs_person.cdisd06 == 1 ? 1 : 0)
+            model_child.disability_mental_health = (frs_person.cdisd07 == 1 ? 1 : 0)
+            model_child.disability_stamina = (frs_person.cdisd08 == 1 ? 1 : 0)
+            model_child.disability_socially = (frs_person.cdisd09 == 1 ? 1 : 0)
+            # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
+            model_child.health_status = safe_assign(frs_person.heathch)
+            model_child.income_wages = safe_inc( 0.0, frs_person.chearns )
+            model_child.income_other_investment_income = safe_inc( 0.0, frs_person.chsave )
+            model_child.income_other_income = safe_inc( 0.0, frs_person.chrinc )
+            model_child.income_free_school_meals = 0.0
+            for t in [:fsbval,:fsfvval,:fsmlkval,:fsmval]
+                model_child.income_free_school_meals = safe_inc( model_child.income_free_school_meals, frs_person[t] )
             end
-            model_child.cost_of_childcare = safe_inc(
-                model_child.cost_of_childcare,
-                a_childcare[c, :chamt]
-            )
-            model_child.hours_of_childcare = safe_inc(
-                model_child.hours_of_childcare,
-                a_childcare[c, :chhr]
-            )
-        end # child care loop
+            model_child.is_informal_carer = (frs_person.carefl == 1 ? 1 : 0) # also kid
+            process_relationships!( model_child, frs_person )
+            # TODO education grants, all the other good child stuff EMA
+
+            model_child.cost_of_childcare = 0.0
+            model_child.hours_of_childcare = 0.0
+            for c in 1:nchildcares
+                if c == 1 # type of care from 1st instance
+                    model_child.childcare_type =
+                        map_child_care( year, a_childcare[c, :chlook] )
+                    model_child.employer_provides_child_care = (a_childcare[c, :emplprov] == 2 ?
+                                                                1 : 0)
+                end
+                model_child.cost_of_childcare = safe_inc(
+                    model_child.cost_of_childcare,
+                    a_childcare[c, :chamt]
+                )
+                model_child.hours_of_childcare = safe_inc(
+                    model_child.hours_of_childcare,
+                    a_childcare[c, :chhr]
+                )
+            end # child care loop
+        end  # if in HBAI
     end # chno loop
     child_model # send them all back ...
 end
@@ -1051,13 +1103,12 @@ function create_household(
     mortgage::DataFrame,
     mortcont::DataFrame,
     owner::DataFrame,
-    hbai_adults::DataFrame
-)::DataFrame
+    hbai_res::DataFrame )::DataFrame
 
     num_households = size(frs_household)[1]
     hh_model = initialise_household(num_households)
     hhno = 0
-    hbai_year = year - 1993
+    # hbai_year = year - 1993
 
     for hn in 1:num_households
         if hn % 1000 == 0
@@ -1068,7 +1119,7 @@ function create_household(
 
         sernum = hh.sernum
         ad_hbai = hbai_adults[((hbai_adults.year.==hbai_year).&(hbai_adults.sernum.==sernum)), :]
-        if (size(ad_hbai)[1] > 0) # only non-missing in HBAI
+        if is_in_hbai( hbai_res, hh.sernum ) # only non-missing in HBAI
             ad1_hbai = ad_hbai[1, :]
             hhno += 1
             dd = split(hh.intdate, "/")
@@ -1145,21 +1196,21 @@ end
 
 const HBAIS = Dict(
     2018 => "h1819.tab",
-    2017 => "h1718_res.tab",
-    2016 => "h1617_res.tab",
-    2015 => "h1516_res.tab",
-    2014 => "h1415_res.tab",
-    2013 => "h1314_res.tab",
-    2012 => "h1213_res.tab",
-    2011 => "h1112_res.tab",
-    2010 => "h1011_res.tab",
-    2009 => "h0910_res.tab",
-    2008 => "h0809_res.tab",
-    2007 => "h0708_res.tab",
-    2006 => "h0607_res.tab",
-    2005 => "h0506_res.tab",
-    2004 => "h0405_res.tab",
-    2003 => "h0304_res.tab"
+    2017 => "h1718.tab",
+    2016 => "hbai1617_g4.tab",
+    2015 => "hbai1516_g4.tab",
+    2014 => "hbai1415_g4.tab",
+    2013 => "hbai1314_g4.tab",
+    2012 => "hbai1213_g4.tab",
+    2011 => "hbai1112_g4.tab",
+    2010 => "hbai1011_g4.tab",
+    2009 => "hbai0910_g4.tab",
+    2008 => "hbai0809_g4.tab",
+    2007 => "hbai0708_g4.tab",
+    2006 => "hbai0607_g4.tab",
+    2005 => "hbai0506_g4.tab",
+    2004 => "hbai0405_g4.tab",
+    2003 => "hbai0304_g4.tab"
 )
 
 
@@ -1221,7 +1272,7 @@ function create_data()
         owner = loadfrs("owner", year)
         renter = loadfrs("renter", year)
 
-        model_children_yr = create_children(year, child, chldcare)
+        model_children_yr = create_children(year, child, chldcare, hbai_res)
         append!(model_people, model_children_yr)
 
         model_adults_yr = create_adults(
