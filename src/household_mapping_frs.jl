@@ -1,4 +1,5 @@
-#
+module HouseholdMapping
+
 
 using DataFrames
 using CSV
@@ -7,9 +8,11 @@ using CSVFiles # use this over CSV because of this bug: https://github.com/Julia
 using ScottishTaxBenefitModel
 using .Utils
 using .Definitions
-import .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
 
-global MONTHS = Dict(
+export CreateData
+
+const MONTHS = Dict(
     "JAN" => 1,
     "FEB" => 2,
     "MAR" => 3,
@@ -890,7 +893,7 @@ function create_adults(
             ## TODO allowances from absent spouses apamt apdamt
 
             ## TODO income_education_allowances
-            
+
             model_adult.income_foster_care_payments = max(0.0,coalesce(frs_person.allpd3,0.0))
 
 
@@ -1128,8 +1131,7 @@ function create_household(
     hh_model[1:hhno, :]
 end
 
-
-global HBAIS = Dict(
+const HBAIS = Dict(
     2017 => "i1718.tab",
     2016 => "hbai1617_g4.tab",
     2015 => "hbai1516_g4.tab",
@@ -1154,100 +1156,106 @@ function loadfrs(which::AbstractString, year::Integer)::DataFrame
     loadtoframe(filename)
 end
 
-hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1819_all.tab")
 
-# hbai_household = loadtoframe("$(HBAI_DIR)/tab/h1718_all.tab")
+function create_data()
 
-# prices = loadPrices("/mnt/data/prices/mm23/mm23_edited.csv")
-# gdpdef = loadGDPDeflator("/mnt/data/prices/gdpdef.csv")
+    hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1819_all.tab")
 
-model_households = initialise_household(0)
-model_people = initialise_person(0)
+    # hbai_household = loadtoframe("$(HBAI_DIR)/tab/h1718_all.tab")
 
-for year in 2015:2018
+    # prices = loadPrices("/mnt/data/prices/mm23/mm23_edited.csv")
+    # gdpdef = loadGDPDeflator("/mnt/data/prices/gdpdef.csv")
 
-    print("on year $year ")
+    model_households = initialise_household(0)
+    model_people = initialise_person(0)
 
-    ## hbf = HBAIS[year]
-    ## hbai_adults = loadtoframe("$(HBAI_DIR)/tab/$hbf")
+    for year in 2015:2018
 
-    accounts = loadfrs("accounts", year)
-    benunit = loadfrs("benunit", year)
-    extchild = loadfrs("extchild", year)
-    maint = loadfrs("maint", year)
-    penprov = loadfrs("penprov", year)
+        print("on year $year ")
 
-    # admin = loadfrs("admin", year)
-    care = loadfrs("care", year)
-    # frs1718 = loadfrs("frs1718", year)
-    mortcont = loadfrs("mortcont", year)
-    pension = loadfrs("pension", year)
+        ## hbf = HBAIS[year]
+        ## hbai_adults = loadtoframe("$(HBAI_DIR)/tab/$hbf")
 
-    adult = loadfrs("adult", year)
-    child = loadfrs("child", year)
-    govpay = loadfrs("govpay", year)
-    mortgage = loadfrs("mortgage", year)
-    # pianon1718 = loadfrs("pianon1718", year)
+        accounts = loadfrs("accounts", year)
+        benunit = loadfrs("benunit", year)
+        extchild = loadfrs("extchild", year)
+        maint = loadfrs("maint", year)
+        penprov = loadfrs("penprov", year)
 
-    assets = loadfrs("assets", year)
-    chldcare = loadfrs("chldcare", year)
-    househol = loadfrs("househol", year)
-    oddjob = loadfrs("oddjob", year)
-    rentcont = loadfrs("rentcont", year)
+        # admin = loadfrs("admin", year)
+        care = loadfrs("care", year)
+        # frs1718 = loadfrs("frs1718", year)
+        mortcont = loadfrs("mortcont", year)
+        pension = loadfrs("pension", year)
 
-    benefits = loadfrs("benefits", year)
-    endowmnt = loadfrs("endowmnt", year)
-    job = loadfrs("job", year)
-    owner = loadfrs("owner", year)
-    renter = loadfrs("renter", year)
+        adult = loadfrs("adult", year)
+        child = loadfrs("child", year)
+        govpay = loadfrs("govpay", year)
+        mortgage = loadfrs("mortgage", year)
+        # pianon1718 = loadfrs("pianon1718", year)
 
-    model_children_yr = create_children(year, child, chldcare)
-    append!(model_people, model_children_yr)
+        assets = loadfrs("assets", year)
+        chldcare = loadfrs("chldcare", year)
+        househol = loadfrs("househol", year)
+        oddjob = loadfrs("oddjob", year)
+        rentcont = loadfrs("rentcont", year)
 
-    model_adults_yr = create_adults(
-        year,
-        adult,
-        accounts,
-        benunit,
-        extchild,
-        maint,
-        penprov,
-        # admin,
-        care,
-        mortcont,
-        pension,
-        govpay,
-        mortgage,
-        assets,
-        chldcare,
-        househol,
-        oddjob,
-        benefits,
-        endowmnt,
-        job,
-        hbai_adults
-    )
-    append!(model_people, model_adults_yr)
+        benefits = loadfrs("benefits", year)
+        endowmnt = loadfrs("endowmnt", year)
+        job = loadfrs("job", year)
+        owner = loadfrs("owner", year)
+        renter = loadfrs("renter", year)
+
+        model_children_yr = create_children(year, child, chldcare)
+        append!(model_people, model_children_yr)
+
+        model_adults_yr = create_adults(
+            year,
+            adult,
+            accounts,
+            benunit,
+            extchild,
+            maint,
+            penprov,
+            # admin,
+            care,
+            mortcont,
+            pension,
+            govpay,
+            mortgage,
+            assets,
+            chldcare,
+            househol,
+            oddjob,
+            benefits,
+            endowmnt,
+            job,
+            hbai_adults
+        )
+        append!(model_people, model_adults_yr)
 
 
-    model_households_yr = create_household(
-        year,
-        househol,
-        renter,
-        mortgage,
-        mortcont,
-        owner,
-        hbai_adults
-    )
-    append!(model_households, model_households_yr)
+        model_households_yr = create_household(
+            year,
+            househol,
+            renter,
+            mortgage,
+            mortcont,
+            owner,
+            hbai_adults
+        )
+        append!(model_households, model_households_yr)
 
+    end
+
+    #  see this bug CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
+    CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
+    CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
+    #
+    #CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_households.tab" ),
+    #    model_households, delim = "\t",  nastring="")
+    #CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_people.tab" ),
+    #    model_people, delim = "\t",  nastring="")
 end
 
-#  see this bug CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
-CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
-CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
-#
-#CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_households.tab" ),
-#    model_households, delim = "\t",  nastring="")
-#CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_people.tab" ),
-#    model_people, delim = "\t",  nastring="")
+end # module
