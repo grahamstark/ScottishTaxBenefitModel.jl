@@ -1,6 +1,3 @@
-module HouseholdMapping
-
-
 using DataFrames
 using CSV
 using CSVFiles # use this over CSV because of this bug: https://github.com/JuliaData/CSV.jl/issues/568
@@ -62,15 +59,17 @@ function get_incs_from_hbai(
    @assert size( ad_hbai )[1] > 0
    ar = ad_hbai[1,:]
    if ar.personhd == person
-      return (age=safe_assign(ar.agehd,0.0),
-        sex=safe_assign(ar.sexhd,0.0),
-        wages=safe_assign(ar.esgjobhd,0.0),
-        selfemp=safe_assign(ar.esgrsehd,0.0)
+       return (
+            age=safe_assign(ar.agehd,0.0),
+            sex=safe_assign(ar.sexhd,0.0),
+            wages=safe_assign(ar.esgjobhd,0.0),
+            selfemp=safe_assign(ar.esgrsehd,0.0))
    elseif ar.personsp == person
-     return (age=safe_assign(ar.agesp,0.0),
-       sex=safe_assign(ar.sexsp,0.0),
-       wages=safe_assign(ar.esgjobsp,0.0),
-       selfemp=safe_assign(ar.esgrsesp,0.0)
+       return (
+            age=safe_assign(ar.agesp,0.0),
+            sex=safe_assign(ar.sexsp,0.0),
+            wages=safe_assign(ar.esgjobsp,0.0),
+            selfemp=safe_assign(ar.esgrsesp,0.0))
    else
        @assert false  "$person is neither head or spouse in hbai assignment; sernum=$sernum benunit=$benunit"
    end
@@ -842,13 +841,6 @@ function create_adults(
 
         frs_person = frs_adults[pn, :]
         sernum = frs_person.sernum
-        # ad_hbai = hbai_adults[((hbai_adults.year.==hbai_year).&(hbai_adults.sernum.==sernum).&(hbai_adults.person.==frs_person.person).&(hbai_adults.benunit.==frs_person.benunit)), :]
-        #
-        #
-        # nhbai = size(ad_hbai)[1]
-        # @assert nhbai in [0, 1]
-        #
-        # if nhbai == 1 # only non-missing in HBAI
         if is_in_hbai(
             hbai_res,
             frs_person.sernum,
@@ -857,7 +849,6 @@ function create_adults(
             adno += 1
                 ## also for children
             model_adult = adult_model[adno, :]
-            model_hbai = ad_hbai[1,:]
             model_adult.pno = frs_person.person
             model_adult.hid = frs_person.sernum
             model_adult.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
@@ -912,8 +903,6 @@ function create_adults(
                 model_adult.income_self_employment_losses = 0.0
                 model_adult.income_self_employment_expenses = 0.0
             end
-
-
             penstuff = process_pensions(a_pension)
             model_adult.income_private_pensions = penstuff.pension
             model_adult.income_income_tax += penstuff.tax
@@ -1018,10 +1007,8 @@ function create_children(
         if chno % 1000 == 0
             println("on year $year, chno $chno")
         end
-        if is_in_hbai( hbai_res, frs_person.sernum
-
-            frs_person = frs_children[chno, :]
-
+        frs_person = frs_children[chno, :]
+        if is_in_hbai( hbai_res, frs_person.sernum )
 
             a_childcare = childcare[((childcare.sernum.==frs_person.sernum).&(childcare.benunit.==frs_person.benunit).&(childcare.person.==frs_person.person)), :]
             nchildcares = size(a_childcare)[1]
@@ -1118,7 +1105,6 @@ function create_household(
 
 
         sernum = hh.sernum
-        ad_hbai = hbai_adults[((hbai_adults.year.==hbai_year).&(hbai_adults.sernum.==sernum)), :]
         if is_in_hbai( hbai_res, hh.sernum ) # only non-missing in HBAI
             ad1_hbai = ad_hbai[1, :]
             hhno += 1
@@ -1220,52 +1206,29 @@ function loadfrs(which::AbstractString, year::Integer)::DataFrame
     loadtoframe(filename)
 end
 
-
 function create_data()
-
-    # hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1819_all.tab")
-
-    # hbai_household = loadtoframe("$(HBAI_DIR)/tab/h1718_all.tab")
-
-    # prices = loadPrices("/mnt/data/prices/mm23/mm23_edited.csv")
-    # gdpdef = loadGDPDeflator("/mnt/data/prices/gdpdef.csv")
-
     model_households = initialise_household(0)
     model_people = initialise_person(0)
-
     for year in 2015:2018
-
         hbai_res = loadtoframe("$(HBAI_DIR)/tab/"*HBAIS[year])
-
         print("on year $year ")
-
-        ## hbf = HBAIS[year]
-        ## hbai_adults = loadtoframe("$(HBAI_DIR)/tab/$hbf")
-
         accounts = loadfrs("accounts", year)
         benunit = loadfrs("benunit", year)
         extchild = loadfrs("extchild", year)
         maint = loadfrs("maint", year)
         penprov = loadfrs("penprov", year)
-
-        # admin = loadfrs("admin", year)
         care = loadfrs("care", year)
-        # frs1718 = loadfrs("frs1718", year)
         mortcont = loadfrs("mortcont", year)
         pension = loadfrs("pension", year)
-
         adult = loadfrs("adult", year)
         child = loadfrs("child", year)
         govpay = loadfrs("govpay", year)
         mortgage = loadfrs("mortgage", year)
-        # pianon1718 = loadfrs("pianon1718", year)
-
         assets = loadfrs("assets", year)
         chldcare = loadfrs("chldcare", year)
         househol = loadfrs("househol", year)
         oddjob = loadfrs("oddjob", year)
         rentcont = loadfrs("rentcont", year)
-
         benefits = loadfrs("benefits", year)
         endowmnt = loadfrs("endowmnt", year)
         job = loadfrs("job", year)
@@ -1296,11 +1259,8 @@ function create_data()
             benefits,
             endowmnt,
             job,
-            hbai_res
-            # hbai_adults
-        )
+            hbai_res )
         append!(model_people, model_adults_yr)
-
 
         model_households_yr = create_household(
             year,
@@ -1309,21 +1269,11 @@ function create_data()
             mortgage,
             mortcont,
             owner,
-            hbai_res
-            # hbai_adults
-        )
+            hbai_res )
         append!(model_households, model_households_yr)
 
     end
 
-    #  see this bug CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
     CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
     CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
-    #
-    #CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_households.tab" ),
-    #    model_households, delim = "\t",  nastring="")
-    #CSVFiles.save( File( format"CSV", "$(MODEL_DATA_DIR)model_people.tab" ),
-    #    model_people, delim = "\t",  nastring="")
 end
-
-end # module
