@@ -1,6 +1,5 @@
 using DataFrames
 using CSV
-using CSVFiles # use this over CSV because of this bug: https://github.com/JuliaData/CSV.jl/issues/568
 
 using ScottishTaxBenefitModel
 using .Utils
@@ -1102,11 +1101,9 @@ function create_household(
             println("on year $year, hid $hn")
         end
         hh = frs_household[hn, :]
-
-
         sernum = hh.sernum
         if is_in_hbai( hbai_res, hh.sernum ) # only non-missing in HBAI
-            ad1_hbai = ad_hbai[1, :]
+            ad1_hbai = hbai_res[(hbai_res.sernum.==hh.sernum), :][1,:]
             hhno += 1
             dd = split(hh.intdate, "/")
             hh_model[hhno, :interview_year] = parse(Int64, dd[3])
@@ -1129,11 +1126,11 @@ function create_household(
             # council_tax::Real
             # FIXME this is rounded to £
             if hh_model[hhno, :region] == 299999999 # Scotland
-                hh_model[hhno, :water_and_sewerage] = ad1_hbai.cwathh
+                hh_model[hhno, :water_and_sewerage] = safe_assign(ad1_hbai.cwathh)
             elseif hh_model[hhno, :region] == 399999999 # Nireland
                 hh_model[hhno, :water_and_sewerage] = 0.0 # FIXME
             else #
-                hh_model[hhno, :water_and_sewerage] = ad1_hbai.watsewhh
+                hh_model[hhno, :water_and_sewerage] = safe_assign(ad1_hbai.watsewhh)
             end
 
 
@@ -1167,8 +1164,6 @@ function create_household(
             ohc = safe_inc(ohc, hh.chrgamt8)
             ohc = safe_inc(ohc, hh.chrgamt9)
             hh_model[hhno, :other_housing_charges] = ohc
-
-
         # TODO
             # gross_housing_costs::Real
             # total_income::Real
