@@ -27,6 +27,18 @@ const MONTHS = Dict(
     "DEC" => 12
 )
 
+
+function get_from_hbai_bu_level_data( hbai_res :: DataFrame, hid::BigInt, pno::Integer )::NamedTuple
+
+
+end
+
+function is_in_hbai( hbai_res :: DataFrame, hid::BigInt ) :: Bool
+
+
+end
+
+
 function initialise_person(n::Integer)::DataFrame
     pers = DataFrame(
         data_year = Vector{Union{Int64,Missing}}(missing, n),
@@ -1132,21 +1144,22 @@ function create_household(
 end
 
 const HBAIS = Dict(
-    2017 => "i1718.tab",
-    2016 => "hbai1617_g4.tab",
-    2015 => "hbai1516_g4.tab",
-    2014 => "hbai1415_g4.tab",
-    2013 => "hbai1314_g4.tab",
-    2012 => "hbai1213_g4.tab",
-    2011 => "hbai1112_g4.tab",
-    2010 => "hbai1011_g4.tab",
-    2009 => "hbai0910_g4.tab",
-    2008 => "hbai0809_g4.tab",
-    2007 => "hbai0708_g4.tab",
-    2006 => "hbai0607_g4.tab",
-    2005 => "hbai0506_g4.tab",
-    2004 => "hbai0405_g4.tab",
-    2003 => "hbai0304_g4.tab"
+    2018 => "h1819.tab",
+    2017 => "h1718_res.tab",
+    2016 => "h1617_res.tab",
+    2015 => "h1516_res.tab",
+    2014 => "h1415_res.tab",
+    2013 => "h1314_res.tab",
+    2012 => "h1213_res.tab",
+    2011 => "h1112_res.tab",
+    2010 => "h1011_res.tab",
+    2009 => "h0910_res.tab",
+    2008 => "h0809_res.tab",
+    2007 => "h0708_res.tab",
+    2006 => "h0607_res.tab",
+    2005 => "h0506_res.tab",
+    2004 => "h0405_res.tab",
+    2003 => "h0304_res.tab"
 )
 
 
@@ -1159,7 +1172,7 @@ end
 
 function create_data()
 
-    hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1819_all.tab")
+    # hbai_adults = loadtoframe("$(HBAI_DIR)/tab/i1819_all.tab")
 
     # hbai_household = loadtoframe("$(HBAI_DIR)/tab/h1718_all.tab")
 
@@ -1170,6 +1183,8 @@ function create_data()
     model_people = initialise_person(0)
 
     for year in 2015:2018
+
+        hbai_res = loadtoframe("$(HBAI_DIR)/tab/"*HBAIS[year])
 
         print("on year $year ")
 
@@ -1230,7 +1245,8 @@ function create_data()
             benefits,
             endowmnt,
             job,
-            hbai_adults
+            hbai_res
+            # hbai_adults
         )
         append!(model_people, model_adults_yr)
 
@@ -1242,7 +1258,8 @@ function create_data()
             mortgage,
             mortcont,
             owner,
-            hbai_adults
+            hbai_res
+            # hbai_adults
         )
         append!(model_households, model_households_yr)
 
