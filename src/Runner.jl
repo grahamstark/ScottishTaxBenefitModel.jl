@@ -38,6 +38,8 @@ using BudgetConstraints: BudgetConstraint
         people_name    = "model_people_scotland"
         num_households :: Integer = 0
         num_people :: Integer = 0
+        to_y :: Integer = 2019
+        to_q :: Integer = 4
         # ... and so on
     end
 
@@ -117,7 +119,7 @@ using BudgetConstraints: BudgetConstraint
          it_non_savings = zeros(RT,n),
          it_savings = zeros(RT,n),
          it_dividends = zeros(RT,n),
-
+         it_pension_relief_at_source = zeros(RT,n),
          ni_above_lower_earnings_limit = fill( false, n ),
          ni_total_ni = zeros(RT,n),
          ni_class_1_primary = zeros(RT,n),
@@ -203,6 +205,7 @@ using BudgetConstraints: BudgetConstraint
         pr.it_non_savings = pres.it.non_savings
         pr.it_savings = pres.it.savings
         pr.it_dividends = pres.it.dividends
+        pr.it_pension_relief_at_source = pres.it.pension_relief_at_source
 
         pr.ni_above_lower_earnings_limit = pres.ni.above_lower_earnings_limit
         pr.ni_total_ni = pres.ni.total_ni

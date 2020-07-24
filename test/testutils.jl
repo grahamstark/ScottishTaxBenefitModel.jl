@@ -4,6 +4,13 @@ using ScottishTaxBenefitModel.STBParameters:
     NationalInsuranceSys,
     IncomeTaxSys
 
+
+# pids for example people     
+ const RUK_PERSON = 100000001001
+ const SCOT_HEAD = 100000001002
+ const SCOT_SPOUSE = 100000001003
+
+
 function get_default_it_system(
    ;
   year     :: Integer=2019,
