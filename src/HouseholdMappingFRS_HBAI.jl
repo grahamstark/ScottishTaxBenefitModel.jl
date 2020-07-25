@@ -1132,9 +1132,6 @@ function create_household(
             else #
                 hh_model[hhno, :water_and_sewerage] = safe_assign(ad1_hbai.watsewhh)
             end
-
-
-
             # hh_model[hhno, :mortgage_payment]
             hh_model[hhno, :mortgage_interest] = ad1_hbai.hbxmort
 
