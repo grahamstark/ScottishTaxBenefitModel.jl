@@ -51,7 +51,7 @@ ExampleHouseholdGetter.initialise()
     hhr = init_household_result( hh )
     @test hh_to_hhr_mismatch( hh, hhr )
 
-    sys = [get_system(), get_system( true )]
+    sys = [get_system(scotland=false), get_system( scotland=true )]
 
     wage = [50_000.0, 40_000, 10_000,16_500]./WEEKS_PER_YEAR
     savings = [0.0, 3_000, 10_000,3_000]./WEEKS_PER_YEAR
