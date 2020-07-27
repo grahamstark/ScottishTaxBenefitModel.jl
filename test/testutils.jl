@@ -43,12 +43,12 @@ function init_data()
 end
 
 
-function get_system(; scotland::Boolean ) :: TaxBenefitSystem
+function get_system(; scotland::Bool ) :: TaxBenefitSystem
     tb = TaxBenefitSystem{Int,Float64}()
     weeklyise!(tb.ni)
-    println( tb.it )
     # overwrite IT to get RuK system as needed
     # println( itn )
     tb.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
+    println( tb.it )
     tb
 end
