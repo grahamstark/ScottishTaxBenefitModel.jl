@@ -18,7 +18,7 @@ settings = RunSettings()
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
-sys = [get_system(), get_system( true )]
+sys = [get_system(scotland=false), get_system( scotland=true )]
 
 function basic_run( )
 

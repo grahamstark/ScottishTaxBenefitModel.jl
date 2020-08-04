@@ -149,9 +149,14 @@ using BudgetConstraints: BudgetConstraint
     end
 
     function initialise_frames( settings :: RunSettings, num_systems :: Integer, RT::DataType  ) :: NamedTuple
-        indiv = fill( make_individual_results_frame( RT, settings.num_people ), num_systems )
-        bu = fill( make_bu_results_frame( RT, settings.num_people ), num_systems ) # overstates but we don't actually know this at the start
-        hh = fill( make_household_results_frame( RT, settings.num_households ), num_systems )
+        indiv = []
+        bu = []
+        hh = []
+        for s in 1:num_systems
+            push!(indiv, make_individual_results_frame( RT, settings.num_people ))
+            push!(bu, make_bu_results_frame( RT, settings.num_people )) # overstates but we don't actually know this at the start
+            push!(hh, make_household_results_frame( RT, settings.num_households ))
+        end
         (hh=hh, bu=bu, indiv=indiv)
     end
 
@@ -308,6 +313,11 @@ using BudgetConstraints: BudgetConstraint
         settings :: RunSettings,
         params :: Vector{TaxBenefitSystem{IT,RT}} ) where IT <: Integer where RT<:Real
         num_systems = size( params )[1]
+        println("start of do_one_run; params:")
+        for p in 1:num_systems
+            println("sys $p")
+            println(params[p].it)
+        end
         if settings.num_households == 0
             @time settings.num_households,
                 settings.num_people,

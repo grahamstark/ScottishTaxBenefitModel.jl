@@ -5,7 +5,7 @@ using ScottishTaxBenefitModel.STBParameters:
     IncomeTaxSys
 
 
-# pids for example people     
+# pids for example people
  const RUK_PERSON = 100000001001
  const SCOT_HEAD = 100000001002
  const SCOT_SPOUSE = 100000001003
@@ -43,13 +43,12 @@ function init_data()
 end
 
 
-function get_system( scotland = false ) :: TaxBenefitSystem
+function get_system(; scotland::Bool ) :: TaxBenefitSystem
     tb = TaxBenefitSystem{Int,Float64}()
     weeklyise!(tb.ni)
-    println( tb.it )
     # overwrite IT to get RuK system as needed
-    itn :: IncomeTaxSys{Int,Float64} = get_default_it_system( year=2019, scotland=scotland, weekly=true )
     # println( itn )
-    tb.it = itn
+    tb.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
+    println( tb.it )
     tb
 end
