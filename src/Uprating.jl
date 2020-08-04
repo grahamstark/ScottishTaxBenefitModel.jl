@@ -118,7 +118,7 @@ function load_prices() :: DataFrame
     dp = r"([0-9]{4})Q([1-4])"
     for i in 1:nrows
         rc = match(dp, obr[i, :date])
-        if (rc != nothing)
+        if (rc !== nothing)
             obr[i, :year] = parse(Int64, rc[1])
             obr[i, :q] = parse(Int8, rc[2])
         end
@@ -142,7 +142,7 @@ OBR_DATA = nothing
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number
     # FIXME this is likely much too slow..
     global OBR_DATA
-    if OBR_DATA == nothing
+    if OBR_DATA === nothing
         OBR_DATA = load_prices()
     end
     if itype == upr_no_uprate

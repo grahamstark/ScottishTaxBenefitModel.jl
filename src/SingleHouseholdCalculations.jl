@@ -45,7 +45,7 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
             spouse,
             sys.it )
         hres.bus[buno].pers[head.pid].it = itres.head
-        if spouse != nothing
+        if spouse !== nothing
             hres.bus[buno].pers[spouse.pid].it = itres.spouse
         end
         for chno in bu.children

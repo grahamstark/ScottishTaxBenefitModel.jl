@@ -272,7 +272,7 @@ function printpids( bu::BenefitUnit)
       print( "HEAD: ")
       printpids( head )
       spouse = get_spouse( bu )
-      if spouse != nothing
+      if spouse !== nothing
             print( "SPOUSE: ")
             printpids( spouse )
 

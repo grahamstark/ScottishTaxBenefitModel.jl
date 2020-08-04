@@ -38,7 +38,7 @@ start_year=2015
                   head = get_head( bu )
                   @test head.age >= 16
                   spouse = get_spouse( bu )
-                  if spouse != nothing
+                  if spouse !== nothing
                         bu_people_count += 1
                         @test spouse.age >= 16
                   end

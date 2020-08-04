@@ -353,7 +353,7 @@ function calc_income_tax(
     # the surplus allowance in some cases.
     # also - add in restrictions on transferring to
     # higher rate payers.
-    if spouse != nothing
+    if spouse !== nothing
         spousetax = calc_income_tax( spouse, sys )
         # This is not quite right - you can't claim the
         # MCA AND transfer an allowance. We're assuming
