@@ -21,6 +21,7 @@ module Results
     @with_kw mutable struct IndividualResult{RT<:Real}
        eq_scale  :: RT = zero(RT)
        net_income :: RT =zero(RT)
+
        ni = NIResult{RT}()
        it = ITResult{RT}()
        income_taxes :: RT = zero(RT)
