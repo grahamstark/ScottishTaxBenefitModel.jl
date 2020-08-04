@@ -1,30 +1,21 @@
 module NationalInsuranceCalculations
 
 using BudgetConstraints #: BudgetConstraint, get_x_from_y
-import Dates
-import Dates: Date, now, TimeType, Year
-import Parameters: @with_kw
+using Dates
+using Dates: Date, now, TimeType, Year
+using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
 using .Definitions
-import .ModelHousehold: Person
-import .STBParameters: NationalInsuranceSys
-import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
-import .Utils: get_if_set, eq_nearest_p,BC_SETTINGS
+using .ModelHousehold: Person
+using .STBParameters: NationalInsuranceSys
+using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
+using .Utils: get_if_set, eq_nearest_p,BC_SETTINGS
+using .Results: NIResult, IndividualResult
 
 export calculate_national_insurance, calc_class1_secondary
 
 
-@with_kw mutable struct NIResult{RT<:Real}
-    above_lower_earnings_limit :: Bool = false
-    total_ni :: RT = 0.0
-    class_1_primary    :: RT = 0.0
-    class_1_secondary  :: RT = 0.0
-    class_2   :: RT = 0.0
-    class_3   :: RT = 0.0
-    class_4   :: RT = 0.0
-    assumed_gross_wage :: RT = 0.0
-end
 
 function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsuranceSys ) :: Real
     rates = copy( sys.secondary_class_1_rates )

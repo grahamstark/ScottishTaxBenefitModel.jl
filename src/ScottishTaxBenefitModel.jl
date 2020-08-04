@@ -40,6 +40,9 @@ export FRSHouseholdGetter
 include("STBParameters.jl" )
 export STBParameters
 
+include( "Results.jl")
+export Results
+
 include("IncomeTaxCalculations.jl" )
 export IncomeTaxCalculations
 
@@ -48,9 +51,6 @@ export NationalInsuranceCalculations
 
 include("LegacyMeansTestedBenefits.jl" )
 export LegacyMeansTestedBenefits
-
-include( "Results.jl")
-export Results
 
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations

@@ -129,6 +129,7 @@ function mult(; gross::Dict{K,T}, net :: Dict{K,T}, incl :: Dict{K,T}) :: T wher
    ka = union( kg, kn )
    ka = intersect( ka, ki )
    for k in ka
+      # choose the calculated value if there is one, otherwise the data one
       i = k in kn ? net[k] : gross[k]
       s += i*incl[k]
    end

@@ -1,43 +1,20 @@
 module IncomeTaxCalculations
 
-import Dates
-import Dates: Date, now, TimeType, Year
-import Parameters: @with_kw
+using Dates
+using Dates: Date, now, TimeType, Year
+using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
 using .Definitions
-import .ModelHousehold: Person
-import .STBParameters: IncomeTaxSys
-import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
-import .Utils: get_if_set
+using .ModelHousehold: Person
+using .STBParameters: IncomeTaxSys
+using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
+using .Utils: get_if_set
 
-export calc_income_tax, old_enough_for_mca, apply_allowance, ITResult
+using .Results: ITResult, IndividualResult, BenefitUnitResult
+
+export calc_income_tax, old_enough_for_mca, apply_allowance
 export calculate_company_car_charge
-
-@with_kw mutable struct ITResult{RT<:Real}
-    total_tax :: RT = 0.0
-    taxable_income :: RT = 0.0
-    adjusted_net_income :: RT = 0.0
-    total_income :: RT = 0.0
-    non_savings :: RT = 0.0
-    allowance   :: RT = 0.0
-    non_savings_band :: Integer = 0
-    savings :: RT = 0.0
-    savings_band :: Integer = 0
-    dividends :: RT = 0.0
-    dividend_band :: Integer = 0
-    unused_allowance :: RT = 0.0
-    mca :: RT = 0.0
-    transferred_allowance :: RT = 0.0
-    pension_eligible_for_relief :: RT = 0.0
-    pension_relief_at_source :: RT = 0.0
-    non_savings_thresholds :: RateBands = zeros(RT,0)
-    savings_thresholds  :: RateBands = zeros(RT,0)
-    dividend_thresholds :: RateBands = zeros(RT,0)
-    intermediate :: Dict = Dict()
-end
-
-
 
 ## FIXME just use the dict..
 function guess_car_percentage_2020_21( sys :: IncomeTaxSys, company_car_fuel_type :: Fuel_Type )

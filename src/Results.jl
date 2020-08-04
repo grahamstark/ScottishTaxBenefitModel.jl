@@ -3,20 +3,54 @@ module Results
     using Parameters: @with_kw
     using DataFrames
 
-    import ScottishTaxBenefitModel:
-        ModelHousehold,
-        Definitions,
-        NationalInsuranceCalculations,
-        IncomeTaxCalculations
+    using ScottishTaxBenefitModel
     using .Definitions
     using .ModelHousehold: Household, BenefitUnits, get_benefit_units
-    using .IncomeTaxCalculations: ITResult
-    using .NationalInsuranceCalculations: NIResult
-
-    export IndividualResult,
+    using .GeneralTaxComponents: RateBands
+    
+    export 
+        ITResult,
+        NIResult,
+        IndividualResult,
         BenefitUnitResult,
         HouseholdResult,
         init_household_result
+
+
+        @with_kw mutable struct NIResult{RT<:Real}
+            above_lower_earnings_limit :: Bool = false
+            total_ni :: RT = 0.0
+            class_1_primary    :: RT = 0.0
+            class_1_secondary  :: RT = 0.0
+            class_2   :: RT = 0.0
+            class_3   :: RT = 0.0
+            class_4   :: RT = 0.0
+            assumed_gross_wage :: RT = 0.0
+        end
+
+        @with_kw mutable struct ITResult{RT<:Real}
+            total_tax :: RT = 0.0
+            taxable_income :: RT = 0.0
+            adjusted_net_income :: RT = 0.0
+            total_income :: RT = 0.0
+            non_savings :: RT = 0.0
+            allowance   :: RT = 0.0
+            non_savings_band :: Integer = 0
+            savings :: RT = 0.0
+            savings_band :: Integer = 0
+            dividends :: RT = 0.0
+            dividend_band :: Integer = 0
+            unused_allowance :: RT = 0.0
+            mca :: RT = 0.0
+            transferred_allowance :: RT = 0.0
+            pension_eligible_for_relief :: RT = 0.0
+            pension_relief_at_source :: RT = 0.0
+            non_savings_thresholds :: RateBands = zeros(RT,0)
+            savings_thresholds  :: RateBands = zeros(RT,0)
+            dividend_thresholds :: RateBands = zeros(RT,0)
+            intermediate :: Dict = Dict()
+        end
+        
 
     @with_kw mutable struct IndividualResult{RT<:Real}
        eq_scale  :: RT = zero(RT)
