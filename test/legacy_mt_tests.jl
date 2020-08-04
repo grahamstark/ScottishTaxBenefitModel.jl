@@ -23,7 +23,7 @@ const RUK_PERSON = 100000001001
     pers.age = 50
     for i in 1:ntests
         pers.income[wages] = income[i]
-
+        
 
     end
 end # t1
