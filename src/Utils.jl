@@ -115,6 +115,26 @@ function diff_between(m2::Dict, m1::Dict)::Dict
    out
 end
 
+"""
+This is for multiplying incomes where there
+   are some (gross) from the data and some,
+   possibly the same elements, from earlier
+   calculations (net)
+"""
+function mult(; gross::Dict{K,T}, net :: Dict{K,T}, incl :: Dict{K,T}) :: T where T<:Number where K
+   s = zero(T)
+   kg = keys( gross )
+   kn = keys( net )
+   ki = keys( incl )
+   ka = union( kg, kn )
+   ka = intersect( ka, ki )
+   for k in ka
+      i = k in kn ? net[k] : gross[k]
+      s += i*incl[k]
+   end
+   return s;
+end # mult
+
 function mult_dict!( m :: Dict, n :: Number )
    for (k,v) in m
       try

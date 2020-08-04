@@ -478,7 +478,7 @@ function loadGDPDeflator( name )
         dp = r"([0-9]{4}) Q([1-4])"
         for i in 1:np
                 rc = match( dp, prices[i,:CDID] )
-                if( rc != nothing )
+                if( rc !== nothing )
                         prices[i,:year] = parse(Int64,rc[1])
                         prices[i,:q] = parse( Int8,rc[2])
                 #else

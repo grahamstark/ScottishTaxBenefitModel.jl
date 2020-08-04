@@ -27,7 +27,7 @@ module Results
        income_taxes :: RT = zero(RT)
        means_tested_benefits :: RT = zero(RT)
        other_benefits  :: RT = zero(RT)
-
+       incomes = Dict{Incomes_Type,RT}()
        # ...
     end
 
