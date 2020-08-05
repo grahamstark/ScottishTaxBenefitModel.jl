@@ -4,6 +4,7 @@ using ScottishTaxBenefitModel
 
 is_local = haskey( ENV, "JULIA_IS_LOCALLY_INSTALLED" ) # fixme param
 
+include( "general_tests.jl")
 include( "testutils.jl")
 
 include( "income_tax_tests.jl")
