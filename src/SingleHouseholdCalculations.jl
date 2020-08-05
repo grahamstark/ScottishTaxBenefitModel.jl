@@ -53,7 +53,6 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
             itres = calc_income_tax!(
                 hres.bus[buno].pers[child.pid],    
                 child,
-                nothing,
                 sys.it )
         end
         # national insurance
