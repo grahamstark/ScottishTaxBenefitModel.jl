@@ -1,21 +1,29 @@
 using Test
 using ScottishTaxBenefitModel
-import ScottishTaxBenefitModel.ModelHousehold:
+using .ModelHousehold:
     Household,
     Person,
     People_Dict,
+    PeopleArray,
     default_bu_allocation,
     get_benefit_units,
     get_head,
     get_spouse,
-    num_people
-# import FRSHouseholdGetter
-import ScottishTaxBenefitModel.ExampleHouseholdGetter
-using ScottishTaxBenefitModel.Definitions
-import Dates: Date
-import ScottishTaxBenefitModel.IncomeTaxCalculations: old_enough_for_mca, apply_allowance, calc_income_tax
-import ScottishTaxBenefitModel.STBParameters: IncomeTaxSys
+    num_people,
+    make_benefit_unit
 
+using .ExampleHouseholdGetter
+using .Definitions
+using Dates: Date
+using .IncomeTaxCalculations: old_enough_for_mca, apply_allowance, calc_income_tax!
+using .STBParameters: IncomeTaxSys
+using .Results: 
+    init_benefit_unit_result,
+    init_household_result,
+    IndividualResult, 
+    BenefitUnitResult, 
+    ITResult, 
+    NIResult
 
 function get_tax(; scotland = false ) :: IncomeTaxSys
     it = get_default_it_system( year=2019, scotland=scotland, weekly=false )
@@ -35,6 +43,7 @@ end
     # BASIC IT Calcaulation on
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
+
     @time names = ExampleHouseholdGetter.initialise()
     income = [11_730,14_493,30_000,33_150.0,58_600,231_400]
     ntests = size(income)[1]
@@ -53,13 +62,15 @@ end
     # @test nbus == 1 == size( bus[1])[1]
     pers = bus[1][1]
     for i in 1:ntests
+        prsc = IndividualResult{Float64}()
         pers.income[wages] = income[i]
-        due = calc_income_tax( pers, itsys_scot ).total_tax
-        println( "Scotland $i : calculated $due expected $(taxes_scotland[i])")
-        @test due ≈ taxes_scotland[i]
-        due = calc_income_tax( pers, itsys_ruk ).total_tax
-        println( "rUK $i : calculated $due expected $(taxes_ruk[i])")
-        @test due ≈ taxes_ruk[i]
+        calc_income_tax!( prsc, pers, itsys_scot )
+        println( "Scotland $i : calculated $(prsc.it.total_tax) expected $(taxes_scotland[i])")
+        @test prsc.it.total_tax ≈ taxes_scotland[i]
+        pruk = IndividualResult{Float64}()
+        calc_income_tax!( pruk, pers, itsys_ruk )
+        println( "rUK $i : calculated $(prsc.it.total_tax) expected $(taxes_ruk[i])")
+        @test pruk.it.total_tax  ≈ taxes_ruk[i]
         println( ruk.people[RUK_PERSON].income )
     end
 end # example 1
@@ -77,9 +88,10 @@ end # example 1
 
     for i in size(income)[1]
         pers.income[wages] = income[i]
+        pruk = IndividualResult{Float64}()
         println( "case $i income = $(income[i])")
-        res = calc_income_tax( pers, itsys_ruk )
-        @test res.intermediate["personal_savings_allowance"] == psa[i]
+        calc_income_tax!( pruk, pers, itsys_ruk )
+        @test pruk.it.intermediate["personal_savings_allowance"] == psa[i]
     end
 end # example 2
 
@@ -92,13 +104,17 @@ end # example 2
     pers.income[self_employment_income] = 40_000.00
     pers.income[bank_interest] = 1_250.00
     tax_due_scotland = 5680.07
-    due = calc_income_tax( pers, itsys_scot ).total_tax
+    pruk = IndividualResult{Float64}()
+    prsc = IndividualResult{Float64}()
+    calc_income_tax!( prsc, pers, itsys_scot )
     #
-    @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
+    @test prsc.it.total_tax ≈ tax_due_scotland
+
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
     #
     tax_due_ruk = 5_550.00
-    @test due ≈ tax_due_ruk
+    @test pruk.it.total_tax ≈ tax_due_ruk
 end # example 3
 
 @testset "ch2 example 4; savings calc" begin
@@ -112,10 +128,12 @@ end # example 3
     pers.income[bank_interest] = 1_100.00
     tax_due_ruk = 840.00
     tax_due_scotland = 819.51
-    due = calc_income_tax( pers, itsys_scot ).total_tax
-    @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
-    @test due ≈ tax_due_ruk
+    prsc = IndividualResult{Float64}()
+    calc_income_tax!( prsc, pers, itsys_scot )
+    @test prsc.it.total_tax ≈ tax_due_scotland
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
+    @test pruk.it.total_tax ≈ tax_due_ruk
 end # example 4
 
 @testset "ch2 example 5; savings calc" begin
@@ -128,10 +146,12 @@ end # example 4
     pers.income[bank_interest] = 980.00
     tax_due_ruk = 11_232.00
     tax_due_scotland = 12_864.57
-    due = calc_income_tax( pers, itsys_scot ).total_tax
-    @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
-    @test due ≈ tax_due_ruk
+    prsc = IndividualResult{Float64}()
+    calc_income_tax!( prsc, pers, itsys_scot )
+    @test prsc.it.total_tax ≈ tax_due_scotland
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
+    @test pruk.it.total_tax ≈ tax_due_ruk
 end # example 5
 
 @testset "ch2 example 6; savings calc" begin
@@ -145,10 +165,12 @@ end # example 5
 
     tax_due_ruk = 93_825.75
     tax_due_scotland = 97_397.17
-    due = calc_income_tax( pers, itsys_scot ).total_tax
-    @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
-    @test due ≈ tax_due_ruk
+    prsc = IndividualResult{Float64}()
+    calc_income_tax!( prsc, pers, itsys_scot )
+    @test prsc.it.total_tax  ≈ tax_due_scotland
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
+    @test pruk.it.total_tax  ≈ tax_due_ruk
 end # example 6
 
 @testset "ch2 example 7; savings calc" begin
@@ -162,10 +184,15 @@ end # example 6
     pers.income[other_investment_income] = 36_680.00/0.8 # gross up at basic
     tax_due_ruk = 10_092.00 # inc already deducted at source
     tax_due_scotland = 10_092.00
-    due = calc_income_tax( pers, itsys_scot ).total_tax
-    @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
-    @test due ≈ tax_due_ruk
+    
+    prsc = IndividualResult{Float64}()
+    calc_income_tax!( prsc, pers, itsys_scot )
+    @test prsc.it.total_tax ≈ tax_due_ruk
+    
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
+    @test pruk.it.total_tax ≈ tax_due_ruk
+
 end # example 7
 
 #
@@ -183,10 +210,15 @@ end # example 7
     pers.income[stocks_shares] = 204_100.0 # gross up at basic
     tax_due_ruk = 74_834.94 # inc already deducted at source
     tax_due_scotland = 74_834.94+140.97
-    due = calc_income_tax( pers, itsys_scot ).total_tax
-    @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
-    @test due ≈ tax_due_ruk
+
+    prsc = IndividualResult{Float64}()
+    calc_income_tax!( prsc, pers, itsys_scot )
+    @test prsc.it.total_tax ≈ tax_due_scotland
+    
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
+    @test pruk.it.total_tax ≈ tax_due_ruk
+
 end # example 8
 
 @testset "ch2 example 9; simple stocks_shares" begin
@@ -200,10 +232,13 @@ end # example 8
     pers.income[stocks_shares] = 1_600.0 # gross up at basic
     tax_due_ruk = 1_050.00 # inc already deducted at source
     tax_due_scotland = 1_050.00-20.49
-    due = calc_income_tax( pers, itsys_scot ).total_tax
-    @test due ≈ tax_due_scotland
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
-    @test due ≈ tax_due_ruk
+    prsc = IndividualResult{Float64}()
+    calc_income_tax!( prsc, pers, itsys_scot )
+    @test prsc.it.total_tax ≈ tax_due_scotland
+
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
+    @test pruk.it.total_tax ≈ tax_due_ruk
 end # example 9
 
 
@@ -216,14 +251,15 @@ end # example 9
     pers = ruk.people[RUK_PERSON]
     pers.income[self_employment_income] = 110_520.00
     tax_due_ruk = 33_812.00
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
 
-    @test due ≈ tax_due_ruk
+    @test pruk.it.total_tax ≈ tax_due_ruk
     pers.income[self_employment_income] += 100.0
-    due = calc_income_tax( pers, itsys_ruk ).total_tax
-
+    pruk = IndividualResult{Float64}()
+    calc_income_tax!( pruk, pers, itsys_ruk )
     tax_due_ruk = 33_812.00+60.0
-    @test due ≈ tax_due_ruk
+    @test pruk.it.total_tax ≈ tax_due_ruk
 
     # tax_due_scotland = 33_812.00+61.5 ## FIXME actually, check this by hand
 
@@ -234,7 +270,6 @@ end # example1 ch3
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
 
     names = ExampleHouseholdGetter.initialise()
-    names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     head = scot.people[SCOT_HEAD]
     spouse = scot.people[SCOT_SPOUSE]
@@ -242,12 +277,11 @@ end # example1 ch3
     head_tax_due = 0.0
     spouse.income[self_employment_income] = 20_000.0
     spouse_tax_due_ruk = 1_258.0
-
-    result = calc_income_tax( head,spouse, itsys_ruk )
-
-    println( result )
-
-    @test result.spouse.total_tax ≈ spouse_tax_due_ruk
+    bu = make_benefit_unit( PeopleArray([head,spouse]), head.pid, spouse.pid ) 
+    bruk = init_benefit_unit_result( Float64, bu )
+    calc_income_tax!( bruk, head, spouse, itsys_ruk )
+    println( bruk )
+    @test bruk.pers[spouse.pid].it.total_tax ≈ spouse_tax_due_ruk
 end # example 2 ch3
 
 @testset "ch3 blind person" begin
@@ -258,8 +292,11 @@ end # example 2 ch3
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.registered_blind = true
-    result = calc_income_tax( pers, nothing, itsys_ruk )
-    @test result.head.allowance == itsys_scot.personal_allowance + itsys_scot.blind_persons_allowance
+    bu = make_benefit_unit( PeopleArray([pers]), pers.pid, BigInt(-1) ) 
+    bruk = init_benefit_unit_result( Float64,  bu )    
+    result = calc_income_tax!( bruk, pers, nothing, itsys_ruk )
+    @test bruk.pers[pers.pid].it.allowance ≈ 
+        itsys_ruk.personal_allowance + itsys_ruk.blind_persons_allowance
     # test that tax is 2450xmr
 end
 
@@ -274,6 +311,7 @@ end
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     head = scot.people[SCOT_HEAD]
     spouse = scot.people[SCOT_SPOUSE]
+    bu = make_benefit_unit( PeopleArray([head,spouse]), head.pid, spouse.pid ) 
     head_ages = [75,90,90,70] # after 1935
     spouse_ages = [90,70,70,90]
     head_incomes = [19_100.0, 29_710.0,41_080.0,0.0]
@@ -284,22 +322,31 @@ end
         # head.income[private_pension] = head_incomes[i]
         head.age = head_ages[i]
         spouse.age = spouse_ages[i]
-        result_ruk = calc_income_tax( head, spouse, itsys_ruk )
-        result_scot = calc_income_tax( head, spouse, itsys_scot )
+        bruk = init_benefit_unit_result( Float64, bu )    
+        brscot = init_benefit_unit_result( Float64, bu )    
+        calc_income_tax!( bruk, head, spouse, itsys_ruk )
+        calc_income_tax!( brscot, head, spouse, itsys_scot )
         if i == 1
-            @test result_ruk.head.mca ≈ 891.50 ≈ result_scot.head.mca
-            @test result_ruk.spouse.mca ≈ 0 ≈ result_scot.spouse.mca
+            @test bruk.pers[head.pid].it.mca ≈ 891.50 ≈ 
+                brscot.pers[head.pid].it.mca
+            @test bruk.pers[spouse.pid].it.mca ≈ 0.0 ≈ 
+                brscot.pers[spouse.pid].it.mca
         elseif i == 2
-            @test result_ruk.head.mca ≈ 886.00 ≈ result_scot.head.mca
-            @test result_ruk.spouse.mca ≈ 0 ≈ result_scot.spouse.mca
+            @test bruk.pers[head.pid].it.mca ≈ 886.00 ≈ 
+                brscot.pers[head.pid].it.mca
+            @test bruk.pers[spouse.pid].it.mca ≈ 0.0 ≈ 
+                brscot.pers[spouse.pid].it.mca
         elseif i == 3
-            @test result_ruk.head.mca ≈ 345.00 ≈ result_scot.head.mca
-            @test result_ruk.spouse.mca ≈ 0 ≈ result_scot.spouse.mca
+            @test bruk.pers[head.pid].it.mca ≈ 345.00 ≈ 
+                brscot.pers[head.pid].it.mca
+            @test bruk.pers[spouse.pid].it.mca ≈ 0.0 ≈ 
+                brscot.pers[spouse.pid].it.mca
         elseif i == 4
-            @test result_ruk.spouse.mca ≈ 345.00 ≈ result_scot.spouse.mca
-            @test result_ruk.head.mca ≈ 0 ≈ result_scot.head.mca
+            @test bruk.pers[head.pid].it.mca ≈ 0.0 ≈ 
+                brscot.pers[head.pid].it.mca
+            @test bruk.pers[spouse.pid].it.mca ≈ 345.0 ≈ 
+                brscot.pers[spouse.pid].it.mca
         end
-
     end
 end
 
@@ -315,15 +362,18 @@ end
     alana.income[self_employment_income] = 62_000.0
     alana.income[pension_contributions] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
 
-    res_uk = calc_income_tax( alana, nothing, itsys_ruk );
-    res_scot = calc_income_tax( alana, nothing, itsys_scot );
-    println( typeof( res_uk ))
-    @test res_uk.head.pension_relief_at_source ≈ 960.0
-    @test res_uk.head.pension_eligible_for_relief ≈ 400.0*12*0.8
-    @test res_scot.head.non_savings_thresholds[1] ≈ itsys_scot.non_savings_thresholds[1]+400.0*12
-    @test res_scot.head.non_savings_thresholds[2] ≈ itsys_scot.non_savings_thresholds[2]+400.0*12
-    @test res_scot.head.pension_relief_at_source ≈ 960.0
-    @test res_scot.head.pension_eligible_for_relief ≈ 400.0*12*0.8
+    bu = make_benefit_unit( PeopleArray([alana]), alana.pid, BigInt(-1)) 
+    bruk = init_benefit_unit_result( Float64, bu )    
+    brscot = init_benefit_unit_result( Float64, bu )    
+
+    calc_income_tax!( bruk, alana, nothing, itsys_ruk );
+    calc_income_tax!( brscot, alana, nothing, itsys_scot );
+    @test bruk.pers[alana.pid].it.pension_relief_at_source ≈ 960.0
+    @test bruk.pers[alana.pid].it.pension_eligible_for_relief ≈ 400.0*12*0.8
+    @test brscot.pers[alana.pid].it.non_savings_thresholds[1] ≈ itsys_scot.non_savings_thresholds[1]+400.0*12
+    @test brscot.pers[alana.pid].it.non_savings_thresholds[2] ≈ itsys_scot.non_savings_thresholds[2]+400.0*12
+    @test brscot.pers[alana.pid].it.pension_relief_at_source ≈ 960.0
+    @test brscot.pers[alana.pid].it.pension_eligible_for_relief ≈ 400.0*12*0.8
 
 end
 
@@ -336,17 +386,21 @@ end
     gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 27_800.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
-
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
-    res_scot = calc_income_tax( gordon, nothing, itsys_scot );
-    @test res_uk.head.pension_eligible_for_relief ≈ 27_800.0
-    @test res_scot.head.pension_eligible_for_relief ≈ 27_800.0
+    bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 
+    bruk = init_benefit_unit_result( Float64, bu )  
+    brscot = init_benefit_unit_result( Float64, bu )
+    calc_income_tax!( bruk, gordon, nothing, itsys_ruk )
+    calc_income_tax!( brscot, gordon, nothing, itsys_scot )
+    @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 27_800.0
+    @test brscot.pers[gordon.pid].it.pension_eligible_for_relief ≈ 27_800.0
     gordon.income[self_employment_income] = 2_500.0
     gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
-    res_scot = calc_income_tax( gordon, nothing, itsys_scot );
-    @test res_uk.head.pension_eligible_for_relief ≈ 3_600.0
-    @test res_scot.head.pension_eligible_for_relief ≈ 3_600.0
+    bruk = init_benefit_unit_result( Float64, bu )  
+    brscot = init_benefit_unit_result( Float64, bu )
+    calc_income_tax!( bruk, gordon, nothing, itsys_ruk )
+    calc_income_tax!( brscot, gordon, nothing, itsys_scot )
+    @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 3_600.0
+    @test brscot.pers[gordon.pid].it.pension_eligible_for_relief ≈ 3_600.0
 end
 
 #
@@ -362,27 +416,32 @@ end
     gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 60_000.0
     gordon.income[pension_contributions] =  50_000.00 # net contribs per month; expressed gross in example
+    bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 
+    bruk = init_benefit_unit_result( Float64, bu )    
+    brscot = init_benefit_unit_result( Float64, bu )    
 
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
-    @test res_uk.head.pension_eligible_for_relief ≈ 40_000
+    calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
+    @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 40_000
 
     gordon.income[self_employment_income] = 300_000.0
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
-    @test res_uk.head.pension_eligible_for_relief ≈ 10_000
+    bruk = init_benefit_unit_result( Float64, bu )    
+    calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
+    @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 10_000
 
     gordon.income[self_employment_income] = 150_000.0
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
+    bruk = init_benefit_unit_result(Float64, bu )    
+    res_uk = calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
     # tapering thing seems really weird - this is approximarely right
-    @test res_uk.head.pension_eligible_for_relief ≈ 40_000
+    @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 40_000
 
     # complete-ish calc from combes, tutin&rowes, 2018 edn, p199, updated to 2019/20 rates
+    bruk = init_benefit_unit_result( Float64, bu )    
     gordon.income[self_employment_income] = 180_000.0
     gordon.income[pension_contributions] =  14_400.00 # net contribs per month; expressed gross in example
-    res_uk = calc_income_tax( gordon, nothing, itsys_ruk );
-    @test res_uk.head.total_tax ≈ 61_500.0
+    calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
+    @test bruk.pers[gordon.pid].it.total_tax ≈ 61_500.0
 
 end
-
 
 @testset "Crude MCA Age Check" begin
     # cut-off for jan 2010 should be age 85
@@ -420,15 +479,17 @@ end
             # what remains of joint taxation..
             head = get_head( bu )
             spouse = get_spouse( bu )
-            itres = calc_income_tax(
+            bures = init_benefit_unit_result( Float64, bu )
+            calc_income_tax!(
+                bures,
                 head,
                 spouse,
                 itsys_scot )
             for chno in bu.children
                 child = bu.people[chno]
-                itres = calc_income_tax(
+                calc_income_tax!(
+                    bures.pers[child.pid],
                     child,
-                    nothing,
                     itsys_scot )
             end  # child loop
         end # bus loop

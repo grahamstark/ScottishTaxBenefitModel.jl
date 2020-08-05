@@ -9,13 +9,14 @@ using .Uprating: uprate, UPRATE_MAPPINGS
 export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
+export make_benefit_unit 
 
-mutable struct Person{IT<:Integer, RT<:Real}
+mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
-    pno::IT # person number in household
-    default_benefit_unit::IT
-    age::IT
+    pno:: Int # person number in household
+    default_benefit_unit:: Int
+    age:: Int
 
     sex::Sex
     ethnic_group::Ethnic_Group
@@ -28,8 +29,8 @@ mutable struct Person{IT<:Integer, RT<:Real}
     principal_employment_type :: Employment_Type
 
     socio_economic_grouping::Socio_Economic_Group
-    age_completed_full_time_education::IT
-    years_in_full_time_work::IT
+    age_completed_full_time_education:: Int
+    years_in_full_time_work:: Int
     employment_status::ILO_Employment
     actual_hours_worked::RT
     usual_hours_worked::RT
@@ -72,12 +73,12 @@ end
 People_Dict = Dict{BigInt,Person}
 Pid_Array = Vector{BigInt}
 
-mutable struct Household{IT<:Integer, RT<:Real}
-    sequence::IT # position in current generated dataset
+mutable struct Household{RT<:Real}
+    sequence:: Int # position in current generated dataset
     hid::BigInt
-    interview_year::IT
-    interview_month::IT
-    quarter::IT
+    interview_year:: Int
+    interview_month:: Int
+    quarter:: Int
     tenure::Tenure_Type
     region::Standard_Region
     ct_band::CT_Band
@@ -85,9 +86,9 @@ mutable struct Household{IT<:Integer, RT<:Real}
     water_and_sewerage ::RT
     mortgage_payment::RT
     mortgage_interest::RT
-    years_outstanding_on_mortgage::IT
+    years_outstanding_on_mortgage:: Int
     mortgage_outstanding::RT
-    year_house_bought::IT
+    year_house_bought:: Int
     gross_rent::RT # rentg Gross rent including Housing Benefit  or rent Net amount of last rent payment
     rent_includes_water_and_sewerage::Bool
     other_housing_charges::RT # rent Net amount of last rent payment
@@ -216,6 +217,33 @@ function default_bu_allocation( hh :: Household ) :: BUAllocation
         sort!( bua[buno], lt=(left,right)->isless(right.age,left.age))
     end
     bua
+end
+
+"""
+
+Create a benefit unit from an array of people
+really only needed for some unit tests.
+
+FIXME: don't use outside of tests! likely mess up children and spouses.
+
+"""
+function make_benefit_unit( 
+    people :: PeopleArray, 
+    head :: BigInt, 
+    spouse:: BigInt = -1 ) :: BenefitUnit
+    npeople = size( people )[1]
+    pd = People_Dict()
+    children = Pid_Array()
+    palloc = spouse <= 0 ? 2 : 3
+    for n in palloc:npeople
+        push!(children, people[n].pid)
+        @assert people[n].age <= 21 # vague idiot check
+    end
+    for pers in people
+        pd[pers.pid] = pers
+        # println( "adding person $(pers.pid)")
+    end
+    return BenefitUnit( pd, head, spouse, children )
 end
 
 #

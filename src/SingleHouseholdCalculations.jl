@@ -24,11 +24,14 @@ using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       BenefitUnit, BenefitUnits, default_bu_allocation,
       get_benefit_units, get_head, get_spouse, num_people
 
-using .IncomeTaxCalculations: ITResult, calc_income_tax
-using .NationalInsuranceCalculations: NIResult, calculate_national_insurance
+using .IncomeTaxCalculations: calc_income_tax!
+using .NationalInsuranceCalculations: calculate_national_insurance
 using .Results: IndividualResult,
     BenefitUnitResult,
-    HouseholdResult
+    HouseholdResult,
+    ITResult, 
+    NIResult
+
 export do_one_calc
 
 function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdResult
@@ -40,21 +43,18 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         # what remains of joint taxation..
         head = get_head( bu )
         spouse = get_spouse( bu )
-        itres = calc_income_tax(
+        calc_income_tax!( 
+            hres.bus[buno],
             head,
             spouse,
             sys.it )
-        hres.bus[buno].pers[head.pid].it = itres.head
-        if spouse !== nothing
-            hres.bus[buno].pers[spouse.pid].it = itres.spouse
-        end
         for chno in bu.children
             child = bu.people[chno]
-            itres = calc_income_tax(
+            itres = calc_income_tax!(
+                hres.bus[buno].pers[child.pid],    
                 child,
                 nothing,
                 sys.it )
-            hres.bus[buno].pers[child.pid].it = itres.head
         end
         # national insurance
         for (pid,pers) in bu.people

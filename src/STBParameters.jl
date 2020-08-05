@@ -95,18 +95,18 @@ module STBParameters
          LPG=>0.02,
          Biofuel_eg_E85_fuel=>0.02 )
 
-   @with_kw mutable struct IncomeTaxSys{IT<:Integer, RT<:Real}
+   @with_kw mutable struct IncomeTaxSys{RT<:Real}
       non_savings_rates :: RateBands{RT} =  [19.0,20.0,21.0,41.0,46.0]
       non_savings_thresholds :: RateBands{RT} =  [2_049.0, 12_444.0, 30_930.0, 150_000.0]
-      non_savings_basic_rate :: IT = 2 # above this counts as higher rate
+      non_savings_basic_rate :: Int = 2 # above this counts as higher rate
 
       savings_rates  :: RateBands{RT} =  [0.0, 20.0, 40.0, 45.0]
       savings_thresholds  :: RateBands{RT} =  [5_000.0, 37_500.0, 150_000.0]
-      savings_basic_rate :: IT = 2 # above this counts as higher rate
+      savings_basic_rate :: Int = 2 # above this counts as higher rate
 
       dividend_rates :: RateBands{RT} =  [0.0, 7.5,32.5,38.1]
       dividend_thresholds :: RateBands{RT} =  [2_000.0, 37_500.0, 150_000.0]
-      dividend_basic_rate :: IT = 2 # above this counts as higher rate
+      dividend_basic_rate :: Int = 2 # above this counts as higher rate
 
       personal_allowance :: RT          = 12_500.00
       personal_allowance_income_limit :: RT = 100_000.00
@@ -205,12 +205,12 @@ module STBParameters
 
 
 
-   @with_kw mutable struct NationalInsuranceSys{IT<:Integer, RT<:Real}
+   @with_kw mutable struct NationalInsuranceSys{RT<:Real}
       primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
       primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 99999999999.99 ]
       secondary_class_1_rates :: RateBands{RT} = [0.0, 13.8, 13.8 ] # keep 2 so
       secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, 99999999999.99 ]
-      state_pension_age :: IT = 66; # fixme move
+      state_pension_age :: Int = 66; # fixme move
       class_2_threshold ::RT = 6_365.0;
       class_2_rate ::RT = 3.00;
       class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
@@ -256,18 +256,18 @@ module STBParameters
       pensioner_is :: RT = 140.40
    end
 
-   @with_kw mutable struct LegacyMeansTestedBenefitSystem{IT<:Integer, RT<:Real}
+   @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
        # CPAG 2019/20 p335
        premia :: Premia = Premia{RT}()
        allowances :: PersonalAllowances = PersonalAllowances{RT}()
 
    end
 
-   @with_kw mutable struct TaxBenefitSystem{IT<:Integer, RT<:Real}
+   @with_kw mutable struct TaxBenefitSystem{RT<:Real}
       name :: AbstractString = "Scotland 2919/20"
-      it   = IncomeTaxSys{IT,RT}()
-      ni   = NationalInsuranceSys{IT,RT}()
-      lmt  = LegacyMeansTestedBenefitSystem{IT,RT}()
+      it   = IncomeTaxSys{RT}()
+      ni   = NationalInsuranceSys{RT}()
+      lmt  = LegacyMeansTestedBenefitSystem{RT}()
    end
 
 

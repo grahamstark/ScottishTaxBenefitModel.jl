@@ -48,7 +48,7 @@ function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: Bu
 end
 
 
-function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsuranceSys{IT,RT} ) :: NIResult{RT} where IT<:Integer where RT<:Real
+function calculate_national_insurance( pers::Person{RT}, sys :: NationalInsuranceSys{RT} ) :: NIResult{RT} where IT<:Integer where RT<:Real
     nires = NIResult{RT}()
 
     # employer's NI on any wages

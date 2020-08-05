@@ -31,15 +31,15 @@ using BudgetConstraints: BudgetConstraint
 
     @with_kw mutable struct RunSettings
         run_name :: String = "default_run"
-        start_year :: Integer = 2015
-        end_year :: Integer = 2018
+        start_year :: Int = 2015
+        end_year :: Int = 2018
         scotland_only :: Bool = true
         household_name = "model_households_scotland"
         people_name    = "model_people_scotland"
-        num_households :: Integer = 0
-        num_people :: Integer = 0
-        to_y :: Integer = 2019
-        to_q :: Integer = 4
+        num_households :: Int = 0
+        num_people :: Int = 0
+        to_y :: Int = 2019
+        to_q :: Int = 4
         # ... and so on
     end
 
@@ -311,7 +311,7 @@ using BudgetConstraints: BudgetConstraint
 
     function do_one_run!(
         settings :: RunSettings,
-        params :: Vector{TaxBenefitSystem{IT,RT}} ) where IT <: Integer where RT<:Real
+        params :: Vector{TaxBenefitSystem{RT}} ) where RT<:Real
         num_systems = size( params )[1]
         println("start of do_one_run; params:")
         for p in 1:num_systems
