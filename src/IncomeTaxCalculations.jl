@@ -133,7 +133,7 @@ in the `intermediate` dict
 
 """
 function calc_income_tax!(
-    pres    :: IndividualResult,
+    pres   :: IndividualResult,
     pers   :: Person,
     sys    :: IncomeTaxSys,
     spouse_transfer :: Real = 0.0 )

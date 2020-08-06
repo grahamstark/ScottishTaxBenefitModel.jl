@@ -40,6 +40,7 @@ using BudgetConstraints: BudgetConstraint
         num_people :: Int = 0
         to_y :: Int = 2019
         to_q :: Int = 4
+        output_dir :: String = joinpath(tempdir(),"output")
         # ... and so on
     end
 
@@ -295,16 +296,16 @@ using BudgetConstraints: BudgetConstraint
     ## FIXME eventually, move this to DrWatson
     function dump_frames(
         settings :: RunSettings,
-        frames :: NamedTuple,
-        output_dir :: String = "output/" )
+        frames :: NamedTuple )
         ns = size( frames.indiv )[1]
         fbase = basiccensor(settings.run_name)
+        mkpath(settings.output_dir)
         for fno in 1:ns
-            fname = "$output_dir/$(fbase)_$(fno)_hh.csv"
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_hh.csv"
             CSV.write( fname, frames.hh[fno] )
-            fname = "$output_dir/$(fbase)_$(fno)_bu.csv"
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_bu.csv"
             CSV.write( fname, frames.bu[fno] )
-            fname = "$output_dir/$(fbase)_$(fno)_pers.csv"
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_pers.csv"
             CSV.write( fname, frames.indiv[fno] )
         end
     end

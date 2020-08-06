@@ -25,7 +25,7 @@ using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       get_benefit_units, get_head, get_spouse, num_people
 
 using .IncomeTaxCalculations: calc_income_tax!
-using .NationalInsuranceCalculations: calculate_national_insurance
+using .NationalInsuranceCalculations: calculate_national_insurance!
 using .Results: IndividualResult,
     BenefitUnitResult,
     HouseholdResult,
@@ -57,8 +57,10 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         end
         # national insurance
         for (pid,pers) in bu.people
-            hres.bus[buno].pers[pers.pid].ni =
-                calculate_national_insurance( pers, sys.ni )
+            calculate_national_insurance!( 
+                hres.bus[buno].pers[pers.pid], 
+                pers, 
+                sys.ni )
         end
         buno += 1
     end # bus loop

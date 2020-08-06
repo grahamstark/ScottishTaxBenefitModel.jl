@@ -1,13 +1,16 @@
 using Test
 using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, default_bu_allocation
-# using FRSHouseholdGetter
-using ScottishTaxBenefitModel.ExampleHouseholdGetter
-using ScottishTaxBenefitModel.Definitions
-using ScottishTaxBenefitModel.NationalInsuranceCalculations
-using ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys,weeklyise!
+using .ModelHousehold: Household, Person, People_Dict, default_bu_allocation
+using .ExampleHouseholdGetter
+using .Definitions
+using .NationalInsuranceCalculations: 
+    calculate_national_insurance!,
+    calc_class1_secondary
+
+using .STBParameters: NationalInsuranceSys,weeklyise!
 using .GeneralTaxComponents: WEEKS_PER_YEAR
-using ScottishTaxBenefitModel.FRSHouseholdGetter: get_household
+using .FRSHouseholdGetter: get_household
+using .Results: IndividualResult
 
 const RUK_PERSON = 100000001001
 
@@ -20,9 +23,10 @@ include( "testutils.jl")
     hh = get_household(27)
     person =  hh.people[120150022701]
     println( person )
-    nires = calculate_national_insurance( person, nisys )
-    @test nires.class_1_primary >= 0.0
-    @test nires.class_1_secondary >= 0.0
+    pres = IndividualResult{Float64}()
+    calculate_national_insurance!( pres, person, nisys )
+    @test pres.ni.class_1_primary >= 0.0
+    @test pres.ni.class_1_secondary >= 0.0
 
 end
 
@@ -35,9 +39,10 @@ end
         hh = get_household(hno)
         for (pid,person) in hh.people
             println( "on hh $hno; pid=$pid")
-            nires = calculate_national_insurance( person, nisys )
-            @test nires.class_1_primary >= 0.0
-            @test nires.class_1_secondary >= 0.0
+            pres = IndividualResult{Float64}()
+            calculate_national_insurance!( pres, person, nisys )
+            @test pres.ni.class_1_primary >= 0.0
+            @test pres.ni.class_1_secondary >= 0.0
         end # people loop
     end # hhld loop
 end #
@@ -60,12 +65,13 @@ end #
     for i in 1:ntests
         pers.income[wages] = income[i]
         println( "case $i income = $(income[i])")
-        nires = calculate_national_insurance( pers, nisys )
+        pres = IndividualResult{Float64}()
+        calculate_national_insurance!( pres, pers, nisys )
         class1sec = calc_class1_secondary( income[i], pers, nisys )
-        @test nires.class_1_primary ≈ nidue[i][1]
-        @test nires.above_lower_earnings_limit == nidue[i][2]
+        @test pres.ni.class_1_primary ≈ nidue[i][1]
+        @test pres.ni.above_lower_earnings_limit == nidue[i][2]
         @test round(class1sec,digits=2) ≈ niclass1sec[i]
-        print( nires )
+        print( pres.ni )
     end
 end
 
@@ -86,16 +92,18 @@ end
     for i in 1:size(seinc)[1]
         pers.income[self_employment_income] = seinc[i]
         println( "case $i seinc = $(seinc[i])")
-        nires = calculate_national_insurance( pers, nisys )
-        @test nires.class_2 ≈ class2[i]
+        pres = IndividualResult{Float64}()
+        calculate_national_insurance!( pres, pers, nisys )
+        @test pres.ni.class_2 ≈ class2[i]
     end
     seinc = [15_140.0, 55_000.0,7_500.0]
     class4 = [585.72, 3_823.12, 0.0 ]
     for i in 1:size(seinc)[1]
         pers.income[self_employment_income] = seinc[i]
         println( "case $i seinc = $(seinc[i])")
-        nires = calculate_national_insurance( pers, nisys )
-        @test nires.class_4 ≈ class4[i]
+        pres = IndividualResult{Float64}()
+        calculate_national_insurance!( pres, pers, nisys )
+        @test pres.ni.class_4 ≈ class4[i]
     end
 
 end # example 6,7
