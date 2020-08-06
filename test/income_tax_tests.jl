@@ -360,7 +360,7 @@ end
     alana = scot.people[SCOT_HEAD]
     alana.income = Incomes_Dict() # clear
     alana.income[self_employment_income] = 62_000.0
-    alana.income[pension_contributions] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
+    alana.income[pension_contributions_employee] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
 
     bu = make_benefit_unit( PeopleArray([alana]), alana.pid, BigInt(-1)) 
     bruk = init_benefit_unit_result( Float64, bu )    
@@ -385,7 +385,7 @@ end
     gordon = scot.people[SCOT_HEAD]
     gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 27_800.0
-    gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
+    gordon.income[pension_contributions_employee] =  27_800.00 # net contribs per month; expressed gross in example
     bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 
     bruk = init_benefit_unit_result( Float64, bu )  
     brscot = init_benefit_unit_result( Float64, bu )
@@ -394,7 +394,7 @@ end
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 27_800.0
     @test brscot.pers[gordon.pid].it.pension_eligible_for_relief ≈ 27_800.0
     gordon.income[self_employment_income] = 2_500.0
-    gordon.income[pension_contributions] =  27_800.00 # net contribs per month; expressed gross in example
+    gordon.income[pension_contributions_employee] =  27_800.00 # net contribs per month; expressed gross in example
     bruk = init_benefit_unit_result( Float64, bu )  
     brscot = init_benefit_unit_result( Float64, bu )
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk )
@@ -415,7 +415,7 @@ end
     gordon = scot.people[SCOT_HEAD]
     gordon.income = Incomes_Dict() # clear
     gordon.income[self_employment_income] = 60_000.0
-    gordon.income[pension_contributions] =  50_000.00 # net contribs per month; expressed gross in example
+    gordon.income[pension_contributions_employer] =  50_000.00 # net contribs per month; expressed gross in example
     bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 
     bruk = init_benefit_unit_result( Float64, bu )    
     brscot = init_benefit_unit_result( Float64, bu )    
@@ -437,7 +437,7 @@ end
     # complete-ish calc from combes, tutin&rowes, 2018 edn, p199, updated to 2019/20 rates
     bruk = init_benefit_unit_result( Float64, bu )    
     gordon.income[self_employment_income] = 180_000.0
-    gordon.income[pension_contributions] =  14_400.00 # net contribs per month; expressed gross in example
+    gordon.income[pension_contributions_employer] =  14_400.00 # net contribs per month; expressed gross in example
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
     @test bruk.pers[gordon.pid].it.total_tax ≈ 61_500.0
 

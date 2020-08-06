@@ -89,7 +89,8 @@ function calculate_pension_taxation!(
     itres.dividend_thresholds = copy( sys.dividend_thresholds )
     itres.non_savings_thresholds = copy( sys.non_savings_thresholds )
     avc = get_if_set(pers.income, avcs, 0.0)
-    pen = get_if_set(pers.income, pension_contributions, 0.0)
+    pen = get_if_set(pers.income, pension_contributions_employee, 0.0)
+    pen += get_if_set(pers.income, pension_contributions_employer, 0.0)
     eligible_contribs = avc + pen
     if eligible_contribs <= 0.0
         return

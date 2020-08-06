@@ -776,7 +776,8 @@ export wages,
        other_deductions,
        loan_repayments,
        student_loan_repayments,
-       pension_contributions,
+       pension_contributions_employee,
+       pension_contributions_employer,
        education_allowances,
        foster_care_payments,
        student_grants,
@@ -861,15 +862,16 @@ export wages,
    other_deductions = 25
    loan_repayments = 26
    student_loan_repayments = 27
-   pension_contributions = 28
-   education_allowances = 29
-   foster_care_payments = 30
-   student_grants = 31
-   student_loans = 32
-   income_tax = 33
-   national_insurance = 34
-   local_taxes = 35
-   free_school_meals = 36
+   pension_contributions_employee = 28
+   pension_contributions_employer = 29
+   education_allowances = 30
+   foster_care_payments = 31
+   student_grants = 32
+   student_loans = 33
+   income_tax = 34
+   national_insurance = 35
+   local_taxes = 36
+   free_school_meals = 37
 
    dlaself_care = 2001
    dlamobility = 2002
@@ -933,7 +935,7 @@ const Expenses = Incomes_Set([
    friendly_societies,
    self_employment_expenses,
    work_expenses,
-   pension_contributions,
+   pension_contributions_employee,
    avcs,
    other_deductions,
    loan_repayments,

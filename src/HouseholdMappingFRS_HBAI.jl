@@ -125,7 +125,8 @@ function initialise_person(n::Integer)::DataFrame
         income_other_deductions = Vector{Union{Real,Missing}}(missing, n),
         income_loan_repayments = Vector{Union{Real,Missing}}(missing, n),
         income_student_loan_repayments = Vector{Union{Real,Missing}}(missing, n),
-        income_pension_contributions = Vector{Union{Real,Missing}}(missing, n),
+        income_pension_contributions_employer = Vector{Union{Real,Missing}}(missing, n),
+        income_pension_contributions_employee = Vector{Union{Real,Missing}}(missing, n),
         income_education_allowances = Vector{Union{Real,Missing}}(missing, n),
         income_foster_care_payments = Vector{Union{Real,Missing}}(missing, n),
         income_student_grants = Vector{Union{Real,Missing}}(missing, n),
@@ -350,18 +351,31 @@ function initialise_household(n::Integer)::DataFrame
     hh
 end
 
+#
+# the way this seems to work: if deduc1 in job record
+# is > 0, the employee contrib here is set to -1
+#
 function process_penprovs(a_pens::DataFrame)::Real
     npens = size(a_pens)[1]
-    penconts = 0.0
+    penconts_employer = 0.0
+    penconts_employee = 0.0
     for p in 1:npens
-        pc = safe_inc(0.0, a_pens[p, :penamt])
-        if a_pens[p, :penamtpd] == 95
+        pen = a_pens[p,:]
+        pc = safe_inc(0.0, pen.penamt)
+        if pen.penamtpd == 95
             pc /= 52.0
         end
-        penconts += pc
+        if pen.pencon in [1,4,5] # ish ...
+            penconts_employee += pc
+        elseif pen.pencon == 2 # employer
+            penconts_employer += pc
+        elseif pen.pencon == 3 # oth employer and employee
+            penconts_employer += pc/2
+            penconts_employee += pc/2   
+        end
     end
     # FIXME something about SERPS
-    penconts
+    (penconts_employee,penconts_employer)
 end
 
 function process_pensions(a_pens::DataFrame)::NamedTuple
@@ -576,7 +590,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
     trade_unions_etc = 0.0
     friendly_societies = 0.0
     work_expenses = 0.0
-    pension_contributions = 0.0
+    pension_contributions_employee = 0.0
     avcs = 0.0
     other_deductions = 0.0
     student_loan_repayments = 0.0
@@ -594,53 +608,56 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
     fuel_supplied = 0.0
 
     for j in 1:njobs
+        jb = a_job[j,:] # 1 row
         if j == 1 # take 1st record job for all of these
-            principal_employment_type = safe_assign(a_job[j, :etype])
-            public_or_private = safe_assign(a_job[j, :jobsect])
+            principal_employment_type = safe_assign(jb.etype)
+            public_or_private = safe_assign(jb.jobsect)
         end
-        usual_hours = safe_inc(usual_hours, a_job[j, :dvushr])
-        actual_hours = safe_inc(actual_hours, a_job[j, :jobhours])
+        usual_hours = safe_inc(usual_hours, jb.dvushr)
+        actual_hours = safe_inc(actual_hours, jb.jobhours)
 
         # alimony_and_child_support_paid  = safe_inc( alimony_and_child_support_paid , a_job[j,udeduc0X])
-        # care_insurance  = safe_inc( care_insurance , a_job[j,:othded0X]
+        # care_insurance  = safe_inc( care_insurance , jb.othded0X
         # note these are *Usual* deductions
-        pension_contributions = safe_inc(pension_contributions, a_job[j, :udeduc1])
-        avcs = safe_inc(avcs, a_job[j, :udeduc2])
-        trade_unions_etc = safe_inc(trade_unions_etc, a_job[j, :udeduc3])
-        friendly_societies = safe_inc(friendly_societies, a_job[j, :udeduc4])
-        other_deductions = safe_inc(other_deductions, a_job[j, :udeduc5])
-        loan_repayments = safe_inc(loan_repayments, a_job[j, :udeduc6])
-        health_insurance = safe_inc(health_insurance, a_job[j, :udeduc7])
-        other_deductions = safe_inc(other_deductions, a_job[j, :udeduc8])
-        student_loan_repayments = safe_inc(student_loan_repayments, a_job[j, :udeduc9])
-        work_expenses = safe_inc(work_expenses, a_job[j, :umotamt])# CARS FIXME add to this
+        # "1... contribution *by you* to a Pension or superannuation scheme?"
+        # I *think* these contributions 
+        pension_contributions_employee = safe_inc(pension_contributions_employee, jb.udeduc1)
+        avcs = safe_inc(avcs, jb.udeduc2)
+        trade_unions_etc = safe_inc(trade_unions_etc, jb.udeduc3)
+        friendly_societies = safe_inc(friendly_societies, jb.udeduc4)
+        other_deductions = safe_inc(other_deductions, jb.udeduc5)
+        loan_repayments = safe_inc(loan_repayments, jb.udeduc6)
+        health_insurance = safe_inc(health_insurance, jb.udeduc7)
+        other_deductions = safe_inc(other_deductions, jb.udeduc8)
+        student_loan_repayments = safe_inc(student_loan_repayments, jb.udeduc9)
+        work_expenses = safe_inc(work_expenses, jb.umotamt)# CARS FIXME add to this
 
         # self employment
-        if a_job[j, :prbefore] > 0.0
-            self_employment_income += a_job[j, :prbefore]
-        elseif a_job[j, :profit1] > 0.0
-            @assert a_job[j, :profit2] in [1, 2]
-            if a_job[j, :profit2] == 1
-                self_employment_income += a_job[j, :profit1]
+        if jb.prbefore > 0.0
+            self_employment_income += jb.prbefore
+        elseif jb.profit1 > 0.0
+            @assert jb.profit2 in [1, 2]
+            if jb.profit2 == 1
+                self_employment_income += jb.profit1
             else
-                self_employment_losses += a_job[j, :profit1]
+                self_employment_losses += jb.profit1
             end
-        elseif a_job[j, :seincamt] > 0.0
-            self_employment_income += a_job[j, :seincamt]
+        elseif jb.seincamt > 0.0
+            self_employment_income += jb.seincamt
         end
-        # setax = safe_inc(0.0, a_job[j, :setaxamt])
+        # setax = safe_inc(0.0, jb.setaxamt)
         # tax += setax / 52.0
 
         # earnings
         addBonus = false
-        if a_job[j, :ugross] > 0.0 # take usual when last not usual
-            earnings += a_job[j, :ugross]
+        if jb.ugross > 0.0 # take usual when last not usual
+            earnings += jb.ugross
             addBonus = true
-        elseif a_job[j, :grwage] > 0.0 # then take last
-            earnings += a_job[j, :grwage]
+        elseif jb.grwage > 0.0 # then take last
+            earnings += jb.grwage
             addBonus = true
-        elseif a_job[j, :ugrspay] > 0.0 # then take total pay, but don't add bonuses
-            earnings += a_job[j, :ugrspay]
+        elseif jb.ugrspay > 0.0 # then take total pay, but don't add bonuses
+            earnings += jb.ugrspay
         end
         if addBonus
             for i in 1:6
@@ -657,12 +674,12 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         end # add bonuses
         # cars
 
-        company_car_fuel_type = a_job[j, :fueltyp]
-        mv = map_car_value(a_job[j, :carval])
+        company_car_fuel_type = jb.fueltyp
+        mv = map_car_value(jb.carval)
         # println( mv )
         company_car_value = safe_inc(company_car_value, mv )
-        company_car_contribution = safe_inc(company_car_contribution, a_job[j, :caramt])
-        fuel_supplied = safe_inc(fuel_supplied, a_job[j, :fuelamt])
+        company_car_contribution = safe_inc(company_car_contribution, jb.caramt)
+        fuel_supplied = safe_inc(fuel_supplied, jb.fuelamt)
 
     end # jobs loop
 
@@ -677,7 +694,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
     model_adult.income_trade_unions_etc = trade_unions_etc
     model_adult.income_friendly_societies = friendly_societies
     model_adult.income_work_expenses = work_expenses
-    model_adult.income_pension_contributions = pension_contributions
+    model_adult.income_pension_contributions_employee = pension_contributions_employee
     model_adult.income_avcs = avcs
     model_adult.income_other_deductions = other_deductions
     model_adult.income_student_loan_repayments = student_loan_repayments # fixme maybe "slrepamt" or "slreppd"
@@ -907,8 +924,11 @@ function create_adults(
             model_adult.income_income_tax += penstuff.tax
 
             # FIXME CHECK THIS - adding PENCONT and also from work pension contributions - double counting?
-            model_adult.income_pension_contributions += process_penprovs(a_penprov)
+            (employee,employer) = process_penprovs(a_penprov)
 
+            model_adult.income_pension_contributions_employee += employee
+            model_adult.income_pension_contributions_employer += employer
+            
             map_investment_income!(model_adult, an_account)
             model_adult.income_property = safe_inc(0.0, frs_person.royyr1)
             if frs_person.rentprof == 2 # it's a loss
