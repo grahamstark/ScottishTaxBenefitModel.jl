@@ -355,7 +355,7 @@ end
 # the way this seems to work: if deduc1 in job record
 # is > 0, the employee contrib here is set to -1
 #
-function process_penprovs(a_pens::DataFrame)::Real
+function process_penprovs(a_pens::DataFrame)::Tuple
     npens = size(a_pens)[1]
     penconts_employer = 0.0
     penconts_employee = 0.0
