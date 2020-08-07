@@ -13,6 +13,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Module Listing" => "module_listing.md",
         "Weighting" => "weighting.md",
         "Annotated Bibliography" => "annotated_bibliography.md",
         "Test Suite" => "test_suite.md",
