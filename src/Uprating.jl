@@ -3,7 +3,7 @@ module Uprating
 using DataFrames
 using CSV
 
-import ScottishTaxBenefitModel: Definitions, Utils
+using ScottishTaxBenefitModel
 using .Definitions
 using .Utils
 

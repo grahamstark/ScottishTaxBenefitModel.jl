@@ -10,7 +10,7 @@ using .Definitions
 using .ModelHousehold: Person
 using .STBParameters: NationalInsuranceSys
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
-using .Utils: get_if_set, eq_nearest_p,BC_SETTINGS
+using .Utils: get_if_set, eq_nearest_p,BC_SETTINGS, mult
 using .Results: NIResult, IndividualResult
 
 export calculate_national_insurance, calc_class1_secondary
@@ -54,7 +54,12 @@ function calculate_national_insurance!(
     sys  :: NationalInsuranceSys )
     # employer's NI on any wages
     bc = make_gross_wage_bc( pers, sys )
-    wage = get(pers.income,wages,0.0)
+    wage = mult( 
+        data=pers.income, 
+        calculated=pres.incomes, 
+        included=sys.class_1_income )
+    
+    wage = max(0.0, wage)
     gross = gross_from_net( bc, wage )
     pres.ni.class_1_secondary = calc_class1_secondary( gross, pers, sys )
     @assert isapprox(gross - wage, pres.ni.class_1_secondary, atol=3 ) "gross $gross wage $wage pres.ni.class_1_secondary $(pres.ni.class_1_secondary)"
@@ -70,9 +75,12 @@ function calculate_national_insurance!(
         pres.ni.above_lower_earnings_limit = tres.end_band > 1
 
         if( pers.employment_status in [Full_time_Self_Employed, Part_time_Self_Employed])
-           # maybe? pers.principal_employment_type != An_Employee
-           # FIXME do I need *any* check on whether someone is classed as SE, & not just se income present?
-            seinc = get(pers.income,self_employment_income,0.0)
+            seinc = mult( 
+                data=pers.income, 
+                calculated=pres.incomes, 
+                included=sys.class_4_income )
+            # maybe? pers.principal_employment_type != An_Employee
+            # FIXME do I need *any* check on whether someone is classed as SE, & not just se income present?
             if seinc > sys.class_2_threshold
                 pres.ni.class_2 = sys.class_2_rate
             end

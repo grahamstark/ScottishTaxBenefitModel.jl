@@ -1,6 +1,6 @@
 module Runner
 
-using BudgetConstraints: BudgetConstraint
+    using BudgetConstraints: BudgetConstraint
 
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow

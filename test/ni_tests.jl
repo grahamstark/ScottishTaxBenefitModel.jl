@@ -18,7 +18,7 @@ include( "testutils.jl")
 
 @testset "Run on actual Data" begin
     nhhs,npeople = init_data()
-    nisys = NationalInsuranceSys()
+    nisys = NationalInsuranceSys{Float64}()
     weeklyise!( nisys )
     hh = get_household(27)
     person =  hh.people[120150022701]
@@ -33,7 +33,7 @@ end
 
 @testset "Run on actual Data" begin
     nhhs,npeople = init_data()
-    nisys = NationalInsuranceSys()
+    nisys = NationalInsuranceSys{Float64}()
     weeklyise!( nisys )
     for hno in 1:nhhs
         hh = get_household(hno)
@@ -51,7 +51,7 @@ end #
 
 @testset "Melville 2019 ch16 examples 1; Class 1 NI" begin
     # BASIC IT Calcaulation on
-    nisys = NationalInsuranceSys()
+    nisys = NationalInsuranceSys{Float64}()
     weeklyise!( nisys )
     @time names = ExampleHouseholdGetter.initialise()
     income = [110.0,145.0,325,755.0,1_000.0]
@@ -78,7 +78,7 @@ end
 
 @testset "Melville 2019 ch16 examples 6,7; Class 2,4 NI" begin
     # BASIC IT Calcaulation on
-    nisys = NationalInsuranceSys()
+    nisys = NationalInsuranceSys{Float64}()
     weeklyise!( nisys )
     # self employment testing
     hh = ExampleHouseholdGetter.get_household( "mel_c2" )

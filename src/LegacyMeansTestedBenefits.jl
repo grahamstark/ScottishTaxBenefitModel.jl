@@ -1,13 +1,13 @@
 module LegacyMeansTestedBenefits
 
-import Parameters: @with_kw
+using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
 using .Definitions
-import .ModelHousehold: Person
-import .STBParameters: LegacyMeansTestedBenefitSystem
-import .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
-import .Utils: get_if_set
+using .ModelHousehold: Person
+using .STBParameters: LegacyMeansTestedBenefitSystem
+using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
+using .Utils: get_if_set
 
 export calc_legacy_means_tested_benefits, LMTResults
 

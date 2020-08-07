@@ -936,6 +936,7 @@ const Expenses = Incomes_Set([
    self_employment_expenses,
    work_expenses,
    pension_contributions_employee,
+   pension_contributions_employer, # kinda sorta
    avcs,
    other_deductions,
    loan_repayments,
