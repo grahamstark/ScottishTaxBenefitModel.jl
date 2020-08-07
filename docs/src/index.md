@@ -24,6 +24,40 @@ will have to be added manually using the URLs above until their registrations ar
 ```
 
 ```@autodocs
-Modules = [ScottishTaxBenefitModel,ExampleHouseholdGetter.jl,GeneralTaxComponents.jl,MiniTB.jl,ScottishTaxBenefitModel.jl,SingleHouseholdCalculations.jl,Uprating.jl,Definitions.jl,FRSHouseholdGetter.jl,HouseholdFromFrame.jl,IncomeTaxCalculations.jl,ModelHousehold.jl,server.jl,STBParameters.jl,WebModelLibs.jl]
+Modules = [
+    ScottishTaxBenefitModel,
+    Definitions.jl,
+    ExampleHouseholdGetter.jl,
+    FRSHouseholdGetter.jl,
+    GeneralTaxComponents.jl,
+    HouseholdFromFrame.jl,
+    HouseholdMappingsFRS_HBAI.jl,
+    IncomeTaxCalculations,jl,
+    LegacyMeansTestedBenefits.jl,
+    MiniTB.jl,
+    ModelHousehold.jl,
+    NationalInsuranceCalculations.jl,
+    Results.jl,
+    Runner.jl,
+    SingleHouseholdCalculations.jl,
+    Uprating.jl,
+    STBParameters.jl,
+    Weights.jl
+    ]
 
-[]
+## Test Suite 
+
+## Weighting
+
+## Validation in Aggregate
+
+## An Annotated Bibiography
+
+## Coding Notes
+
+## Data Notes
+
+## TODO
+
+
+
