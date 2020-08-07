@@ -17,49 +17,4 @@ See also:
 * [Poverty & Inequality](https://github.com/grahamstark/PovertyAndInequalityMeasures.jl)
 
 
-# Modules
-
-```@index
-```
-
-```@autodocs
-Modules = [
-    ScottishTaxBenefitModel,
-    Definitions.jl,
-    ExampleHouseholdGetter.jl,
-    FRSHouseholdGetter.jl,
-    GeneralTaxComponents.jl,
-    HouseholdFromFrame.jl,
-    HouseholdMappingsFRS_HBAI.jl,
-    IncomeTaxCalculations,jl,
-    LegacyMeansTestedBenefits.jl,
-    MiniTB.jl,
-    ModelHousehold.jl,
-    NationalInsuranceCalculations.jl,
-    Results.jl,
-    Runner.jl,
-    SingleHouseholdCalculations.jl,
-    Uprating.jl,
-    STBParameters.jl,
-    Weights.jl
-    ]
-```
-
-## Test Suite 
-
-## Data Notes
-
-[Weighting Notes](weighting.md)
-
-## Weighting
-
-## Validation in Aggregate
-
-## An Annotated Bibiography
-
-## Coding Notes
-
-## TODO
-
-
 
