@@ -1,9 +1,7 @@
 # Module Listing
 
-```@autodocs
-Modules = [
-    ScottishTaxBenefitModel,
-    .Definitions.jl,
+```@autodocs Modules = [
+    ScottishTaxBenefitModel, .Definitions.jl,
     .ExampleHouseholdGetter.jl,
     .FRSHouseholdGetter.jl,
     .GeneralTaxComponents.jl,
