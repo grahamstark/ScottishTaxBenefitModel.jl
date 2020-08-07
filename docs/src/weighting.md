@@ -1,5 +1,7 @@
 # notes on weighting
 
+Code: [Weighting.jl](/src/Weighting.jl). Uses []()
+
 4 years 2015/18 11,048 hhlds
 initial: 2,477,000 hhlds => 224.203 avg weight
 4,541,903 16+ popn (NRS) 5,463,300 total - mid 2019 popn estimates
@@ -66,7 +68,7 @@ PIP/DLA||51|431,461|330,476|-23%
 * Households: [NRS: Estimates of Households and Dwellings in Scotland, 2019](https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/households/household-estimates/2019) file house-est-19-all-tabs.xlsx table 7
 * Tenure: [Scottish Government: Housing statistics: Stock by tenure](https://www.gov.scot/publications/housing-statistics-stock-by-tenure/) file strock.xls data for March 2018
 * Employment: [Nomis](https://www.nomisweb.co.uk/); file 291203550.csv
-* benefits [DWP StatExplore](https://stat-xplore.dwp.gov.uk/) files table_2020-07-17(XX).xslx
-* population [Mid-Year Population Estimates](https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/population/population-estimates/mid-year-population-estimates) file mid-year-pop-est-19-data.xlsxmid-year-pop-est-19-data.xlsx table 1
+* benefits [DWP: StatExplore](https://stat-xplore.dwp.gov.uk/) files table_2020-07-17(XX).xslx
+* population [NRS: Mid-Year Population Estimates](https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/population/population-estimates/mid-year-population-estimates) file mid-year-pop-est-19-data.xlsxmid-year-pop-est-19-data.xlsx table 1
 
-all raw data retrieved July 16-17 2020, and stored in [/data/targets/].
+All raw data retrieved 16-17 July 2020, and stored in [/data/targets/].
