@@ -18,7 +18,7 @@ makedocs(;
         "Test Suite" => "test_suite.md",
         "Validation in Aggregate" => "validation_in_aggregate.md",
         "Coding Notes" => "coding_notes.md",
-        "TODO" => "todo.md"
+        "TODO" => "TODO.md"
     ],
 )
 
