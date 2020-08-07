@@ -12,7 +12,8 @@ Our weighting is intended to create weights at run-time for whatever set of hous
 
 For the current case, the Scottish subset is 4 years of FRS data for 2015-2018; 11,048 households. Given 2,477,000 households (see below for this figure), this gives an average weight of 224.2. If we scale the FRS population by this, we get:
 
-    ||target|unweighted total	diff
+||target|unweighted total|	diff
+|---|-----|-----|------
 M- Total in employment- aged 16+||1|1,358,545|1,147,698|-16%
 M- Total unemployed- aged 16+||2|61,446|55,827|-9%
 F- Total in employment- aged 16+||3|1,318,657|1,138,057|-14%
