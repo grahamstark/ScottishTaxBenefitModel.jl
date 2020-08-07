@@ -47,6 +47,8 @@ Modules = [
 
 ## Test Suite 
 
+## Data Notes
+
 ## Weighting
 
 ## Validation in Aggregate
@@ -54,8 +56,6 @@ Modules = [
 ## An Annotated Bibiography
 
 ## Coding Notes
-
-## Data Notes
 
 ## TODO
 
