@@ -81,4 +81,4 @@ Sources for the targets are as follows. Note that they presently don't always re
 * benefits [DWP: StatExplore](https://stat-xplore.dwp.gov.uk/) files table_2020-07-17(XX).xslx
 * population [NRS: Mid-Year Population Estimates](https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/population/population-estimates/mid-year-population-estimates) file mid-year-pop-est-19-data.xlsxmid-year-pop-est-19-data.xlsx table 1
 
-All raw data retrieved 16-17 July 2020, and stored in [/data/targets/].
+All raw data retrieved 16-17 July 2020, and stored in [/data/targets/](/data/targets/).
