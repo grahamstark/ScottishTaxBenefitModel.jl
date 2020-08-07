@@ -10,7 +10,7 @@ This is **in development**, has just been moved from an earlier version, and so 
 
 Please bear with me, or better still, help.
 
-One quick note: my packages:
+See also:
 
 * [Budget Constraints](https://github.com/grahamstark/BudgetConstraints.jl);
 * [Reweighting](https://github.com/grahamstark/SurveyDataWeighting.jl); and
@@ -48,6 +48,8 @@ Modules = [
 ## Test Suite 
 
 ## Data Notes
+
+[Weighting Notes](weighting.md)
 
 ## Weighting
 
