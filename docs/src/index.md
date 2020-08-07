@@ -16,7 +16,6 @@ One quick note: my packages:
 * [Reweighting](https://github.com/grahamstark/SurveyDataWeighting.jl); and
 * [Poverty & Inequality](https://github.com/grahamstark/PovertyAndInequalityMeasures.jl)
 
-will have to be added manually using the URLs above until their registrations are accepted. This also breaks Travis since it can't parse the Project.toml file if it includes non-registered packages.
 
 # Modules
 
@@ -44,6 +43,7 @@ Modules = [
     STBParameters.jl,
     Weights.jl
     ]
+```
 
 ## Test Suite 
 
