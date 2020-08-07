@@ -1,14 +1,16 @@
-# notes on weighting
+# Notes on weighting
 
-Code: [Weighting.jl](/src/Weighting.jl). Uses []()
+Code: [Weighting.jl](/src/Weighting.jl). Uses [Julia weighting code](https://github.com/grahamstark/SurveyDataWeighting.jl). 
 
-4 years 2015/18 11,048 hhlds
-initial: 2,477,000 hhlds => 224.203 avg weight
-4,541,903 16+ popn (NRS) 5,463,300 total - mid 2019 popn estimates
+For the general ideas, see (e.g.):
 
-nomis scaled to match nrs
+* Creedy, John. “Survey Reweighting for Tax Microsimulation Modelling.” Treasury Working Paper Series. New Zealand Treasury, September 2003. http://ideas.repec.org/p/nzt/nztwps/03-17.html.
+* Creedy, John, and Ivan Tuckwell. “Reweighting the New Zealand Household Economic Survey for Tax Microsimulation Modelling.” Treasury Working Paper Series. New Zealand Treasury, December 2003. https://ideas.repec.org/p/nzt/nztwps/03-33.html.
+* Merz, Joachim. ‘Microdata Adjustment by the Minimum Information Loss Principle’. SSRN Scholarly Paper. Rochester, NY: Social Science Research Network, 1 July 1994. https://papers.ssrn.com/abstract=1417310.
 
-2015/18 pooled scottish frs; targets vs uniform-weighted totals				
+Our weighting is intended to create weights at run-time for whatever set of households is fed to it. 
+
+For the current case, the Scottish subset is 4 years of FRS data for 2015-2018; 11,048 households. Given 2,477,000 households (see below for this figure), this gives an average weight of 224.2. If we scale the FRS population by this, we get:
 
     ||target|unweighted total	diff
 M- Total in employment- aged 16+||1|1,358,545|1,147,698|-16%
@@ -63,7 +65,15 @@ Carer’s Allowance||49|77,842|64,571|-17%
 Attendance Allowance||50|127,307|82,731|-35%
 PIP/DLA||51|431,461|330,476|-23%
 
-## sources
+So, overstating most elderly, understating the sick, young people, households with children.
+
+## TODO
+
+We really need some sort of incomes weight other than employment. E.g. higher rate payers, income tax payers.
+
+## Sources
+
+Sources for the targets are as follows. Note that they presently don't always represent the same date (some 2018, some 2020). All numbers presently used are pre-covid lockdowns.
 
 * Households: [NRS: Estimates of Households and Dwellings in Scotland, 2019](https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/households/household-estimates/2019) file house-est-19-all-tabs.xlsx table 7
 * Tenure: [Scottish Government: Housing statistics: Stock by tenure](https://www.gov.scot/publications/housing-statistics-stock-by-tenure/) file strock.xls data for March 2018
