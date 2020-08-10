@@ -68,6 +68,4 @@ ExampleHouseholdGetter.initialise()
         end
         @test hres.bus[1].pers[pid].it.total_tax ≈ liabilities[i]
     end
-
-
 end

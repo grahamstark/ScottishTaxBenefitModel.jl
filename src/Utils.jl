@@ -9,7 +9,7 @@ using BudgetConstraints
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
-export eq_nearest_p, BC_SETTINGS
+export eq_nearest_p,  mult
 
 #
 # this has a higher top income than the BC default
@@ -117,21 +117,21 @@ end
 
 """
 This is for multiplying incomes where there
-   are some (gross) from the data and some,
+   are some (raw) from the data and some,
    possibly the same elements, from earlier
    calculations (net)
 """
-function mult(; gross::Dict{K,T}, net :: Dict{K,T}, incl :: Dict{K,T}) :: T where T<:Number where K
+function mult(; data::Dict{K,T}, calculated :: Dict{K,T}, included :: Dict{K,T}) :: T where T<:Number where K
    s = zero(T)
-   kg = keys( gross )
-   kn = keys( net )
-   ki = keys( incl )
+   kg = keys( data )
+   kn = keys( calculated )
+   ki = keys( included )
    ka = union( kg, kn )
    ka = intersect( ka, ki )
    for k in ka
       # choose the calculated value if there is one, otherwise the data one
-      i = k in kn ? net[k] : gross[k]
-      s += i*incl[k]
+      i = k in kn ? calculated[k] : data[k]
+      s += i*included[k]
    end
    return s;
 end # mult

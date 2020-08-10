@@ -18,7 +18,7 @@ function get_default_it_system(
   weekly   :: Bool = true )::Union{Nothing,IncomeTaxSys}
   it = nothing
   if year == 2019
-     it = IncomeTaxSys{Int,Float64}()
+     it = IncomeTaxSys{Float64}()
      if ! scotland
         it.non_savings_rates = [20.0,40.0,45.0]
         it.non_savings_thresholds = [37_500, 150_000.0]
@@ -44,7 +44,7 @@ end
 
 
 function get_system(; scotland::Bool ) :: TaxBenefitSystem
-    tb = TaxBenefitSystem{Int,Float64}()
+    tb = TaxBenefitSystem{Float64}()
     weeklyise!(tb.ni)
     # overwrite IT to get RuK system as needed
     # println( itn )

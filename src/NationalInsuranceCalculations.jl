@@ -10,7 +10,7 @@ using .Definitions
 using .ModelHousehold: Person
 using .STBParameters: NationalInsuranceSys
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
-using .Utils: get_if_set, eq_nearest_p,BC_SETTINGS
+using .Utils: get_if_set, eq_nearest_p,BC_SETTINGS, mult
 using .Results: NIResult, IndividualResult
 
 export calculate_national_insurance, calc_class1_secondary
@@ -48,16 +48,22 @@ function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: Bu
 end
 
 
-function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsuranceSys{IT,RT} ) :: NIResult{RT} where IT<:Integer where RT<:Real
-    nires = NIResult{RT}()
-
+function calculate_national_insurance!( 
+    pres :: IndividualResult,
+    pers :: Person, 
+    sys  :: NationalInsuranceSys )
     # employer's NI on any wages
     bc = make_gross_wage_bc( pers, sys )
-    wage = get(pers.income,wages,0.0)
+    wage = mult( 
+        data=pers.income, 
+        calculated=pres.incomes, 
+        included=sys.class_1_income )
+    
+    wage = max(0.0, wage)
     gross = gross_from_net( bc, wage )
-    nires.class_1_secondary = calc_class1_secondary( gross, pers, sys )
-    @assert isapprox(gross - wage, nires.class_1_secondary, atol=3 ) "gross $gross wage $wage nires.class_1_secondary $(nires.class_1_secondary)"
-    nires.assumed_gross_wage = gross
+    pres.ni.class_1_secondary = calc_class1_secondary( gross, pers, sys )
+    @assert isapprox(gross - wage, pres.ni.class_1_secondary, atol=3 ) "gross $gross wage $wage pres.ni.class_1_secondary $(pres.ni.class_1_secondary)"
+    pres.ni.assumed_gross_wage = gross
 
     # class 1 on any wages, se only on main ..
     if pers.age < sys.state_pension_age
@@ -65,17 +71,20 @@ function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsur
             taxable = wage,
             rates = sys.primary_class_1_rates,
             thresholds = sys.primary_class_1_bands )
-        nires.class_1_primary = tres.due
-        nires.above_lower_earnings_limit = tres.end_band > 1
+        pres.ni.class_1_primary = tres.due
+        pres.ni.above_lower_earnings_limit = tres.end_band > 1
 
         if( pers.employment_status in [Full_time_Self_Employed, Part_time_Self_Employed])
-           # maybe? pers.principal_employment_type != An_Employee
-           # FIXME do I need *any* check on whether someone is classed as SE, & not just se income present?
-            seinc = get(pers.income,self_employment_income,0.0)
+            seinc = mult( 
+                data=pers.income, 
+                calculated=pres.incomes, 
+                included=sys.class_4_income )
+            # maybe? pers.principal_employment_type != An_Employee
+            # FIXME do I need *any* check on whether someone is classed as SE, & not just se income present?
             if seinc > sys.class_2_threshold
-                nires.class_2 = sys.class_2_rate
+                pres.ni.class_2 = sys.class_2_rate
             end
-            nires.class_4 = calctaxdue(
+            pres.ni.class_4 = calctaxdue(
                 taxable = seinc,
                 rates = sys.class_4_rates,
                 thresholds = sys.class_4_bands ).due
@@ -86,11 +95,11 @@ function calculate_national_insurance( pers::Person{IT,RT}, sys :: NationalInsur
     # do something random for class 3
 
     # don't count employers NI here
-        nires.total_ni = nires.class_1_primary +
-            nires.class_2 +
-            nires.class_4
+        pres.ni.total_ni = pres.ni.class_1_primary +
+            pres.ni.class_2 +
+            pres.ni.class_4
 
-    return nires
+    return pres.ni
 end
 
 function gross_from_net( bc :: BudgetConstraint, net :: Real )::Real

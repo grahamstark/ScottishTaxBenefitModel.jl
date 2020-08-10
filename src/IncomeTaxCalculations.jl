@@ -9,11 +9,12 @@ using .Definitions
 using .ModelHousehold: Person
 using .STBParameters: IncomeTaxSys
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
-using .Utils: get_if_set
+using .Utils: get_if_set, mult
 
 using .Results: ITResult, IndividualResult, BenefitUnitResult
 
-export calc_income_tax, old_enough_for_mca, apply_allowance
+export calc_income_tax!, 
+    old_enough_for_mca, apply_allowance
 export calculate_company_car_charge
 
 ## FIXME just use the dict..
@@ -87,8 +88,10 @@ function calculate_pension_taxation!(
     itres.savings_thresholds = copy( sys.savings_thresholds )
     itres.dividend_thresholds = copy( sys.dividend_thresholds )
     itres.non_savings_thresholds = copy( sys.non_savings_thresholds )
+    # fixme check avs here
     avc = get_if_set(pers.income, avcs, 0.0)
-    pen = get_if_set(pers.income, pension_contributions, 0.0)
+    pen = get_if_set(pers.income, pension_contributions_employee, 0.0)
+    pen += get_if_set(pers.income, pension_contributions_employer, 0.0)
     eligible_contribs = avc + pen
     if eligible_contribs <= 0.0
         return
@@ -131,15 +134,28 @@ returns a single total tax liabilty, plus multiple intermediate numbers
 in the `intermediate` dict
 
 """
-function calc_income_tax(
-    pers   :: Person{IT,RT},
-    sys    :: IncomeTaxSys{IT,RT},
-    spouse_transfer :: RT = 0.0 ) :: ITResult{RT} where IT<:Integer where RT<:Real
-    itres = ITResult{RT}()
-    total_income = sys.all_taxable*pers.income;
-    non_savings = sys.non_savings_income*pers.income;
-    savings = sys.savings_income*pers.income;
-    dividends = sys.dividend_income*pers.income;
+function calc_income_tax!(
+    pres   :: IndividualResult,
+    pers   :: Person,
+    sys    :: IncomeTaxSys,
+    spouse_transfer :: Real = 0.0 )
+
+    total_income = mult( 
+        data=pers.income, 
+        calculated=pres.incomes, 
+        included=sys.all_taxable )
+    non_savings = mult( 
+        data=pers.income, 
+        calculated=pres.incomes, 
+        included=sys.non_savings_income )
+    savings = mult( 
+        data=pers.income, 
+        calculated=pres.incomes, 
+        included=sys.savings_income )
+    dividends = mult( 
+        data=pers.income, 
+        calculated=pres.incomes, 
+        included=sys.dividend_income )
 
     allowance = calculate_allowance( pers, sys )
     # allowance reductions goes here
@@ -148,9 +164,9 @@ function calc_income_tax(
 
     adjusted_net_income = total_income
 
-    calculate_pension_taxation!( itres, sys, pers, total_income, non_savings )
+    calculate_pension_taxation!( pres.it, sys, pers, total_income, non_savings )
 
-    # adjusted_net_income -= itres.pension_eligible_for_relief
+    # adjusted_net_income -= pres.it.pension_eligible_for_relief
 
     adjusted_net_income += calculate_company_car_charge(pers, sys)
     # ...
@@ -167,15 +183,15 @@ function calc_income_tax(
                         adjusted_net_income - sys.personal_allowance_income_limit ))
     end
     taxable_income = adjusted_net_income-allowance
-    itres.intermediate["allowance"]=allowance
-    itres.intermediate["total_income"]=total_income
-    itres.intermediate["adjusted_net_income"]=adjusted_net_income
-    itres.intermediate["taxable_income"]=taxable_income
-    itres.intermediate["savings"]=savings
-    itres.intermediate["non_savings"]=non_savings
-    itres.intermediate["dividends"]=dividends
+    pres.it.intermediate["allowance"]=allowance
+    pres.it.intermediate["total_income"]=total_income
+    pres.it.intermediate["adjusted_net_income"]=adjusted_net_income
+    pres.it.intermediate["taxable_income"]=taxable_income
+    pres.it.intermediate["savings"]=savings
+    pres.it.intermediate["non_savings"]=non_savings
+    pres.it.intermediate["dividends"]=dividends
     # note: we copy from the expanded versions from pension_contributions
-    savings_thresholds = deepcopy( itres.savings_thresholds )
+    savings_thresholds = deepcopy( pres.it.savings_thresholds )
     savings_rates = deepcopy( sys.savings_rates )
     # FIXME model all this with parameters
     toprate = size( savings_thresholds )[1]
@@ -184,7 +200,7 @@ function calc_income_tax(
         non_savings_tax = calctaxdue(
             taxable=non_savings_taxable,
             rates=sys.non_savings_rates,
-            thresholds=itres.non_savings_thresholds )
+            thresholds=pres.it.non_savings_thresholds )
 
         # horrific savings calculation see Melville Ch2 "Savings Income" & examples 2-3
         # FIXME Move to separate function
@@ -209,10 +225,10 @@ function calc_income_tax(
                     savings_rates = vcat([0.0], savings_rates )
                 end
             end
-            itres.intermediate["personal_savings_allowance"] = psa
+            pres.it.intermediate["personal_savings_allowance"] = psa
         end # we have a personal_savings_allowance
-        itres.intermediate["savings_rates"] = savings_rates
-        itres.intermediate["savings_thresholds"] = savings_thresholds
+        pres.it.intermediate["savings_rates"] = savings_rates
+        pres.it.intermediate["savings_thresholds"] = savings_thresholds
         allowance,savings_taxable = apply_allowance( allowance, savings )
         savings_tax = calctaxdue(
             taxable=savings_taxable,
@@ -224,7 +240,7 @@ function calc_income_tax(
         allowance,dividends_taxable =
             apply_allowance( allowance, dividends )
         dividend_rates=deepcopy(sys.dividend_rates)
-        dividend_thresholds=deepcopy(itres.dividend_thresholds )
+        dividend_thresholds=deepcopy(pres.it.dividend_thresholds )
         # always preserve any bottom zero rate
         add_back_zero_band = false
         zero_band = 0.0
@@ -247,10 +263,10 @@ function calc_income_tax(
             dividend_thresholds .+= zero_band # push all up
             dividend_thresholds = vcat( zero_band, dividend_thresholds )
         end
-        itres.intermediate["dividend_rates"]=dividend_rates
-        itres.intermediate["dividend_thresholds"]=dividend_thresholds
-        itres.intermediate["add_back_zero_band"]=add_back_zero_band
-        itres.intermediate["dividends_taxable"]=dividends_taxable
+        pres.it.intermediate["dividend_rates"]=dividend_rates
+        pres.it.intermediate["dividend_thresholds"]=dividend_thresholds
+        pres.it.intermediate["add_back_zero_band"]=add_back_zero_band
+        pres.it.intermediate["dividends_taxable"]=dividends_taxable
 
         dividend_tax = calctaxdue(
             taxable=dividends_taxable,
@@ -259,9 +275,9 @@ function calc_income_tax(
     else # some allowance left
         allowance = -taxable_income # e.g. allowance - taxable_income
     end
-    itres.intermediate["non_savings_tax"]=non_savings_tax.due
-    itres.intermediate["savings_tax"]=savings_tax.due
-    itres.intermediate["dividend_tax"]=dividend_tax.due
+    pres.it.intermediate["non_savings_tax"]=non_savings_tax.due
+    pres.it.intermediate["savings_tax"]=savings_tax.due
+    pres.it.intermediate["dividend_tax"]=dividend_tax.due
 
     #
     # tax reducers
@@ -272,19 +288,18 @@ function calc_income_tax(
             sys.non_savings_rates[sys.non_savings_basic_rate]*spouse_transfer
         total_tax = max( 0.0, total_tax - sp_reduction )
     end
-    itres.total_tax = total_tax
-    itres.taxable_income = taxable_income
-    itres.allowance = allowance
-    itres.total_income = total_income
-    itres.adjusted_net_income = adjusted_net_income
-    itres.non_savings = non_savings_tax.due
-    itres.non_savings_band = non_savings_tax.end_band
-    itres.savings = savings_tax.due
-    itres.savings_band = savings_tax.end_band
-    itres.dividends = dividend_tax.due
-    itres.dividend_band = dividend_tax.end_band
-    itres.unused_allowance = allowance
-    itres
+    pres.it.total_tax = total_tax
+    pres.it.taxable_income = taxable_income
+    pres.it.allowance = allowance
+    pres.it.total_income = total_income
+    pres.it.adjusted_net_income = adjusted_net_income
+    pres.it.non_savings = non_savings_tax.due
+    pres.it.non_savings_band = non_savings_tax.end_band
+    pres.it.savings = savings_tax.due
+    pres.it.savings_band = savings_tax.end_band
+    pres.it.dividends = dividend_tax.due
+    pres.it.dividend_band = dividend_tax.end_band
+    pres.it.unused_allowance = allowance
 end
 
 function allowed_to_transfer_allowance(
@@ -292,24 +307,27 @@ function allowed_to_transfer_allowance(
     from :: ITResult,
     to   :: ITResult ) :: Bool
 
-   can_transfer :: Bool = true
-   if ! (from.unused_allowance > 0.0 &&
-         to.unused_allowance <= 0.0)
+    can_transfer :: Bool = true
+    if ! (from.unused_allowance > 0.0 &&
+        to.unused_allowance <= 0.0)
          # nothing to transfer - this is actually wrong since
          # you can opt to transfer some allowance even if you
          # can technically use it.
-       can_transfer = false
-   elseif to.savings_band > sys.savings_basic_rate ||
-      to.non_savings_band > sys.non_savings_basic_rate ||
-      to.dividend_band > sys.dividend_basic_rate
-      can_transfer = false
-   end
-   ## TODO disallow if mca claimed
-   can_transfer
+        can_transfer = false
+    elseif to.savings_band > sys.savings_basic_rate ||
+        to.non_savings_band > sys.non_savings_basic_rate ||
+        to.dividend_band > sys.dividend_basic_rate
+        can_transfer = false
+    end
+    ## TODO disallow if mca claimed
+    can_transfer
 end # can_transfer
 
 
-function calculate_mca( pers :: Person, tax :: ITResult, sys :: IncomeTaxSys)::Real
+function calculate_mca( 
+    pers :: Person, 
+    tax :: ITResult, 
+    sys :: IncomeTaxSys)::Real
     ## FIXME parameterise this
     mca = sys.married_couples_allowance
     if tax.adjusted_net_income > sys.mca_income_maximum
@@ -319,19 +337,24 @@ function calculate_mca( pers :: Person, tax :: ITResult, sys :: IncomeTaxSys)::R
     mca * sys.mca_credit_rate
 end
 
-function calc_income_tax(
-    head   :: Person{IT,RT},
-    spouse :: Union{Nothing,Person{IT,RT}},
-    sys    :: IncomeTaxSys{IT,RT} ) :: NamedTuple  where IT<:Integer where RT<:Real
-    headtax = calc_income_tax( head, sys )
-    spousetax = nothing
+"""
+ FIXME maybe send an actual benefit unit in here? With kids..
+"""
+function calc_income_tax!(
+    bres   :: BenefitUnitResult,
+    head   :: Person,
+    spouse :: Union{Nothing, Person},
+    sys    :: IncomeTaxSys )
+    calc_income_tax!( bres.pers[head.pid], head, sys )
+    headtax = bres.pers[head.pid].it # just a shorthand reference
     # FIXME the transferable stuff here
-    # is not right as you can elect to transfer more than
+    # is not quite right as you can elect to transfer more than
     # the surplus allowance in some cases.
     # also - add in restrictions on transferring to
     # higher rate payers.
     if spouse !== nothing
-        spousetax = calc_income_tax( spouse, sys )
+        spousetax = bres.pers[spouse.pid].it # reference
+        calc_income_tax!( bres.pers[spouse.pid], spouse, sys )
         # This is not quite right - you can't claim the
         # MCA AND transfer an allowance. We're assuming
         # always MCA first (I think it's always more valuable?)
@@ -350,16 +373,15 @@ function calc_income_tax(
         if spousetax.mca == 0.0 == headtax.mca
             if allowed_to_transfer_allowance( sys, from=spousetax, to=headtax )
                 transferable_allow = min( spousetax.unused_allowance, sys.marriage_allowance )
-                headtax = calc_income_tax( head, sys, transferable_allow )
+                calc_income_tax!( bres.pers[head.pid], head, sys, transferable_allow )
                 headtax.intermediate["transfer_spouse_to_head"] = transferable_allow
             elseif allowed_to_transfer_allowance( sys, from=headtax, to=spousetax )
                 transferable_allow = min( headtax.unused_allowance, sys.marriage_allowance )
-                spousetax = calc_income_tax( spouse, sys, transferable_allow )
+                calc_income_tax!( bres.pers[spouse.pid], spouse, sys, transferable_allow )
                 spousetax.intermediate["transfer_head_to_spouse"] = transferable_allow
             end
         end
     end
-    ( head=headtax, spouse=spousetax )
 end # calc_income_tax
 
 end # module

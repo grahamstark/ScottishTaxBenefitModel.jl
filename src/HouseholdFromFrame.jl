@@ -109,7 +109,7 @@ function map_person( model_person :: DataFrameRow )
         end
     end
 
-    Person{Int64,Float64}(
+    Person{Float64}(
 
         BigInt(model_person.hid),  # BigInt# == sernum
         BigInt(model_person.pid),  # BigInt# == unique id (year * 100000)+
@@ -172,7 +172,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
 
     people = People_Dict()
 
-    Household{Int64,Float64}(
+    Household{Float64}(
         hno,
         frs_hh.hid,
         frs_hh.interview_year,

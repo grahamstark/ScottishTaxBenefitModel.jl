@@ -3,7 +3,7 @@ module Uprating
 using DataFrames
 using CSV
 
-import ScottishTaxBenefitModel: Definitions, Utils
+using ScottishTaxBenefitModel
 using .Definitions
 using .Utils
 
@@ -46,7 +46,8 @@ function make_uprate_types() :: Dict
             bonds_and_gilts,
             other_investment_income,
             other_income,
-            pension_contributions,
+            pension_contributions_employee,
+            pension_contributions_employer,
             loan_repayments ]
             d[i] = upr_nominal_gdp
         elseif i in [stocks_shares]
