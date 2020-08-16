@@ -25,21 +25,45 @@ export calc_legacy_means_tested_benefits, LMTResults
     intermediate :: Dict = Dict()
 end
 
-@with_kw struct LMTIncomes{RT<:Real}
+struct LMTIncomes{RT<:Real}
     gross_earnings :: RT
     net_earnings   :: RT
     total_income   :: RT
 end
 
 function calc_incomes( 
+    which_ben :: LMTBenefitType, # esa hb is jsa pc wtc ctc
     bu :: BenefitUnit, 
     bur :: BenefitUnitResult, 
     sys :: IncomeRules ) :: LMTIncomes 
     T = typeof( sys.permitted_work )
-    gross = zero(T)
-    net = zero(T)
+    extra_incomes = 
+    gross_earn = zero(T)
+    net_earn = zero(T)
+    other = zero(T)
     total = zero(T)
-    return LMTIncomes{T}(gross,net,total)
+    # children's income doesn't count see cpag p421, so:
+    for pid in bu.adults
+        pers = bu.people[pid]
+        pres = bur.pers[pid]
+        gross = 
+            get( pers.income, wage, 0.0 ) +
+            get( pers.income, self_employment_income, 0.0 ) - # this includes losses
+        net = 
+            gross - ## FIXME parameterise this so we can use gross/net
+            pres.it.non_savings -
+            pres.ni.total_ni - 
+            0.5 * get(pers.income, pension_contributions_employee, 0.0 )
+        gross_earn += gross
+        net_earn += max( 0.0, net )
+        other += sum( 
+            data=pers.income, 
+            calculated=pres.incomes, 
+            included=sys.incomes )
+    end
+    # disregards
+
+    return LMTIncomes{T}(gross_earn,net_earn,total)
 end
 
 function calc_credits()
