@@ -23,42 +23,126 @@ module STBParameters
        other_investment_income => 1.0
    )
 
+   const LEGACY_MT_INCOME = Incomes_Dict(
+      # wages and SE treated seperately
+      private_pensions=> 0.0, # all ignored
+      national_savings=> 0.0,
+      bank_interest=> 0.0,
+      stocks_shares=> 0.0,
+      individual_savings_account=> 0.0,
+      # dividends=> 1.0,
+      property=> 1.0,
+      royalties=> 1.0,
+      bonds_and_gilts=> 1.0,
+      other_investment_income=> 1.0,
+      other_income=> 1.0,
+      alimony_and_child_support_received=> 1.0, # FIXME there is a 15 disregard see pp 438
+      health_insurance=> 0.0,
+      alimony_and_child_support_paid=> 0.0,
+      care_insurance=> 0.0,
+      trade_unions_etc=> 0.0,
+      friendly_societies=> 0.0,
+      work_expenses=> 0.0,
+      avcs=> 0.0,
+      other_deductions=> 0.0,
+      loan_repayments=> 0.0,
+      student_loan_repayments=> -1.0,
+      pension_contributions_employee=> 0.0, # handled in income calculation
+      pension_contributions_employer=> 0.0,
+      education_allowances=> 1.0,
+      foster_care_payments=> 1.0,
+      student_grants=> 0.0,
+      student_loans=> 0.0,
+      income_tax=> 0.0, # dealt with in wage seperately
+      national_insurance=> 0.0, # dealt with in wage seperately
+      local_taxes=> 0.0,  
+      free_school_meals=> 0.0,
+      dlaself_care=> 0.0,
+      dlamobility=> 0.0,
+      child_benefit=> 0.0, # some thing about pre 2004 claims
+      pension_credit=> 0.0, # yes for HB
+      state_pension=> 1.0,
+      bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 0.0,
+      armed_forces_compensation_scheme=> 0.0,
+      war_widows_or_widowers_pension=> 1.0,
+      severe_disability_allowance=> 0.0,
+      attendence_allowance=> 0.0, ## FIXME SP!
+      carers_allowance=> 0.0, ## ? obsolete 
+      jobseekers_allowance=> 1.0, ## contribution based
+      industrial_injury_disablement_benefit=> 1.0,
+      employment_and_support_allowance=> 0.0, # 
+      incapacity_benefit=> 1.0,
+      income_support=> 1.0,
+      maternity_allowance=> 1.0,
+      maternity_grant_from_social_fund=> 1.0,
+      funeral_grant_from_social_fund=> 1.0,
+      any_other_ni_or_state_benefit=> 1.0,
+      trade_union_sick_or_strike_pay=> 1.0,
+      friendly_society_benefits=> 1.0,
+      private_sickness_scheme_benefits=> 1.0,
+      accident_insurance_scheme_benefits=> 1.0,
+      hospital_savings_scheme_benefits=> 1.0,
+      government_training_allowances=> 1.0,
+      guardians_allowance=> 1.0,
+      widows_payment=> 1.0,
+      unemployment_or_redundancy_insurance=> 1.0,
+      winter_fuel_payments=> 1.0,
+      dwp_third_party_payments_is_or_pc=> 1.0,
+      dwp_third_party_payments_jsa_or_esa=> 1.0,
+      social_fund_loan_repayment_from_is_or_pc=> 0.0,
+      social_fund_loan_repayment_from_jsa_or_esa=> 0.0,
+      extended_hb=> 1.0, # what is this?
+      permanent_health_insurance=> 0.0,
+      any_other_sickness_insurance=> 0.0,
+      critical_illness_cover=> 0.0,
+      working_tax_credit=> 0.0, # counted for HB
+      child_tax_credit=> 0.0, # counted for HB
+      working_tax_credit_lump_sum=> 0.0,
+      child_tax_credit_lump_sum=> 0.0,
+      housing_benefit=> 0.0,
+      universal_credit=> 0.0,
+      personal_independence_payment_daily_living=> 1.0,
+      personal_independence_payment_mobility=> 1.0,
+      other_benefits => 1.0
+   )
+
    const DIVIDEND_INCOME = Incomes_Dict(
        stocks_shares => 1.0
    )
+
    const Exempt_Income = Incomes_Dict(
-       individual_savings_account=>1.0,
-       local_taxes=>1.0,
-       free_school_meals => 1.0,
-       dlaself_care => 1.0,
-       dlamobility => 1.0,
-       child_benefit => 1.0,
-       pension_credit => 1.0,
-       bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 1.0,
-       armed_forces_compensation_scheme => 1.0, # FIXME not in my list check this
-       war_widows_or_widowers_pension => 1.0,
-       severe_disability_allowance => 1.0,
-       attendence_allowance => 1.0,
-       industrial_injury_disablement_benefit => 1.0,
-       employment_and_support_allowance => 1.0,
-       incapacity_benefit => 1.0,## taxable after 29 weeks,
-       income_support => 1.0,
-       maternity_allowance => 1.0,
-       maternity_grant_from_social_fund => 1.0,
-       funeral_grant_from_social_fund => 1.0,
-       guardians_allowance => 1.0,
-       winter_fuel_payments => 1.0,
-       dwp_third_party_payments_is_or_pc => 1.0,
-       dwp_third_party_payments_jsa_or_esa => 1.0,
-       extended_hb => 1.0,
-       working_tax_credit => 1.0,
-       child_tax_credit => 1.0,
-       working_tax_credit_lump_sum => 1.0,
-       child_tax_credit_lump_sum => 1.0,
-       housing_benefit => 1.0,
-       universal_credit => 1.0,
-       personal_independence_payment_daily_living => 1.0,
-       personal_independence_payment_mobility => 1.0 )
+      carers_allowance=>1.0,
+      jobseekers_allowance =>1.0,
+      free_school_meals => 1.0,
+      dlaself_care => 1.0,
+      dlamobility => 1.0,
+      child_benefit => 1.0,
+      pension_credit => 1.0,
+      bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 1.0,
+      armed_forces_compensation_scheme => 1.0, # FIXME not in my list check this
+      war_widows_or_widowers_pension => 1.0,
+      severe_disability_allowance => 1.0,
+      attendence_allowance => 1.0,
+      industrial_injury_disablement_benefit => 1.0,
+      employment_and_support_allowance => 1.0,
+      incapacity_benefit => 1.0,## taxable after 29 weeks,
+      income_support => 1.0,
+      maternity_allowance => 1.0,
+      maternity_grant_from_social_fund => 1.0,
+      funeral_grant_from_social_fund => 1.0,
+      guardians_allowance => 1.0,
+      winter_fuel_payments => 1.0,
+      dwp_third_party_payments_is_or_pc => 1.0,
+      dwp_third_party_payments_jsa_or_esa => 1.0,
+      extended_hb => 1.0,
+      working_tax_credit => 1.0,
+      child_tax_credit => 1.0,
+      working_tax_credit_lump_sum => 1.0,
+      child_tax_credit_lump_sum => 1.0,
+      housing_benefit => 1.0,
+      universal_credit => 1.0,
+      personal_independence_payment_daily_living => 1.0,
+      personal_independence_payment_mobility => 1.0 )
 
    function make_all_taxable()::Incomes_Dict
        eis = union(Set( keys( Exempt_Income )), Definitions.Expenses )
@@ -261,11 +345,30 @@ module STBParameters
       pensioner_is :: RT = 140.40
    end
 
+   @with_kw mutable struct HoursLimits
+      lower :: Int = 16
+      higher :: Int = 30
+   end
+   
+   @with_kw mutable struct IncomeRules{RT<:Real}
+      permitted_work :: RT= 131.50
+      lone_parent :: RT = 25.00
+      high :: RT = 20.0
+      low_couple :: RT = 10.0
+      low_single :: RT = 5.0       
+      additional :: RT = 17.10
+      childcare_max_1 :: RT = 175.00
+      childcare_max_2 :: RT = 300.00
+      incomes = Incomes_Dict = LEGACY_MT_INCOME
+   end
+
+
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
        # CPAG 2019/20 p335
-       premia :: Premia = Premia{RT}()
-       allowances :: PersonalAllowances = PersonalAllowances{RT}()
-
+      premia :: Premia = Premia{RT}()
+      allowances :: PersonalAllowances = PersonalAllowances{RT}()
+      income_rules :: IncomeRules = IncomeRules{RT}()
+      hours_limits :: HoursLimits = HoursLimits()
    end
 
    @with_kw mutable struct TaxBenefitSystem{RT<:Real}
