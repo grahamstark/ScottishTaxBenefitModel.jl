@@ -1378,6 +1378,9 @@ export
 end
 
 
+@enum LMTBenefitType esa hb is jsa pc wtc ctc
+export LMTBenefitType, esa, hb, is, jsa, pc, wtc, ctc
+
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)
 
