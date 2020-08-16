@@ -35,8 +35,11 @@ function calc_incomes(
     bu :: BenefitUnit, 
     bur :: BenefitUnitResult, 
     sys :: IncomeRules ) :: LMTIncomes 
-
-    return LMTIncomes(0,0,0)
+    T = typeof( sys.permitted_work )
+    gross = zero(T)
+    net = zero(T)
+    total = zero(T)
+    return LMTIncomes{T}(gross,net,total)
 end
 
 function calc_credits()
