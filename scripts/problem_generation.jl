@@ -61,8 +61,6 @@ for i in 1:GR_SIZE
     end
 end
 
-print pe
-
 
 wnp = 74.6268656716418
 
