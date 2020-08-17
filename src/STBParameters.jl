@@ -59,6 +59,17 @@ module STBParameters
       
    )
 
+   # add the other old MT bens to HB incomes
+   
+   const LEGACY_HB_INCOME = merge( EXTRA_HB_INCOMES, Incomes_Dict(
+      working_tax_credit = 1.0,
+      child_tax_credit = 1.0,
+      pension_credit = 1.0,
+      employment_and_support_allowance = 1.0,
+      jobseekers_allowance = 1.0
+   ))
+   
+
    const DIVIDEND_INCOME = Incomes_Dict(
        stocks_shares => 1.0
    )
@@ -312,7 +323,8 @@ module STBParameters
       additional :: RT = 17.10
       childcare_max_1 :: RT = 175.00
       childcare_max_2 :: RT = 300.00
-      incomes = Incomes_Dict = LEGACY_MT_INCOME
+      incomes :: Incomes_Dict = LEGACY_MT_INCOME
+      hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME      
    end
 
 

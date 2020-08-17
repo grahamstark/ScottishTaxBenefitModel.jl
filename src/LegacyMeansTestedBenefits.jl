@@ -4,7 +4,7 @@ using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
 using .Definitions
-using .ModelHousehold: Person,BenefitUnit,Household
+using .ModelHousehold: Person,BenefitUnit,Household.is_single_parent
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
     Premia, PersonalAllowances
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
@@ -37,18 +37,24 @@ function calc_incomes(
     bur :: BenefitUnitResult, 
     sys :: IncomeRules ) :: LMTIncomes 
     T = typeof( sys.permitted_work )
-    extra_incomes = 
+    extra_incomes = zero(T)
     gross_earn = zero(T)
     net_earn = zero(T)
     other = zero(T)
     total = zero(T)
+    is_sparent = is_single_parent( bu )
+    if which_ben == hb
+        inclist = sys.hb_incomes
+    else
+        inclist = sys.incomes
+    end
     # children's income doesn't count see cpag p421, so:
     for pid in bu.adults
         pers = bu.people[pid]
         pres = bur.pers[pid]
         gross = 
             get( pers.income, wage, 0.0 ) +
-            get( pers.income, self_employment_income, 0.0 ) - # this includes losses
+            get( pers.income, self_employment_income, 0.0 ) # this includes losses
         net = 
             gross - ## FIXME parameterise this so we can use gross/net
             pres.it.non_savings -
@@ -59,10 +65,21 @@ function calc_incomes(
         other += sum( 
             data=pers.income, 
             calculated=pres.incomes, 
-            included=sys.incomes )
+            included=inclist )
     end
     # disregards
+    if is_sparent
+        
+    else
 
+    end
+    # childcare
+    if which_ben == hb
+        if is_sparent
+
+        end    
+    end
+    total = net_earn + other
     return LMTIncomes{T}(gross_earn,net_earn,total)
 end
 

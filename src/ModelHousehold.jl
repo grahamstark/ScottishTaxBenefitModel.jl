@@ -9,7 +9,7 @@ using .Uprating: uprate, UPRATE_MAPPINGS
 export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
-export make_benefit_unit 
+export make_benefit_unit, is_lone_parent
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -185,6 +185,10 @@ function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}
         return nothing
     end
     bu.people[bu.spouse]
+end
+
+function is_lone_parent( bu :: BenefitUnit ) :: Bool
+    return bu.spouse < 0 && size( bu.children )[1] > 0
 end
 
 
