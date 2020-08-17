@@ -168,6 +168,7 @@ struct BenefitUnit
     people :: People_Dict
     head :: BigInt
     spouse :: BigInt
+    adults :: Pid_Array
     children :: Pid_Array
 end
 
@@ -234,6 +235,11 @@ function make_benefit_unit(
     npeople = size( people )[1]
     pd = People_Dict()
     children = Pid_Array()
+    adults = Pid_Array()
+    push!( adults, head )
+    if spouse > 0 
+        push!( adults, spouse )
+    end
     palloc = spouse <= 0 ? 2 : 3
     for n in palloc:npeople
         push!(children, people[n].pid)
@@ -243,7 +249,7 @@ function make_benefit_unit(
         pd[pers.pid] = pers
         # println( "adding person $(pers.pid)")
     end
-    return BenefitUnit( pd, head, spouse, children )
+    return BenefitUnit( pd, head, spouse, adults, children )
 end
 
 #
@@ -258,16 +264,19 @@ function allocate_to_bus( bua :: BUAllocation ) :: BenefitUnits
         head_pid :: BigInt = -1
         spouse_pid :: BigInt = -1
         children = Pid_Array()
+        adults = Pid_Array()
         npeople = size( bua[i])[1]
         for p in 1:npeople
             person = bua[i][p]
             people[person.pid] = person
             if p == 1
                 head_pid = person.pid
+                push!( adults, head_pid )
             else
                 reltohead = person.relationships[head_pid]
                 if reltohead in [Spouse,Cohabitee,Civil_Partner]
                     spouse_pid = person.pid
+                    push!( adults, spouse_pid )
                     # FIXME we need to remove these checks if
                     # we're using a non-default allocation to bus
                     # @assert person.age >= 16
@@ -277,7 +286,7 @@ function allocate_to_bus( bua :: BUAllocation ) :: BenefitUnits
                 end
             end
         end
-        new_bu = BenefitUnit( people, head_pid, spouse_pid, children )
+        new_bu = BenefitUnit( people, head_pid, spouse_pid, adults, children )
         bus[i] = new_bu
     end
     bus
