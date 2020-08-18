@@ -1384,11 +1384,12 @@ export LMTBenefitType, esa, hb, is, jsa, pc, wtc, ctc
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)
 
-export DataSource, FRS, OtherSource
+export DataSource, FRS, OtherSource, ExampleSource
 
 @enum DataSource begin  # mapped from relhrp
    FRS = 1
    OtherSource = 2
+   ExampleSource = 3
 end
 
 export get_pid, safe_assign, safe_inc

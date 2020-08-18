@@ -1,15 +1,47 @@
-import ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household
-import Test: @testset, @test
-import ScottishTaxBenefitModel.ModelHousehold: Household, Person, People_Dict, BUAllocation,
+using ScottishTaxBenefitModel
+using .FRSHouseholdGetter
+using .ExampleHouseholdGetter
+using Test: @testset, @test
+using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       PeopleArray, printpids,
       BenefitUnit, BenefitUnits, default_bu_allocation,
-      get_benefit_units, get_head, get_spouse, num_people
+      get_benefit_units, get_head, get_spouse, num_people,
+      is_disabled, is_lone_parent, is_carer
+using .Definitions
 
 start_year=2015
 
+@testset "people search functions" begin
+      @time names = ExampleHouseholdGetter.initialise()
+      hh = ExampleHouseholdGetter.get_household( "single_parent_1" )  
+      printpids( hh.people ) 
+      @test num_people( hh ) == 3
+      @test is_lone_parent( hh )
+      bus = get_benefit_units( hh )
+      @test size(bus)[1] == 1
+      bu = bus[1]
+      @test is_lone_parent( bu )
+      @test num_people( bu ) == 3
+      head = get_head( bu )
+      @test ! is_disabled( bu )
+      @test ! is_carer( bu )
+      # FIXME we'll need to change this if disability no longer based on benefit receipt
+      head.registered_blind = true
+      @test is_disabled( bu )
+      @test ! is_carer( bu )
+      head.registered_blind = false
+      head.income[carers_allowance] = 1.0
+      @test is_carer( bu )
+      delete!(head.income,carers_allowance)
+      @test ! is_carer( bu )
+      head.income[severe_disability_allowance] = 1.0
+      @test is_disabled( bu )
+      
+end
+
 @testset "benefit unit allocations" begin
       rc = @timed begin
-            num_households,total_num_people,nhh2 = initialise(
+            num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
                   household_name = "model_households_scotland",
                   people_name    = "model_people_scotland",
                   start_year = start_year )
@@ -17,7 +49,7 @@ start_year=2015
       println( "num_households=$num_households, num_people=$(total_num_people)")
       people_count = 0
       for hhno in 1:num_households
-            hh = get_household( hhno )
+            hh = FRSHouseholdGetter.get_household( hhno )
             # println("people in HH")
             # printpids(hh.people)
 

@@ -8,8 +8,6 @@ using ScottishTaxBenefitModel.NationalInsuranceCalculations
 import ScottishTaxBenefitModel.STBParameters: NationalInsuranceSys,weeklyise!
 import .GeneralTaxComponents: WEEKS_PER_YEAR
 
-const RUK_PERSON = 100000001001
-
 
 @testset "CPAG" begin
     # BASIC IT Calcaulation on

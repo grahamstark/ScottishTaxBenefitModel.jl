@@ -47,7 +47,6 @@ ExampleHouseholdGetter.initialise()
 # table 2
 @testset "Reproduce HMRC 2019/20" begin
     hh = ExampleHouseholdGetter.get_household( "mel_c2" )
-    pid = 100000001001
     hhr = init_household_result( hh )
     @test hh_to_hhr_mismatch( hh, hhr )
 
@@ -58,14 +57,14 @@ ExampleHouseholdGetter.initialise()
     divs = [0.0, 5_000, 0.0, 0.0]./WEEKS_PER_YEAR
     liabilities = [7_500,6_125,300,1_000]./WEEKS_PER_YEAR
     for i in 1:4
-        hh.people[ pid ].income[wages] = wage[i]
-        hh.people[ pid ].income[bank_interest] = savings[i]
-        hh.people[ pid ].income[stocks_shares] = divs[i]
+        hh.people[ RUK_PERSON ].income[wages] = wage[i]
+        hh.people[ RUK_PERSON ].income[bank_interest] = savings[i]
+        hh.people[ RUK_PERSON ].income[stocks_shares] = divs[i]
         hres = do_one_calc( hh, sys[1] )
         hres_scot = do_one_calc( hh, sys[2] )
         if i == 1
-            @test round(hres_scot.bus[1].pers[pid].it.total_tax*WEEKS_PER_YEAR) ≈ 9_044
+            @test round(hres_scot.bus[1].pers[RUK_PERSON].it.total_tax*WEEKS_PER_YEAR) ≈ 9_044
         end
-        @test hres.bus[1].pers[pid].it.total_tax ≈ liabilities[i]
+        @test hres.bus[1].pers[RUK_PERSON].it.total_tax ≈ liabilities[i]
     end
 end

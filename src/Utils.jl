@@ -9,7 +9,7 @@ using BudgetConstraints
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
-export eq_nearest_p,  mult
+export eq_nearest_p,  mult, has_non_z
 
 #
 # this has a higher top income than the BC default
@@ -135,6 +135,15 @@ function mult(; data::Dict{K,T}, calculated :: Dict{K,T}, included :: Dict{K,T})
    end
    return s;
 end # mult
+
+function has_non_z( d::AbstractDict, k ) :: Bool
+   if haskey( d, k )
+      if typeof(d[k]) <: Number
+         return d[k] != 0
+      end
+   end
+   return false
+end
 
 function mult_dict!( m :: Dict, n :: Number )
    for (k,v) in m

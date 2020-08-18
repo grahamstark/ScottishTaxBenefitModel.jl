@@ -30,7 +30,7 @@ function initialise(
     nhhlds = size( hh_dataset )[1]
     MODEL_HOUSEHOLDS = Vector{Household}(undef,nhhlds)
     for hseq in 1:nhhlds
-        MODEL_HOUSEHOLDS[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset )
+        MODEL_HOUSEHOLDS[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
         uprate!( MODEL_HOUSEHOLDS[hseq] )
     end
     (size(MODEL_HOUSEHOLDS)[1],npeople,nhhlds)

@@ -2,14 +2,15 @@ module ModelHousehold
 
 using Dates
 
-import ScottishTaxBenefitModel: Definitions, Uprating
+using ScottishTaxBenefitModel
 using .Definitions
+using .Utils: has_non_z
 using .Uprating: uprate, UPRATE_MAPPINGS
 
 export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
-export make_benefit_unit, is_lone_parent
+export make_benefit_unit, is_lone_parent, is_carer, is_disabled, is_single
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -98,7 +99,6 @@ mutable struct Household{RT<:Real}
     house_value::RT
     weight::RT
     people::People_Dict
-
 end
 
 function uprate!( pid :: BigInt, year::Integer, quarter::Integer, person :: Person )
@@ -170,25 +170,6 @@ struct BenefitUnit
     spouse :: BigInt
     adults :: Pid_Array
     children :: Pid_Array
-end
-
-function num_people( bu :: BenefitUnit )::Integer
-    1 + ((bu.spouse > 0) ? 1 : 0 ) + size( bu.children )[1]
-end
-
-function get_head( bu :: BenefitUnit )::Person
-    bu.people[bu.head]
-end
-
-function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}
-    if bu.spouse <= 0
-        return nothing
-    end
-    bu.people[bu.spouse]
-end
-
-function is_lone_parent( bu :: BenefitUnit ) :: Bool
-    return bu.spouse < 0 && size( bu.children )[1] > 0
 end
 
 
@@ -277,6 +258,7 @@ function allocate_to_bus( bua :: BUAllocation ) :: BenefitUnits
                 head_pid = person.pid
                 push!( adults, head_pid )
             else
+                # println( "on bu $i person $p relationships $(person.relationships)")
                 reltohead = person.relationships[head_pid]
                 if reltohead in [Spouse,Cohabitee,Civil_Partner]
                     spouse_pid = person.pid
@@ -301,6 +283,121 @@ function get_benefit_units(
     allocator :: Function=default_bu_allocation ) :: BenefitUnits
     allocate_to_bus( allocator(hh))
 end
+
+function num_people( bu :: BenefitUnit )::Integer
+    length( bu.people )
+end
+
+function num_people( hh :: Household ) :: Integer
+    length( hh.people )
+end
+
+function get_head( bu :: BenefitUnit )::Person
+    bu.people[bu.head]
+end
+
+function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}
+    if bu.spouse <= 0
+        return nothing
+    end
+    bu.people[bu.spouse]
+end
+
+function is_lone_parent( bu :: BenefitUnit ) :: Bool
+    return bu.spouse < 0 && size( bu.children )[1] > 0
+end
+
+#
+# fixme just count people???
+#
+function is_lone_parent( hh :: Household,
+    allocator :: Function=default_bu_allocation ) :: Bool
+    
+    bus = get_benefit_units( hh, allocator )
+    if size(bus)[1] > 1
+        return false
+    end
+    return bus[1].spouse < 0 && size( bus[1].children )[1] > 0
+end
+
+
+function is_single( bu :: BenefitUnit ) :: Bool
+    num_people( bu ) == 1
+end
+
+function is_single( hh :: Household ) :: Bool
+    num_people( hh ) == 1
+end
+
+"""
+FIXME we're going to do this solely on benefit receipt
+for now until we get the regressions done
+we use historic benefits here since this uses actual data
+"""
+function pers_is_carer( pers :: Person ) :: Bool
+    has_non_z( pers.income, carers_allowance )
+end
+
+const DISABLE_BENEFITS = [
+    severe_disability_allowance,
+    attendence_allowance,
+    incapacity_benefit,
+    dlaself_care,
+    dlamobility,
+    personal_independence_payment_daily_living,
+    personal_independence_payment_mobility]
+
+
+"""
+FIXME we're going to do this solely on benefit receipt
+for now until we get the regressions done
+we use historic benefits here since this uses actual data
+"""
+function pers_is_disabled( pers :: Person ) :: Bool
+    if pers.registered_blind
+        return true
+    end
+    for k in DISABLE_BENEFITS
+        if has_non_z( pers.income, k )
+            return true
+        end
+    end # loop
+    return false
+end
+
+function search( people :: People_Dict, func :: Function ) :: Bool
+    for ( pid,pers ) in people
+        if func( pers )
+            return true
+        end
+    end
+    return false
+end
+
+function search( bu :: BenefitUnit, func :: Function ) :: Bool
+    return search( bu.people, func )
+end
+
+function search( hh :: Household, func :: Function ) :: Bool
+    return search( hh.people, func )
+end
+
+function is_disabled( bu :: BenefitUnit ) :: Bool
+    search( bu.people, pers_is_disabled )
+end
+
+function is_disabled( hh :: Household ) :: Bool
+    search( hh.people, pers_is_disabled )
+end
+
+function is_carer( bu :: BenefitUnit ) :: Bool
+    search( bu.people, pers_is_carer )
+end
+
+function is_carer( hh :: Household ) :: Bool
+    search( hh.people, pers_is_carer )
+end
+
 
 # simple diagnostic prints for testing allocation
 
@@ -345,6 +442,4 @@ function printpids( buas::BUAllocation )
     end
 end
 
-
-
-end
+end # module

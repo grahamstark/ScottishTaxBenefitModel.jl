@@ -4,7 +4,8 @@ using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
 using .Definitions
-using .ModelHousehold: Person,BenefitUnit,Household.is_single_parent
+using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
+    is_disabled, is_carer
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
     Premia, PersonalAllowances
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
@@ -42,7 +43,10 @@ function calc_incomes(
     net_earn = zero(T)
     other = zero(T)
     total = zero(T)
-    is_sparent = is_single_parent( bu )
+    is_sparent = is_lone_parent( bu )
+    is_single = is_single_person( bu )
+    is_disabled = has_disabled_member( bu )
+    is_carer = has_carer_member( bu )
     if which_ben == hb
         inclist = sys.hb_incomes
     else
@@ -68,11 +72,18 @@ function calc_incomes(
             included=inclist )
     end
     # disregards
+    # if which_ben in [hb,jsa,is,]
+    # FIXME this is not quite right for ESA
+    disreg = 0.0
     if is_sparent
-        
+        disreg = which_ben == hb ? sys.lone_parent_hb : sys.high # 25 or 20
+    elseif is_disabled || is_carer 
+        disreg = sys.high
     else
-
+        
     end
+    
+    # end
     # childcare
     if which_ben == hb
         if is_sparent

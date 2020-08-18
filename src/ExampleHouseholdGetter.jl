@@ -33,7 +33,7 @@ function initialise(
     for hseq in 1:nhhlds
         hhf = hh_dataset[hseq,:]
         push!( KEYMAP, hhf.name )
-        EXAMPLE_HOUSEHOLDS[hhf.name] = load_hhld_from_frame( hseq, hhf, people_dataset )
+        EXAMPLE_HOUSEHOLDS[hhf.name] = load_hhld_from_frame( hseq, hhf, people_dataset, ExampleSource )
     end
     KEYMAP
 end

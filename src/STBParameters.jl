@@ -55,21 +55,21 @@ module STBParameters
       winter_fuel_payments=> 1.0,
       dwp_third_party_payments_is_or_pc=> 1.0,
       dwp_third_party_payments_jsa_or_esa=> 1.0,
-      extended_hb=> 1.0, # what is this?
-      
+      extended_hb=> 1.0 # what is this?
    )
 
+   const EXTRA_HB = Incomes_Dict(
+      working_tax_credit => 1.0,
+      child_tax_credit => 1.0,
+      pension_credit => 1.0,
+      employment_and_support_allowance => 1.0,
+      jobseekers_allowance => 1.0
+   )
+   #
    # add the other old MT bens to HB incomes
+   #
+   const LEGACY_HB_INCOME = merge( LEGACY_MT_INCOME, EXTRA_HB )
    
-   const LEGACY_HB_INCOME = merge( EXTRA_HB_INCOMES, Incomes_Dict(
-      working_tax_credit = 1.0,
-      child_tax_credit = 1.0,
-      pension_credit = 1.0,
-      employment_and_support_allowance = 1.0,
-      jobseekers_allowance = 1.0
-   ))
-   
-
    const DIVIDEND_INCOME = Incomes_Dict(
        stocks_shares => 1.0
    )
@@ -316,7 +316,7 @@ module STBParameters
    
    @with_kw mutable struct IncomeRules{RT<:Real}
       permitted_work :: RT= 131.50
-      lone_parent :: RT = 25.00
+      lone_parent_hb :: RT = 25.00
       high :: RT = 20.0
       low_couple :: RT = 10.0
       low_single :: RT = 5.0       

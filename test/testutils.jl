@@ -6,10 +6,11 @@ using ScottishTaxBenefitModel.STBParameters:
 
 
 # pids for example people
- const RUK_PERSON = 100000001001
- const SCOT_HEAD = 100000001002
- const SCOT_SPOUSE = 100000001003
+# see make_pid 
+ const RUK_PERSON = 320190010101
 
+ const SCOT_HEAD = 320190010201
+ const SCOT_SPOUSE = 320190010202
 
 function get_default_it_system(
    ;
