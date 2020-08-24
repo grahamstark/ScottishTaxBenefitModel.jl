@@ -15,113 +15,127 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
     export weeklyise!, annualise!
 
-    const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
+   const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
-    const SAVINGS_INCOME = Incomes_Dict(
-       bank_interest => 1.0,
-       bonds_and_gilts => 1.0,
-       other_investment_income => 1.0
-   )
+   function SAVINGS_INCOME( t :: Type ) :: Incomes_Dict
+      Incomes_Dict{T}(
+         bank_interest => 1.0,
+         bonds_and_gilts => 1.0,
+         other_investment_income => 1.0 )
+   end
+   
 
-   const LEGACY_MT_INCOME = Incomes_Dict(
+
+
+   function LEGACY_MT_INCOME( t :: Type ):: Incomes_Dict
       # wages and SE treated seperately
-      other_income=> 1.0,
-      alimony_and_child_support_received=> 1.0, # FIXME there is a 15 disregard see pp 438
-      alimony_and_child_support_paid=> 0.0,
-      student_loan_repayments=> -1.0,
-      education_allowances=> 1.0,
-      foster_care_payments=> 1.0,
-      # it and NI dealt with in wage seperately
-      state_pension=> 1.0,
-      bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 0.0,
-      war_widows_or_widowers_pension=> 1.0,
-      jobseekers_allowance=> 1.0, ## contribution based
-      industrial_injury_disablement_benefit=> 1.0,
-      incapacity_benefit=> 1.0,
-      income_support=> 1.0,
-      maternity_allowance=> 1.0,
-      maternity_grant_from_social_fund=> 1.0,
-      funeral_grant_from_social_fund=> 1.0,
-      any_other_ni_or_state_benefit=> 1.0,
-      trade_union_sick_or_strike_pay=> 1.0,
-      friendly_society_benefits=> 1.0,
-      private_sickness_scheme_benefits=> 1.0,
-      accident_insurance_scheme_benefits=> 1.0,
-      hospital_savings_scheme_benefits=> 1.0,
-      government_training_allowances=> 1.0,
-      guardians_allowance=> 1.0,
-      widows_payment=> 1.0,
-      unemployment_or_redundancy_insurance=> 1.0,
-      winter_fuel_payments=> 1.0,
-      dwp_third_party_payments_is_or_pc=> 1.0,
-      dwp_third_party_payments_jsa_or_esa=> 1.0,
-      extended_hb=> 1.0 # what is this?
-   )
+      Incomes_Dict{T}(
+         other_income=> 1.0,
+         alimony_and_child_support_received=> 1.0, # FIXME there is a 15 disregard see pp 438
+         alimony_and_child_support_paid=> 0.0,
+         student_loan_repayments=> -1.0,
+         education_allowances=> 1.0,
+         foster_care_payments=> 1.0,
+         # it and NI dealt with in wage seperately
+         state_pension=> 1.0,
+         bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 0.0,
+         war_widows_or_widowers_pension=> 1.0,
+         jobseekers_allowance=> 1.0, ## contribution based
+         industrial_injury_disablement_benefit=> 1.0,
+         incapacity_benefit=> 1.0,
+         income_support=> 1.0,
+         maternity_allowance=> 1.0,
+         maternity_grant_from_social_fund=> 1.0,
+         funeral_grant_from_social_fund=> 1.0,
+         any_other_ni_or_state_benefit=> 1.0,
+         trade_union_sick_or_strike_pay=> 1.0,
+         friendly_society_benefits=> 1.0,
+         private_sickness_scheme_benefits=> 1.0,
+         accident_insurance_scheme_benefits=> 1.0,
+         hospital_savings_scheme_benefits=> 1.0,
+         government_training_allowances=> 1.0,
+         guardians_allowance=> 1.0,
+         widows_payment=> 1.0,
+         unemployment_or_redundancy_insurance=> 1.0,
+         winter_fuel_payments=> 1.0,
+         dwp_third_party_payments_is_or_pc=> 1.0,
+         dwp_third_party_payments_jsa_or_esa=> 1.0,
+         extended_hb=> 1.0 # what is this?
+      )
+   end
 
-   const EXTRA_HB = Incomes_Dict(
-      working_tax_credit => 1.0,
-      child_tax_credit => 1.0,
-      pension_credit => 1.0,
-      employment_and_support_allowance => 1.0,
-      jobseekers_allowance => 1.0
-   )
+   function EXTRA_HB( t :: Type ) :: Incomes_Dict
+      Incomes_Dict{T}(
+         working_tax_credit => 1.0,
+         child_tax_credit => 1.0,
+         pension_credit => 1.0,
+         employment_and_support_allowance => 1.0,
+         jobseekers_allowance => 1.0
+      )
+   end
+
    #
    # add the other old MT bens to HB incomes
    #
-   const LEGACY_HB_INCOME = merge( LEGACY_MT_INCOME, EXTRA_HB )
-   
-   const DIVIDEND_INCOME = Incomes_Dict(
-       stocks_shares => 1.0
-   )
+   function LEGACY_HB_INCOME(t::Type)::Incomes_Dict
+      merge( LEGACY_MT_INCOME(t), EXTRA_HB(t) )
+   end
 
-   const Exempt_Income = Incomes_Dict(
-      carers_allowance=>1.0,
-      jobseekers_allowance =>1.0,
-      free_school_meals => 1.0,
-      dlaself_care => 1.0,
-      dlamobility => 1.0,
-      child_benefit => 1.0,
-      pension_credit => 1.0,
-      bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 1.0,
-      armed_forces_compensation_scheme => 1.0, # FIXME not in my list check this
-      war_widows_or_widowers_pension => 1.0,
-      severe_disability_allowance => 1.0,
-      attendence_allowance => 1.0,
-      industrial_injury_disablement_benefit => 1.0,
-      employment_and_support_allowance => 1.0,
-      incapacity_benefit => 1.0,## taxable after 29 weeks,
-      income_support => 1.0,
-      maternity_allowance => 1.0,
-      maternity_grant_from_social_fund => 1.0,
-      funeral_grant_from_social_fund => 1.0,
-      guardians_allowance => 1.0,
-      winter_fuel_payments => 1.0,
-      dwp_third_party_payments_is_or_pc => 1.0,
-      dwp_third_party_payments_jsa_or_esa => 1.0,
-      extended_hb => 1.0,
-      working_tax_credit => 1.0,
-      child_tax_credit => 1.0,
-      working_tax_credit_lump_sum => 1.0,
-      child_tax_credit_lump_sum => 1.0,
-      housing_benefit => 1.0,
-      universal_credit => 1.0,
-      personal_independence_payment_daily_living => 1.0,
-      personal_independence_payment_mobility => 1.0 )
+   function DIVIDEND_INCOME( t :: Type ) :: Incomes_Dict
+      Incomes_Dict{t}(
+         stocks_shares => one(t) )
+   end
 
-   function make_all_taxable()::Incomes_Dict
-       eis = union(Set( keys( Exempt_Income )), Definitions.Expenses )
-       all_t = Incomes_Dict()
+   function Exempt_Income( t :: Type ) :: Incomes_Dict
+      Incomes_Dict{t}(
+         carers_allowance=>1.0,
+         jobseekers_allowance =>1.0,
+         free_school_meals => 1.0,
+         dlaself_care => 1.0,
+         dlamobility => 1.0,
+         child_benefit => 1.0,
+         pension_credit => 1.0,
+         bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 1.0,
+         armed_forces_compensation_scheme => 1.0, # FIXME not in my list check this
+         war_widows_or_widowers_pension => 1.0,
+         severe_disability_allowance => 1.0,
+         attendence_allowance => 1.0,
+         industrial_injury_disablement_benefit => 1.0,
+         employment_and_support_allowance => 1.0,
+         incapacity_benefit => 1.0,## taxable after 29 weeks,
+         income_support => 1.0,
+         maternity_allowance => 1.0,
+         maternity_grant_from_social_fund => 1.0,
+         funeral_grant_from_social_fund => 1.0,
+         guardians_allowance => 1.0,
+         winter_fuel_payments => 1.0,
+         dwp_third_party_payments_is_or_pc => 1.0,
+         dwp_third_party_payments_jsa_or_esa => 1.0,
+         extended_hb => 1.0,
+         working_tax_credit => 1.0,
+         child_tax_credit => 1.0,
+         working_tax_credit_lump_sum => 1.0,
+         child_tax_credit_lump_sum => 1.0,
+         housing_benefit => 1.0,
+         universal_credit => 1.0,
+         personal_independence_payment_daily_living => 1.0,
+         personal_independence_payment_mobility => 1.0 )
+   end
+
+   function make_all_taxable(t::Type)::Incomes_Dict
+       eis = union(Set( keys( Exempt_Income{t}() )), Definitions.Expenses )
+       all_t = Incomes_Dict{t}()
        for i in instances(Incomes_Type)
            if ! (i ∈ eis )
-               all_t[i]=1.0
+               all_t[i]=one(t)
            end
        end
        all_t
    end
 
-    function make_non_savings()::Incomes_Dict
-       excl = union(Set(keys(DIVIDEND_INCOME)), Set( keys(SAVINGS_INCOME)))
-       nsi = make_all_taxable()
+    function make_non_savings( t :: Type )::Incomes_Dict where T
+       excl = union(Set(keys(DIVIDEND_INCOME{t}())), Set( keys(SAVINGS_INCOME{t}())))
+       nsi = make_all_taxable(t)
        for i in excl
            delete!( nsi, i )
        end
@@ -131,7 +145,8 @@ module STBParameters
    ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
    # using Unitful
 
-   Default_Fuel_Dict_2020_21 = Dict{Fuel_Type,Real}(
+   function Default_Fuel_Dict_2020_21(t::Type):: Fuel_Type_Dict
+      Fuel_Type_Dict{t}(
          Missing_Fuel_Type=>0.1,
          No_Fuel=>0.1,
          Other=>0.1,
@@ -142,6 +157,7 @@ module STBParameters
          Electric=>0.02,
          LPG=>0.02,
          Biofuel_eg_E85_fuel=>0.02 )
+   end
 
    @with_kw mutable struct IncomeTaxSys{RT<:Real}
       non_savings_rates :: RateBands{RT} =  [19.0,20.0,21.0,41.0,46.0]
@@ -173,7 +189,7 @@ module STBParameters
       # FIXME better to have it straight from
       # the book with charges per CO2 range
       # and the data being an estimate of CO2 per type
-      company_car_charge_by_CO2_emissions :: Dict{ Fuel_Type, RT } = Default_Fuel_Dict_2020_21
+      company_car_charge_by_CO2_emissions :: Fuel_Type_Dict{RT} = Default_Fuel_Dict_2020_21{T}()
       fuel_imputation  :: RT = 24_100.00
 
       #

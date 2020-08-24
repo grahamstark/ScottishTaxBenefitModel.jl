@@ -27,16 +27,20 @@ export calc_legacy_means_tested_benefits,
     intermediate :: Dict = Dict()
 end
 
-struct LMTIncomes{RT<:Real}
-    gross_earnings :: RT
-    net_earnings   :: RT
-    total_income   :: RT
-    disregard :: RT
+@with_kw mutable struct LMTIncomes{RT<:Real}
+    gross_earnings :: RT = zero(RT)
+    net_earnings   :: RT = zero(RT)
+    total_income   :: RT = zero(RT)
+    disregard :: RT = zero(RT)
+    childcare :: RT = zero(RT)
+    capital :: RT = zero(RT)
+    imputed_income :: RT = zero(RT)
 end
 
-function working_for_esa_purposes( pers :: Person, hours )
-    pers.usual_hours_worked > hours || 
-    pers.employment_status in [Full_time_Employee,Full_time_Self_Employed]
+function working_for_esa_purposes( pers :: Person, hours... ) :: Bool
+    println( "hours=$hours employment=$(pers.employment_status)")
+    (pers.usual_hours_worked > hours[1]) || 
+    (pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
 end
 
 function calc_incomes( 
@@ -83,10 +87,18 @@ function calc_incomes(
     # if which_ben in [hb,jsa,is,]
     # FIXME this is not quite right for ESA
     disreg = 0.0
+    
     if which_ben == esa
         if ! search( bu, working_for_esa_purposes, hours.lower )
             disreg = incrules.high
         end
+    elseif which_ben == hb
+        # childcare
+        if is_sparent
+
+        end    
+    elseif which_ben = pc 
+
     else 
         if is_sparent
             disreg = which_ben == hb ? incrules.lone_parent_hb : incrules.high # 25 or 20
@@ -97,12 +109,7 @@ function calc_incomes(
         end
     end
     # end
-    # childcare
-    if which_ben == hb
-        if is_sparent
-
-        end    
-    end
+   
     total = net_earn + other
     return LMTIncomes{T}(gross_earn,net_earn,total,disreg)
 end

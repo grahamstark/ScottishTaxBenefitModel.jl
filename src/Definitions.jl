@@ -745,7 +745,7 @@ export Disability_Type,
    socially = 9
    other_difficulty = 10
 end
-Disability_Dict = Dict{Disability_Type,Bool}
+Disability_Dict = Dict{Disability_Type,T} where T<:Number
 
 export Incomes_Type, Incomes_Dict, Incomes_Set, Expenses
 
@@ -923,7 +923,7 @@ export wages,
    other_benefits = 3000
 end
 
-Incomes_Dict = Dict{Incomes_Type,Real}
+Incomes_Dict = Dict{Incomes_Type,T} where T<:Number
 Incomes_Set = Set{Incomes_Type}
 
 const Expenses = Incomes_Set([
@@ -1004,7 +1004,7 @@ export Missing_Asset_Type
 end
 
 
-Asset_Dict = Dict{Asset_Type,Real}
+Asset_Dict = Dict{Asset_Type,T} where T<:Number
 Asset_Set = Set{Asset_Type}
 
 export Relationship  # mapped from relhrp
@@ -1335,7 +1335,7 @@ end
 
 export Fuel_Type  # mapped from fueltyp
 export Petrol, Diesel, Biofuel_eg_E85_fuel, Hybrid_use_a_combination_of_petrol_and_electricity, Electric, LPG, Other, Dont_know
-export No_Fuel, Missing_Fuel_Type
+export No_Fuel, Missing_Fuel_Type, Fuel_Type_Dict
 
    @enum Fuel_Type begin  # mapped from fueltyp
       Missing_Fuel_Type = -1
@@ -1349,6 +1349,8 @@ export No_Fuel, Missing_Fuel_Type
       Other = 7
       Dont_know = 8
    end
+
+   const Fuel_Type_Dict = Dict{Fuel_Type,T} where T <: Number
 
 
 export
@@ -1380,6 +1382,25 @@ end
 
 @enum LMTBenefitType esa hb is jsa pc wtc ctc
 export LMTBenefitType, esa, hb, is, jsa, pc, wtc, ctc
+
+@enum LMTPremia  begin
+   family_premium = 1
+   disabled_child = 2
+   severe_disability_single = 3
+   severe_disability_couple = 4
+   carer_single = 5
+   carer_couple = 6
+   enhanced_disability_child = 7
+   enhanced_disability_single = 8
+   enhanced_disability_couple = 9
+   disability_single = 10
+   disability_couple = 11
+   pensioner_is = 12
+end  
+
+const LMTPremiaDict = Dict{LMTPremia,T} where T <:Number
+
+export LMTPremia,disabled_child,severe_disability_single,severe_disability_couple,carer_single,carer_couple,enhanced_disability_child,enhanced_disability_single,enhanced_disability_couple,disability_single,disability_couple,pensioner_is
 
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)

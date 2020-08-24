@@ -37,15 +37,15 @@ mutable struct Person{RT<:Real}
     actual_hours_worked::RT
     usual_hours_worked::RT
 
-    income::Dict{Incomes_Type,RT}
-    assets::Dict{Asset_Type,RT}
+    income::Incomes_Dict{RT}
+    assets::Asset_Dict{RT}
     # contracted_out_of_serps::Bool
 
     registered_blind::Bool
     registered_partially_sighted::Bool
     registered_deaf::Bool
 
-    disabilities::Disability_Dict
+    disabilities::Disability_Dict{Bool}
     health_status::Health_Status
 
     has_long_standing_illness :: Bool
@@ -366,9 +366,11 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
     return false
 end
 
-function search( people :: People_Dict, func :: Function, params ... ) :: Bool
+function search( people :: People_Dict, func :: Function, params ) :: Bool
+    println("search people $params")
+    
     for ( pid,pers ) in people
-        if func( pers, params )
+        if func( pers, params... )
             return true
         end
     end
@@ -376,11 +378,12 @@ function search( people :: People_Dict, func :: Function, params ... ) :: Bool
 end
 
 function search( bu :: BenefitUnit, func :: Function, params... ) :: Bool
-    return search( bu.people, func, params )
+    println("search bu $params")
+    return search( bu.people, func, params... )
 end
 
-function search( hh :: Household, func :: Function ) :: Bool
-    return search( hh.people, func, params )
+function search( hh :: Household, func :: Function, params ... ) :: Bool
+    return search( hh.people, func, params... )
 end
 
 function is_disabled( bu :: BenefitUnit ) :: Bool
