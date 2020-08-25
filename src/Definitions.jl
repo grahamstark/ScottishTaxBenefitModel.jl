@@ -746,7 +746,7 @@ export Disability_Type,
    socially = 9
    other_difficulty = 10
 end
-Disability_Dict = Dict{Disability_Type,T} where T<:Number
+Disability_Dict = Dict{Disability_Type,T} where T<:Real
 
 export Incomes_Type, Incomes_Dict, Incomes_Set, Expenses
 
@@ -924,7 +924,7 @@ export wages,
    other_benefits = 3000
 end
 
-Incomes_Dict = Dict{Incomes_Type,T} where T<:Number
+Incomes_Dict = Dict{Incomes_Type,T} where T<:Real
 Incomes_Set = Set{Incomes_Type}
 
 const Expenses = Incomes_Set([
@@ -1003,7 +1003,7 @@ export Missing_Asset_Type
 end
 
 
-Asset_Dict = Dict{Asset_Type,T} where T<:Number
+Asset_Dict = Dict{Asset_Type,T} where T<:Real
 Asset_Set = Set{Asset_Type}
 
 export Relationship  # mapped from relhrp
@@ -1397,9 +1397,12 @@ export LMTBenefitType, esa, hb, is, jsa, pc, wtc, ctc
    pensioner_is = 12
 end  
 
-const LMTPremiaDict = Dict{LMTPremia,T} where T <:Number
+const LMTPremiaDict = Dict{LMTPremia,T} where T <:Real
 
-export LMTPremia,disabled_child,severe_disability_single,severe_disability_couple,carer_single,carer_couple,enhanced_disability_child,enhanced_disability_single,enhanced_disability_couple,disability_single,disability_couple,pensioner_is
+export LMTPremia,LMTPremiaDict, disabled_child,
+    severe_disability_single,severe_disability_couple,
+    carer_single,carer_couple,enhanced_disability_child,
+    enhanced_disability_single,enhanced_disability_couple,disability_single,disability_couple,pensioner_is
 
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)

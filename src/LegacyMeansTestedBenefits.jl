@@ -24,6 +24,7 @@ export calc_legacy_means_tested_benefits,
     ndds :: RT = zero(RT)
     wtc  :: RT = zero(RT)
     ctc  :: RT = zero(RT)
+    premia :: LMTPremiaDic{Bool} = LMTPremiaDic{Bool}()
     intermediate :: Dict = Dict()
 end
 
@@ -112,6 +113,10 @@ function calc_incomes(
    
     total = net_earn + other
     return LMTIncomes{T}()
+end
+
+function calc_premia( bu :: BenefitUnit ) LMTPremiaDic{Bool}
+
 end
 
 function calc_credits()
