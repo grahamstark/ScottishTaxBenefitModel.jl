@@ -358,7 +358,7 @@ end
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     alana = scot.people[SCOT_HEAD]
-    alana.income = Incomes_Dict() # clear
+    alana.income = Incomes_Dict{Float64}() # clear
     alana.income[self_employment_income] = 62_000.0
     alana.income[pension_contributions_employee] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
 
@@ -383,7 +383,7 @@ end
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
-    gordon.income = Incomes_Dict() # clear
+    gordon.income = Incomes_Dict{Float64}() # clear
     gordon.income[self_employment_income] = 27_800.0
     gordon.income[pension_contributions_employee] =  27_800.00 # net contribs per month; expressed gross in example
     bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 
@@ -413,7 +413,7 @@ end
     names = ExampleHouseholdGetter.initialise()
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
-    gordon.income = Incomes_Dict() # clear
+    gordon.income = Incomes_Dict{Float64}() # clear
     gordon.income[self_employment_income] = 60_000.0
     gordon.income[pension_contributions_employer] =  50_000.00 # net contribs per month; expressed gross in example
     bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 

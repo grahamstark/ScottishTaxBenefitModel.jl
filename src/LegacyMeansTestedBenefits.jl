@@ -97,8 +97,8 @@ function calc_incomes(
         if is_sparent
 
         end    
-    elseif which_ben = pc 
-
+    elseif which_ben == pc 
+        ;
     else 
         if is_sparent
             disreg = which_ben == hb ? incrules.lone_parent_hb : incrules.high # 25 or 20
@@ -111,7 +111,7 @@ function calc_incomes(
     # end
    
     total = net_earn + other
-    return LMTIncomes{T}(gross_earn,net_earn,total,disreg)
+    return LMTIncomes{T}()
 end
 
 function calc_credits()

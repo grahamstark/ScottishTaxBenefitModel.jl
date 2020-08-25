@@ -15,21 +15,18 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
     export weeklyise!, annualise!
 
-   const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
+    const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
    function SAVINGS_INCOME( t :: Type ) :: Incomes_Dict
-      Incomes_Dict{T}(
+      Incomes_Dict{t}(
          bank_interest => 1.0,
          bonds_and_gilts => 1.0,
          other_investment_income => 1.0 )
    end
-   
-
-
-
+  
    function LEGACY_MT_INCOME( t :: Type ):: Incomes_Dict
       # wages and SE treated seperately
-      Incomes_Dict{T}(
+      Incomes_Dict{t}(
          other_income=> 1.0,
          alimony_and_child_support_received=> 1.0, # FIXME there is a 15 disregard see pp 438
          alimony_and_child_support_paid=> 0.0,
@@ -65,7 +62,7 @@ module STBParameters
    end
 
    function EXTRA_HB( t :: Type ) :: Incomes_Dict
-      Incomes_Dict{T}(
+      Incomes_Dict{t}(
          working_tax_credit => 1.0,
          child_tax_credit => 1.0,
          pension_credit => 1.0,
@@ -123,7 +120,7 @@ module STBParameters
    end
 
    function make_all_taxable(t::Type)::Incomes_Dict
-       eis = union(Set( keys( Exempt_Income{t}() )), Definitions.Expenses )
+       eis = union(Set( keys( Exempt_Income(t) )), Definitions.Expenses )
        all_t = Incomes_Dict{t}()
        for i in instances(Incomes_Type)
            if ! (i ∈ eis )
@@ -134,7 +131,7 @@ module STBParameters
    end
 
     function make_non_savings( t :: Type )::Incomes_Dict where T
-       excl = union(Set(keys(DIVIDEND_INCOME{t}())), Set( keys(SAVINGS_INCOME{t}())))
+       excl = union(Set(keys(DIVIDEND_INCOME(t))), Set( keys(SAVINGS_INCOME(t))))
        nsi = make_all_taxable(t)
        for i in excl
            delete!( nsi, i )
@@ -189,7 +186,7 @@ module STBParameters
       # FIXME better to have it straight from
       # the book with charges per CO2 range
       # and the data being an estimate of CO2 per type
-      company_car_charge_by_CO2_emissions :: Fuel_Type_Dict{RT} = Default_Fuel_Dict_2020_21{T}()
+      company_car_charge_by_CO2_emissions :: Fuel_Type_Dict{RT} = Default_Fuel_Dict_2020_21(RT)
       fuel_imputation  :: RT = 24_100.00
 
       #
@@ -201,10 +198,10 @@ module STBParameters
       pension_contrib_threshold_income :: RT = 150_000.00
       pension_contrib_withdrawal_rate :: RT = 50.0
 
-      non_savings_income :: Dict{Incomes_Type,RT}= make_non_savings()
-      all_taxable :: Dict{Incomes_Type,RT} = make_all_taxable()
-      savings_income :: Dict{Incomes_Type,RT} = SAVINGS_INCOME
-      dividend_income :: Dict{Incomes_Type,RT} = DIVIDEND_INCOME
+      non_savings_income :: Incomes_Dict{RT} = make_non_savings(RT)
+      all_taxable :: Incomes_Dict{RT} = make_all_taxable(RT)
+      savings_income :: Incomes_Dict{RT} = SAVINGS_INCOME(RT)
+      dividend_income :: Incomes_Dict{RT} = DIVIDEND_INCOME(RT)
       mca_date = MCA_DATE
 
    end
@@ -279,10 +276,10 @@ module STBParameters
       class_2_rate ::RT = 3.00;
       class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
       class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, 9999999999999.99 ]
-      class_1_income = Dict{Incomes_Type,RT}(
+      class_1_income = Incomes_Dict{RT}(
          wages => 1.0,
          pension_contributions_employer => -1.0 )
-      class_4_income = Dict{Incomes_Type,RT}( 
+      class_4_income = Incomes_Dict{RT}( 
          self_employment_income => 1.0 )      
       ## some modelling of u21s and u25s in apprentiships here..
       # gross_to_net_lookup = BudgetConstraint(undef,0)
@@ -330,7 +327,7 @@ module STBParameters
       higher :: Int = 30
    end
    
-   @with_kw mutable struct IncomeRules{RT<:Real}
+    @with_kw mutable struct IncomeRules{RT<:Real}
       permitted_work :: RT= 131.50
       lone_parent_hb :: RT = 25.00
       high :: RT = 20.0
@@ -339,9 +336,9 @@ module STBParameters
       additional :: RT = 17.10
       childcare_max_1 :: RT = 175.00
       childcare_max_2 :: RT = 300.00
-      incomes :: Incomes_Dict = LEGACY_MT_INCOME
-      hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME      
-   end
+      incomes :: Incomes_Dict = LEGACY_MT_INCOME(RT)
+      hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME(RT)      
+    end
 
 
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}

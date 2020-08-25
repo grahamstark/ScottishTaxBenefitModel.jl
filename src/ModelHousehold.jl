@@ -366,7 +366,7 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
     return false
 end
 
-function search( people :: People_Dict, func :: Function, params ) :: Bool
+function search( people :: People_Dict, func :: Function, params... ) :: Bool
     println("search people $params")
     
     for ( pid,pers ) in people
@@ -399,7 +399,7 @@ function is_carer( bu :: BenefitUnit ) :: Bool
 end
 
 function is_carer( hh :: Household ) :: Bool
-    search( hh.people, pers_is_carer )
+    search( hh.people, pers_is_carer, nothing )
 end
 
 
