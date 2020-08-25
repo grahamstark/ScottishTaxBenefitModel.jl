@@ -201,10 +201,10 @@ module STBParameters
       pension_contrib_threshold_income :: RT = 150_000.00
       pension_contrib_withdrawal_rate :: RT = 50.0
 
-      non_savings_income :: Dict{Incomes_Type,RT}= make_non_savings()
-      all_taxable :: Dict{Incomes_Type,RT} = make_all_taxable()
-      savings_income :: Dict{Incomes_Type,RT} = SAVINGS_INCOME
-      dividend_income :: Dict{Incomes_Type,RT} = DIVIDEND_INCOME
+      non_savings_income :: Dict{Incomes_Type,RT}= make_non_savings(RT)
+      all_taxable :: Dict{Incomes_Type,RT} = make_all_taxable(RT)
+      savings_income :: Dict{Incomes_Type,RT} = SAVINGS_INCOME(RT)
+      dividend_income :: Dict{Incomes_Type,RT} = DIVIDEND_INCOME(RT)
       mca_date = MCA_DATE
 
    end
