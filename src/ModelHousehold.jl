@@ -178,6 +178,17 @@ BenefitUnits = Vector{BenefitUnit}
 BUAllocation = Vector{PeopleArray}
 
 
+
+
+function num_children( bu :: BenefitUnit )
+
+end
+
+function num_children( hh :: Household )
+
+
+end
+
 #
 # This creates a array of references to each person in the houshold, broken into
 # benefit units using the default FRS/EFS benefit unit number.
@@ -366,9 +377,12 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
     return false
 end
 
+function under_age( pers :: Person, age ... ) :: Bool
+    return pers.age < age[1] 
+end
+
 function search( people :: People_Dict, func :: Function, params... ) :: Bool
-    println("search people $params")
-    
+    println("search people $params")   
     for ( pid,pers ) in people
         if func( pers, params... )
             return true
@@ -377,14 +391,33 @@ function search( people :: People_Dict, func :: Function, params... ) :: Bool
     return false
 end
 
+function count( people :: People_Dict, func :: Function, params... ) :: Int
+    n = 0
+    for ( pid,pers ) in people
+        if func( pers, params... )
+            n += 1
+        end
+    end
+    return n
+end
+
+
 function search( bu :: BenefitUnit, func :: Function, params... ) :: Bool
-    println("search bu $params")
     return search( bu.people, func, params... )
 end
 
 function search( hh :: Household, func :: Function, params ... ) :: Bool
     return search( hh.people, func, params... )
 end
+
+function count( bu :: BenefitUnit, func :: Function, params... ) :: Bool
+     return count( bu.people, func, params... )
+end
+
+function count( hh :: Household, func :: Function, params ... ) :: Bool
+    return count( hh.people, func, params... )
+end
+
 
 function is_disabled( bu :: BenefitUnit ) :: Bool
     search( bu.people, pers_is_disabled )

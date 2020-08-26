@@ -9,7 +9,7 @@ using BudgetConstraints
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
-export eq_nearest_p,  mult, has_non_z
+export eq_nearest_p,  mult, has_non_z, haskeys
 
 #
 # this has a higher top income than the BC default
@@ -186,6 +186,35 @@ function qstrtodict(query_string::AbstractString)::Dict{AbstractString,Any}
    end
    d
 end
+
+function haskeys( d :: AbstractDict, keys ... ) :: Bool
+   for k in keys
+      if haskey(d, k)
+         return true
+      end
+   end
+   return false
+end
+
+function haskeys( d :: AbstractDict, keys :: AbstractSet ) :: Bool
+   for k in keys
+      if haskey(d, k)
+         return true
+      end
+   end
+   return false
+end
+
+function haskeys( d :: AbstractDict, keys :: AbstractArray ) :: Bool
+   for k in keys
+      if haskey(d, k)
+         return true
+      end
+   end
+   return false
+end
+
+
 
 
 """
