@@ -1336,21 +1336,20 @@ export Fuel_Type  # mapped from fueltyp
 export Petrol, Diesel, Biofuel_eg_E85_fuel, Hybrid_use_a_combination_of_petrol_and_electricity, Electric, LPG, Other, Dont_know
 export No_Fuel, Missing_Fuel_Type, Fuel_Type_Dict
 
-   @enum Fuel_Type begin  # mapped from fueltyp
-      Missing_Fuel_Type = -1
-      No_Fuel = 0
-      Petrol = 1
-      Diesel = 2
-      Biofuel_eg_E85_fuel = 3
-      Hybrid_use_a_combination_of_petrol_and_electricity = 4
-      Electric = 5
-      LPG = 6
-      Other = 7
-      Dont_know = 8
-   end
+@enum Fuel_Type begin  # mapped from fueltyp
+   Missing_Fuel_Type = -1
+   No_Fuel = 0
+   Petrol = 1
+   Diesel = 2
+   Biofuel_eg_E85_fuel = 3
+   Hybrid_use_a_combination_of_petrol_and_electricity = 4
+   Electric = 5
+   LPG = 6
+   Other = 7
+   Dont_know = 8
+end
 
-   const Fuel_Type_Dict = Dict{Fuel_Type,T} where T <: Number
-
+const Fuel_Type_Dict = Dict{Fuel_Type,T} where T <: Number
 
 export
    Uprate_Item_Type,

@@ -1,11 +1,10 @@
 module LegacyMeansTestedBenefits
 
-using Parameters: @with_kw
-
 using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
-    is_disabled, is_carer, search, count, under_age
+    is_single, pers_is_disabled, pers_is_carer, search, count, under_age,
+    has_disabled_member, has_carer_member
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
     Premia, PersonalAllowances, HoursLimits
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
@@ -34,7 +33,7 @@ function calc_incomes(
     bur :: BenefitUnitResult, 
     incrules :: IncomeRules,
     hours :: HoursLimits ) :: LMTIncomes 
-    T = typeof( incrules.permitted_work ) :: IncomeRules
+    T = typeof( incrules.permitted_work )
     mntr = bur.legacy_mtbens # shortcut
     inc = LMTIncomes{T}()
     extra_incomes = zero(T)
@@ -43,7 +42,7 @@ function calc_incomes(
     other = zero(T)
     total = zero(T)
     is_sparent = is_lone_parent( bu )
-    is_single = is_single_person( bu )
+    is_sing = is_single( bu )
     is_disabled = has_disabled_member( bu )
     is_carer = has_carer_member( bu )
     nu16s = count( bu, under_age, 16 )
@@ -57,7 +56,7 @@ function calc_incomes(
         pers = bu.people[pid]
         pres = bur.pers[pid]
         gross = 
-            get( pers.income, wage, 0.0 ) +
+            get( pers.income, wages, 0.0 ) +
             get( pers.income, self_employment_income, 0.0 ) # this includes losses
         net = 
             gross - ## FIXME parameterise this so we can use gross/net
@@ -66,7 +65,7 @@ function calc_incomes(
             0.5 * get(pers.income, pension_contributions_employee, 0.0 )
         gross_earn += gross
         net_earn += max( 0.0, net )
-        other += sum( 
+        other += mult( 
             data=pers.income, 
             calculated=pres.incomes, 
             included=inclist )
@@ -74,7 +73,7 @@ function calc_incomes(
     # disregards
     # if which_ben in [hb,jsa,is,]
     # FIXME this is not quite right for ESA
-    disreg = is_single ?  incrules.low_single : incrules.low_couple
+    disreg = is_sing ?  incrules.low_single : incrules.low_couple
     
     if which_ben == esa
         if ! search( bu, working_for_esa_purposes, hours.lower )
@@ -91,31 +90,28 @@ function calc_incomes(
     end
     # childcare in HB
     if( which_ben == hb ) && ( nu16s > 0 ) 
-        maxcc = nu16s == 1 ? childcare_max_1 : childcare_max_2
+        maxcc = nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
         cost_of_childcare = 0.0
-        for p in bu.people 
-            cost_of_childcare += p.cost_of_childcare
+        for (pid,pers) in bu.people 
+            cost_of_childcare += pers.cost_of_childcare
         end
         inc.childcare = min(cost_of_childcare, maxcc )
     end
 
-    inc.capital = 0.0 # FIXME
-    inc.total_income = max(net_earn + other - disregard - inc.childcare )
-
     """
-    nowhere even remotely right ... 
+    not even remotely right ... cpag 21
     """
     cap = 0.0
-    for (pid,pers) in bu.adults
-        for (at,val) in pers.assets
+    for pid in bu.adults
+        for (at,val) in bu.people[pid].assets
             cap += val
         end
     end
     inc.other_income = other
     inc.capital = cap
-    inc.gross_earnings = gross
-    inc.net_earnings = max(0.0, gross - disreg - inc.childcare )
-    inc.capital_income = trunc( max(0.0, cap-sys.capital_min)/capital_tariff)
+    inc.gross_earnings = gross_earn
+    inc.net_earnings = max(0.0, gross_earn - disreg - inc.childcare )
+    inc.tariff_income = trunc( max(0.0, cap-incrules.capital_min)/incrules.capital_tariff)
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
     return inc

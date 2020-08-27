@@ -1,13 +1,14 @@
 using Test
 using ScottishTaxBenefitModel
-using .ModelHousehold: Household, Person, People_Dict, 
+using .ModelHousehold: Household, Person, People_Dict, is_single
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
-    LMTResults, working_for_esa_purposes
+    working_for_esa_purposes, calc_incomes
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
-
+using .Results: init_benefit_unit_result, LMTResults
+    
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 
 
@@ -37,8 +38,17 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
     println( "working $working ") 
 
     @test ! working
-
+    @test ! is_single( bu )
     for i in 1:ntests
+        bur = init_benefit_unit_result( Float64, bu )
         spouse.income[wages] = income[i]      
+        for ben in instances( LMTBenefitType )
+            inc = calc_incomes(
+                ben,
+                bu,
+                bur,
+                lmt.income_rules,
+                lmt.hours_limits ) 
+        end
     end
 end # t1

@@ -10,8 +10,8 @@ using .Uprating: uprate, UPRATE_MAPPINGS
 export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
-export make_benefit_unit, is_lone_parent, is_carer, is_disabled
-export is_single, search
+export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
+export is_single, search, pers_is_disabled
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -354,7 +354,7 @@ FIXME we're going to do this solely on benefit receipt
 for now until we get the regressions done
 we use historic benefits here since this uses actual data
 """
-function pers_is_carer( pers :: Person, params ... ) :: Bool
+function pers_has_carer_member( pers :: Person, params ... ) :: Bool
     has_non_z( pers.income, carers_allowance )
 end
 
@@ -427,20 +427,20 @@ function count( hh :: Household, func :: Function, params ... ) :: Integer
 end
 
 
-function is_disabled( bu :: BenefitUnit ) :: Bool
+function has_disabled_member( bu :: BenefitUnit ) :: Bool
     search( bu.people, pers_is_disabled )
 end
 
-function is_disabled( hh :: Household ) :: Bool
+function has_disabled_member( hh :: Household ) :: Bool
     search( hh.people, pers_is_disabled )
 end
 
-function is_carer( bu :: BenefitUnit ) :: Bool
-    search( bu.people, pers_is_carer )
+function has_carer_member( bu :: BenefitUnit ) :: Bool
+    search( bu.people, pers_has_carer_member )
 end
 
-function is_carer( hh :: Household ) :: Bool
-    search( hh.people, pers_is_carer, nothing )
+function has_carer_member( hh :: Household ) :: Bool
+    search( hh.people, pers_has_carer_member, nothing )
 end
 
 
