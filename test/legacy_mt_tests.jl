@@ -1,7 +1,8 @@
 using Test
 using ScottishTaxBenefitModel
-using .ModelHousehold: Household, Person, People_Dict, is_single
-    default_bu_allocation, get_benefit_units, get_head, get_spouse, search
+using .ModelHousehold: Household, Person, People_Dict, is_single,
+    default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
+    pers_is_disabled, pers_is_carer
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
@@ -49,6 +50,13 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
                 bur,
                 lmt.income_rules,
                 lmt.hours_limits ) 
+            if ben == hb
+                @test inc.disregard == 25.0
+            else
+                @test inc.disregard == 20.0
+            end
+            @test inc.tariff_income ≈ 0.0
+
         end
     end
 end # t1

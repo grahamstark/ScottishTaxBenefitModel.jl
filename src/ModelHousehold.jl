@@ -11,7 +11,7 @@ export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
 export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
-export is_single, search, pers_is_disabled
+export is_single, search, pers_is_disabled, pers_is_carer
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -354,7 +354,7 @@ FIXME we're going to do this solely on benefit receipt
 for now until we get the regressions done
 we use historic benefits here since this uses actual data
 """
-function pers_has_carer_member( pers :: Person, params ... ) :: Bool
+function pers_is_carer( pers :: Person, params ... ) :: Bool
     has_non_z( pers.income, carers_allowance )
 end
 
@@ -436,11 +436,11 @@ function has_disabled_member( hh :: Household ) :: Bool
 end
 
 function has_carer_member( bu :: BenefitUnit ) :: Bool
-    search( bu.people, pers_has_carer_member )
+    search( bu.people, pers_is_carer )
 end
 
 function has_carer_member( hh :: Household ) :: Bool
-    search( hh.people, pers_has_carer_member, nothing )
+    search( hh.people, pers_is_carer )
 end
 
 
