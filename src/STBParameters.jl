@@ -337,7 +337,10 @@ module STBParameters
       childcare_max_1 :: RT = 175.00
       childcare_max_2 :: RT = 300.00
       incomes :: Incomes_Dict = LEGACY_MT_INCOME(RT)
-      hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME(RT)      
+      hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME(RT)  
+      capital_min :: RT = 6_000.0    
+      capital_max :: RT = 16_000.0
+      capital_tariff :: RT = 250 # £1pw per 250 
     end
 
 

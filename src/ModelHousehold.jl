@@ -18,6 +18,7 @@ mutable struct Person{RT<:Real}
     pid::BigInt # == unique id (year * 100000)+
     pno:: Int # person number in household
     default_benefit_unit:: Int
+    is_standard_child :: Bool
     age:: Int
 
     sex::Sex
@@ -177,16 +178,12 @@ end
 BenefitUnits = Vector{BenefitUnit}
 BUAllocation = Vector{PeopleArray}
 
-
-
-
-function num_children( bu :: BenefitUnit )
-
+function num_children( bu :: BenefitUnit ) :: Integer
+    size( bu.children )[1]
 end
 
-function num_children( hh :: Household )
-
-
+function num_children( hh :: Household ) :: Integer
+    count( hh, is_child )
 end
 
 #
@@ -319,6 +316,17 @@ function is_lone_parent( bu :: BenefitUnit ) :: Bool
     return bu.spouse < 0 && size( bu.children )[1] > 0
 end
 
+function is_child( pers :: Person )
+    # FIXME crude 
+    pers.is_standard_child
+    # below won't work for hh  since
+    # wouldn't be child if in own BU & we can't check that with 1 person
+    #if pers.age <= 15
+    #    return true
+    #end
+    #(pers.age <= 19) && (pers.employment_status in [Student])
+end
+
 #
 # fixme just count people???
 #
@@ -410,11 +418,11 @@ function search( hh :: Household, func :: Function, params ... ) :: Bool
     return search( hh.people, func, params... )
 end
 
-function count( bu :: BenefitUnit, func :: Function, params... ) :: Bool
+function count( bu :: BenefitUnit, func :: Function, params... ) :: Integer
      return count( bu.people, func, params... )
 end
 
-function count( hh :: Household, func :: Function, params ... ) :: Bool
+function count( hh :: Household, func :: Function, params ... ) :: Integer
     return count( hh.people, func, params... )
 end
 

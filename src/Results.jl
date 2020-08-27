@@ -24,11 +24,12 @@ module Results
     @with_kw mutable struct LMTIncomes{RT<:Real}
         gross_earnings :: RT = zero(RT)
         net_earnings   :: RT = zero(RT)
+        other_income   :: RT = zero(RT)
         total_income   :: RT = zero(RT)
         disregard :: RT = zero(RT)
         childcare :: RT = zero(RT)
         capital :: RT = zero(RT)
-        imputed_income :: RT = zero(RT)
+        tariff_income :: RT = zero(RT)
     end
         
     @with_kw mutable struct LMTResults{RT<:Real}
@@ -42,7 +43,7 @@ module Results
         ctc  :: RT = zero(RT)
         premia :: LMTPremiaDict{Bool} = LMTPremiaDict{Bool}()
         intermediate :: Dict = Dict()
-        incomes = LMTIncomes{RT}()
+        
     end
     
     

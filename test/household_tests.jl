@@ -6,7 +6,9 @@ using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       PeopleArray, printpids,
       BenefitUnit, BenefitUnits, default_bu_allocation,
       get_benefit_units, get_head, get_spouse, num_people,
-      is_disabled, is_lone_parent, is_carer
+      is_disabled, is_lone_parent, is_carer, num_children,
+      count
+
 using .Definitions
 
 start_year=2015
@@ -60,6 +62,7 @@ end
             nbus = size( bus )[1]
             @test 0 < nbus < 10
             by_bu_people_count = 0
+            by_bu_child_count = 0
             i = 0
             for bu in bus
                   # println( "from BU")
@@ -67,6 +70,7 @@ end
 
                   i += 1
                   bu_people_count = 1
+                  bu_children = 0
                   head = get_head( bu )
                   @test head.age >= 16
                   spouse = get_spouse( bu )
@@ -78,17 +82,23 @@ end
                         child = bu.people[chno]
                         @test child.age <= 19
                         bu_people_count += 1
+                        bu_children += 1
                   end
+                  @test num_children( bu ) == bu_children
+                  by_bu_child_count += bu_children
                   by_bu_people_count += bu_people_count
                   @test bu_people_count == num_people( bu )
                   @test bu_people_count == size( buallocation[i])[1]
             end
             @test by_bu_people_count == hhsize
+            @test num_children(hh) == by_bu_child_count
 
             bua_people_count = 0
             for bua in buallocation
                   bua_people_count += size( bua )[1]
             end
+
+
             # println("BU Allocation")
             # printpids(buallocation)
             @test bua_people_count == hhsize

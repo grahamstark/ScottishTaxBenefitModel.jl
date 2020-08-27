@@ -115,8 +115,8 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         BigInt(model_person.pid),  # BigInt# == unique id (year * 100000)+
         model_person.pno,  # Integer# person number in household
         model_person.default_benefit_unit,  # Integer
+        safe_to_bool(model_person.from_child_record), # Bool
         model_person.age,  # Integer
-
         Sex(model_person.sex),  # Sex
         Ethnic_Group(safe_assign(model_person.ethnic_group)),  # Ethnic_Group
         Marital_Status(safe_assign(model_person.marital_status)),  # Marital_Status

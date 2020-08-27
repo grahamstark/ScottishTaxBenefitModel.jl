@@ -22,16 +22,6 @@ function working_for_esa_purposes( pers :: Person, hours... ) :: Bool
     (pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
 end
 
-function calc_capital!(  
-    incomes :: LMTIncomes,
-    which_ben :: LMTBenefitType, # esa hb is jsa pc wtc ctc
-    bu :: BenefitUnit,
-    incrules :: IncomeRules
-   )
-
-
-end
-
 
 """
 Incomes for olds style mt benefits
@@ -44,7 +34,7 @@ function calc_incomes(
     bur :: BenefitUnitResult, 
     incrules :: IncomeRules,
     hours :: HoursLimits ) :: LMTIncomes 
-    T = typeof( incrules.permitted_work )
+    T = typeof( incrules.permitted_work ) :: IncomeRules
     mntr = bur.legacy_mtbens # shortcut
     inc = LMTIncomes{T}()
     extra_incomes = zero(T)
@@ -108,11 +98,26 @@ function calc_incomes(
         end
         inc.childcare = min(cost_of_childcare, maxcc )
     end
-    inc.gross_income = gross
-    inc.net_income = gross - disreg
-    inc.disregard = disreg
+
     inc.capital = 0.0 # FIXME
     inc.total_income = max(net_earn + other - disregard - inc.childcare )
+
+    """
+    nowhere even remotely right ... 
+    """
+    cap = 0.0
+    for (pid,pers) in bu.adults
+        for (at,val) in pers.assets
+            cap += val
+        end
+    end
+    inc.other_income = other
+    inc.capital = cap
+    inc.gross_earnings = gross
+    inc.net_earnings = max(0.0, gross - disreg - inc.childcare )
+    inc.capital_income = trunc( max(0.0, cap-sys.capital_min)/capital_tariff)
+    inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
+    inc.disregard = disreg
     return inc
 end
 
