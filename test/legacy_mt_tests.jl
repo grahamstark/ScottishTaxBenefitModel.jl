@@ -78,8 +78,8 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
                         @test inc.disregard == 10.0
                     end
 
-                end
-            end
-        end # income tests
+                end 
+            end # bens loop
+        end # incomes loop
     end # households loop
 end # test set
