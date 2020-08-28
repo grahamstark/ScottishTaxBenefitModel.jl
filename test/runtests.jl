@@ -1,5 +1,6 @@
 # using ScottishTaxBenefitModel
 using Test
+using Revise
 using ScottishTaxBenefitModel
 
 is_local = haskey( ENV, "JULIA_IS_LOCALLY_INSTALLED" ) # fixme param

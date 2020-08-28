@@ -16,7 +16,7 @@ export calc_legacy_means_tested_benefits,
     LMTResults, working_for_esa_purposes
 
 function working_for_esa_purposes( pers :: Person, hours... ) :: Bool
-    println( "hours=$hours employment=$(pers.employment_status)")
+    # println( "hours=$hours employment=$(pers.employment_status)")
     (pers.usual_hours_worked > hours[1]) || 
     (pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
 end

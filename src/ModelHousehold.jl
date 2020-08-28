@@ -241,7 +241,6 @@ function make_benefit_unit(
     end
     for pers in people
         pd[pers.pid] = pers
-        # println( "adding person $(pers.pid)")
     end
     return BenefitUnit( pd, head, spouse, adults, children )
 end
@@ -390,7 +389,6 @@ function under_age( pers :: Person, age ... ) :: Bool
 end
 
 function search( people :: People_Dict, func :: Function, params... ) :: Bool
-    println("search people $params")   
     for ( pid,pers ) in people
         if func( pers, params... )
             return true
@@ -479,7 +477,6 @@ function printpids( buas::BUAllocation )
     nbus = size( buas )[1]
     for i in 1:nbus
         npeople = size( buas[i] )[1]
-        println( "bu[$i]; num_people = $npeople:")
         for p in 1:npeople
             print( "PERS_$(p): ")
             printpids( buas[i][p])
