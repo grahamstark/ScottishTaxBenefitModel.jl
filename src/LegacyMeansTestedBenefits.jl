@@ -81,7 +81,6 @@ function calc_incomes(
             # and some others ... see CPAG 
         end
     elseif which_ben in [hb,jsa,is,pc]
-        # childcare
         if is_sparent            
             disreg = which_ben == hb ? incrules.lone_parent_hb : incrules.high 
         elseif haskeys(mntr.premia, carer_single, carer_couple, disability_couple, disability_single, severe_disability_couple, severe_disability_single )
@@ -104,6 +103,7 @@ function calc_incomes(
     cap = 0.0
     for pid in bu.adults
         for (at,val) in bu.people[pid].assets
+            println( "cap: adding $val")
             cap += val
         end
     end

@@ -17,44 +17,46 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
 @testset "CPAG" begin
     # BASIC IT Calcaulation on
 
-    @time names = ExampleHouseholdGetter.initialise()
     income = [110.0,145.0,325,755.0,1_000.0]
     ntests = size(income)[1]
 
-    for hhn in ["example_hh1", "single_parent_1"]
-        println( "on hhld '$hhn'")
-        hh = ExampleHouseholdGetter.get_household( hhn )
+    examples = get_ss_examples()
+
+    for (hht,hh) in examples 
+        println( "on hhld '$hht'")
         bus = get_benefit_units( hh )
         bu = bus[1]
         @test size(bus)[1] == 1
+        spouse = nothing
         head = get_head(bu)
-        spouse = get_spouse(bu)
-        head.usual_hours_worked = 0
-        if spouse !== nothing
+        hdwork = working_for_esa_purposes( head, lmt.hours_limits.lower )
+        head.usual_hours_worked = 5
+        head.employment_status = Unemployed
+        if hht in [cpl_w_2_kids_hh childless_couple_hh]
+            spouse = get_spouse(bu)
             spouse.employment_status = Full_time_Employee
             spouse.usual_hours_worked = 45
-        end
-        working = search( bu, working_for_esa_purposes, lmt.hours_limits.lower )
-        println( "working $working ") 
-        head.employment_status = Unemployed
-        if spouse !== nothing
+            working = search( bu, working_for_esa_purposes, lmt.hours_limits.lower )
+            println( "working $working ") 
+            @test working
             spouse.usual_hours_worked = 5
             spouse.employment_status = Unemployed
+            spwork = working_for_esa_purposes( spouse, lmt.hours_limits.lower )
+            working = search( bu, working_for_esa_purposes, lmt.hours_limits.lower )
+            println( "working $working spwork $spwork hdwork $hdwork") 
+            @test ! working
+            @test ! is_single( bu )
         end
-        @test working
-        working = search( bu, working_for_esa_purposes, lmt.hours_limits.lower )
-        println( "working $working ") 
-
-        @test ! working
-        @test ! is_single( bu )
+        head.usual_hours_worked = 0
+        head.employment_status = Unemployed
         for i in 1:ntests
-            bur = init_benefit_unit_result( Float64, bu )
             if spouse !== nothing
                 spouse.income[wages] = income[i]   
             else
                 head.income[wages] = income[i]
             end
             for ben in [esa hb is jsa pc]
+                bur = init_benefit_unit_result( Float64, bu )
                 println("on $ben")
                 inc = calc_incomes(
                     ben,
@@ -63,13 +65,15 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
                     lmt.income_rules,
                     lmt.hours_limits ) 
                 @test inc.tariff_income ≈ 0.0
-                if hhn == "single_parent_1"
+                # cpl_w_2_kids_hh single_parent_hh single_hh childless_couple_hh
+
+                if hht == single_parent_hh
                     if ben == hb
                         @test inc.disregard == 25.0
                     else
                         @test inc.disregard == 20.0
                     end
-                elseif hhn == "example_hh1" # couple w. kids
+                elseif hht == cpl_w_2_kids_hh 
                     if ben == hb
                         @test inc.disregard == 10.0
                     elseif ben == esa
@@ -78,7 +82,8 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
                         @test inc.disregard == 10.0
                     end
 
-                end 
+                end
+                println( "inc res for wage $(income[i])ben $ben = \n $inc") 
             end # bens loop
         end # incomes loop
     end # households loop
