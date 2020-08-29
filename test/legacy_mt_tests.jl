@@ -7,17 +7,27 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
-    working_for_esa_purposes, calc_incomes
+    working_for_esa_purposes, calc_incomes, tariff_income
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults
     
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 
 
-@testset "CPAG" begin
-    # BASIC IT Calcaulation on
-
+@testset "CPAG income and capital chapters 20, 21, 22, 23" begin
+    
     income = [110.0,145.0,325,755.0,1_000.0]
+
+    #  basic check of tariff incomes; cpag ch 21 ?? page
+    caps = Dict(2000=>0,6000=>0,6000.01=>1, 6253=>2,8008=>9)
+    for (c,t) in caps
+        ci = tariff_income(c, 
+            lmt.income_rules.capital_min,
+            lmt.income_rules.capital_tariff)
+        println("ci=$ci t=$t c=$c")
+        @test (ci == t) 
+    end
+
     ntests = size(income)[1]
 
     examples = get_ss_examples()
@@ -83,7 +93,8 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
                     end
 
                 end
-                println( "inc res for wage $(income[i])ben $ben = \n $inc") 
+                ## TODO: finish income tests ..
+                # println( "inc res for wage $(income[i])ben $ben = \n $inc") 
             end # bens loop
         end # incomes loop
     end # households loop

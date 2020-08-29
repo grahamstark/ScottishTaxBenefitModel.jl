@@ -116,8 +116,12 @@ function calc_incomes(
     return inc
 end
 
-function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )
-    return trunc( max(0.0, cap-capital_min)/tariff)
+"""
+tariff income from capital. 
+See CPAG p488 £1 pw for every £250, or part of £250 above 6,000
+"""
+function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )::Real
+    return ceil( max(0.0, cap-capital_min)/tariff)
 end
 
 function calc_premia( bu :: BenefitUnit ) LMTPremiaDic{Bool}

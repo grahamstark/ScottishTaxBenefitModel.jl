@@ -1,7 +1,7 @@
 using Revise
 using ScottishTaxBenefitModel
-using FRSHouseholdGetter: initialise, get_household, get_num_households
-using ScottishTaxBenefitModel.STBParameters:
+using .FRSHouseholdGetter: initialise, get_household, get_num_households
+using .STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
     IncomeTaxSys
