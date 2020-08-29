@@ -12,7 +12,7 @@ using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
     LMTResults
 using .Utils: mult, haskeys
 
-export calc_legacy_means_tested_benefits, 
+export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, working_for_esa_purposes
 
 function working_for_esa_purposes( pers :: Person, hours... ) :: Bool
@@ -87,12 +87,12 @@ function calc_incomes(
             disreg = incrules.high
         end       
     end
-    # childcare in HB
+    # childcare in HB - costs are assigned in frs to the children
     if( which_ben == hb ) && ( nu16s > 0 ) 
         maxcc = nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
         cost_of_childcare = 0.0
-        for (pid,pers) in bu.people 
-            cost_of_childcare += pers.cost_of_childcare 
+        for pid in bu.children 
+            cost_of_childcare += bu.people[pid].cost_of_childcare 
         end
         inc.childcare = min(cost_of_childcare, maxcc )
     end
@@ -110,10 +110,14 @@ function calc_incomes(
     inc.capital = cap
     inc.gross_earnings = gross_earn
     inc.net_earnings = max(0.0, gross_earn - disreg - inc.childcare )
-    inc.tariff_income = trunc( max(0.0, cap-incrules.capital_min)/incrules.capital_tariff)
+    inc.tariff_income = tariff_income(cap,incrules.capital_min,incrules.capital_tariff)
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
     return inc
+end
+
+function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )
+    return trunc( max(0.0, cap-capital_min)/tariff)
 end
 
 function calc_premia( bu :: BenefitUnit ) LMTPremiaDic{Bool}
