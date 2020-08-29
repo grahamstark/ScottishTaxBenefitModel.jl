@@ -92,7 +92,7 @@ function calc_incomes(
         maxcc = nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
         cost_of_childcare = 0.0
         for (pid,pers) in bu.people 
-            cost_of_childcare += pers.cost_of_childcare
+            cost_of_childcare += pers.cost_of_childcare 
         end
         inc.childcare = min(cost_of_childcare, maxcc )
     end
@@ -103,8 +103,7 @@ function calc_incomes(
     cap = 0.0
     for pid in bu.adults
         for (at,val) in bu.people[pid].assets
-            println( "cap: adding $val")
-            cap += val
+           cap += val
         end
     end
     inc.other_income = other
