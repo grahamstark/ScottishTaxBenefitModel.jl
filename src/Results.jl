@@ -7,7 +7,7 @@ module Results
     using .Definitions
     using .GeneralTaxComponents: RateBands
     using .ModelHousehold: Household, BenefitUnits, BenefitUnit, 
-        get_benefit_units
+        get_benefit_units, has_income
     
     export
         ITResult,
@@ -18,7 +18,8 @@ module Results
         init_household_result,
         init_benefit_unit_result,
         LMTIncomes,
-        LMTResults
+        LMTResults,
+        search
 
     
     @with_kw mutable struct LMTIncomes{RT<:Real}
@@ -43,10 +44,8 @@ module Results
         ctc  :: RT = zero(RT)
         premia :: LMTPremiaDict{Bool} = LMTPremiaDict{Bool}()
         intermediate :: Dict = Dict()
-        
     end
-    
-    
+
     @with_kw mutable struct NIResult{RT<:Real}
         above_lower_earnings_limit :: Bool = false
         total_ni :: RT = 0.0
@@ -116,6 +115,30 @@ module Results
         other_benefits  :: RT = zero(RT)
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
+
+    function has_income( pers::IndividualResult, which :: Incomes_Type )::Boolean
+        haskey( pers.incomes, which )
+    end
+    
+
+    function search( bur :: BenefitUnitResult, func :: Function, params ...) :: Bool
+        for (pid,pers ) in bur.pers
+            if func( pers, params ... )
+                return true
+            end
+            return false
+        end
+    end
+
+    function search( hr :: HouseholdResult, func :: Function, params ... ) :: Bool
+        for bu in hr.bus
+            if search( bu, params ... )
+                return true
+            end
+        end
+        return false
+    end
+
 
     function init_benefit_unit_result( RT::Type, bu :: BenefitUnit ) :: BenefitUnitResult
         bur = BenefitUnitResult{RT}()

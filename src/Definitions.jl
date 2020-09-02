@@ -748,7 +748,7 @@ export Disability_Type,
 end
 Disability_Dict = Dict{Disability_Type,T} where T<:Real
 
-export Incomes_Type, Incomes_Dict, Incomes_Set, Expenses
+export Incomes_Type, Incomes_Dict, Incomes_Set, Expenses, has_income
 
 export wages,
        self_employment_income,
@@ -926,6 +926,10 @@ end
 
 Incomes_Dict = Dict{Incomes_Type,T} where T<:Real
 Incomes_Set = Set{Incomes_Type}
+
+function has_income( d :: Incomes_Dict, which :: Incomes_Type )::Bool
+   haskey(d, which )
+end
 
 const Expenses = Incomes_Set([
    permanent_health_insurance,

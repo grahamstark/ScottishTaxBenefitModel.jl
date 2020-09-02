@@ -333,7 +333,7 @@ module STBParameters
       high :: RT = 20.0
       low_couple :: RT = 10.0
       low_single :: RT = 5.0       
-      additional :: RT = 17.10
+      hb_additional :: RT = 17.10
       childcare_max_1 :: RT = 175.00
       childcare_max_2 :: RT = 300.00
       incomes :: Incomes_Dict = LEGACY_MT_INCOME(RT)

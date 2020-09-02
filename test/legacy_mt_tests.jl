@@ -1,5 +1,4 @@
 using Test
-using Revise
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
@@ -7,7 +6,7 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
-    working_for_esa_purposes, calc_incomes, tariff_income
+    is_working, calc_incomes, tariff_income
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults
     
@@ -39,20 +38,20 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
         @test size(bus)[1] == 1
         spouse = nothing
         head = get_head(bu)
-        hdwork = working_for_esa_purposes( head, lmt.hours_limits.lower )
+        hdwork = is_working( head, lmt.hours_limits.lower )
         head.usual_hours_worked = 5
         head.employment_status = Unemployed
         if hht in [cpl_w_2_kids_hh childless_couple_hh]
             spouse = get_spouse(bu)
             spouse.employment_status = Full_time_Employee
             spouse.usual_hours_worked = 45
-            working = search( bu, working_for_esa_purposes, lmt.hours_limits.lower )
+            working = search( bu, is_working, lmt.hours_limits.lower )
             println( "working $working ") 
             @test working
             spouse.usual_hours_worked = 5
             spouse.employment_status = Unemployed
-            spwork = working_for_esa_purposes( spouse, lmt.hours_limits.lower )
-            working = search( bu, working_for_esa_purposes, lmt.hours_limits.lower )
+            spwork = is_working( spouse, lmt.hours_limits.lower )
+            working = search( bu, is_working, lmt.hours_limits.lower )
             println( "working $working spwork $spwork hdwork $hdwork") 
             @test ! working
             @test ! is_single( bu )
@@ -98,4 +97,26 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
             end # bens loop
         end # incomes loop
     end # households loop
+
+    # Evan and Mia example p 433
+    e_and_m = get_benefit_units( examples[cpl_w_2_kids_hh] )[1]
+    bur = init_benefit_unit_result( Float64, e_and_m )
+    evan = get_head( e_and_m )
+    mia = get_spouse( e_and_m )
+    empty!(mia.income)
+    mia.income[wages] = 136.0
+    mia.usual_hours_worked = 17
+    empty!(evan.income)
+    evan.income[employment_and_support_allowance] = 1.0
+    inc = calc_incomes(
+        hb,
+        e_and_m,
+        bur,
+        lmt.income_rules,
+        lmt.hours_limits ) 
+    @test inc.net_earnings ≈ 98.90
+    @test inc.total_income ≈ 99.90
+    @test inc.disregard ≈ 37.10
+    
+
 end # test set

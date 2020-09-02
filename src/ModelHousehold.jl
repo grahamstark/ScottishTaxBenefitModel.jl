@@ -388,6 +388,10 @@ function under_age( pers :: Person, age ... ) :: Bool
     return pers.age < age[1] 
 end
 
+function has_income( pers::Person, which :: Incomes_Type )::Boolean
+    haskey( pers.income, which )
+end
+
 function search( people :: People_Dict, func :: Function, params... ) :: Bool
     for ( pid,pers ) in people
         if func( pers, params... )

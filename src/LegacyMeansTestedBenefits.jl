@@ -13,14 +13,13 @@ using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
 using .Utils: mult, haskeys
 
 export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults, working_for_esa_purposes
+    LMTResults, is_working
 
-function working_for_esa_purposes( pers :: Person, hours... ) :: Bool
+function is_working( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
     (pers.usual_hours_worked > hours[1]) || 
     (pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
 end
-
 
 """
 Incomes for olds style mt benefits
@@ -75,8 +74,8 @@ function calc_incomes(
     # FIXME this is not quite right for ESA
     disreg = is_sing ?  incrules.low_single : incrules.low_couple
     
-    if which_ben == esa
-        if ! search( bu, working_for_esa_purposes, hours.lower )
+    if( which_ben == esa ) || ( has_income( bu, employment_and_support_allowance )) 
+        if ! search( bu, is_working, hours.lower )
             disreg = incrules.high
             # and some others ... see CPAG 
         end
@@ -87,14 +86,28 @@ function calc_incomes(
             disreg = incrules.high
         end       
     end
-    # childcare in HB - costs are assigned in frs to the children
-    if( which_ben == hb ) && ( nu16s > 0 ) 
-        maxcc = nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
-        cost_of_childcare = 0.0
-        for pid in bu.children 
-            cost_of_childcare += bu.people[pid].cost_of_childcare 
+
+    if( which_ben == hb ) 
+        # HB disregard CPAG p432 this, too, is very approximate
+        # work 30+ hours - should really check premia if haskeys( mtr.premia )
+        extra = 0.0
+        if search( bu, is_working, hours.higher )
+            extra = incrules.hb_additional 
+        elseif search(  bu, is_working, hours.lower )
+            if is_sparent || (nu16s > 0) || is_disabled
+                extra = incrules.hb_additional
+            end
         end
-        inc.childcare = min(cost_of_childcare, maxcc )
+        disreg += extra
+        # childcare in HB - costs are assigned in frs to the children
+        if ( nu16s > 0 ) 
+            maxcc = nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
+            cost_of_childcare = 0.0
+            for pid in bu.children 
+                cost_of_childcare += bu.people[pid].cost_of_childcare 
+            end
+            inc.childcare = min(cost_of_childcare, maxcc )
+        end
     end
 
     """
