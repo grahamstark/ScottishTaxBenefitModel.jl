@@ -9,7 +9,7 @@ using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,
     Premia, PersonalAllowances, HoursLimits
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
-    LMTResults
+    LMTResults, has_income
 using .Utils: mult, haskeys
 
 export calc_legacy_means_tested_benefits, tariff_income,
@@ -74,7 +74,7 @@ function calc_incomes(
     # FIXME this is not quite right for ESA
     disreg = is_sing ?  incrules.low_single : incrules.low_couple
     
-    if( which_ben == esa ) || ( has_income( bu, employment_and_support_allowance )) 
+    if( which_ben == esa ) 
         if ! search( bu, is_working, hours.lower )
             disreg = incrules.high
             # and some others ... see CPAG 
@@ -88,6 +88,10 @@ function calc_incomes(
     end
 
     if( which_ben == hb ) 
+        # fixme do this above
+        if( Results.has_income( bu, bur, employment_and_support_allowance ))     
+            disreg = incrules.high
+        end
         # HB disregard CPAG p432 this, too, is very approximate
         # work 30+ hours - should really check premia if haskeys( mtr.premia )
         extra = 0.0
