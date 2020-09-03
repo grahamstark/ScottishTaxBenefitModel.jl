@@ -7,7 +7,7 @@ module Results
     using .Definitions
     using .GeneralTaxComponents: RateBands
     using .ModelHousehold: Household, BenefitUnits, BenefitUnit, 
-        get_benefit_units, has_income
+        get_benefit_units
     
     export
         ITResult,
@@ -19,7 +19,8 @@ module Results
         init_benefit_unit_result,
         LMTIncomes,
         LMTResults,
-        search
+        search, 
+        has_income
 
     
     @with_kw mutable struct LMTIncomes{RT<:Real}
@@ -116,10 +117,45 @@ module Results
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
 
-    function has_income( pers::IndividualResult, which :: Incomes_Type )::Boolean
+    function has_income( pers::IndividualResult, which :: Incomes_Type )::Bool
         haskey( pers.incomes, which )
     end
     
+    function has_income( pers::Person, ir :: IndividualResult, which ... ) :: Bool
+        for inc in which
+            @assert typeof( inc ) <: Incomes_Type
+            if( haskey( ir.incomes, inc ))
+                return true
+            end
+            if( haskey( pers.income, inc ))
+                return true
+            end
+        end
+        return false
+    end
+
+    function has_income( bu :: BenefitUnit, br :: BenefitUnitResult, which... )::Bool
+        for pid in keys(bu.people)
+            if has_income( bu.people[pid], br.pers[pid], which... )
+                return true
+            end
+        end
+        return false
+    end
+
+    """
+    FIXME: this assumes the default allocator for BUs
+    """
+    function has_income( bus :: BenefitUnits, hr :: HouseholdResult, which ... ) :: Bool
+        bus = get_benefit_units(hh)
+        nbus = size(bus)[1]
+        for bn in nbus
+            if has_income( bus[bn], br.bus[bn], which... )
+                return true
+            end
+        end
+        return false
+    end
 
     function search( bur :: BenefitUnitResult, func :: Function, params ...) :: Bool
         for (pid,pers ) in bur.pers
