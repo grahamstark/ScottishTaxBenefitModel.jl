@@ -100,7 +100,7 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
 
     # Evan and Mia example p 433
     e_and_m = get_benefit_units( examples[cpl_w_2_kids_hh] )[1]
-    bur = init_benefit_unit_result( Float64, e_and_m )
+    emr = init_benefit_unit_result( Float64, e_and_m )
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
     empty!(mia.income)
@@ -108,10 +108,11 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
     mia.usual_hours_worked = 17
     empty!(evan.income)
     evan.income[employment_and_support_allowance] = 1.0
+    @test Results.has_income( e_and_m, emr, employment_and_support_allowance )
     inc = calc_incomes(
         hb,
         e_and_m,
-        bur,
+        emr,
         lmt.income_rules,
         lmt.hours_limits ) 
     @test inc.net_earnings ≈ 98.90

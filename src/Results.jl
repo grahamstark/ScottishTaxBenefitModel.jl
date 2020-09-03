@@ -6,7 +6,7 @@ module Results
     using ScottishTaxBenefitModel
     using .Definitions
     using .GeneralTaxComponents: RateBands
-    using .ModelHousehold: Household, BenefitUnits, BenefitUnit, 
+    using .ModelHousehold: Household, Person, BenefitUnits, BenefitUnit, 
         get_benefit_units
     
     export
