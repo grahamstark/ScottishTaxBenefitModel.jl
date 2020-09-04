@@ -12,6 +12,8 @@ export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
 export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
 export is_single, search, pers_is_disabled, pers_is_carer
+export le_age, between_ages, ge_age, num_adults, empl_status_in
+
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -296,6 +298,10 @@ function num_people( bu :: BenefitUnit )::Integer
     length( bu.people )
 end
 
+function num_adults( bu :: BenefitUnit )::Integer
+    size( bu.adults )[1]
+end
+
 function num_people( hh :: Household ) :: Integer
     length( hh.people )
 end
@@ -384,13 +390,19 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
     return false
 end
 
-function under_age( pers :: Person, age ... ) :: Bool
-    return pers.age < age[1] 
+function empl_status_in( pers :: Person, statuses ...)
+    return pers.employment_status in statuses
 end
 
-function has_income( pers::Person, which :: Incomes_Type )::Boolean
-    haskey( pers.income, which )
-end
+
+
+le_age( pers :: Person, age ... ) = pers.age <= age[1] 
+
+ge_age( pers :: Person, age ... ) = pers.age >= age[1] 
+
+between_ages( pers :: Person, age ... ) = age[1] >= pers.age <= age[2] 
+
+has_income( pers::Person, which :: Incomes_Type ) = haskey( pers.income, which )
 
 function search( people :: People_Dict, func :: Function, params... ) :: Bool
     for ( pid,pers ) in people

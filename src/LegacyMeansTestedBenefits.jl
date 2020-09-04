@@ -3,17 +3,18 @@ module LegacyMeansTestedBenefits
 using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
-    is_single, pers_is_disabled, pers_is_carer, search, count, under_age,
-    has_disabled_member, has_carer_member
+    is_single, pers_is_disabled, pers_is_carer, search, count,
+    has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
+    empl_status_in
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
-    Premia, PersonalAllowances, HoursLimits
+    Premia, PersonalAllowances, HoursLimits, AgeLimits
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
     LMTResults, has_income
 using .Utils: mult, haskeys
 
 export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults, is_working
+    LMTResults, is_working, makeLMTBenefitEligibility
 
 function is_working( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -44,7 +45,7 @@ function calc_incomes(
     is_sing = is_single( bu )
     is_disabled = has_disabled_member( bu )
     is_carer = has_carer_member( bu )
-    nu16s = count( bu, under_age, 16 )
+    nu16s = count( bu, le_age, 16 )
     if which_ben == hb
         inclist = incrules.hb_incomes
     else
@@ -131,6 +132,68 @@ function calc_incomes(
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
     return inc
+end
+
+"""
+The strategy here is to include *all* benefits the BU is entitled to
+and then decide later on which ones to route to. Source: CPAG chs 9-15
+'Who can get XX' sections.
+"""
+function makeLMTBenefitEligibility( 
+    bu :: BenefitUnit, 
+    hrs :: HoursLimits,
+    ages :: AgeLimits ) :: LMTBenefitSet
+    whichb = LMTBenefitSet()
+    pens_age = search( bu, ge_age, ages.pension_age)
+    working_ft = search( bu, is_working, hrs.higher )
+    working_pt :: Int = count( bu, is_working, hrs.lower )
+    working_24 :: Int = count( bu, is_working, hrs.med )
+    is_carer = has_carer_member( bu )
+
+    ge_16_u_pension_age = search( bu, between_ages, 16, ages.pension_age-1)
+    limited_capacity_for_work = has_disabled_member( bu ) # FIXTHIS
+    has_children = has_children( bu )
+    economically_active = search( bu, empl_status_in, 
+        [Full_time_Employee,
+        Part_time_Employee,
+        Full_time_Self_Employed,
+        Part_time_Self_Employed,
+        Unemployed, Temporarily_sick_or_injured])
+    # can't think of a simple way of doing the rest with searches..
+    num_employed = 0
+    num_unemployed = 0
+    num_semi_employed = 0
+    
+    num_adlts = num_adults( bu )
+    for pid in bu.adults
+        pers = bu.people[pid]
+        if ! is_working( pers, hours.low )
+            num_unemployed += 1
+        elseif pers.hours <= hrs.med
+            num_semi_employed += 1
+        end
+    end
+    if pens_age
+        union!( whichb, pc )
+    end
+    if has_children
+        union!( whichb, ctc )
+    end
+
+    # ESA, JSA, IS, crudely
+    if ((num_adlts == 1 && num_unemployed == 1) || 
+       (num_adlts == 2 && (num_unemployed>=1 && num_semi_employed<=1))) &&
+       ge_16_u_pension_age
+
+        if limited_capacity_for_work
+            union!( whichb, esa ) 
+        elseif economically_active 
+            union!( whichb, jsa ) 
+        else
+            union!( whichb, is ) 
+        end
+    end
+    return whichb
 end
 
 """

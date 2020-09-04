@@ -6,7 +6,7 @@ using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       PeopleArray, printpids,
       BenefitUnit, BenefitUnits, default_bu_allocation,
       get_benefit_units, get_head, get_spouse, num_people,
-      is_disabled, is_lone_parent, is_carer, num_children,
+      has_disabled_member, is_lone_parent, has_carer_member, num_children,
       count
 
 using .Definitions
@@ -25,19 +25,19 @@ start_year=2015
       @test is_lone_parent( bu )
       @test num_people( bu ) == 3
       head = get_head( bu )
-      @test ! is_disabled( bu )
-      @test ! is_carer( bu )
+      @test ! has_disabled_member( bu )
+      @test ! has_carer_member( bu )
       # FIXME we'll need to change this if disability no longer based on benefit receipt
       head.registered_blind = true
-      @test is_disabled( bu )
-      @test ! is_carer( bu )
+      @test has_disabled_member( bu )
+      @test ! has_carer_member( bu )
       head.registered_blind = false
       head.income[carers_allowance] = 1.0
-      @test is_carer( bu )
+      @test has_carer_member( bu )
       delete!(head.income,carers_allowance)
-      @test ! is_carer( bu )
+      @test ! has_carer_member( bu )
       head.income[severe_disability_allowance] = 1.0
-      @test is_disabled( bu )
+      @test has_disabled_member( bu )
       
 end
 

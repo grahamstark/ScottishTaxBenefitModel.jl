@@ -13,7 +13,7 @@ module STBParameters
 
 
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
-    export weeklyise!, annualise!
+    export weeklyise!, annualise!, AgeLimits, HoursLimits
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -264,7 +264,9 @@ module STBParameters
       it.pension_contrib_withdrawal_rate /= 100.0
    end
 
-
+   @with_kw mutable struct AgeLimits{RT<:Real}
+      state_pension_age :: Int = 66;
+   end
 
    @with_kw mutable struct NationalInsuranceSys{RT<:Real}
       primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
@@ -324,6 +326,7 @@ module STBParameters
 
    @with_kw mutable struct HoursLimits
       lower :: Int = 16
+      med   :: Int = 24
       higher :: Int = 30
    end
    
