@@ -176,10 +176,7 @@ function makeLMTBenefitEligibility(
     if pens_age
         union!( whichb, pc )
     end
-    if has_children
-        union!( whichb, ctc )
-    end
-
+ 
     # ESA, JSA, IS, crudely
     if ((num_adlts == 1 && num_unemployed == 1) || 
        (num_adlts == 2 && (num_unemployed>=1 && num_semi_employed<=1))) &&
@@ -193,6 +190,13 @@ function makeLMTBenefitEligibility(
             union!( whichb, is ) 
         end
     end
+    #
+    # tax credits
+    #
+    if has_children
+        union!( whichb, ctc )
+    end
+    
     return whichb
 end
 
