@@ -14,7 +14,8 @@ using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
 using .Utils: mult, haskeys
 
 export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults, is_working, makeLMTBenefitEligibility
+    LMTResults, is_working, make_lmt_benefit_eligibility,
+    working_disabled
 
 function is_working( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -135,11 +136,33 @@ function calc_incomes(
 end
 
 """
+See CPAG ch 61 p 1426 and appendix 5
+"""
+function working_disabled( pers:disabilities: Person, hrs :: HoursLimits ) :: Bool
+    if pers.usual_hours_worked >= hrs.lower || pers.employment_status in [Full_time_Employee, Full_time_Self_Employed]
+        if pers.registered_blind || pers.registered_partially_sighted || pers.registered_deaf
+            return true
+        end
+        for (dis, t ) in pers.disabilities
+            return true
+        end
+        if haskeys( pers.income, 
+            [
+                Incapacity_Benefit, 
+                Severe_Disability_Allowance, 
+                Employment_and_Support_Allowance ])
+            return true
+        end
+    end
+    return false
+end
+
+"""
 The strategy here is to include *all* benefits the BU is entitled to
 and then decide later on which ones to route to. Source: CPAG chs 9-15
 'Who can get XX' sections.
 """
-function makeLMTBenefitEligibility( 
+function make_lmt_benefit_eligibility( 
     bu :: BenefitUnit, 
     hrs :: HoursLimits,
     ages :: AgeLimits ) :: LMTBenefitSet
@@ -148,8 +171,11 @@ function makeLMTBenefitEligibility(
     working_ft = search( bu, is_working, hrs.higher )
     working_pt :: Int = count( bu, is_working, hrs.lower )
     working_24 :: Int = count( bu, is_working, hrs.med )
+    total_hours_worked = 0
     is_carer = has_carer_member( bu )
-
+    is_sparent = is_lone_parent( bu )
+    is_sing = is_single( bu )
+    
     ge_16_u_pension_age = search( bu, between_ages, 16, ages.pension_age-1)
     limited_capacity_for_work = has_disabled_member( bu ) # FIXTHIS
     has_children = has_children( bu )
@@ -172,6 +198,7 @@ function makeLMTBenefitEligibility(
         elseif pers.hours <= hrs.med
             num_semi_employed += 1
         end
+        total_hours_worked += pers.usual_hours_worked
     end
     if pens_age
         union!( whichb, pc )
@@ -192,11 +219,33 @@ function makeLMTBenefitEligibility(
     end
     #
     # tax credits
-    #
+    # CTC - easy
     if has_children
         union!( whichb, ctc )
     end
-    
+    #
+    # WTC - not quite so easy
+    #
+    if (total_hours_worked >= hrs.med) && working_pt && has_children 
+        # ie. 24 hrs worked total and one person  >= 16 hrs and has kids
+        union!( whichb, wtc )
+    elseif working_pt && pens_age
+        union!( whichb, wtc )
+    elseif working_pt && is_sparent
+        union!( whichb, wtc )
+    else
+        for pid in bu.adults
+            pers = bu.people[pid]
+            if pers.usual_hours_worked >= hrs.higher
+                union!( whichb, wtc )
+                break
+            end
+            if working_disabled( pers, hrs )
+                union!( whichb, wtc )
+                break
+            end
+        end # wtc loop
+    end
     return whichb
 end
 
