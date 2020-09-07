@@ -247,6 +247,24 @@ function make_lmt_benefit_eligibility(
     return whichb
 end
 
+# CTC disabled child definition:
+#
+# Getting Disability Living Allowance (DLA), Personal Independence Payment (PIP) or Armed Forces Independence Payment (AFIP)
+# In hospital but otherwise would get DLA, PIP or AFIP
+# Certified blind (or were until less than 28 weeks before you made the claim)
+
+#
+#
+
+# Disabled adult for wtc
+# Answer yes if you work at least 16 hours a week and any of the following apply to you:
+#
+#    you get a disability benefit, eg Disability Living Allowance, Attendance Allowance or Personal Independence Payment
+#    you have recently been getting disability benefit, eg Incapacity Benefit or Employment and Support Allowance
+#    you have a disability that makes it hard for you to get a job, eg you’re deaf or blind
+#
+
+
 """
 tariff income from capital. 
 See CPAG p488 £1 pw for every £250, or part of £250 above 6,000
