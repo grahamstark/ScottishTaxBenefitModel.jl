@@ -226,7 +226,9 @@ function make_lmt_benefit_eligibility(
     #
     # WTC - not quite so easy
     #
-    if (total_hours_worked >= hrs.med) && working_pt && has_children 
+    if working_ft
+        union!( whichb, wtc )
+    elseif (total_hours_worked >= hrs.med) && working_pt && has_children 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has kids
         union!( whichb, wtc )
     elseif working_pt && pens_age
@@ -236,10 +238,6 @@ function make_lmt_benefit_eligibility(
     else
         for pid in bu.adults
             pers = bu.people[pid]
-            if pers.usual_hours_worked >= hrs.higher
-                union!( whichb, wtc )
-                break
-            end
             if working_disabled( pers, hrs )
                 union!( whichb, wtc )
                 break
