@@ -14,7 +14,7 @@ using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
 using .Utils: mult, haskeys
 
 export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults, is_working, make_lmt_benefit_eligibility,
+    LMTResults, is_working, make_lmt_benefit_applicability,
     working_disabled
 
 function is_working( pers :: Person, hours... ) :: Bool
@@ -162,7 +162,7 @@ The strategy here is to include *all* benefits the BU is entitled to
 and then decide later on which ones to route to. Source: CPAG chs 9-15
 'Who can get XX' sections.
 """
-function make_lmt_benefit_eligibility( 
+function make_lmt_benefit_applicability( 
     bu :: BenefitUnit, 
     hrs :: HoursLimits,
     ages :: AgeLimits ) :: LMTBenefitSet

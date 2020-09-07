@@ -2,7 +2,7 @@ using Test
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
-    pers_is_disabled, pers_is_carer
+    pers_is_disabled, pers_is_carer, make_lmt_benefit_applicability
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
@@ -121,3 +121,8 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
     
 
 end # test set
+
+@testset "Applicability Tests" begin
+
+
+end
