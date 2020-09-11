@@ -3,7 +3,8 @@ using .FRSHouseholdGetter: initialise, get_household, get_num_households
 using .STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
-    IncomeTaxSys
+    IncomeTaxSys,
+    weeklyise!
 using .ModelHousehold: Household
 import .ExampleHouseholdGetter
 

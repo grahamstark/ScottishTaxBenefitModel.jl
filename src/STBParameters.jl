@@ -360,6 +360,7 @@ module STBParameters
       it   = IncomeTaxSys{RT}()
       ni   = NationalInsuranceSys{RT}()
       lmt  = LegacyMeansTestedBenefitSystem{RT}()
+      age_limits = AgeLimits{RT}()
    end
 
 

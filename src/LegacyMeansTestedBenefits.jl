@@ -5,12 +5,12 @@ using .Definitions
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
     is_single, pers_is_disabled, pers_is_carer, search, count,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
-    empl_status_in
+    empl_status_in, has_children, num_adults
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
     Premia, PersonalAllowances, HoursLimits, AgeLimits
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
-    LMTResults, has_income
+    LMTResults, has_income, LMTCanApplyFor
 using .Utils: mult, haskeys
 
 export calc_legacy_means_tested_benefits, tariff_income,
@@ -138,7 +138,7 @@ end
 """
 See CPAG ch 61 p 1426 and appendix 5
 """
-function working_disabled( pers:disabilities: Person, hrs :: HoursLimits ) :: Bool
+function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
     if pers.usual_hours_worked >= hrs.lower || pers.employment_status in [Full_time_Employee, Full_time_Self_Employed]
         if pers.registered_blind || pers.registered_partially_sighted || pers.registered_deaf
             return true
@@ -165,9 +165,9 @@ and then decide later on which ones to route to. Source: CPAG chs 9-15
 function make_lmt_benefit_applicability( 
     bu :: BenefitUnit, 
     hrs :: HoursLimits,
-    ages :: AgeLimits ) :: LMTBenefitSet
-    whichb = LMTBenefitSet()
-    pens_age = search( bu, ge_age, ages.pension_age)
+    ages :: AgeLimits ) :: LMTCanApplyFor
+    whichb = LMTCanApplyFor()
+    pens_age = search( bu, ge_age, ages.state_pension_age)
     working_ft = search( bu, is_working, hrs.higher )
     working_pt :: Int = count( bu, is_working, hrs.lower )
     working_24 :: Int = count( bu, is_working, hrs.med )
@@ -176,9 +176,9 @@ function make_lmt_benefit_applicability(
     is_sparent = is_lone_parent( bu )
     is_sing = is_single( bu )
     
-    ge_16_u_pension_age = search( bu, between_ages, 16, ages.pension_age-1)
+    ge_16_u_pension_age = search( bu, between_ages, 16, ages.state_pension_age-1)
     limited_capacity_for_work = has_disabled_member( bu ) # FIXTHIS
-    has_children = has_children( bu )
+    has_kids = has_children( bu )
     economically_active = search( bu, empl_status_in, 
         [Full_time_Employee,
         Part_time_Employee,
@@ -193,15 +193,15 @@ function make_lmt_benefit_applicability(
     num_adlts = num_adults( bu )
     for pid in bu.adults
         pers = bu.people[pid]
-        if ! is_working( pers, hours.low )
+        if ! is_working( pers, hrs.lower )
             num_unemployed += 1
-        elseif pers.hours <= hrs.med
+        elseif pers.usual_hours_worked <= hrs.med
             num_semi_employed += 1
         end
         total_hours_worked += pers.usual_hours_worked
     end
     if pens_age
-        union!( whichb, pc )
+        whichb.pc = true
     end
  
     # ESA, JSA, IS, crudely
@@ -210,36 +210,36 @@ function make_lmt_benefit_applicability(
        ge_16_u_pension_age
 
         if limited_capacity_for_work
-            union!( whichb, esa ) 
+            whichb.esa = true 
         elseif economically_active 
-            union!( whichb, jsa ) 
+            whichb.jsa = true  
         else
-            union!( whichb, is ) 
+            whichb.is = true
         end
     end
     #
     # tax credits
     # CTC - easy
-    if has_children
-        union!( whichb, ctc )
+    if has_kids
+        whichb.ctc = true
     end
     #
     # WTC - not quite so easy
     #
     if working_ft
-        union!( whichb, wtc )
-    elseif (total_hours_worked >= hrs.med) && working_pt && has_children 
+        whichb.wtc = true
+    elseif (total_hours_worked >= hrs.med) && working_pt && has_kids 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has kids
-        union!( whichb, wtc )
+        whichb.wtc = true
     elseif working_pt && pens_age
-        union!( whichb, wtc )
+        whichb.wtc = true
     elseif working_pt && is_sparent
-        union!( whichb, wtc )
+        whichb.wtc = true
     else
         for pid in bu.adults
             pers = bu.people[pid]
             if working_disabled( pers, hrs )
-                union!( whichb, wtc )
+                whichb.wtc = true
                 break
             end
         end # wtc loop

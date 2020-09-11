@@ -2,19 +2,19 @@ using Test
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
-    pers_is_disabled, pers_is_carer, make_lmt_benefit_applicability
+    pers_is_disabled, pers_is_carer
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
-    is_working, calc_incomes, tariff_income
+    is_working, calc_incomes, tariff_income, make_lmt_benefit_applicability
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
-using .Results: init_benefit_unit_result, LMTResults
+using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
     
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 
-
 @testset "CPAG income and capital chapters 20, 21, 22, 23" begin
     
+    examples = get_ss_examples()
     income = [110.0,145.0,325,755.0,1_000.0]
 
     #  basic check of tariff incomes; cpag ch 21 ?? page
@@ -29,8 +29,7 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
 
     ntests = size(income)[1]
 
-    examples = get_ss_examples()
-
+    
     for (hht,hh) in examples 
         println( "on hhld '$hht'")
         bus = get_benefit_units( hh )
@@ -123,6 +122,19 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
 end # test set
 
 @testset "Applicability Tests" begin
-
-
+    # reset the examples
+    examples = get_ss_examples()
+    sys = get_system( scotland=true )
+    cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
+    sp = get_benefit_units(examples[single_parent_hh])[1]
+    eligs_cpl :: LMTCanApplyFor = make_lmt_benefit_applicability( 
+        cpl, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( "couple $eligs_cpl" )
+    eligs_sp :: LMTCanApplyFor = make_lmt_benefit_applicability( 
+        sp, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( "single parent $eligs_sp" )
 end

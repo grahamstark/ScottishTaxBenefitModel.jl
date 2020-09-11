@@ -19,6 +19,7 @@ module Results
         init_benefit_unit_result,
         LMTIncomes,
         LMTResults,
+        LMTCanApplyFor,
         search, 
         has_income
 
@@ -33,6 +34,17 @@ module Results
         capital :: RT = zero(RT)
         tariff_income :: RT = zero(RT)
     end
+
+    @with_kw mutable struct LMTCanApplyFor
+        esa :: Bool = false
+        hb  :: Bool = false
+        is :: Bool = false
+        jsa :: Bool = false
+        pc  :: Bool = false
+        ndds :: Bool = false
+        wtc  :: Bool = false
+        ctc  :: Bool = false
+    end
         
     @with_kw mutable struct LMTResults{RT<:Real}
         esa :: RT = zero(RT)
@@ -44,6 +56,7 @@ module Results
         wtc  :: RT = zero(RT)
         ctc  :: RT = zero(RT)
         premia :: LMTPremiaDict{Bool} = LMTPremiaDict{Bool}()
+        # can_apply_for = LMTCanApplyFor()
         intermediate :: Dict = Dict()
     end
 
