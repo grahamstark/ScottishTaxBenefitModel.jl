@@ -5,7 +5,7 @@ using .STBParameters:
     NationalInsuranceSys,
     IncomeTaxSys,
     weeklyise!
-using .ModelHousehold: Household
+using .ModelHousehold: Household, Person
 import .ExampleHouseholdGetter
 
 # pids for example people
@@ -67,4 +67,58 @@ function get_ss_examples()::Dict{SS_Examples, Household}
     d[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )
     d[childless_couple_hh] = ExampleHouseholdGetter.get_household("mel_c2_scot") 
     return d
+end
+
+function unemploy!( pers::Person )
+   pers.usual_hours_worked = 0
+   pers.actual_hours_worked = 0
+   pers.employment_status = Unemployed 
+   delete!( pers.income, wages )  
+   delete!( pers.income, self_employment_income )  
+    
+end
+
+function employ!( pers::Person, wage=600.00 )
+   pers.usual_hours_worked = 40
+   pers.actual_hours_worked = 40
+   pers.employment_status = Full_time_Employee 
+   pers.income[wages] = wage   
+end
+
+function disable!( pers::Person )
+   pers.employment_status = Permanently_sick_or_disabled
+   pers.health_status = Bad
+   pers.has_long_standing_illness = true
+   pers.adls_are_reduced = reduced_a_lot
+   pers.how_long_adls_reduced = v_12_months_or_more
+   pers.disabilities[mobility] = true
+   pers.disabilities[stamina] = true
+end
+
+function enable!( pers::Person )
+   pers.health_status = Good
+   pers.has_long_standing_illness = false
+   pers.adls_are_reduced = not_reduced
+   pers.how_long_adls_reduced = Missing_Illness_Length
+   pers.disabilities = []
+end
+
+function blind!( pers :: Person )
+   pers.disabilities[vision ] = true
+   pers.registered_blind = true
+end
+
+function unblind!( pers :: Person )
+   delete!(pers.disabilities, vision )
+   pers.registered_blind = false
+end
+
+function deafen!( pers :: Person )
+   pers.disabilities[ hearing ] = true
+   pers.registered_deaf = true
+end
+
+function undeafen!( pers :: Person )
+   delete!(pers.disabilities, hearing )
+   pers.registered_deaf = false
 end

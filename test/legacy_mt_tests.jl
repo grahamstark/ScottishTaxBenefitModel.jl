@@ -126,14 +126,57 @@ end # test set
     examples = get_ss_examples()
     sys = get_system( scotland=true )
     cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
-    sp = get_benefit_units(examples[single_parent_hh])[1]
+    sparent = get_benefit_units(examples[single_parent_hh])[1]
     eligs_cpl :: LMTCanApplyFor = make_lmt_benefit_applicability( 
         cpl, 
         sys.lmt.hours_limits,
         sys.age_limits )
+    head = get_head( cpl )
+    println( "head=$head")
+    spouse = get_spouse( cpl )
+    println( "sp=$spouse" )
     println( "couple $eligs_cpl" )
+    @test ! eligs_cpl.esa
+    # @test ! eligs_cpl.hb 
+    @test ! eligs_cpl.is
+    @test ! eligs_cpl.jsa
+    @test ! eligs_cpl.pc 
+    @test ! eligs_cpl.ndds
+    @test eligs_cpl.wtc 
+    @test eligs_cpl.ctc 
+    #2 unemployed couple - jsa
+    unemploy!( head )
+    unemploy!( spouse )
+    eligs_cpl = make_lmt_benefit_applicability( 
+        cpl, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( "unemployed: sp=$spouse" )
+    println( "unemployed couple $eligs_cpl" )
+    @test ! eligs_cpl.esa
+    # @test ! eligs_cpl.hb 
+    @test ! eligs_cpl.is
+    @test eligs_cpl.jsa
+    @test ! eligs_cpl.pc 
+    @test ! eligs_cpl.ndds
+    @test ! eligs_cpl.wtc 
+    @test eligs_cpl.ctc 
+    
+    disable!( spouse )
+    eligs_cpl = make_lmt_benefit_applicability( 
+        cpl, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( "unemployed: sp=$spouse" )
+    println( "unemployed couple $eligs_cpl" )
+    @test eligs_cpl.esa
+    # @test ! eligs_cpl.hb 
+    @test ! eligs_cpl.is
+    @test eligs_cpl.ctc 
+
+
     eligs_sp :: LMTCanApplyFor = make_lmt_benefit_applicability( 
-        sp, 
+        sparent, 
         sys.lmt.hours_limits,
         sys.age_limits )
     println( "single parent $eligs_sp" )

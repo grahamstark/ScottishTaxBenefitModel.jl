@@ -167,24 +167,25 @@ function make_lmt_benefit_applicability(
     hrs :: HoursLimits,
     ages :: AgeLimits ) :: LMTCanApplyFor
     whichb = LMTCanApplyFor()
-    pens_age = search( bu, ge_age, ages.state_pension_age)
-    working_ft = search( bu, is_working, hrs.higher )
+    pens_age  :: Bool = search( bu, ge_age, ages.state_pension_age)
+    working_ft  :: Bool = search( bu, is_working, hrs.higher )
     working_pt :: Int = count( bu, is_working, hrs.lower )
     working_24 :: Int = count( bu, is_working, hrs.med )
     total_hours_worked = 0
-    is_carer = has_carer_member( bu )
-    is_sparent = is_lone_parent( bu )
-    is_sing = is_single( bu )
+    is_carer :: Bool = has_carer_member( bu )
+    is_sparent  :: Bool = is_lone_parent( bu )
+    is_sing  :: Bool = is_single( bu )
     
-    ge_16_u_pension_age = search( bu, between_ages, 16, ages.state_pension_age-1)
-    limited_capacity_for_work = has_disabled_member( bu ) # FIXTHIS
-    has_kids = has_children( bu )
+    ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, ages.state_pension_age-1)
+    limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
+    has_kids  :: Bool = has_children( bu )
     economically_active = search( bu, empl_status_in, 
-        [Full_time_Employee,
+        Full_time_Employee,
         Part_time_Employee,
         Full_time_Self_Employed,
         Part_time_Self_Employed,
-        Unemployed, Temporarily_sick_or_injured])
+        Unemployed, 
+        Temporarily_sick_or_injured )
     # can't think of a simple way of doing the rest with searches..
     num_employed = 0
     num_unemployed = 0
@@ -203,12 +204,10 @@ function make_lmt_benefit_applicability(
     if pens_age
         whichb.pc = true
     end
- 
     # ESA, JSA, IS, crudely
     if ((num_adlts == 1 && num_unemployed == 1) || 
        (num_adlts == 2 && (num_unemployed>=1 && num_semi_employed<=1))) &&
        ge_16_u_pension_age
-
         if limited_capacity_for_work
             whichb.esa = true 
         elseif economically_active 
@@ -226,14 +225,15 @@ function make_lmt_benefit_applicability(
     #
     # WTC - not quite so easy
     #
+    println( "working_ft $working_ft working_pt $working_pt  has_kids $has_kids pens_age $pens_age ")
     if working_ft
         whichb.wtc = true
-    elseif (total_hours_worked >= hrs.med) && working_pt && has_kids 
+    elseif (total_hours_worked >= hrs.med) && (working_pt>0) && has_kids 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has kids
         whichb.wtc = true
-    elseif working_pt && pens_age
+    elseif (working_pt>0) && pens_age
         whichb.wtc = true
-    elseif working_pt && is_sparent
+    elseif (working_pt>0) && is_sparent
         whichb.wtc = true
     else
         for pid in bu.adults

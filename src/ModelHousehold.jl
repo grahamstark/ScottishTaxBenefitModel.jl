@@ -317,24 +317,9 @@ function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}
     bu.people[bu.spouse]
 end
 
-function num_children( bu :: BenefitUnit ) :: Int
-    size( bu.children )[1]
-end
-
 function has_children( bu :: BenefitUnit ) :: Bool
     num_children( bu ) > 0
 end
-
-function num_children( hh :: Household )::Int
-    n = 0
-    for (pid, pers ) in hh.people
-        if is_child( pers )
-            n += 1
-        end
-    end
-    return n
-end
-
 
 """
 relies on `is_child` being sensible
@@ -413,6 +398,22 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
     if pers.registered_blind
         return true
     end
+    if pers.employment_status in [Permanently_sick_or_disabled]
+        return true
+    end
+    if pers.adls_are_reduced == reduced_a_lot
+        return true
+    end
+    for dis in [mobility,
+       dexterity,
+       learning,
+       memory,
+       mental_health]
+        if haskey(pers.disabilities,dis) && pers.disabilities[dis]
+            return true
+        end
+    end
+       
     for k in DISABLE_BENEFITS
         if has_non_z( pers.income, k )
             return true
