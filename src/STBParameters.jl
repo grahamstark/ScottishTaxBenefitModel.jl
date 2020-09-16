@@ -24,6 +24,12 @@ module STBParameters
          other_investment_income => 1.0 )
    end
   
+   """
+   TODO check this carefully against WTC,PC and IS chapters
+   note this doesn't include wages and TaxBenefitSystem
+   which are handled in the `calc_incomes` function.   
+   poss. have 2nd complete version for WTC/CTC
+   """
    function LEGACY_MT_INCOME( t :: Type ):: Incomes_Dict
       # wages and SE treated seperately
       Incomes_Dict{t}(
@@ -40,7 +46,6 @@ module STBParameters
          jobseekers_allowance=> 1.0, ## contribution based
          industrial_injury_disablement_benefit=> 1.0,
          incapacity_benefit=> 1.0,
-         income_support=> 1.0,
          maternity_allowance=> 1.0,
          maternity_grant_from_social_fund=> 1.0,
          funeral_grant_from_social_fund=> 1.0,
@@ -61,8 +66,20 @@ module STBParameters
       )
    end
 
+   function EXTRA_TAX_CREDITS( t :: Type ) :: Incomes_Dict
+      Incomes_Dict{t}(
+         income_support=> 1.0,
+         working_tax_credit => 1.0,
+         child_tax_credit => 1.0,
+         employment_and_support_allowance => 1.0,
+         jobseekers_allowance => 1.0
+      )
+   end
+
+
    function EXTRA_HB( t :: Type ) :: Incomes_Dict
       Incomes_Dict{t}(
+         income_support=> 1.0,
          working_tax_credit => 1.0,
          child_tax_credit => 1.0,
          pension_credit => 1.0,
@@ -77,6 +94,11 @@ module STBParameters
    function LEGACY_HB_INCOME(t::Type)::Incomes_Dict
       merge( LEGACY_MT_INCOME(t), EXTRA_HB(t) )
    end
+
+   function LEGACY_TAX_CREDIT_INCOME(t::Type)::Incomes_Dict
+      merge( LEGACY_MT_INCOME(t), EXTRA_TAX_CREDITS(t) )
+   end
+
 
    function DIVIDEND_INCOME( t :: Type ) :: Incomes_Dict
       Incomes_Dict{t}(
@@ -341,6 +363,7 @@ module STBParameters
       childcare_max_2 :: RT = 300.00
       incomes :: Incomes_Dict = LEGACY_MT_INCOME(RT)
       hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME(RT)  
+      tc_incomes :: Incomes_Dict = LEGACY_TAX_CREDIT_INCOME(RT)  
       capital_min :: RT = 6_000.0    
       capital_max :: RT = 16_000.0
       capital_tariff :: RT = 250 # £1pw per 250 

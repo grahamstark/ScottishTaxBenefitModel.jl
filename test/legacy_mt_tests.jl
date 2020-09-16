@@ -199,5 +199,64 @@ end # test set
     @test ! eligs_sp.ndds
     @test eligs_sp.wtc 
     @test eligs_sp.ctc 
- 
+    head = get_head( sparent )
+    unemploy!( head )
+    eligs_sp = make_lmt_benefit_applicability( 
+        sparent, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( "single parent $eligs_sp" )
+    @test ! eligs_sp.is
+    @test eligs_sp.jsa
+    @test ! eligs_sp.pc 
+    @test ! eligs_sp.ndds
+    @test ! eligs_sp.wtc 
+    @test eligs_sp.ctc 
+    carer!( head )
+    eligs_sp = make_lmt_benefit_applicability( 
+        sparent, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( "single parent $eligs_sp" )
+    @test eligs_sp.is
+    @test ! eligs_sp.jsa
+    @test ! eligs_sp.pc 
+    @test ! eligs_sp.ndds
+    @test ! eligs_sp.wtc 
+    @test eligs_sp.ctc 
+    head.age = 70
+    eligs_sp = make_lmt_benefit_applicability( 
+        sparent, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( "single parent $eligs_sp" )
+    @test ! eligs_sp.is
+    @test ! eligs_sp.jsa
+    @test eligs_sp.pc 
+    @test ! eligs_sp.ndds
+    @test ! eligs_sp.wtc  
+    @test eligs_sp.ctc 
+    retire!( head )
+    eligs_sp = make_lmt_benefit_applicability( 
+        sparent, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test ! eligs_sp.is
+    @test ! eligs_sp.jsa
+    @test eligs_sp.pc 
+    @test ! eligs_sp.ndds
+    @test ! eligs_sp.wtc  # this is right - could be on both ctc and wtc
+    @test eligs_sp.ctc 
+    employ!( head )
+    eligs_sp = make_lmt_benefit_applicability( 
+        sparent, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test ! eligs_sp.is
+    @test ! eligs_sp.jsa
+    @test eligs_sp.pc 
+    @test ! eligs_sp.ndds
+    @test eligs_sp.wtc  # this is right - could be on both ctc and wtc
+    @test eligs_sp.ctc 
+    
 end

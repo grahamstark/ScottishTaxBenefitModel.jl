@@ -35,9 +35,12 @@ module Results
         tariff_income :: RT = zero(RT)
     end
 
+    # 
     @with_kw mutable struct LMTCanApplyFor
         esa :: Bool = false
-        hb  :: Bool = false
+        # hb ctr assumed true for everyone
+        hb  :: Bool = true
+        ctr :: Bool = true
         is :: Bool = false
         jsa :: Bool = false
         pc  :: Bool = false

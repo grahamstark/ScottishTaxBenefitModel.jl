@@ -135,3 +135,8 @@ function uncarer!( pers :: Person )
    pers.is_informal_carer = false
    pers.hours_of_care_given = 0
 end
+
+function retire!( pers :: Person )
+   pers.usual_hours_worked = 0
+   pers.employment_status = Retired
+end

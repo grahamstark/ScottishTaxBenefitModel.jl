@@ -24,7 +24,7 @@ function is_working( pers :: Person, hours... ) :: Bool
 end
 
 """
-Incomes for olds style mt benefits
+Incomes for old style mt benefits
 The CPAG guide ch 21/21 has over 100 pages on this stuff
 this can no more than catch the gist.
 """
@@ -49,6 +49,8 @@ function calc_incomes(
     nu16s = count( bu, le_age, 16 )
     if which_ben == hb
         inclist = incrules.hb_incomes
+    elseif which_ben in [pc,ctc,wtc]
+        inclist = incrules.tc_incomes
     else
         inclist = incrules.incomes
     end
@@ -59,11 +61,16 @@ function calc_incomes(
         gross = 
             get( pers.income, wages, 0.0 ) +
             get( pers.income, self_employment_income, 0.0 ) # this includes losses
-        net = 
-            gross - ## FIXME parameterise this so we can use gross/net
-            pres.it.non_savings -
-            pres.ni.total_ni - 
-            0.5 * get(pers.income, pension_contributions_employee, 0.0 )
+        if which_ben in [pc,is,jsa,esa,hb]
+            net = 
+                gross - ## FIXME parameterise this so we can use gross/net
+                pres.it.non_savings -
+                pres.ni.total_ni - 
+                0.5 * get(pers.income, pension_contributions_employee, 0.0 )
+        else
+            # wtc,ctc all pension contributions but not IT/NI
+            net = gross - get(pers.income, pension_contributions_employee, 0.0 )
+        end
         gross_earn += gross
         net_earn += max( 0.0, net )
         other += mult( 
@@ -167,7 +174,11 @@ function make_lmt_benefit_applicability(
     hrs :: HoursLimits,
     ages :: AgeLimits ) :: LMTCanApplyFor
     whichb = LMTCanApplyFor()
-    pens_age  :: Bool = search( bu, ge_age, ages.state_pension_age)
+    num_adlts = num_adults( bu )
+    num_pens_age :: Int = count( bu, ge_age, ages.state_pension_age) 
+    println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
+    pens_age  :: Bool = num_pens_age > 0
+    all_pens_age :: Bool = num_adlts == num_pens_age
     working_ft  :: Bool = search( bu, is_working, hrs.higher )
     working_pt :: Int = count( bu, is_working, hrs.lower )
     working_24 :: Int = count( bu, is_working, hrs.med )
@@ -191,7 +202,6 @@ function make_lmt_benefit_applicability(
     num_unemployed = 0
     num_semi_employed = 0
     
-    num_adlts = num_adults( bu )
     for pid in bu.adults
         pers = bu.people[pid]
         if ! is_working( pers, hrs.lower )
@@ -205,17 +215,19 @@ function make_lmt_benefit_applicability(
         whichb.pc = true
     end
     # ESA, JSA, IS, crudely
-    if ((num_adlts == 1 && num_unemployed == 1) || 
-       (num_adlts == 2 && (num_unemployed>=1 && num_semi_employed<=1))) &&
-       ge_16_u_pension_age
-        if limited_capacity_for_work
-            whichb.esa = true 
-        elseif economically_active 
-            whichb.jsa = true  
-        else
-            whichb.is = true
+    if ! all_pens_age 
+        if ((num_adlts == 1 && num_unemployed == 1) || 
+        (num_adlts == 2 && (num_unemployed>=1 && num_semi_employed<=1))) &&
+        ge_16_u_pension_age
+            if limited_capacity_for_work
+                whichb.esa = true 
+            elseif economically_active 
+                whichb.jsa = true  
+            else
+                whichb.is = true
+            end
         end
-    end
+    end # all pens age
     #
     # tax credits
     # CTC - easy
@@ -244,6 +256,7 @@ function make_lmt_benefit_applicability(
             end
         end # wtc loop
     end
+    # hb,ctb are assumed true 
     return whichb
 end
 
