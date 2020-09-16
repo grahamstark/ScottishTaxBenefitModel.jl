@@ -188,11 +188,16 @@ end # test set
     @test eligs_cpl.ctc 
     @test ! eligs_cpl.wtc
     
-
-
     eligs_sp :: LMTCanApplyFor = make_lmt_benefit_applicability( 
         sparent, 
         sys.lmt.hours_limits,
         sys.age_limits )
     println( "single parent $eligs_sp" )
+    @test ! eligs_sp.is
+    @test ! eligs_sp.jsa
+    @test ! eligs_sp.pc 
+    @test ! eligs_sp.ndds
+    @test eligs_sp.wtc 
+    @test eligs_sp.ctc 
+ 
 end
