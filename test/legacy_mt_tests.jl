@@ -260,3 +260,32 @@ end # test set
     @test eligs_sp.ctc 
     
 end
+
+@testset "ESA allowances" begin
+    
+end
+
+@testset "JSA" begin
+    
+
+end
+
+@testset "IS" begin
+    
+
+end
+
+@testset "PC" begin
+    
+
+end
+
+@testset "CTC" begin
+    
+
+end
+
+@testset "WTC" begin
+    
+
+end
