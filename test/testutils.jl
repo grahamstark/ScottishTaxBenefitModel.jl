@@ -100,7 +100,7 @@ function enable!( pers::Person )
    pers.has_long_standing_illness = false
    pers.adls_are_reduced = not_reduced
    pers.how_long_adls_reduced = Missing_Illness_Length
-   pers.disabilities = []
+   pers.disabilities = Disability_Dict{Bool}()
 end
 
 function blind!( pers :: Person )
@@ -121,4 +121,17 @@ end
 function undeafen!( pers :: Person )
    delete!(pers.disabilities, hearing )
    pers.registered_deaf = false
+end
+
+function carer!( pers :: Person )
+   pers.income[carers_allowance] = 100.0
+   pers.is_informal_carer = true
+   pers.hours_of_care_given = 10
+   pers.employment_status = Looking_after_family_or_home
+end
+
+function uncarer!( pers :: Person )
+   delete!(pers.income,carers_allowance)
+   pers.is_informal_carer = false
+   pers.hours_of_care_given = 0
 end
