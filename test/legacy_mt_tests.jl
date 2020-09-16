@@ -173,6 +173,21 @@ end # test set
     # @test ! eligs_cpl.hb 
     @test ! eligs_cpl.is
     @test eligs_cpl.ctc 
+    enable!( spouse )
+    unemploy!( spouse )
+    carer!( spouse )
+    carer!( head )
+    println( "head.employment_status=$(head.employment_status) spouse.employment_status=$(spouse.employment_status)")
+    eligs_cpl = make_lmt_benefit_applicability( 
+        cpl, 
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( eligs_cpl )
+    @test ! eligs_cpl.esa
+    @test eligs_cpl.is
+    @test eligs_cpl.ctc 
+    @test ! eligs_cpl.wtc
+    
 
 
     eligs_sp :: LMTCanApplyFor = make_lmt_benefit_applicability( 
