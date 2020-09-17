@@ -78,15 +78,17 @@ module STBParameters
       # since these are passported this should only
       # ever matter if we have a 'passporting' switch
       # and it's turned off, but anyway ....
-      inc[Income_Support] = 1.0
-      inc[Jobseekers_Allowance] = 1.0
-      inc[Employment_and_Support_Allowance] = 1.0
-      inc[Child_Tax_Credit] = 1.0
+      inc[income_support] = 1.0
+      inc[jobseekers_allowance] = 1.0
+      inc[employment_and_support_allowance] = 1.0
+      inc[child_tax_credit] = 1.0
+      return inc
    end
 
    function LEGACY_TAX_CREDIT_INCOME(t::Type)::Incomes_Dict
       inc = LEGACY_MT_INCOME(t)
-      delete!(inc, Working_Tax_Credit )
+      delete!(inc, working_tax_credit )
+      return inc
    end
 
 
