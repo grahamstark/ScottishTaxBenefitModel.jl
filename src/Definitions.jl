@@ -1006,6 +1006,25 @@ export Missing_Asset_Type
    A_Endowment_Policy_Not_Linked = 29
 end
 
+@enum Included_In_Pay_Type begin  # mapped from assetype
+   ssp = 1
+   smp = 2
+   mileage = 4
+   motoring_expenses = 5
+   spp = 6
+   sap = 7
+end
+
+Included_In_Pay_Dict = Dict{Included_In_Pay_Type,T} where T<:Real
+
+export Included_In_Pay_Type,
+   ssp,
+   smp,
+   mileage,
+   motoring_expenses,
+   spp,
+   sap,
+   Included_In_Pay_Dict
 
 Asset_Dict = Dict{Asset_Type,T} where T<:Real
 Asset_Set = Set{Asset_Type}

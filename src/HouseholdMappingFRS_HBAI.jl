@@ -98,6 +98,14 @@ function initialise_person(n::Integer)::DataFrame
         employment_status = Vector{Union{Integer,Missing}}(missing, n),
         usual_hours_worked = Vector{Union{Real,Missing}}(missing, n),
         actual_hours_worked = Vector{Union{Real,Missing}}(missing, n),
+        
+        pay_includes_ssp = Vector{Union{Integer,Missing}}(missing, n),
+        pay_includes_smp = Vector{Union{Integer,Missing}}(missing, n),
+        pay_includes_spp = Vector{Union{Integer,Missing}}(missing, n),
+        pay_includes_sap = Vector{Union{Integer,Missing}}(missing, n),
+        pay_includes_mileage = Vector{Union{Integer,Missing}}(missing, n),
+        pay_includes_motoring_expenses = Vector{Union{Integer,Missing}}(missing, n),
+
         income_wages = Vector{Union{Real,Missing}}(missing, n),
         income_self_employment_income = Vector{Union{Real,Missing}}(missing, n),
         income_self_employment_expenses = Vector{Union{Real,Missing}}(missing, n),
@@ -631,6 +639,26 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         other_deductions = safe_inc(other_deductions, jb.udeduc8)
         student_loan_repayments = safe_inc(student_loan_repayments, jb.udeduc9)
         work_expenses = safe_inc(work_expenses, jb.umotamt)# CARS FIXME add to this
+        
+        if jb.inclpay1 == 1
+            model_adult.pay_includes_ssp = 1
+        end
+        if jb.inclpay2 == 1
+            model_adult.pay_includes_smp = 1
+        end
+        # it refund .. 3
+        if jb.inclpay4 == 1
+            pay_includes_mileage = 1
+        end
+        if jb.inclpay5 == 1
+            pay_includes_motoring_expenses = 1
+        end
+        if jb.inclpay6 == 1
+            model_adult.pay_includes_spp = 1
+        end
+        if jb.inclpay7 == 1
+            model_adult.pay_includes_sap = 1
+        end
 
         # self employment
         if jb.prbefore > 0.0

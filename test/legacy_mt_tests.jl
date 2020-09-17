@@ -256,7 +256,7 @@ end # test set
     @test ! eligs_sp.jsa
     @test eligs_sp.pc 
     @test ! eligs_sp.ndds
-    @test eligs_sp.wtc  # this is right - could be on both ctc and wtc
+    @test eligs_sp.wtc  # this is right - could be on both pc and wtc
     @test eligs_sp.ctc 
     
 end

@@ -34,6 +34,7 @@ module STBParameters
       # wages and SE treated seperately
       Incomes_Dict{t}(
          other_income=> 1.0,
+         carers_allowance=>1.0,
          alimony_and_child_support_received=> 1.0, # FIXME there is a 15 disregard see pp 438
          alimony_and_child_support_paid=> 0.0,
          student_loan_repayments=> -1.0,
@@ -52,6 +53,7 @@ module STBParameters
          any_other_ni_or_state_benefit=> 1.0,
          trade_union_sick_or_strike_pay=> 1.0,
          friendly_society_benefits=> 1.0,
+         working_tax_credit => 1.0,
          private_sickness_scheme_benefits=> 1.0,
          accident_insurance_scheme_benefits=> 1.0,
          hospital_savings_scheme_benefits=> 1.0,
@@ -66,37 +68,25 @@ module STBParameters
       )
    end
 
-   function EXTRA_TAX_CREDITS( t :: Type ) :: Incomes_Dict
-      Incomes_Dict{t}(
-         income_support=> 1.0,
-         working_tax_credit => 1.0,
-         child_tax_credit => 1.0,
-         employment_and_support_allowance => 1.0,
-         jobseekers_allowance => 1.0
-      )
-   end
-
-
-   function EXTRA_HB( t :: Type ) :: Incomes_Dict
-      Incomes_Dict{t}(
-         income_support=> 1.0,
-         working_tax_credit => 1.0,
-         child_tax_credit => 1.0,
-         pension_credit => 1.0,
-         employment_and_support_allowance => 1.0,
-         jobseekers_allowance => 1.0
-      )
-   end
+   
 
    #
    # add the other old MT bens to HB incomes
    #
    function LEGACY_HB_INCOME(t::Type)::Incomes_Dict
-      merge( LEGACY_MT_INCOME(t), EXTRA_HB(t) )
+      inc = LEGACY_MT_INCOME(t)
+      # since these are passported this should only
+      # ever matter if we have a 'passporting' switch
+      # and it's turned off, but anyway ....
+      inc[Income_Support] = 1.0
+      inc[Jobseekers_Allowance] = 1.0
+      inc[Employment_and_Support_Allowance] = 1.0
+      inc[Child_Tax_Credit] = 1.0
    end
 
    function LEGACY_TAX_CREDIT_INCOME(t::Type)::Incomes_Dict
-      merge( LEGACY_MT_INCOME(t), EXTRA_TAX_CREDITS(t) )
+      inc = LEGACY_MT_INCOME(t)
+      delete!(inc, Working_Tax_Credit )
    end
 
 

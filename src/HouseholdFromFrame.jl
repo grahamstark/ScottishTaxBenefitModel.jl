@@ -69,7 +69,18 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         end
     end
 
-    assets = Dict{Asset_Type,Float64}()
+    pay_includes  = Included_In_Pay_Dict{Bool}()
+    for i in instances(Included_In_Pay_Type)
+        s = String(Symbol(i))
+        ikey = Symbol(lowercase("pay_includes_" * s))
+        if ! ismissing(model_person[ikey])
+            if model_person[ikey] == 1
+                pay_includes[i] = true
+            end
+        end
+    end
+    
+    assets = Dict{Asset_Type,Float64}() # fixme asset_type_dict
     for i in instances(Asset_Type)
         if i != Missing_Asset_Type
             ikey = make_sym_for_asset( i )
@@ -136,12 +147,14 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
 
         income,
         assets,
+        pay_includes,
 
         safe_to_bool(model_person.registered_blind),
         safe_to_bool(model_person.registered_partially_sighted),
         safe_to_bool(model_person.registered_deaf),
 
         disabilities,
+
         Health_Status(safe_assign(model_person.health_status)),
 
         safe_to_bool(model_person.has_long_standing_illness),

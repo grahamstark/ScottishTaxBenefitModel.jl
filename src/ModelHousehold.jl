@@ -42,6 +42,7 @@ mutable struct Person{RT<:Real}
 
     income::Incomes_Dict{RT}
     assets::Asset_Dict{RT}
+    pay_includes ::Included_In_Pay_Dict{Bool}
     # contracted_out_of_serps::Bool
 
     registered_blind::Bool
@@ -49,6 +50,7 @@ mutable struct Person{RT<:Real}
     registered_deaf::Bool
 
     disabilities::Disability_Dict{Bool}
+    
     health_status::Health_Status
 
     has_long_standing_illness :: Bool
