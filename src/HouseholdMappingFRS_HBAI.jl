@@ -648,10 +648,10 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         end
         # it refund .. 3
         if jb.inclpay4 == 1
-            pay_includes_mileage = 1
+            model_adult.pay_includes_mileage = 1
         end
         if jb.inclpay5 == 1
-            pay_includes_motoring_expenses = 1
+            model_adult.pay_includes_motoring_expenses = 1
         end
         if jb.inclpay6 == 1
             model_adult.pay_includes_spp = 1

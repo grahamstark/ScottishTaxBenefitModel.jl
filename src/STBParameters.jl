@@ -87,6 +87,9 @@ module STBParameters
 
    function LEGACY_TAX_CREDIT_INCOME(t::Type)::Incomes_Dict
       inc = LEGACY_MT_INCOME(t)
+      inc[income_support] = 1.0
+      inc[jobseekers_allowance] = 1.0
+      inc[employment_and_support_allowance] = 1.0
       delete!(inc, working_tax_credit )
       return inc
    end
