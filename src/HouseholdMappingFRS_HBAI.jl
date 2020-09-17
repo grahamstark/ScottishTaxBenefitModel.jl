@@ -659,7 +659,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         if jb.inclpay7 == 1
             model_adult.pay_includes_sap = 1
         end
-
+        
         # self employment
         if jb.prbefore > 0.0
             self_employment_income += jb.prbefore
