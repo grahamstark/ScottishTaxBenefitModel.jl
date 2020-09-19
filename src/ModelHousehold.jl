@@ -407,10 +407,10 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
         return true
     end
     for dis in [mobility,
-       dexterity,
-       learning,
-       memory,
-       mental_health]
+        dexterity,
+        learning,
+        memory,
+        mental_health]
         if haskey(pers.disabilities,dis) && pers.disabilities[dis]
             return true
         end

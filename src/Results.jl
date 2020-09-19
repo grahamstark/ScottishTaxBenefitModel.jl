@@ -191,7 +191,6 @@ module Results
         return false
     end
 
-
     function init_benefit_unit_result( RT::Type, bu :: BenefitUnit ) :: BenefitUnitResult
         bur = BenefitUnitResult{RT}()
         for pid in keys( bu.people )
@@ -214,6 +213,5 @@ module Results
     function aggregate( hhr :: HouseholdResult )
 
     end
-
 
 end
