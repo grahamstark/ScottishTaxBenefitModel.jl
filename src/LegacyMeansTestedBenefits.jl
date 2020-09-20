@@ -14,13 +14,40 @@ using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
 using .Utils: mult, haskeys
 
 export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults, is_working, make_lmt_benefit_applicability,
-    working_disabled
+    LMTResults, is_working_hours, make_lmt_benefit_applicability,
+    working_disabled, MTIntermediate, make_intermediate
 
-function is_working( pers :: Person, hours... ) :: Bool
+function is_working_hours( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
-    (pers.usual_hours_worked > hours[1]) || 
-    (pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
+    if length(hours) == 1 
+        return (pers.usual_hours_worked >= hours[1])
+    elseif length(hours) == 2
+        return (pers.usual_hours_worked >= hours[1]) &&
+               (pers.usual_hours_worked <= hours[2])
+    end
+    #(pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
+end
+
+
+struct MTIntermediate
+    pens_age  :: Bool 
+    all_pens_age :: Bool
+    working_ft  :: Bool 
+    num_working_pt :: Int 
+    num_working_24_plus :: Int 
+    total_hours_worked :: Int
+    is_carer :: Bool 
+    is_sparent  :: Bool 
+    is_sing  :: Bool 
+    is_disabled :: Bool
+    nu16s :: Int
+    ge_16_u_pension_age  :: Bool 
+    limited_capacity_for_work  :: Bool 
+    has_kids  :: Bool 
+    economically_active :: Bool
+    num_working_full_time :: Int 
+    num_not_working :: Int 
+    num_working_part_time :: Int
 end
 
 """
@@ -84,7 +111,7 @@ function calc_incomes(
     disreg = is_sing ?  incrules.low_single : incrules.low_couple
     
     if( which_ben == esa ) 
-        if ! search( bu, is_working, hours.lower )
+        if ! search( bu, is_working_hours, hours.lower )
             disreg = incrules.high
             # and some others ... see CPAG 
         end
@@ -104,9 +131,9 @@ function calc_incomes(
         # HB disregard CPAG p432 this, too, is very approximate
         # work 30+ hours - should really check premia if haskeys( mtr.premia )
         extra = 0.0
-        if search( bu, is_working, hours.higher )
+        if search( bu, is_working_hours, hours.higher )
             extra = incrules.hb_additional 
-        elseif search(  bu, is_working, hours.lower )
+        elseif search(  bu, is_working_hours, hours.lower )
             if is_sparent || (nu16s > 0) || is_disabled
                 extra = incrules.hb_additional
             end
@@ -164,6 +191,75 @@ function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
     return false
 end
 
+function make_intermediate(
+    bu   :: BenefitUnit, 
+    hrs  :: HoursLimits,
+    ages :: AgeLimits ) :: MTIntermediate
+    # {RT} where RT
+    num_adlts :: Int = num_adults( bu )
+    num_pens_age :: Int = count( bu, ge_age, ages.state_pension_age) 
+    println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
+    pens_age  :: Bool = num_pens_age > 0
+    all_pens_age :: Bool = num_adlts == num_pens_age
+    working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
+    num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
+    num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
+    total_hours_worked :: Int = 0
+    is_carer :: Bool = has_carer_member( bu )
+    is_sparent  :: Bool = is_lone_parent( bu )
+    is_sing  :: Bool = is_single( bu )   
+    ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, ages.state_pension_age-1)
+    limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
+    has_kids  :: Bool = has_children( bu )
+    economically_active = search( bu, empl_status_in, 
+        Full_time_Employee,
+        Part_time_Employee,
+        Full_time_Self_Employed,
+        Part_time_Self_Employed,
+        Unemployed, 
+        Temporarily_sick_or_injured )
+    # can't think of a simple way of doing the rest with searches..
+    num_working_full_time = 0
+    num_not_working = 0
+    num_working_part_time = 0
+    is_disabled = has_disabled_member( bu )
+    for pid in bu.adults
+        pers = bu.people[pid]
+        if ! is_working_hours( pers, hrs.lower )
+            num_not_working += 1
+        elseif pers.usual_hours_worked <= hrs.med
+            num_working_part_time += 1
+        else 
+            num_working_full_time += 1
+        end          
+        total_hours_worked += round(pers.usual_hours_worked)
+    end
+    nu16s = count( bu, le_age, 16 )
+    
+    println( typeof( total_hours_worked ))
+    
+    return MTIntermediate(
+        pens_age,
+        all_pens_age,
+        working_ft,
+        num_working_pt,
+        num_working_24_plus,
+        total_hours_worked,
+        is_carer,
+        is_sparent,
+        is_sing,    
+        is_disabled,
+        nu16s,
+        ge_16_u_pension_age,
+        limited_capacity_for_work,
+        has_kids,
+        economically_active,
+        num_working_full_time,
+        num_not_working,
+        num_working_part_time
+    )
+end
+
 """
 The strategy here is to include *all* benefits the BU is entitled to
 and then decide later on which ones to route to. Source: CPAG chs 9-15
@@ -179,9 +275,9 @@ function make_lmt_benefit_applicability(
     println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
     pens_age  :: Bool = num_pens_age > 0
     all_pens_age :: Bool = num_adlts == num_pens_age
-    working_ft  :: Bool = search( bu, is_working, hrs.higher )
-    working_pt :: Int = count( bu, is_working, hrs.lower )
-    working_24 :: Int = count( bu, is_working, hrs.med )
+    working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
+    num_working_pt :: Int = count( bu, is_working_hours, hrs.lower )
+    num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
     total_hours_worked = 0
     is_carer :: Bool = has_carer_member( bu )
     is_sparent  :: Bool = is_lone_parent( bu )
@@ -190,6 +286,7 @@ function make_lmt_benefit_applicability(
     ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, ages.state_pension_age-1)
     limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
     has_kids  :: Bool = has_children( bu )
+    
     economically_active = search( bu, empl_status_in, 
         Full_time_Employee,
         Part_time_Employee,
@@ -198,16 +295,20 @@ function make_lmt_benefit_applicability(
         Unemployed, 
         Temporarily_sick_or_injured )
     # can't think of a simple way of doing the rest with searches..
-    num_employed = 0
-    num_unemployed = 0
-    num_semi_employed = 0
+    num_working_full_time = count( bu, empl_status_in, 
+        Full_time_Employee,
+        Part_time_Employee,
+        Full_time_Self_Employed,
+        Part_time_Self_Employed )
+    num_not_working = 0
+    num_working_part_time = 0
     
     for pid in bu.adults
         pers = bu.people[pid]
-        if ! is_working( pers, hrs.lower )
-            num_unemployed += 1
+        if ! is_working_hours( pers, hrs.lower )
+            num_not_working += 1
         elseif pers.usual_hours_worked <= hrs.med
-            num_semi_employed += 1
+            num_working_part_time += 1
         end
         total_hours_worked += pers.usual_hours_worked
     end
@@ -216,8 +317,8 @@ function make_lmt_benefit_applicability(
     end
     # ESA, JSA, IS, crudely
     if ! all_pens_age 
-        if ((num_adlts == 1 && num_unemployed == 1) || 
-        (num_adlts == 2 && (num_unemployed>=1 && num_semi_employed<=1))) &&
+        if ((num_adlts == 1 && num_not_working == 1) || 
+        (num_adlts == 2 && (num_not_working>=1 && num_working_part_time<=1))) &&
         ge_16_u_pension_age
             if limited_capacity_for_work
                 whichb.esa = true 
@@ -237,15 +338,15 @@ function make_lmt_benefit_applicability(
     #
     # WTC - not quite so easy
     #
-    println( "working_ft $working_ft working_pt $working_pt  has_kids $has_kids pens_age $pens_age ")
+    println( "working_ft $working_ft num_working_pt $num_working_pt  has_kids $has_kids pens_age $pens_age ")
     if working_ft
         whichb.wtc = true
-    elseif (total_hours_worked >= hrs.med) && (working_pt>0) && has_kids 
+    elseif (total_hours_worked >= hrs.med) && (num_working_pt>0) && has_kids 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has kids
         whichb.wtc = true
-    elseif (working_pt>0) && pens_age
+    elseif (num_working_pt>0) && pens_age
         whichb.wtc = true
-    elseif (working_pt>0) && is_sparent
+    elseif (num_working_pt>0) && is_sparent
         whichb.wtc = true
     else
         for pid in bu.adults
@@ -288,6 +389,22 @@ end
 
 function calc_premia( bu :: BenefitUnit ) LMTPremiaDic{Bool}
 
+end
+
+function calc_allowances( bu :: BenefitUnit ) :: Real
+    allows = 0.0
+         age_18_24 :: RT = 57.90
+         age_25_and_over :: RT = 73.10
+         age_18_and_in_work_activity :: RT = 73.10
+         over_pension_age :: RT = 181.10
+         lone_parent :: RT = 73.10
+         lone_parent_over_pension_age :: RT = 181.00
+         couple_both_over_18 :: RT = 114.85
+         couple_over_pension_age :: RT = 270.60
+         couple_one_over_18_high :: RT = 114.85
+         couple_one_over_18_med :: RT = 173.10
+         pa_couple_one_over_18_low :: RT = 57.90
+    return allows
 end
 
 function calc_credits()

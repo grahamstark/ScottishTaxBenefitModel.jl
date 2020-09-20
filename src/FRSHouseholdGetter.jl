@@ -45,4 +45,4 @@ function get_num_households()::Integer
     return size( MODEL_HOUSEHOLDS )[1]
 end
 
-end
+end # module

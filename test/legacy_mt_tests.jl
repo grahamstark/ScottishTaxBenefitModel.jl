@@ -6,7 +6,9 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
-    is_working, calc_incomes, tariff_income, make_lmt_benefit_applicability
+    is_working_hours, calc_incomes, tariff_income, make_lmt_benefit_applicability,
+    MTIntermediate, make_intermediate
+
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
     
@@ -37,20 +39,20 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
         @test size(bus)[1] == 1
         spouse = nothing
         head = get_head(bu)
-        hdwork = is_working( head, lmt.hours_limits.lower )
+        hdwork = is_working_hours( head, lmt.hours_limits.lower )
         head.usual_hours_worked = 5
         head.employment_status = Unemployed
         if hht in [cpl_w_2_kids_hh childless_couple_hh]
             spouse = get_spouse(bu)
             spouse.employment_status = Full_time_Employee
             spouse.usual_hours_worked = 45
-            working = search( bu, is_working, lmt.hours_limits.lower )
+            working = search( bu, is_working_hours, lmt.hours_limits.lower )
             println( "working $working ") 
             @test working
             spouse.usual_hours_worked = 5
             spouse.employment_status = Unemployed
-            spwork = is_working( spouse, lmt.hours_limits.lower )
-            working = search( bu, is_working, lmt.hours_limits.lower )
+            spwork = is_working_hours( spouse, lmt.hours_limits.lower )
+            working = search( bu, is_working_hours, lmt.hours_limits.lower )
             println( "working $working spwork $spwork hdwork $hdwork") 
             @test ! working
             @test ! is_single( bu )
@@ -144,15 +146,15 @@ end # test set
     @test ! eligs_cpl.ndds
     @test eligs_cpl.wtc 
     @test eligs_cpl.ctc 
-    #2 unemployed couple - jsa
+    #2 not_working couple - jsa
     unemploy!( head )
     unemploy!( spouse )
     eligs_cpl = make_lmt_benefit_applicability( 
         cpl, 
         sys.lmt.hours_limits,
         sys.age_limits )
-    println( "unemployed: sp=$spouse" )
-    println( "unemployed couple $eligs_cpl" )
+    println( "not_working: sp=$spouse" )
+    println( "not_working couple $eligs_cpl" )
     @test ! eligs_cpl.esa
     # @test ! eligs_cpl.hb 
     @test ! eligs_cpl.is
@@ -167,8 +169,8 @@ end # test set
         cpl, 
         sys.lmt.hours_limits,
         sys.age_limits )
-    println( "unemployed: sp=$spouse" )
-    println( "unemployed couple $eligs_cpl" )
+    println( "not_working: sp=$spouse" )
+    println( "not_working couple $eligs_cpl" )
     @test eligs_cpl.esa
     # @test ! eligs_cpl.hb 
     @test ! eligs_cpl.is
@@ -259,6 +261,130 @@ end # test set
     @test eligs_sp.wtc  # this is right - could be on both pc and wtc
     @test eligs_sp.ctc 
     
+end
+
+@testset "Intermediates" begin
+    examples = get_ss_examples()
+    sys = get_system( scotland=true )
+    cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
+    spouse = get_spouse( cpl )
+    head = get_head( cpl )
+    println( "sp=$spouse" )
+    intermed = make_intermediate( 
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( intermed )
+    @test ! intermed.pens_age
+    @test ! intermed.all_pens_age
+    @test intermed.working_ft
+    @test intermed.num_working_pt == 0
+    @test intermed.num_working_24_plus == 2
+    @test intermed.total_hours_worked > 40
+    @test ! intermed.is_carer
+    @test ! intermed.is_sparent
+    @test ! intermed.is_sing
+    @test ! intermed.is_disabled
+    @test intermed.nu16s > 1
+    @test intermed.ge_16_u_pension_age
+    @test ! intermed.limited_capacity_for_work
+    @test intermed.has_kids
+    @test intermed.economically_active
+    @test intermed.num_working_full_time == 2
+    @test intermed.num_not_working == 0
+    @test intermed.num_working_part_time == 0
+    
+    unemploy!( head )
+    unemploy!( spouse )
+    intermed = make_intermediate( 
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test ! intermed.pens_age
+    @test ! intermed.all_pens_age
+    @test ! intermed.working_ft
+    @test intermed.num_working_pt == 0
+    @test intermed.num_working_24_plus == 0
+    @test intermed.total_hours_worked == 0
+    @test ! intermed.is_carer
+    @test ! intermed.is_sparent
+    @test ! intermed.is_sing
+    @test ! intermed.is_disabled
+    @test intermed.nu16s > 1
+    @test intermed.ge_16_u_pension_age
+    @test ! intermed.limited_capacity_for_work
+    @test intermed.has_kids
+    @test intermed.economically_active # not_working is active
+    @test intermed.num_working_full_time == 0
+    @test intermed.num_not_working == 2
+    @test intermed.num_working_part_time == 0
+    
+    disable!( spouse )
+    intermed = make_intermediate( 
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test ! intermed.working_ft
+    @test intermed.num_working_pt == 0
+    @test intermed.num_working_24_plus == 0
+    @test intermed.total_hours_worked == 0
+    @test ! intermed.is_carer
+    @test ! intermed.is_sparent
+    @test ! intermed.is_sing
+    @test intermed.is_disabled
+    @test intermed.nu16s == 2
+    @test intermed.ge_16_u_pension_age
+    @test intermed.limited_capacity_for_work
+    @test intermed.has_kids
+    @test intermed.economically_active # not_working is active
+    @test intermed.num_working_full_time == 0
+    @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
+    @test intermed.num_working_part_time == 0
+    
+    carer!( head )
+    intermed = make_intermediate( 
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test ! intermed.working_ft
+    @test intermed.num_working_pt == 0
+    @test intermed.num_working_24_plus == 0
+    @test intermed.total_hours_worked == 0
+    @test intermed.is_carer
+    @test ! intermed.is_sparent
+    @test ! intermed.is_sing
+    @test intermed.is_disabled
+    @test intermed.nu16s == 2
+    @test intermed.ge_16_u_pension_age
+    @test intermed.limited_capacity_for_work
+    @test intermed.has_kids
+    @test ! intermed.economically_active # not_working is active
+    @test intermed.num_working_full_time == 0
+    @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
+    @test intermed.num_working_part_time == 0
+
+    sparent = get_benefit_units(examples[single_parent_hh])[1]
+    intermed = make_intermediate( 
+        sparent,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test intermed.working_ft
+    @test intermed.num_working_pt == 0
+    @test intermed.num_working_24_plus == 1
+    @test intermed.total_hours_worked >= 40
+    @test ! intermed.is_carer
+    @test intermed.is_sparent
+    @test ! intermed.is_sing
+    @test ! intermed.is_disabled
+    @test intermed.nu16s > 0
+    @test intermed.ge_16_u_pension_age
+    @test ! intermed.limited_capacity_for_work
+    @test intermed.has_kids
+    @test intermed.economically_active # not_working is active
+    @test intermed.num_working_full_time == 1
+    @test intermed.num_not_working == 0 # ! 1 not_working/1 inactive?
+    @test intermed.num_working_part_time == 0
+        
 end
 
 @testset "ESA allowances" begin
