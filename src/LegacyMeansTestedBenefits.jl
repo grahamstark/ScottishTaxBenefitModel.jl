@@ -30,6 +30,7 @@ end
 
 
 struct MTIntermediate
+    num_adults :: Int
     pens_age  :: Bool 
     all_pens_age :: Bool
     working_ft  :: Bool 
@@ -48,6 +49,7 @@ struct MTIntermediate
     num_working_full_time :: Int 
     num_not_working :: Int 
     num_working_part_time :: Int
+    working_disabled :: Bool
 end
 
 """
@@ -196,6 +198,7 @@ function make_intermediate(
     hrs  :: HoursLimits,
     ages :: AgeLimits ) :: MTIntermediate
     # {RT} where RT
+    is_working_disabled :: Bool = false
     num_adlts :: Int = num_adults( bu )
     num_pens_age :: Int = count( bu, ge_age, ages.state_pension_age) 
     println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
@@ -235,10 +238,19 @@ function make_intermediate(
         total_hours_worked += round(pers.usual_hours_worked)
     end
     nu16s = count( bu, le_age, 16 )
+
+    for pid in bu.adults
+       pers = bu.people[pid]
+       if working_disabled( pers, hrs )
+            is_working_disabled = true
+            break
+        end 
+    end
     
     println( typeof( total_hours_worked ))
     
     return MTIntermediate(
+        num_adlts,
         pens_age,
         all_pens_age,
         working_ft,
@@ -256,7 +268,8 @@ function make_intermediate(
         economically_active,
         num_working_full_time,
         num_not_working,
-        num_working_part_time
+        num_working_part_time,
+        is_working_disabled
     )
 end
 
@@ -266,63 +279,20 @@ and then decide later on which ones to route to. Source: CPAG chs 9-15
 'Who can get XX' sections.
 """
 function make_lmt_benefit_applicability( 
-    bu :: BenefitUnit, 
-    hrs :: HoursLimits,
-    ages :: AgeLimits ) :: LMTCanApplyFor
+    intermed :: MTIntermediate,
+    hrs      :: HoursLimits ) :: LMTCanApplyFor
     whichb = LMTCanApplyFor()
-    num_adlts = num_adults( bu )
-    num_pens_age :: Int = count( bu, ge_age, ages.state_pension_age) 
-    println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
-    pens_age  :: Bool = num_pens_age > 0
-    all_pens_age :: Bool = num_adlts == num_pens_age
-    working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
-    num_working_pt :: Int = count( bu, is_working_hours, hrs.lower )
-    num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
-    total_hours_worked = 0
-    is_carer :: Bool = has_carer_member( bu )
-    is_sparent  :: Bool = is_lone_parent( bu )
-    is_sing  :: Bool = is_single( bu )
-    
-    ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, ages.state_pension_age-1)
-    limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
-    has_kids  :: Bool = has_children( bu )
-    
-    economically_active = search( bu, empl_status_in, 
-        Full_time_Employee,
-        Part_time_Employee,
-        Full_time_Self_Employed,
-        Part_time_Self_Employed,
-        Unemployed, 
-        Temporarily_sick_or_injured )
-    # can't think of a simple way of doing the rest with searches..
-    num_working_full_time = count( bu, empl_status_in, 
-        Full_time_Employee,
-        Part_time_Employee,
-        Full_time_Self_Employed,
-        Part_time_Self_Employed )
-    num_not_working = 0
-    num_working_part_time = 0
-    
-    for pid in bu.adults
-        pers = bu.people[pid]
-        if ! is_working_hours( pers, hrs.lower )
-            num_not_working += 1
-        elseif pers.usual_hours_worked <= hrs.med
-            num_working_part_time += 1
-        end
-        total_hours_worked += pers.usual_hours_worked
-    end
-    if pens_age
+    if intermed.pens_age
         whichb.pc = true
     end
     # ESA, JSA, IS, crudely
-    if ! all_pens_age 
-        if ((num_adlts == 1 && num_not_working == 1) || 
-        (num_adlts == 2 && (num_not_working>=1 && num_working_part_time<=1))) &&
-        ge_16_u_pension_age
-            if limited_capacity_for_work
+    if ! intermed.all_pens_age 
+        if ((intermed.num_adults == 1 && intermed.num_not_working == 1) || 
+        (intermed.num_adults == 2 && (intermed.num_not_working>=1 && intermed.num_working_part_time<=1))) &&
+        intermed.ge_16_u_pension_age
+            if intermed.limited_capacity_for_work
                 whichb.esa = true 
-            elseif economically_active 
+            elseif intermed.economically_active 
                 whichb.jsa = true  
             else
                 whichb.is = true
@@ -332,31 +302,26 @@ function make_lmt_benefit_applicability(
     #
     # tax credits
     # CTC - easy
-    if has_kids
+    if intermed.has_kids
         whichb.ctc = true
     end
     #
     # WTC - not quite so easy
     #
-    println( "working_ft $working_ft num_working_pt $num_working_pt  has_kids $has_kids pens_age $pens_age ")
-    if working_ft
+    println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_kids $(intermed.has_kids) pens_age $(intermed.pens_age) ")
+    if intermed.working_ft
         whichb.wtc = true
-    elseif (total_hours_worked >= hrs.med) && (num_working_pt>0) && has_kids 
+    elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_kids 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has kids
         whichb.wtc = true
-    elseif (num_working_pt>0) && pens_age
+    elseif (intermed.num_working_pt>0) && intermed.pens_age
         whichb.wtc = true
-    elseif (num_working_pt>0) && is_sparent
+    elseif (intermed.num_working_pt>0) && intermed.is_sparent
         whichb.wtc = true
-    else
-        for pid in bu.adults
-            pers = bu.people[pid]
-            if working_disabled( pers, hrs )
-                whichb.wtc = true
-                break
-            end
-        end # wtc loop
+    elseif intermed.working_disabled
+        whichb.wtc = true
     end
+    
     # hb,ctb are assumed true 
     return whichb
 end

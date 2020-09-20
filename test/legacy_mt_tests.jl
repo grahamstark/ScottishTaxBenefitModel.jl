@@ -129,10 +129,11 @@ end # test set
     sys = get_system( scotland=true )
     cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
     sparent = get_benefit_units(examples[single_parent_hh])[1]
-    eligs_cpl :: LMTCanApplyFor = make_lmt_benefit_applicability( 
-        cpl, 
+    intermed = make_intermediate( 
+        cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     head = get_head( cpl )
     println( "head=$head")
     spouse = get_spouse( cpl )
@@ -149,10 +150,11 @@ end # test set
     #2 not_working couple - jsa
     unemploy!( head )
     unemploy!( spouse )
-    eligs_cpl = make_lmt_benefit_applicability( 
-        cpl, 
+    intermed = make_intermediate( 
+        cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "not_working: sp=$spouse" )
     println( "not_working couple $eligs_cpl" )
     @test ! eligs_cpl.esa
@@ -165,10 +167,11 @@ end # test set
     @test eligs_cpl.ctc 
     
     disable!( spouse )
-    eligs_cpl = make_lmt_benefit_applicability( 
-        cpl, 
+    intermed = make_intermediate( 
+        cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "not_working: sp=$spouse" )
     println( "not_working couple $eligs_cpl" )
     @test eligs_cpl.esa
@@ -180,20 +183,22 @@ end # test set
     carer!( spouse )
     carer!( head )
     println( "head.employment_status=$(head.employment_status) spouse.employment_status=$(spouse.employment_status)")
-    eligs_cpl = make_lmt_benefit_applicability( 
-        cpl, 
+    intermed = make_intermediate( 
+        cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( eligs_cpl )
     @test ! eligs_cpl.esa
     @test eligs_cpl.is
     @test eligs_cpl.ctc 
     @test ! eligs_cpl.wtc
     
-    eligs_sp :: LMTCanApplyFor = make_lmt_benefit_applicability( 
-        sparent, 
+    intermed = make_intermediate( 
+        sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
@@ -203,10 +208,11 @@ end # test set
     @test eligs_sp.ctc 
     head = get_head( sparent )
     unemploy!( head )
-    eligs_sp = make_lmt_benefit_applicability( 
-        sparent, 
+    intermed = make_intermediate( 
+        sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
     @test eligs_sp.jsa
@@ -215,10 +221,11 @@ end # test set
     @test ! eligs_sp.wtc 
     @test eligs_sp.ctc 
     carer!( head )
-    eligs_sp = make_lmt_benefit_applicability( 
-        sparent, 
+    intermed = make_intermediate( 
+        sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test eligs_sp.is
     @test ! eligs_sp.jsa
@@ -227,10 +234,11 @@ end # test set
     @test ! eligs_sp.wtc 
     @test eligs_sp.ctc 
     head.age = 70
-    eligs_sp = make_lmt_benefit_applicability( 
-        sparent, 
+    intermed = make_intermediate( 
+        sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
@@ -239,10 +247,13 @@ end # test set
     @test ! eligs_sp.wtc  
     @test eligs_sp.ctc 
     retire!( head )
-    eligs_sp = make_lmt_benefit_applicability( 
-        sparent, 
+    intermed = make_intermediate( 
+        sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_sp = make_lmt_benefit_applicability( 
+        intermed, 
+        sys.lmt.hours_limits )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
     @test eligs_sp.pc 
@@ -250,10 +261,11 @@ end # test set
     @test ! eligs_sp.wtc  # this is right - could be on both ctc and wtc
     @test eligs_sp.ctc 
     employ!( head )
-    eligs_sp = make_lmt_benefit_applicability( 
-        sparent, 
+    intermed = make_intermediate( 
+        sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
+    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
     @test eligs_sp.pc 
@@ -384,6 +396,7 @@ end
     @test intermed.num_working_full_time == 1
     @test intermed.num_not_working == 0 # ! 1 not_working/1 inactive?
     @test intermed.num_working_part_time == 0
+    @test ! intermed.working_disabled
         
 end
 
