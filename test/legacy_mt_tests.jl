@@ -31,7 +31,8 @@ sys = get_system( scotland=true )
     np = add_child!( sparent, 1, Female );
     @test num_children( sparent ) == 4  
     @test apply_2_child_policy( sparent ) == 3
-    
+    @test apply_2_child_policy( sparent, child_limit=5 ) == 4
+    @test apply_2_child_policy( sparent, start_date=Date(2000,4,6) ) == 2
 end
     
 @testset "CPAG income and capital chapters 20, 21, 22, 23" begin

@@ -45,7 +45,8 @@ examples:
  
 """
 function apply_2_child_policy(
-    bu             :: BenefitUnit,
+    bu             :: BenefitUnit
+    ;
     child_limit    :: Integer = 2,
     start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
     model_run_date :: TimeType = now() ) :: Integer
