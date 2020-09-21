@@ -42,7 +42,7 @@ examples:
  => allowable = 2
 0  kids born before start_date, 2 after
  => allowable = 2
- 
+ @return number of children allowed
 """
 function apply_2_child_policy(
     bu             :: BenefitUnit
