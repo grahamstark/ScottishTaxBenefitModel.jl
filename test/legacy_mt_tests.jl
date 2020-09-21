@@ -9,7 +9,7 @@ using .LegacyMeansTestedBenefits:
     calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
-    apply_2_child_policy
+    apply_2_child_policy, calc_incomes
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
@@ -177,7 +177,7 @@ end # test set
     @test ! eligs_cpl.pc 
     @test ! eligs_cpl.ndds
     @test eligs_cpl.wtc 
-    @test eligs_cpl.ctc 
+    @test eligs_cpl.ctr 
     #2 not_working couple - jsa
     unemploy!( head )
     unemploy!( spouse )
@@ -195,7 +195,7 @@ end # test set
     @test ! eligs_cpl.pc 
     @test ! eligs_cpl.ndds
     @test ! eligs_cpl.wtc 
-    @test eligs_cpl.ctc 
+    @test eligs_cpl.ctr 
     
     disable!( spouse )
     intermed = make_intermediate( 
@@ -208,7 +208,7 @@ end # test set
     @test eligs_cpl.esa
     # @test ! eligs_cpl.hb 
     @test ! eligs_cpl.is
-    @test eligs_cpl.ctc 
+    @test eligs_cpl.ctr 
     enable!( spouse )
     unemploy!( spouse )
     carer!( spouse )
@@ -222,7 +222,7 @@ end # test set
     println( eligs_cpl )
     @test ! eligs_cpl.esa
     @test eligs_cpl.is
-    @test eligs_cpl.ctc 
+    @test eligs_cpl.ctr 
     @test ! eligs_cpl.wtc
     
     intermed = make_intermediate( 
@@ -236,7 +236,7 @@ end # test set
     @test ! eligs_sp.pc 
     @test ! eligs_sp.ndds
     @test eligs_sp.wtc 
-    @test eligs_sp.ctc 
+    @test eligs_sp.ctr 
     head = get_head( sparent )
     unemploy!( head )
     intermed = make_intermediate( 
@@ -250,7 +250,7 @@ end # test set
     @test ! eligs_sp.pc 
     @test ! eligs_sp.ndds
     @test ! eligs_sp.wtc 
-    @test eligs_sp.ctc 
+    @test eligs_sp.ctr 
     carer!( head )
     intermed = make_intermediate( 
         sparent,  
@@ -263,7 +263,7 @@ end # test set
     @test ! eligs_sp.pc 
     @test ! eligs_sp.ndds
     @test ! eligs_sp.wtc 
-    @test eligs_sp.ctc 
+    @test eligs_sp.ctr 
     head.age = 70
     intermed = make_intermediate( 
         sparent,  
@@ -276,7 +276,7 @@ end # test set
     @test eligs_sp.pc 
     @test ! eligs_sp.ndds
     @test ! eligs_sp.wtc  
-    @test eligs_sp.ctc 
+    @test eligs_sp.ctr 
     retire!( head )
     intermed = make_intermediate( 
         sparent,  
@@ -289,8 +289,8 @@ end # test set
     @test ! eligs_sp.jsa
     @test eligs_sp.pc 
     @test ! eligs_sp.ndds
-    @test ! eligs_sp.wtc  # this is right - could be on both ctc and wtc
-    @test eligs_sp.ctc 
+    @test ! eligs_sp.wtc  # this is right - could be on both ctr and wtc
+    @test eligs_sp.ctr 
     employ!( head )
     intermed = make_intermediate( 
         sparent,  
@@ -302,7 +302,7 @@ end # test set
     @test eligs_sp.pc 
     @test ! eligs_sp.ndds
     @test eligs_sp.wtc  # this is right - could be on both pc and wtc
-    @test eligs_sp.ctc 
+    @test eligs_sp.ctr 
     
 end
 
@@ -429,6 +429,24 @@ end
     @test intermed.num_working_part_time == 0
     @test ! intermed.working_disabled
         
+end
+
+@testset "Allowances" begin
+    examples = get_ss_examples()
+    sys = get_system( scotland=true )
+    cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
+    spouse = get_spouse( cpl )
+    head = get_head( cpl )
+    println( "sp=$spouse" )
+    intermed = make_intermediate( 
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( intermed )
+    for ben_t in instances( LMTBenefitType )
+        allow = calc_allowances( ben_t, intermed, sys.lmt.allowances, sys.age_limits )
+        println( "ben_t $ben_t allow=$allow" )
+    end
 end
 
 @testset "ESA allowances" begin

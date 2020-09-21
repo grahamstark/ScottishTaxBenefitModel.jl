@@ -39,14 +39,14 @@ module Results
     @with_kw mutable struct LMTCanApplyFor
         esa :: Bool = false
         # hb ctr assumed true for everyone
-        hb  :: Bool = true
-        ctr :: Bool = true
         is :: Bool = false
         jsa :: Bool = false
         pc  :: Bool = false
         ndds :: Bool = false
         wtc  :: Bool = false
         ctc  :: Bool = false
+        hb  :: Bool = true
+        ctr :: Bool = true
     end
         
     @with_kw mutable struct LMTResults{RT<:Real}
@@ -57,7 +57,7 @@ module Results
         pc  :: RT = zero(RT)
         ndds :: RT = zero(RT)
         wtc  :: RT = zero(RT)
-        ctc  :: RT = zero(RT)
+        ctr  :: RT = zero(RT)
         premia :: LMTPremiaDict{Bool} = LMTPremiaDict{Bool}()
         # can_apply_for = LMTCanApplyFor()
         intermediate :: Dict = Dict()

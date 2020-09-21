@@ -17,7 +17,7 @@ using Dates: TimeType, Date, now, Year
 export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
-    apply_2_child_policy
+    apply_2_child_policy, calc_incomes
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -84,6 +84,7 @@ struct MTIntermediate
     is_sing  :: Bool 
     is_disabled :: Bool
     num_u_16s :: Int
+    num_allowed_kids :: Int
     ge_16_u_pension_age  :: Bool 
     limited_capacity_for_work  :: Bool 
     has_kids  :: Bool 
@@ -102,7 +103,7 @@ The CPAG guide ch 21/21 has over 100 pages on this stuff
 this can no more than catch the gist.
 """
 function calc_incomes( 
-    which_ben :: LMTBenefitType, # esa hb is jsa pc wtc ctc
+    which_ben :: LMTBenefitType, # esa hb is jsa pc wtc ctr
     bu :: BenefitUnit, 
     bur :: BenefitUnitResult, 
     intermed :: MTIntermediate,
@@ -119,7 +120,7 @@ function calc_incomes(
     
     if which_ben == hb
         inclist = incrules.hb_incomes
-    elseif which_ben in [pc,ctc,wtc]
+    elseif which_ben in [pc,ctr,wtc]
         inclist = incrules.tc_incomes
     else
         inclist = incrules.incomes
@@ -138,7 +139,7 @@ function calc_incomes(
                 pres.ni.total_ni - 
                 0.5 * get(pers.income, pension_contributions_employee, 0.0 )
         else
-            # wtc,ctc all pension contributions but not IT/NI
+            # wtc,ctr all pension contributions but not IT/NI
             net = gross - get(pers.income, pension_contributions_employee, 0.0 )
         end
         gross_earn += gross
@@ -305,6 +306,8 @@ function make_intermediate(
             age_youngest_child = pers.age
         end
     end
+    ## fixme parameterise this
+    num_allowed_kids :: Int = apply_2_child_policy( bu )
     println( "has_kids $has_kids age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
     @assert (!has_kids)||(19 >= age_oldest_child >= age_youngest_child >= 0)
     
@@ -327,6 +330,7 @@ function make_intermediate(
         is_sing,    
         is_disabled,
         num_u_16s,
+        num_allowed_kids,
         ge_16_u_pension_age,
         limited_capacity_for_work,
         has_kids,
@@ -387,7 +391,7 @@ function make_lmt_benefit_applicability(
         whichb.wtc = true
     end
     
-    # hb,ctb are assumed true 
+    # hb,ctr are assumed true 
     return whichb
 end
 
@@ -445,7 +449,7 @@ function calc_allowances(
     else # all over 17
         if intermed.num_adults == 1 
             if intermed.num_u_16s > 0 # single parent
-                if intermed.age_oldest_adult < ages.pension_age
+                if intermed.age_oldest_adult < ages.state_pension_age
                     pers_allow = pas.lone_parent                 
                 else
                     pers_allow = pas.lone_parent_over_pension_age     
@@ -458,14 +462,14 @@ function calc_allowances(
                 end
             end
         else # 2 adults, both at least 18
-            if intermed.age_oldest_adult >= ages.pension_age
+            if intermed.age_oldest_adult >= ages.state_pension_age
                 pers_allow = pas.couple_over_pension_age
             else
                 pers_allow = pas.couple_both_over_18
             end
         end # 2 adults
     end # no 16-17 yos 
-    if which_ben in [hb,ctb]
+    if which_ben in [hb,ctr]
         pers_allow += pas.child * intermed.num_allowed_kids
     end
     @assert pers_allow > 0
