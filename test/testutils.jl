@@ -5,7 +5,8 @@ using .STBParameters:
     NationalInsuranceSys,
     IncomeTaxSys,
     weeklyise!
-using .ModelHousehold: Household, Person
+using .ModelHousehold: Household, BenefitUnit, Person, num_children
+using .Definitions
 import .ExampleHouseholdGetter
 
 # pids for example people
@@ -139,4 +140,30 @@ end
 function retire!( pers :: Person )
    pers.usual_hours_worked = 0
    pers.employment_status = Retired
+end
+
+
+function add_child!( bu :: BenefitUnit, age :: Integer, sex :: Sex )::BigInt
+    nc = num_children( bu )
+    @assert nc > 0
+    np = deepcopy( bu.people[bu.children[1]] )
+    np.pid = maximum( bu.children ) + 1
+    np.age = age
+    np.sex = sex
+    bu.people[np.pid] = np
+    push!( bu.children, np.pid )
+    @assert num_children( bu ) == nc+1
+    return np.pid
+end
+
+function delete_child!( bu :: BenefitUnit, pid :: BigInt )
+    delete!( bu.people, pid )
+    pos :: BigInt = -1
+    nc = size(bu.children)[1]
+    for p in 1:nc
+        if bu.childreen[p] == pid
+            deleteat![p]
+            break;
+        end
+    end
 end

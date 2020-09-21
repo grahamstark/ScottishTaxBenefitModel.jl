@@ -12,10 +12,12 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
     LMTResults, has_income, LMTCanApplyFor
 using .Utils: mult, haskeys
+using Dates: TimeType, Date, now, Year
 
 export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
-    working_disabled, MTIntermediate, make_intermediate
+    working_disabled, MTIntermediate, make_intermediate, calc_allowances,
+    apply_2_child_policy
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -26,6 +28,41 @@ function is_working_hours( pers :: Person, hours... ) :: Bool
                (pers.usual_hours_worked <= hours[2])
     end
     #(pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
+end
+
+
+"""
+examples: 
+
+2 kids born before start_date, 1 after
+ => allowable = 2
+3  kids born before start_date, 1 after
+ => allowable = 3
+1  kids born before start_date, 2 after
+ => allowable = 2
+0  kids born before start_date, 2 after
+ => allowable = 2
+ 
+"""
+function apply_2_child_policy(
+    bu             :: BenefitUnit,
+    child_limit    :: Integer = 2,
+    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
+    model_run_date :: TimeType = now() ) :: Integer
+    before_children = 0
+    after_children = 0
+    for pid in bu.children
+        ch = bu.people[pid]
+        bdate = model_run_date - Year(ch.age)
+        println( "age = $(ch.age) => birthdate $bdate" )
+        if bdate < start_date
+            before_children += 1
+        else
+            after_children += 1
+        end          
+    end
+    println( "before children $before_children after children $after_children " )
+    allowable = before_children + min( max(child_limit-before_children,0), after_children )
 end
 
 
@@ -45,7 +82,7 @@ struct MTIntermediate
     is_sparent  :: Bool 
     is_sing  :: Bool 
     is_disabled :: Bool
-    nu16s :: Int
+    num_u_16s :: Int
     ge_16_u_pension_age  :: Bool 
     limited_capacity_for_work  :: Bool 
     has_kids  :: Bool 
@@ -55,6 +92,8 @@ struct MTIntermediate
     num_working_part_time :: Int
     working_disabled :: Bool
 end
+
+
 
 """
 Incomes for old style mt benefits
@@ -137,14 +176,14 @@ function calc_incomes(
         if search( bu, is_working_hours, hours.higher )
             extra = incrules.hb_additional 
         elseif search(  bu, is_working_hours, hours.lower )
-            if intermed.is_sparent || (intermed.nu16s > 0) || intermed.is_disabled
+            if intermed.is_sparent || (intermed.num_u_16s > 0) || intermed.is_disabled
                 extra = incrules.hb_additional
             end
         end
         disreg += extra
         # childcare in HB - costs are assigned in frs to the children
-        if ( intermed.nu16s > 0 ) 
-            maxcc = intermed.nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
+        if ( intermed.num_u_16s > 0 ) 
+            maxcc = intermed.num_u_16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
             cost_of_childcare = 0.0
             for pid in bu.children 
                 cost_of_childcare += bu.people[pid].cost_of_childcare 
@@ -254,7 +293,7 @@ function make_intermediate(
         end 
     end
     @assert 120 >= age_oldest_adult >= age_youngest_adult >= 16
-    nu16s = count( bu, le_age, 16 )
+    num_u_16s = count( bu, le_age, 16 )
 
     for pid in bu.children
         pers = bu.people[pid]
@@ -286,7 +325,7 @@ function make_intermediate(
         is_sparent,
         is_sing,    
         is_disabled,
-        nu16s,
+        num_u_16s,
         ge_16_u_pension_age,
         limited_capacity_for_work,
         has_kids,
@@ -381,28 +420,55 @@ function calc_premia( bu :: BenefitUnit ) LMTPremiaDic{Bool}
 
 end
 
-function calc_allowances( 
+function calc_allowances(
+    which_ben :: LMTBenefitType,
     intermed :: MTIntermediate, 
-    which_applic :: LMTCanApplyFor ) :: Real
-    allows = 0.0
-    if intermed.num_adults == 2 
-        if intermed.pens_age
-        
-        end
+    pas :: PersonalAllowances,
+    ages :: AgeLimits ) :: Real
+    pers_allow = 0.0
+    @assert intermed.num_adults in [1,2]
+    if intermed.age_oldest_adult < 18
+        # argh .. not there's a conditional on ESA that we don't cover here
+        # seems to be it - no change for sps, marriage..
+        # but some change
+        pers_allow = pas.age_18_24
+        # should be somethinh like ...
+        #if which_ben in [is,jsa,esa]
+        #    
+        #elseif which_ben == hb 
+        #    pers_allow = pas.age_18_24
+        #end
+    elseif intermed.age_youngest_adult < 18 && intermed.num_adults == 2
+        pers_allow = pas.couple_one_over_18_high
+        ## FIXME some cases lower than this see p 335 CPAG
+    else # all over 17
+        if intermed.num_adults == 1 
+            if intermed.num_u_16s > 0 # single parent
+                if intermed.age_oldest_adult < ages.pension_age
+                    pers_allow = pas.lone_parent                 
+                else
+                    pers_allow = pas.lone_parent_over_pension_age     
+                end            
+            else
+                if intermed.age_oldest_adult < 25
+                    pers_allow = pas.age_18_24        
+                else
+                    pers_allow = pas.age_25_and_over
+                end
+            end
+        else # 2 adults, both at least 18
+            if intermed.age_oldest_adult >= ages.pension_age
+                pers_allow = pas.couple_over_pension_age
+            else
+                pers_allow = pas.couple_both_over_18
+            end
+        end # 2 adults
+    end # no 16-17 yos 
+    if which_ben in [hb,ctb]
+        pers_allow += pas.child * intermed.num_allowed_kids
     end
-        
-         age_18_24 :: RT = 57.90
-         age_25_and_over :: RT = 73.10
-         age_18_and_in_work_activity :: RT = 73.10
-         over_pension_age :: RT = 181.10
-         lone_parent :: RT = 73.10
-         lone_parent_over_pension_age :: RT = 181.00
-         couple_both_over_18 :: RT = 114.85
-         couple_over_pension_age :: RT = 270.60
-         couple_one_over_18_high :: RT = 114.85
-         couple_one_over_18_med :: RT = 173.10
-         pa_couple_one_over_18_low :: RT = 57.90
-    return allows
+    @assert pers_allow > 0
+    return pers_allow
 end
 
 function calc_credits()

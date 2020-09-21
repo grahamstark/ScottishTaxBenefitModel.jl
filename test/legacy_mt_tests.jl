@@ -5,16 +5,34 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
     pers_is_disabled, pers_is_carer
 using .ExampleHouseholdGetter
 using .Definitions
-using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits, 
-    is_working_hours, calc_incomes, tariff_income, make_lmt_benefit_applicability,
-    MTIntermediate, make_intermediate
+using .LegacyMeansTestedBenefits:  
+    calc_legacy_means_tested_benefits, tariff_income,
+    LMTResults, is_working_hours, make_lmt_benefit_applicability,
+    working_disabled, MTIntermediate, make_intermediate, calc_allowances,
+    apply_2_child_policy
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
+using Dates
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
+
+@testset "2 child policy" begin
+    examples = get_ss_examples()
+    sparent = get_benefit_units(examples[single_parent_hh])[1]
+    println( sparent.children )
+    @test num_children( sparent ) == 2
+    @test apply_2_child_policy( sparent ) == 2
+    np = add_child!( sparent, 10, Female );
+    @test num_children( sparent ) == 3
+    @test apply_2_child_policy( sparent ) == 3
+    np = add_child!( sparent, 1, Female );
+    @test num_children( sparent ) == 4  
+    @test apply_2_child_policy( sparent ) == 3
+    
+end
     
 @testset "CPAG income and capital chapters 20, 21, 22, 23" begin
     
@@ -309,7 +327,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
-    @test intermed.nu16s > 1
+    @test intermed.num_u_16s > 1
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_kids
@@ -334,7 +352,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
-    @test intermed.nu16s > 1
+    @test intermed.num_u_16s > 1
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_kids
@@ -356,7 +374,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test intermed.is_disabled
-    @test intermed.nu16s == 2
+    @test intermed.num_u_16s == 2
     @test intermed.ge_16_u_pension_age
     @test intermed.limited_capacity_for_work
     @test intermed.has_kids
@@ -378,7 +396,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test intermed.is_disabled
-    @test intermed.nu16s == 2
+    @test intermed.num_u_16s == 2
     @test intermed.ge_16_u_pension_age
     @test intermed.limited_capacity_for_work
     @test intermed.has_kids
@@ -400,7 +418,7 @@ end
     @test intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
-    @test intermed.nu16s > 0
+    @test intermed.num_u_16s > 0
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_kids

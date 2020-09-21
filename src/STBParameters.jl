@@ -321,6 +321,7 @@ module STBParameters
          couple_one_over_18_high :: RT = 114.85
          couple_one_over_18_med :: RT = 173.10
          pa_couple_one_over_18_low :: RT = 57.90
+         child :: RT = 66.90
     end
 
     @with_kw mutable struct Premia{ RT<:Real }
