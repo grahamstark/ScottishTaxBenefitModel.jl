@@ -30,6 +30,10 @@ end
 
 
 struct MTIntermediate
+    age_youngest_adult :: Int
+    age_oldest_adult :: Int
+    age_youngest_child :: Int
+    age_oldest_child :: Int
     num_adults :: Int
     pens_age  :: Bool 
     all_pens_age :: Bool
@@ -61,6 +65,7 @@ function calc_incomes(
     which_ben :: LMTBenefitType, # esa hb is jsa pc wtc ctc
     bu :: BenefitUnit, 
     bur :: BenefitUnitResult, 
+    intermed :: MTIntermediate,
     incrules :: IncomeRules,
     hours :: HoursLimits ) :: LMTIncomes 
     T = typeof( incrules.permitted_work )
@@ -71,11 +76,7 @@ function calc_incomes(
     net_earn = zero(T)
     other = zero(T)
     total = zero(T)
-    is_sparent = is_lone_parent( bu )
-    is_sing = is_single( bu )
-    is_disabled = has_disabled_member( bu )
-    is_carer = has_carer_member( bu )
-    nu16s = count( bu, le_age, 16 )
+    
     if which_ben == hb
         inclist = incrules.hb_incomes
     elseif which_ben in [pc,ctc,wtc]
@@ -110,7 +111,7 @@ function calc_incomes(
     # disregards
     # if which_ben in [hb,jsa,is,]
     # FIXME this is not quite right for ESA
-    disreg = is_sing ?  incrules.low_single : incrules.low_couple
+    disreg = intermed.is_sing ?  incrules.low_single : incrules.low_couple
     
     if( which_ben == esa ) 
         if ! search( bu, is_working_hours, hours.lower )
@@ -118,7 +119,7 @@ function calc_incomes(
             # and some others ... see CPAG 
         end
     elseif which_ben in [hb,jsa,is,pc]
-        if is_sparent            
+        if intermed.is_sparent            
             disreg = which_ben == hb ? incrules.lone_parent_hb : incrules.high 
         elseif haskeys(mntr.premia, carer_single, carer_couple, disability_couple, disability_single, severe_disability_couple, severe_disability_single )
             disreg = incrules.high
@@ -136,14 +137,14 @@ function calc_incomes(
         if search( bu, is_working_hours, hours.higher )
             extra = incrules.hb_additional 
         elseif search(  bu, is_working_hours, hours.lower )
-            if is_sparent || (nu16s > 0) || is_disabled
+            if intermed.is_sparent || (intermed.nu16s > 0) || intermed.is_disabled
                 extra = incrules.hb_additional
             end
         end
         disreg += extra
         # childcare in HB - costs are assigned in frs to the children
-        if ( nu16s > 0 ) 
-            maxcc = nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
+        if ( intermed.nu16s > 0 ) 
+            maxcc = intermed.nu16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
             cost_of_childcare = 0.0
             for pid in bu.children 
                 cost_of_childcare += bu.people[pid].cost_of_childcare 
@@ -198,6 +199,11 @@ function make_intermediate(
     hrs  :: HoursLimits,
     ages :: AgeLimits ) :: MTIntermediate
     # {RT} where RT
+    age_youngest_adult :: Int = 9999
+    age_oldest_adult :: Int = -9999
+    age_youngest_child :: Int = 9999
+    age_oldest_child :: Int = -9999
+    
     is_working_disabled :: Bool = false
     num_adlts :: Int = num_adults( bu )
     num_pens_age :: Int = count( bu, ge_age, ages.state_pension_age) 
@@ -228,6 +234,12 @@ function make_intermediate(
     is_disabled = has_disabled_member( bu )
     for pid in bu.adults
         pers = bu.people[pid]
+        if pers.age > age_oldest_adult
+            age_oldest_adult = pers.age
+        end
+        if pers.age < age_youngest_adult
+            age_youngest_adult = pers.age
+        end
         if ! is_working_hours( pers, hrs.lower )
             num_not_working += 1
         elseif pers.usual_hours_worked <= hrs.med
@@ -236,20 +248,33 @@ function make_intermediate(
             num_working_full_time += 1
         end          
         total_hours_worked += round(pers.usual_hours_worked)
-    end
-    nu16s = count( bu, le_age, 16 )
-
-    for pid in bu.adults
-       pers = bu.people[pid]
-       if working_disabled( pers, hrs )
+        if working_disabled( pers, hrs )
             is_working_disabled = true
             break
         end 
     end
+    @assert 120 >= age_oldest_adult >= age_youngest_adult >= 16
+    nu16s = count( bu, le_age, 16 )
+
+    for pid in bu.children
+        pers = bu.people[pid]
+        if pers.age > age_oldest_child
+            age_oldest_child = pers.age
+        end
+        if pers.age < age_youngest_child
+            age_youngest_child = pers.age
+        end
+    end
+    println( "has_kids $has_kids age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
+    @assert (!has_kids)||(19 >= age_oldest_child >= age_youngest_child >= 0)
     
     println( typeof( total_hours_worked ))
-    
+                                   
     return MTIntermediate(
+        age_youngest_adult,
+        age_oldest_adult,
+        age_youngest_child,
+        age_oldest_child,
         num_adlts,
         pens_age,
         all_pens_age,
@@ -356,8 +381,16 @@ function calc_premia( bu :: BenefitUnit ) LMTPremiaDic{Bool}
 
 end
 
-function calc_allowances( bu :: BenefitUnit ) :: Real
+function calc_allowances( 
+    intermed :: MTIntermediate, 
+    which_applic :: LMTCanApplyFor ) :: Real
     allows = 0.0
+    if intermed.num_adults == 2 
+        if intermed.pens_age
+        
+        end
+    end
+        
          age_18_24 :: RT = 57.90
          age_25_and_over :: RT = 73.10
          age_18_and_in_work_activity :: RT = 73.10

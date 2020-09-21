@@ -11,9 +11,11 @@ using .LegacyMeansTestedBenefits: calc_legacy_means_tested_benefits,
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
-    
-lmt = LegacyMeansTestedBenefitSystem{Float64}()
 
+## FIXME don't need both
+lmt = LegacyMeansTestedBenefitSystem{Float64}()
+sys = get_system( scotland=true )
+    
 @testset "CPAG income and capital chapters 20, 21, 22, 23" begin
     
     examples = get_ss_examples()
@@ -36,6 +38,11 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
         println( "on hhld '$hht'")
         bus = get_benefit_units( hh )
         bu = bus[1]
+        intermed = make_intermediate( 
+            bu,  
+            lmt.hours_limits,
+            sys.age_limits )
+
         @test size(bus)[1] == 1
         spouse = nothing
         head = get_head(bu)
@@ -72,6 +79,7 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
                     ben,
                     bu,
                     bur,
+                    intermed,
                     lmt.income_rules,
                     lmt.hours_limits ) 
                 @test inc.tariff_income ≈ 0.0
@@ -104,6 +112,10 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
     emr = init_benefit_unit_result( Float64, e_and_m )
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
+    intermed = make_intermediate( 
+        e_and_m,  
+        lmt.hours_limits,
+        sys.age_limits )
     empty!(mia.income)
     mia.income[wages] = 136.0
     mia.usual_hours_worked = 17
@@ -114,6 +126,7 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
         hb,
         e_and_m,
         emr,
+        intermed,
         lmt.income_rules,
         lmt.hours_limits ) 
     @test inc.net_earnings ≈ 98.90
@@ -126,7 +139,6 @@ end # test set
 @testset "Applicability Tests" begin
     # reset the examples
     examples = get_ss_examples()
-    sys = get_system( scotland=true )
     cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
     sparent = get_benefit_units(examples[single_parent_hh])[1]
     intermed = make_intermediate( 
