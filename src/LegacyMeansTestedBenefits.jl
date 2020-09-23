@@ -3,7 +3,7 @@ module LegacyMeansTestedBenefits
 using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
-    is_single, pers_is_disabled, pers_is_carer, search, count,
+    is_single, pers_is_disabled, pers_is_carer, search, count, num_carers,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
@@ -80,6 +80,8 @@ struct MTIntermediate
     num_working_24_plus :: Int 
     total_hours_worked :: Int
     is_carer :: Bool 
+    num_carers :: Int
+    
     is_sparent  :: Bool 
     is_sing  :: Bool 
     is_disabled :: Bool
@@ -261,6 +263,7 @@ function make_intermediate(
     num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
     num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
     total_hours_worked :: Int = 0
+    num_carers :: Int = num_carers( bu )
     is_carer :: Bool = has_carer_member( bu )
     is_sparent  :: Bool = is_lone_parent( bu )
     is_sing  :: Bool = is_single( bu )   
@@ -347,6 +350,7 @@ function make_intermediate(
         num_working_24_plus,
         total_hours_worked,
         is_carer,
+        num_carers,
         is_sparent,
         is_sing,    
         is_disabled,
@@ -465,7 +469,7 @@ function calc_premia(
             premia += prems.disability_couple
         end        
     end
-    if which_pen in [hb,ctr,esa,is,jsa]
+    if which_ben in [hb,ctr,esa,is,jsa]
         premia += (intermed.num_severely_disabled_children*prems.enhanced_disabled_child
         if num_severely_disabled_adults == 1
             premia += prems.enhanced_disability_single
@@ -476,7 +480,15 @@ function calc_premia(
     if intermed.age_oldest_adult > ages.state_pension_age
         premia += prems.pensioner_is  
     end
-    
+    # all benefits, I think, incl. 
+    if which_ben != ctb
+        if intermed.num_carers == 1
+            premia += prems.carer_single
+        elseif intermed.num_carers == 2
+            # FIXME what if 1 is a child?
+            premia += prems.carer_couple
+        end
+    end
     return premia
 end
 

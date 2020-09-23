@@ -11,7 +11,7 @@ export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
 export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
-export is_single, search, pers_is_disabled, pers_is_carer
+export is_single, search, pers_is_disabled, pers_is_carer, num_carers,
 export le_age, between_ages, ge_age, num_adults, empl_status_in
 export has_children, num_children, is_severe_disability
 
@@ -373,12 +373,19 @@ function is_single( hh :: Household ) :: Bool
 end
 
 """
-FIXME we're going to do this solely on benefit receipt
+FIXME we're going to do this solely on benefit receipt/is_informal_carer flag
 for now until we get the regressions done
 we use historic benefits here since this uses actual data
 """
 function pers_is_carer( pers :: Person, params ... ) :: Bool
-    has_non_z( pers.income, carers_allowance )
+    if has_non_z( pers.income, carers_allowance )
+        return true
+    end
+    # FIXME check/parameterise this
+    if (pers.is_informal_carer) && (pers.hours_of_care_given > 0)
+        return true
+    end
+    return false
 end
 
 const DISABLE_BENEFITS = [
@@ -497,6 +504,14 @@ end
 
 function has_carer_member( hh :: Household ) :: Bool
     search( hh.people, pers_is_carer )
+end
+
+function num_carers( bu :: BenefitUnit ) :: Int
+    count( bu.people, pers_is_carer )
+end
+
+function carers( hh :: Household ) :: Int
+    count( hh.people, pers_is_carer )
 end
 
 
