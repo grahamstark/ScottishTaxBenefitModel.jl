@@ -13,7 +13,7 @@ export get_benefit_units, num_people, get_head,get_spouse, printpids
 export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
 export is_single, search, pers_is_disabled, pers_is_carer
 export le_age, between_ages, ge_age, num_adults, empl_status_in
-export has_children, num_children
+export has_children, num_children, is_severe_disability
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -389,7 +389,15 @@ const DISABLE_BENEFITS = [
     dlamobility,
     personal_independence_payment_daily_living,
     personal_independence_payment_mobility]
+    
 
+"""
+FIXME this is just random .. every 3rd is severe
+"""
+function is_severe_disability( pers :: Person )
+    const HIGH_PROP = 3
+    return pers.pid % HIGH_PROP == 0
+end    
 
 """
 FIXME we're going to do this solely on benefit receipt

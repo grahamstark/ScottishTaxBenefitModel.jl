@@ -5,7 +5,7 @@ using .Definitions
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
     is_single, pers_is_disabled, pers_is_carer, search, count,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
-    empl_status_in, has_children, num_adults
+    empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
     Premia, PersonalAllowances, HoursLimits, AgeLimits
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
@@ -83,6 +83,12 @@ struct MTIntermediate
     is_sparent  :: Bool 
     is_sing  :: Bool 
     is_disabled :: Bool
+    
+    num_disabled_adults :: Int
+    num_disabled_children :: Int
+    num_severely_disabled_adults :: Int
+    num_severely_disabled_children :: Int
+    
     num_u_16s :: Int
     num_allowed_kids :: Int
     ge_16_u_pension_age  :: Bool 
@@ -273,6 +279,8 @@ function make_intermediate(
     num_not_working = 0
     num_working_part_time = 0
     is_disabled = has_disabled_member( bu )
+    num_disabled_adults = 0
+    num_severely_disabled_adults = 0
     for pid in bu.adults
         pers = bu.people[pid]
         if pers.age > age_oldest_adult
@@ -293,10 +301,17 @@ function make_intermediate(
             is_working_disabled = true
             break
         end 
+        if pers_is_disabled( pers )
+            num_disabled_adults += 1
+            if is_severely_disabled( pers )
+                num_severely_disabled_adults += 1
+            end
+        end
     end
     @assert 120 >= age_oldest_adult >= age_youngest_adult >= 16
     num_u_16s = count( bu, le_age, 16 )
-
+    num_disabled_children = 0
+    num_severely_disabled_children :: Int
     for pid in bu.children
         pers = bu.people[pid]
         if pers.age > age_oldest_child
@@ -304,6 +319,12 @@ function make_intermediate(
         end
         if pers.age < age_youngest_child
             age_youngest_child = pers.age
+        end
+        if pers_is_disabled( pers )
+            num_disabled_children += 1
+            if is_severely_disabled( pers )
+                num_severely_disabled_children += 1
+            end
         end
     end
     ## fixme parameterise this
@@ -329,6 +350,10 @@ function make_intermediate(
         is_sparent,
         is_sing,    
         is_disabled,
+        num_disabled_adults,
+        num_disabled_children,
+        num_severely_disabled_adults,
+        num_severely_disabled_children,
         num_u_16s,
         num_allowed_kids,
         ge_16_u_pension_age,
@@ -421,8 +446,38 @@ function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )::Real
     return ceil( max(0.0, cap-capital_min)/tariff)
 end
 
-function calc_premia( bu :: BenefitUnit ) LMTPremiaDic{Bool}
-
+function calc_premia(     
+    which_ben :: LMTBenefitType,
+    bu :: BenefitUnit,
+    intermed :: MTIntermediate, 
+    prems :: Premia,
+    ages :: AgeLimits  ) :: Real
+    premia = 0.0
+    
+    if which_ben in [hb,ctr]
+        # disabled child premia
+        premia += (intermed.num_disabled_children*prems.disabled_child        
+    end
+    if which_ben != esa
+        if num_disabled_adults == 1
+            premia += prems.disability_single
+        elseif num_disabled_adults == 2
+            premia += prems.disability_couple
+        end        
+    end
+    if which_pen in [hb,ctr,esa,is,jsa]
+        premia += (intermed.num_severely_disabled_children*prems.enhanced_disabled_child
+        if num_severely_disabled_adults == 1
+            premia += prems.enhanced_disability_single
+        elseif num_severely_disabled_adults == 2
+            premia += prems.enhanced_disability_couple
+        end                
+    end
+    if intermed.age_oldest_adult > ages.state_pension_age
+        premia += prems.pensioner_is  
+    end
+    
+    return premia
 end
 
 function calc_allowances(
