@@ -17,7 +17,7 @@ using Dates: TimeType, Date, now, Year
 export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
-    apply_2_child_policy, calc_incomes
+    born_before, num_born_before, apply_2_child_policy, calc_incomes
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -54,9 +54,7 @@ function apply_2_child_policy(
     after_children = 0
     for pid in bu.children
         ch = bu.people[pid]
-        bdate = model_run_date - Year(ch.age)
-        println( "age = $(ch.age) => birthdate $bdate" )
-        if bdate < start_date
+        if born_before( ch.age, start_date, model_run_date )
             before_children += 1
         else
             after_children += 1
@@ -64,6 +62,28 @@ function apply_2_child_policy(
     end
     println( "before children $before_children after children $after_children " )
     allowable = before_children + min( max(child_limit-before_children,0), after_children )
+end
+
+function born_before( age :: Integer,
+    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
+    model_run_date :: TimeType = now() )
+    bdate = model_run_date - Year(age)
+    println( "age = $(ch.age) => birthdate $bdate" )
+    return bdate < start_date   
+end
+
+function num_born_before(
+    bu             :: BenefitUnit
+    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
+    model_run_date :: TimeType = now()) :: Integer
+    nb = 0
+    for pid in bu.children
+        ch = bu.people[pid]
+        if born_before( ch.age, start_date, model_run_date )
+            nb += 1
+        end
+    end
+    return nb
 end
 
 
@@ -93,6 +113,7 @@ struct MTIntermediate
     
     num_u_16s :: Int
     num_allowed_kids :: Int
+    num_kids_born_before :: Int
     ge_16_u_pension_age  :: Bool 
     limited_capacity_for_work  :: Bool 
     has_kids  :: Bool 
@@ -313,6 +334,7 @@ function make_intermediate(
     end
     @assert 120 >= age_oldest_adult >= age_youngest_adult >= 16
     num_u_16s = count( bu, le_age, 16 )
+    num_kids_born_before = num_born_before( bu ) # fixme parameterise
     num_disabled_children = 0
     num_severely_disabled_children :: Int
     for pid in bu.children
@@ -360,6 +382,7 @@ function make_intermediate(
         num_severely_disabled_children,
         num_u_16s,
         num_allowed_kids,
+        num_kids_born_before,
         ge_16_u_pension_age,
         limited_capacity_for_work,
         has_kids,
@@ -489,7 +512,17 @@ function calc_premia(
             premia += prems.carer_couple
         end
     end
+    #
+    # we're ignoring support components (p355-) for now.
+    #
     return premia
+end
+
+function calculate_pension_credit( 
+    intermed :: MTIntermediate, 
+    
+    )::Real
+
 end
 
 function calc_allowances(
@@ -499,45 +532,54 @@ function calc_allowances(
     ages :: AgeLimits ) :: Real
     pers_allow = 0.0
     @assert intermed.num_adults in [1,2]
-    if intermed.age_oldest_adult < 18
-        # argh .. not there's a conditional on ESA that we don't cover here
-        # seems to be it - no change for sps, marriage..
-        # but some change
-        pers_allow = pas.age_18_24
-        # should be somethinh like ...
-        #if which_ben in [is,jsa,esa]
-        #    
-        #elseif which_ben == hb 
-        #    pers_allow = pas.age_18_24
-        #end
-    elseif intermed.age_youngest_adult < 18 && intermed.num_adults == 2
-        pers_allow = pas.couple_one_over_18_high
-        ## FIXME some cases lower than this see p 335 CPAG
-    else # all over 17
+    if which_ben == pc
         if intermed.num_adults == 1 
-            if intermed.num_u_16s > 0 # single parent
-                if intermed.age_oldest_adult < ages.state_pension_age
-                    pers_allow = pas.lone_parent                 
+            pers_allow = pas.pc_mig_single        
+        elseif intermed.num_adults == 2
+            pers_allow = pas.pc_mig_couple         
+        end
+        pers_allow += intermed.num_kids_born_before
+    else
+        if intermed.age_oldest_adult < 18
+            # argh .. not there's a conditional on ESA that we don't cover here
+            # seems to be it - no change for sps, marriage..
+            # but some change
+            pers_allow = pas.age_18_24
+            # should be somethinh like ...
+            #if which_ben in [is,jsa,esa]
+            #    
+            #elseif which_ben == hb 
+            #    pers_allow = pas.age_18_24
+            #end
+        elseif intermed.age_youngest_adult < 18 && intermed.num_adults == 2
+            pers_allow = pas.couple_one_over_18_high
+            ## FIXME some cases lower than this see p 335 CPAG
+        else # all over 17
+            if intermed.num_adults == 1 
+                if intermed.num_u_16s > 0 # single parent
+                    if intermed.age_oldest_adult < ages.state_pension_age
+                        pers_allow = pas.lone_parent                 
+                    else
+                        pers_allow = pas.lone_parent_over_pension_age     
+                    end            
                 else
-                    pers_allow = pas.lone_parent_over_pension_age     
-                end            
-            else
-                if intermed.age_oldest_adult < 25
-                    pers_allow = pas.age_18_24        
-                else
-                    pers_allow = pas.age_25_and_over
+                    if intermed.age_oldest_adult < 25
+                        pers_allow = pas.age_18_24        
+                    else
+                        pers_allow = pas.age_25_and_over
+                    end
                 end
-            end
-        else # 2 adults, both at least 18
-            if intermed.age_oldest_adult >= ages.state_pension_age
-                pers_allow = pas.couple_over_pension_age
-            else
-                pers_allow = pas.couple_both_over_18
-            end
-        end # 2 adults
-    end # no 16-17 yos 
-    if which_ben in [hb,ctr]
-        pers_allow += pas.child * intermed.num_allowed_kids
+            else # 2 adults, both at least 18
+                if intermed.age_oldest_adult >= ages.state_pension_age
+                    pers_allow = pas.couple_over_pension_age
+                else
+                    pers_allow = pas.couple_both_over_18
+                end
+            end # 2 adults
+        end # no 16-17 yos 
+        if which_ben in [hb,ctr]
+            pers_allow += pas.child * intermed.num_allowed_kids
+        end
     end
     @assert pers_allow > 0
     return pers_allow

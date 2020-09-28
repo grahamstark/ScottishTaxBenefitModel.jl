@@ -310,18 +310,20 @@ module STBParameters
     end
 
     @with_kw mutable struct PersonalAllowances{ RT<:Real }
-         age_18_24 :: RT = 57.90
-         age_25_and_over :: RT = 73.10
-         age_18_and_in_work_activity :: RT = 73.10
-         over_pension_age :: RT = 181.10
-         lone_parent :: RT = 73.10
-         lone_parent_over_pension_age :: RT = 181.00
-         couple_both_over_18 :: RT = 114.85
-         couple_over_pension_age :: RT = 270.60
-         couple_one_over_18_high :: RT = 114.85
-         couple_one_over_18_med :: RT = 173.10
-         pa_couple_one_over_18_low :: RT = 57.90
-         child :: RT = 66.90
+        age_18_24 :: RT = 57.90
+        age_25_and_over :: RT = 73.10
+        age_18_and_in_work_activity :: RT = 73.10
+        over_pension_age :: RT = 181.10
+        lone_parent :: RT = 73.10
+        lone_parent_over_pension_age :: RT = 181.00
+        couple_both_over_18 :: RT = 114.85
+        couple_over_pension_age :: RT = 270.60
+        couple_one_over_18_high :: RT = 114.85
+        couple_one_over_18_med :: RT = 173.10
+        pa_couple_one_over_18_low :: RT = 57.90
+        child :: RT = 66.90
+        pc_mig_single :: RT = 167.25
+        pc_mig_couple :: RT = 255.25
     end
 
     @with_kw mutable struct Premia{ RT<:Real }
@@ -344,6 +346,7 @@ module STBParameters
         med   :: Int = 24
         higher :: Int = 30
     end
+    
    
     @with_kw mutable struct IncomeRules{RT<:Real}
         permitted_work :: RT= 131.50
