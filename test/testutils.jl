@@ -58,12 +58,12 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
     tb
 end
 
-@enum SS_Examples cpl_w_2_kids_hh single_parent_hh single_hh childless_couple_hh
+@enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh
 
 function get_ss_examples()::Dict{SS_Examples, Household}
     d = Dict{SS_Examples, Household}()
     @time names = ExampleHouseholdGetter.initialise()
-    d[cpl_w_2_kids_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
+    d[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
     d[single_parent_hh] = ExampleHouseholdGetter.get_household( "single_parent_1" )
     d[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )
     d[childless_couple_hh] = ExampleHouseholdGetter.get_household("mel_c2_scot") 

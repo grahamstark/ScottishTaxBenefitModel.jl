@@ -11,7 +11,7 @@ export Household, Person, People_Dict
 export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
 export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
-export is_single, search, pers_is_disabled, pers_is_carer, num_carers,
+export is_single, search, pers_is_disabled, pers_is_carer, num_carers
 export le_age, between_ages, ge_age, num_adults, empl_status_in
 export has_children, num_children, is_severe_disability
 
@@ -398,12 +398,12 @@ const DISABLE_BENEFITS = [
     personal_independence_payment_mobility]
     
 
+const HIGH_DISAB_PROP = 3 # FIXME
 """
 FIXME this is just random .. every 3rd is severe
 """
 function is_severe_disability( pers :: Person )
-    const HIGH_PROP = 3
-    return pers.pid % HIGH_PROP == 0
+    return pers.pid % HIGH_DISAB_PROP == 0
 end    
 
 """

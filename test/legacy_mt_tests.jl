@@ -68,7 +68,7 @@ end
         hdwork = is_working_hours( head, lmt.hours_limits.lower )
         head.usual_hours_worked = 5
         head.employment_status = Unemployed
-        if hht in [cpl_w_2_kids_hh childless_couple_hh]
+        if hht in [cpl_w_2_children_hh childless_couple_hh]
             spouse = get_spouse(bu)
             spouse.employment_status = Full_time_Employee
             spouse.usual_hours_worked = 45
@@ -102,7 +102,7 @@ end
                     lmt.income_rules,
                     lmt.hours_limits ) 
                 @test inc.tariff_income ≈ 0.0
-                # cpl_w_2_kids_hh single_parent_hh single_hh childless_couple_hh
+                # cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh
 
                 if hht == single_parent_hh
                     if ben == hb
@@ -110,7 +110,7 @@ end
                     else
                         @test inc.disregard == 20.0
                     end
-                elseif hht == cpl_w_2_kids_hh 
+                elseif hht == cpl_w_2_children_hh 
                     if ben == hb
                         @test inc.disregard == 10.0
                     elseif ben == esa
@@ -127,7 +127,7 @@ end
     end # households loop
 
     # Evan and Mia example p 433
-    e_and_m = get_benefit_units( examples[cpl_w_2_kids_hh] )[1]
+    e_and_m = get_benefit_units( examples[cpl_w_2_children_hh] )[1]
     emr = init_benefit_unit_result( Float64, e_and_m )
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
@@ -158,7 +158,7 @@ end # test set
 @testset "Applicability Tests" begin
     # reset the examples
     examples = get_ss_examples()
-    cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
+    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
     sparent = get_benefit_units(examples[single_parent_hh])[1]
     intermed = make_intermediate( 
         cpl,  
@@ -309,7 +309,7 @@ end
 @testset "Intermediates" begin
     examples = get_ss_examples()
     sys = get_system( scotland=true )
-    cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
+    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
     spouse = get_spouse( cpl )
     head = get_head( cpl )
     println( "sp=$spouse" )
@@ -331,7 +331,7 @@ end
     @test intermed.num_u_16s > 1
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
-    @test intermed.has_kids
+    @test intermed.has_children
     @test intermed.economically_active
     @test intermed.num_working_full_time == 2
     @test intermed.num_not_working == 0
@@ -356,7 +356,7 @@ end
     @test intermed.num_u_16s > 1
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
-    @test intermed.has_kids
+    @test intermed.has_children
     @test intermed.economically_active # not_working is active
     @test intermed.num_working_full_time == 0
     @test intermed.num_not_working == 2
@@ -378,7 +378,7 @@ end
     @test intermed.num_u_16s == 2
     @test intermed.ge_16_u_pension_age
     @test intermed.limited_capacity_for_work
-    @test intermed.has_kids
+    @test intermed.has_children
     @test intermed.economically_active # not_working is active
     @test intermed.num_working_full_time == 0
     @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
@@ -400,7 +400,7 @@ end
     @test intermed.num_u_16s == 2
     @test intermed.ge_16_u_pension_age
     @test intermed.limited_capacity_for_work
-    @test intermed.has_kids
+    @test intermed.has_children
     @test ! intermed.economically_active # not_working is active
     @test intermed.num_working_full_time == 0
     @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
@@ -422,7 +422,7 @@ end
     @test intermed.num_u_16s > 0
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
-    @test intermed.has_kids
+    @test intermed.has_children
     @test intermed.economically_active # not_working is active
     @test intermed.num_working_full_time == 1
     @test intermed.num_not_working == 0 # ! 1 not_working/1 inactive?
@@ -434,7 +434,7 @@ end
 @testset "Allowances" begin
     examples = get_ss_examples()
     sys = get_system( scotland=true )
-    cpl = get_benefit_units(examples[cpl_w_2_kids_hh])[1]
+    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
     spouse = get_spouse( cpl )
     head = get_head( cpl )
     println( "sp=$spouse" )

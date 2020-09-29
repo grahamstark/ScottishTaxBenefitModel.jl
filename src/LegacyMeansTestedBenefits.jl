@@ -34,13 +34,13 @@ end
 """
 examples: 
 
-2 kids born before start_date, 1 after
+2 children born before start_date, 1 after
  => allowable = 2
-3  kids born before start_date, 1 after
+3  children born before start_date, 1 after
  => allowable = 3
-1  kids born before start_date, 2 after
+1  children born before start_date, 2 after
  => allowable = 2
-0  kids born before start_date, 2 after
+0  children born before start_date, 2 after
  => allowable = 2
  @return number of children allowed
 """
@@ -68,12 +68,12 @@ function born_before( age :: Integer,
     start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
     model_run_date :: TimeType = now() )
     bdate = model_run_date - Year(age)
-    println( "age = $(ch.age) => birthdate $bdate" )
+    println( "age = $(age) => birthdate $bdate" )
     return bdate < start_date   
 end
 
 function num_born_before(
-    bu             :: BenefitUnit
+    bu             :: BenefitUnit,
     start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
     model_run_date :: TimeType = now()) :: Integer
     nb = 0
@@ -112,11 +112,11 @@ struct MTIntermediate
     num_severely_disabled_children :: Int
     
     num_u_16s :: Int
-    num_allowed_kids :: Int
-    num_kids_born_before :: Int
+    num_allowed_children :: Int
+    num_children_born_before :: Int
     ge_16_u_pension_age  :: Bool 
     limited_capacity_for_work  :: Bool 
-    has_kids  :: Bool 
+    has_children  :: Bool 
     economically_active :: Bool
     num_working_full_time :: Int 
     num_not_working :: Int 
@@ -284,13 +284,13 @@ function make_intermediate(
     num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
     num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
     total_hours_worked :: Int = 0
-    num_carers :: Int = num_carers( bu )
+    num_carrs :: Int = num_carers( bu )
     is_carer :: Bool = has_carer_member( bu )
     is_sparent  :: Bool = is_lone_parent( bu )
     is_sing  :: Bool = is_single( bu )   
     ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, ages.state_pension_age-1)
     limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
-    has_kids  :: Bool = has_children( bu )
+    has_children  :: Bool = ModelHousehold.has_children( bu )
     economically_active = search( bu, empl_status_in, 
         Full_time_Employee,
         Part_time_Employee,
@@ -327,16 +327,16 @@ function make_intermediate(
         end 
         if pers_is_disabled( pers )
             num_disabled_adults += 1
-            if is_severely_disabled( pers )
+            if is_severe_disability( pers )
                 num_severely_disabled_adults += 1
             end
         end
     end
     @assert 120 >= age_oldest_adult >= age_youngest_adult >= 16
     num_u_16s = count( bu, le_age, 16 )
-    num_kids_born_before = num_born_before( bu ) # fixme parameterise
+    num_children_born_before = num_born_before( bu ) # fixme parameterise
     num_disabled_children = 0
-    num_severely_disabled_children :: Int
+    num_severely_disabled_children :: Int = 0
     for pid in bu.children
         pers = bu.people[pid]
         if pers.age > age_oldest_child
@@ -347,15 +347,15 @@ function make_intermediate(
         end
         if pers_is_disabled( pers )
             num_disabled_children += 1
-            if is_severely_disabled( pers )
+            if is_severe_disability( pers )
                 num_severely_disabled_children += 1
             end
         end
     end
     ## fixme parameterise this
-    num_allowed_kids :: Int = apply_2_child_policy( bu )
-    println( "has_kids $has_kids age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
-    @assert (!has_kids)||(19 >= age_oldest_child >= age_youngest_child >= 0)
+    num_allowed_children :: Int = apply_2_child_policy( bu )
+    println( "has_children $has_children age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
+    @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
     
     println( typeof( total_hours_worked ))
                                    
@@ -372,7 +372,7 @@ function make_intermediate(
         num_working_24_plus,
         total_hours_worked,
         is_carer,
-        num_carers,
+        num_carrs,
         is_sparent,
         is_sing,    
         is_disabled,
@@ -381,11 +381,11 @@ function make_intermediate(
         num_severely_disabled_adults,
         num_severely_disabled_children,
         num_u_16s,
-        num_allowed_kids,
-        num_kids_born_before,
+        num_allowed_children,
+        num_children_born_before,
         ge_16_u_pension_age,
         limited_capacity_for_work,
-        has_kids,
+        has_children,
         economically_active,
         num_working_full_time,
         num_not_working,
@@ -423,17 +423,17 @@ function make_lmt_benefit_applicability(
     #
     # tax credits
     # CTC - easy
-    if intermed.has_kids
+    if intermed.has_children
         whichb.ctc = true
     end
     #
     # WTC - not quite so easy
     #
-    println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_kids $(intermed.has_kids) pens_age $(intermed.pens_age) ")
+    println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) pens_age $(intermed.pens_age) ")
     if intermed.working_ft
         whichb.wtc = true
-    elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_kids 
-        # ie. 24 hrs worked total and one person  >= 16 hrs and has kids
+    elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_children 
+        # ie. 24 hrs worked total and one person  >= 16 hrs and has children
         whichb.wtc = true
     elseif (intermed.num_working_pt>0) && intermed.pens_age
         whichb.wtc = true
@@ -483,7 +483,7 @@ function calc_premia(
     
     if which_ben in [hb,ctr]
         # disabled child premia
-        premia += (intermed.num_disabled_children*prems.disabled_child        
+        premia += intermed.num_disabled_children*prems.disabled_child        
     end
     if which_ben != esa
         if num_disabled_adults == 1
@@ -493,7 +493,7 @@ function calc_premia(
         end        
     end
     if which_ben in [hb,ctr,esa,is,jsa]
-        premia += (intermed.num_severely_disabled_children*prems.enhanced_disabled_child
+        premia += intermed.num_severely_disabled_children*prems.enhanced_disabled_child
         if num_severely_disabled_adults == 1
             premia += prems.enhanced_disability_single
         elseif num_severely_disabled_adults == 2
@@ -538,7 +538,7 @@ function calc_allowances(
         elseif intermed.num_adults == 2
             pers_allow = pas.pc_mig_couple         
         end
-        pers_allow += intermed.num_kids_born_before
+        pers_allow += intermed.num_children_born_before
     else
         if intermed.age_oldest_adult < 18
             # argh .. not there's a conditional on ESA that we don't cover here
@@ -578,7 +578,7 @@ function calc_allowances(
             end # 2 adults
         end # no 16-17 yos 
         if which_ben in [hb,ctr]
-            pers_allow += pas.child * intermed.num_allowed_kids
+            pers_allow += pas.child * intermed.num_allowed_children
         end
     end
     @assert pers_allow > 0
