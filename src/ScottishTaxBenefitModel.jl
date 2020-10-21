@@ -10,6 +10,9 @@ __precompile__(true)
 include("Utils.jl" )
 export Utils
 
+include("TimeSeriesUtils.jl" )
+export TimeSeriesUtils
+
 include("Definitions.jl" )
 export Definitions
 
