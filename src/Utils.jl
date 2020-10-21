@@ -22,7 +22,7 @@ function eq_nearest_p( a :: Real, b :: Real )
 end
 
 """
-For Unit testing
+For Unit testing. A date age_in_years + 1 month before today.
 """
 function get_birthdate( age_in_years :: Integer, from_date :: DateTime = now() ) :: Date
     Date(from_date - Year( age_in_years ) - Month(1))

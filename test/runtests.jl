@@ -13,14 +13,11 @@ include( "ni_tests.jl")
 include( "legacy_mt_tests.jl")
 include( "complete_calc_tests.jl")
 include( "uprating_tests.jl")
+include( "social_security_tests_2.jl")
 
 if is_local
 # This will only run locally
     include( "household_tests.jl")
     include( "weighting_tests.jl")
     include( "simple_runner_tests.jl")
-end
-
-@testset "ScottishTaxBenefitModel.jl" begin
-    # Write your tests here.
 end

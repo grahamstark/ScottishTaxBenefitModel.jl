@@ -364,6 +364,13 @@ module STBParameters
         capital_max :: RT = 16_000.0
         capital_tariff :: RT = 250 # £1pw per 250 
     end
+    
+    @with_kw mutable struct MinimumWage{RT<:Real}
+        wage :: RT
+        age_limit :: Int
+        # ... FIXME etc.
+    
+    end
 
 
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}

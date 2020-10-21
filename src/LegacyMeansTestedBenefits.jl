@@ -621,10 +621,86 @@ function calc_WTC()
 
 end
 
-function calc_legacy_means_tested_benefits(
-    pers   :: Person,
-    sys    :: LegacyMeansTestedBenefitSystem ) :: LMTResults
+function calc_legacy_means_tested_benefits!(
+    ;
+    benefit_unit_result :: BenefitUnitResult,
+    benefit_unit :: BenefitUnit, 
+    age_limits :: AgeLimits, 
+    mt_ben_sys  :: LegacyMeansTestedBenefitSystem )
+    
+    intermed :: MTIntermediate = make_intermediate( 
+        mt_ben_sys.hours_limits,
+        age_limits )
+    
+    entitled_to :: LMTCanApplyFor = make_lmt_benefit_applicability(
+        intermed,
+        mt_ben_sys.hours_limits
+    )
+    
+    results = LMTResults()
+    
+    
+      
+    @with_kw mutable struct LMTIncomes{RT<:Real}
+        gross_earnings :: RT = zero(RT)
+        net_earnings   :: RT = zero(RT)
+        other_income   :: RT = zero(RT)
+        total_income   :: RT = zero(RT)
+        disregard :: RT = zero(RT)
+        childcare :: RT = zero(RT)
+        capital :: RT = zero(RT)
+        tariff_income :: RT = zero(RT)
+    end
 
+    # 
+    if entitled_to.esa 
+        incomes :: LMTIncomes = calc_incomes( 
+            esa,
+            benefit_unit,
+            benefit_unit_result,
+            intermed )
+        
+        premia :: Real = calc_premia(
+            esa,
+            benefit_unit,
+            intermed,        
+            mt_ben_sys.premia,
+            age_limits )
+            
+        allowances :: Real = calc_allowances(
+            esa,
+            intermed,
+            mt_ben_sys.personal_allowances,
+            age_limits 
+        )
+        
+        
+    
+    elseif entitled_to.is
+    
+    elseif entitled_to.jsa
+    
+    elseif entitled_to.pc
+    
+    elseif entitled_to.ndds
+    
+    elseif entitled_to.wtc
+    
+    
+    end
+    
+    if entitled_to.ctc
+    
+    end
+    
+    if entitled_to.hb
+    
+    end
+    if entitled_to.ctr
+    
+    end
+        
+    
 end
 
 end # module LegacyMeansTestedBenefits
