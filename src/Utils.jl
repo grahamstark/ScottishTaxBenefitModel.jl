@@ -21,13 +21,6 @@ function eq_nearest_p( a :: Real, b :: Real )
    round( a, digits=2) == round( b, digits=2 )
 end
 
-"""
-For Unit testing. A date age_in_years + 1 month before today.
-"""
-function get_birthdate( age_in_years :: Integer, from_date :: DateTime = now() ) :: Date
-    Date(from_date - Year( age_in_years ) - Month(1))
-end
-
 @generated function operate_on_struct!( rec::Rec, x::NR, f::Function ) where Rec where NR<:Number
      assignments = [
          :( rec.$name = f(rec.$name, x) ) for name in fieldnames(Rec)

@@ -639,50 +639,70 @@ function calc_legacy_means_tested_benefits!(
     
     results = LMTResults()
     
-    
-      
-    @with_kw mutable struct LMTIncomes{RT<:Real}
-        gross_earnings :: RT = zero(RT)
-        net_earnings   :: RT = zero(RT)
-        other_income   :: RT = zero(RT)
-        total_income   :: RT = zero(RT)
-        disregard :: RT = zero(RT)
-        childcare :: RT = zero(RT)
-        capital :: RT = zero(RT)
-        tariff_income :: RT = zero(RT)
-    end
-
     # 
     if entitled_to.esa 
-        incomes :: LMTIncomes = calc_incomes( 
+        incomes = calc_incomes( 
             esa,
             benefit_unit,
             benefit_unit_result,
-            intermed )
-        
-        premia :: Real = calc_premia(
+            intermed.
+            mt_ben_sys.income_rules )
+        premia = calc_premia(
             esa,
             benefit_unit,
             intermed,        
             mt_ben_sys.premia,
-            age_limits )
-            
-        allowances :: Real = calc_allowances(
+            age_limits )            
+        allowances = calc_allowances(
             esa,
             intermed,
-            mt_ben_sys.personal_allowances,
+            mt_ben_sys.allowances,
             age_limits 
-        )
-        
-        results.
-    
-    elseif entitled_to.is
-    
+        )        
+        results.esa = max( 0.0, premia+allowances - incomes.total_income );
     elseif entitled_to.jsa
-    
+        ## FIXME there must be a way of
+        ## avoiding this duplication
+        incomes = calc_incomes( 
+            jsa,
+            benefit_unit,
+            benefit_unit_result,
+            intermed.
+            mt_ben_sys.income_rules )
+        premia = calc_premia(
+            jsa,
+            benefit_unit,
+            intermed,        
+            mt_ben_sys.premia,
+            age_limits )            
+        allowances = calc_allowances(
+            jsa,
+            intermed,
+            mt_ben_sys.allowances,
+            age_limits 
+        )        
+        results.jsa = max( 0.0, premia+allowances - incomes.total_income );        
+    elseif entitled_to.is
+        incomes = calc_incomes( 
+            is,
+            benefit_unit,
+            benefit_unit_result,
+            intermed.
+            mt_ben_sys.income_rules )
+        premia = calc_premia(
+            is,
+            benefit_unit,
+            intermed,        
+            mt_ben_sys.premia,
+            age_limits )            
+        allowances = calc_allowances(
+            is,
+            intermed,
+            mt_ben_sys.allowances,
+            age_limits 
+        )        
+        results.is = max( 0.0, premia+allowances - incomes.total_income );    
     elseif entitled_to.pc
-    
-    elseif entitled_to.ndds
     
     elseif entitled_to.wtc
     

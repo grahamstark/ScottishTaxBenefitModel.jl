@@ -278,8 +278,14 @@ module STBParameters
         it.pension_contrib_withdrawal_rate /= 100.0
     end
 
-    @with_kw mutable struct AgeLimits{RT<:Real}
-        state_pension_age :: Int = 66;
+    @with_kw mutable struct AgeLimits
+        state_pension_ages :: Int = 66;
+    end
+    
+    function state_pension_age(
+        sex  :: Sex,
+        when :: Date = now()) :: Int
+        68
     end
 
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}
@@ -386,7 +392,7 @@ module STBParameters
       it   = IncomeTaxSys{RT}()
       ni   = NationalInsuranceSys{RT}()
       lmt  = LegacyMeansTestedBenefitSystem{RT}()
-      age_limits = AgeLimits{RT}()
+      age_limits = AgeLimits()
    end
 
 
