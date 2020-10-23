@@ -267,7 +267,7 @@ end
 function make_intermediate(
     bu   :: BenefitUnit, 
     hrs  :: HoursLimits,
-    ages :: AgeLimits ) :: MTIntermediate
+    age_limits :: AgeLimits ) :: MTIntermediate
     # {RT} where RT
     age_youngest_adult :: Int = 9999
     age_oldest_adult :: Int = -9999
@@ -276,7 +276,16 @@ function make_intermediate(
     
     is_working_disabled :: Bool = false
     num_adlts :: Int = num_adults( bu )
-    num_pens_age :: Int = count( bu, ge_age, ages.state_pension_age) 
+    # check both & die as we need to think about counts again
+    # if we're going back in time to when these were unequal
+    # 
+    state_pension_age_m = age_limits.state_pension_age( 
+        age_limits, Male );
+    state_pension_age = age_limits.state_pension_age( 
+        age_limits, Female );
+    @assert state_pension_age_m == state_pension_age
+    ## FIXME extend this to add sex and m/f pension ages
+    num_pens_age :: Int = count( bu, ge_age, state_pension_age ) 
     println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
     pens_age  :: Bool = num_pens_age > 0
     all_pens_age :: Bool = num_adlts == num_pens_age
@@ -288,7 +297,7 @@ function make_intermediate(
     is_carer :: Bool = has_carer_member( bu )
     is_sparent  :: Bool = is_lone_parent( bu )
     is_sing  :: Bool = is_single( bu )   
-    ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, ages.state_pension_age-1)
+    ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, state_pension_age-1)
     limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
     has_children  :: Bool = ModelHousehold.has_children( bu )
     economically_active = search( bu, empl_status_in, 

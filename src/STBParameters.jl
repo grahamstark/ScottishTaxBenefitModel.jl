@@ -2,6 +2,7 @@ module STBParameters
 
     using Dates
     using Dates: Date, now, TimeType, Year
+    using TimeSeries
 
     using Parameters
     using BudgetConstraints: BudgetConstraint
@@ -10,10 +11,12 @@ module STBParameters
     using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
     using .Definitions
     using .Utils
-
+    using .TimeSeriesUtils: fy, fy_array
+    
 
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
     export weeklyise!, annualise!, AgeLimits, HoursLimits
+    export state_pension_age, reached_state_pension_age
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -278,14 +281,90 @@ module STBParameters
         it.pension_contrib_withdrawal_rate /= 100.0
     end
 
-    @with_kw mutable struct AgeLimits
-        state_pension_ages :: Int = 66;
+    """
+    Note this is *very* approximate as the pension 
+    age actually increases monthly; see 
+    """
+    function pension_ages()::TimeArray
+        n = 2050-2010+1
+        dates = Vector{Date}(undef,n)
+        males=zeros(Int,n)
+        females=zeros(Int,n)
+        i = 0
+        #
+        # we could actually just use this if-else as the function lookup,
+        # except we might want to parameterise this. Note if we do and have different m/f ages we have
+        # to change the ModelHousehold count-by-age functions.
+        #
+        for y in 2010:1:2050
+            i += 1
+            dates[i] = Date( y, 04, 06 )
+            if y < 2012
+                males[i] = 65
+                females[i] = 60
+            elseif y < 2014
+                males[i] = 65
+                females[i] = 61
+            elseif y < 2016
+                males[i] = 65
+                females[i] = 62
+            elseif y < 2018
+                males[i] = 65
+                females[i] = 63
+            elseif y < 2020
+                males[i] = 65
+                females[i] = 64
+            elseif y < 2022
+                males[i] = 65
+                females[i] = 65
+            elseif y < 2024
+                males[i] = 66
+                females[i] = 66
+            elseif y < 2046
+                males[i] = 67
+                females[i] = 67
+            else
+                males[i] = 68
+                females[i] = 68
+            end
+        end # loop
+        data=(dates=dates,females=females,males=males)
+        ts = TimeArray(data,timestamp=:dates)
+        ts
     end
     
-    function state_pension_age(
+    @with_kw mutable struct AgeLimits
+        state_pension_ages = pension_ages();
+    end
+    
+    function state_pension_age( limits :: AgeLimits, sex :: Sex, when :: Integer )::Integer
+        y = fy( when )
+        n = size( limits.state_pension_ages )[1]
+        if y < timestamp( limits.state_pension_ages[1] )
+            py = sex == Male ? limits.state_pension_ages[1].males : limits.state_pension_ages[1].females
+        elseif y > timestamp( limits.state_pension_ages[n] )
+            py = sex == Male ? limits.state_pension_ages[n].males : limits.state_pension_ages[n].females
+        else
+            py = sex == Male ? limits.state_pension_ages[y].males : limits.state_pension_ages[y].females
+        end
+        return values(py)[1]
+    end
+    
+    
+    function reached_state_pension_age(
+        limits :: AgeLimits,
+        age  :: Int,
         sex  :: Sex,
-        when :: Date = now()) :: Int
-        68
+        when :: Integer ) :: Bool
+        return age >= state_pension_age( limits, sex, when )
+    end
+    
+    function reached_state_pension_age(
+        limits :: AgeLimits,
+        age  :: Int,
+        sex  :: Sex,
+        when :: Date = now()) :: Bool
+        return reached_state_pension_age( limits, age, sex, Dates.year( when ))
     end
 
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}

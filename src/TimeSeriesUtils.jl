@@ -15,7 +15,7 @@ end
 financial year as an interval
 """
 function fy(year::Int)::StepRange
-    return Date(year,04,01):Day(1):Date(year+1,03,31)
+    return Date(year,04,06):Day(1):Date(year+1,04,05)
 end
 
 function fy_array( years::UnitRange ) :: Vector{Date}
@@ -24,7 +24,7 @@ function fy_array( years::UnitRange ) :: Vector{Date}
     i = 0
     for y in years
         i+=1
-        d[i] = Date(y,4,1)
+        d[i] = Date(y,4,6)
     end
     return d
 end
