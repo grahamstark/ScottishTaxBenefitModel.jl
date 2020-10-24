@@ -6,7 +6,7 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits:  
-    calc_legacy_means_tested_benefits, tariff_income,
+    calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
     apply_2_child_policy, calc_incomes
@@ -318,8 +318,8 @@ end
         sys.lmt.hours_limits,
         sys.age_limits )
     println( intermed )
-    @test ! intermed.pens_age
-    @test ! intermed.all_pens_age
+    @test ! intermed.someone_pension_age
+    @test ! intermed.all_pension_age
     @test intermed.working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 2
@@ -343,8 +343,8 @@ end
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
-    @test ! intermed.pens_age
-    @test ! intermed.all_pens_age
+    @test ! intermed.someone_pension_age
+    @test ! intermed.all_pension_age
     @test ! intermed.working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0

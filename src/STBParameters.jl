@@ -7,7 +7,7 @@ module STBParameters
     using Parameters
     using BudgetConstraints: BudgetConstraint
 
-    using ScottishTaxBenefitModel: GeneralTaxComponents, Definitions, Utils
+    using ScottishTaxBenefitModel
     using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
     using .Definitions
     using .Utils
@@ -350,6 +350,9 @@ module STBParameters
         return values(py)[1]
     end
     
+    function state_pension_age( limits :: AgeLimits, sex :: Sex, when :: DateTime = now() )::Integer
+        return state_pension_age( limits, sex, Dates.year( when ))
+    end
     
     function reached_state_pension_age(
         limits :: AgeLimits,
@@ -363,9 +366,18 @@ module STBParameters
         limits :: AgeLimits,
         age  :: Int,
         sex  :: Sex,
-        when :: Date = now()) :: Bool
+        when :: DateTime = now()) :: Bool
         return reached_state_pension_age( limits, age, sex, Dates.year( when ))
     end
+    
+    function reached_state_pension_age(
+        limits :: AgeLimits,
+        age  :: Int,
+        sex  :: Sex,
+        when :: Date ) :: Bool
+        return reached_state_pension_age( limits, age, sex, Dates.year( when ))
+    end
+    
 
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}
         primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]

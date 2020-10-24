@@ -7,7 +7,7 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
-    Premia, PersonalAllowances, HoursLimits, AgeLimits
+    Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
     LMTResults, has_income, LMTCanApplyFor
@@ -86,15 +86,14 @@ function num_born_before(
     return nb
 end
 
-
 struct MTIntermediate
     age_youngest_adult :: Int
     age_oldest_adult :: Int
     age_youngest_child :: Int
     age_oldest_child :: Int
     num_adults :: Int
-    pens_age  :: Bool 
-    all_pens_age :: Bool
+    someone_pension_age  :: Bool 
+    all_pension_age :: Bool
     working_ft  :: Bool 
     num_working_pt :: Int 
     num_working_24_plus :: Int 
@@ -279,16 +278,22 @@ function make_intermediate(
     # check both & die as we need to think about counts again
     # if we're going back in time to when these were unequal
     # 
-    state_pension_age_m = age_limits.state_pension_age( 
-        age_limits, Male );
-    state_pension_age = age_limits.state_pension_age( 
-        age_limits, Female );
-    @assert state_pension_age_m == state_pension_age
-    ## FIXME extend this to add sex and m/f pension ages
-    num_pens_age :: Int = count( bu, ge_age, state_pension_age ) 
+    num_pens_age :: Int = 0
+    ge_16_u_pension_age  :: Bool = false
+    for pid in bu.adults
+        pers = bu.people[pid]
+        if reached_state_pension_age( 
+            age_limits, 
+            pers.age, 
+            pers.sex )
+            num_pens_age += 1
+        else
+            ge_16_u_pension_age = true
+        end
+    end
     println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
-    pens_age  :: Bool = num_pens_age > 0
-    all_pens_age :: Bool = num_adlts == num_pens_age
+    someone_pension_age  :: Bool = num_pens_age > 0
+    all_pension_age :: Bool = num_adlts == num_pens_age
     working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
     num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
     num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
@@ -297,7 +302,6 @@ function make_intermediate(
     is_carer :: Bool = has_carer_member( bu )
     is_sparent  :: Bool = is_lone_parent( bu )
     is_sing  :: Bool = is_single( bu )   
-    ge_16_u_pension_age  :: Bool = search( bu, between_ages, 16, state_pension_age-1)
     limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
     has_children  :: Bool = ModelHousehold.has_children( bu )
     economically_active = search( bu, empl_status_in, 
@@ -374,8 +378,8 @@ function make_intermediate(
         age_youngest_child,
         age_oldest_child,
         num_adlts,
-        pens_age,
-        all_pens_age,
+        someone_pension_age,
+        all_pension_age,
         working_ft,
         num_working_pt,
         num_working_24_plus,
@@ -412,11 +416,11 @@ function make_lmt_benefit_applicability(
     intermed :: MTIntermediate,
     hrs      :: HoursLimits ) :: LMTCanApplyFor
     whichb = LMTCanApplyFor()
-    if intermed.pens_age
+    if intermed.someone_pension_age
         whichb.pc = true
     end
     # ESA, JSA, IS, crudely
-    if ! intermed.all_pens_age 
+    if ! intermed.all_pension_age 
         if ((intermed.num_adults == 1 && intermed.num_not_working == 1) || 
         (intermed.num_adults == 2 && (intermed.num_not_working>=1 && intermed.num_working_part_time<=1))) &&
         intermed.ge_16_u_pension_age
@@ -438,13 +442,13 @@ function make_lmt_benefit_applicability(
     #
     # WTC - not quite so easy
     #
-    println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) pens_age $(intermed.pens_age) ")
+    println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) someone_pension_age $(intermed.someone_pension_age) ")
     if intermed.working_ft
         whichb.wtc = true
     elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_children 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has children
         whichb.wtc = true
-    elseif (intermed.num_working_pt>0) && intermed.pens_age
+    elseif (intermed.num_working_pt>0) && intermed.someone_pension_age
         whichb.wtc = true
     elseif (intermed.num_working_pt>0) && intermed.is_sparent
         whichb.wtc = true
@@ -482,6 +486,7 @@ function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )::Real
     return ceil( max(0.0, cap-capital_min)/tariff)
 end
 
+
 function calc_premia(     
     which_ben :: LMTBenefitType,
     bu :: BenefitUnit,
@@ -509,7 +514,7 @@ function calc_premia(
             premia += prems.enhanced_disability_couple
         end                
     end
-    if intermed.age_oldest_adult > ages.state_pension_age
+    if intermed.num_pens_age > 0
         premia += prems.pensioner_is  
     end
     # all benefits, I think, incl. 
@@ -566,7 +571,7 @@ function calc_allowances(
         else # all over 17
             if intermed.num_adults == 1 
                 if intermed.num_u_16s > 0 # single parent
-                    if intermed.age_oldest_adult < ages.state_pension_age
+                    if intermed.someone_pension_age
                         pers_allow = pas.lone_parent                 
                     else
                         pers_allow = pas.lone_parent_over_pension_age     
@@ -579,7 +584,7 @@ function calc_allowances(
                     end
                 end
             else # 2 adults, both at least 18
-                if intermed.age_oldest_adult >= ages.state_pension_age
+                if intermed.someone_pension_age
                     pers_allow = pas.couple_over_pension_age
                 else
                     pers_allow = pas.couple_both_over_18
