@@ -283,7 +283,7 @@ module STBParameters
 
     """
     Note this is *very* approximate as the pension 
-    age actually increases monthly; see 
+    age actually increases monthly; see https://en.wikipedia.org/wiki/State_Pension_(United_Kingdom)
     """
     function pension_ages()::TimeArray
         n = 2050-2010+1
