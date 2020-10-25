@@ -463,12 +463,28 @@ module STBParameters
     end
     
     @with_kw mutable struct MinimumWage{RT<:Real}
-        wage :: RT
-        age_limit :: Int
-        # ... FIXME etc.
-    
+        # 25 and over 	21 to 24 	18 to 20 	Under 18
+        ## Fixme: an ordered map would be nice
+        ages = [16,18,21,25]
+        wage_per_hour :: Vector{RT} = [4.55, 6.45, 8.20, 8.72]
+        # wage_per_hour = Dict{Int,RT}( 
+        #     25=>8.72, 21=>8.20, 18=>6.45, 16=>4.55)
+        apprentice_rate = 4.15;
     end
-
+    
+    function get_minimum_wage( mwsys :: MinimumWage, age :: Int ):: Real
+        p = 0
+        if age < mwsys.ages[1]
+            return zero(eltype( mwsys.wage_per_hour))
+        end
+        for r in mwsys.ages
+            p += 1
+            if age <= r
+                break
+            end
+        end
+        return mwsys.wage_per_hour[p]
+    end
 
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
        # CPAG 2019/bur.pers[pid].20 p335
@@ -484,6 +500,7 @@ module STBParameters
       ni   = NationalInsuranceSys{RT}()
       lmt  = LegacyMeansTestedBenefitSystem{RT}()
       age_limits = AgeLimits()
+      minwage = MinimumWage()
    end
 
 

@@ -14,6 +14,7 @@ include( "legacy_mt_tests.jl")
 include( "complete_calc_tests.jl")
 include( "uprating_tests.jl")
 include( "social_security_tests_2.jl")
+include( "minimum_wage_tests.jl")
 
 if is_local
 # This will only run locally
