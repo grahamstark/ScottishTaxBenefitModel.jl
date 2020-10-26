@@ -41,6 +41,7 @@ module Results
         # hb ctr assumed true for everyone
         is :: Bool = false
         jsa :: Bool = false
+        sc  :: Bool = false
         pc  :: Bool = false
         ndds :: Bool = false
         wtc  :: Bool = false

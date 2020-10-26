@@ -557,4 +557,13 @@ function printpids( buas::BUAllocation )
     end
 end
 
+function age_then( pers :: Person, when :: Int ) :: Int
+    pers.age - when
+end
+
+function age_then( pers :: Person, when :: DateTime ) :: Int
+    pers.age - Dates.year( when )
+end
+
+
 end # module

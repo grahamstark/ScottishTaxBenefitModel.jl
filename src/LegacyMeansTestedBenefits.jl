@@ -92,7 +92,8 @@ struct MTIntermediate
     age_youngest_child :: Int
     age_oldest_child :: Int
     num_adults :: Int
-    someone_pension_age  :: Bool 
+    someone_pension_age  :: Bool
+    someone_pension_age_2016 :: Bool
     all_pension_age :: Bool
     working_ft  :: Bool 
     num_working_pt :: Int 
@@ -280,6 +281,7 @@ function make_intermediate(
     # 
     num_pens_age :: Int = 0
     ge_16_u_pension_age  :: Bool = false
+    someone_pension_age_2016 :: Bool = false
     for pid in bu.adults
         pers = bu.people[pid]
         if reached_state_pension_age( 
@@ -290,6 +292,14 @@ function make_intermediate(
         else
             ge_16_u_pension_age = true
         end
+        if reached_state_pension_age(
+            age_limits, 
+            pers.age, 
+            pers.sex,
+            age_limits.savings_credit_to_new_state_pension )
+            someone_pension_age_2016 = true
+        end
+        
     end
     println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
     someone_pension_age  :: Bool = num_pens_age > 0
@@ -379,6 +389,7 @@ function make_intermediate(
         age_oldest_child,
         num_adlts,
         someone_pension_age,
+        someone_pension_age_2016,
         all_pension_age,
         working_ft,
         num_working_pt,
@@ -418,6 +429,9 @@ function make_lmt_benefit_applicability(
     whichb = LMTCanApplyFor()
     if intermed.someone_pension_age
         whichb.pc = true
+    end
+    if intermed.someone_pension_age_2016
+        whichb.sc = true
     end
     # ESA, JSA, IS, crudely
     if ! intermed.all_pension_age 
