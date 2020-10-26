@@ -335,7 +335,7 @@ module STBParameters
     
     @with_kw mutable struct AgeLimits
         state_pension_ages = pension_ages();
-        savings_credit_to_new_state_pension :: Date = fy( 2016 )
+        savings_credit_to_new_state_pension :: Date = Date( 2016, 04, 06 )
     end
     
     function state_pension_age( limits :: AgeLimits, sex :: Sex, when :: Integer )::Integer
@@ -360,7 +360,8 @@ module STBParameters
         age  :: Int,
         sex  :: Sex,
         when :: Integer ) :: Bool
-        return age >= state_pension_age( limits, sex, when )
+    
+        return Utils.age_then( age, when ) >= state_pension_age( limits, sex, when )
     end
     
     function reached_state_pension_age(

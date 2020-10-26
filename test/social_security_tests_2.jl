@@ -32,8 +32,10 @@ sys = get_system( scotland=true )
     
     @test reached_state_pension_age(sys.age_limits,65,Male)
     @test reached_state_pension_age(sys.age_limits,65,Female)
-    @test ! reached_state_pension_age(sys.age_limits,65,Female, Date( 2025, 01, 01))
-    @test ! reached_state_pension_age(sys.age_limits,67, Male, Date( 2046, 01, 01))
+    @test ! reached_state_pension_age(sys.age_limits,62,Female, Date( 2022, 01, 01))
+    # A person who's 67 now will have reached pension age 
+    # by then.
+    @test reached_state_pension_age(sys.age_limits,67, Male, Date( 2046, 01, 01))
     # since this is financial year
     @test reached_state_pension_age(sys.age_limits,68, Male, 2046 )
     

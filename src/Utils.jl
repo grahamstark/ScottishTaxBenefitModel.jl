@@ -9,12 +9,31 @@ using BudgetConstraints
 export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
-export eq_nearest_p,  mult, has_non_z, haskeys
+export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
 
 #
 # this has a higher top income than the BC default
 #
 const BC_SETTINGS = BCSettings(0.0,20_000.0,DEFAULT_SETTINGS.increment,DEFAULT_SETTINGS.tolerance,true,DEFAULT_SETTINGS.maxdepth)
+
+
+function todays_date() :: Date
+    Date( now())
+end
+
+
+"""
+These are trivial but annoying to get right.
+"""
+function age_then( age :: Int, when :: Int )::Int
+    ago = Dates.year(todays_date()) - when
+    age - ago
+end
+
+
+function age_then( age :: Int, when :: Date = todays_date() ) :: Int
+    age_then( age, Dates.year( when ))
+end
 
 
 function eq_nearest_p( a :: Real, b :: Real )

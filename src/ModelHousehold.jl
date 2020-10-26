@@ -4,7 +4,7 @@ using Dates
 
 using ScottishTaxBenefitModel
 using .Definitions
-using .Utils: has_non_z
+using .Utils: has_non_z, todays_date
 using .Uprating: uprate, UPRATE_MAPPINGS
 
 export Household, Person, People_Dict
@@ -13,7 +13,7 @@ export get_benefit_units, num_people, get_head,get_spouse, printpids
 export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
 export is_single, search, pers_is_disabled, pers_is_carer, num_carers
 export le_age, between_ages, ge_age, num_adults, empl_status_in
-export has_children, num_children, is_severe_disability
+export has_children, num_children, is_severe_disability, age_then
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -558,11 +558,11 @@ function printpids( buas::BUAllocation )
 end
 
 function age_then( pers :: Person, when :: Int ) :: Int
-    pers.age - when
+    age_then( pers.age, when );
 end
 
-function age_then( pers :: Person, when :: DateTime ) :: Int
-    pers.age - Dates.year( when )
+function age_then( pers :: Person, when :: Date = todays_date() ) :: Int
+    age_then( pers.age, Dates.year( when ))
 end
 
 
