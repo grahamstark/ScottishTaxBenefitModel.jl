@@ -530,8 +530,10 @@ function calc_premia(
             premia += prems.enhanced_disability_couple
         end                
     end
-    if intermed.num_pens_age > 0
-        premia += prems.pensioner_is  
+    if which_ben != pc 
+        if intermed.num_pens_age > 0
+            premia += prems.pensioner_is  
+        end
     end
     # all benefits, I think, incl. 
     if which_ben != ctb
@@ -546,13 +548,6 @@ function calc_premia(
     # we're ignoring support components (p355-) for now.
     #
     return premia
-end
-
-function calculate_pension_credit( 
-    intermed :: MTIntermediate, 
-    
-    )::Real
-
 end
 
 function calc_allowances(
@@ -614,6 +609,7 @@ function calc_allowances(
     @assert pers_allow > 0
     return pers_allow
 end
+
 
 function calc_credits()
 
@@ -733,6 +729,41 @@ function calc_legacy_means_tested_benefits!(
         )        
         results.is = max( 0.0, premia+allowances - incomes.total_income );    
     elseif entitled_to.pc
+        incomes = calc_incomes( 
+            pc,
+            benefit_unit,
+            benefit_unit_result,
+            intermed.
+            mt_ben_sys.income_rules )
+        allowances = calc_allowances(
+            pc,
+            intermed,
+            mt_ben_sys.allowances,
+            age_limits 
+        )        
+        premia = calc_premia(
+            pc,
+            benefit_unit,
+            intermed,        
+            mt_ben_sys.premia,
+            age_limits )            
+        results.mig = max( 0.0, premia+allowances - incomes.total_income );    
+        if entitled_to.sc 
+            scsys = mt_ben_sys.savings_credit #  shortcut
+            sc_incomes = calc_incomes( 
+                pc,
+                benefit_unit,
+                benefit_unit_result,
+                intermed.
+                mt_ben_sys.income_rules )
+            thresh = num_adults == 2 ?
+                scsys.threshold_couple :
+                scsys.threshold_single
+            sc_income = scsys.withdrawal_rate * 
+                sc_incomes.total_income
+            
+        end
+        results.pc = results.mig + results.sc
     
     elseif entitled_to.wtc
     
@@ -740,7 +771,6 @@ function calc_legacy_means_tested_benefits!(
     end
     
     if entitled_to.ctc
-    
     end
     
     if entitled_to.hb

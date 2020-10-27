@@ -56,6 +56,8 @@ module Results
         is :: RT = zero(RT)
         jsa :: RT = zero(RT)
         pc  :: RT = zero(RT)
+        mig  :: RT = zero(RT)
+        sc   :: RT = zero(RT)
         ndds :: RT = zero(RT)
         wtc  :: RT = zero(RT)
         ctr  :: RT = zero(RT)
