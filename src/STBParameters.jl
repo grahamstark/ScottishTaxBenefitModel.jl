@@ -97,14 +97,17 @@ module STBParameters
     
     function LEGACY_SAVINGS_CREDIT_INCOME( t::Type )::Incomes_Dict
         inc = LEGACY_TAX_CREDIT_INCOME(t)
-        for todel in [working_tax_credit, incapacity_benefit,
+        for todel in [
+            working_tax_credit, 
+            incapacity_benefit,
             employment_and_support_allowance, # contributory only
-            job_seekers_allowance, # cont only
-            severe_disablement_allowance,
+            jobseekers_allowance, # cont only
+            # severe_disablement_allowance,
             maternity_allowance,
             alimony_and_child_support_received ]
             delete!( inc, todel )
         end
+        return inc
     end
 
     function DIVIDEND_INCOME( t :: Type ) :: Incomes_Dict
@@ -483,7 +486,7 @@ module STBParameters
         wage_per_hour :: Vector{RT} = [4.55, 6.45, 8.20, 8.72]
         # wage_per_hour = Dict{Int,RT}( 
         #     25=>8.72, 21=>8.20, 18=>6.45, 16=>4.55)
-        apprentice_rate = 4.15;
+        apprentice_rate :: RT = 4.15;
     end
     
     function get_minimum_wage( mwsys :: MinimumWage, age :: Int ):: Real
@@ -505,7 +508,7 @@ module STBParameters
         threshold_single :: RT = 144.38 
         threshold_couple :: RT =229.67 
         max_single :: RT = 13.73 
-        max_single :: RT = 15.35 
+        max_couple :: RT = 15.35 
         available_till = Date( 2016, 04, 06 )
     end
 
@@ -515,7 +518,7 @@ module STBParameters
       allowances :: PersonalAllowances = PersonalAllowances{RT}()
       income_rules :: IncomeRules = IncomeRules{RT}()
       hours_limits :: HoursLimits = HoursLimits()
-      savings_credit :: SavingsCredit()
+      savings_credit :: SavingsCredit = SavingsCredit{RT}()
    end
    
   
@@ -525,7 +528,7 @@ module STBParameters
       ni   = NationalInsuranceSys{RT}()
       lmt  = LegacyMeansTestedBenefitSystem{RT}()
       age_limits = AgeLimits()
-      minwage = MinimumWage()
+      minwage = MinimumWage{RT}()
    end
 
 

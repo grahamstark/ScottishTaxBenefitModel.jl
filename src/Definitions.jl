@@ -1401,7 +1401,7 @@ export
 end
 
 
-@enum LMTBenefitType esa hb ctr is jsa pc wtc ctc 
+@enum LMTBenefitType esa hb ctr is jsa pc wtc ctc sc 
 const LMTBenefitSet = Set{LMTBenefitType}
 export LMTBenefitType, esa, hb, ctr, is, jsa, pc, wtc, ctc, sc, LMTBenefitSet
 
