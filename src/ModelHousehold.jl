@@ -558,11 +558,11 @@ function printpids( buas::BUAllocation )
 end
 
 function age_then( pers :: Person, when :: Int ) :: Int
-    age_then( pers.age, when );
+    Utils.age_then( pers.age, when );
 end
 
 function age_then( pers :: Person, when :: Date = todays_date() ) :: Int
-    age_then( pers.age, Dates.year( when ))
+    Utils.age_then( pers.age, Dates.year( when ))
 end
 
 
