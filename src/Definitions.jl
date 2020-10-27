@@ -1403,7 +1403,7 @@ end
 
 @enum LMTBenefitType esa hb ctr is jsa pc wtc ctc 
 const LMTBenefitSet = Set{LMTBenefitType}
-export LMTBenefitType, esa, hb, ctr, is, jsa, pc, wtc, ctc, LMTBenefitSet
+export LMTBenefitType, esa, hb, ctr, is, jsa, pc, wtc, ctc, sc, LMTBenefitSet
 
 @enum LMTPremia  begin
    family_premium = 1

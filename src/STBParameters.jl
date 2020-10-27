@@ -94,6 +94,18 @@ module STBParameters
         delete!(inc, working_tax_credit )
         return inc
     end
+    
+    function LEGACY_SAVINGS_CREDIT_INCOME( t::Type )::Incomes_Dict
+        inc = LEGACY_TAX_CREDIT_INCOME(t)
+        for todel in [working_tax_credit, incapacity_benefit,
+            employment_and_support_allowance, # contributory only
+            job_seekers_allowance, # cont only
+            severe_disablement_allowance,
+            maternity_allowance,
+            alimony_and_child_support_received ]
+            delete!( inc, todel )
+        end
+    end
 
     function DIVIDEND_INCOME( t :: Type ) :: Incomes_Dict
         Incomes_Dict{t}(
@@ -445,7 +457,6 @@ module STBParameters
         med   :: Int = 24
         higher :: Int = 30
     end
-    
    
     @with_kw mutable struct IncomeRules{RT<:Real}
         permitted_work :: RT= 131.50
@@ -459,6 +470,7 @@ module STBParameters
         incomes :: Incomes_Dict = LEGACY_MT_INCOME(RT)
         hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME(RT)  
         tc_incomes :: Incomes_Dict = LEGACY_TAX_CREDIT_INCOME(RT)  
+        sc_incomes :: Incomes_Dict = LEGACY_SAVINGS_CREDIT_INCOME(RT)
         capital_min :: RT = 6_000.0    
         capital_max :: RT = 16_000.0
         capital_tariff :: RT = 250 # £1pw per 250 
@@ -487,6 +499,15 @@ module STBParameters
         end
         return mwsys.wage_per_hour[p]
     end
+    
+    @with_kw mutable struct SavingsCredit{RT<:Real}
+        withdrawal_rate :: RT = 0.6
+        threshold_single :: RT = 144.38 
+        threshold_couple :: RT =229.67 
+        max_single :: RT = 13.73 
+        max_single :: RT = 15.35 
+        available_till = Date( 2016, 04, 06 )
+    end
 
    @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
        # CPAG 2019/bur.pers[pid].20 p335
@@ -494,8 +515,10 @@ module STBParameters
       allowances :: PersonalAllowances = PersonalAllowances{RT}()
       income_rules :: IncomeRules = IncomeRules{RT}()
       hours_limits :: HoursLimits = HoursLimits()
+      savings_credit :: SavingsCredit()
    end
-
+   
+  
    @with_kw mutable struct TaxBenefitSystem{RT<:Real}
       name :: AbstractString = "Scotland 2919/20"
       it   = IncomeTaxSys{RT}()
