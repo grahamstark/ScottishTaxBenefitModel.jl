@@ -87,6 +87,7 @@ function num_born_before(
 end
 
 struct MTIntermediate
+    benefit_unit_number :: Int
     age_youngest_adult :: Int
     age_oldest_adult :: Int
     age_youngest_child :: Int
@@ -267,6 +268,7 @@ function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
 end
 
 function make_intermediate(
+    buno :: Int,
     bu   :: BenefitUnit, 
     hrs  :: HoursLimits,
     age_limits :: AgeLimits ) :: MTIntermediate
@@ -385,6 +387,7 @@ function make_intermediate(
     println( typeof( total_hours_worked ))
                                    
     return MTIntermediate(
+        buno,
         age_youngest_adult,
         age_oldest_adult,
         age_youngest_child,
@@ -471,7 +474,11 @@ function make_lmt_benefit_applicability(
     elseif intermed.working_disabled
         whichb.wtc = true
     end
-    
+    # FIXME not really true
+    if intermed.buno == 1
+        whichb.hb = true
+        whichb.ctb = true
+    end
     # hb,ctr are assumed true 
     return whichb
 end
@@ -649,12 +656,15 @@ end
 
 function calc_legacy_means_tested_benefits!(
     ;
+    buno :: Int,
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit :: BenefitUnit, 
     age_limits :: AgeLimits, 
     mt_ben_sys  :: LegacyMeansTestedBenefitSystem )
     
     intermed :: MTIntermediate = make_intermediate( 
+        buno,
+        benefit_unit,
         mt_ben_sys.hours_limits,
         age_limits )
     
@@ -665,7 +675,7 @@ function calc_legacy_means_tested_benefits!(
     
     results = LMTResults()
     
-    # 
+    # FIXME refactor this stop duplication
     if entitled_to.esa 
         incomes = calc_incomes( 
             esa,
@@ -747,7 +757,10 @@ function calc_legacy_means_tested_benefits!(
             intermed,        
             mt_ben_sys.premia,
             age_limits )            
-        results.mig = max( 0.0, premia+allowances - incomes.total_income );    
+        # NOTE - there can be 'qualifying housing costs' in the MIG;
+        # see: CPAG 2122
+        miglevel = premia+allowances
+        results.mig = max( 0.0, miglevel - incomes.total_income );    
         if entitled_to.sc 
             scsys = mt_ben_sys.savings_credit #  shortcut
             sc_incomes = calc_incomes( 
@@ -756,18 +769,35 @@ function calc_legacy_means_tested_benefits!(
                 benefit_unit_result,
                 intermed.
                 mt_ben_sys.income_rules )
-            thresh = num_adults == 2 ?
-                scsys.threshold_couple :
-                scsys.threshold_single
+            thresh = scsys.threshold_single
+            maxpay = scsys.threshold_single
+            if num_adults > 1
+                thresh = scsys.threshold_couple
+                maxpay = scsys.max_couple
+            end
+            # see: CPAG 2011/12 edition ch 19
             sc_income = scsys.withdrawal_rate * 
-                sc_incomes.total_income
-            
+                max(0.0, sc_incomes.total_income-thresh)
+             
+            inc_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income-miglevel)
+            results.sc = max( 0.0, sc_income - income_over_mig )
+                
         end
         results.pc = results.mig + results.sc
-    
     elseif entitled_to.wtc
+            
     
+    end
     
+    passported_hb = false
+    passported_ctr = false
+    #
+    # Passporting
+    #
+    if results.mig > 0 || results.jsa > 0 || results.mig > 0 || results.esa > 0
+        passported_hb = true
+        passported_ctr = true
+        
     end
     
     if entitled_to.ctc

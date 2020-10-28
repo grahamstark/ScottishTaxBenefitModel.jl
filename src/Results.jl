@@ -46,8 +46,8 @@ module Results
         ndds :: Bool = false
         wtc  :: Bool = false
         ctc  :: Bool = false
-        hb  :: Bool = true
-        ctr :: Bool = true
+        hb  :: Bool = false
+        ctr :: Bool = false
     end
         
     @with_kw mutable struct LMTResults{RT<:Real}
