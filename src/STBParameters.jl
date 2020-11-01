@@ -454,7 +454,53 @@ module STBParameters
         disability_couple :: RT = 48.95
         pensioner_is :: RT = 140.40
     end
+    
+    @with_kw mutable struct WorkingTaxCredit{ RT<:Real }
+        ## PA
+        basic :: RT = 1_920.00
+        lone_parent :: RT = 1_950.00
+        couple  :: RT = 1_950.00
+        hours_gt_30 :: RT = 790.00
+        disability :: RT = 2_650.00
+        severe_disability :: RT = 1_130.00
+        age_50_plus  :: RT = 1_365.00
+        age_50_plus_30_hrs :: RT = 2_030.00
+        childcare_max_2_plus_children :: RT  = 300.0 # pw
+        childcare_max_1_child :: RT  = 175.0
+        childcare_proportion :: RT = 70.0 # pct
+        taper = 41.0  
+        incomes :: Incomes_Dict = make_all_taxable( RT )  
+    end
+    
+    function weeklyise!( wtc :: WorkingTaxCredit )
+        wtc.basic /= WEEKS_PER_YEAR
+        wtc.lone_parent /= WEEKS_PER_YEAR
+        wtc.couple /= WEEKS_PER_YEAR
+        wtc.hours_gt_30 /= WEEKS_PER_YEAR
+        wtc.disability /= WEEKS_PER_YEAR
+        wtc.severe_disability /= WEEKS_PER_YEAR
+        wtc.age_50_plus /= WEEKS_PER_YEAR
+        wtc.age_50_plus_30_hrs /= WEEKS_PER_YEAR
+        wtc.childcare_proportion /= 100.0
+        wct.taper /= 100.0
+    end
+    
+    
+    @with_kw mutable struct ChildTaxCredit{ RT<:Real }
+        family :: RT = 545.00
+        child  :: RT = 2_555.00
+        disability :: RT = 2_800.00
+        severe_disability :: RT = 1_130.00    
+    end
 
+    function weeklyise!( ctc :: ChildTaxCredit )
+        wtc.family /= WEEKS_PER_YEAR
+        wtc.child /= WEEKS_PER_YEAR
+        wtc.disability /= WEEKS_PER_YEAR
+        wtc.severe_disability /= WEEKS_PER_YEAR
+    end
+    
+    
     @with_kw mutable struct HoursLimits
         lower :: Int = 16
         med   :: Int = 24
@@ -519,6 +565,8 @@ module STBParameters
       income_rules :: IncomeRules = IncomeRules{RT}()
       hours_limits :: HoursLimits = HoursLimits()
       savings_credit :: SavingsCredit = SavingsCredit{RT}()
+      working_tax_credit = WorkingTaxCredit{RT}()
+      child_tax_credit = ChildTaxCredit{RT}()
    end
    
   

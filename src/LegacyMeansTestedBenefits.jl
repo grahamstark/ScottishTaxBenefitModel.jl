@@ -650,8 +650,13 @@ function calc_LHA()
 
 end
 
-function calc_WTC()
+function calcWTC(
+    benefit_unit_result :: BenefitUnitResult,
+    benefit_unit :: BenefitUnit, 
+    intermed :: MTIntermediate,
+    wtc :: WorkingTaxCredit ) :: Real
 
+    income = 
 end
 
 function calc_legacy_means_tested_benefits!(
@@ -785,7 +790,11 @@ function calc_legacy_means_tested_benefits!(
         end
         results.pc = results.mig + results.sc
     elseif entitled_to.wtc
-            
+        results.wtc = calcWTC( 
+                benefit_unit_result,
+                benefit_unit,
+                intermed,
+                mt_ben_sys.working_tax_credit )
     
     end
     
