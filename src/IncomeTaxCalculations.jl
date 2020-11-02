@@ -144,15 +144,15 @@ function calc_income_tax!(
         data=pers.income, 
         calculated=pres.incomes, 
         included=sys.all_taxable )
-    non_savings = mult( 
+    non_savings_income = mult( 
         data=pers.income, 
         calculated=pres.incomes, 
         included=sys.non_savings_income )
-    savings = mult( 
+    savings_income = mult( 
         data=pers.income, 
         calculated=pres.incomes, 
         included=sys.savings_income )
-    dividends = mult( 
+    dividends_income = mult( 
         data=pers.income, 
         calculated=pres.incomes, 
         included=sys.dividend_income )
@@ -160,11 +160,11 @@ function calc_income_tax!(
     allowance = calculate_allowance( pers, sys )
     # allowance reductions goes here
 
-    non_dividends = non_savings + savings
+    non_dividends = non_savings_income + savings_income
 
     adjusted_net_income = total_income
 
-    calculate_pension_taxation!( pres.it, sys, pers, total_income, non_savings )
+    calculate_pension_taxation!( pres.it, sys, pers, total_income, non_savings_income )
 
     # adjusted_net_income -= pres.it.pension_eligible_for_relief
 
@@ -183,20 +183,13 @@ function calc_income_tax!(
                         adjusted_net_income - sys.personal_allowance_income_limit ))
     end
     taxable_income = adjusted_net_income-allowance
-    pres.it.intermediate["allowance"]=allowance
-    pres.it.intermediate["total_income"]=total_income
-    pres.it.intermediate["adjusted_net_income"]=adjusted_net_income
-    pres.it.intermediate["taxable_income"]=taxable_income
-    pres.it.intermediate["savings"]=savings
-    pres.it.intermediate["non_savings"]=non_savings
-    pres.it.intermediate["dividends"]=dividends
     # note: we copy from the expanded versions from pension_contributions
     savings_thresholds = deepcopy( pres.it.savings_thresholds )
     savings_rates = deepcopy( sys.savings_rates )
     # FIXME model all this with parameters
     toprate = size( savings_thresholds )[1]
     if taxable_income > 0
-        allowance,non_savings_taxable = apply_allowance( allowance, non_savings )
+        allowance,non_savings_taxable = apply_allowance( allowance, non_savings_income )
         non_savings_tax = calctaxdue(
             taxable=non_savings_taxable,
             rates=sys.non_savings_rates,
@@ -229,7 +222,7 @@ function calc_income_tax!(
         end # we have a personal_savings_allowance
         pres.it.intermediate["savings_rates"] = savings_rates
         pres.it.intermediate["savings_thresholds"] = savings_thresholds
-        allowance,savings_taxable = apply_allowance( allowance, savings )
+        allowance,savings_taxable = apply_allowance( allowance, savings_income )
         savings_tax = calctaxdue(
             taxable=savings_taxable,
             rates=savings_rates,
@@ -238,7 +231,7 @@ function calc_income_tax!(
         # Dividends
         # see around example 8-9 ch2
         allowance,dividends_taxable =
-            apply_allowance( allowance, dividends )
+            apply_allowance( allowance, dividends_income )
         dividend_rates=deepcopy(sys.dividend_rates)
         dividend_thresholds=deepcopy(pres.it.dividend_thresholds )
         # always preserve any bottom zero rate
@@ -263,10 +256,6 @@ function calc_income_tax!(
             dividend_thresholds .+= zero_band # push all up
             dividend_thresholds = vcat( zero_band, dividend_thresholds )
         end
-        pres.it.intermediate["dividend_rates"]=dividend_rates
-        pres.it.intermediate["dividend_thresholds"]=dividend_thresholds
-        pres.it.intermediate["add_back_zero_band"]=add_back_zero_band
-        pres.it.intermediate["dividends_taxable"]=dividends_taxable
 
         dividend_tax = calctaxdue(
             taxable=dividends_taxable,
@@ -275,10 +264,7 @@ function calc_income_tax!(
     else # some allowance left
         allowance = -taxable_income # e.g. allowance - taxable_income
     end
-    pres.it.intermediate["non_savings_tax"]=non_savings_tax.due
-    pres.it.intermediate["savings_tax"]=savings_tax.due
-    pres.it.intermediate["dividend_tax"]=dividend_tax.due
-
+   
     #
     # tax reducers
     #
@@ -293,12 +279,22 @@ function calc_income_tax!(
     pres.it.allowance = allowance
     pres.it.total_income = total_income
     pres.it.adjusted_net_income = adjusted_net_income
-    pres.it.non_savings = non_savings_tax.due
+    
+    pres.it.non_savings_tax = non_savings_tax.due
+    pres.it.non_savings_income = non_savings
     pres.it.non_savings_band = non_savings_tax.end_band
-    pres.it.savings = savings_tax.due
+    pres.it.non_savings_taxable = non_savings_taxable
+    
+    pres.it.savings_tax = savings_tax.due
     pres.it.savings_band = savings_tax.end_band
-    pres.it.dividends = dividend_tax.due
+    pres.it.savings_income = savings_income
+    pres.it.savings_taxable = savings_taxable
+    
+    pres.it.dividends_tax = dividend_tax.due
     pres.it.dividend_band = dividend_tax.end_band
+    pres.it.dividends_income = dividends_income
+    pres.it.dividends_taxable = dividends_taxable
+    
     pres.it.unused_allowance = allowance
 end
 

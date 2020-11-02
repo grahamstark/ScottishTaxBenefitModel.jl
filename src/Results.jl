@@ -82,13 +82,23 @@ module Results
         taxable_income :: RT = 0.0
         adjusted_net_income :: RT = 0.0
         total_income :: RT = 0.0
-        non_savings :: RT = 0.0
         allowance   :: RT = 0.0
+        
+        non_savings_tax :: RT = 0.0
         non_savings_band :: Integer = 0
-        savings :: RT = 0.0
+        non_savings_income :: RT = 0.0
+        non_savings_taxable :: RT = 0.0
+        
+        savings_tax :: RT = 0.0
         savings_band :: Integer = 0
-        dividends :: RT = 0.0
+        savings_income :: RT = 0.0
+        savings_taxable :: RT = 0.0
+        
+        dividends_tax :: RT = 0.0
         dividend_band :: Integer = 0
+        dividends_income :: RT = 0.0
+        dividends_taxable :: RT = 0.0
+        
         unused_allowance :: RT = 0.0
         mca :: RT = 0.0
         transferred_allowance :: RT = 0.0
@@ -97,6 +107,7 @@ module Results
         non_savings_thresholds :: RateBands = zeros(RT,0)
         savings_thresholds  :: RateBands = zeros(RT,0)
         dividend_thresholds :: RateBands = zeros(RT,0)
+        
         intermediate :: Dict = Dict()
     end
     

@@ -150,8 +150,8 @@ function calc_incomes(
     
     if which_ben == hb
         inclist = incrules.hb_incomes
-    elseif which_ben in [pc,ctr,wtc]
-        inclist = incrules.tc_incomes
+    elseif which_ben in [pc,ctr]
+        inclist = incrules.pc_incomes
     elseif which_ben == sc
         inclist = incrules.sc_incomes
     else

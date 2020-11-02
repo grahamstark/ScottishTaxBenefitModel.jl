@@ -86,7 +86,8 @@ module STBParameters
         return inc
     end
 
-    function LEGACY_TAX_CREDIT_INCOME(t::Type)::Incomes_Dict
+    ### NOT USED
+    function LEGACY_PC_INCOME(t::Type)::Incomes_Dict
         inc = LEGACY_MT_INCOME(t)
         inc[income_support] = 1.0
         inc[jobseekers_allowance] = 1.0
@@ -96,7 +97,7 @@ module STBParameters
     end
     
     function LEGACY_SAVINGS_CREDIT_INCOME( t::Type )::Incomes_Dict
-        inc = LEGACY_TAX_CREDIT_INCOME(t)
+        inc = LEGACY_PC_INCOME(t)
         for todel in [
             working_tax_credit, 
             incapacity_benefit,
@@ -518,7 +519,7 @@ module STBParameters
         childcare_max_2 :: RT = 300.00
         incomes :: Incomes_Dict = LEGACY_MT_INCOME(RT)
         hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME(RT)  
-        tc_incomes :: Incomes_Dict = LEGACY_TAX_CREDIT_INCOME(RT)  
+        pc_incomes :: Incomes_Dict = LEGACY_PC_INCOME(RT)  
         sc_incomes :: Incomes_Dict = LEGACY_SAVINGS_CREDIT_INCOME(RT)
         capital_min :: RT = 6_000.0    
         capital_max :: RT = 16_000.0
