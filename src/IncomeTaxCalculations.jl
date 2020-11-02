@@ -218,10 +218,10 @@ function calc_income_tax!(
                     savings_rates = vcat([0.0], savings_rates )
                 end
             end
-            pres.it.intermediate["personal_savings_allowance"] = psa
+            pres.it.personal_savings_allowance = psa
         end # we have a personal_savings_allowance
-        pres.it.intermediate["savings_rates"] = savings_rates
-        pres.it.intermediate["savings_thresholds"] = savings_thresholds
+        pres.it.savings_rates = savings_rates
+        pres.it.savings_thresholds= savings_thresholds
         allowance,savings_taxable = apply_allowance( allowance, savings_income )
         savings_tax = calctaxdue(
             taxable=savings_taxable,
@@ -256,7 +256,9 @@ function calc_income_tax!(
             dividend_thresholds .+= zero_band # push all up
             dividend_thresholds = vcat( zero_band, dividend_thresholds )
         end
-
+        pres.it.dividend_rates = dividend_rates
+        pres.it.dividend_thresholds= dividend_thresholds
+        
         dividend_tax = calctaxdue(
             taxable=dividends_taxable,
             rates=dividend_rates,
@@ -370,11 +372,11 @@ function calc_income_tax!(
             if allowed_to_transfer_allowance( sys, from=spousetax, to=headtax )
                 transferable_allow = min( spousetax.unused_allowance, sys.marriage_allowance )
                 calc_income_tax!( bres.pers[head.pid], head, sys, transferable_allow )
-                headtax.intermediate["transfer_spouse_to_head"] = transferable_allow
+                bres.pers[head.pid].transferred_allowance = transferable_allow
             elseif allowed_to_transfer_allowance( sys, from=headtax, to=spousetax )
                 transferable_allow = min( headtax.unused_allowance, sys.marriage_allowance )
                 calc_income_tax!( bres.pers[spouse.pid], spouse, sys, transferable_allow )
-                spousetax.intermediate["transfer_head_to_spouse"] = transferable_allow
+                bres.pers[spouse.pid].transferred_allowance = transferable_allow
             end
         end
     end
