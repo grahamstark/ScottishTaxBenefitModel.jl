@@ -130,8 +130,6 @@ problems:
 1. we do this in strict non-savings, savings, dividends order; see 2(11) for examples where it's now advantageous to use a different order
 2.
 
-returns a single total tax liabilty, plus multiple intermediate numbers
-in the `intermediate` dict
 
 """
 function calc_income_tax!(
@@ -188,6 +186,10 @@ function calc_income_tax!(
     savings_rates = deepcopy( sys.savings_rates )
     # FIXME model all this with parameters
     toprate = size( savings_thresholds )[1]
+    non_savings_taxable = 0.0
+    savings_taxable = 0.0
+    dividends_taxable = 0.0
+    
     if taxable_income > 0
         allowance,non_savings_taxable = apply_allowance( allowance, non_savings_income )
         non_savings_tax = calctaxdue(
@@ -283,7 +285,7 @@ function calc_income_tax!(
     pres.it.adjusted_net_income = adjusted_net_income
     
     pres.it.non_savings_tax = non_savings_tax.due
-    pres.it.non_savings_income = non_savings
+    pres.it.non_savings_income = non_savings_income
     pres.it.non_savings_band = non_savings_tax.end_band
     pres.it.non_savings_taxable = non_savings_taxable
     
@@ -368,15 +370,16 @@ function calc_income_tax!(
                 spousetax.total_tax = max( 0.0, spousetax.total_tax - spousetax.mca )
             end
         end
+        # TODO cleanup the bres.pers stuff
         if spousetax.mca == 0.0 == headtax.mca
             if allowed_to_transfer_allowance( sys, from=spousetax, to=headtax )
                 transferable_allow = min( spousetax.unused_allowance, sys.marriage_allowance )
                 calc_income_tax!( bres.pers[head.pid], head, sys, transferable_allow )
-                bres.pers[head.pid].transferred_allowance = transferable_allow
+                bres.pers[head.pid].it.transferred_allowance = transferable_allow
             elseif allowed_to_transfer_allowance( sys, from=headtax, to=spousetax )
                 transferable_allow = min( headtax.unused_allowance, sys.marriage_allowance )
                 calc_income_tax!( bres.pers[spouse.pid], spouse, sys, transferable_allow )
-                bres.pers[spouse.pid].transferred_allowance = transferable_allow
+                bres.pers[spouse.pid].it.transferred_allowance = transferable_allow
             end
         end
     end

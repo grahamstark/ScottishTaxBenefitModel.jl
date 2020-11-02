@@ -91,7 +91,7 @@ end # example 1
         pruk = IndividualResult{Float64}()
         println( "case $i income = $(income[i])")
         calc_income_tax!( pruk, pers, itsys_ruk )
-        @test pruk.it.intermediate["personal_savings_allowance"] == psa[i]
+        @test pruk.it.personal_savings_allowance == psa[i]
     end
 end # example 2
 

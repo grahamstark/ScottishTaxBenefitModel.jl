@@ -14,7 +14,8 @@ module STBParameters
     using .TimeSeriesUtils: fy, fy_array
     
 
-    export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem
+    export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
+    export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage
     export weeklyise!, annualise!, AgeLimits, HoursLimits
     export state_pension_age, reached_state_pension_age
 

@@ -208,9 +208,9 @@ module Runner
         pr.other_benefits = pres.other_benefits
 
         pr.income_tax = pres.it.total_tax
-        pr.it_non_savings = pres.it.non_savings
-        pr.it_savings = pres.it.savings
-        pr.it_dividends = pres.it.dividends
+        pr.it_non_savings = pres.it.non_savings_tax
+        pr.it_savings = pres.it.savings_tax
+        pr.it_dividends = pres.it.dividends_tax
         pr.it_pension_relief_at_source = pres.it.pension_relief_at_source
 
         pr.ni_above_lower_earnings_limit = pres.ni.above_lower_earnings_limit

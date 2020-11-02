@@ -6,8 +6,9 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
     is_single, pers_is_disabled, pers_is_carer, search, count, num_carers,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
-using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, 
-    Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age
+using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
+    Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
+    WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
     LMTResults, has_income, LMTCanApplyFor
@@ -148,9 +149,9 @@ function calc_incomes(
     other = zero(T)
     total = zero(T)
     
-    if which_ben == hb
+    if which_ben in [hb,ctr]
         inclist = incrules.hb_incomes
-    elseif which_ben in [pc,ctr]
+    elseif which_ben == pc
         inclist = incrules.pc_incomes
     elseif which_ben == sc
         inclist = incrules.sc_incomes
@@ -167,7 +168,7 @@ function calc_incomes(
         if which_ben in [pc,is,jsa,esa,hb]
             net = 
                 gross - ## FIXME parameterise this so we can use gross/net
-                pres.it.non_savings -
+                pres.it.non_savings_tax -
                 pres.ni.total_ni - 
                 0.5 * get(pers.income, pension_contributions_employee, 0.0 )
         else
@@ -199,7 +200,7 @@ function calc_incomes(
         end       
     end
 
-    if( which_ben == hb ) 
+    if( which_ben in [hb,ctr] ) 
         # fixme do this above
         if( Results.has_income( bu, bur, employment_and_support_allowance ))     
             disreg = incrules.high
@@ -475,9 +476,9 @@ function make_lmt_benefit_applicability(
         whichb.wtc = true
     end
     # FIXME not really true
-    if intermed.buno == 1
+    if intermed.benefit_unit_number == 1
         whichb.hb = true
-        whichb.ctb = true
+        whichb.ctr = true
     end
     # hb,ctr are assumed true 
     return whichb
@@ -543,14 +544,14 @@ function calc_premia(
         end
     end
     # all benefits, I think, incl. 
-    if which_ben != ctb
-        if intermed.num_carers == 1
-            premia += prems.carer_single
-        elseif intermed.num_carers == 2
-            # FIXME what if 1 is a child?
-            premia += prems.carer_couple
-        end
+    # if which_ben != ctr
+    if intermed.num_carers == 1
+        premia += prems.carer_single
+    elseif intermed.num_carers == 2
+        # FIXME what if 1 is a child?
+        premia += prems.carer_couple
     end
+    # end
     #
     # we're ignoring support components (p355-) for now.
     #
@@ -656,7 +657,7 @@ function calcWTC(
     intermed :: MTIntermediate,
     wtc :: WorkingTaxCredit ) :: Real
 
-    income = 
+    income = 0
 end
 
 function calc_legacy_means_tested_benefits!(

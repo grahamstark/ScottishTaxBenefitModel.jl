@@ -38,7 +38,6 @@ module Results
     # 
     @with_kw mutable struct LMTCanApplyFor
         esa :: Bool = false
-        # hb ctr assumed true for everyone
         is :: Bool = false
         jsa :: Bool = false
         sc  :: Bool = false
@@ -63,7 +62,7 @@ module Results
         ctr  :: RT = zero(RT)
         premia :: LMTPremiaDict{Bool} = LMTPremiaDict{Bool}()
         # can_apply_for = LMTCanApplyFor()
-        intermediate :: Dict = Dict()
+        # intermediate :: Dict = Dict()
     end
 
     @with_kw mutable struct NIResult{RT<:Real}
@@ -104,8 +103,8 @@ module Results
         transferred_allowance :: RT = 0.0
         pension_eligible_for_relief :: RT = 0.0
         pension_relief_at_source :: RT = 0.0
-        non_savings_thresholds :: RateBands = zeros(RT,0)
         
+        non_savings_thresholds :: RateBands = zeros(RT,0)
         savings_thresholds  :: RateBands = zeros(RT,0)
         dividend_thresholds :: RateBands = zeros(RT,0)
         
@@ -113,9 +112,6 @@ module Results
         dividend_rates :: RateBands = zeros(RT,0)
         
         personal_savings_allowance :: RT = 0.0
-        
-        
-        # intermediate :: Dict = Dict()
     end
     
     @with_kw mutable struct IndividualResult{RT<:Real}

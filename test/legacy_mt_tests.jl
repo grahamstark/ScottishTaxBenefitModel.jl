@@ -58,6 +58,7 @@ end
         bus = get_benefit_units( hh )
         bu = bus[1]
         intermed = make_intermediate( 
+            1,
             bu,  
             lmt.hours_limits,
             sys.age_limits )
@@ -132,6 +133,7 @@ end
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
     intermed = make_intermediate( 
+        1,
         e_and_m,  
         lmt.hours_limits,
         sys.age_limits )
@@ -161,6 +163,7 @@ end # test set
     cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
     sparent = get_benefit_units(examples[single_parent_hh])[1]
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -182,6 +185,7 @@ end # test set
     unemploy!( head )
     unemploy!( spouse )
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -199,6 +203,7 @@ end # test set
     
     disable!( spouse )
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -215,6 +220,7 @@ end # test set
     carer!( head )
     println( "head.employment_status=$(head.employment_status) spouse.employment_status=$(spouse.employment_status)")
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -226,6 +232,7 @@ end # test set
     @test ! eligs_cpl.wtc
     
     intermed = make_intermediate( 
+        1,
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -240,6 +247,7 @@ end # test set
     head = get_head( sparent )
     unemploy!( head )
     intermed = make_intermediate( 
+        1,
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -253,6 +261,7 @@ end # test set
     @test eligs_sp.ctr 
     carer!( head )
     intermed = make_intermediate( 
+        1,
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -266,6 +275,7 @@ end # test set
     @test eligs_sp.ctr 
     head.age = 70
     intermed = make_intermediate( 
+        1,
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -279,6 +289,7 @@ end # test set
     @test eligs_sp.ctr 
     retire!( head )
     intermed = make_intermediate( 
+        1,
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -293,6 +304,7 @@ end # test set
     @test eligs_sp.ctr 
     employ!( head )
     intermed = make_intermediate( 
+        1,
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -314,6 +326,7 @@ end
     head = get_head( cpl )
     println( "sp=$spouse" )
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -340,6 +353,7 @@ end
     unemploy!( head )
     unemploy!( spouse )
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -364,6 +378,7 @@ end
     
     disable!( spouse )
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -386,6 +401,7 @@ end
     
     carer!( head )
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -408,6 +424,7 @@ end
 
     sparent = get_benefit_units(examples[single_parent_hh])[1]
     intermed = make_intermediate( 
+        1,
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
@@ -439,6 +456,7 @@ end
     head = get_head( cpl )
     println( "sp=$spouse" )
     intermed = make_intermediate( 
+        1,
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
