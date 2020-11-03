@@ -470,8 +470,9 @@ module STBParameters
         childcare_max_2_plus_children :: RT  = 300.0 # pw
         childcare_max_1_child :: RT  = 175.0
         childcare_proportion :: RT = 70.0 # pct
-        taper = 41.0  
-        incomes :: Incomes_Dict = make_all_taxable( RT )  
+        taper = 41.0
+        non_earnings_minima = 300.0
+        # incomes :: Incomes_Dict = make_all_taxable( RT )  
     end
     
     function weeklyise!( wtc :: WorkingTaxCredit )
@@ -484,6 +485,7 @@ module STBParameters
         wtc.age_50_plus /= WEEKS_PER_YEAR
         wtc.age_50_plus_30_hrs /= WEEKS_PER_YEAR
         wtc.childcare_proportion /= 100.0
+        wtc.non_earnings_minima /= WEEKS_PER_YEAR
         wct.taper /= 100.0
     end
     

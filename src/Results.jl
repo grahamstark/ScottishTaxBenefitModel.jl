@@ -21,7 +21,8 @@ module Results
         LMTResults,
         LMTCanApplyFor,
         search, 
-        has_income
+        has_income,
+        aggregate!
 
     
     @with_kw mutable struct LMTIncomes{RT<:Real}
@@ -61,7 +62,7 @@ module Results
         wtc  :: RT = zero(RT)
         ctr  :: RT = zero(RT)
         premia :: LMTPremiaDict{Bool} = LMTPremiaDict{Bool}()
-        # can_apply_for = LMTCanApplyFor()
+        can_apply_for = LMTCanApplyFor()
         # intermediate :: Dict = Dict()
     end
 
@@ -74,6 +75,17 @@ module Results
         class_3   :: RT = 0.0
         class_4   :: RT = 0.0
         assumed_gross_wage :: RT = 0.0
+    end
+    
+    function add_to!( ni :: NIResult, ni2 :: NIResult )
+        ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
+        ni.total_ni += ni2.total_ni
+        ni.class_1_primary    += ni2.class_1_primary   
+        ni.class_1_secondary  += ni2.class_1_secondary 
+        ni.class_2   += ni2.class_2  
+        ni.class_3   += ni2.class_3  
+        ni.class_4   += ni2.class_4  
+        ni.assumed_gross_wage += ni2.assumed_gross_wage    
     end
 
     @with_kw mutable struct ITResult{RT<:Real}
@@ -114,6 +126,37 @@ module Results
         personal_savings_allowance :: RT = 0.0
     end
     
+    function add_to!( it :: ITResult; it2 :: ITResult )
+        it.total_tax += it2.total_tax
+        it.taxable_income += it2.taxable_income
+        it.adjusted_net_income += it2.adjusted_net_income
+        it.total_income += it2.total_income
+        it.allowance   += it2.allowance  
+                
+        it.non_savings_tax += it2.non_savings_tax
+        it.non_savings_band += it2.non_savings_band
+        it.non_savings_income += it2.non_savings_income
+        it.non_savings_taxable += it2.non_savings_taxable
+                
+        it.savings_tax += it2.savings_tax
+        it.savings_band += it2.savings_band
+        it.savings_income += it2.savings_income
+        it.savings_taxable += it2.savings_taxable
+                
+        it.dividends_tax += it2.dividends_tax
+        it.dividend_band += it2.dividend_band
+        it.dividends_income += it2.dividends_income
+        it.dividends_taxable += it2.dividends_taxable
+                
+        it.unused_allowance += it2.unused_allowance
+        it.mca += it2.mca
+        it.transferred_allowance += it2.transferred_allowance
+        it.pension_eligible_for_relief += it2.pension_eligible_for_relief
+        it.pension_relief_at_source += it2.pension_relief_at_source
+                
+        it.personal_savings_allowance += it2.personal_savings_allowance
+    end
+    
     @with_kw mutable struct IndividualResult{RT<:Real}
        eq_scale  :: RT = zero(RT)
        net_income :: RT =zero(RT)
@@ -132,9 +175,14 @@ module Results
         eq_net_income :: RT = zero(RT)
         income_taxes :: RT = zero(RT)
         means_tested_benefits :: RT = zero(RT)
+        
+        ni = NIResult{RT}()
+        it = ITResult{RT}()
+        
         legacy_mtbens = LMTResults{RT}()
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}()
+        adults = Pid_Array()
     end
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
@@ -210,6 +258,7 @@ module Results
 
     function init_benefit_unit_result( RT::Type, bu :: BenefitUnit ) :: BenefitUnitResult
         bur = BenefitUnitResult{RT}()
+        bur.adults = bu.adults
         for pid in keys( bu.people )
             bur.pers[pid] = IndividualResult{RT}()
         end
@@ -226,9 +275,21 @@ module Results
         end
         return hr
     end
+    
+    function aggregate!( bu :: BenefitUnitResult; include_children :: Bool = true )
+        pids = include_children ? keys( bu.pers ) : bu.adults
+        
+        for pid in pids
+            bu.
+        
+        end
+        
+        
+    end
 
-    function aggregate( hhr :: HouseholdResult )
-
+    function aggregate!( hhr :: HouseholdResult; include_children :: Bool = true )
+        # TODO ..
+        
     end
 
 end

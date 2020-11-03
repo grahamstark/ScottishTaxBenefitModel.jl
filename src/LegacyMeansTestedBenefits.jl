@@ -656,8 +656,14 @@ function calcWTC(
     benefit_unit :: BenefitUnit, 
     intermed :: MTIntermediate,
     wtc :: WorkingTaxCredit ) :: Real
-
-    income = 0
+    bu = benefit_unit
+    bur = benefit_unit_results
+    earn = 0.0
+    non_earn = 0.0
+    # FIXME does this tread pensions correctly - they're disgregarded
+    for pids in bu.adults
+        earn += bur.
+        it.savings_income + it.dividends_income
 end
 
 function calc_legacy_means_tested_benefits!(
