@@ -1421,8 +1421,9 @@ export LMTBenefitType, esa, hb, ctr, is, jsa, pc, wtc, ctc, sc, LMTBenefitSet
 end  
 
 const LMTPremiaDict = Dict{LMTPremia,T} where T <:Real
+const LMTPremiaSet = Set{LMTPremia}
 
-export LMTPremia,LMTPremiaDict, disabled_child,
+export LMTPremia,LMTPremiaDict, LMTPremiaSet, disabled_child,
     severe_disability_single,severe_disability_couple,
     carer_single,carer_couple,enhanced_disability_child,
     enhanced_disability_single,enhanced_disability_couple,disability_single,disability_couple,pensioner_is

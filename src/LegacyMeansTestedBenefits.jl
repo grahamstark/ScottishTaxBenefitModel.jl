@@ -2,23 +2,30 @@ module LegacyMeansTestedBenefits
 
 using ScottishTaxBenefitModel
 using .Definitions
+
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
     is_single, pers_is_disabled, pers_is_carer, search, count, num_carers,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
+    
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
     Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
-    WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage
+    WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit
+    
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
+
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
     LMTResults, has_income, LMTCanApplyFor, aggregate!, aggregate_tax
+    
 using .Utils: mult, haskeys
+
 using Dates: TimeType, Date, now, Year
 
 export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
-    born_before, num_born_before, apply_2_child_policy, calc_incomes
+    born_before, num_born_before, apply_2_child_policy, calc_incomes,
+    calcWTC_CTC!
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -195,7 +202,7 @@ function calc_incomes(
     elseif which_ben in [hb,jsa,is,pc]
         if intermed.is_sparent            
             disreg = which_ben == hb ? incrules.lone_parent_hb : incrules.high 
-        elseif haskeys(mntr.premia, carer_single, carer_couple, disability_couple, disability_single, severe_disability_couple, severe_disability_single )
+        elseif ! isdisjoint( mntr.premiums, [carer_single, carer_couple, disability_couple, disability_single, severe_disability_couple, severe_disability_single] )
             disreg = incrules.high
         end       
     end
@@ -515,47 +522,58 @@ function calc_premia(
     which_ben :: LMTBenefitType,
     bu :: BenefitUnit,
     intermed :: MTIntermediate, 
-    prems :: Premia,
-    ages :: AgeLimits  ) :: Real
+    prem_sys :: Premia,
+    ages :: AgeLimits  ) :: Tuple
     premia = 0.0
-    
+    premset = LMTPremiaSet()
     if which_ben in [hb,ctr]
         # disabled child premia
-        premia += intermed.num_disabled_children*prems.disabled_child        
+        premia += intermed.num_disabled_children*prem_sys.disabled_child   
+        union(premset,disabled_child)
     end
     if which_ben != esa
         if num_disabled_adults == 1
-            premia += prems.disability_single
+            premia += prem_sys.disability_single
+            union!( premset,disability_single)
         elseif num_disabled_adults == 2
-            premia += prems.disability_couple
+            premia += prem_sys.disability_couple
+            union!( premset,disability_couple)
         end        
     end
     if which_ben in [hb,ctr,esa,is,jsa]
-        premia += intermed.num_severely_disabled_children*prems.enhanced_disabled_child
+        premia += intermed.num_severely_disabled_children*prem_sys.enhanced_disabled_child
+        if intermed.num_severely_disabled_children > 0
+            union!( premset,enhanced_disability_child)
+        end
         if num_severely_disabled_adults == 1
-            premia += prems.enhanced_disability_single
+            premia += prem_sys.enhanced_disability_single
+            union!( premset,enhanced_disability_single)
         elseif num_severely_disabled_adults == 2
-            premia += prems.enhanced_disability_couple
+            premia += prem_sys.enhanced_disability_couple
+            union!( premset,enhanced_disability_couple)
         end                
     end
     if which_ben != pc 
         if intermed.num_pens_age > 0
-            premia += prems.pensioner_is  
+            premia += prem_sys.pensioner_is  
+            union!( premset,pensioner_is)
         end
     end
     # all benefits, I think, incl. 
     # if which_ben != ctr
     if intermed.num_carers == 1
-        premia += prems.carer_single
+        premia += prem_sys.carer_single
+        union!( premset,carer_single)
     elseif intermed.num_carers == 2
         # FIXME what if 1 is a child?
-        premia += prems.carer_couple
+        premia += prem_sys.carer_couple
+        union!( premset,carer_couple)
     end
     # end
     #
     # we're ignoring support components (p355-) for now.
     #
-    return premia
+    return (premia, premset)
 end
 
 function calc_allowances(
@@ -651,13 +669,15 @@ function calc_LHA()
 
 end
 
-function calcWTC(
+function calcWTC_CTC!(
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit :: BenefitUnit, 
     intermed :: MTIntermediate,
-    wtc :: WorkingTaxCredit ) :: Real
-    bu = benefit_unit
-    bur = benefit_unit_results
+    wtc :: WorkingTaxCredit,
+    ctc :: ChildTaxCredit,
+    can_apply_for :: LMTCanApplyFor )
+    bu = benefit_unit # aliases
+    bur = benefit_unit_result.legacy_mtbens
     earn = 0.0
     non_earn = 0.0
     it, ni = aggregate_tax( bu )
@@ -667,7 +687,57 @@ function calcWTC(
         other_income = 0.0
     end
     income = other_income + it.non_savings_income
+    wtc_elements = 0.0
+    ctc_elements = 0.0
+    threshold = wtc.threshold
+    if can_apply_for.wtc 
+        wtc_elements = wtc.basic
+        if intermed.is_sparent
+            wtc_elements += wtc.lone_parent
+        elseif intermed.num_adults > 1
+            wtc_elements += wtc.couple
+        end
+        if intermed.working_ft > 0
+            wtc_elements += wtc.hours_ge_30      
+        end
+        if intermed.working_disabled
+            wtc_elements += wtc.disability        
+        end
+        # FIXME do servere_working disabled
+        cost_of_childcare = 0.0
+        for pid in bu.children 
+            cost_of_childcare += bu.people[pid].cost_of_childcare 
+        end
+        
+        cost_of_childcare *= wtc.childcare_proportion
+        
+        if intermed.num_u_16s > 1 
+            cost_of_childcare = min( wtc.childcare_max_2_plus_children. cost_of_childcare )
+        else
+            cost_of_childcare = min( wtc.childcare_max_1_child, cost_of_childcare )
+        end    
+        wtc_elements += cost_of_childcare
+    end
+    if can_apply_for.ctc 
+        ctc_elements = ctc.family
+        ctc_elements += (intermed.num_allowed_children*ctc.child)
+        ctc_elements += intermed.num_disabled_children*ctc.disability
+        ctc_elements += intermed.num_severely_disabled_children*ctc.severe_disability
+        if ! can_apply_for.wtc
+            threshold = ctc.threshold
+        end
+    end
     
+    elements = ctc_elements + wtc_elements
+    excess = wtc.taper * max( 0.0, income - threshold )
+    wtc_ctc = max( 0.0, elements - excess )
+    # allocate
+    bur.ctc = min( wtc_ctc, ctc_elements )
+    bur.wtc = wtc_ctc - bur.ctc
+    bur.wtc_income = income
+    bur.ctc_elements = ctc_elements
+    bur.wtc_elements = wtc_elements
+    bur.wtc_ctc_threshold = threshold
 end
 
 function calc_legacy_means_tested_benefits!(
@@ -677,88 +747,76 @@ function calc_legacy_means_tested_benefits!(
     benefit_unit :: BenefitUnit, 
     age_limits :: AgeLimits, 
     mt_ben_sys  :: LegacyMeansTestedBenefitSystem )
+    # aliases
+    bures = benefit_unit_result
+    bu = benefit_unit
     
     intermed :: MTIntermediate = make_intermediate( 
         buno,
-        benefit_unit,
+        bu,
         mt_ben_sys.hours_limits,
         age_limits )
     
-    entitled_to :: LMTCanApplyFor = make_lmt_benefit_applicability(
+    can_apply_for :: LMTCanApplyFor = make_lmt_benefit_applicability(
         intermed,
         mt_ben_sys.hours_limits
     )
+    # FIXME MIG not really the right name for is,jsa,esa
+    which_mig = nothing
+    mig = 0.0
+    if can_apply_for.esa 
+        which_mig = esa
+    elseif can_apply_for.jsa
+        which_mig = jsa
+    elseif can_apply_for.is
+        which_mig = is
+    end
+    if which_mig != nothing 
+        premia,premset = calc_premia(
+            which_mig,
+            bu,
+            intermed,        
+            mt_ben_sys.premia,
+            age_limits )            
+        union!(bures.legacy_mtbens.premiums, premset)
+        incomes = calc_incomes( 
+            which_mig,
+            bu,
+            bures,
+            intermed,
+            mt_ben_sys.income_rules )
+        allowances = calc_allowances(
+            which_mig,
+            intermed,
+            mt_ben_sys.allowances,
+            age_limits 
+        )        
+        mig = max( 0.0, premia+allowances - incomes.total_income );
+        bures.legacy_mtbens.mig_incomes = incomes
+        bures.legacy_mtbens.mig_allowances = allowances
+        bures.legacy_mtbens.mig_premia = premia
+        bures.legacy_mtbens.premia = premia
+        if can_apply_for.esa 
+            bures.legacy_mtbens.esa = mig
+        elseif can_apply_for.jsa
+            bures.legacy_mtbens.jsa = mig
+        elseif can_apply_for.is
+            bures.legacy_mtbens.is = mig
+        end        
+    end
     
-    results = LMTResults()
-    
-    # FIXME refactor this stop duplication
-    if entitled_to.esa 
-        incomes = calc_incomes( 
-            esa,
-            benefit_unit,
-            benefit_unit_result,
-            intermed.
-            mt_ben_sys.income_rules )
-        premia = calc_premia(
-            esa,
-            benefit_unit,
+    if can_apply_for.pc
+        premia, premset = calc_premia(
+            pc,
+            bu,
             intermed,        
             mt_ben_sys.premia,
             age_limits )            
-        allowances = calc_allowances(
-            esa,
-            intermed,
-            mt_ben_sys.allowances,
-            age_limits 
-        )        
-        results.esa = max( 0.0, premia+allowances - incomes.total_income );
-    elseif entitled_to.jsa
-        ## FIXME there must be a way of
-        ## avoiding this duplication
-        incomes = calc_incomes( 
-            jsa,
-            benefit_unit,
-            benefit_unit_result,
-            intermed.
-            mt_ben_sys.income_rules )
-        premia = calc_premia(
-            jsa,
-            benefit_unit,
-            intermed,        
-            mt_ben_sys.premia,
-            age_limits )            
-        allowances = calc_allowances(
-            jsa,
-            intermed,
-            mt_ben_sys.allowances,
-            age_limits 
-        )        
-        results.jsa = max( 0.0, premia+allowances - incomes.total_income );        
-    elseif entitled_to.is
-        incomes = calc_incomes( 
-            is,
-            benefit_unit,
-            benefit_unit_result,
-            intermed.
-            mt_ben_sys.income_rules )
-        premia = calc_premia(
-            is,
-            benefit_unit,
-            intermed,        
-            mt_ben_sys.premia,
-            age_limits )            
-        allowances = calc_allowances(
-            is,
-            intermed,
-            mt_ben_sys.allowances,
-            age_limits 
-        )        
-        results.is = max( 0.0, premia+allowances - incomes.total_income );    
-    elseif entitled_to.pc
+        union!(bures.legacy_mtbens.premiums, premset )
         incomes = calc_incomes( 
             pc,
-            benefit_unit,
-            benefit_unit_result,
+            bu,
+            bures,
             intermed.
             mt_ben_sys.income_rules )
         allowances = calc_allowances(
@@ -767,22 +825,21 @@ function calc_legacy_means_tested_benefits!(
             mt_ben_sys.allowances,
             age_limits 
         )        
-        premia = calc_premia(
-            pc,
-            benefit_unit,
-            intermed,        
-            mt_ben_sys.premia,
-            age_limits )            
         # NOTE - there can be 'qualifying housing costs' in the MIG;
         # see: CPAG 2122
+        bures.legacy_mtbens.mig = max( 0.0, miglevel - incomes.total_income );
+        bures.legacy_mtbens.ctc_incomes = incomes
+        bures.legacy_mtbens.ctc_allowances = allowances
+        bures.legacy_mtbens.ctc_premia = premia
+
         miglevel = premia+allowances
-        results.mig = max( 0.0, miglevel - incomes.total_income );    
-        if entitled_to.sc 
+        
+        if can_apply_for.sc 
             scsys = mt_ben_sys.savings_credit #  shortcut
             sc_incomes = calc_incomes( 
                 pc,
-                benefit_unit,
-                benefit_unit_result,
+                bu,
+                bu_result,
                 intermed.
                 mt_ben_sys.income_rules )
             thresh = scsys.threshold_single
@@ -796,16 +853,20 @@ function calc_legacy_means_tested_benefits!(
                 max(0.0, sc_incomes.total_income-thresh)
              
             inc_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income-miglevel)
-            results.sc = max( 0.0, sc_income - income_over_mig )
-                
+            bures.legacy_mtbens.sc = max( 0.0, sc_income - income_over_mig )
+            bures.legacy_mtbens.sc_incomes = sc_incomes   
         end
-        results.pc = results.mig + results.sc
-    elseif entitled_to.wtc
-        results.wtc = calcWTC( 
-                benefit_unit_result,
-                benefit_unit,
+        bures.legacy_mtbens.pc = bures.legacy_mtbens.mig + bures.legacy_mtbens.sc
+    end
+    
+    if can_apply_for.wtc || can_apply_for.ctc
+        bures.legacy_mtbens.wtc = calcWTC_CTC!( 
+                bu_result,
+                bu,
                 intermed,
-                mt_ben_sys.working_tax_credit )
+                mt_ben_sys.working_tax_credit,
+                mt_ben_sys.child_tax_credit,
+                can_apply_for )
     
     end
     
@@ -814,23 +875,17 @@ function calc_legacy_means_tested_benefits!(
     #
     # Passporting
     #
-    if results.mig > 0 || results.jsa > 0 || results.mig > 0 || results.esa > 0
+    if bures.legacy_mtbens.pc > 0 || bures.legacy_mtbens.jsa > 0 || bures.legacy_mtbens.is > 0 || bures.legacy_mtbens.esa > 0
         passported_hb = true
-        passported_ctr = true
-        
+        passported_ctr = true        
     end
-    
-    if entitled_to.ctc
-    end
-    
-    if entitled_to.hb
+
+    if can_apply_for.hb
     
     end
-    if entitled_to.ctr
+    if can_apply_for.ctr
     
     end
-        
-    
 end
 
 end # module LegacyMeansTestedBenefits

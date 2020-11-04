@@ -462,16 +462,17 @@ module STBParameters
         basic :: RT = 1_920.00
         lone_parent :: RT = 1_950.00
         couple  :: RT = 1_950.00
-        hours_gt_30 :: RT = 790.00
+        hours_ge_30 :: RT = 790.00
         disability :: RT = 2_650.00
         severe_disability :: RT = 1_130.00
-        age_50_plus  :: RT = 1_365.00
-        age_50_plus_30_hrs :: RT = 2_030.00
+        age_50_plus  :: RT = 1_365.00 # discontinued 2012 - not modelled
+        age_50_plus_30_hrs :: RT = 2_030.00 # discontinued - not modelled
         childcare_max_2_plus_children :: RT  = 300.0 # pw
         childcare_max_1_child :: RT  = 175.0
         childcare_proportion :: RT = 70.0 # pct
-        taper = 41.0
-        non_earnings_minima = 300.0
+        taper :: RT = 41.0
+        threshold :: RT = 6_420.0
+        non_earnings_minima :: RT = 300.0
         # incomes :: Incomes_Dict = make_all_taxable( RT )  
     end
     
@@ -479,13 +480,14 @@ module STBParameters
         wtc.basic /= WEEKS_PER_YEAR
         wtc.lone_parent /= WEEKS_PER_YEAR
         wtc.couple /= WEEKS_PER_YEAR
-        wtc.hours_gt_30 /= WEEKS_PER_YEAR
+        wtc.hours_ge_30 /= WEEKS_PER_YEAR
         wtc.disability /= WEEKS_PER_YEAR
         wtc.severe_disability /= WEEKS_PER_YEAR
         wtc.age_50_plus /= WEEKS_PER_YEAR
         wtc.age_50_plus_30_hrs /= WEEKS_PER_YEAR
         wtc.childcare_proportion /= 100.0
         wtc.non_earnings_minima /= WEEKS_PER_YEAR
+        wtc.threshold /= WEEKS_PER_YEAR
         wct.taper /= 100.0
     end
     
@@ -495,13 +497,15 @@ module STBParameters
         child  :: RT = 2_555.00
         disability :: RT = 2_800.00
         severe_disability :: RT = 1_130.00    
+        disregard :: RT = 16_105.00
     end
 
     function weeklyise!( ctc :: ChildTaxCredit )
-        wtc.family /= WEEKS_PER_YEAR
-        wtc.child /= WEEKS_PER_YEAR
-        wtc.disability /= WEEKS_PER_YEAR
-        wtc.severe_disability /= WEEKS_PER_YEAR
+        ctc.family /= WEEKS_PER_YEAR
+        ctc.child /= WEEKS_PER_YEAR
+        ctc.disability /= WEEKS_PER_YEAR
+        ctc.severe_disability /= WEEKS_PER_YEAR
+        ctc.disregard/= WEEKS_PER_YEAR
     end
     
     

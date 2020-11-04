@@ -61,7 +61,24 @@ module Results
         ndds :: RT = zero(RT)
         wtc  :: RT = zero(RT)
         ctr  :: RT = zero(RT)
-        premia :: LMTPremiaDict{Bool} = LMTPremiaDict{Bool}()
+        # FIXME better name than MIG here
+        mig_premia :: RT = zero(RT)
+        mig_allowances :: RT = zero(RT)
+        mig_incomes = LMTIncomes{RT}()
+        
+        ctc_premia :: RT = zero(RT)
+        ctc_allowances :: RT = zero(RT)
+        ctc_incomes = LMTIncomes{RT}()
+        
+        sc_incomes = LMTIncomes{RT}()
+        
+        wtc_income  :: RT = zero(RT)
+        wtc_elements :: RT = zero(RT)
+        wtc_ctc_threshold :: RT = zero(RT)
+        ctc_elements :: RT = zero(RT)
+        ctc_childcare :: RT = zero(RT)
+        
+        premiums = LMTPremiaSet()
         can_apply_for = LMTCanApplyFor()
         # intermediate :: Dict = Dict()
     end
