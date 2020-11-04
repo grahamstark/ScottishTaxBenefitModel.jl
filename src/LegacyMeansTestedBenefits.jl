@@ -11,7 +11,7 @@ using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,
     WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
-    LMTResults, has_income, LMTCanApplyFor
+    LMTResults, has_income, LMTCanApplyFor, aggregate!, aggregate_tax
 using .Utils: mult, haskeys
 using Dates: TimeType, Date, now, Year
 
@@ -660,10 +660,14 @@ function calcWTC(
     bur = benefit_unit_results
     earn = 0.0
     non_earn = 0.0
+    it, ni = aggregate_tax( bu )
+    other_income = it.savings_income + it.dividends_income
     # FIXME does this tread pensions correctly - they're disgregarded
-    for pids in bu.adults
-        earn += bur.
-        it.savings_income + it.dividends_income
+    if other_income < wtc.non_earnings_minima
+        other_income = 0.0
+    end
+    income = other_income + it.non_savings_income
+    
 end
 
 function calc_legacy_means_tested_benefits!(

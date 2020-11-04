@@ -7,7 +7,7 @@ module Results
     using .Definitions
     using .GeneralTaxComponents: RateBands
     using .ModelHousehold: Household, Person, BenefitUnits, BenefitUnit, 
-        get_benefit_units
+        get_benefit_units, Pid_Array
     
     export
         ITResult,
@@ -175,9 +175,13 @@ module Results
         eq_net_income :: RT = zero(RT)
         income_taxes :: RT = zero(RT)
         means_tested_benefits :: RT = zero(RT)
-        
+
+        it_summed = false # so we can aggregated these bits before everything
+                          # is complete without double counting
+        ni_summed = false
         ni = NIResult{RT}()
         it = ITResult{RT}()
+        it_adults = ITResult{RT}()
         
         legacy_mtbens = LMTResults{RT}()
         other_benefits  :: RT = zero(RT)
@@ -276,20 +280,44 @@ module Results
         return hr
     end
     
-    function aggregate!( bu :: BenefitUnitResult; include_children :: Bool = true )
+    #
+    # used for the WTC calculation
+    # 
+    function aggregate_tax( bu :: BenefitUnitResult; include_children :: Bool = true ) :: Tuple
         pids = include_children ? keys( bu.pers ) : bu.adults
-        
+        T = typeof( bu.eq_scale )
+        it = ITResult{T}()
+        ni = NIResult{T}()
         for pid in pids
-            bu.
-        
+            add_to!( it, bu.pers[pid].it )
+            add_to!( ni, bu.pers[pid].ni )
         end
-        
-        
+        return (it,ni)
+    end
+    
+    function aggregate!( bu :: BenefitUnitResult )
+        # TODO FINISH  THIS
+        pids = include_children ? keys( bu.pers ) : bu.adults
+        bu.it, bu.ni = aggregate_tax( bu, include_children=true )
+        bu.income_taxes =bu.it.total_tax + bu.ni.total_ni
+        for pid in pids
+            
+        end
     end
 
-    function aggregate!( hhr :: HouseholdResult; include_children :: Bool = true )
+    function aggregate!( hhr :: HouseholdResult )
         # TODO ..
         
+        for bu in hhr.bus
+            aggregate!( bu )
+            hhr.income_taxes += bu.income_taxes
+            hhr.bhc_net_income + bu.net_income
+            ## etc.
+        end
+        hhr.ahc_net_income = hhr.bhc_net_income
+        hhr.net_housing_costs = 0.0 # SOMETHING
+        hhr.eq_scale = 1.0
+        ## do something with hb,ctr
     end
 
 end
