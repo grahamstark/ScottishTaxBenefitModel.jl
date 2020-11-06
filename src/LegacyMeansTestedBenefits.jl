@@ -790,7 +790,7 @@ function calculateHB_CTB(
         hb,
         intermed,
         mt_ben_sys.allowances,
-        age_limits 
+        age_limits )
     
 end
 

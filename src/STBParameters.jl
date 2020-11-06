@@ -399,14 +399,14 @@ module STBParameters
     
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}
         primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
-        primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 99999999999.99 ]
+        primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, typemax(RT)]
         secondary_class_1_rates :: RateBands{RT} = [0.0, 13.8, 13.8 ] # keep 2 so
-        secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, 99999999999.99 ]
+        secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, typemax(RT) ]
         state_pension_age :: Int = 66; # fixme move
         class_2_threshold ::RT = 6_365.0;
         class_2_rate ::RT = 3.00;
         class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
-        class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, 9999999999999.99 ]
+        class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, typemax(RT) ]
         class_1_income = Incomes_Dict{RT}(
          wages => 1.0,
          pension_contributions_employer => -1.0 )
@@ -568,7 +568,13 @@ module STBParameters
     function weeklyise!( sc :: SavingsCredit )
         sc.withdrawal_rate /= 100.0
     end
-
+    
+     
+    @with_kw mutable struct HousingBenefits{RT<:Real}
+        ndd_incomes :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
+        ndd_deductions :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,typemax(RT)]
+     end
+ 
     @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
         # CPAG 2019/bur.pers[pid].20 p335
         premia :: Premia = Premia{RT}()
@@ -578,6 +584,7 @@ module STBParameters
         savings_credit :: SavingsCredit = SavingsCredit{RT}()
         working_tax_credit = WorkingTaxCredit{RT}()
         child_tax_credit = ChildTaxCredit{RT}()
+        hb = HousingBenefits{RT}()
     end
     
     
@@ -585,12 +592,7 @@ module STBParameters
         # Temp till we figure this stuff out
         tmp_lha_prop :: RT = 1.0
     end
-    
-    @with_kw HousingBenefits{RT<:Real}
-        ndds 
-    
-    end
-  
+   
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: AbstractString = "Scotland 2919/20"
         it   = IncomeTaxSys{RT}()
@@ -598,7 +600,8 @@ module STBParameters
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         age_limits = AgeLimits()
         minwage = MinimumWage{RT}()
-        lha :: LocalHousingAllowance{RT}()
+        lha = LocalHousingAllowance{RT}()
+        hb  = HousingBenefits{RT}()
     end
    
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )
