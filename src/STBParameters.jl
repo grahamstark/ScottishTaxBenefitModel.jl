@@ -528,6 +528,8 @@ module STBParameters
         sc_incomes :: Incomes_Dict = LEGACY_SAVINGS_CREDIT_INCOME(RT)
         capital_min :: RT = 6_000.0    
         capital_max :: RT = 16_000.0
+        pc_capital_min :: RT = 10_000.0
+        pc_capital_max :: RT = 16_000.0
         capital_tariff :: RT = 250 # £1pw per 250 
     end
     
@@ -574,6 +576,17 @@ module STBParameters
         working_tax_credit = WorkingTaxCredit{RT}()
         child_tax_credit = ChildTaxCredit{RT}()
     end
+    
+    
+    @with_kw mutable struct LocalHousingAllowance{RT<:Real}
+        # Temp till we figure this stuff out
+        tmp_lha_prop :: RT = 1.0
+    end
+    
+    @with_kw HousingBenefits{RT<:Real}
+        ndds 
+    
+    end
   
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: AbstractString = "Scotland 2919/20"
@@ -582,6 +595,7 @@ module STBParameters
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         age_limits = AgeLimits()
         minwage = MinimumWage{RT}()
+        lha :: LocalHousingAllowance{RT}()
     end
    
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )

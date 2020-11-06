@@ -247,7 +247,14 @@ function calc_incomes(
     inc.capital = cap
     inc.gross_earnings = gross_earn
     inc.net_earnings = max(0.0, gross_earn - disreg - inc.childcare )
-    inc.tariff_income = tariff_income(cap,incrules.capital_min,incrules.capital_tariff)
+    capmin = incrules.capital_min
+    capmax = incrules.capital_max
+    if which_ben == pc 
+        capmin = incrules.pc_capital_min
+        capmax = incrules.pc_capital_min
+    end
+    inc.tariff_income = tariff_income(cap, capmin, incrules.capital_tariff )
+    inc.disqualified_on_capital = cap > capmax 
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
     return inc
@@ -665,10 +672,6 @@ function calc_NDDS()
 
 end
 
-function calc_LHA()
-
-end
-
 function calcWTC_CTC!(
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit :: BenefitUnit, 
@@ -740,22 +743,63 @@ function calcWTC_CTC!(
     bur.wtc_ctc_threshold = threshold
 end
 
+
+
+"""
+ Temp hack till I work this stuff out at least semi-sensibly
+"""
+function calc_LHA(
+    hh :: ModelHousehold,
+    lha :: LocalHousingAllowance ) :: Real
+    return lha.tmp_lha_prop*hh.gross_rent
+end
+
+function calculateNDD( bu :: BenefitUnit )::Real
+    ndd = 0.0
+    
+    return ndd
+end
+
+function calculateHB_CTB( 
+    eligible_amount :: Real, 
+    bu :: BenefitUnit,
+    intermed :: MTIntermediate,
+    lmt_ben_sys :: LegacyMeansTestedBenefitSystem,
+    age_limits :: AgeLimits )
+    
+    premia,premset = calc_premia(
+        hb,
+        bu,
+        intermed,        
+        mt_ben_sys.premia,
+        age_limits )            
+    union!(bures.legacy_mtbens.premiums, premset)
+    incomes = calc_incomes( 
+        hb,
+        bu,
+        bures,
+        intermed,
+        mt_ben_sys.income_rules )
+    allowances = calc_allowances(
+        hb,
+        intermed,
+        mt_ben_sys.allowances,
+        age_limits 
+    
+end
+
 function calc_legacy_means_tested_benefits!(
     ;
     buno :: Int,
     benefit_unit_result :: BenefitUnitResult,
-    benefit_unit :: BenefitUnit, 
+    benefit_unit :: BenefitUnit,
+    intermed :: MTIntermediate,
     age_limits :: AgeLimits, 
-    mt_ben_sys  :: LegacyMeansTestedBenefitSystem )
+    mt_ben_sys  :: LegacyMeansTestedBenefitSystem,
+    lha :: LocalHousingAllowance )
     # aliases
     bures = benefit_unit_result
     bu = benefit_unit
-    
-    intermed :: MTIntermediate = make_intermediate( 
-        buno,
-        bu,
-        mt_ben_sys.hours_limits,
-        age_limits )
     
     can_apply_for :: LMTCanApplyFor = make_lmt_benefit_applicability(
         intermed,
@@ -796,13 +840,15 @@ function calc_legacy_means_tested_benefits!(
         bures.legacy_mtbens.mig_allowances = allowances
         bures.legacy_mtbens.mig_premia = premia
         bures.legacy_mtbens.premia = premia
-        if can_apply_for.esa 
-            bures.legacy_mtbens.esa = mig
-        elseif can_apply_for.jsa
-            bures.legacy_mtbens.jsa = mig
-        elseif can_apply_for.is
-            bures.legacy_mtbens.is = mig
-        end        
+        if ! incomes.disqualified_on_capital
+            if can_apply_for.esa 
+                bures.legacy_mtbens.esa = mig
+            elseif can_apply_for.jsa
+                bures.legacy_mtbens.jsa = mig
+            elseif can_apply_for.is
+                bures.legacy_mtbens.is = mig
+            end
+        end
     end
     
     if can_apply_for.pc
@@ -827,14 +873,16 @@ function calc_legacy_means_tested_benefits!(
         )        
         # NOTE - there can be 'qualifying housing costs' in the MIG;
         # see: CPAG 2122
-        bures.legacy_mtbens.mig = max( 0.0, miglevel - incomes.total_income );
+        if ! incomes.disqualified_on_capital    
+            bures.legacy_mtbens.mig = max( 0.0, miglevel - incomes.total_income );
+        end
         bures.legacy_mtbens.ctc_incomes = incomes
         bures.legacy_mtbens.ctc_allowances = allowances
         bures.legacy_mtbens.ctc_premia = premia
 
         miglevel = premia+allowances
         
-        if can_apply_for.sc 
+        if can_apply_for.sc && ( ! incomes.disqualified_on_capital )  
             scsys = mt_ben_sys.savings_credit #  shortcut
             sc_incomes = calc_incomes( 
                 pc,
@@ -851,7 +899,7 @@ function calc_legacy_means_tested_benefits!(
             # see: CPAG 2011/12 edition ch 19
             sc_income = scsys.withdrawal_rate * 
                 max(0.0, sc_incomes.total_income-thresh)
-             
+            
             inc_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income-miglevel)
             bures.legacy_mtbens.sc = max( 0.0, sc_income - income_over_mig )
             bures.legacy_mtbens.sc_incomes = sc_incomes   

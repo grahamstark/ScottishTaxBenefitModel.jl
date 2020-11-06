@@ -34,6 +34,7 @@ module Results
         childcare :: RT = zero(RT)
         capital :: RT = zero(RT)
         tariff_income :: RT = zero(RT)
+        disqualified_on_capital :: Bool = false
     end
 
     # 
