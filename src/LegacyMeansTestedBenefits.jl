@@ -10,7 +10,8 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
     
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
     Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
-    WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit
+    WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit,
+    HousingBenefits, LocalHousingAllowance
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
@@ -755,14 +756,17 @@ end
  Temp hack till I work this stuff out at least semi-sensibly
 """
 function calc_LHA(
-    hh :: ModelHousehold,
+    hh  :: Household,
     lha :: LocalHousingAllowance ) :: Real
     return lha.tmp_lha_prop*hh.gross_rent
 end
 
-function calculateNDD( bu :: BenefitUnit )::Real
+function calculateNDDs( bu :: BenefitUnit )::Real
     ndd = 0.0
-    
+    wage = bu.people[bu.head].income[]
+    for i in 1:n
+        
+    end
     return ndd
 end
 

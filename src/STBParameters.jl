@@ -17,6 +17,7 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage
     export weeklyise!, annualise!, AgeLimits, HoursLimits
+    export HousingBenefits, LocalHousingAllowance
     export state_pension_age, reached_state_pension_age
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
