@@ -397,7 +397,6 @@ module STBParameters
         return reached_state_pension_age( limits, age, sex, Dates.year( when ))
     end
     
-
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}
         primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
         primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 99999999999.99 ]
@@ -490,8 +489,7 @@ module STBParameters
         wtc.threshold /= WEEKS_PER_YEAR
         wct.taper /= 100.0
     end
-    
-    
+     
     @with_kw mutable struct ChildTaxCredit{ RT<:Real }
         family :: RT = 545.00
         child  :: RT = 2_555.00
@@ -534,12 +532,8 @@ module STBParameters
     end
     
     @with_kw mutable struct MinimumWage{RT<:Real}
-        # 25 and over 	21 to 24 	18 to 20 	Under 18
-        ## Fixme: an ordered map would be nice
         ages = [16,18,21,25]
         wage_per_hour :: Vector{RT} = [4.55, 6.45, 8.20, 8.72]
-        # wage_per_hour = Dict{Int,RT}( 
-        #     25=>8.72, 21=>8.20, 18=>6.45, 16=>4.55)
         apprentice_rate :: RT = 4.15;
     end
     
@@ -558,34 +552,48 @@ module STBParameters
     end
     
     @with_kw mutable struct SavingsCredit{RT<:Real}
-        withdrawal_rate :: RT = 0.6
+        withdrawal_rate :: RT = 60.0
         threshold_single :: RT = 144.38 
         threshold_couple :: RT =229.67 
         max_single :: RT = 13.73 
         max_couple :: RT = 15.35 
         available_till = Date( 2016, 04, 06 )
     end
+    
+    function weeklyise!( sc :: SavingsCredit )
+        sc.withdrawal_rate /= 100.0
+    end
 
-   @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
-       # CPAG 2019/bur.pers[pid].20 p335
-      premia :: Premia = Premia{RT}()
-      allowances :: PersonalAllowances = PersonalAllowances{RT}()
-      income_rules :: IncomeRules = IncomeRules{RT}()
-      hours_limits :: HoursLimits = HoursLimits()
-      savings_credit :: SavingsCredit = SavingsCredit{RT}()
-      working_tax_credit = WorkingTaxCredit{RT}()
-      child_tax_credit = ChildTaxCredit{RT}()
-   end
-   
+    @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
+        # CPAG 2019/bur.pers[pid].20 p335
+        premia :: Premia = Premia{RT}()
+        allowances :: PersonalAllowances = PersonalAllowances{RT}()
+        income_rules :: IncomeRules = IncomeRules{RT}()
+        hours_limits :: HoursLimits = HoursLimits()
+        savings_credit :: SavingsCredit = SavingsCredit{RT}()
+        working_tax_credit = WorkingTaxCredit{RT}()
+        child_tax_credit = ChildTaxCredit{RT}()
+    end
   
-   @with_kw mutable struct TaxBenefitSystem{RT<:Real}
-      name :: AbstractString = "Scotland 2919/20"
-      it   = IncomeTaxSys{RT}()
-      ni   = NationalInsuranceSys{RT}()
-      lmt  = LegacyMeansTestedBenefitSystem{RT}()
-      age_limits = AgeLimits()
-      minwage = MinimumWage{RT}()
-   end
+    @with_kw mutable struct TaxBenefitSystem{RT<:Real}
+        name :: AbstractString = "Scotland 2919/20"
+        it   = IncomeTaxSys{RT}()
+        ni   = NationalInsuranceSys{RT}()
+        lmt  = LegacyMeansTestedBenefitSystem{RT}()
+        age_limits = AgeLimits()
+        minwage = MinimumWage{RT}()
+    end
+   
+    function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )
+        weeklyise!( lmt.working_tax_credit )
+        weeklyise!( lmt.child_tax_credit )
+        weeklyise!( lmt.savings_credit )
+    end
+   
+    function weeklyise!( tb :: TaxBenefitSystem )
+        weeklyise!( tb.it )
+        weeklyise!( tb.ni )
+        weeklyise!( tb.lmt )
+    end
 
-
-end
+end # module
