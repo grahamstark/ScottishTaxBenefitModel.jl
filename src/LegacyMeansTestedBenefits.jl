@@ -249,10 +249,16 @@ function calc_incomes(
     inc.net_earnings = max(0.0, gross_earn - disreg - inc.childcare )
     capmin = incrules.capital_min
     capmax = incrules.capital_max
-    if which_ben == pc 
-        capmin = incrules.pc_capital_min
-        capmax = incrules.pc_capital_min
+    if intermed.someone_pension_age
+        if which_ben == pc 
+            capmin = incrules.pc_capital_min
+            capmax = incrules.pc_capital_min
+        else
+            capmin = incrules.pensioner_capital_min
+            capmax = incrules.pensioner_capital_min
+        end
     end
+    
     inc.tariff_income = tariff_income(cap, capmin, incrules.capital_tariff )
     inc.disqualified_on_capital = cap > capmax 
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
@@ -494,9 +500,9 @@ function make_lmt_benefit_applicability(
         whichb.hb = true
         whichb.ctr = true
     end
-    # hb,ctr are assumed true 
+    # hb,ctr are assumed true, worked out on benefit unit number
     return whichb
-end
+end # make_lmt_benefit_applicability
 
 # CTC disabled child definition:
 #

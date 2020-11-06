@@ -529,7 +529,10 @@ module STBParameters
         capital_min :: RT = 6_000.0    
         capital_max :: RT = 16_000.0
         pc_capital_min :: RT = 10_000.0
-        pc_capital_max :: RT = 16_000.0
+        pc_capital_max :: RT = typemax(RT)
+        pensioner_capital_min :: RT = 10_000.0
+        pensioner_capital_max :: RT = 16_000.0
+        
         capital_tariff :: RT = 250 # £1pw per 250 
     end
     
