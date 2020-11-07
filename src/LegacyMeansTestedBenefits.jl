@@ -761,7 +761,7 @@ function calc_LHA(
     return lha.tmp_lha_prop*hh.gross_rent
 end
 
-function calculateNDDs( bu :: BenefitUnit )::Real
+function calculateNDDs( bu :: BenefitUnit,  )::Real
     ndd = 0.0
     wage = bu.people[bu.head].income[]
     for i in 1:n
@@ -772,10 +772,11 @@ end
 
 function calculateHB_CTB( 
     eligible_amount :: Real, 
-    bu :: BenefitUnit,
-    intermed :: MTIntermediate,
+    hh :: Household,
     lmt_ben_sys :: LegacyMeansTestedBenefitSystem,
     age_limits :: AgeLimits )
+    
+    intermed :: MTIntermediate
     
     premia,premset = calc_premia(
         hb,
