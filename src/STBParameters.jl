@@ -602,7 +602,6 @@ module STBParameters
         age_limits = AgeLimits()
         minwage = MinimumWage{RT}()
         lha = LocalHousingAllowance{RT}()
-        hb  = HousingBenefits{RT}()
     end
    
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )

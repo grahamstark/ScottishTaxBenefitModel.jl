@@ -3,7 +3,7 @@ module LegacyMeansTestedBenefits
 using ScottishTaxBenefitModel
 using .Definitions
 
-using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent,
+using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
     is_single, pers_is_disabled, pers_is_carer, search, count, num_carers,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
@@ -422,7 +422,7 @@ function make_intermediate(
         num_working_pt,
         num_working_24_plus,
         total_hours_worked,
-        is_carer,
+        is_carer,     
         num_carrs,
         is_sparent,
         is_sing,    
@@ -454,7 +454,7 @@ function make_lmt_benefit_applicability(
     intermed :: MTIntermediate,
     hrs      :: HoursLimits ) :: LMTCanApplyFor
     whichb = LMTCanApplyFor()
-    if intermed.someone_pension_age
+    if intermed.someone_pension_age #!! fixme both pension age for new claims 2019=>
         whichb.pc = true
     end
     if intermed.someone_pension_age_2016
@@ -474,6 +474,7 @@ function make_lmt_benefit_applicability(
             end
         end
     end # all pens age
+    
     #
     # tax credits
     # CTC - easy
@@ -500,6 +501,11 @@ function make_lmt_benefit_applicability(
     if intermed.benefit_unit_number == 1
         whichb.hb = true
         whichb.ctr = true
+    end
+    # check!!! is this correct? is, etc. or wtc over pc/sc
+    if( whichb.esa || whichb.jsa || whichb.is ) ## || whichb.wtc)
+        whichb.pc = false
+        whichb.sc = false
     end
     # hb,ctr are assumed true, worked out on benefit unit number
     return whichb
@@ -686,6 +692,7 @@ function calcWTC_CTC!(
     wtc :: WorkingTaxCredit,
     ctc :: ChildTaxCredit,
     can_apply_for :: LMTCanApplyFor )
+    
     bu = benefit_unit # aliases
     bur = benefit_unit_result.legacy_mtbens
     earn = 0.0
@@ -761,43 +768,80 @@ function calc_LHA(
     return lha.tmp_lha_prop*hh.gross_rent
 end
 
-function calculateNDDs( bu :: BenefitUnit,  )::Real
+function calc_NDDs( bu :: BenefitUnit,  )::Real
+
     ndd = 0.0
-    wage = bu.people[bu.head].income[]
-    for i in 1:n
-        
+    # income based on the couples income if it is a couple
+    any_pay_ndds = false
+    for pid in bu.adults 
+        pays_ndd = true
+        if has_income( bu.person[pid], bur.pers[pid], 
+            attendance_allowance, dlaself_care,
+            personal_independence_payment_daily_living
+            pays_ndd = false
+         elseif bu.person[pid].registered_blind || bu.person[pid].registered_blind 
+            pays_ndd = false
+         elseif bu.person[pid].age < 18
+            pays_ndd = false
+         elseif bu.person[pid].age < 25 &&
+            has_income( bu.person[pid], bur.pers[pid], 
+                income_support, 
+                jobseekers_allowance, 
+                employment_and_support_allowance )
+            pays_ndd = false
+         elseif has_income( bu.person[pid], bur.pers[pid], 
+                pension_credit )
+            pays_ndd = false
+         # there's also some stuff about students
+         # ch10 p193-6
+         end
+         any_pay_ndds = any_pay_ndds || pays_ndd
     end
     return ndd
 end
 
-function calculateHB_CTB( 
+function calculateHB_CTB!( 
+    household_result :: HouseholdResult,
     eligible_amount :: Real, 
     hh :: Household,
     lmt_ben_sys :: LegacyMeansTestedBenefitSystem,
+    hrs  :: HoursLimits,
     age_limits :: AgeLimits )
     
     intermed :: MTIntermediate
-    
-    premia,premset = calc_premia(
-        hb,
-        bu,
-        intermed,        
-        mt_ben_sys.premia,
-        age_limits )            
-    union!(bures.legacy_mtbens.premiums, premset)
-    incomes = calc_incomes( 
-        hb,
-        bu,
-        bures,
-        intermed,
-        mt_ben_sys.income_rules )
-    allowances = calc_allowances(
-        hb,
-        intermed,
-        mt_ben_sys.allowances,
-        age_limits )
-    
-end
+    bus = get_benefit_units( hh )
+    nbus = size(bus)[1]
+    ndds = 0.0
+    for bn in nbus:-1:1
+        bures = household_result.bus[bn]
+        intermed = make_intermediate( bn, bus[bn], hrs, age_limits )
+        incomes = calc_incomes( 
+            hb,
+            bu,
+            bures,
+            intermed,
+            mt_ben_sys.income_rules )
+        if bn == 1
+            premia,premset = calc_premia(
+                hb,
+                bus[bn],
+                intermed,        
+                mt_ben_sys.premia,
+                age_limits )            
+            union!(bures.legacy_mtbens.premiums, premset)
+            allowances = calc_allowances(
+                hb,
+                intermed,
+                mt_ben_sys.allowances,
+                age_limits )
+       elseif which_ben == hb # ndds for hb, not ctb
+            ndds += calc_NDDs(
+                bu,
+                intermed,
+                lmt_ben_sys.hb )
+       end
+   end
+end # calculateHB_CTB
 
 function calc_legacy_means_tested_benefits!(
     ;
