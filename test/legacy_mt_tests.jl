@@ -9,7 +9,7 @@ using .LegacyMeansTestedBenefits:
     calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
-    apply_2_child_policy, calc_incomes
+    apply_2_child_policy, calc_incomes, calc_NDDs
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
@@ -468,7 +468,124 @@ end
 end
 
 @testset "NDDS" begin
-
+    sys = get_system( scotland=true )
+    examples = get_ss_examples()
+    spers = get_benefit_units(examples[single_hh])[1]
+    head = get_head( spers ) # the only person, obvs..
+    head.age = 30
+    empty!(head.income)
+    bur = init_benefit_unit_result( Float64, spers )
+    wage = [600.0,400,200,0]
+    ndds = [100.65, 91.70, 35.85, 15.60]
+    nt = size(wage)[1]
+    employ!( head )
+    println( "FT Employed")
+    println( head )
+    for i in 1:nt
+        head.income[wages] = wage[i]
+        intermed = make_intermediate( 
+            1,
+            spers,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+        incomes = calc_incomes(
+            hb,
+            spers,
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits )  
+        ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.hb )
+        @test ndd ≈ ndds[i]
+    end # loop round various incomes
+    println( "Unemployed")
+    unemploy!( head )
+    for i in 1:nt
+        head.income[wages] = wage[i]
+        intermed = make_intermediate( 
+            1,
+            spers,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+        incomes = calc_incomes(
+            hb,
+            spers,
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits )  
+        ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.hb )
+        @test ndd ≈ ndds[nt]
+    end # loop round various incomes, unemployed
+    disable!( head )
+    head.income[attendence_allowance] = 100.0
+    println( "Disabled")
+    for i in 1:nt
+        head.income[wages] = wage[i]
+        intermed = make_intermediate( 
+            1,
+            spers,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+        incomes = calc_incomes(
+            hb,
+            spers,
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits )  
+        ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.hb )
+        @test ndd ≈ 0.0
+    end # loop ro
+    empty!(head.income)
+    enable!( head )
+    blind!( head )
+    println( "Blind")
+    for i in 1:nt
+        head.income[wages] = wage[i]
+        intermed = make_intermediate( 
+            1,
+            spers,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+        incomes = calc_incomes(
+            hb,
+            spers,
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits )  
+        ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.hb )
+        @test ndd ≈ 0.0
+    end # loop ro
+    # couples 
+    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
+    spouse = get_spouse( cpl )
+    head = get_head( cpl )
+    employ!( spouse )
+    empty!( head.income )
+    unemploy!( head )
+    bur = init_benefit_unit_result( Float64, cpl )
+    println( "FT Employed")
+    println( spouse )
+    for i in 1:nt
+        spouse.income[wages] = wage[i]
+        intermed = make_intermediate( 
+            1,
+            cpl,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+        incomes = calc_incomes(
+            hb,
+            cpl,
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits )  
+        ndd = calc_NDDs( cpl, bur, intermed, incomes, sys.lmt.hb )
+        @test ndd ≈ ndds[i]
+    end # loop round various incomes
+    
 end
 
 @testset "ESA allowances" begin

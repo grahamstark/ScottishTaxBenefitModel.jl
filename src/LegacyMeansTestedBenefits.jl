@@ -69,7 +69,7 @@ function apply_2_child_policy(
             after_children += 1
         end          
     end
-    println( "before children $before_children after children $after_children " )
+    # println( "before children $before_children after children $after_children " )
     allowable = before_children + min( max(child_limit-before_children,0), after_children )
 end
 
@@ -77,7 +77,7 @@ function born_before( age :: Integer,
     start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
     model_run_date :: TimeType = now() )
     bdate = model_run_date - Year(age)
-    println( "age = $(age) => birthdate $bdate" )
+    # println( "age = $(age) => birthdate $bdate" )
     return bdate < start_date   
 end
 
@@ -327,7 +327,7 @@ function make_intermediate(
         end
         
     end
-    println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
+    # println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
     someone_pension_age  :: Bool = num_pens_age > 0
     all_pension_age :: Bool = num_adlts == num_pens_age
     working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
@@ -403,11 +403,9 @@ function make_intermediate(
     end
     ## fixme parameterise this
     num_allowed_children :: Int = apply_2_child_policy( bu )
-    println( "has_children $has_children age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
+    # println( "has_children $has_children age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
     @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
-    
-    println( typeof( total_hours_worked ))
-                                   
+                                    
     return MTIntermediate(
         buno,
         age_youngest_adult,
@@ -484,7 +482,7 @@ function make_lmt_benefit_applicability(
     #
     # WTC - not quite so easy
     #
-    println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) someone_pension_age $(intermed.someone_pension_age) ")
+    # println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) someone_pension_age $(intermed.someone_pension_age) ")
     if intermed.working_ft
         whichb.wtc = true
     elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_children 
@@ -779,10 +777,10 @@ function calc_NDDs(
     any_pay_ndds = false
     for pid in bu.adults 
         pays_ndd = true
-        pers = bu.person[pid]
+        pers = bu.people[pid]
         persr = bur.pers[pid]
         if has_income( pers, persr, 
-                attendance_allowance, dlaself_care,
+                attendence_allowance, dlaself_care,
                 personal_independence_payment_daily_living,
                 pension_credit )
             pays_ndd = false
@@ -801,7 +799,7 @@ function calc_NDDs(
         end
         any_pay_ndds = any_pay_ndds || pays_ndd
     end # pids loop
-    if any_pays_ndds
+    if any_pay_ndds
         if intermed.working_ft
             n = size(hb.ndd_incomes)[1]
             w = n
