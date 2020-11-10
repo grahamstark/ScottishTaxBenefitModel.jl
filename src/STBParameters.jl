@@ -572,8 +572,8 @@ module STBParameters
     
      
     @with_kw mutable struct HousingBenefits{RT<:Real}
-        ndd_incomes :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
-        ndd_deductions :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,typemax(RT)]
+        ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
+        ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,typemax(RT)]
      end
  
     @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}

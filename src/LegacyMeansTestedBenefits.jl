@@ -26,7 +26,7 @@ export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
     born_before, num_born_before, apply_2_child_policy, calc_incomes,
-    calcWTC_CTC!
+    calcWTC_CTC!, calc_NDDs
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -768,34 +768,54 @@ function calc_LHA(
     return lha.tmp_lha_prop*hh.gross_rent
 end
 
-function calc_NDDs( bu :: BenefitUnit,  )::Real
-
+function calc_NDDs( 
+    bu       :: BenefitUnit, 
+    bur :: BenefitUnitResult,
+    intermed :: MTIntermediate,
+    incomes  :: LMTIncomes,
+    hb       :: HousingBenefits )::Real
     ndd = 0.0
     # income based on the couples income if it is a couple
     any_pay_ndds = false
     for pid in bu.adults 
         pays_ndd = true
-        if has_income( bu.person[pid], bur.pers[pid], 
+        pers = bu.person[pid]
+        persr = bur.pers[pid
+        if has_income( pers, persr, 
             attendance_allowance, dlaself_care,
-            personal_independence_payment_daily_living
+            personal_independence_payment_daily_living )
             pays_ndd = false
-         elseif bu.person[pid].registered_blind || bu.person[pid].registered_blind 
+         elseif pers.registered_blind || pers.registered_partially_sighted
             pays_ndd = false
-         elseif bu.person[pid].age < 18
+         elseif pers.age < 18
             pays_ndd = false
-         elseif bu.person[pid].age < 25 &&
-            has_income( bu.person[pid], bur.pers[pid], 
+         elseif pers.age < 25 &&
+            has_income( pers, persr, 
                 income_support, 
                 jobseekers_allowance, 
                 employment_and_support_allowance )
             pays_ndd = false
-         elseif has_income( bu.person[pid], bur.pers[pid], 
+         elseif has_income( pers, persr, 
                 pension_credit )
             pays_ndd = false
          # there's also some stuff about students
          # ch10 p193-6
          end
          any_pay_ndds = any_pay_ndds || pays_ndd
+    end
+    if any_pays_ndds
+        if ! intermed.working_ft
+            ndd = hb.ndd_deductions[1]
+        else
+            n = size(hb.ndd_incomes)[1]
+            w = n
+            for i in 1:n
+                if hb.ndd_incomes[i] > incomes.gross_earnings
+                    w = i
+                    break
+                end
+            end
+            ndd = hb.ndd_deductions[w]
     end
     return ndd
 end
