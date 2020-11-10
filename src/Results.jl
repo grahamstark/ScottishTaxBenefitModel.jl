@@ -78,6 +78,11 @@ module Results
         wtc_ctc_threshold :: RT = zero(RT)
         ctc_elements :: RT = zero(RT)
         ctc_childcare :: RT = zero(RT)
+
+        hb_premia :: RT = zero(RT)
+        hb_allowances :: RT = zero(RT)
+        hb_incomes = LMTIncomes{RT}()
+
         
         premiums = LMTPremiaSet()
         can_apply_for = LMTCanApplyFor()

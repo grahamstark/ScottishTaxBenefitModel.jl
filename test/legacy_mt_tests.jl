@@ -585,6 +585,26 @@ end
         ndd = calc_NDDs( cpl, bur, intermed, incomes, sys.lmt.hb )
         @test ndd ≈ ndds[i]
     end # loop round various incomes
+    employ!( head )
+    for i in 1:nt
+        spouse.income[wages] = wage[i] / 3.0
+        head.income[wages] = wage[i] *2 / 3.0
+        intermed = make_intermediate( 
+            1,
+            cpl,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+        incomes = calc_incomes(
+            hb,
+            cpl,
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits )  
+        ndd = calc_NDDs( cpl, bur, intermed, incomes, sys.lmt.hb )
+        @test ndd ≈ ndds[i]
+    end # loop round various incomes
+    employ!( head )
     
 end
 

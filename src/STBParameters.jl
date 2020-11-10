@@ -572,8 +572,17 @@ module STBParameters
     
      
     @with_kw mutable struct HousingBenefits{RT<:Real}
+        taper :: RT = 65.0
+        passported_bens :: Incomes_Set( 
+            income_support, 
+            employment_and_support_allowance, 
+            jobseekers_allowance ) # fixme contrib jsa
         ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
         ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,typemax(RT)]
+     end
+     
+     function weeklyise!( hb :: HousingBenefits )
+        hb.taper /= 100.0
      end
  
     @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
@@ -608,6 +617,7 @@ module STBParameters
         weeklyise!( lmt.working_tax_credit )
         weeklyise!( lmt.child_tax_credit )
         weeklyise!( lmt.savings_credit )
+        weeklyise!( lmt.hb )
     end
    
     function weeklyise!( tb :: TaxBenefitSystem )

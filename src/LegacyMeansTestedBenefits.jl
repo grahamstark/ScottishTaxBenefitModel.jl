@@ -818,6 +818,7 @@ function calc_NDDs(
 end
 
 function calculateHB_CTB!( 
+    which_ben :: LMTBenefitType,
     household_result :: HouseholdResult,
     eligible_amount :: Real, 
     hh :: Household,
@@ -839,18 +840,32 @@ function calculateHB_CTB!(
             intermed,
             mt_ben_sys.income_rules )
         if bn == 1
-            premia,premset = calc_premia(
-                hb,
-                bus[bn],
-                intermed,        
-                mt_ben_sys.premia,
-                age_limits )            
-            union!(bures.legacy_mtbens.premiums, premset)
-            allowances = calc_allowances(
-                hb,
-                intermed,
-                mt_ben_sys.allowances,
-                age_limits )
+            eligible_amount -= ndds
+            if has_income( bu, bures, hb.passported_benefits... )
+                        
+            else
+                premia,premset = calc_premia(
+                    hb,
+                    bus[bn],
+                    intermed,        
+                    mt_ben_sys.premia,
+                    age_limits )            
+                union!(bures.legacy_mtbens.premiums, premset)
+                allowances = calc_allowances(
+                    hb,
+                    intermed,
+                    mt_ben_sys.allowances,
+                    age_limits )
+                if which_ben == hb
+                    hb_premia = premia
+                    hb_allowances = allowances
+                    hb_incomes = allowances                             
+                else
+                    ctb_premia = premia
+                    ctb_allowances = allowances
+                    ctb_incomes = allowances               
+                end
+            end
        elseif which_ben == hb # ndds for hb, not ctb
             ndds += calc_NDDs(
                 bu,
