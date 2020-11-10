@@ -83,6 +83,9 @@ module Results
         hb_allowances :: RT = zero(RT)
         hb_incomes = LMTIncomes{RT}()
 
+        ctb_premia :: RT = zero(RT)
+        ctb_allowances :: RT = zero(RT)
+        ctb_incomes = LMTIncomes{RT}()
         
         premiums = LMTPremiaSet()
         can_apply_for = LMTCanApplyFor()

@@ -825,7 +825,6 @@ function calculateHB_CTB!(
     lmt_ben_sys :: LegacyMeansTestedBenefitSystem,
     hrs  :: HoursLimits,
     age_limits :: AgeLimits )
-    
     intermed :: MTIntermediate
     bus = get_benefit_units( hh )
     nbus = size(bus)[1]
@@ -842,7 +841,7 @@ function calculateHB_CTB!(
         if bn == 1
             eligible_amount -= ndds
             if has_income( bu, bures, hb.passported_benefits... )
-                        
+                            
             else
                 premia,premset = calc_premia(
                     hb,
@@ -866,13 +865,13 @@ function calculateHB_CTB!(
                     ctb_incomes = allowances               
                 end
             end
-       elseif which_ben == hb # ndds for hb, not ctb
+        else # ndds for hb, not ctb
             ndds += calc_NDDs(
                 bu,
                 intermed,
                 lmt_ben_sys.hb )
-       end
-   end
+        end
+    end
 end # calculateHB_CTB
 
 function calc_legacy_means_tested_benefits!(

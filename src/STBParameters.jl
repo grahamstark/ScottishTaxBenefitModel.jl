@@ -580,7 +580,7 @@ module STBParameters
         ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
         ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,typemax(RT)]
      end
-     
+
      function weeklyise!( hb :: HousingBenefits )
         hb.taper /= 100.0
      end
@@ -595,6 +595,10 @@ module STBParameters
         working_tax_credit = WorkingTaxCredit{RT}()
         child_tax_credit = ChildTaxCredit{RT}()
         hb = HousingBenefits{RT}()
+        ctb = HousingBenefits{RT}()
+        ctb.taper = 20.0
+        ctb.ndd_deductions = []
+        ctb.ndd_incomes = []
     end
     
     
@@ -618,6 +622,7 @@ module STBParameters
         weeklyise!( lmt.child_tax_credit )
         weeklyise!( lmt.savings_credit )
         weeklyise!( lmt.hb )
+        weeklyise!( lmt.ctb )
     end
    
     function weeklyise!( tb :: TaxBenefitSystem )
