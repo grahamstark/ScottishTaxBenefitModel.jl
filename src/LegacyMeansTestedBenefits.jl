@@ -770,7 +770,7 @@ end
 
 function calc_NDDs( 
     bu       :: BenefitUnit, 
-    bur :: BenefitUnitResult,
+    bur      :: BenefitUnitResult,
     intermed :: MTIntermediate,
     incomes  :: LMTIncomes,
     hb       :: HousingBenefits )::Real
@@ -780,33 +780,29 @@ function calc_NDDs(
     for pid in bu.adults 
         pays_ndd = true
         pers = bu.person[pid]
-        persr = bur.pers[pid
+        persr = bur.pers[pid]
         if has_income( pers, persr, 
-            attendance_allowance, dlaself_care,
-            personal_independence_payment_daily_living )
-            pays_ndd = false
-         elseif pers.registered_blind || pers.registered_partially_sighted
-            pays_ndd = false
-         elseif pers.age < 18
-            pays_ndd = false
-         elseif pers.age < 25 &&
-            has_income( pers, persr, 
-                income_support, 
-                jobseekers_allowance, 
-                employment_and_support_allowance )
-            pays_ndd = false
-         elseif has_income( pers, persr, 
+                attendance_allowance, dlaself_care,
+                personal_independence_payment_daily_living,
                 pension_credit )
             pays_ndd = false
-         # there's also some stuff about students
-         # ch10 p193-6
-         end
-         any_pay_ndds = any_pay_ndds || pays_ndd
-    end
+        elseif pers.registered_blind || pers.registered_partially_sighted
+            pays_ndd = false
+        elseif pers.age < 18
+            pays_ndd = false
+        elseif pers.age < 25 
+            if has_income( 
+                    pers, persr, 
+                    income_support, 
+                    jobseekers_allowance, 
+                    employment_and_support_allowance )
+                pays_ndd = false
+            end
+        end
+        any_pay_ndds = any_pay_ndds || pays_ndd
+    end # pids loop
     if any_pays_ndds
-        if ! intermed.working_ft
-            ndd = hb.ndd_deductions[1]
-        else
+        if intermed.working_ft
             n = size(hb.ndd_incomes)[1]
             w = n
             for i in 1:n
@@ -816,7 +812,10 @@ function calc_NDDs(
                 end
             end
             ndd = hb.ndd_deductions[w]
-    end
+        else
+            ndd = hb.ndd_deductions[1]
+        end
+    end # any ndd payable
     return ndd
 end
 
