@@ -570,13 +570,16 @@ module STBParameters
         sc.withdrawal_rate /= 100.0
     end
     
+    const DEFAULT_PASSPORTED_BENS = Incomes_Set(
+            [ income_support, 
+              employment_and_support_allowance, 
+              jobseekers_allowance,
+              pension_credit] ) # fixme contrib jsa, only guaranteed pension credit
+
      
     @with_kw mutable struct HousingBenefits{RT<:Real}
         taper :: RT = 65.0
-        passported_bens :: Incomes_Set( 
-            income_support, 
-            employment_and_support_allowance, 
-            jobseekers_allowance ) # fixme contrib jsa
+        passported_bens = DEFAULT_PASSPORTED_BENS
         ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
         ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,typemax(RT)]
      end
@@ -595,10 +598,7 @@ module STBParameters
         working_tax_credit = WorkingTaxCredit{RT}()
         child_tax_credit = ChildTaxCredit{RT}()
         hb = HousingBenefits{RT}()
-        ctb = HousingBenefits{RT}()
-        ctb.taper = 20.0
-        ctb.ndd_deductions = []
-        ctb.ndd_incomes = []
+        ctb = HousingBenefits{RT}( 20.0, DEFAULT_PASSPORTED_BENS, RateBands{RT}[], RateBands{RT}[])
     end
     
     

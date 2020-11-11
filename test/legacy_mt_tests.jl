@@ -9,7 +9,7 @@ using .LegacyMeansTestedBenefits:
     calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
-    apply_2_child_policy, calc_incomes, calc_NDDs
+    apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTB!
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
@@ -604,8 +604,49 @@ end
         ndd = calc_NDDs( cpl, bur, intermed, incomes, sys.lmt.hb )
         @test ndd ≈ ndds[i]
     end # loop round various incomes
-    employ!( head )
     
+    # no NDDs for CTB (I think)
+    bur = init_benefit_unit_result( Float64, spers )
+    head = get_head( spers )
+    employ!( head )
+    println( "FT Employed - CTB")
+    println( head )
+    for i in 1:nt
+        head.income[wages] = wage[i]
+        intermed = make_intermediate( 
+            1,   
+            spers,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+        incomes = calc_incomes(
+            hb,
+            spers,
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits )  
+        ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.ctb )
+        @test ndd ≈ 0.0
+    end # loop round various incomes
+end
+
+@testset "HB/CTB" begin
+    # CPAG 19/20 p190
+    sys = get_system( scotland=true )
+    examples = get_ss_examples()
+    joplings = examples[childless_couple_hh]
+    jbu = get_benefit_units(joplings)[1]
+    spouse = get_spouse( jbu )
+    head = get_head( jbu )
+    employ!( spouse )
+    unemploy!( head )
+    joplings.gross_rent = 120.00 # eligible rent
+    spouse.income[wages] = 201.75
+    head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
+    hhres = init_household_result( joplings )
+    calculateHB_CTB!( hb, hhres, joplings.gross_rent, 
+        sys.lmt, sys.age_limits )
+    @test hbres.bus[1].legacy_mtbens.hb ≈ 22.50
 end
 
 @testset "ESA allowances" begin

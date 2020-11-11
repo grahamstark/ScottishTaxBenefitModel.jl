@@ -823,9 +823,9 @@ function calculateHB_CTB!(
     eligible_amount :: Real, 
     hh :: Household,
     lmt_ben_sys :: LegacyMeansTestedBenefitSystem,
-    hrs  :: HoursLimits,
     age_limits :: AgeLimits )
-    intermed :: MTIntermediate
+    
+    @assert which_ben in [ctb, hb]
     bus = get_benefit_units( hh )
     nbus = size(bus)[1]
     ndds = 0.0
@@ -839,9 +839,12 @@ function calculateHB_CTB!(
             intermed,
             mt_ben_sys.income_rules )
         if bn == 1
-            eligible_amount -= ndds
+            benefit = max(0.0, eligible_amount - ndds )
+            premia = 0.0
+            allowances = 0.0
+            
             if has_income( bu, bures, hb.passported_benefits... )
-                            
+                # no need to do anything
             else
                 premia,premset = calc_premia(
                     hb,
@@ -855,15 +858,22 @@ function calculateHB_CTB!(
                     intermed,
                     mt_ben_sys.allowances,
                     age_limits )
-                if which_ben == hb
-                    hb_premia = premia
-                    hb_allowances = allowances
-                    hb_incomes = allowances                             
-                else
-                    ctb_premia = premia
-                    ctb_allowances = allowances
-                    ctb_incomes = allowances               
+                excess = max( 0.0, premia+allowances - total_income )
+                if excess > 0
+                    taper = which_ben == ctc ?  mt_ben_sys.ctc.taper :  mt_ben_sys.hb.taper  
+                    benefit = max( 0.0, benefit - taper*excess )    
                 end
+            end
+            if which_ben == hb
+                bures.legacy_mtbens.hb = benefit
+                bures.legacy_mtbens.hb_premia = premia
+                bures.legacy_mtbens.hb_allowances = allowances
+                bures.legacy_mtbens.hb_incomes = incomes                           
+            elseif which_ben == ctb
+                bures.legacy_mtbens.ctb = benefit
+                bures.legacy_mtbens.ctb_premia = premia
+                bures.legacy_mtbens.ctb_allowances = allowances
+                bures.legacy_mtbens.ctb_incomes = incomes               
             end
         else # ndds for hb, not ctb
             ndds += calc_NDDs(
