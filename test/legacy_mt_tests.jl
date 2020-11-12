@@ -7,7 +7,7 @@ using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits:  
     calc_legacy_means_tested_benefits!, tariff_income,
-    LMTResults, is_working_hours, make_lmt_benefit_applicability,
+    LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
     apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTR!
 
@@ -451,20 +451,7 @@ end
 @testset "Allowances" begin
     examples = get_ss_examples()
     sys = get_system( scotland=true )
-    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
-    spouse = get_spouse( cpl )
-    head = get_head( cpl )
-    println( "sp=$spouse" )
-    intermed = make_intermediate( 
-        1,
-        cpl,  
-        sys.lmt.hours_limits,
-        sys.age_limits )
-    println( intermed )
-    for ben_t in instances( LMTBenefitType )
-        allow = calc_allowances( ben_t, intermed, sys.lmt.allowances, sys.age_limits )
-        println( "ben_t $ben_t allow=$allow" )
-    end
+
 end
 
 @testset "NDDS" begin
@@ -757,11 +744,145 @@ end
             @test allow ==  sys.lmt.allowances.age_18_24 # you get the 18 except in odd cases; cpag p336
         end
     end
-    
+    #
+    # funny age combinations
+    # a) 2 < 18
+    cplhh = examples[cpl_w_2_children_hh]
+    cpl = get_benefit_units(cplhh)[1]
+    spouse = get_spouse( cpl )
+    head = get_head( cpl )
+    spouse.age = 17
+    head.age = 17
+    println( "sp=$spouse" )
+    intermed = make_intermediate( 
+        1,
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( intermed )
+    for ben in [hb,ctr,is,jsa,esa]
+        allow = calc_allowances( 
+            ben, 
+            intermed, 
+            sys.lmt.allowances, 
+            sys.age_limits )
+        if ben in [hb,ctr]
+            @test allow ≈ 87.50 + 2*sys.lmt.allowances.child   
+        else
+            @test allow ≈ 87.50 # p336 weird stuff about ESA stages
+        end
+        
+    end    
+    spouse.age = 17
+    head.age = 18
+    intermed = make_intermediate( 
+        1,
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( intermed )
+    for ben in [hb,ctr,is,jsa,esa]
+        allow = calc_allowances( 
+            ben, 
+            intermed, 
+            sys.lmt.allowances, 
+            sys.age_limits )
+        if ben in [hb,ctr]
+            @test allow ≈ 114.85 + 2*sys.lmt.allowances.child   
+        else
+            @test allow ≈ 114.85 # p336 weird stuff about ESA stages
+        end
+    end    
+    spouse.age = 18
+    head.age = 18
+    intermed = make_intermediate( 
+        1,
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    println( intermed )
+    for ben in [hb,ctr,is,jsa,esa]
+        allow = calc_allowances( 
+            ben, 
+            intermed, 
+            sys.lmt.allowances, 
+            sys.age_limits )
+        if ben in [hb,ctr]
+            @test allow ≈ 114.85 + 2*sys.lmt.allowances.child   
+        else
+            @test allow ≈ 114.85 # p336 weird stuff about ESA stages
+        end
+    end    
+    spouse.age = 60
+    head.age = 60
+    intermed = make_intermediate( 
+        1,
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    for ben in [hb,ctr,is,jsa,esa]
+        allow = calc_allowances( 
+            ben, 
+            intermed, 
+            sys.lmt.allowances, 
+            sys.age_limits )
+        if ben in [hb,ctr]
+            @test allow ≈ 114.85 + 2*sys.lmt.allowances.child   
+        else
+            @test allow ≈ 114.85 # p336 weird stuff about ESA stages
+        end
+    end    
 end
 
 @testset "Premia" begin
-
+    sys = get_system( scotland=true )
+    examples = get_ss_examples()
+    cplhh = examples[cpl_w_2_children_hh]
+    cpl = get_benefit_units(cplhh)[1]
+    spouse = get_spouse( cpl )
+    head = get_head( cpl )
+    spouse.age = 60
+    head.age = 60
+    intermed = make_intermediate( 
+        1,
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    for ben in [hb,ctr,is,jsa,esa]
+        premia, premset = calc_premia( 
+            ben, 
+            cpl,            
+            intermed, 
+            sys.lmt.premia,
+            sys.age_limits )
+        @test premia ≈ 0.0
+        @test length(premset)==0 
+    end
+    disable!( head )
+    intermed = make_intermediate( 
+        1,
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test pers_is_disabled( head )
+    @test intermed.num_disabled_adults == 1
+    for ben in [hb,ctr,is,jsa,esa]
+        premia, premset = calc_premia( 
+            ben, 
+            cpl,            
+            intermed, 
+            sys.lmt.premia,
+            sys.age_limits )
+        println( "ben=$ben premia=$premia" )
+        if ben == esa
+            @test premia ≈ 0.0
+            @test length(premset)==0
+        else
+            @test premia == sys.lmt.premia.disability_single
+            @test (disability_single ∈ premset) && length(premset)==1  
+        end
+    end
+    
 end
 
 

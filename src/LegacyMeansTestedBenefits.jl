@@ -23,7 +23,7 @@ using .Utils: mult, haskeys
 using Dates: TimeType, Date, now, Year
 
 export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults, is_working_hours, make_lmt_benefit_applicability,
+    LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
     born_before, num_born_before, apply_2_child_policy, calc_incomes,
     calcWTC_CTC!, calc_NDDs, calculateHB_CTR!
@@ -372,10 +372,10 @@ function make_intermediate(
         total_hours_worked += round(pers.usual_hours_worked)
         if working_disabled( pers, hrs )
             is_working_disabled = true
-            break
         end 
         if pers_is_disabled( pers )
             num_disabled_adults += 1
+            println( "adding a disabled adult $num_disabled_adults ")
             if is_severe_disability( pers )
                 num_severely_disabled_adults += 1
             end
@@ -618,7 +618,11 @@ function calc_allowances(
             # argh .. not there's a conditional on ESA that we don't cover here
             # seems to be it - no change for sps, marriage..
             # but some change
-            pers_allow = pas.age_18_24
+            if intermed.num_adults == 2
+                pers_allow = pas.couple_both_under_18
+            else
+                pers_allow = pas.age_18_24
+            end
             # should be somethinh like ...
             #if which_ben in [is,jsa,esa]
             #    

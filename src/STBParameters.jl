@@ -433,6 +433,7 @@ module STBParameters
         over_pension_age :: RT = 181.00
         lone_parent :: RT = 73.10
         lone_parent_over_pension_age :: RT = 181.00
+        couple_both_under_18 :: RT = 87.50 # this isn't quite right; see cpag p336
         couple_both_over_18 :: RT = 114.85
         couple_over_pension_age :: RT = 270.60
         couple_one_over_18_high :: RT = 114.85
