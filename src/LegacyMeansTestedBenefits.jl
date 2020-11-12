@@ -121,7 +121,7 @@ struct MTIntermediate
     num_severely_disabled_adults :: Int
     num_severely_disabled_children :: Int
     
-    num_u_16s :: Int
+    num_children :: Int
     num_allowed_children :: Int
     num_children_born_before :: Int
     ge_16_u_pension_age  :: Bool 
@@ -219,14 +219,14 @@ function calc_incomes(
         if search( bu, is_working_hours, hours.higher )
             extra = incrules.hb_additional 
         elseif search(  bu, is_working_hours, hours.lower )
-            if intermed.is_sparent || (intermed.num_u_16s > 0) || intermed.is_disabled
+            if intermed.is_sparent || (intermed.num_children > 0) || intermed.is_disabled
                 extra = incrules.hb_additional
             end
         end
         disreg += extra
         # childcare in HB - costs are assigned in frs to the children
-        if ( intermed.num_u_16s > 0 ) 
-            maxcc = intermed.num_u_16s == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
+        if ( intermed.num_children > 0 ) 
+            maxcc = intermed.num_children == 1 ? incrules.childcare_max_1 : incrules.childcare_max_2
             cost_of_childcare = 0.0
             for pid in bu.children 
                 cost_of_childcare += bu.people[pid].cost_of_childcare 
@@ -382,7 +382,7 @@ function make_intermediate(
         end
     end
     @assert 120 >= age_oldest_adult >= age_youngest_adult >= 16
-    num_u_16s = count( bu, le_age, 16 )
+    num_children = size( bu.children )[1] # count( bu, le_age, 16 )
     num_children_born_before = num_born_before( bu ) # fixme parameterise
     num_disabled_children = 0
     num_severely_disabled_children :: Int = 0
@@ -429,7 +429,7 @@ function make_intermediate(
         num_disabled_children,
         num_severely_disabled_adults,
         num_severely_disabled_children,
-        num_u_16s,
+        num_children,
         num_allowed_children,
         num_children_born_before,
         ge_16_u_pension_age,
@@ -609,7 +609,10 @@ function calc_allowances(
         elseif intermed.num_adults == 2
             pers_allow = pas.pc_mig_couple         
         end
-        pers_allow += intermed.num_children_born_before
+        # children - cpag p 272 says there's an allowance for children
+        # if not claiming CTC, but so far as I can see there's no
+        # upper limit on CTC
+        # pers_allow += intermed.num_children_born_before*
     else
         if intermed.age_oldest_adult < 18
             # argh .. not there's a conditional on ESA that we don't cover here
@@ -627,7 +630,7 @@ function calc_allowances(
             ## FIXME some cases lower than this see p 335 CPAG
         else # all over 17
             if intermed.num_adults == 1 
-                if intermed.num_u_16s > 0 # single parent
+                if intermed.num_children > 0 # single parent
                     if intermed.someone_pension_age
                         pers_allow = pas.lone_parent_over_pension_age     
                     else
@@ -730,7 +733,7 @@ function calcWTC_CTC!(
         
         cost_of_childcare *= wtc.childcare_proportion
         
-        if intermed.num_u_16s > 1 
+        if intermed.num_children > 1 
             cost_of_childcare = min( wtc.childcare_max_2_plus_children. cost_of_childcare )
         else
             cost_of_childcare = min( wtc.childcare_max_1_child, cost_of_childcare )

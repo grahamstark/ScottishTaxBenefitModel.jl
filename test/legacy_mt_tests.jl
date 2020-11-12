@@ -341,7 +341,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
-    @test intermed.num_u_16s > 1
+    @test intermed.num_children > 1
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_children
@@ -367,7 +367,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
-    @test intermed.num_u_16s > 1
+    @test intermed.num_children > 1
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_children
@@ -390,7 +390,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test intermed.is_disabled
-    @test intermed.num_u_16s == 2
+    @test intermed.num_children == 2
     @test intermed.ge_16_u_pension_age
     @test intermed.limited_capacity_for_work
     @test intermed.has_children
@@ -413,7 +413,7 @@ end
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test intermed.is_disabled
-    @test intermed.num_u_16s == 2
+    @test intermed.num_children == 2
     @test intermed.ge_16_u_pension_age
     @test intermed.limited_capacity_for_work
     @test intermed.has_children
@@ -436,7 +436,7 @@ end
     @test intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
-    @test intermed.num_u_16s > 0
+    @test intermed.num_children > 0
     @test intermed.ge_16_u_pension_age
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_children
@@ -685,7 +685,79 @@ end
 end
 
 @testset "Allowances" begin
-     
+    sys = get_system( scotland=true )
+    examples = get_ss_examples()
+    sing = examples[single_hh]
+    singbu = get_benefit_units(sing)[1]
+    head = get_head( singbu )
+    head.age = 25
+    empty!( head.income )
+    intermed = make_intermediate( 
+            1,   
+            singbu,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+
+    for ben in [hb,ctr,is,jsa,esa]
+        allow = calc_allowances(
+            ben,
+            intermed,
+            sys.lmt.allowances,
+            sys.age_limits
+        )
+        @test allow ==  sys.lmt.allowances.age_25_and_over
+    end
+    head.age = 17
+    intermed = make_intermediate( 
+            1,   
+            singbu,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+    for ben in [hb,ctr,is,jsa,esa]
+        allow = calc_allowances(
+            ben,
+            intermed,
+            sys.lmt.allowances,
+            sys.age_limits
+        )
+        @test allow ==  sys.lmt.allowances.age_18_24 # you get the 18 except in odd cases; cpag p336
+    end
+    #
+    # 17 yo single parent - should be same as single
+    #
+    
+    spar = examples[single_parent_hh]
+    sparbu = get_benefit_units(spar)[1]
+    head = get_head(sparbu) 
+    
+    intermed = make_intermediate( 
+            1,   
+            sparbu,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+    head.age = 17
+    intermed = make_intermediate( 
+            1,   
+            sparbu,  
+            sys.lmt.hours_limits,
+            sys.age_limits )
+    @test intermed.num_children == 2
+    @test intermed.num_allowed_children == 2
+    for ben in [hb,ctr,is,jsa,esa]
+        allow = calc_allowances(
+            ben,
+            intermed,
+            sys.lmt.allowances,
+            sys.age_limits
+        )
+        println( "on $ben allow=$allow" )
+        if ben in [hb,ctr]
+            @test allow == sys.lmt.allowances.age_18_24 + 2*sys.lmt.allowances.child        
+        else
+            @test allow ==  sys.lmt.allowances.age_18_24 # you get the 18 except in odd cases; cpag p336
+        end
+    end
+    
 end
 
 @testset "Premia" begin
