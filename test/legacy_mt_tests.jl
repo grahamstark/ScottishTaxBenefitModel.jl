@@ -678,15 +678,20 @@ end
     println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
     println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
     println( "premiums $(hhres.bus[1].legacy_mtbens.premiums)\n")
-    @test length( hhres.bus[1].legacy_mtbens.hb_premia ) == 0
+    @test length( hhres.bus[1].legacy_mtbens.premiums ) == 0
     @test hhres.bus[1].legacy_mtbens.hb_allowances == 181.00
-    @test hhres.bus[1].legacy_mtbens.hb ≈ 84.11
+    @test to_nearest_p( hhres.bus[1].legacy_mtbens.hb, 84.11 )
     
 end
 
-@testset "ESA allowances" begin
-    
+@testset "Allowances" begin
+     
 end
+
+@testset "Premia" begin
+
+end
+
 
 @testset "JSA" begin
     

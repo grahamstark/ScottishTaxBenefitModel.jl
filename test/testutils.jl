@@ -36,6 +36,10 @@ function get_default_it_system(
   it
 end
 
+function to_nearest_p( x, y :: Real ) :: Bool
+    round(x, digits=2) == round(y, digits=2)
+end
+
 function init_data()
    nhh = get_num_households()
    num_people = -1
@@ -51,12 +55,10 @@ end
 function get_system(; scotland::Bool ) :: TaxBenefitSystem
     tb = TaxBenefitSystem{Float64}()
     weeklyise!(tb)
-    return tb
     # overwrite IT to get RuK system as needed
     # println( itn )
-    # tb.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
-    # println( tb.it )
-    # tb
+    tb.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
+    return tb
 end
 
 @enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh

@@ -50,6 +50,7 @@ end
       end
       println( "num_households=$num_households, num_people=$(total_num_people)")
       people_count = 0
+      over_16_kids = 0
       for hhno in 1:num_households
             hh = FRSHouseholdGetter.get_household( hhno )
             # println("people in HH")
@@ -81,6 +82,9 @@ end
                   for chno in bu.children
                         child = bu.people[chno]
                         @test child.age <= 19
+                        if child.age >16
+                            over_16_kids += 1
+                        end
                         bu_people_count += 1
                         bu_children += 1
                   end
@@ -104,4 +108,6 @@ end
             @test bua_people_count == hhsize
       end
       @test people_count == total_num_people
+      @test over_16_kids > 0
+      println( "num people $people_count over_16_kids=$over_16_kids" )
 end

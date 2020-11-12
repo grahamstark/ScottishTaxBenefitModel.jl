@@ -629,12 +629,14 @@ function calc_allowances(
             if intermed.num_adults == 1 
                 if intermed.num_u_16s > 0 # single parent
                     if intermed.someone_pension_age
-                        pers_allow = pas.lone_parent                 
-                    else
                         pers_allow = pas.lone_parent_over_pension_age     
+                    else
+                        pers_allow = pas.lone_parent                 
                     end            
                 else
-                    if intermed.age_oldest_adult < 25
+                    if intermed.someone_pension_age
+                        pers_allow = pas.over_pension_age
+                    elseif intermed.age_oldest_adult < 25
                         pers_allow = pas.age_18_24        
                     else
                         pers_allow = pas.age_25_and_over
