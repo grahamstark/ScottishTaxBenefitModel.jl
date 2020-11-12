@@ -79,10 +79,12 @@ module Results
         ctc_elements :: RT = zero(RT)
         ctc_childcare :: RT = zero(RT)
 
+        hb_passported :: Bool = false
         hb_premia :: RT = zero(RT)
         hb_allowances :: RT = zero(RT)
         hb_incomes = LMTIncomes{RT}()
-
+        
+        ctr_passported :: Bool = false
         ctr_premia :: RT = zero(RT)
         ctr_allowances :: RT = zero(RT)
         ctr_incomes = LMTIncomes{RT}()

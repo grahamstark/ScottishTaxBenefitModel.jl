@@ -638,10 +638,13 @@ end
     jbu = get_benefit_units(joplings)[1]
     spouse = get_spouse( jbu )
     head = get_head( jbu )
+    empty!( spouse.income )
+    empty!( head.income )
     employ!( spouse )
     unemploy!( head )
     joplings.gross_rent = 120.00 # eligible rent
     spouse.income[wages] = 201.75
+    spouse.usual_hours_worked = 21
     head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
     hhres = init_household_result( joplings )
     calculateHB_CTR!( 
@@ -651,7 +654,34 @@ end
         joplings,
         sys.lmt, 
         sys.age_limits )
-    @test hbres.bus[1].legacy_mtbens.hb ≈ 22.50
+    println( "MTBens for Joblings:\n$(hhres.bus[1].legacy_mtbens)\n" )
+    println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
+    @test hhres.bus[1].legacy_mtbens.hb ≈ 22.50
+    
+    mr_h = examples[single_hh]
+    mrhbu = get_benefit_units(mr_h)[1]
+    head = get_head( mrhbu )
+    retire!( head )
+    empty!( head.income )
+    head.age = 67
+    head.income[private_pensions]=60.0
+    head.income[state_pension]=127.75
+    mr_h.gross_rent = 88.50
+    hhres = init_household_result( mr_h )
+    calculateHB_CTR!( 
+        hb, 
+        hhres, 
+        mr_h.gross_rent, 
+        mr_h,
+        sys.lmt, 
+        sys.age_limits )
+    println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
+    println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
+    println( "premiums $(hhres.bus[1].legacy_mtbens.premiums)\n")
+    @test length( hhres.bus[1].legacy_mtbens.hb_premia ) == 0
+    @test hhres.bus[1].legacy_mtbens.hb_allowances == 181.00
+    @test hhres.bus[1].legacy_mtbens.hb ≈ 84.11
+    
 end
 
 @testset "ESA allowances" begin

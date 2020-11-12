@@ -546,46 +546,48 @@ function calc_premia(
     premset = LMTPremiaSet()
     if which_ben in [hb,ctr]
         # disabled child premia
-        premia += intermed.num_disabled_children*prem_sys.disabled_child   
-        union!( premset, [disabled_child])
+        if intermed.num_disabled_children > 0
+            premia += intermed.num_disabled_children*prem_sys.disabled_child   
+            union!( premset, [disabled_child])
+        end
     end
     if which_ben != esa
-        if num_disabled_adults == 1
+        if intermed.num_disabled_adults == 1
             premia += prem_sys.disability_single
             union!( premset,[disability_single])
-        elseif num_disabled_adults == 2
+        elseif intermed.num_disabled_adults == 2
             premia += prem_sys.disability_couple
             union!( premset,[disability_couple])
         end        
     end
     if which_ben in [hb,ctr,esa,is,jsa]
-        premia += intermed.num_severely_disabled_children*prem_sys.enhanced_disabled_child
+        premia += intermed.num_severely_disabled_children*prem_sys.enhanced_disability_child
         if intermed.num_severely_disabled_children > 0
-            union!( premset,enhanced_disability_child)
+            union!( premset,[enhanced_disability_child] )
         end
-        if num_severely_disabled_adults == 1
+        if intermed.num_severely_disabled_adults == 1
             premia += prem_sys.enhanced_disability_single
-            union!( premset,enhanced_disability_single)
-        elseif num_severely_disabled_adults == 2
+            union!( premset, [enhanced_disability_single] )
+        elseif intermed.num_severely_disabled_adults == 2
             premia += prem_sys.enhanced_disability_couple
-            union!( premset,enhanced_disability_couple)
+            union!( premset,[enhanced_disability_couple]) 
         end                
     end
-    if which_ben != pc 
-        if intermed.num_pens_age > 0
+    if which_ben in [ is, jsa, esa ] # this should almost never happen given our routing; cpag p345
+        if intermed.someone_pension_age
             premia += prem_sys.pensioner_is  
-            union!( premset,pensioner_is)
+            union!( premset, [pensioner_is] )
         end
     end
     # all benefits, I think, incl. 
     # if which_ben != ctr
     if intermed.num_carers == 1
         premia += prem_sys.carer_single
-        union!( premset,carer_single)
+        union!( premset,[carer_single] )
     elseif intermed.num_carers == 2
         # FIXME what if 1 is a child?
         premia += prem_sys.carer_couple
-        union!( premset,carer_couple)
+        union!( premset, [carer_couple] )
     end
     # end
     #
@@ -844,9 +846,11 @@ function calculateHB_CTR!(
             benefit = max(0.0, eligible_amount - ndds )
             premia = 0.0
             allowances = 0.0
+            passported = false
             
             if has_income( bu, bures, lmt_ben_sys.hb.passported_bens... )
                 # no need to do anything
+                passported = true
             else
                 premia,premset = calc_premia(
                     hb,
@@ -860,19 +864,22 @@ function calculateHB_CTR!(
                     intermed,
                     lmt_ben_sys.allowances,
                     age_limits )
-                excess = max( 0.0, premia+allowances - total_income )
+                excess = max( 0.0, incomes.total_income - (premia+allowances))
                 if excess > 0
-                    taper = which_ben == ctc ?  lmt_ben_sys.ctc.taper :  mt_ben_sys.hb.taper  
+                    taper = which_ben == ctc ?  lmt_ben_sys.ctc.taper : lmt_ben_sys.hb.taper
+                    println( "taper=$taper excess=$excess" )
                     benefit = max( 0.0, benefit - taper*excess )    
                 end
             end
             if which_ben == hb
                 bures.legacy_mtbens.hb = benefit
+                bures.legacy_mtbens.hb_passported = passported
                 bures.legacy_mtbens.hb_premia = premia
                 bures.legacy_mtbens.hb_allowances = allowances
                 bures.legacy_mtbens.hb_incomes = incomes                           
             elseif which_ben == ctr
                 bures.legacy_mtbens.ctr = benefit
+                bures.legacy_mtbens.ctr_passported = passported
                 bures.legacy_mtbens.ctr_premia = premia
                 bures.legacy_mtbens.ctr_allowances = allowances
                 bures.legacy_mtbens.ctr_incomes = incomes               

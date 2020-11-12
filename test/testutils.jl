@@ -50,12 +50,13 @@ end
 
 function get_system(; scotland::Bool ) :: TaxBenefitSystem
     tb = TaxBenefitSystem{Float64}()
-    weeklyise!(tb.ni)
+    weeklyise!(tb)
+    return tb
     # overwrite IT to get RuK system as needed
     # println( itn )
-    tb.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
-    println( tb.it )
-    tb
+    # tb.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
+    # println( tb.it )
+    # tb
 end
 
 @enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh

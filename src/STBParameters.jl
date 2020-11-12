@@ -47,6 +47,7 @@ module STBParameters
             foster_care_payments=> 1.0,
             # it and NI dealt with in wage seperately
             state_pension=> 1.0,
+            private_pensions => 1.0,
             bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 0.0,
             war_widows_or_widowers_pension=> 1.0,
             jobseekers_allowance=> 1.0, ## contribution based
@@ -429,7 +430,7 @@ module STBParameters
         age_18_24 :: RT = 57.90
         age_25_and_over :: RT = 73.10
         age_18_and_in_work_activity :: RT = 73.10
-        over_pension_age :: RT = 181.10
+        over_pension_age :: RT = 181.00
         lone_parent :: RT = 73.10
         lone_parent_over_pension_age :: RT = 181.00
         couple_both_over_18 :: RT = 114.85
@@ -488,7 +489,7 @@ module STBParameters
         wtc.childcare_proportion /= 100.0
         wtc.non_earnings_minima /= WEEKS_PER_YEAR
         wtc.threshold /= WEEKS_PER_YEAR
-        wct.taper /= 100.0
+        wtc.taper /= 100.0
     end
      
     @with_kw mutable struct ChildTaxCredit{ RT<:Real }
