@@ -9,10 +9,10 @@ using .LegacyMeansTestedBenefits:
     calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
-    apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTB!
+    apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTR!
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
-using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor
+using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor, init_household_result
 using Dates
 
 ## FIXME don't need both
@@ -644,8 +644,13 @@ end
     spouse.income[wages] = 201.75
     head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
     hhres = init_household_result( joplings )
-    calculateHB_CTB!( hb, hhres, joplings.gross_rent, 
-        sys.lmt, sys.age_limits )
+    calculateHB_CTR!( 
+        hb, 
+        hhres, 
+        joplings.gross_rent, 
+        joplings,
+        sys.lmt, 
+        sys.age_limits )
     @test hbres.bus[1].legacy_mtbens.hb ≈ 22.50
 end
 

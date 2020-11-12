@@ -26,7 +26,7 @@ export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, MTIntermediate, make_intermediate, calc_allowances,
     born_before, num_born_before, apply_2_child_policy, calc_incomes,
-    calcWTC_CTC!, calc_NDDs
+    calcWTC_CTC!, calc_NDDs, calculateHB_CTR!
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
     # println( "hours=$hours employment=$(pers.employment_status)")
@@ -547,15 +547,15 @@ function calc_premia(
     if which_ben in [hb,ctr]
         # disabled child premia
         premia += intermed.num_disabled_children*prem_sys.disabled_child   
-        union(premset,disabled_child)
+        union!( premset, [disabled_child])
     end
     if which_ben != esa
         if num_disabled_adults == 1
             premia += prem_sys.disability_single
-            union!( premset,disability_single)
+            union!( premset,[disability_single])
         elseif num_disabled_adults == 2
             premia += prem_sys.disability_couple
-            union!( premset,disability_couple)
+            union!( premset,[disability_couple])
         end        
     end
     if which_ben in [hb,ctr,esa,is,jsa]
@@ -817,7 +817,7 @@ function calc_NDDs(
     return ndd
 end
 
-function calculateHB_CTB!( 
+function calculateHB_CTR!( 
     which_ben :: LMTBenefitType,
     household_result :: HouseholdResult,
     eligible_amount :: Real, 
@@ -825,42 +825,44 @@ function calculateHB_CTB!(
     lmt_ben_sys :: LegacyMeansTestedBenefitSystem,
     age_limits :: AgeLimits )
     
-    @assert which_ben in [ctb, hb]
+    @assert which_ben in [ctr, hb]
     bus = get_benefit_units( hh )
     nbus = size(bus)[1]
     ndds = 0.0
     for bn in nbus:-1:1
         bures = household_result.bus[bn]
-        intermed = make_intermediate( bn, bus[bn], hrs, age_limits )
+        bu = bus[bn]
+        intermed = make_intermediate( bn, bu, lmt_ben_sys.hours_limits, age_limits )
         incomes = calc_incomes( 
             hb,
             bu,
             bures,
             intermed,
-            mt_ben_sys.income_rules )
+            lmt_ben_sys.income_rules,
+            lmt_ben_sys.hours_limits )
         if bn == 1
             benefit = max(0.0, eligible_amount - ndds )
             premia = 0.0
             allowances = 0.0
             
-            if has_income( bu, bures, hb.passported_benefits... )
+            if has_income( bu, bures, lmt_ben_sys.hb.passported_bens... )
                 # no need to do anything
             else
                 premia,premset = calc_premia(
                     hb,
-                    bus[bn],
+                    bu,
                     intermed,        
-                    mt_ben_sys.premia,
+                    lmt_ben_sys.premia,
                     age_limits )            
                 union!(bures.legacy_mtbens.premiums, premset)
                 allowances = calc_allowances(
                     hb,
                     intermed,
-                    mt_ben_sys.allowances,
+                    lmt_ben_sys.allowances,
                     age_limits )
                 excess = max( 0.0, premia+allowances - total_income )
                 if excess > 0
-                    taper = which_ben == ctc ?  mt_ben_sys.ctc.taper :  mt_ben_sys.hb.taper  
+                    taper = which_ben == ctc ?  lmt_ben_sys.ctc.taper :  mt_ben_sys.hb.taper  
                     benefit = max( 0.0, benefit - taper*excess )    
                 end
             end
@@ -869,20 +871,20 @@ function calculateHB_CTB!(
                 bures.legacy_mtbens.hb_premia = premia
                 bures.legacy_mtbens.hb_allowances = allowances
                 bures.legacy_mtbens.hb_incomes = incomes                           
-            elseif which_ben == ctb
-                bures.legacy_mtbens.ctb = benefit
-                bures.legacy_mtbens.ctb_premia = premia
-                bures.legacy_mtbens.ctb_allowances = allowances
-                bures.legacy_mtbens.ctb_incomes = incomes               
+            elseif which_ben == ctr
+                bures.legacy_mtbens.ctr = benefit
+                bures.legacy_mtbens.ctr_premia = premia
+                bures.legacy_mtbens.ctr_allowances = allowances
+                bures.legacy_mtbens.ctr_incomes = incomes               
             end
-        else # ndds for hb, not ctb
+        else # ndds for hb, not ctr
             ndds += calc_NDDs(
                 bu,
                 intermed,
                 lmt_ben_sys.hb )
         end
     end
-end # calculateHB_CTB
+end # calculateHB_CTR
 
 function calc_legacy_means_tested_benefits!(
     ;
