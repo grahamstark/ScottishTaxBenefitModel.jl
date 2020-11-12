@@ -866,6 +866,7 @@ end
         sys.age_limits )
     @test pers_is_disabled( head )
     @test intermed.num_disabled_adults == 1
+    @test intermed.working_disabled
     for ben in [hb,ctr,is,jsa,esa]
         premia, premset = calc_premia( 
             ben, 
