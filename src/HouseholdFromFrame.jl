@@ -68,7 +68,7 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
             end
         end
     end
-
+    
     pay_includes  = Included_In_Pay_Dict{Bool}()
     for i in instances(Included_In_Pay_Type)
         s = String(Symbol(i))
@@ -146,6 +146,9 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         m2z(model_person.usual_hours_worked),  # Real
 
         income,
+        
+        JSAType(safe_assign(model_person.jsa_type),
+        
         assets,
         pay_includes,
 

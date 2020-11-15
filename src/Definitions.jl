@@ -1400,6 +1400,15 @@ export
     upr_shares
 end
 
+@enum JSAType  
+
+@enum JSAType begin
+    no_jsa = -1
+    contributory = 1 
+    income_related =2 
+    both_jsa = 3
+end
+export JSAType, contributory, income_related, both_jsa, no_jsa
 
 @enum LMTBenefitType esa hb ctr is jsa pc wtc ctc sc 
 const LMTBenefitSet = Set{LMTBenefitType}

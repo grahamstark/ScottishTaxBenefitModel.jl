@@ -223,6 +223,10 @@ function initialise_person(n::Integer)::DataFrame
         ),
         income_social_fund_loan_uc = Vector{Union{Real,Missing}}(missing, n),
         income_other_benefits = Vector{Union{Real,Missing}}(missing, n),
+        
+        jsa_type = Vector{Union{Integer,Missing}}(missing, n),
+        
+        
         asset_current_account = Vector{Union{Real,Missing}}(missing, n),
         asset_nsb_ordinary_account = Vector{Union{Real,Missing}}(missing, n),
         asset_nsb_investment_account = Vector{Union{Real,Missing}}(missing, n),
@@ -870,6 +874,7 @@ function create_adults(
     endowmnt::DataFrame,
     job::DataFrame,
     hbai_res::DataFrame,
+    frsx :: DataFrame,
     override_se_and_wage_with_hbai :: Bool = true
 )::DataFrame
 
@@ -1250,6 +1255,8 @@ function create_data()
     model_households = initialise_household(0)
     model_people = initialise_person(0)
     for year in 2015:2018
+        ystr = "$(year)$year+1)"
+        frsx = loadfrs( "frs$ystr" )
         hbai_res = loadtoframe("$(HBAI_DIR)/tab/"*HBAIS[year])
         print("on year $year ")
         accounts = loadfrs("accounts", year)
@@ -1299,7 +1306,8 @@ function create_data()
             benefits,
             endowmnt,
             job,
-            hbai_res )
+            hbai_res,
+            frsx )
         append!(model_people, model_adults_yr)
 
         model_households_yr = create_household(

@@ -41,8 +41,12 @@ mutable struct Person{RT<:Real}
     usual_hours_worked::RT
 
     income::Incomes_Dict{RT}
+    
+    jsa_type :: JSAType
+    
     assets::Asset_Dict{RT}
     pay_includes ::Included_In_Pay_Dict{Bool}
+    
     # contracted_out_of_serps::Bool
 
     registered_blind::Bool
