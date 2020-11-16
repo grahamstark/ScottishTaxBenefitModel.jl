@@ -1255,6 +1255,8 @@ function create_data()
     model_households = initialise_household(0)
     model_people = initialise_person(0)
     for year in 2015:2018
+        # we only want this massive thing for a couple of
+        # benefit variables.
         ystr = "$(year)$year+1)"
         frsx = loadfrs( "frs$ystr" )
         hbai_res = loadtoframe("$(HBAI_DIR)/tab/"*HBAIS[year])
