@@ -38,6 +38,22 @@ export Missing_Illness_Length, RT
    v_12_months_or_more = 3
 end
 
+@enum PIPType begin
+    no_pip = -1
+    standard_pip = 1
+    enhanced_pip = 2
+end
+export PIPType, no_pip, standard_pip, enhanced_pip
+
+@enum LowMiddleHigh begin
+    missing_lmh = -1
+    low = 1
+    middle = 2
+    high = 3
+end
+export LowMiddleHigh, missing_lmh, low, middle, high
+
+
 export ADLS_Inhibited  # mapped from condit
 export reduced_a_lot, reduced_a_little, not_reduced
 export Missing_ADLS_Inhibited

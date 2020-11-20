@@ -1,8 +1,11 @@
-# AA/PIP/DLA levels
+# Note on AA/PIP/DLA Severity Levels
 
-2019/20 levels
+I need to create severity levels for DLA, AA and PIP for means-tested benefit modeling. Conclusion from below is
+that I might as well do it pretty crudely as I can't thing of a consistent explanation for the outliers.
 
-DLA Levels
+## DLA
+
+2019/20 
 
 * high 87.65
 * med  58.70
@@ -80,7 +83,7 @@ ukp[(ukp.income_dlaself_care .> 0), [:data_year,:income_dlaself_care,:income_dla
 
 ### More on big DLAs
 
-`114.9`  `110.2` etc. are roughly double amounts
+`114.9`  `110.2` etc. are roughly double amounts. 39 cases in 3 year's UK data.
 
 Probably a simpler way in [Cheat Sheet](https://ahsmart.com/pub/data-wrangling-with-data-frames-jl-cheat-sheet/index.html).
 
@@ -97,6 +100,8 @@ end;
 
 ```
 See: large_dla_breakdown.ods
+
+Note 
 
 Conclusion from that: God knows. Only a few appear to be payments for a couple rolled into one.
 
@@ -244,5 +249,3 @@ ukp[(ukp.income_personal_independence_payment_daily_living .> 100),
 ```
 
 ## So
-
-39 DLA cases which appear to be joint payments. No problem for the other twp 

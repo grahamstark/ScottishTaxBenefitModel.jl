@@ -225,7 +225,11 @@ function initialise_person(n::Integer)::DataFrame
         income_other_benefits = Vector{Union{Real,Missing}}(missing, n),
         
         jsa_type = Vector{Union{Integer,Missing}}(missing, n),
-        
+        dlaself_care_type = Vector{Union{Integer,Missing}}(missing, n),
+        dlamobility_type = Vector{Union{Integer,Missing}}(missing, n),
+        attendence_allowance_type = Vector{Union{Integer,Missing}}(missing, n),
+        personal_independence_payment_daily_living_type = Vector{Union{Integer,Missing}}(missing, n),
+        personal_independence_payment_mobility_type  = Vector{Union{Integer,Missing}}(missing, n),
         
         asset_current_account = Vector{Union{Real,Missing}}(missing, n),
         asset_nsb_ordinary_account = Vector{Union{Real,Missing}}(missing, n),

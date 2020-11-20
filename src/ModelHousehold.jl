@@ -43,6 +43,12 @@ mutable struct Person{RT<:Real}
     income::Incomes_Dict{RT}
     
     jsa_type :: JSAType
+    dla_self_care_type :: LowMiddleHigh
+    dla_mobility_type :: LowMiddleHigh
+    attendence_allowance_type :: LowMiddleHigh
+    pip_daily_living_type :: PIPType
+    pip_mobility_type ::  PIPType
+
     
     assets::Asset_Dict{RT}
     pay_includes ::Included_In_Pay_Dict{Bool}
