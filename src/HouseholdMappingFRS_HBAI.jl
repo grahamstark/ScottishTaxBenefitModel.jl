@@ -45,6 +45,21 @@ function is_in_hbai(
 
 end
 
+#
+# BU head on HBAI classification. Near dup of `get_incs_from_hbai` below.
+#
+function is_bu_head( 
+    hbai_res :: DataFrame,  
+    sernum::Integer,
+    benunit  :: Integer,
+    person :: Integer  ) :: Boolean
+    ad_hbai = hbai_res[((hbai_res.sernum.==sernum ).&
+                       ((hbai_res.personhd.==person).|(hbai_res.personsp.==person)) .&
+                       (hbai_res.benunit.==benunit)), :]
+   @assert size( ad_hbai )[1] > 0
+   ar = ad_hbai[1,:]
+   return ar.personhd == person
+end
 
 function get_incs_from_hbai(
   hbai_res :: DataFrame,
@@ -73,6 +88,38 @@ function get_incs_from_hbai(
        @assert false  "$person is neither head or spouse in hbai assignment; sernum=$sernum benunit=$benunit"
    end
 end
+
+#
+# @returns ns for the JSType enum -1=no 1=cont, 2=income 3=mixed
+#
+function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Integer
+   ad_frs = frs_res[((frs_res.sernum.==sernum ).&
+                     (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp]]
+   @assert size( ad_frs )[1] .== 1
+   af = ad_frs[1,:]
+   jsa = head ? af.jsatyphd : af.jsatypsp
+   if jsa == -1
+        return -1
+    elseif jsa in [1,3]
+        return 1
+    elseif jsa in [2,4]
+        return 2
+    elseif jsa in [5,6]
+        return 3
+    else
+        @assert false "$jsa not mapped"
+    end 
+    
+    # see benefits PDF file 
+    # 1 = Contributory
+    # 2 = Income Based
+    # 3 = Contributory (Imputed)
+    #  4 = Income Based (Imputed)
+    # 5 = Both contributory and income based
+    # 6 = Both contributory and income based (Imputed)
+    
+end
+
 
 
 function initialise_person(n::Integer)::DataFrame
@@ -911,6 +958,18 @@ function create_adults(
             model_adult.age = frs_person.age80
             model_adult.sex = safe_assign(frs_person.sex)
             model_adult.ethnic_group = safe_assign(frs_person.ethgr3)
+            
+            hdsp = is_bu_head( 
+                hbai_res,
+                frs_person.sernum,
+                frs_person.benunit,
+                frs_person.person )
+            
+            model_adult.jsa_type = make_jsa_type( 
+                frs_person.sernum,
+                frs_person.benunit,
+                hdsp )
+            
             # plan 'B' wages and SE from HBAI; first work out hd/spouse so we can extract right ones
             # is_hbai_spouse = ( model_hbai.personsp == model_hbai.person )
             # is_hbai_head = ( model_hbai.personhd == model_hbai.person )
@@ -1039,6 +1098,15 @@ function create_adults(
 
             model_adult.is_informal_carer = (frs_person.carefl == 1 ? 1 : 0) # also kid
             process_relationships!( model_adult, frs_person )
+            #
+            # illness benefit levels
+            # See the note on this in docs/
+            model_adult.dlaself_care_type = map123( )
+            model_adult.dlamobility_type = map123( )
+            model_adult.attendence_allowance_type = map123()
+            model_adult.personal_independence_payment_daily_living_type = map123()
+            model_adult.personal_independence_payment_mobility_type  = map123()
+            
         end # if in HBAI
     end # adult loop
     println("final adno $adno")

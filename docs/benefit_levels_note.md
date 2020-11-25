@@ -20,6 +20,7 @@ DLA Mobility
 ## Combined UK 2015-18 Data 
 
 ```julia
+using DataFrames,CSV
 
 ukp = CSV.File( "model_people.tab" ) |> DataFrame
 dropmissing!( ukp, [:income_attendence_allowance] )
@@ -103,7 +104,8 @@ See: large_dla_breakdown.ods
 
 Note 
 
-Conclusion from that: God knows. Only a few appear to be payments for a couple rolled into one.
+Conclusion from that: God knows. Some may be payments for a couple rolled into one. Most are combinations of 2 payments, but some of those are for single people. Poss bug in dwp imputation algo?
+Only 2 scottish cases though, so I'm just flagging & moving on.
 
 ## AA
 

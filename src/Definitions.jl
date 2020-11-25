@@ -1420,8 +1420,8 @@ end
 
 @enum JSAType begin
     no_jsa = -1
-    contributory = 1 
-    income_related =2 
+    contributory_jsa = 1 
+    income_related_jsa =2 
     both_jsa = 3
 end
 export JSAType, contributory, income_related, both_jsa, no_jsa
