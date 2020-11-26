@@ -67,7 +67,7 @@ hacky hack to hack PIP, etc into l/h
 function map12( v :: Union{Missing,Real}, amt :: Real ) :: Integer
     r = -1
     if (! ismissing(v)) && v > 0
-            r = v <= amt ? 1 : 2
+        r = v <= amt ? 1 : 2
     end
     @assert r in [-1,1,2]
     return r
