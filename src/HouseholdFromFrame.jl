@@ -147,7 +147,7 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
 
         income,
         
-        JSAType(safe_assign(model_person.jsa_type),
+        JSAType(safe_assign(model_person.jsa_type)),
         LowMiddleHigh( safe_assign( model_person.dlaself_care_type )),
         LowMiddleHigh( safe_assign( model_person.dlamobility_type)),
         LowMiddleHigh( safe_assign( model_person.attendence_allowance_type )),
@@ -183,7 +183,7 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         Fuel_Type( m2z(model_person.company_car_fuel_type )),
         m2z(model_person.company_car_value),
         m2z(model_person.company_car_contribution),
-        m2z(model_person.fuel_supplied),
+        m2z(model_person.fuel_supplied)
 
     )
 

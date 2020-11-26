@@ -1416,8 +1416,6 @@ export
     upr_shares
 end
 
-@enum JSAType  
-
 @enum JSAType begin
     no_jsa = -1
     contributory_jsa = 1 

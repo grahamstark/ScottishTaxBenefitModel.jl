@@ -90,7 +90,7 @@ function is_bu_head(
     hbai_res :: DataFrame,  
     sernum::Integer,
     benunit  :: Integer,
-    person :: Integer  ) :: Boolean
+    person :: Integer  ) :: Bool
     ad_hbai = hbai_res[((hbai_res.sernum.==sernum ).&
                        ((hbai_res.personhd.==person).|(hbai_res.personsp.==person)) .&
                        (hbai_res.benunit.==benunit)), :]
@@ -1004,6 +1004,7 @@ function create_adults(
                 frs_person.person )
             
             model_adult.jsa_type = make_jsa_type( 
+                frsx,
                 frs_person.sernum,
                 frs_person.benunit,
                 hdsp )
@@ -1140,7 +1141,7 @@ function create_adults(
             # illness benefit levels
             # See the note on this in docs/
             model_adult.dlaself_care_type = map123( model_adult.income_dlaself_care, [30, 60 ] )
-            model_adult.dlamobility_type = map123(model_adult.income_dlamobiliity, [30] )
+            model_adult.dlamobility_type = map123(model_adult.income_dlamobility, [30] )
             model_adult.attendence_allowance_type = map123( model_adult.income_attendence_allowance, [65] )
             model_adult.personal_independence_payment_daily_living_type = map12( model_adult.income_personal_independence_payment_daily_living, 65 )
             model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )
@@ -1367,8 +1368,9 @@ function create_data()
     for year in 2015:2018
         # we only want this massive thing for a couple of
         # benefit variables.
-        ystr = "$(year)$year+1)"
-        frsx = loadfrs( "frs$ystr" )
+        y = year - 2000
+        ystr = "$(y)$(y+1)"
+        frsx = loadfrs( "frs$ystr", year )
         hbai_res = loadtoframe("$(HBAI_DIR)/tab/"*HBAIS[year])
         print("on year $year ")
         accounts = loadfrs("accounts", year)
