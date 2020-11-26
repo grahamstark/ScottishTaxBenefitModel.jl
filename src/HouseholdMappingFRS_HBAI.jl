@@ -35,6 +35,44 @@ function is_in_hbai(
 
 end
 
+"""
+hacky hack to hack AA, etc into l/m/h, sometimes without the m
+"""
+function map123( v :: Union{Missing,Real}, amts :: Vector ) :: Integer
+    n = size(amts)[1]
+    @assert n in [1,2]
+    # println(n)
+    r = -1
+    if (! ismissing(v)) && v > 0
+        if n == 1
+            r = v <= amts[1] ? 1 : 3
+        else
+            # println("r=$r")
+            if v <= amts[1]
+                r = 1
+            elseif v <= amts[2]
+                r = 2
+            else
+                r = 3
+            end
+        end
+    end
+    @assert r in [-1,1,2,3]
+    return r
+end
+
+"""
+hacky hack to hack PIP, etc into l/h
+"""
+function map12( v :: Union{Missing,Real}, amt :: Real ) :: Integer
+    r = -1
+    if (! ismissing(v)) && v > 0
+            r = v <= amt ? 1 : 2
+    end
+    @assert r in [-1,1,2]
+    return r
+end
+
 
 function is_in_hbai(
   hbai_res :: DataFrame,
@@ -1101,11 +1139,11 @@ function create_adults(
             #
             # illness benefit levels
             # See the note on this in docs/
-            model_adult.dlaself_care_type = map123( )
-            model_adult.dlamobility_type = map123( )
-            model_adult.attendence_allowance_type = map123()
-            model_adult.personal_independence_payment_daily_living_type = map123()
-            model_adult.personal_independence_payment_mobility_type  = map123()
+            model_adult.dlaself_care_type = map123( model_adult.income_dlaself_care, [30, 60 ] )
+            model_adult.dlamobility_type = map123(model_adult.income_dlamobiliity, [30] )
+            model_adult.attendence_allowance_type = map123( model_adult.income_attendence_allowance, [65] )
+            model_adult.personal_independence_payment_daily_living_type = map12( model_adult.income_personal_independence_payment_daily_living, 65 )
+            model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )
             
         end # if in HBAI
     end # adult loop
