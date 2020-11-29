@@ -156,6 +156,9 @@ function oldest_person( people :: People_Dict ) :: NamedTuple
     oldest
 end
 
+"""
+FIXME finish this!
+"""
 function equivalence_scale( people :: People_Dict ) :: Dict{Equivalence_Scale_Type,Real}
     np = length(people)
     eqp = Vector{EQ_Person}()
@@ -175,6 +178,7 @@ function equivalence_scale( people :: People_Dict ) :: Dict{Equivalence_Scale_Ty
         end
         push!( eqp, EQ_Person( person.age, eqtype ))
     end
+    ## FIXME TODO
     get_equivalence_scales( eqp )
 end
 
