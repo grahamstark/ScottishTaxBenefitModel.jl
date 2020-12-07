@@ -4,8 +4,8 @@ Graham Stark 07 Dec 2020.
 
 ## General
 
-* scope is Scotland, currently and reasonably foreseeable fiscal systems;
- - UK is likely needed for some purposes;
+* scope is Scotland, current and reasonably foreseeable fiscal systems;
+  - UK is likely needed for some purposes;
 * This is a *static, single period* model:
   - Entitlement to benefits, liability to tax;
   - single year;
