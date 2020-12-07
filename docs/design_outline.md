@@ -12,6 +12,7 @@ Graham Stark 07 Dec 2020.
   - dynamic features enabled by clean design, not built in;
 * results should be completely reproduceable:
   - randoms, sample selection, etc. should be parameterised, not built in;
+  - design for use with [Dr Watson](https://juliadynamics.github.io/DrWatson.jl/dev/);
 * accuracy of individual calculations over accuracy in aggregate:
   - use weighting routines sparingly, especially during development;
 * it's a model:
@@ -19,10 +20,11 @@ Graham Stark 07 Dec 2020.
 * other documentation: 
    - test suite is also key documentation;
    - annotated bibliography should be an output;
-* multiple front ends:
-   - Pluto;
-   - web using callbacks;
-   - embeddable module (e.g. in labour supply or macro models);
+* front-end is out-of-scope here:
+   - instead, make it easy to have multiple front ends, e.g:
+       - [Pluto](https://github.com/fonsp/Pluto.jl);
+       - web using callbacks;
+   - model should be an embeddable module (e.g. in labour supply or macro models);
 * Primary data is FRS:
    - don't attempt model that completely abstracts from FRS;
    - model consumption taxes either by merging LCF or estimating Engel Curves;
@@ -41,6 +43,7 @@ Practically all of this is violated in the actual code ..
      tax-benefit system, rather than hardcore specialists in any one of these things;
    - stick to aspects covered in a good introduction to the language;
    - avoid hard to understand things like Julia's interfaces, parallelism;
+   - 
 * give types to everything
    - function inputs & returns, elements of structs
    - this is for documentation & early detection of errors rather than
@@ -56,7 +59,8 @@ Practically all of this is violated in the actual code ..
 * designed to fail:
    - any unreasonable value should halt the program;
    - assertions on entry and exit from all important functions;
-* use [Blue Style](https://github.com/invenia/BlueStyle)
-   - I almost never do;
+* use [Blue Style](https://github.com/invenia/BlueStyle) and the [Julia Style Guide](https://docs.julialang.org/en/v1/manual/style-guide/):
+   - I almost never have;
+   - Also [Art of Readable Code](https://www.oreilly.com/library/view/the-art-of/9781449318482/)
 * keep user interface and graphics code completely seperate;
 * use DataFrames everywhere;
