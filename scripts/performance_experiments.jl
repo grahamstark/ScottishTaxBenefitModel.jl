@@ -1,91 +1,38 @@
-module GlobalTest
-
-    # 
-    # see: https://docs.julialang.org/en/v1/manual/performance-tips/
-    #
+#
+# various performance experiments with typing and constants
+#
     
-    using BenchmarkTools
-    using InteractiveUtils
-    
-    const N = 10_000
-    
-    GLOB_VAR = rand(N)
-    const GLOB_CONST = rand(N)
-    # const GLOB_CONST_TYPED::Vector{Float64} = rand(N)
-    # syntax: type declarations on global variables are not yet supported
+using BenchmarkTools
+using InteractiveUtils
+using Revise
 
-    const T = eltype(GLOB_VAR)
-    
-    function fv(x::Vector)::Real
-        s = 0.0
-        for i in x
-          s += i
-        end
-        s
-    end
+#
+# A). Speed tests of global variables
+# conclusion:
+#  1. anything other than a global untyped variable is roughly equivalent
+#  2. ... but we'll neeed to be v careful with specifying types exactly though parameters (see: B)
+include( "performance/globals.jl" )
 
-    function f_glob_const()::Real
-        s = 0.0
-        for i in GLOB_CONST
-             s += i
-        end
-        s
-    end
-              
-    function f_glob_var()::Real
-        s = 0.0
-        for i in GLOB_VAR
-            s += i
-        end
-        s
-    end             
+#
+# B) types of structures
+# conclusion: 
+#  1. we need explicit vectors, not abstract containers
+#  2. .. and explicit element types
+#  3. specialised functions make no difference
+include( "performance/structs.jl" )
 
-    function f_glob_var_typed()::Real
-        s = 0.0 
-        for i in GLOB_VAR::Vector{T}
-            s += i
-        end
-        s
-    end  
-    
-    function f_glob_var_semi_typed()::Real
-        s = 0.0
-        for i in GLOB_VAR::Vector
-            s += i
-        end
-        s
-    end   
-    
-    function f_glob_var_demi_typed()::Real
-        s = 0.0
-        for i in GLOB_VAR::Vector{<:Real}
-            s += i
-        end
-        s
-    end   
-    
-    function do_all()
-        t = Dict()            
-        t[:fv_glob_const] = @benchmark fv(GLOB_CONST) 
-        t[:fv_glob_var] = @benchmark fv(GLOB_VAR)
-        t[:f_glob_const] = @benchmark f_glob_const()
-        t[:f_glob_var] = @benchmark f_glob_var()
-        t[:f_glob_var_typed] = @benchmark f_glob_var_typed()
-        t[:f_glob_var_semi_typed] = @benchmark f_glob_var_semi_typed()
-        t[:f_glob_var_demi_typed] = @benchmark f_glob_var_demi_typed()
-        t
-    end
-end
-
-t = GlobalTest.do_all()
-
-# so, not the global variable that's the problem, 
-# if you pass the global in as a parameter.
-for (k,v) in t
-    println( "$k = " ) 
-    @show median( v )
-end
-
+#
+# C) type stability
+#
+# this is from https://docs.julialang.org/en/v1/manual/performance-tips/#Avoid-changing-the-type-of-a-variable
+#
+# conclusion: 
+#  1. add concrete types to local variables
+#  2. or initialise to something explicit
+#  3. abstract types can work as well in some cases (abstract float)
+#  4. adding return type doesn't seem to matter for performance purposes
+#
+include( "performance/stability.jl" )
 
 
 

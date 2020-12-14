@@ -9,7 +9,7 @@ export TaxResult, IncomesDict, RateBands
 export calctaxdue, calc_indirect, IndirResult,*,times
 
 # note: intialise like f::RateBands = zeros(0)
-const RateBands = AbstractArray{<:Real}
+const RateBands = Vector{<:Real}
 
 const IncomesDict = Dict{Any,Number}
 

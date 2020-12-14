@@ -412,12 +412,18 @@ const DISABLE_BENEFITS = [
     personal_independence_payment_mobility]
     
 
-const HIGH_DISAB_PROP = 3 # FIXME
 """
 FIXME this is just random .. every 3rd is severe
 """
 function is_severe_disability( pers :: Person )
-    return pers.pid % HIGH_DISAB_PROP == 0
+    return pers.dla_self_care_type == high ||
+           pers.dla_mobility_type == high ||
+           pers.attendence_allowance_type == high ||
+           pers.pip_daily_living_type == enhanced_pip ||
+           pers.pip_mobility_type == enhanced_pip ||
+           pers.adls_are_reduced == reduced_a_lot ||
+           pers.health_status == Very_Bad
+
 end    
 
 """
