@@ -299,7 +299,8 @@ module Results
 
     # create results that mirror some
     # allocation of people to benefit units
-    function init_household_result( hh :: Household{RT} ) :: HouseholdResult{RT} where RT <: Real
+    function init_household_result( hh :: Household ) :: HouseholdResult
+        RT = typeof( hh.council_tax )
         bus = get_benefit_units(hh)
         hr = HouseholdResult{RT}()
         for bu in bus

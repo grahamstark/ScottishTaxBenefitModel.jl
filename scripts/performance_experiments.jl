@@ -34,5 +34,10 @@ include( "performance/structs.jl" )
 #
 include( "performance/stability.jl" )
 
+#
+# D) getter pattern - as actually used in STB
+#
+include( "performance/getters.jl" )
+
 
 

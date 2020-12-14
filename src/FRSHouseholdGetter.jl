@@ -1,48 +1,48 @@
 module FRSHouseholdGetter
 
-using CSV
-import DataFrames: DataFrame
-
-import ScottishTaxBenefitModel: ModelHousehold, Definitions, HouseholdFromFrame
-
-using .Definitions
-import .ModelHousehold: Household, uprate!
-import .HouseholdFromFrame: load_hhld_from_frame
-
-export initialise, get_household, num_households
-
-## FIXME make a constant? As per julia performance guide?
-MODEL_HOUSEHOLDS = Vector{Household}(undef,0)
-
-"""
-return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
-"""
-function initialise(
-        ;
-        household_name :: AbstractString = "model_households",
-        people_name :: AbstractString = "model_people",
-        start_year = -1 ) :: Tuple
-
-    global MODEL_HOUSEHOLDS
-    hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab" ) |> DataFrame
-    people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab") |> DataFrame
-    npeople = size( people_dataset)[1]
-    nhhlds = size( hh_dataset )[1]
-    MODEL_HOUSEHOLDS = Vector{Household}(undef,nhhlds)
-    for hseq in 1:nhhlds
-        MODEL_HOUSEHOLDS[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
-        uprate!( MODEL_HOUSEHOLDS[hseq] )
+    using CSV
+    import DataFrames: DataFrame
+    
+    import ScottishTaxBenefitModel: ModelHousehold, Definitions, HouseholdFromFrame
+    
+    using .Definitions
+    import .ModelHousehold: Household, uprate!
+    import .HouseholdFromFrame: load_hhld_from_frame
+    
+    export initialise, get_household, num_households
+    
+    ## FIXME make a constant? As per julia performance guide?
+    MODEL_HOUSEHOLDS = Vector{Household}(undef,0)
+    
+    """
+    return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
+    """
+    function initialise(
+            ;
+            household_name :: AbstractString = "model_households",
+            people_name :: AbstractString = "model_people",
+            start_year = -1 ) :: Tuple
+    
+        global MODEL_HOUSEHOLDS
+        hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab" ) |> DataFrame
+        people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab") |> DataFrame
+        npeople = size( people_dataset)[1]
+        nhhlds = size( hh_dataset )[1]
+        MODEL_HOUSEHOLDS = Vector{Household}(undef,nhhlds)
+        for hseq in 1:nhhlds
+            MODEL_HOUSEHOLDS[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
+            uprate!( MODEL_HOUSEHOLDS[hseq] )
+        end
+        (size(MODEL_HOUSEHOLDS)[1],npeople,nhhlds)
     end
-    (size(MODEL_HOUSEHOLDS)[1],npeople,nhhlds)
-end
-
-function get_household( pos :: Integer ) :: Household
-    global MODEL_HOUSEHOLDS
-    MODEL_HOUSEHOLDS[pos]
-end
-
-function get_num_households()::Integer
-    return size( MODEL_HOUSEHOLDS )[1]
-end
+    
+    function get_household( pos :: Integer ) :: Household
+        global MODEL_HOUSEHOLDS
+        MODEL_HOUSEHOLDS[pos]
+    end
+    
+    function get_num_households()::Integer
+        return size( MODEL_HOUSEHOLDS )[1]
+    end
 
 end # module

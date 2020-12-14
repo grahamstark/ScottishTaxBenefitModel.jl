@@ -312,7 +312,7 @@ module Runner
 
     function do_one_run!(
         settings :: RunSettings,
-        params :: Vector{TaxBenefitSystem{RT}} ) where RT<:Real
+        params   :: Vector{TaxBenefitSystem} )
         num_systems = size( params )[1]
         println("start of do_one_run; params:")
         for p in 1:num_systems

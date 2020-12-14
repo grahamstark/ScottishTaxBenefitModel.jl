@@ -24,9 +24,9 @@ module STBParameters
 
     function SAVINGS_INCOME( t :: Type ) :: Incomes_Dict
         Incomes_Dict{t}(
-            bank_interest => 1.0,
-            bonds_and_gilts => 1.0,
-            other_investment_income => 1.0 )
+            bank_interest => one(t),
+            bonds_and_gilts => one(t),
+            other_investment_income => one(t) )
     end
   
     """
@@ -38,39 +38,39 @@ module STBParameters
     function LEGACY_MT_INCOME( t :: Type ):: Incomes_Dict
         # wages and SE treated seperately
         Incomes_Dict{t}(
-            other_income=> 1.0,
-            carers_allowance=>1.0,
-            alimony_and_child_support_received=> 1.0, # FIXME there is a 15 disregard see pp 438
+            other_income=> one( t ),
+            carers_allowance=>one( t ),
+            alimony_and_child_support_received=> one( t ), # FIXME there is a 15 disregard see pp 438
             alimony_and_child_support_paid=> 0.0,
-            student_loan_repayments=> -1.0,
-            education_allowances=> 1.0,
-            foster_care_payments=> 1.0,
+            student_loan_repayments=> -one( t ),
+            education_allowances=> one( t ),
+            foster_care_payments=> one( t ),
             # it and NI dealt with in wage seperately
-            state_pension=> 1.0,
-            private_pensions => 1.0,
+            state_pension=> one( t ),
+            private_pensions => one( t ),
             bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 0.0,
-            war_widows_or_widowers_pension=> 1.0,
-            jobseekers_allowance=> 1.0, ## contribution based
-            industrial_injury_disablement_benefit=> 1.0,
-            incapacity_benefit=> 1.0,
-            maternity_allowance=> 1.0,
-            maternity_grant_from_social_fund=> 1.0,
-            funeral_grant_from_social_fund=> 1.0,
-            any_other_ni_or_state_benefit=> 1.0,
-            trade_union_sick_or_strike_pay=> 1.0,
-            friendly_society_benefits=> 1.0,
-            working_tax_credit => 1.0,
-            private_sickness_scheme_benefits=> 1.0,
-            accident_insurance_scheme_benefits=> 1.0,
-            hospital_savings_scheme_benefits=> 1.0,
-            government_training_allowances=> 1.0,
-            guardians_allowance=> 1.0,
-            widows_payment=> 1.0,
-            unemployment_or_redundancy_insurance=> 1.0,
-            winter_fuel_payments=> 1.0,
-            dwp_third_party_payments_is_or_pc=> 1.0,
-            dwp_third_party_payments_jsa_or_esa=> 1.0,
-            extended_hb=> 1.0 # what is this?
+            war_widows_or_widowers_pension=> one( t ),
+            jobseekers_allowance=> one( t ), ## contribution based
+            industrial_injury_disablement_benefit=> one( t ),
+            incapacity_benefit=> one( t ),
+            maternity_allowance=> one( t ),
+            maternity_grant_from_social_fund=> one( t ),
+            funeral_grant_from_social_fund=> one( t ),
+            any_other_ni_or_state_benefit=> one( t ),
+            trade_union_sick_or_strike_pay=> one( t ),
+            friendly_society_benefits=> one( t ),
+            working_tax_credit => one( t ),
+            private_sickness_scheme_benefits=> one( t ),
+            accident_insurance_scheme_benefits=> one( t ),
+            hospital_savings_scheme_benefits=> one( t ),
+            government_training_allowances=> one( t ),
+            guardians_allowance=> one( t ),
+            widows_payment=> one( t ),
+            unemployment_or_redundancy_insurance=> one( t ),
+            winter_fuel_payments=> one( t ),
+            dwp_third_party_payments_is_or_pc=> one( t ),
+            dwp_third_party_payments_jsa_or_esa=> one( t ),
+            extended_hb=> one( t ) # what is this?
         )
     end
 
@@ -82,19 +82,19 @@ module STBParameters
         # since these are passported this should only
         # ever matter if we have a 'passporting' switch
         # and it's turned off, but anyway ....
-        inc[income_support] = 1.0
-        inc[jobseekers_allowance] = 1.0
-        inc[employment_and_support_allowance] = 1.0
-        inc[child_tax_credit] = 1.0
+        inc[income_support] = one( t )
+        inc[jobseekers_allowance] = one( t )
+        inc[employment_and_support_allowance] = one( t )
+        inc[child_tax_credit] = one( t )
         return inc
     end
 
     ### NOT USED
     function LEGACY_PC_INCOME(t::Type)::Incomes_Dict
         inc = LEGACY_MT_INCOME(t)
-        inc[income_support] = 1.0
-        inc[jobseekers_allowance] = 1.0
-        inc[employment_and_support_allowance] = 1.0
+        inc[income_support] = one( t )
+        inc[jobseekers_allowance] = one( t )
+        inc[employment_and_support_allowance] = one( t )
         delete!(inc, working_tax_credit )
         return inc
     end
@@ -121,37 +121,37 @@ module STBParameters
 
     function Exempt_Income( t :: Type ) :: Incomes_Dict
         Incomes_Dict{t}(
-            carers_allowance=>1.0,
-            jobseekers_allowance =>1.0,
-            free_school_meals => 1.0,
-            dlaself_care => 1.0,
-            dlamobility => 1.0,
-            child_benefit => 1.0,
-            pension_credit => 1.0,
-            bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 1.0,
-            armed_forces_compensation_scheme => 1.0, # FIXME not in my list check this
-            war_widows_or_widowers_pension => 1.0,
-            severe_disability_allowance => 1.0,
-            attendence_allowance => 1.0,
-            industrial_injury_disablement_benefit => 1.0,
-            employment_and_support_allowance => 1.0,
-            incapacity_benefit => 1.0,## taxable after 29 weeks,
-            income_support => 1.0,
-            maternity_allowance => 1.0,
-            maternity_grant_from_social_fund => 1.0,
-            funeral_grant_from_social_fund => 1.0,
-            guardians_allowance => 1.0,
-            winter_fuel_payments => 1.0,
-            dwp_third_party_payments_is_or_pc => 1.0,
-            dwp_third_party_payments_jsa_or_esa => 1.0,
-            extended_hb => 1.0,
-            working_tax_credit => 1.0,
-            child_tax_credit => 1.0,
-            working_tax_credit_lump_sum => 1.0,
-            child_tax_credit_lump_sum => 1.0,
-            housing_benefit => 1.0,
-            universal_credit => 1.0,
-            personal_independence_payment_daily_living => 1.0,
+            carers_allowance=>one( t ),
+            jobseekers_allowance =>one( t ),
+            free_school_meals => one( t ),
+            dlaself_care => one( t ),
+            dlamobility => one( t ),
+            child_benefit => one( t ),
+            pension_credit => one( t ),
+            bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> one( t ),
+            armed_forces_compensation_scheme => one( t ), # FIXME not in my list check this
+            war_widows_or_widowers_pension => one( t ),
+            severe_disability_allowance => one( t ),
+            attendence_allowance => one( t ),
+            industrial_injury_disablement_benefit => one( t ),
+            employment_and_support_allowance => one( t ),
+            incapacity_benefit => one( t ),## taxable after 29 weeks,
+            income_support => one( t ),
+            maternity_allowance => one( t ),
+            maternity_grant_from_social_fund => one( t ),
+            funeral_grant_from_social_fund => one( t ),
+            guardians_allowance => one( t ),
+            winter_fuel_payments => one( t ),
+            dwp_third_party_payments_is_or_pc => one( t ),
+            dwp_third_party_payments_jsa_or_esa => one( t ),
+            extended_hb => one( t ),
+            working_tax_credit => one( t ),
+            child_tax_credit => one( t ),
+            working_tax_credit_lump_sum => one( t ),
+            child_tax_credit_lump_sum => one( t ),
+            housing_benefit => one( t ),
+            universal_credit => one( t ),
+            personal_independence_payment_daily_living => one( t ),
             personal_independence_payment_mobility => 1.0 )
     end
 
