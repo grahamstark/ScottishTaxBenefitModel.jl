@@ -1,7 +1,6 @@
 #
 # various performance experiments with typing and constants
-#
-    
+#  
 using BenchmarkTools
 using InteractiveUtils
 using Revise
@@ -36,7 +35,8 @@ include( "performance/stability.jl" )
 
 #
 # D) getter pattern - as actually used in STB
-#
+# conclusion:
+# 1. variable access much slower
 include( "performance/getters.jl" )
 
 #
