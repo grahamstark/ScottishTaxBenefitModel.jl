@@ -7,6 +7,9 @@
 
 module Structs
 
+    using BenchmarkTools
+    using InteractiveUtils
+
     abstract type TestType end
     
     struct Untyped <: TestType
