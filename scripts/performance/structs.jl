@@ -53,34 +53,36 @@ module Structs
         s
     end
     
-    NA = 10_000
-    nums = rand(NA)
-    type_suite = BenchmarkGroup()
-    
-    println( "Untyped" )
-    type_suite[:Untyped] = @benchmark f( Untyped( nums ))
-    
-    println( "FixedType" )
-    type_suite[:FixedType] = @benchmark f( FixedType( nums ))
-    
-    println( "SemiFixedType1" )
-    type_suite[:SemiFixedType1] =  @benchmark f( SemiFixedType1( nums ))
-    
-    println( "SemiFixedType2" )
-    type_suite[:SemiFixedType2] = @benchmark f( SemiFixedType2( nums ))
-    
-    println( "SemiParameterisedType" )
-    a = SemiParameterisedType{Float64}( nums )
-    type_suite[:SemiParameterisedType] = @benchmark f( a )
-    
-    println( "ParameterisedType" )
-    b = ParameterisedType{Vector{Float64}}( nums )
-    type_suite[:ParameterisedType] = @benchmark f( b )
-    
-    println( "ParameterisedType(2)" )
-    type_suite[:ParameterisedTypeWithSpecialisedFunction] = @benchmark f2( b )
-    
+    function do_all()
+        NA = 10_000
+        nums = rand(NA)
+        type_suite = BenchmarkGroup()
+        
+        println( "Untyped" )
+        type_suite[:Untyped] = @benchmark f( Untyped( nums ))
+        
+        println( "FixedType" )
+        type_suite[:FixedType] = @benchmark f( FixedType( nums ))
+        
+        println( "SemiFixedType1" )
+        type_suite[:SemiFixedType1] =  @benchmark f( SemiFixedType1( nums ))
+        
+        println( "SemiFixedType2" )
+        type_suite[:SemiFixedType2] = @benchmark f( SemiFixedType2( nums ))
+        
+        println( "SemiParameterisedType" )
+        a = SemiParameterisedType{Float64}( nums )
+        type_suite[:SemiParameterisedType] = @benchmark f( a )
+        
+        println( "ParameterisedType" )
+        b = ParameterisedType{Vector{Float64}}( nums )
+        type_suite[:ParameterisedType] = @benchmark f( b )
+        
+        println( "ParameterisedType(2)" )
+        type_suite[:ParameterisedTypeWithSpecialisedFunction] = @benchmark f2( b )
+        type_suite
+    end
     
 end
 
-Structs.type_suite
+Structs.do_all()
