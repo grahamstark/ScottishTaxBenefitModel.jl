@@ -52,12 +52,24 @@ module Structs
         end
         s
     end
+
+    const NA = 10_000
+    const nums = rand(NA)
     
     function do_all()
-        NA = 10_000
-        nums = rand(NA)
         type_suite = BenchmarkGroup()
         
+        println( "SemiParameterisedType" )
+        # a = 
+        type_suite[:SemiParameterisedType] = @benchmark f( SemiParameterisedType{Float64}( nums ) )
+        
+        println( "ParameterisedType" )
+        # b = 
+        type_suite[:ParameterisedType] = @benchmark f( ParameterisedType{Vector{Float64}}( nums ))
+        
+        println( "ParameterisedType(2)" )
+        type_suite[:ParameterisedTypeWithSpecialisedFunction] = @benchmark f2( ParameterisedType{Vector{Float64}}( nums ) )
+        type_suite
         println( "Untyped" )
         type_suite[:Untyped] = @benchmark f( Untyped( nums ))
         
@@ -69,17 +81,6 @@ module Structs
         
         println( "SemiFixedType2" )
         type_suite[:SemiFixedType2] = @benchmark f( SemiFixedType2( nums ))
-        
-        println( "SemiParameterisedType" )
-        a = SemiParameterisedType{Float64}( nums )
-        type_suite[:SemiParameterisedType] = @benchmark f( a )
-        
-        println( "ParameterisedType" )
-        b = ParameterisedType{Vector{Float64}}( nums )
-        type_suite[:ParameterisedType] = @benchmark f( b )
-        
-        println( "ParameterisedType(2)" )
-        type_suite[:ParameterisedTypeWithSpecialisedFunction] = @benchmark f2( b )
         type_suite
     end
     
