@@ -1,0 +1,2 @@
+/usr/bin/svn commit vw  -m ""
+/usr/local/bin/jekyll build --source /home/graham_s/static_sites/vwblog/ --dest /var/www/vwblog/ 
