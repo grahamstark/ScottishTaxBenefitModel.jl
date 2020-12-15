@@ -39,5 +39,11 @@ include( "performance/stability.jl" )
 #
 include( "performance/getters.jl" )
 
-
-
+#
+# E) Mockup of hhld getter
+# conclusion:
+# 1. if you're using a getter, wrap the array in a type, so you can give the
+#  array a type and declare a constant. 
+# 2. without the getter, just using array accesses is the same with vars and consts
+#  so long as the thing creating the array creates an array with a fully defined type.
+include( "performance/hhld_example.jl" )
