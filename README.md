@@ -5,8 +5,8 @@
 A Tax Benefit Model is a computer program that calculates the effects of possible changes to the fiscal system, for example tax increases or cash benefit reforms. 
 
 We take a dataset with information on incomes, demographics, spending, etc. for a representative
-sample of households. The model loops over the households in the dataset, calculating for each one how much tax the household members are liable for, and how much they are due in benefits. If the sample dataset is representative of the population, and the modelling sufficiently accurate, the model can then tell you what the effects of some tax change or benefit reform would be: their net cost, the numbers who are made better or worse off, the effective tax rates faced by
-different individuals, the numbers taken in and out of poverty, and much else.
+sample of households. The model loops over the households in the dataset, calculating for each one how much tax the household members are liable for, and how much they are due in benefits. If the sample dataset is representative of the population, and the modelling sufficiently accurate, the model can then tell you what the effects of some tax change or benefit reform would be: the total cost, the how many people would be made better or worse off, the effective tax rates faced by
+different individuals, how many households are taken in and out of poverty, whether inequality is increased or lessened, and much else.
 
 This is a Tax Benefit Model for Scotland. To my knowledge, this is the first model specifically built for Scotland, and
 the first fully Open Source one anywhere. It is designed to use data from the [Family Resources Survey](https://www.ons.gov.uk/surveys/informationforhouseholdsandindividuals/householdandindividualsurveys/familyresourcessurvey), possibly
