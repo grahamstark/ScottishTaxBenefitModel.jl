@@ -2,8 +2,7 @@
 layout: post
 date:   2020-12-16
 category: Programming
-tag: Julia 
-tag: Antipatterns
+tags: Anti-patterns Julia
 title: I 💓 Antipatterns
 author: graham_s
 
