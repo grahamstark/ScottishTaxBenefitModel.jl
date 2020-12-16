@@ -1,8 +1,10 @@
 ---
-layout: default
-date:   2020-07-08 20:00 +0100
+layout: post
+date:   2020-07-08
 category: Blog
-tags: Tax Benefit
+tag: Tax Benefit Model
+tag: Scotland
+tag: Programming
 title: Making A Start
 author: graham_s
 ---

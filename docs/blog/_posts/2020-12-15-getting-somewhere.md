@@ -2,7 +2,9 @@
 layout: post
 date:   2020-12-15
 category: Blog
-tags: Tax Benefit
+tag: Tax Benefit Model
+tag: Scotland
+tag: Programming
 title: Getting Somewhere, and a Mild Rant
 author: graham_s
 ---

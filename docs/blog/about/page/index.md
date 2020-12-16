@@ -17,7 +17,6 @@ title: Links
 [Julialang](https://julialang.org)&#128312;
 [JuliaHub](https://juliahub.com)&#128312;
 [Docs](https://docs.julialang.org/en/v1/)&#128312;
-[Book](/home/graham_s/julia/book/9781838648817-HANDSON_DESIGN_PATTERNS_AND_BEST_PRACTICES_WITH_JULIA.pdf)&#128312;
 [Documenter](https://juliadocs.github.io/Documenter.jl/stable/)&#128312;
 [Style Guide](https://github.com/invenia/BlueStyle)&#128312;
 [Big Reddit List](https://www.reddit.com/r/Julia/comments/e6pspx/a_collection_of_julia_links_and_resources/)&#128312;
