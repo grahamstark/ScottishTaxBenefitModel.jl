@@ -655,4 +655,7 @@ hr.slender {
 
 // gks
 .even-smaller { font-size: 65%; }
-.even-smaller a{ color: $contrast-color; text-decoration: none; }
+.even-smaller a{ 
+    color: $contrast-color; 
+    text-decoration-line: none; 
+}
