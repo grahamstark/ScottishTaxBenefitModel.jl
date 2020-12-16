@@ -1,6 +1,6 @@
 ---
 layout: post
-date:   2020-12-15
+date:   2020-12-16
 category: Programming
 tag: Julia 
 tag: Antipatterns
