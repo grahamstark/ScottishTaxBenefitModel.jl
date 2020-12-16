@@ -34,7 +34,9 @@ html, body { height: 100%; }
 //html { font-size: 15px; }
 
 html{
-    text-align: baseline;
+    // text-align: baseline;
+    // GKS
+    text-align: justify;
     font-size: 11px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -238,10 +240,15 @@ article { position: relative;
 section { padding-top: 1rem;
           padding-bottom: 1rem; }
 
-ul,ol { width: 45%;
+// GKS put bullet type back in, and full width on lists
+ul,ol { 
+    padding-left: 2.5rem;
+    width: 50%;
      -webkit-padding-start: 5%;
      -webkit-padding-end: 5%;
-     list-style-type: none; }
+    list-style-type: circle;
+   //  list-style-type: none; 
+}
 
 //li { padding: 0.5em 0; } //vertical padding on list items screws up vertical rhythym
 

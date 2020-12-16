@@ -12,7 +12,11 @@ title: Scottish Tax Benefit Model Blog
           <a href="{{ post.url}}"><h3 class="contrast">{{ post.title }}</h3></a>
           <br><span class="smaller">{{ post.date | date: "%B %-d, %Y" }}</span>  <br/>
           <div>{{ post.excerpt }}</div>
-          <span class="smaller">Category: {{post.category}}</span>
+          <span class="smaller">Category: {{post.category}} | Tags:  
+          {% for t in post.tags %}
+            {{t}} 
+          {% endfor %}
+          </span>
         </li>
         
     {% endfor %}
