@@ -2,10 +2,11 @@
 
 ## This is in development and not ready for use
 
-A Tax Benefit Model is a computer program that calculates the effects of possible changes to the fiscal system on a
-sample of households. We take a dataset with information on incomes, demographics, spending, etc. for a representative
-sample of households, and each of the households calculate how much tax the household members are liable for under some
-proposed tax and benefit regime, and how much benefits they are entitled to, and add add up the results. If the sample
+A Tax Benefit Model is a computer program that calculates the effects of possible changes to the fiscal system, for example tax increases or cash benefit reforms. 
+
+We take a dataset with information on incomes, demographics, spending, etc. for a representative
+sample of households. For each household in that dataset, the model calculates how much tax the household members are liable for under some
+proposed tax and benefit regime, and how much benefits they are entitled to, and adds up the results. If the sample dataset
 is representative of the population, and the modelling sufficiently accurate, the model can then tell you, for example,
 the net costs of the proposals, the numbers who are made better or worse off, the effective tax rates faced by
 individuals, the numbers taken in and out of poverty by some change, and much else.
