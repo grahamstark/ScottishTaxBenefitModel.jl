@@ -1,1 +1,1 @@
-/usr/local/bin/jekyll build --source blog/ --dest /var/www/vwblog/ 
+/usr/local/bin/jekyll build --source blog/ --dest /var/www/stb-blog/ 

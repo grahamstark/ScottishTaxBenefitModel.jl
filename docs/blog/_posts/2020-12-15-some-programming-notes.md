@@ -1,21 +1,24 @@
 ---
 layout: post
 date:   2020-12-15
-category: Blog
-tags: Tax Benefit
+category: Programming
+tag: Tax Benefit Model
+tag: Julia 
+tag: Type Systems
 title: Some Programming Notes
 author: graham_s
+
 ---
 
 I really like [Julia](https://julialang.org/). It's a really nice combination of a 'proper' structured programming
-language and a data exploration tool. 
-
-But it has its quirks. 
+language and a data exploration tool. But it has its quirks. 
 
 One I'm struggling with is finding a good way to build a [package](https://julialang.org/packages/) with multiple
 [modules](https://docs.julialang.org/en/v1/manual/modules/). I want a seperate package for each main component, but to
 have one Scottish Tax Benefit Model package. You can kinda-sorta manage it with [child packages](), which is what I'm
 using, but it's akward. I might write up something about this: [Ada](https://www.adacore.com/about-ada) does this right.
+
+<!--more-->
 
 Julia can be really fast and efficient, but also a good dynamic prototying language. But that can be a problem because
 the dynamic stuff is naturally quite slow - a sort of 'PHP mode'. The key to getting it fast is to be sure that [the
@@ -57,9 +60,12 @@ const MODEL_HOUSEHOLDS = HHWrapper(Vector{Household{Float64}}(undef, 0 ))
 ```
 
 The `const` guarantees that the `MODEL_HOUSEHOLDS` global can't change type, and the `HHWrapper` is non-mutable, so all
-the type stability stuff is ensured. But since the `hhlds` field is a `vector`, in Julia, it's mutable even if in a
-immutable struct with a `const` instance. So the [data handling module](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/FRSHouseholdGetter.jl) can fill in the array with a single global
-(but hidden) instance with loads of households, but we get the speed advantages of static typing.
+the type stability stuff is ensured. But since the `hhlds` field is a `vector`, in Julia, it's mutable, in the sense
+that you can add and alter elements (of exactly the element type), even if in a immutable struct with a `const` instance.
+So the [data handling
+module](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/FRSHouseholdGetter.jl) can fill in the
+array with a single global (but hidden) instance with loads of households, but we get the speed advantages of static
+typing.
 
 This can be much faster. Here's some output from my speed test comparing conventional array access to a global variable
 to access to my constant wrapped version, from [my speed test script](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/scripts/performance/hhld_example.jl) on my laptop.

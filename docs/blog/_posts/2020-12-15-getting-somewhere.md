@@ -14,6 +14,8 @@ one was positive. So it's been a tricky few weeks. I'll maybe write an entire en
 
 On the model: I've been fitting it in amongst paid work, so progress is slower than I'd like. 
 
+<!--more-->
+
 I've been doing 'Legacy Means-Tested Benefits' - Pension Credit, Working Tax Credit and the like. It's been a chore. I
 haven't worked on this stuff in many years and I was shocked at how complicated it all was. One problem is that the main
 reference, the [Child Poverty Action Group's Welfare Right's

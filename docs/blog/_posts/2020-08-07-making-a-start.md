@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 date:   2020-07-08 20:00 +0100
 category: Blog
 tags: Tax Benefit
@@ -10,6 +10,8 @@ author: graham_s
 I'm writing a Scottish Tax Benefit model, and I thought I would blog my progress. I'm writing this mainly just for me,
 as a kind of journal; I really would be rather disturbed if anyone read much of it (but, if you do, welcome..). As much
 as anything I'd like some practice writing a few hundred words every day.
+
+<!--more-->
 
 Tonight I'm waiting for a Covid test result (J. and I both had a dry cough), and I'm having a [Twitter
 Argument](https://twitter.com/Malcolm4Linn/status/1291757194137014272), which are both great distractions. Plus some
