@@ -2,7 +2,7 @@ baseurl: https://stb-blog.virtual-worlds.scot
 title: Scottish Tax Benefit Model Blog
 subtitle: A little blog about microsimulaton
 author: Graham Stark
-simple_search: http://google.com/search
+simple_search: https://google.com/search
 description: A blog about building a simulation model
 name: Scottish Tax Benefit Model Blog
 markdown: kramdown
@@ -26,3 +26,18 @@ transfer:
   settings: -av
   source: _site/
   destination: 
+plugins:
+  - jekyll-archives
+  
+jekyll-archives:
+  enabled: 
+    - categories
+    - tags
+  layout: archive
+  nav_exclude: true
+  permalinks:
+    year: '/:year/'
+    month: '/:year/:month/'
+    day: '/:year/:month/:day/'
+    tag: '/tag/:name/'
+    category: '/category/:name/'

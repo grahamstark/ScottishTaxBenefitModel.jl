@@ -7,6 +7,7 @@ tag: Scotland
 tag: Programming
 title: Getting Somewhere, and a Mild Rant
 author: graham_s
+nav_exclude: true
 ---
 
 .. 3 months later.

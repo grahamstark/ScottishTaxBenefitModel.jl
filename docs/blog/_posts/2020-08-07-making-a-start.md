@@ -7,6 +7,7 @@ tag: Scotland
 tag: Programming
 title: Making A Start
 author: graham_s
+nav_exclude: true
 ---
 
 I'm writing a Scottish Tax Benefit model, and I thought I would blog my progress. I'm writing this mainly just for me,

@@ -7,7 +7,7 @@ tag: Julia
 tag: Type Systems
 title: Some Programming Notes
 author: graham_s
-
+nav_exclude: true
 ---
 
 I really like [Julia](https://julialang.org/). It's a really nice combination of a 'proper' structured programming

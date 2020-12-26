@@ -5,7 +5,7 @@ category: Programming
 tags: Anti-patterns Julia
 title: I 💓 Antipatterns
 author: graham_s
-
+nav_exclude: true
 ---
 
 I was reading [JuliaLang Antipatterns](https://www.oxinabox.net/2020/04/19/Julia-Antipatterns.html) by [Lyndon
