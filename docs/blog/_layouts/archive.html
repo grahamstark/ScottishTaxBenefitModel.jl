@@ -17,7 +17,7 @@ layout: full-width
           </span>
           <div class="smaller">
           {% if page.type == "tag" %}
-          Category: <a href="/category/{{post.category | slugify | downcase}}">{{post.category}}</a>
+            Category: <a href="/category/{{post.category | slugify | downcase}}">{{post.category}}</a>
           {% else %}
               {% if post.tags.size > 0 %}
                   Tags:

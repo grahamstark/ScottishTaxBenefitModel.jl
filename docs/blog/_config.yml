@@ -34,7 +34,6 @@ jekyll-archives:
     - categories
     - tags
   layout: archive
-  nav_exclude: true
   permalinks:
     year: '/:year/'
     month: '/:year/:month/'

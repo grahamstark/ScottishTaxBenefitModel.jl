@@ -5,7 +5,6 @@ category: Programming
 tags: Anti-patterns Julia
 title: I 💓 Antipatterns
 author: graham_s
-nav_exclude: true
 ---
 
 I was reading [JuliaLang Antipatterns](https://www.oxinabox.net/2020/04/19/Julia-Antipatterns.html) by [Lyndon
@@ -25,9 +24,27 @@ Dr. White writes:
 > for a function, you don’t need any type-constraints. If you must add type-constraints (for dispatch) do so as loosely as
 > possible. I will justify this claim in the following sections.
 
-I'm a strong typing guy. I want types everywhere.  
+Applications vs libraries
 
-(MORE)
+Ideal organisation - non programming specialists on a spectrum
+
+why not programming specialists plus subject specialists
+
+Defensive programming - spreadsheet error examples 
+
+IFS Taxben example - programmer proof. 
+
+So - case for strong(ish) possible typing. Can't rely on comments. Building data structures.
+
+Difference from library/compiler code.
+
+trade-offs 
+    
+* between generality and clarity - more clarity for an application
+* speed and accuracy no trade off and likely fewer eyes on the code 
+
+
+clarity - 
 
 
 
