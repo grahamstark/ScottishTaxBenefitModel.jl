@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.11.14
+# v0.12.17
 
 using Markdown
 using InteractiveUtils
@@ -70,6 +70,16 @@ hope.barks
 
 # ╔═╡ 940fd034-fde2-11ea-1fe2-97533b9dc40f
 hope.age == 4
+
+# ╔═╡ a8ff38e0-45c7-11eb-39ac-119d98bad749
+	struct Pers		
+		age :: Int
+		income :: Float64
+		sex :: Int
+	end
+
+# ╔═╡ e8aa0fae-45c7-11eb-03b2-cf5021684e7e
+g = Pers(62,25_000.0,1)
 
 # ╔═╡ d871fa52-fde2-11ea-1e58-a9ddbea34508
 md"""
@@ -314,6 +324,8 @@ last(select(sp, :income_wages => tiedrank,:income_wages => ordinalrank,:income_w
 # ╠═708ab7c8-fde2-11ea-32ac-b56e9df87ebe
 # ╠═83d83a9c-fde2-11ea-3512-9f140251a4e9
 # ╠═940fd034-fde2-11ea-1fe2-97533b9dc40f
+# ╠═a8ff38e0-45c7-11eb-39ac-119d98bad749
+# ╠═e8aa0fae-45c7-11eb-03b2-cf5021684e7e
 # ╟─d871fa52-fde2-11ea-1e58-a9ddbea34508
 # ╠═e8d7b7a4-fdd0-11ea-3e4e-d3cfcd789742
 # ╠═28ce666e-fdd1-11ea-2ae6-395356fc23e5

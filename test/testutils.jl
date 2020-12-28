@@ -89,15 +89,26 @@ function employ!( pers::Person, wage=600.00 )
    pers.income[wages] = wage   
 end
 
-function disable!( pers::Person )
+function disable_slightly!( pers::Person )
    pers.employment_status = Permanently_sick_or_disabled
    pers.health_status = Bad
+   pers.has_long_standing_illness = true
+   pers.adls_are_reduced = reduced_a_little
+   pers.how_long_adls_reduced = v_12_months_or_more
+   pers.disabilities[mobility] = true
+   pers.disabilities[stamina] = true
+end
+
+function disable_seriously!( pers::Person )
+   pers.employment_status = Permanently_sick_or_disabled
+   pers.health_status = Very_Bad
    pers.has_long_standing_illness = true
    pers.adls_are_reduced = reduced_a_lot
    pers.how_long_adls_reduced = v_12_months_or_more
    pers.disabilities[mobility] = true
    pers.disabilities[stamina] = true
 end
+
 
 function enable!( pers::Person )
    pers.health_status = Good

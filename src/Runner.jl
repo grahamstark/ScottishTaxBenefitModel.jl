@@ -149,14 +149,14 @@ module Runner
          total_indirect = zeros(RT,n))
     end
 
-    function initialise_frames( settings :: RunSettings, num_systems :: Integer, RT::DataType  ) :: NamedTuple
+    function initialise_frames( T::DataType, settings :: RunSettings, num_systems :: Integer  ) :: NamedTuple
         indiv = []
         bu = []
         hh = []
         for s in 1:num_systems
-            push!(indiv, make_individual_results_frame( RT, settings.num_people ))
-            push!(bu, make_bu_results_frame( RT, settings.num_people )) # overstates but we don't actually know this at the start
-            push!(hh, make_household_results_frame( RT, settings.num_households ))
+            push!(indiv, make_individual_results_frame( T, settings.num_people ))
+            push!(bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
+            push!(hh, make_household_results_frame( T, settings.num_households ))
         end
         (hh=hh, bu=bu, indiv=indiv)
     end
@@ -312,7 +312,7 @@ module Runner
 
     function do_one_run!(
         settings :: RunSettings,
-        params   :: Vector{TaxBenefitSystem} )
+        params   :: Vector{TaxBenefitSystem{T}} ) where T # fixme simpler way of declaring this?
         num_systems = size( params )[1]
         println("start of do_one_run; params:")
         for p in 1:num_systems
@@ -320,19 +320,21 @@ module Runner
             println(params[p].it)
         end
         if settings.num_households == 0
+            println( "getting households" )
             @time settings.num_households,
                 settings.num_people,
                 nhh2 = initialise(
                         household_name = settings.household_name,
                         people_name    = settings.people_name,
                         start_year     = settings.start_year )
-
-                @time weights = generate_weights( settings.num_households )
+            println( "generating weights" )
+            @time weights = generate_weights( settings.num_households )
         end
         # num_households=11048, num_people=23140
         # println( "settings $settings")
-        frames = initialise_frames( settings, num_systems, RT )
+        frames = initialise_frames( T, settings, num_systems )
         frame_starts = FrameStarts(0,0,0)
+        println( "starting run " )
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
             for sysno in 1:num_systems
@@ -341,6 +343,7 @@ module Runner
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts, num_systems )
             end
         end #household loop
+        println( "dumping frames" )
         dump_frames( settings, frames )
     end # do one run
 

@@ -201,7 +201,7 @@ end # test set
     @test ! eligs_cpl.wtc 
     @test eligs_cpl.ctr 
     
-    disable!( spouse )
+    disable_slightly!( spouse )
     intermed = make_intermediate( 
         1,
         cpl,  
@@ -376,7 +376,7 @@ end
     @test intermed.num_not_working == 2
     @test intermed.num_working_part_time == 0
     
-    disable!( spouse )
+    disable_slightly!( spouse )
     intermed = make_intermediate( 
         1,
         cpl,  
@@ -504,7 +504,7 @@ end
         ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.hb )
         @test ndd ≈ ndds[nt]
     end # loop round various incomes, unemployed
-    disable!( head )
+    disable_slightly!( head )
     head.income[attendence_allowance] = 100.0
     println( "Disabled")
     for i in 1:nt
@@ -858,7 +858,7 @@ end
         @test premia ≈ 0.0
         @test length(premset)==0 
     end
-    disable!( head )
+    disable_slightly!( head )
     intermed = make_intermediate( 
         1,
         cpl,  
@@ -881,6 +881,31 @@ end
         else
             @test premia == sys.lmt.premia.disability_single
             @test (disability_single ∈ premset) && length(premset)==1  
+        end
+    end
+    disable_seriously!( head )
+    intermed = make_intermediate( 
+        1,
+        cpl,  
+        sys.lmt.hours_limits,
+        sys.age_limits )
+    @test pers_is_disabled( head )
+    @test intermed.num_disabled_adults == 1
+    @test intermed.working_disabled
+    for ben in [hb,ctr,is,jsa,esa]
+        premia, premset = calc_premia( 
+            ben, 
+            cpl,            
+            intermed, 
+            sys.lmt.premia,
+            sys.age_limits )
+        println( "ben=$ben premia=$premia" )
+        if ben == esa
+            @test premia ≈ sys.lmt.premia.enhanced_disability_single
+            @test length(premset)==1 ## FIXME check this ESA allowed enhanced_disability_single
+        else
+            @test premia == sys.lmt.premia.disability_single+sys.lmt.premia.enhanced_disability_single
+            @test (enhanced_disability_single ∈ premset) && length(premset)==2  
         end
     end
     
