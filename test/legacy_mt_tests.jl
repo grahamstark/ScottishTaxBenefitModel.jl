@@ -908,9 +908,20 @@ end
             @test (enhanced_disability_single ∈ premset) && length(premset)==2  
         end
     end
-    
 end
 
+@testset  "from calculators tests #1" begin
+ keys = [ "B_1", "B_2", "B_3", "B_4", "B_5", "B_6", "B_7", "K3_1", 
+ "K3_2", "K3_3", "SP_1", "SP_2", "SP_3", "2C_1", "2C_2", "2C_3", "2C_4", "SE2_1", 
+ "2E_1", "2E_2", "CC_SE-1", "CC_SE-2", "CC_SE-3", "DC_1", "DC_2", "DC_3", "DA_1", 
+ "DA_2", "DA_3", "CL_1", "CL_2","CL_3" ]
+   for k in keys
+        println( "on key $k " )
+        res = spreadsheet_ss_example( k )
+        @test res.name !== ""
+        @test res.hh !== nothing
+   end
+end
 
 @testset "JSA" begin
     

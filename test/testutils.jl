@@ -177,13 +177,70 @@ function delete_child!( bu :: BenefitUnit, pid :: BigInt )
     for p in 1:nc
         if bu.childreen[p] == pid
             deleteat![p]
-            break;
+            break;fam
         end
     end
 end
 
-function spreadsheet_ss_examples() :: Household
-
-
+"""
+Extract a household from 
+"""
+function spreadsheet_ss_example( key :: String ) :: NamedTuple
+    # B_1	B_2	B_3	B_4	B_5	B_6	B7	K3_1	K3_2	K3_3	SP_1	SP_2	SP_3	2C_1	2C_2	2C_3	2C_4	SE2_1	2E_1	2E_2	CC_SE-1	CC_SE-2	CC_SE-3	DC_1	DC_2	DC_3	DA_1	DA_2	DA_3	CL_1	CL_2	CL_3
+    re = r"([A-Z0-9]+)_(.*)"        
+    m = match( re, key )
+    fam = m[1]
+    n = m[2]
+    examples = get_ss_examples()
+    name = ""
+    hh = nothing
+    rent = 600/4
+    ct = 123.25/4
+    if fam == "B"
+        name = "Basic Case; "
+        hh = examples[cpl_w_2_children_hh]
+        bu = get_benefit_units(cplhh)[1]
+        spouse = get_spouse( bu )
+        head = get_head( bu ) 
+        head.age = 40
+        head.usual_hours_worked = 40
+        incs = [
+        "1"= 7000.00,
+        "2" = 4,000.00	12,000.00	17,000.00	22,000.00	30,000.00	50,000.00
+            head.income[wages]=7_000.00/52.0
+            
+    elseif fam == "K3"
+        name = "3 Kids; "
+        hh = examples[cpl_w_2_children_hh]
+    elseif fam == "SP"
+        name = "Single Parent; "
+        hh = examples[single_parent_hh]
+    elseif fam == "SE2"
+        name = "Single Earner; "
+        hh = examples[cpl_w_2_children_hh]
+    elseif fam == "2C"
+        name = "Basic; 2 child limit test; "
+        hh = examples[cpl_w_2_children_hh]
+    elseif fam == "2E"
+        name = "2 Earner; "
+        hh = examples[cpl_w_2_children_hh]
+    elseif fam == "CC"
+        name = "Child Care; "
+        hh = examples[cpl_w_2_children_hh]
+    elseif fam == "DC"
+        name = "Disabled Child; "
+        hh = examples[cpl_w_2_children_hh]
+    elseif fam == "DA" 
+        name = "Disabled Adult; "
+        hh = examples[cpl_w_2_children_hh]
+    elseif fam == "CL"
+        name = "Childless; "
+        hh = examples[childless_couple_hh]
+    else
+        error( "unknown key $fam " )
+    end
+    hh.gross_rent = rent
+    hh.council_tax = ct
+    return ( name=name, hh=hh )
 end
 

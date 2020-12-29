@@ -560,7 +560,7 @@ function calc_premia(
             union!( premset,[disability_couple])
         end        
     end
-    if which_ben in [hb,ctr,esa,is,jsa]
+    if which_ben in [hb,ctr,esa,is,jsa] # FIXME check ESA here
         premia += intermed.num_severely_disabled_children*prem_sys.enhanced_disability_child
         if intermed.num_severely_disabled_children > 0
             union!( premset,[enhanced_disability_child] )
