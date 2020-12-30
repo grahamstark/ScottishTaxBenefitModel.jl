@@ -101,5 +101,19 @@ end
         println( "name=$name" )
         res = df[df.Key.==k,:][1,:]
         println( res.CTB_NEW )
+        
+        intermed = make_intermediate( 
+            1,
+            bu,  
+            lmt.hours_limits,
+            sys.age_limits )
+        calc_legacy_means_tested_benefits!(
+            buno = 1,
+            benefit_unit_result :: BenefitUnitResult,
+            benefit_unit = bu,
+            intermed = intermed,
+            age_limits = sys.age_limits 
+            mt_ben_sys = sys.LegacyMeansTestedBenefitSystem,
+            lha :: LocalHousingAllowance )
     end
 end
