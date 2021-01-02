@@ -67,4 +67,7 @@ export Weighting
 include( "Runner.jl" )
 export Runner
 
+include( "ParamsIO.jl" )
+export ParamsIO
+
 end

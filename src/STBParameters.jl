@@ -634,15 +634,5 @@ module STBParameters
         weeklyise!( tb.lmt )
     end
     
-    function to_file( filename :: String, tb :: TaxBenefitSystem )    
-        io = open( filename, "w")
-        JSON3.write( io, T7{Float64} )
-        close( io )
-    end
-    
-    function from_file( filename :: String, T :: Type ) :: TaxBenefitSystem
-    
-    end
-    
 
 end # module

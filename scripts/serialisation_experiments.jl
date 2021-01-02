@@ -126,7 +126,7 @@ module O
  
     T = Int
     
-    StructTypes.StructType(::Type{Main.N.X{<:Number}}) = StructTypes.Struct() # doesn't work
+    # StructTypes.StructType(::Type{Main.N.X{<:Number}}) = StructTypes.Struct() # doesn't work
     
     StructTypes.StructType(::Type{Main.N.X{T}}) = StructTypes.Struct()
     

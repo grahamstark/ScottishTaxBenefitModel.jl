@@ -1050,4 +1050,14 @@ function calc_legacy_means_tested_benefits!(
     end
 end
 
+function calc_legacy_means_tested_benefits!(
+            household_result :: HouseholdResult,
+            household :: Household,
+            age_limits :: AgeLimits, 
+            mt_ben_sys  :: LegacyMeansTestedBenefitSystem,
+            lha :: LocalHousingAllowance )
+            
+            
+end
+
 end # module LegacyMeansTestedBenefits
