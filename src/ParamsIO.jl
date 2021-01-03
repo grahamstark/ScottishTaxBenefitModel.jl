@@ -15,37 +15,37 @@ module ParamsIO
     
     export to_file, from_file, toJSON, fromJSON
     
-    StructTypes.StructType(::Type{IncomeTaxSys{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{IncomeTaxSys{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{AgeLimits{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{AgeLimits{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{NationalInsuranceSys{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{NationalInsuranceSys{T}}) = StructTypes.Struct()
     
-    StructTypes.StructType(::Type{PersonalAllowances{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{PersonalAllowances{T}}) = StructTypes.Struct()
     
-    StructTypes.StructType(::Type{Premia{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{Premia{T}}) = StructTypes.Struct()
     
-    StructTypes.StructType(::Type{WorkingTaxCredit{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{WorkingTaxCredit{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{ChildTaxCredit{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{ChildTaxCredit{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{HoursLimits{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{HoursLimits{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{IncomeRules{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{IncomeRules{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{MinimumWage{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{MinimumWage{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{SavingsCredit{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{SavingsCredit{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{HousingBenefits{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{HousingBenefits{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{LegacyMeansTestedBenefitSystem{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{LegacyMeansTestedBenefitSystem{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{LocalHousingAllowance{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{LocalHousingAllowance{T}}) = StructTypes.Struct()
     
     ## .. and so on
     
-    StructTypes.StructType(::Type{TaxBenefitSystem{T}} = StructTypes.Struct()
+    StructTypes.StructType(::Type{TaxBenefitSystem{T}}) = StructTypes.Struct()
 
         
     function to_file( filename :: String, t :: TaxBenefitSystem )  
