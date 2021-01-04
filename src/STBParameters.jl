@@ -16,10 +16,10 @@ module STBParameters
     using JSON3
 
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
-    export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage
-    export weeklyise!, annualise!, AgeLimits, HoursLimits
-    export HousingBenefits, LocalHousingAllowance
-    export state_pension_age, reached_state_pension_age
+    export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
+    export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
+    export HousingBenefits, LocalHousingAllowance, Premia, ChildTaxCredit
+    export state_pension_age, reached_state_pension_age, load, load!
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -354,12 +354,14 @@ module STBParameters
     end
     
     @with_kw mutable struct AgeLimits
-        state_pension_ages = pension_ages();
+        state_pension_ages = pension_ages(); # fixme can't serialise using json3
         savings_credit_to_new_state_pension :: Date = Date( 2016, 04, 06 )
     end
     
     function state_pension_age( limits :: AgeLimits, sex :: Sex, when :: Integer )::Integer
         y = fy( when )
+        # temp temp fixme
+        limits.state_pension_ages = pension_ages()
         n = size( limits.state_pension_ages )[1]
         if y < timestamp( limits.state_pension_ages[1] )
             py = sex == Male ? limits.state_pension_ages[1].males : limits.state_pension_ages[1].females
@@ -402,14 +404,14 @@ module STBParameters
     
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}
         primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
-        primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, typemax(RT)]
+        primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 9999999999999.9] # the '-1' here is because json can't write inf
         secondary_class_1_rates :: RateBands{RT} = [0.0, 13.8, 13.8 ] # keep 2 so
-        secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, typemax(RT) ]
+        secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, 99999999999999.9 ]
         state_pension_age :: Int = 66; # fixme move
         class_2_threshold ::RT = 6_365.0;
         class_2_rate ::RT = 3.00;
         class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
-        class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, typemax(RT) ]
+        class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, 99999999999999.9 ]
         class_1_income = Incomes_Dict{RT}(
          wages => 1.0,
          pension_contributions_employer => -1.0 )
@@ -533,7 +535,7 @@ module STBParameters
         capital_min :: RT = 6_000.0    
         capital_max :: RT = 16_000.0
         pc_capital_min :: RT = 10_000.0
-        pc_capital_max :: RT = typemax(RT)
+        pc_capital_max :: RT = 99999999999999.9
         pensioner_capital_min :: RT = 10_000.0
         pensioner_capital_max :: RT = 16_000.0
         
@@ -584,7 +586,7 @@ module STBParameters
         taper :: RT = 65.0
         passported_bens = DEFAULT_PASSPORTED_BENS
         ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
-        ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,typemax(RT)]
+        ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,99999999999999.9]
      end
 
      function weeklyise!( hb :: HousingBenefits )
@@ -634,5 +636,29 @@ module STBParameters
         weeklyise!( tb.lmt )
     end
     
+   """
+   load a file from `params/` directory. The file should contain
+   entries like `sys.it.personal_allowance=999` but can also contain
+   arbitrary code
+   """
+   function load( sysname :: AbstractString = "") :: TaxBenefitSystem
+        sys = TaxBenefitSystem{Float64}()
+        if sysname != ""
+            begin
+                global sys
+                include( "params/$(sysname).jl" )
+            end
+        end
+        return sys
+    end
+
+    function load!( sys :: TaxBenefitSystem, sysname :: AbstractString = "" )
+        if sysname != ""
+            begin
+                global sys
+                include( "params/$(sysname).jl" )
+            end
+        end
+    end
 
 end # module

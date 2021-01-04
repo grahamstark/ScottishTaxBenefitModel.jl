@@ -1,10 +1,12 @@
 using Test
-using JSON2
+using JSON3
+
 
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.STBParameters:
     IncomeTaxSys,weeklyise!,annualise!
 using ScottishTaxBenefitModel.Utils
+using ScottishTaxBenefitModel.ParamsIO
 import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
 
 @testset "IT Parameter Tests" begin
@@ -19,9 +21,19 @@ import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
     annualise!( itweekly )
     @test isapprox( itweekly.non_savings_thresholds, it.non_savings_thresholds, rtol=0.00001 )
     @test itweekly.mca_minimum ≈ it.mca_minimum
-    it_s = JSON2.write( it )
-    itj = JSON2.read( it_s, IncomeTaxSys{Float64} )
-    @test itj.non_savings_thresholds ≈ it.non_savings_thresholds
-    @test itj.mca_minimum ≈ it.mca_minimum
-    @test isapprox(itj.company_car_charge_by_CO2_emissions, it.company_car_charge_by_CO2_emissions )
+    
+    sys_scot = get_system( scotland=true )
+    @show sys_scot
+    @show sys_scot.it
+    @show sys_scot.ni
+    
+    it_s = toJSON( sys_scot )
+    scotj = fromJSON( it_s )
+    @show scotj
+    @show scotj.it
+    @show scotj.ni
+    
+    @test sys_scot.it.non_savings_thresholds ≈ scotj.it.non_savings_thresholds
+    @test sys_scot.it.mca_minimum ≈ scotj.it.mca_minimum
+    @test isapprox(sys_scot.it.company_car_charge_by_CO2_emissions, scotj.it.company_car_charge_by_CO2_emissions )
 end # example 1

@@ -3,21 +3,28 @@
 # I'm using this for now.
 # 
 module ParamsIO
-    
-    using JSON3
-    using StructTypes
 
-    const T = Float64 # FIXME change this as needed
-    
     using ScottishTaxBenefitModel
     using .STBParameters
     using .Definitions
     
-    export to_file, from_file, toJSON, fromJSON
+    using JSON3
+    using JSON
+    using StructTypes
+    using TimeSeries
+    
+    const T = Float64 # FIXME change this as needed
+    
+    
+    export load, to_file, from_file, toJSON, fromJSON
+    
+    StructTypes.StructType(::Type{TimeSeries.TimeArray}) = StructTypes.ArrayType()
+    
+    StructTypes.StructType(::Type{TimeSeries.TimeArray{Int64,2,Dates.Date,Array{Int64,2}}}) = StructTypes.Struct()
     
     StructTypes.StructType(::Type{IncomeTaxSys{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{AgeLimits{T}}) = StructTypes.Struct()
+    StructTypes.StructType(::Type{AgeLimits}) = StructTypes.Struct()
         
     StructTypes.StructType(::Type{NationalInsuranceSys{T}}) = StructTypes.Struct()
     
@@ -29,7 +36,7 @@ module ParamsIO
         
     StructTypes.StructType(::Type{ChildTaxCredit{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{HoursLimits{T}}) = StructTypes.Struct()
+    StructTypes.StructType(::Type{HoursLimits}) = StructTypes.Struct()
         
     StructTypes.StructType(::Type{IncomeRules{T}}) = StructTypes.Struct()
         
@@ -61,11 +68,13 @@ module ParamsIO
         return t                            
     end    
     
-    function toJSON( t :: TaxBenefitSystem ) :: String
+    function toJSON( t :: TaxBenefitSystem{T}) :: String
         JSON3.write( t )
     end
     
     function fromJSON( s :: String ) :: TaxBenefitSystem
-        t3 = JSON3.read( s, TaxBenefitSystem{T} ) 
+        t = TaxBenefitSystem{T}()# JSON3.read( s, TaxBenefitSystem{T} ) 
+        #sp :: Dict = JSON.parse( s )
+        #t.it = JSON3.read( sp["it"], IncomeTaxSys{T} )
     end
 end

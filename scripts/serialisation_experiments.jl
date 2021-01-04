@@ -5,6 +5,7 @@
 # 
 using JSON3
 using StructTypes
+using TimeSeries
 
 @enum Fred fred joe
 
@@ -202,3 +203,24 @@ module Q
     end
  
 end
+
+module R
+    using TimeSeries
+    using JSON3
+    using StructTypes
+    
+    data = (datetime = [DateTime(2018, 11, 21, 12, 0), DateTime(2018, 11, 21, 13, 0)],
+        col1 = [10.2, 11.2],
+        col2 = [20.2, 21.2],
+        col3 = [30.2, 31.2])
+    ta = TimeArray(data; timestamp = :datetime, meta = "Example")
+    StructTypes.StructType(::Type{TimeArray{Float64,2,DateTime,Array{Float64,2}}}) = StructTypes.Struct()
+    
+    
+    
+end
+
+typeof(R.ta)
+
+s = JSON3.write( R.ta )
+ta2 = JSON3.read( s, TimeArray{Float64,2,DateTime,Array{Float64,2}})

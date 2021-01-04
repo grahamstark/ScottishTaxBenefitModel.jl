@@ -4,6 +4,7 @@ authors = ["Graham Stark"]
 version = "0.1.0"
 
 [deps]
+BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 BudgetConstraints = "51aacf4b-43e8-45f9-b960-ce5126c2a956"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -14,6 +15,7 @@ HttpCommon = "77172c1b-203f-54ac-aa54-3f1198fe9f90"
 IterableTables = "1c8ee90f-4401-5389-894e-7a04a3dc0f4d"
 IteratorInterfaceExtensions = "82899510-4779-5014-852e-03e436cf321d"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+JSON2 = "2535ab7d-5cd8-5a07-80ac-9b1792aadce3"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 LoggingExtras = "e6f89c97-d47a-5376-807f-9c37f3926c36"
