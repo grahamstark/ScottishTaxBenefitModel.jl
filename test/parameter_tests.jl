@@ -4,9 +4,8 @@ using JSON3
 
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.STBParameters:
-    IncomeTaxSys,weeklyise!,annualise!
+    IncomeTaxSys,weeklyise!,annualise!,load_file,load_file!,TaxBenefitSystem
 using ScottishTaxBenefitModel.Utils
-using ScottishTaxBenefitModel.ParamsIO
 import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
 
 @testset "IT Parameter Tests" begin
@@ -27,16 +26,10 @@ import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
     @show sys_scot.it
     @show sys_scot.ni
     
-    sys2 = load_file( "" )
-    
-    
-    it_s = toJSON( sys_scot )
-    scotj = fromJSON( it_s )
-    @show scotj
-    @show scotj.it
-    @show scotj.ni
-    
-    @test sys_scot.it.non_savings_thresholds ≈ scotj.it.non_savings_thresholds
-    @test sys_scot.it.mca_minimum ≈ scotj.it.mca_minimum
-    @test isapprox(sys_scot.it.company_car_charge_by_CO2_emissions, scotj.it.company_car_charge_by_CO2_emissions )
+    sys2 = load_file( "../params/sys_2021.jl" )
+    @test sys2.it.personal_allowance==24_991
+    @show sys2
+    load_file!( sys2, "../params/sys_2021a.jl" )
+    @test sys2.it.personal_allowance==24
+
 end # example 1

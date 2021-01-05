@@ -637,24 +637,35 @@ module STBParameters
     end
     
    """
-   load a file from `params/` directory. The file should contain
+   Load a file `filename` and use it to create a modified version
+   of the default parameter system. The file should contain
    entries like `sys.it.personal_allowance=999` but can also contain
-   arbitrary code
+   arbitrary code.Note: probably not thread safe: poss global variable?
+   The file is executed as julia code but doesn't actually need
+   a `.jl` extension.
    """
-   function load_file( sysname :: AbstractString, T :: Type = Float64) :: TaxBenefitSystem
+   function load_file( sysname :: AbstractString, T :: Type = Float64 ) :: TaxBenefitSystem
         sys = TaxBenefitSystem{T}()
         begin
             global sys
-            include( "params/$(sysname).jl" )
+            include( sysname )
         end
         return sys
-    end
+   end
+   
 
-    function load_file!( sys :: TaxBenefitSystem, sysname :: AbstractString )
+   """
+   Load a file `filename` and use it to modify the given parameter system. The file should contain
+   entries like `sys.it.personal_allowance=999` but can also contain
+   arbitrary code.Note: probably not thread safe: poss global variable?
+   The file is executed as julia code but doesn't actually need
+   a `.jl` extension.
+   """
+   function load_file!( sys :: TaxBenefitSystem, sysname :: AbstractString )
             begin
                 global sys
-                include( "params/$(sysname).jl" )
+                include( sysname )
             end
-    end
+   end
 
 end # module
