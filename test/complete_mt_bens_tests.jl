@@ -92,9 +92,9 @@ end
 
 
 
-@testset "Legacy Tests" begin
+@testset "Complete SS Tests - Legacy System" begin
     sys = get_system( scotland = true )
-    df=CSV.File( "docs/uc_test_cases_main_results_transposed.csv")|>DataFrame
+    df=CSV.File( "../docs/uc_test_cases_main_results_transposed.csv")|>DataFrame
     keys = split("B_7k,B_4k,B_12k,B_17k,B_22k,B_30k,B_50k,K3_7k,K3_12k,K3_12k,SP_7k,SP_12k,SP_30k,2C-a_7k,2C-b_7k,2C-c_7k,2C-c_22k,SE2_17k,2E_17k,2E_2k,SP-CC_7k,SP-CC_17k,SP-CC_22k,DC-a_7k,DC-b_7k,DC-b_22k,DA-a_7k,DA-b_7k,DA-b_22k,CL_7k,CL_12k,CL_22k", "," )
     for k in keys 
         println( "on key $k ")
