@@ -12,7 +12,7 @@ using .LegacyMeansTestedBenefits:
     apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTR!
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
-using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor, init_household_result
+using .Results: LMTResults, LMTCanApplyFor, init_household_result
 using Dates
 using DataFrames
 using CSV
@@ -93,6 +93,7 @@ end
 
 
 @testset "Legacy Tests" begin
+    sys = get_system( scotland = true )
     df=CSV.File( "docs/uc_test_cases_main_results_transposed.csv")|>DataFrame
     keys = split("B_7k,B_4k,B_12k,B_17k,B_22k,B_30k,B_50k,K3_7k,K3_12k,K3_12k,SP_7k,SP_12k,SP_30k,2C-a_7k,2C-b_7k,2C-c_7k,2C-c_22k,SE2_17k,2E_17k,2E_2k,SP-CC_7k,SP-CC_17k,SP-CC_22k,DC-a_7k,DC-b_7k,DC-b_22k,DA-a_7k,DA-b_7k,DA-b_22k,CL_7k,CL_12k,CL_22k", "," )
     for k in keys 
@@ -101,19 +102,12 @@ end
         println( "name=$name" )
         res = df[df.Key.==k,:][1,:]
         println( res.CTB_NEW )
-        
-        intermed = make_intermediate( 
-            1,
-            bu,  
-            lmt.hours_limits,
-            sys.age_limits )
+        hhres = init_household_result( hh )   
         calc_legacy_means_tested_benefits!(
-            buno = 1,
-            benefit_unit_result :: BenefitUnitResult,
-            benefit_unit = bu,
-            intermed = intermed,
-            age_limits = sys.age_limits 
-            mt_ben_sys = sys.LegacyMeansTestedBenefitSystem,
-            lha :: LocalHousingAllowance )
+            hhres,
+            hh,   
+            sys.age_limits,
+            sys.lmt,
+            sys.lha )
     end
 end
