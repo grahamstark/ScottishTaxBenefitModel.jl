@@ -19,7 +19,7 @@ module STBParameters
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
     export HousingBenefits, LocalHousingAllowance, Premia, ChildTaxCredit
-    export state_pension_age, reached_state_pension_age, load, load!
+    export state_pension_age, reached_state_pension_age, load_file, load_file!
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -641,24 +641,20 @@ module STBParameters
    entries like `sys.it.personal_allowance=999` but can also contain
    arbitrary code
    """
-   function load( sysname :: AbstractString = "") :: TaxBenefitSystem
-        sys = TaxBenefitSystem{Float64}()
-        if sysname != ""
-            begin
-                global sys
-                include( "params/$(sysname).jl" )
-            end
+   function load_file( sysname :: AbstractString, T :: Type = Float64) :: TaxBenefitSystem
+        sys = TaxBenefitSystem{T}()
+        begin
+            global sys
+            include( "params/$(sysname).jl" )
         end
         return sys
     end
 
-    function load!( sys :: TaxBenefitSystem, sysname :: AbstractString = "" )
-        if sysname != ""
+    function load_file!( sys :: TaxBenefitSystem, sysname :: AbstractString )
             begin
                 global sys
                 include( "params/$(sysname).jl" )
             end
-        end
     end
 
 end # module

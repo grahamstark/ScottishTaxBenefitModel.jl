@@ -27,6 +27,9 @@ import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
     @show sys_scot.it
     @show sys_scot.ni
     
+    sys2 = load_file( "" )
+    
+    
     it_s = toJSON( sys_scot )
     scotj = fromJSON( it_s )
     @show scotj
