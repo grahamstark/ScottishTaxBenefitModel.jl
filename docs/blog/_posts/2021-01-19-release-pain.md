@@ -1,6 +1,6 @@
 ---
 layout: post
-date:   2020-12-16
+date:   2021-01-19
 category: Programming
 tags: Releases Julia
 title: Notes on Releasing Julia Packages
@@ -12,6 +12,8 @@ A lot has happened since I last posted. I'll write about it when I've got my hea
 For now ...
 
 Getting a release ready in Julia is painful and embarrasing for me. I keep getting things mixed up.
+
+<!--more-->
 
 I've got 3 packages published presently:
 
@@ -26,9 +28,14 @@ Some notes:
 ### JuliaHub
 
 The simplest way to publish or update a package is via [JuliaHub](https://juliahub.com/ui/Home). You need an account but
-you can use your [GitHub Account](https://github.com/). I think registration will work with projects not hosted there
+you can use your [GitHub Account](https://github.com/). I think registration will work with projects not hosted on GitHub
 but haven't tried this. The registration process is *very* fussy so everything has to be right. It usually takes me
 several goes to get everything right. 
+
+Just:
+
+* [tag a release](https://docs.github.com/en/github/administering-a-repository/about-releases) on GitHub 
+* point [this form](https://juliahub.com/ui/Registrator) at your project repository, and submit using the tag. 
 
 ### Deleting a git tag
 
