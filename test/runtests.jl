@@ -2,8 +2,13 @@
 using Test
 using ScottishTaxBenefitModel
 
-is_local = haskey( ENV, "JULIA_IS_LOCALLY_INSTALLED" ) # fixme param
-
+#
+# full dataset is available .. 
+# 
+is_local = isdir("/mnt/data/frs/")
+#
+# is_local = haskey( ENV, "JULIA_IS_LOCALLY_INSTALLED" ) # fixme param
+#
 include( "general_tests.jl")
 include( "testutils.jl")
 
@@ -18,9 +23,10 @@ include( "complete_calc_tests.jl")
 include( "uprating_tests.jl")
 include( "social_security_tests_2.jl")
 include( "minimum_wage_tests.jl")
+include( "housing_restrictions_tests.jl" )
 
 if is_local
-# This will only run locally
+	# These will only run if datasets are locally installed
     include( "household_tests.jl")
     include( "weighting_tests.jl")
     include( "simple_runner_tests.jl")
