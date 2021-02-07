@@ -10,12 +10,61 @@ export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
 export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
 export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
-
+export coarse_match
 #
 # this has a higher top income than the BC default
 #
 const BC_SETTINGS = BCSettings(0.0,20_000.0,DEFAULT_SETTINGS.increment,DEFAULT_SETTINGS.tolerance,true,DEFAULT_SETTINGS.maxdepth)
 
+"""
+finds the matches in a single recipient tuple `recip` in a data set `donor`.
+
+each of the recip and donor should be structured as follows
+
+firstvar_1, firstvar_2, firstvar_2 <- progressively coarsened first variable with the `_1` needed exactly as is;
+then secondvar_1 .. thirdvar_1 .. _2 and so on. Variables can actually be in any order in the frame.
+
+`vars` list of `firstvar`, `secondvar` and so on, in the order you want them coarsened
+`max_matches` - stop after making these matches
+`max_coarsens` stop after _2, _3 coarsened variables.
+
+returns a tuple:
+ 	matches->indexes of rows that match
+ 	qualities->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
+"""
+function coarse_match( 
+	recip :: DataFrameRow, 
+	donor :: DataFrame, 
+	vars  :: Vector{Symbol},
+	max_matches :: Int,
+	max_coarsens :: Int ) :: NamedTuple
+	nobs = size( donor )[1]
+	nvars = size( vars )[1]
+	c_level = ones(Int,nvars)
+	qualities = zeros(Int,nobs)
+	quality = 0
+	prevmatches = fill( false, nobs )
+	for nc in 2:max_coarsens
+		for nv in 1:nvars
+			matches = fill( true, nobs )
+			for n in 1:nvars
+				# so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
+				sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
+				matches .&= (donor[sym] .== r1[sym])			
+			end
+			c_level[nv] = nc
+			nmatches = sum( matches )
+			quality += 1
+			newmatches = prevmatches .⊻ matches
+			qualities[newmatches] .= quality
+			prevmatches = matches
+			if nmatches >= max_matches
+				return (matches=matches,qualities=qualities)
+			end
+		end # vars
+	end # coarse
+	return (matches=matches,qualities=qualities)
+end
 
 function todays_date() :: Date
     Date( now())
