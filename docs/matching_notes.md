@@ -19,3 +19,5 @@ Num Children
 CT Band (infer in SHS)
 
 accom type TYPEACC hb1
+
+total FRS Adult income INDINC

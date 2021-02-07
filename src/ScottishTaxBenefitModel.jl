@@ -40,7 +40,7 @@ export ExampleHouseholdGetter
 include("FRSHouseholdGetter.jl" )
 export FRSHouseholdGetter
 
-include("STBParameters.jl" )
+include("STBPaqrameters.jl" )
 export STBParameters
 
 include( "Results.jl")
