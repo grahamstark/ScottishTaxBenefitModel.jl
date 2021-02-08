@@ -53,7 +53,7 @@ function coarse_match(
             for n in 1:nvars
                 # so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
                 sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
-                matches .&= (donor[sym] .== recip[sym])            
+                matches .&= (donor[!,sym] .== recip[sym])            
             end
             newmatches = matches .⊻ prevmatches # mark new matches with current quality   ⊻
             # println( "quality $quality\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
@@ -145,13 +145,15 @@ end
 import Base.isapprox
 import Base.≈
 
+
 """
 true if the keys are the same and all the elements
    compare approx equal, else false
 """
 function isapprox( d1::Dict, d2::Dict ) :: Bool
    k1 = Set( collect( keys(d1)))
-   k2 = Set( collect( keys(d2z2
+   k2 = Set( collect( keys(d2)))
+   if k1 != k2
       # println(" resturn ne $(k1) !== $(k2)")
       return false
    end

@@ -134,3 +134,70 @@ shs_all_years = vcat(
 #
 donor_ds = DataFrame() # shs
 recipient = DataFrame() # frs
+
+# SHS Tenure
+# Pos. = 56	Variable = tenure	Variable label = Tenure - SHS but non-harmonised version
+# This variable is    numeric, the SPSS measurement level is NOMINAL
+# 	Value label information for tenure
+# 	Value = 1.0	Label = Owned outright
+# 	Value = 2.0	Label = Buying with help of loan/mortgage
+# 	Value = 3.0	Label = Rent – LA
+# 	Value = 4.0	Label = Rent - HA, Co-op
+# 	Value = 5.0	Label = Rent - private landlord
+# 	Value = 6.0	Label = Other
+# 	Value = 999998.0	Label = Don't know
+# 	Value = 999999.0	Label = Refused
+# 
+# # FRS TENURE
+# 
+# os. = 258	Variable = TENTYP2	Variable label = Tenure type
+# This variable is    numeric, the SPSS measurement level is NOMINAL
+# SPSS user missing values = -9.0 thru -1.0
+# 	Value label information for TENTYP2
+# 	Value = 1.0	Label = LA / New Town / NIHE / Council rented 
+# 	Value = 2.0	Label = Housing Association / Co-Op / Trust rented 
+# 	Value = 3.0	Label = Other private rented unfurnished 
+# 	Value = 4.0	Label = Other private rented furnished 
+# 	Value = 5.0	Label = Owned with a mortgage (includes part rent / part own) 
+# 	Value = 6.0	Label = Owned outright 
+# 	Value = 7.0	Label = Rent-free 
+# 	Value = 8.0	Label = Squats
+
+# harmonised tenure
+# 
+# 1 -> OO
+# 2 -> Mortgaged
+# 3 -> LA/Council Rented
+# 4 -> HA Rented
+# 5 -> Private Rented
+# 6 -> Other
+
+# coarsened tenure
+# 1 -> Owned
+# 2 -> Rented
+# 3 -> Other
+
+# _3
+# 1 -> Any
+
+
+function shs_tenuremap( tenure :: Int ) :: Vector{Int}
+    out = fill( -99, 3 )
+    out[3] = 1
+    if tenure == 1 # OO
+        out[1] = 1
+        out[2] = 1
+    elseif tenure == 2
+        out[1] = 2
+        out[2] = 1
+    elseif tenure in 3:4
+        out[1] = 5
+        out[2] = 2
+    elseif 
+        
+    end        
+end
+
+function frs_tenuremap( tentype2 :: Int ) :: Vector{Int}
+
+end

@@ -52,7 +52,7 @@ using DataFrames, CSV
             end
             @test match.quality in 1:3
             n += 1
-            if n > 5
+            if n > 5 
                 break;
             end
             if match.quality == 1                                    
