@@ -16,6 +16,8 @@ function coarse_match(
 	qualities = zeros(Int,nobs)
 	quality = 0
 	prevmatches = fill( false, nobs )
+	
+	matches = fill( true, nobs )
 	for nc in 2:max_coarsens
 		for nv in 1:nvars
 			matches = fill( true, nobs )

@@ -115,43 +115,43 @@ then secondvar_1 .. thirdvar_1 .. _2 and so on. Variables can actually be in any
 `max_coarsens` stop after _2, _3 coarsened variables.
 
 returns a tuple:
- 	matches->indexes of rows that match
- 	qualities->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
+     matches->indexes of rows that match
+     qualities->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
 """
 function coarse_match( 
-	recip :: DataFrameRow, 
-	donor :: DataFrame, 
-	vars  :: Vector{Symbol},
-	max_matches :: Int,
-	max_coarsens :: Int ) :: NamedTuple
-	nobs = size( donor )[1]
-	nvars = size( vars )[1]
-	c_level = ones(Int,nvars)
-	qualities = zeros(Int,nobs)
-	quality = 0
-	prevmatches = fill( false, nobs )
-	for nc in 2:max_coarsens
-		for nv in 1:nvars
-			matches = fill( true, nobs )
-			for n in 1:nvars
-				# so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
-				sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
-				matches .&= (donor[sym] .== r1[sym])			
-			end
-			c_level[nv] = nc
-			nmatches = sum( matches )
-			quality += 1
-			newmatches = prevmatches .⊻ matches
-			qualities[newmatches] .= quality
-			prevmatches = matches
-			if nmatches >= max_matches
-				return (matches=matches,qualities=qualities)
-			end
-		end # vars
-	end # coarse
-	return (matches=matches,qualities=qualities)
+    recip :: DataFrameRow, 
+    donor :: DataFrame, 
+    vars  :: Vector{Symbol},
+    max_matches :: Int,
+    max_coarsens :: Int ) :: NamedTuple
+    nobs = size( donor )[1]
+    nvars = size( vars )[1]
+    c_level = ones(Int,nvars)
+    qualities = zeros(Int,nobs)
+    quality = 1
+    prevmatches = fill( false, nobs )
+    matches = fill( true, nobs )
+    for nc in 1:max_coarsens
+        for nv in 1:nvars
+            matches = fill( true, nobs )
+            for n in 1:nvars
+                # so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
+                sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
+                matches .&= (donor[sym] .== recip[sym])            
+            end
+            newmatches = matches .⊻ prevmatches # mark new matches with current quality   ⊻
+            # println( "quality $quality\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
+            qualities[newmatches] .= quality
+            quality += 1
+            c_level[nv] = min(nc+1, max_coarsens)
+            prevmatches = copy(matches)
+            if sum(matches) >= max_matches
+                return (matches=matches,qualities=qualities)
+            end
+        end # vars
+    end # coarse
+    return (matches=matches,qualities=qualities)
 end
-
 
 ```
 
