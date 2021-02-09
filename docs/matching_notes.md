@@ -10,15 +10,16 @@ Num Adults X
 Num Children <= 16 X
 num pensioners N
 num working    N
+Single Paremt X
+
 
 employment status Highest Earner / HRP
 age HE/HRP
 Health Highest earner /HRP
 marital status highest earner
-Num Children
 
 CT Band (infer in SHS)
 
-accom type TYPEACC hb1
+accom type TYPEACC hb1 X
 
 total FRS Adult income INDINC

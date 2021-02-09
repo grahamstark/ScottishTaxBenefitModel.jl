@@ -231,6 +231,23 @@ function total_people( n :: Union{Int,Missing}, def :: Int ) :: Vector{Int}
     out[3] = def
     out;
 end
+
+"""
+1. age (max 80)
+2. age 5 year bands
+3. age 20 year bands
+"""
+function age( age  :: Union{Int,Missing} )  :: Vector{Int}
+    out = fill( -99, 3 )
+    if ismissing( age )
+        return out
+    end
+    age = min( 80, age )
+    out[1] = age 
+    out[2] = Int(trunc(age/5))
+    out[3] = Int(trunc(age/20))
+    return out
+end
     
 function frs_tenuremap( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( -99, 3 )
@@ -428,11 +445,13 @@ assign2!( recip, :singlepar, setone.(frs_all_years_scot_he.hhcomps, is_sp))
 assign2!( recip, :numadults, total_people.( frs_all_years_scot_he.adulth, -777 ))
 assign2!( recip, :numkids, total_people.( frs_all_years_scot_he.depchldh, -776 ))
 assign2!( recip, :acctype, frs_btype.( frs_all_years_scot_he.typeacc ))
+assign2!( recip, :agehigh, age.( frs_all_years_scot_he.age80 ))
 
 assign2!( donor, :shelter, setone.( shs_all_years.accsup1 ))
 assign2!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
 assign2!( donor, :singlepar, setone.( shs_all_years.hhtype_new, 3 ))
 assign2!( donor, :numadults, total_people.( shs_all_years.totads, -888 ))
 assign2!( donor, :numkids, total_people.( shs_all_years.totkids, -887 ))
-assign2!( donor, :acctype, shs_btype.(shs_all_years.hb1, shs_all_years.hb2))
+assign2!( donor, :acctype, shs_btype.( shs_all_years.hb1, shs_all_years.hb2))
+assign2!( donor, :agehigh, age.( shs_all_years.hihage ))
 
