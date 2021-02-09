@@ -11,7 +11,7 @@ using DataFrames, CSV
     # Donor and Recipient each have 2 fields `a` and `b` filled with random
     # integers. 2 levels: _1 with exact numbers and 2 with 0/1 coarsened versions
     # so matches can be, since both have to match & `a` is coarsened before `b`
-    # quality  a_1 a_2 b_1 b_2
+    # num_tries  a_1 a_2 b_1 b_2
     #    1      X   -   X   - 
     #    2      -   X   X   - 
     #    3      -   -   X   X 
@@ -42,7 +42,7 @@ using DataFrames, CSV
             [:a, :b],
             max_matches,
             2 )
-        donor.quality = matches.qualities
+        donor.num_tries = matches.num_tries
         matchedrows = donor[matches.matches,:]
         # @test sum( matches.matches ) >= max_matches
         n = 0
@@ -50,17 +50,13 @@ using DataFrames, CSV
             if printrows
                 println( "on match=$(match)" )
             end
-            @test match.quality in 1:3
-            n += 1
-            if n > 5 
-                break;
-            end
-            if match.quality == 1                                    
+            @test match.num_tries in 1:3
+            if match.num_tries == 1                                    
                 @test (match.a_1 == r1.a_1)&&(match.b_1 == r1.b_1) # `a` and `b` should match fine.
-            elseif match.quality == 2
+            elseif match.num_tries == 2
                 @test ! ((match.a_1 == r1.a_1)&&(match.b_1 == r1.b_1)) # can't be a q=1 match
                 @test (match.a_2 == r1.a_2)&&(match.b_1 == r1.b_1) # should be a_2 matches coarse, b_1 matches fine
-            elseif match.quality == 3
+            elseif match.num_tries == 3
                 if printrows
                     println( "q=3; r1=$r1" )
                     println( "q=3; match=$match" )

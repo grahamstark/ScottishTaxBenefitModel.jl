@@ -32,7 +32,8 @@ then secondvar_1 .. thirdvar_1 .. _2 and so on. Variables can actually be in any
 
 returns a tuple:
      matches->indexes of rows that match
-     qualities->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
+     num_tries->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
+     note that num_tries isn't aways a good indicator of how good a match is.
 """
 function coarse_match( 
     recip :: DataFrameRow, 
@@ -43,8 +44,8 @@ function coarse_match(
     nobs = size( donor )[1]
     nvars = size( vars )[1]
     c_level = ones(Int,nvars)
-    qualities = zeros(Int,nobs)
-    quality = 1
+    num_tries = zeros(Int,nobs)
+    tries = 1
     prevmatches = fill( false, nobs )
     matches = fill( true, nobs )
     for nc in 1:max_coarsens
@@ -55,18 +56,18 @@ function coarse_match(
                 sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
                 matches .&= (donor[!,sym] .== recip[sym])            
             end
-            newmatches = matches .⊻ prevmatches # mark new matches with current quality   ⊻
-            # println( "quality $quality\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
-            qualities[newmatches] .= quality
-            quality += 1
+            newmatches = matches .⊻ prevmatches # mark new matches with current tries   ⊻
+            # println( "tries $tries\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
+            num_tries[newmatches] .= tries
+            tries += 1
             c_level[nv] = min(nc+1, max_coarsens)
             prevmatches = copy(matches)
             if sum(matches) >= max_matches
-                return (matches=matches,qualities=qualities)
+                return (matches=matches,num_tries=num_tries)
             end
         end # vars
     end # coarse
-    return (matches=matches,qualities=qualities)
+    return (matches=matches,num_tries=num_tries)
 end
 
 function todays_date() :: Date
