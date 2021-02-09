@@ -34,6 +34,7 @@ returns a tuple:
      matches->indexes of rows that match
      num_tries->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
      note that num_tries isn't aways a good indicator of how good a match is.
+     FIXME: redo this so the early matches are never coarsened: this matters for picking the best match.
 """
 function coarse_match( 
     recip :: DataFrameRow, 

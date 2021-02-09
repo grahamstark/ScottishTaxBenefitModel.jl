@@ -2,13 +2,14 @@
 
 ## FRS -> SHS
 
-SHELTER
-CTB Receipt
-Tenure Type
-HH Size
-Num Children <= 16
-num pensioners
-num working
+SHELTER     X
+CTB Receipt X
+Tenure Type X
+HH Size  X
+Num Adults X
+Num Children <= 16 X
+num pensioners N
+num working    N
 
 employment status Highest Earner / HRP
 age HE/HRP
