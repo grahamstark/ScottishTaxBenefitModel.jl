@@ -435,6 +435,59 @@ function assign2!( df :: DataFrame, name :: Symbol, vals )
     end
 end
 
+#   SHS hihecon
+# 	Value = 1.0	Label = A - Self employed
+# 	Value = 2.0	Label = B - Employed full time
+# 	Value = 3.0	Label = C - Employed part time
+# 	Value = 4.0	Label = D - Looking after the home or family
+# 	Value = 5.0	Label = E - Permanently retired from work
+# 	Value = 6.0	Label = F - Unemployed and seeking work
+# 	Value = 7.0	Label = G - At school
+# 	Value = 8.0	Label = H - In further / higher education
+# 	Value = 9.0	Label = I - Gov't work or training scheme
+# 	Value = 10.0	Label = J - Permanently sick or disabled
+# 	Value = 11.0	Label = K - Unable to work because of short-term illness or injury
+# 	Value = 12.0	Label = L - Pre school / Not yet at school
+# 	Value = 13.0	Label = Other (specify)
+# 
+# 
+# 	FRS EMPSTATI
+#   Value = 1.0	Label = Full-time Employee 
+# 	Value = 2.0	Label = Part-time Employee 
+# 	Value = 3.0	Label = Full-time Self-Employed 
+# 	Value = 4.0	Label = Part-time Self-Employed 
+# 	Value = 5.0	Label = Unemployed 
+# 	Value = 6.0	Label = Retired 
+# 	Value = 7.0	Label = Student 
+# 	Value = 8.0	Label = Looking after family/home 
+# 	Value = 9.0	Label = Permanently sick/disabled 
+# 	Value = 10.0	Label = Temporarily sick/injured 
+# 	Value = 11.0	Label = Other Inactive 
+
+# Level 1
+# 1 Full-time Employee 
+# 2 Part-time Employee
+# 3 Self Employed
+# 4 Unemployed
+# 5 Retired
+# 6 Student
+# 7 Looking after the home or family
+# 8 Permanently sick/disabled
+# 9 Temporarily sick/injured 
+# 10 Other Inactive 
+
+# level 2
+# 1 employed
+# 2 self-employed
+# 3 retired
+# 4 student
+# 5 other
+
+# level3 
+# 1 working
+# 2 retired
+# 3 not working
+
 
 donor = DataFrame( datayear=shs_all_years.datayear, uniqidnew=shs_all_years.uniqidnew )
 recip = DataFrame( datayear=frs_all_years_scot_he.datayear, sernum=frs_all_years_scot_he.sernum )
