@@ -744,29 +744,35 @@ function l_coarse_match(
     nvars = size( vars )[1]
     c_level = ones(Int,nvars)
     num_tries = zeros(Int,nobs)
-    tries = 1
-    prevmatches = fill( false, nobs )
-    matches = fill( true, nobs )
-    for nc in 1:max_coarsens
-        for nv in 1:nvars
-            matches = fill( true, nobs )
-            for n in 1:nvars
-                # so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
-                sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
-                matches .&= (donor[!,sym] .== recip[sym])            
+    results = fill(-99,nobs,nvars)
+    
+    for row in 1:nobs
+        for col in 1:nvars
+            for cs in 1:max_coarsens
+                sym = Symbol("$(String(vars[col]))_$(cs)")
+                if(donor[row,sym] == recip[sym])
+                    results[row,col] = cs
+                    break;
+                end
+            end # coursens
+        end # match vars
+    end # rows
+    matches = fill( true, nobs )  
+    quality = fill( 0, nobs )
+    for row in 1:nobs
+        for col in 1:nvars
+            if results[row,col] == -99
+                matches[row] = false
+                quality[row] = -9
+                break;
+            else
+                quality[row] += results[row,col]^2 # maybe
             end
-            newmatches = matches .⊻ prevmatches # mark new matches with current tries   ⊻
-            # println( "tries $tries\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
-            num_tries[newmatches] .= tries
-            tries += 1
-            c_level[nv] = min(nc+1, max_coarsens)
-            prevmatches = copy(matches)
-            if sum(matches) >= max_matches
-                return (matches=matches,num_tries=num_tries)
-            end
-        end # vars
-    end # coarse
-    return (matches=matches,num_tries=num_tries)
+        end
+     end
+     targetq = minimum( quality )
+     
+     return (matches=matches,quality=quality)
 end
 
 
@@ -782,7 +788,7 @@ for r1 in eachrow( recip )
             donor,
             targets,
             max_matches,
-            1 ).matches)
+            3 ).matches)
         println( "tm = $tm " )
             
 end
