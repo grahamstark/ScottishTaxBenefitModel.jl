@@ -182,12 +182,12 @@ recipient = DataFrame() # frs
 
 
 function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( -99, 3 )
+    out = fill( -988, 3 )
+    if ismissing( tenure ) || tenure >= 5
+        return out;
+    end
     out[3] = 1
-    if ismissing( tenure )
-        out[1] = 6
-        out[2] = 3
-    elseif tenure == 1 # OO
+    if tenure == 1 # OO
         out[1] = 1
         out[2] = 1
     elseif tenure == 2
@@ -361,7 +361,7 @@ function frs_btype( typeacc :: Union{Missing,Int} ) :: Vector{Int}
         out[1] = typeacc
     elseif typeacc == 5
         out[1] = 4
-    elseif in 6:7 
+    elseif typeacc in 6:7 
         out[1] = 5
     else
         @assert false "typeac $typacc not recognised" 
@@ -430,7 +430,7 @@ function assign!( df :: DataFrame, name :: Symbol, vals )
     # println( vals )
     for i in 1:n
         sym = Symbol("$(String(name))_$(i)")
-        println( "wriring $sym $i" )
+        println( "writing $sym $i" )
         df[!,sym] = zeros(ET,m)
         for j in 1:m
             df[j,sym] = vals[j][i]
@@ -574,6 +574,140 @@ function shs_empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
     return out
 end
 
+# 
+# 
+# FRS ethgr3
+# 
+# Pos. = 512	Variable = ETHGR3	Variable label = Ethnicity of Adult (harmonised version)
+# This variable is  numeric, the SPSS measurement level is NOMINAL
+# SPSS user missing values = -9.0 thru -1.0
+# 	Value label information for ETHGR3
+# 	Value = 1.0	Label = White 
+# 	Value = 2.0	Label = Mixed/ Multiple ethnic groups 
+# 	Value = 3.0	Label = Asian/ Asian British 
+# 	Value = 4.0	Label = Black/ African/ Caribbean/ Black British 
+# 	Value = 5.0	Label = Other ethnic group 
+# 	
+# SHS  hih_eth2012
+# 	
+# Pos. = 35	Variable = HIH_ETH2012	Variable label = Ethnic origin of HiH
+# This variable is  numeric, the SPSS measurement level is SCALE
+# 	Value label information for HIH_ETH2012
+# 	Value = 1.0	Label = White
+# 	Value = 2.0	Label = Minority ethnic groups
+# 	Value = 3.0	Label = Don't know
+# 	Value = 4.0	Label = Refused	
+
+#
+# out
+# level1
+# 1-> White
+# 2-> Non White
+# level2
+# 1-> Any
+# level3
+# 1-> Any
+
+function frs_ethnic( ethgr3 :: Int ) :: Vector{Int}
+    out = fill( 1, 3 )
+    out[1] = ethgr3 == 1 ? 1 : 2
+    return out
+end
+
+function shs_ethnic( hih_eth2012 :: Union{Missing,Int} ) :: Vector{Int}
+    out = fill( 1, 3 )
+    if ismissing(hih_eth2012) # value 14 not documented 
+        return fill( -986, 3 )
+    end
+    if hih_eth2012 > 2
+        return out
+    end
+    out[1] = hih_eth2012 == 1 ? 1 : 2
+    return out
+end
+
+#
+# annual hh net income
+#  mean(collect(skipmissing(shs_all_years.annetinc)))
+# SHS mean: 27,046.418224914407 median 23,000.0
+# mean(collect(skipmissing(frs_all_years_scot_he.hhinc*52)))
+# FRS mean 37,704.65 median 28,184.0
+
+# SHS SOC hihsoc
+# Pos. = 1410	Variable = hihsoc	Variable label = HIH Social Occupational Classification
+# This variable is  numeric, the SPSS measurement level is NOMINAL
+# 	Value label information for hihsoc
+# 	Value = 1.0	Label = MANAGERS, DIRECTORS AND SENIOR OFFICIALS
+# 	Value = 2.0	Label = PROFESSIONAL OCCUPATIONS
+# 	Value = 3.0	Label = ASSOCIATE PROFESSIONAL AND TECHNICAL OCCUPATIONS
+# 	Value = 4.0	Label = ADMINISTRATIVE AND SECRETARIAL OCCUPATIONS
+# 	Value = 5.0	Label = SKILLED TRADES OCCUPATIONS
+# 	Value = 6.0	Label = CARING, LEISURE AND OTHER SERVICE OCCUPATIONS
+# 	Value = 7.0	Label = SALES AND CUSTOMER SERVICE OCCUPATIONS
+# 	Value = 8.0	Label = PROCESS, PLANT AND MACHINE OPERATIVES
+# 	Value = 9.0	Label = ELEMENTARY OCCUPATIONS
+# 	Value = -9.0	Label = NO INFORMATION
+# 
+# FRS
+# Pos. = 425	Variable = SOC2010	Variable label = Standard Occupational Classification
+# This variable is  numeric, the SPSS measurement level is NOMINAL
+# SPSS user missing values = -9.0 thru -1.0
+# 	Value label information for SOC2010
+# 	Value = 0.0	Label = Undefined 
+# 	Value = 1000.0	Label = Managers Directors & Senior Officials 
+# 	Value = 2000.0	Label = Professional Occupations 
+# 	Value = 3000.0	Label = Associate Prof. & Technical Occupations 
+# 	Value = 4000.0	Label = Admin & Secretarial Occupations 
+# 	Value = 5000.0	Label = Skilled Trades Occupations 
+# 	Value = 6000.0	Label = Caring leisure and other service occupations 
+# 	Value = 7000.0	Label = Sales & Customer Service 
+# 	Value = 8000.0	Label = Process, Plant & Machine Operatives 
+# 	Value = 9000.0	Label = Elementary Occupations 
+#
+# level 1
+# as hisoc if 1:9 else 0
+# level2
+# 0 -> undefined
+# 1 -> 1..2
+# 2 -> 3,4,7
+# 3 -> 5,8
+# 4 -> 6,9
+# level2
+# 1 -> all
+# 11,000 undefined occs in shs, 263 in FRS
+# 
+function map_social( soc :: Int ) :: Vector{Int}
+    out = fill(0,3)    
+    if ! (soc in 1:9) 
+        return [0,0,1]
+    end
+    out[1] = soc
+    if soc in 1:2
+        out[2] = 1
+    elseif soc in [3,4,7]
+        out[2] = 2
+    elseif soc in [5,8]
+         out[2] = 3
+    elseif soc in [6,9]
+         out[2] = 4
+    else
+        @assert false "soc=$soc"
+    end
+    out[3]=1
+    return out
+end
+
+function shs_map_social( hihsoc :: Union{Missing,Int} ) :: Vector{Int}
+    if ismissing(hihsoc)
+        return [0,0,1]
+    end
+    return map_social( hihsoc )
+end
+
+function frs_map_social( soc2010 )
+    return map_social( Int(soc2010/1000))
+end
+
 donor = DataFrame( datayear=shs_all_years.datayear, uniqidnew=shs_all_years.uniqidnew )
 recip = DataFrame( datayear=frs_all_years_scot_he.datayear, sernum=frs_all_years_scot_he.sernum )
 
@@ -585,7 +719,9 @@ assign!( recip, :numkids, total_people.( frs_all_years_scot_he.depchldh, -776 ))
 assign!( recip, :acctype, frs_btype.( frs_all_years_scot_he.typeacc ))
 assign!( recip, :agehigh, age.( frs_all_years_scot_he.age80 ))
 assign!( recip, :empstathigh, frs_empstat.( frs_all_years_scot_he.empstati ))
-
+assign!( recip, :ethnichigh, frs_ethnic.( frs_all_years_scot_he.ethgr3 ))
+assign!( recip, :sochigh, frs_map_social.( frs_all_years_scot_he.soc2010 ))
+ 
 assign!( donor, :shelter, setone.( shs_all_years.accsup1 ))
 assign!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
 assign!( donor, :singlepar, setone.( shs_all_years.hhtype_new, 3 ))
@@ -594,3 +730,18 @@ assign!( donor, :numkids, total_people.( shs_all_years.totkids, -887 ))
 assign!( donor, :acctype, shs_btype.( shs_all_years.hb1, shs_all_years.hb2))
 assign!( donor, :agehigh, age.( shs_all_years.hihage ))
 assign!( donor, :empstathigh, shs_empstat.( shs_all_years.hihecon ))
+assign!( donor, :ethnichigh, shs_ethnic.( shs_all_years.hih_eth2012 ))
+assign!( donor, :sochigh, shs_map_social.( shs_all_years.hihsoc ))
+
+
+targets = [:shelter,:tenure,:singlepar,:numadults,:numkids,:acctype,:agehigh,:empstathigh,:ethnichigh,:sochigh]
+max_matches = size( shs_all_years )[1]
+n = 3 
+for r1 in eachrow( recip )
+        matches = coarse_match( 
+            r1,
+            donor,
+            targets,
+            max_matches,
+            3 )
+end
