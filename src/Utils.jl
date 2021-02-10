@@ -36,7 +36,61 @@ returns a tuple:
      note that num_tries isn't aways a good indicator of how good a match is.
      FIXME: redo this so the early matches are never coarsened: this matters for picking the best match.
 """
+
 function coarse_match( 
+    recip :: DataFrameRow, 
+    donor :: DataFrame, 
+    vars  :: Vector{Symbol},
+    max_matches :: Int,
+    max_coarsens :: Int ) :: NamedTuple
+    nobs = size( donor )[1]
+    nvars = size( vars )[1]
+    c_level = ones(Int,nvars)
+    num_tries = zeros(Int,nobs)
+    matches = fill( true, nobs )  
+    quality = fill( 0, nobs )
+    results = fill(-99,nobs,nvars)
+    
+    for t in 1:nvars
+        for row in 1:nobs
+            if (! matches[row]) || (t == 1 )
+                for col in 1:nvars
+                    for cs in 1:max_coarsens
+                        sym = Symbol("$(String(vars[col]))_$(cs)")
+                        if(donor[row,sym] == recip[sym])
+                            results[row,col] = cs
+                            break;
+                        end
+                    end # coarsens
+                end # match vars
+            end
+        end # rows
+        for row in 1:nobs
+            for col in 1:nvars
+                if results[row,col] == -99
+                    matches[row] = false
+                    quality[row] = -9
+                    break;
+                else
+                    quality[row] += results[row,col]^2 # maybe
+                end 
+            end # no match for some matching var break
+         end # check each row
+         targetq = maximum( quality )
+         nmatches = sum( matches )
+         if( nmatches >= max_matches )||( nvars == 1 ) 
+            if nmatches == 0
+                matchedvars=[]
+            end
+            return (matches=matches,quality=quality,matchedvars=vars)
+         end
+         pop!( vars )
+         nvars = size( vars )[1]
+     end  
+end
+
+# fast but flaky ..
+function broken_coarse_match( 
     recip :: DataFrameRow, 
     donor :: DataFrame, 
     vars  :: Vector{Symbol},
