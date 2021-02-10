@@ -734,14 +734,55 @@ assign!( donor, :ethnichigh, shs_ethnic.( shs_all_years.hih_eth2012 ))
 assign!( donor, :sochigh, shs_map_social.( shs_all_years.hihsoc ))
 
 
+function l_coarse_match( 
+    recip :: DataFrameRow, 
+    donor :: DataFrame, 
+    vars  :: Vector{Symbol},
+    max_matches :: Int,
+    max_coarsens :: Int ) :: NamedTuple
+    nobs = size( donor )[1]
+    nvars = size( vars )[1]
+    c_level = ones(Int,nvars)
+    num_tries = zeros(Int,nobs)
+    tries = 1
+    prevmatches = fill( false, nobs )
+    matches = fill( true, nobs )
+    for nc in 1:max_coarsens
+        for nv in 1:nvars
+            matches = fill( true, nobs )
+            for n in 1:nvars
+                # so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
+                sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
+                matches .&= (donor[!,sym] .== recip[sym])            
+            end
+            newmatches = matches .⊻ prevmatches # mark new matches with current tries   ⊻
+            # println( "tries $tries\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
+            num_tries[newmatches] .= tries
+            tries += 1
+            c_level[nv] = min(nc+1, max_coarsens)
+            prevmatches = copy(matches)
+            if sum(matches) >= max_matches
+                return (matches=matches,num_tries=num_tries)
+            end
+        end # vars
+    end # coarse
+    return (matches=matches,num_tries=num_tries)
+end
+
+
 targets = [:shelter,:tenure,:singlepar,:numadults,:numkids,:acctype,:agehigh,:empstathigh,:ethnichigh,:sochigh]
 max_matches = size( shs_all_years )[1]
 n = 3 
+
+r1 = donor[1,:]
+
 for r1 in eachrow( recip )
-        matches = coarse_match( 
+        tm = sum(l_coarse_match( 
             r1,
             donor,
             targets,
             max_matches,
-            3 )
+            1 ).matches)
+        println( "tm = $tm " )
+            
 end
