@@ -19,7 +19,7 @@ export coarse_match
 const BC_SETTINGS = BCSettings(0.0,20_000.0,DEFAULT_SETTINGS.increment,DEFAULT_SETTINGS.tolerance,true,DEFAULT_SETTINGS.maxdepth)
 
 """
-finds the matches in a single recipient tuple `recip` in a data set `donor`.
+finds the matches for a single recipient tuple `recip` in a data set `donor`.
 
 each of the recip and donor should be structured as follows
 
@@ -27,16 +27,13 @@ firstvar_1, firstvar_2, firstvar_2 <- progressively coarsened first variable wit
 then secondvar_1 .. thirdvar_1 .. _2 and so on. Variables can actually be in any order in the frame.
 
 `vars` list of `firstvar`, `secondvar` and so on, in the order you want them coarsened
-`max_matches` - stop after making these matches
-`max_coarsens` stop after _2, _3 coarsened variables.
+`max_coarsens` stop after _2, _3 etc. coarsened variables.
 
-returns a tuple:
+returns a named tuple:
      matches->indexes of rows that match
-     num_tries->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
-     note that num_tries isn't aways a good indicator of how good a match is.
-     FIXME: redo this so the early matches are never coarsened: this matters for picking the best match.
+     quality->numerical indication of quality of each match: +1 for each first match, +4 for each 2nd +9 3rd, etc.
+     results_matrix->nobs x nvars matrix with each cell indicating match quality (1..max_coarsens, or -9 for no match).
 """
-
 function coarse_match( 
     recip :: DataFrameRow, 
     donor :: DataFrame, 
@@ -46,7 +43,7 @@ function coarse_match(
     nvars = size( vars )[1]
     matches = fill( true, nobs )  
     results = fill(-99, nobs,nvars)
-    println( size( results ))
+    # println( size( results ))
     quality = fill( 0, nobs )  
     for row in 1:nobs
         for col in 1:nvars
@@ -72,103 +69,6 @@ function coarse_match(
         end # no match for some matching var break
     end # check each row
     return (matches=matches,results_matrix=results,quality=quality) 
-end
-
-# unneeded loop
-function coarse_matchxx( 
-    recip :: DataFrameRow, 
-    donor :: DataFrame, 
-    variables :: Vector{Symbol},
-    max_matches :: Int,
-    max_coarsens :: Int,
-    min_matched_vars :: Int = 0 ) :: NamedTuple
-    vars = copy( variables )
-    nvars_orig = size( vars )[1]
-    nobs = size( donor )[1]
-    nvars = size( vars )[1]
-    c_level = ones(Int,nvars)
-    num_tries = zeros(Int,nobs)
-    matches = fill( true, nobs )  
-    results = fill(-99,nobs,nvars)
-    println( size( results ))
-    quality = fill( 0, nobs )
-        
-    for t in 1:nvars
-        for row in 1:nobs
-            if (! matches[row]) || (t == 1 )
-                for col in 1:nvars
-                    for cs in 1:max_coarsens
-                        sym = Symbol("$(String(vars[col]))_$(cs)")
-                        if(donor[row,sym] == recip[sym])
-                            results[row,col] = cs
-                            break;
-                        end
-                    end # coarsens
-                end # match vars
-            end
-        end # rows
-        quality = fill( 0, nobs )
-        for row in 1:nobs
-            for col in 1:nvars_orig
-                if results[row,col] == -99
-                    matches[row] = false
-                    quality[row] = -9
-                    break;
-                else 
-                    quality[row] += results[row,col]^2 # maybe
-                end 
-            end # no match for some matching var break
-         end # check each row
-         targetq = maximum( quality )
-         nmatches = sum( matches )
-         if( nmatches >= max_matches )||( nvars == min_matched_vars ) 
-            if nmatches == 0
-                matchedvars=[]
-            end
-            return (matches=matches,results_matrix=results,quality=quality,matchedvars=vars)
-         end
-         pop!( vars )
-         nvars = size( vars )[1]
-     end  
-     return (matches=matches,results_matrix=results,quality=quality,matchedvars=vars)
-     
-end
-
-
-# fast but flaky ..
-function broken_coarse_match( 
-    recip :: DataFrameRow, 
-    donor :: DataFrame, 
-    vars  :: Vector{Symbol},
-    max_matches :: Int,
-    max_coarsens :: Int ) :: NamedTuple
-    nobs = size( donor )[1]
-    nvars = size( vars )[1]
-    c_level = ones(Int,nvars)
-    num_tries = zeros(Int,nobs)
-    tries = 1
-    prevmatches = fill( false, nobs )
-    matches = fill( true, nobs )
-    for nc in 1:max_coarsens
-        for nv in 1:nvars
-            matches = fill( true, nobs )
-            for n in 1:nvars
-                # so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
-                sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
-                matches .&= (donor[!,sym] .== recip[sym])            
-            end
-            newmatches = matches .⊻ prevmatches # mark new matches with current tries   ⊻
-            println( "tries $tries\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
-            num_tries[newmatches] .= tries
-            tries += 1
-            c_level[nv] = min(nc+1, max_coarsens)
-            prevmatches = copy(matches)
-            if sum(matches) >= max_matches
-                return (matches=matches,num_tries=num_tries)
-            end
-        end # vars
-    end # coarse
-    return (matches=matches,num_tries=num_tries)
 end
 
 function todays_date() :: Date

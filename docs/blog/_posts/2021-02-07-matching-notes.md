@@ -68,90 +68,29 @@ and there's also a bunch of stuff for the ['highest income person']().
 
 ### Household Characteristics
 
-The object initially is to match in *household* records. In future I might match in individual level stuff (health, transport)
-in which case we'll need to match a bit differently (include gender, for example, de-emphasise household characterists ike accomodation type)
+The object initially is to match in *household* records. In future I might match in individual level stuff (health,
+transport) in which case we'll need to match a bit differently (include gender, for example, de-emphasise household
+characteristics like accomodation type)
 
-* Sheltered Home
-* Tenure Type
-* Accomodation type
+* **shelter** : sheltered accomodation
+* **tenure** : tenure type
+* **acctype** : type of dwelling
+* **singlepar** :  lone parent hhld flag
+* **numadults** : num adults
+* **numkids** :  num children
+* **empstathigh** : employment status, highest income person (HIP)
+* **sochigh** : socio-economic, HIP
+* **agehigh** : age HIP
+* **ethnichigh** : ethnic group, hip
+* **datayear** : data year (2016..18)
 
-* Num Adults
-* Num Children (u 16)
-* Num Working in HH
-* Num Pensioners (over 65s, 80s)
-* Single Parent flag
+See [this script](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/matching/matching.jl) 
+for the actual data wrangling, and the `coarse_match` function in 
+[Utils.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/Utils.jl) for a simple matching algorithm.
 
-* CTB Receipt - hhld
-* ... not easy to use HB/IS/ receipt because of transition to UC
-* Disabilility Benefits Receipt - any person
-* Any MT Ben Receipt
+Todo: match on income, benefit receipts.
+The mean of `annetinc` is 27k in the SHS, but mean `hhinc` in FRS is 38k, so I need to construct something or
+at least figure out the constuction of these.
 
-### Highest earner
-
-* Employment status 
-* Age
-* .. not gender, for these purposes
-* Health
-* marital status
-
-For coarsening, the order these are introduced matters.
-
-I don't think there's any high theory for how to choose matching variables.
-
-Here's some quick and dirty code for this:
-
-```julia
-
-"""
-finds the matches in a single recipient tuple `recip` in a data set `donor`.
-
-each of the recip and donor should be structured as follows
-
-firstvar_1, firstvar_2, firstvar_2 <- progressively coarsened first variable with the `_1` needed exactly as is;
-then secondvar_1 .. thirdvar_1 .. _2 and so on. Variables can actually be in any order in the frame.
-
-`vars` list of `firstvar`, `secondvar` and so on, in the order you want them coarsened
-`max_matches` - stop after making these matches
-`max_coarsens` stop after _2, _3 coarsened variables.
-
-returns a tuple:
-     matches->indexes of rows that match
-     qualities->index for each match of how coarse the match is (+1 for each coarsening step needed for this match)
-"""
-function coarse_match( 
-    recip :: DataFrameRow, 
-    donor :: DataFrame, 
-    vars  :: Vector{Symbol},
-    max_matches :: Int,
-    max_coarsens :: Int ) :: NamedTuple
-    nobs = size( donor )[1]
-    nvars = size( vars )[1]
-    c_level = ones(Int,nvars)
-    qualities = zeros(Int,nobs)
-    quality = 1
-    prevmatches = fill( false, nobs )
-    matches = fill( true, nobs )
-    for nc in 1:max_coarsens
-        for nv in 1:nvars
-            matches = fill( true, nobs )
-            for n in 1:nvars
-                # so, if sym[1] = :a and c_level[1] = 1 then :a_1 and so on
-                sym = Symbol("$(String(vars[n]))_$(c_level[n])") # everything
-                matches .&= (donor[sym] .== recip[sym])            
-            end
-            newmatches = matches .⊻ prevmatches # mark new matches with current quality   ⊻
-            # println( "quality $quality\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
-            qualities[newmatches] .= quality
-            quality += 1
-            c_level[nv] = min(nc+1, max_coarsens)
-            prevmatches = copy(matches)
-            if sum(matches) >= max_matches
-                return (matches=matches,qualities=qualities)
-            end
-        end # vars
-    end # coarse
-    return (matches=matches,qualities=qualities)
-end
-
-```
+SHS benefit receipts are also problematic because of the reporting of adults.
 

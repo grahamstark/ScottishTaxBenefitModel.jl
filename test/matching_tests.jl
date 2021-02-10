@@ -44,11 +44,10 @@ max_matches = 2500
             r1,
             donor,
             [:a, :b],
-            max_matches,
             2 )
         # println(matches)
         nmatches = sum( matches.matches )
-        println( "$(matches.matchedvars) nmatches = $nmatches ")
+        println( "$nmatches ")
         donor.quality = matches.quality
         matchedrows = donor[matches.matches,:]
         # @test sum( matches.matches ) >= max_matches
