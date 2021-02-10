@@ -129,11 +129,6 @@ shs_all_years = vcat(
     cols=:intersect
 )
 
-#
-# Create donor  (SHS) and recipient (FRS) datasets.
-#
-donor_ds = DataFrame() # shs
-recipient = DataFrame() # frs
 
 # SHS Tenure
 # Pos. = 56	Variable = tenure	Variable label = Tenure - SHS but non-harmonised version
@@ -721,6 +716,10 @@ function data_year( dy :: Int ) :: Vector{Int}
     return [dy,1,1]
 end
 
+
+#
+# Create donor  (SHS) and recipient (FRS) datasets.
+#
 donor = DataFrame( datayear=shs_all_years.datayear, uniqidnew=shs_all_years.uniqidnew )
 recip = DataFrame( datayear=frs_all_years_scot_he.datayear, sernum=frs_all_years_scot_he.sernum )
 
@@ -750,11 +749,6 @@ assign!( donor, :datayear, data_year.( shs_all_years.datayear ))
 
 targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
 
-max_matches = size( shs_all_years )[1] # all possible matches
-min_targets = size( targets )[1]
-n = 3 
-r1 = donor[1,:]
-
 function print_matches( matches )
     tm = sum( matches.matches)
     println( "mot matches= $tm" )
@@ -773,12 +767,14 @@ for r1 in riter
     global matches,i
     i += 1
     if( i > 10 )
-        break;
+        # break;
     end
     matches = Utils.coarse_match( 
         r1,
         donor,
         targets,
         3 )
-    print_matches( matches )
+    if i % 100 == 0
+        print_matches( matches )
+    end
 end
