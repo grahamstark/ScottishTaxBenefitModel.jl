@@ -41,16 +41,58 @@ function coarse_match(
     recip :: DataFrameRow, 
     donor :: DataFrame, 
     vars  :: Vector{Symbol},
+    max_coarsens:: Int ) :: NamedTuple
+    nobs = size( donor )[1]
+    nvars = size( vars )[1]
+    matches = fill( true, nobs )  
+    results = fill(-99, nobs,nvars)
+    println( size( results ))
+    quality = fill( 0, nobs )  
+    for row in 1:nobs
+        for col in 1:nvars
+            for cs in 1:max_coarsens
+                sym = Symbol("$(String(vars[col]))_$(cs)")
+                if(donor[row,sym] == recip[sym])
+                    results[row,col] = cs
+                    break;
+                end
+            end # coarsens
+        end # match vars
+    end # rows
+    quality = fill( 0, nobs )
+    for row in 1:nobs
+        for col in 1:nvars
+            if results[row,col] == -99 # no match
+                matches[row] = false
+                quality[row] = -9
+                break;
+            else 
+                quality[row] += results[row,col]^2 # maybe
+            end 
+        end # no match for some matching var break
+    end # check each row
+    return (matches=matches,results_matrix=results,quality=quality) 
+end
+
+# unneeded loop
+function coarse_matchxx( 
+    recip :: DataFrameRow, 
+    donor :: DataFrame, 
+    variables :: Vector{Symbol},
     max_matches :: Int,
-    max_coarsens :: Int ) :: NamedTuple
+    max_coarsens :: Int,
+    min_matched_vars :: Int = 0 ) :: NamedTuple
+    vars = copy( variables )
+    nvars_orig = size( vars )[1]
     nobs = size( donor )[1]
     nvars = size( vars )[1]
     c_level = ones(Int,nvars)
     num_tries = zeros(Int,nobs)
     matches = fill( true, nobs )  
-    quality = fill( 0, nobs )
     results = fill(-99,nobs,nvars)
-    
+    println( size( results ))
+    quality = fill( 0, nobs )
+        
     for t in 1:nvars
         for row in 1:nobs
             if (! matches[row]) || (t == 1 )
@@ -65,20 +107,21 @@ function coarse_match(
                 end # match vars
             end
         end # rows
+        quality = fill( 0, nobs )
         for row in 1:nobs
-            for col in 1:nvars
+            for col in 1:nvars_orig
                 if results[row,col] == -99
                     matches[row] = false
                     quality[row] = -9
                     break;
-                else
+                else 
                     quality[row] += results[row,col]^2 # maybe
                 end 
             end # no match for some matching var break
          end # check each row
          targetq = maximum( quality )
          nmatches = sum( matches )
-         if( nmatches >= max_matches )||( nvars == 1 ) 
+         if( nmatches >= max_matches )||( nvars == min_matched_vars ) 
             if nmatches == 0
                 matchedvars=[]
             end
@@ -87,7 +130,10 @@ function coarse_match(
          pop!( vars )
          nvars = size( vars )[1]
      end  
+     return (matches=matches,results_matrix=results,quality=quality,matchedvars=vars)
+     
 end
+
 
 # fast but flaky ..
 function broken_coarse_match( 

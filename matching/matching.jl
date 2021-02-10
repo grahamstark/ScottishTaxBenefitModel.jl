@@ -1,4 +1,4 @@
-using CSV,DataFrames
+using CSV,DataFrames,Statistics,StatsBase
 using ScottishTaxBenefitModel
 using .Utils: coarse_match
 #
@@ -62,7 +62,7 @@ function loadfrs( year::Int, fname :: String ) :: DataFrame
 	frs = CSV.File( fname; missingstrings=["-1"] ) |> DataFrame
 	lcnames = Symbol.(lowercase.(string.(names(frs))))
     rename!(frs,lcnames)
-    frs[!,:datayear] .= year
+    frs[!,:datayear] .= year-2000
     return frs
 end
 
@@ -211,6 +211,15 @@ function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
+#
+# level 1 -> actual number of people
+# level 2
+#   0 -> 0 (for kids)
+#   1 -> 1
+#   2 -> 2
+#   3 -> 3:5
+#   4 -> > 5
+#
 function total_people( n :: Union{Int,Missing}, def :: Int ) :: Vector{Int}
     out = fill( def, 3 )
     if ismissing( n )
@@ -229,7 +238,7 @@ function total_people( n :: Union{Int,Missing}, def :: Int ) :: Vector{Int}
         out[2] = 4
     end
     out[3] = def
-    out;
+    out
 end
 
 """
@@ -725,7 +734,7 @@ assign!( recip, :agehigh, age.( frs_all_years_scot_he.age80 ))
 assign!( recip, :empstathigh, frs_empstat.( frs_all_years_scot_he.empstati ))
 assign!( recip, :ethnichigh, frs_ethnic.( frs_all_years_scot_he.ethgr3 ))
 assign!( recip, :sochigh, frs_map_social.( frs_all_years_scot_he.soc2010 ))
-assign!( recip, :datayear, datayear.( frs_all_years_scot_he.datayear ))
+assign!( recip, :datayear, data_year.( frs_all_years_scot_he.datayear ))
  
 assign!( donor, :shelter, setone.( shs_all_years.accsup1 ))
 assign!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
@@ -737,18 +746,31 @@ assign!( donor, :agehigh, age.( shs_all_years.hihage ))
 assign!( donor, :empstathigh, shs_empstat.( shs_all_years.hihecon ))
 assign!( donor, :ethnichigh, shs_ethnic.( shs_all_years.hih_eth2012 ))
 assign!( donor, :sochigh, shs_map_social.( shs_all_years.hihsoc ))
-assign!( donor, :datayear, datayear.( shs_all_years.datayear ))
+assign!( donor, :datayear, data_year.( shs_all_years.datayear ))
 
-targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:agehigh,:empstathigh,:ethnichigh,:sochigh,:datayear]
+targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
 
 max_matches = size( shs_all_years )[1] # all possible matches
+min_targets = size( targets )[1]
 n = 3 
 r1 = donor[1,:]
 
+function print_matches( matches )
+    tm = sum( matches.matches)
+    println( "mot matches= $tm" )
+    cc=StatsBase.counts(matches.quality)
+    for i in 1:size(cc)[1]
+        if cc[i] !== 0
+            println( "$(i-10) = $(cc[i])")
+        end
+    end
+end
+
 i = 0
 matches = nothing
-for r1 in eachrow( recip )
-    global matches
+riter = eachrow( recip )
+for r1 in riter
+    global matches,i
     i += 1
     if( i > 10 )
         break;
@@ -757,11 +779,6 @@ for r1 in eachrow( recip )
         r1,
         donor,
         targets,
-        max_matches,
         3 )
-    tm = sum( matches.matches)
-    println( "tm = $tm " )
-         
+    print_matches( matches )
 end
-
-println( matches )
