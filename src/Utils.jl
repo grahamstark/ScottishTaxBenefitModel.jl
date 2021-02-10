@@ -58,7 +58,7 @@ function coarse_match(
                 matches .&= (donor[!,sym] .== recip[sym])            
             end
             newmatches = matches .⊻ prevmatches # mark new matches with current tries   ⊻
-            # println( "tries $tries\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
+            println( "tries $tries\nmatches $matches\n prevmatches $prevmatches\n newmatches $newmatches\n" )
             num_tries[newmatches] .= tries
             tries += 1
             c_level[nv] = min(nc+1, max_coarsens)
