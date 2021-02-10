@@ -348,6 +348,9 @@ level 2
 1.     House    
 2.     Flat
 3.     Other
+level 3 
+1. any
+
 """
 function frs_btype( typeacc :: Union{Missing,Int} ) :: Vector{Int}
     out = fill( 1, 3 )
@@ -420,7 +423,7 @@ end
 # 
 # accom type TYPEACC hb1
 
-function assign2!( df :: DataFrame, name :: Symbol, vals )
+function assign!( df :: DataFrame, name :: Symbol, vals )
     n = size(vals[1])[1]
     m = size( df )[1]
     ET = eltype(vals[1])
@@ -481,30 +484,113 @@ end
 # 2 self-employed
 # 3 retired
 # 4 student
-# 5 other
+# 5 other, inc unemployed
 
 # level3 
 # 1 working
 # 2 retired
 # 3 not working
 
+function frs_empstat( empstati :: Int ) :: Vector{Int}
+    out = fill( 0, 3 )
+    out[1] = empstati
+    if empstati > 3 
+        out[1] -= 1
+    end
+    if out[1] in 1:2
+        out[2] = 1
+    elseif out[1] in 3
+        out[2] = 2
+    elseif out[1] in 5
+        out[2] = 3
+    elseif out[1] in 6
+        out[2] = 4
+    elseif out[1] in [4,7,8,9,10]
+        out[2] = 5
+    else
+        @assert false "empstati $empstati"
+    end
+    if out[1] in 1:3
+        out[3] = 1
+    elseif out[1] in 5
+        out[3] = 2
+    else
+        out[3] = 3
+    end    
+    return out
+end
+
+function shs_empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
+    out = fill( 0, 3 )
+    if ismissing(hihecon) # value 14 not documented 
+        return fill( -990, 3 )
+    end
+    if hihecon > 13 
+        return fill( -989, 3 )
+    end
+    if  hihecon == 1
+        out[1] = 3
+    elseif hihecon == 2
+        out[1] = 1
+    elseif hihecon == 3
+        out[1] = 2
+    elseif hihecon == 4
+        out[1] = 7
+    elseif hihecon == 5
+        out[1] = 5
+    elseif hihecon == 6
+        out[1] = 4
+    elseif hihecon in [7,9,13]
+        out[1] = 10
+    elseif hihecon == 8
+        out[1] = 6
+    elseif hihecon == 10
+        out[1] = 8
+    elseif hihecon == 11
+        out[1] = 9
+    else    
+        @assert false "hihecon $hihecon"
+    end
+    if out[1] in 1:2
+        out[2] = 1
+    elseif out[1] in 3
+        out[2] = 2
+    elseif out[1] in 5
+        out[2] = 3
+    elseif out[1] in 6
+        out[2] = 4
+    elseif out[1] in [4,7,8,9,10]
+        out[2] = 5
+    else
+        @assert false "out[1] $(out[1])"
+    end
+    if out[1] in 1:3
+        out[3] = 1
+    elseif out[1] in 4
+        out[3] = 2
+    else
+        out[3] = 3
+    end     
+    return out
+end
 
 donor = DataFrame( datayear=shs_all_years.datayear, uniqidnew=shs_all_years.uniqidnew )
 recip = DataFrame( datayear=frs_all_years_scot_he.datayear, sernum=frs_all_years_scot_he.sernum )
 
-assign2!( recip, :shelter, setone.( frs_all_years_scot_he.shelter ))
-assign2!( recip, :tenure, frs_tenuremap.(frs_all_years_scot_he.tentyp2))
-assign2!( recip, :singlepar, setone.(frs_all_years_scot_he.hhcomps, is_sp))
-assign2!( recip, :numadults, total_people.( frs_all_years_scot_he.adulth, -777 ))
-assign2!( recip, :numkids, total_people.( frs_all_years_scot_he.depchldh, -776 ))
-assign2!( recip, :acctype, frs_btype.( frs_all_years_scot_he.typeacc ))
-assign2!( recip, :agehigh, age.( frs_all_years_scot_he.age80 ))
+assign!( recip, :shelter, setone.( frs_all_years_scot_he.shelter ))
+assign!( recip, :tenure, frs_tenuremap.(frs_all_years_scot_he.tentyp2))
+assign!( recip, :singlepar, setone.(frs_all_years_scot_he.hhcomps, is_sp))
+assign!( recip, :numadults, total_people.( frs_all_years_scot_he.adulth, -777 ))
+assign!( recip, :numkids, total_people.( frs_all_years_scot_he.depchldh, -776 ))
+assign!( recip, :acctype, frs_btype.( frs_all_years_scot_he.typeacc ))
+assign!( recip, :agehigh, age.( frs_all_years_scot_he.age80 ))
+assign!( recip, :empstathigh, frs_empstat.( frs_all_years_scot_he.empstati ))
 
-assign2!( donor, :shelter, setone.( shs_all_years.accsup1 ))
-assign2!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
-assign2!( donor, :singlepar, setone.( shs_all_years.hhtype_new, 3 ))
-assign2!( donor, :numadults, total_people.( shs_all_years.totads, -888 ))
-assign2!( donor, :numkids, total_people.( shs_all_years.totkids, -887 ))
-assign2!( donor, :acctype, shs_btype.( shs_all_years.hb1, shs_all_years.hb2))
-assign2!( donor, :agehigh, age.( shs_all_years.hihage ))
-
+assign!( donor, :shelter, setone.( shs_all_years.accsup1 ))
+assign!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
+assign!( donor, :singlepar, setone.( shs_all_years.hhtype_new, 3 ))
+assign!( donor, :numadults, total_people.( shs_all_years.totads, -888 ))
+assign!( donor, :numkids, total_people.( shs_all_years.totkids, -887 ))
+assign!( donor, :acctype, shs_btype.( shs_all_years.hb1, shs_all_years.hb2))
+assign!( donor, :agehigh, age.( shs_all_years.hihage ))
+assign!( donor, :empstathigh, shs_empstat.( shs_all_years.hihecon ))
