@@ -82,7 +82,7 @@ function coarse_match(
             if nmatches == 0
                 matchedvars=[]
             end
-            return (matches=matches,quality=quality,matchedvars=vars)
+            return (matches=matches,results_matrix=results,quality=quality,matchedvars=vars)
          end
          pop!( vars )
          nvars = size( vars )[1]

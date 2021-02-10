@@ -708,6 +708,10 @@ function frs_map_social( soc2010 )
     return map_social( Int(soc2010/1000))
 end
 
+function data_year( dy :: Int ) :: Vector{Int}
+    return [dy,1,1]
+end
+
 donor = DataFrame( datayear=shs_all_years.datayear, uniqidnew=shs_all_years.uniqidnew )
 recip = DataFrame( datayear=frs_all_years_scot_he.datayear, sernum=frs_all_years_scot_he.sernum )
 
@@ -721,6 +725,7 @@ assign!( recip, :agehigh, age.( frs_all_years_scot_he.age80 ))
 assign!( recip, :empstathigh, frs_empstat.( frs_all_years_scot_he.empstati ))
 assign!( recip, :ethnichigh, frs_ethnic.( frs_all_years_scot_he.ethgr3 ))
 assign!( recip, :sochigh, frs_map_social.( frs_all_years_scot_he.soc2010 ))
+assign!( recip, :datayear, datayear.( frs_all_years_scot_he.datayear ))
  
 assign!( donor, :shelter, setone.( shs_all_years.accsup1 ))
 assign!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
@@ -732,63 +737,31 @@ assign!( donor, :agehigh, age.( shs_all_years.hihage ))
 assign!( donor, :empstathigh, shs_empstat.( shs_all_years.hihecon ))
 assign!( donor, :ethnichigh, shs_ethnic.( shs_all_years.hih_eth2012 ))
 assign!( donor, :sochigh, shs_map_social.( shs_all_years.hihsoc ))
+assign!( donor, :datayear, datayear.( shs_all_years.datayear ))
 
+targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:agehigh,:empstathigh,:ethnichigh,:sochigh,:datayear]
 
-function l_coarse_match( 
-    recip :: DataFrameRow, 
-    donor :: DataFrame, 
-    vars  :: Vector{Symbol},
-    max_matches :: Int,
-    max_coarsens :: Int ) :: NamedTuple
-    nobs = size( donor )[1]
-    nvars = size( vars )[1]
-    c_level = ones(Int,nvars)
-    num_tries = zeros(Int,nobs)
-    results = fill(-99,nobs,nvars)
-    
-    for row in 1:nobs
-        for col in 1:nvars
-            for cs in 1:max_coarsens
-                sym = Symbol("$(String(vars[col]))_$(cs)")
-                if(donor[row,sym] == recip[sym])
-                    results[row,col] = cs
-                    break;
-                end
-            end # coursens
-        end # match vars
-    end # rows
-    matches = fill( true, nobs )  
-    quality = fill( 0, nobs )
-    for row in 1:nobs
-        for col in 1:nvars
-            if results[row,col] == -99
-                matches[row] = false
-                quality[row] = -9
-                break;
-            else
-                quality[row] += results[row,col]^2 # maybe
-            end
-        end
-     end
-     targetq = minimum( quality )
-     
-     return (matches=matches,quality=quality)
-end
-
-
-targets = [:shelter,:tenure,:singlepar,:numadults,:numkids,:acctype,:agehigh,:empstathigh,:ethnichigh,:sochigh]
-max_matches = size( shs_all_years )[1]
+max_matches = size( shs_all_years )[1] # all possible matches
 n = 3 
-
 r1 = donor[1,:]
 
+i = 0
+matches = nothing
 for r1 in eachrow( recip )
-        tm = sum(l_coarse_match( 
-            r1,
-            donor,
-            targets,
-            max_matches,
-            3 ).matches)
-        println( "tm = $tm " )
-            
+    global matches
+    i += 1
+    if( i > 10 )
+        break;
+    end
+    matches = Utils.coarse_match( 
+        r1,
+        donor,
+        targets,
+        max_matches,
+        3 )
+    tm = sum( matches.matches)
+    println( "tm = $tm " )
+         
 end
+
+println( matches )
