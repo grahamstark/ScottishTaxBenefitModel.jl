@@ -868,9 +868,7 @@ matches = nothing
 riter = eachrow( recip )
 
 targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
-bestmatches = [:shelter_1,:tenure_1,:acctype_1,:singlepar_1,:numadults_1,:numkids_1,:empstathigh_1,:sochigh_1,:agehigh_1,:ethnichigh_1,:datayear_1]
-worstmatches = [:shelter_3,:tenure_3,:acctype_3,:singlepar_3,:numadults_3,:numkids_3,:empstathigh_3,:sochigh_3,:agehigh_3,:ethnichigh_3,:datayear_3]
-critmatches = [:shelter_3,:singlepar_3,:numadults_2,:numkids_2,:empstathigh_3,:agehigh_3]
+
 
 for r1 in riter
     global matches,i
@@ -888,6 +886,20 @@ for r1 in riter
         print_matches( matches )
     end
 end
+#
+# ad hoc fixes for 0 matches 
+# 1. pick any sheltered accom
+# 2. pick any single parent
 
 CSV.write( "data/merging/shs_donor_data.tab", donor )
 CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip )
+
+#
+# useful lists for searching for cases with no matches 
+# 
+bestmatches = [:sernum, :datayear, :shelter_1,:tenure_1,:acctype_1,:singlepar_1,:numadults_1,:numkids_1,:empstathigh_1,:sochigh_1,:agehigh_1,:ethnichigh_1,:datayear_1]
+worstmatches = [:sernum, :datayear, :shelter_3,:tenure_3,:acctype_3,:singlepar_3,:numadults_3,:numkids_3,:empstathigh_3,:sochigh_3,:agehigh_3,:ethnichigh_3,:datayear_3]
+#
+# things that *have* to match
+critmatches = [:sernum, :datayear, :shelter_3,:singlepar_3,:numadults_2,:numkids_2,:empstathigh_3,:agehigh_3]
+critmatche1 = [:sernum, :datayear, :shelter_1,:singlepar_1,:numadults_2,:numkids_2,:empstathigh_1,:agehigh_1]
