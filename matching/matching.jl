@@ -793,6 +793,10 @@ struct MatchRec
     datayear  :: Int 
 end
 
+"""
+Sort the matches by match quality and then randomise within blocks of matches with the
+same match quality.
+"""
 function shuffle_blocks( a :: Vector ) :: Vector
     sort!( a, by = x -> x.quality )
     out = fill( a[1], 0 )
@@ -820,6 +824,9 @@ function shuffle_blocks( a :: Vector ) :: Vector
     return out
 end
 
+"""
+add columns 
+"""
 function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor :: DataFrame )
     nm = count(matches.matches)
     if nm == 0
@@ -838,7 +845,6 @@ function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor
     end
     m = size(v)[1]  
     
-    @assert  m == count( matches.matches )
     vs = shuffle_blocks( v )
     svs = size( vs )[1]
     @assert m == svs "m=$m svs = $svs "
