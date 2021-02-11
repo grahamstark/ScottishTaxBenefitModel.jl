@@ -85,7 +85,7 @@ characteristics like accomodation type)
 * **datayear** : data year (2016..18)
 
 See [this script](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/matching/matching.jl) 
-for the actual data wrangling, and the `coarse_match` function in 
+for the actual SHS->FRS mappings, and the `coarse_match` function in 
 [Utils.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/Utils.jl) for a simple matching algorithm.
 
 Todo: match on income, benefit receipts.

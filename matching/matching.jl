@@ -723,6 +723,18 @@ end
 donor = DataFrame( datayear=shs_all_years.datayear, uniqidnew=shs_all_years.uniqidnew )
 recip = DataFrame( datayear=frs_all_years_scot_he.datayear, sernum=frs_all_years_scot_he.sernum )
 
+# add placeholders for N matches
+
+n_matches = 200
+n_rows = size( recip )[1]
+for i in 1:n_matches
+   idkey = Symbol( "shs_uniqidnew_$(i)" )
+   ykey = Symbol( "shs_datayear_$(i)" )
+   recip[!,idkey] = fill("",n_rows)
+   recip[!,ykey] = fill(0,n_rows)
+   
+end
+
 assign!( recip, :shelter, setone.( frs_all_years_scot_he.shelter ))
 assign!( recip, :tenure, frs_tenuremap.(frs_all_years_scot_he.tentyp2))
 assign!( recip, :singlepar, setone.(frs_all_years_scot_he.hhcomps, is_sp))
@@ -747,6 +759,16 @@ assign!( donor, :ethnichigh, shs_ethnic.( shs_all_years.hih_eth2012 ))
 assign!( donor, :sochigh, shs_map_social.( shs_all_years.hihsoc ))
 assign!( donor, :datayear, data_year.( shs_all_years.datayear ))
 
+#
+# save everything
+#
+CSV.write( "data/merging/shs_donor_data.tab", donor )
+CSV.write( "data/merging/frs_recip_data.tab", recip )
+CSV.write( "data/merging/shs_all_years.tab", shs_all_years )
+CSV.write( "data/merging/frs_all_years_scot_he.tab", frs_all_years_scot_he )
+
+donor = CSV.File( "data/merging/shs_donor_data.tab"; types=Dict(:uniqidnew => String))|>DataFrame
+
 targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
 
 function print_matches( matches )
@@ -758,6 +780,12 @@ function print_matches( matches )
             println( "$(i-10) = $(cc[i])")
         end
     end
+end
+
+struct Matchstruct
+    quality   :: Int
+    uniqidnew :: String
+    datayear  :: Int 
 end
 
 i = 0
@@ -774,7 +802,37 @@ for r1 in riter
         donor,
         targets,
         3 )
+    donor_indexes = 
     if i % 100 == 0
         print_matches( matches )
     end
 end
+
+function shuffle_blocks( a :: Vector ) :: Vector
+    sort!( a, by = x -> x.quality )
+    out = fill( a[1], 0 )
+    block = fill( a[1], 0)
+    n = size(a)[1]
+    last = a[1]
+    # println("n=$n a=$a")
+    for i in 1:n
+        if a[i].quality == last.quality
+            # println("pushing $(a[i])")
+            push!( block, a[i] )
+        else
+            println("adding block $(block)")
+            last = a[i]
+            shuffle!( block )
+            out = vcat( out, block )
+            resize!( block, 0 )
+            push!( block,a [i] )
+        end
+    end
+    if size(block)[1] > 0
+        shuffle!( block )
+        out = vcat( out, block )
+    end
+    return out
+end
+
+
