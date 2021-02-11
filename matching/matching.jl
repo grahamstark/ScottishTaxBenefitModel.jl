@@ -1,4 +1,5 @@
 using CSV,DataFrames,Statistics,StatsBase
+using Random
 using ScottishTaxBenefitModel
 using .Utils: coarse_match
 #
@@ -47,7 +48,9 @@ function loadshs( year::Int )::DataFrame
 	ystr = "$(year)$(year+1)"
 	fname = "$(DIR)/shs/$(ystr)/tab/shs20$(year)_social_public.tab"
 	println( "loading '$fname'" )
-	shs = CSV.File( fname; missingstrings=["NA",""] ) |> DataFrame
+	shs = CSV.File( fname; 
+	    missingstrings=["NA",""],
+	    types=Dict(:uniqidnew => String,:UNIQIDNEW=>String)) |> DataFrame
 	lcnames = Symbol.(lowercase.(string.(names(shs))))
     rename!(shs,lcnames)
     shs[!,:datayear] .= year
@@ -730,9 +733,10 @@ n_rows = size( recip )[1]
 for i in 1:n_matches
    idkey = Symbol( "shs_uniqidnew_$(i)" )
    ykey = Symbol( "shs_datayear_$(i)" )
-   recip[!,idkey] = fill("",n_rows)
+   qkey = Symbol( "shs_quality_$(i)" )
+   recip[!,idkey] = fill("  ",n_rows)
    recip[!,ykey] = fill(0,n_rows)
-   
+   recip[!,qkey] = fill(0,n_rows)   
 end
 
 assign!( recip, :shelter, setone.( frs_all_years_scot_he.shelter ))
@@ -768,6 +772,7 @@ CSV.write( "data/merging/shs_all_years.tab", shs_all_years )
 CSV.write( "data/merging/frs_all_years_scot_he.tab", frs_all_years_scot_he )
 
 donor = CSV.File( "data/merging/shs_donor_data.tab"; types=Dict(:uniqidnew => String))|>DataFrame
+recip = CSV.File( "data/merging/frs_recip_data.tab" ) |> DataFrame
 
 targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
 
@@ -782,30 +787,10 @@ function print_matches( matches )
     end
 end
 
-struct Matchstruct
+struct MatchRec
     quality   :: Int
     uniqidnew :: String
     datayear  :: Int 
-end
-
-i = 0
-matches = nothing
-riter = eachrow( recip )
-for r1 in riter
-    global matches,i
-    i += 1
-    if( i > 10 )
-        # break;
-    end
-    matches = Utils.coarse_match( 
-        r1,
-        donor,
-        targets,
-        3 )
-    donor_indexes = 
-    if i % 100 == 0
-        print_matches( matches )
-    end
 end
 
 function shuffle_blocks( a :: Vector ) :: Vector
@@ -814,18 +799,18 @@ function shuffle_blocks( a :: Vector ) :: Vector
     block = fill( a[1], 0)
     n = size(a)[1]
     last = a[1]
-    # println("n=$n a=$a")
+    println("n=$n")
     for i in 1:n
         if a[i].quality == last.quality
             # println("pushing $(a[i])")
             push!( block, a[i] )
         else
-            println("adding block $(block)")
+            # println("adding block $(block)")
             last = a[i]
             shuffle!( block )
             out = vcat( out, block )
             resize!( block, 0 )
-            push!( block,a [i] )
+            push!( block, a[i] )
         end
     end
     if size(block)[1] > 0
@@ -835,4 +820,62 @@ function shuffle_blocks( a :: Vector ) :: Vector
     return out
 end
 
+function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor :: DataFrame )
+    nm = count(matches.matches)
+    if nm == 0
+        println("Zero matches for frs $(r.sernum) $(r.datayear) ")
+        return;
+    end
+    n = size( matches.quality )[1]
+    m = size( donor )[1]
+    @assert n == m " m = $m n = $n "
+    v = fill(MatchRec(0,"",0),0)
+    for i in 1:n
+        if matches.matches[i]
+            dr = donor[i,:]
+            push!( v, MatchRec( matches.quality[i], dr.uniqidnew, dr.datayear ))
+        end
+    end
+    m = size(v)[1]  
+    
+    @assert  m == count( matches.matches )
+    vs = shuffle_blocks( v )
+    svs = size( vs )[1]
+    @assert m == svs "m=$m svs = $svs "
+    m = min( 200, m )
+    println( "m=$m n=$n")
+    for i in 1:m
+       idkey = Symbol( "shs_uniqidnew_$(i)" )
+       ykey = Symbol( "shs_datayear_$(i)" )
+       qkey = Symbol( "shs_quality_$(i)" )
+       r[idkey] = vs[i].uniqidnew
+       r[ykey] = vs[i].datayear
+       r[qkey] = vs[i].quality
+       if i > 1
+            @assert vs[i].quality >= vs[i-1].quality
+       end
+    end
+end
 
+i = 0
+matches = nothing
+riter = eachrow( recip )
+for r1 in riter
+    global matches,i
+    i += 1
+    if( i > 100 )
+        # break;
+    end
+    matches = Utils.coarse_match( 
+        r1,
+        donor,
+        targets,
+        3 )
+    load_matches_to_recip!( r1, matches, donor )
+    if i % 100 == 0
+        print_matches( matches )
+    end
+end
+
+CSV.write( "data/merging/shs_donor_data.tab", donor )
+CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip )
