@@ -180,7 +180,7 @@ shs_all_years = vcat(
 
 
 function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( -988, 3 )
+    out = fill( 0, 3 )
     if ismissing( tenure ) || tenure >= 5
         return out;
     end
@@ -206,6 +206,7 @@ function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
     else
         @assert false "unmatched tenure $tenure";
     end      
+    out[3] = out[2]
     return out
 end
 
@@ -235,7 +236,7 @@ function total_people( n :: Union{Int,Missing}, def :: Int ) :: Vector{Int}
     else
         out[2] = 4
     end
-    out[3] = def
+    out[3] = out[2]
     out
 end
 
@@ -245,7 +246,7 @@ end
 3. age 20 year bands
 """
 function age( age  :: Union{Int,Missing} )  :: Vector{Int}
-    out = fill( -99, 3 )
+    out = fill( 0, 3 )
     if ismissing( age )
         return out
     end
@@ -257,7 +258,7 @@ function age( age  :: Union{Int,Missing} )  :: Vector{Int}
 end
     
 function frs_tenuremap( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( -99, 3 )
+    out = fill( 0, 3 )
     out[3] = 1
     if ismissing( tentyp2 )
         out[1] = 6
@@ -406,6 +407,7 @@ function shs_btype( hb1 :: Union{Missing,Int}, hb2 :: Union{Missing,Int} ) :: Ve
         @assert false "unrecognised hb1 $hb1"
     end
     out[2] = hb1
+    out[3]=out[2]
     return out
 end
 
@@ -774,8 +776,6 @@ CSV.write( "data/merging/frs_all_years_scot_he.tab", frs_all_years_scot_he )
 donor = CSV.File( "data/merging/shs_donor_data.tab"; types=Dict(:uniqidnew => String))|>DataFrame
 recip = CSV.File( "data/merging/frs_recip_data.tab" ) |> DataFrame
 
-targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
-
 function print_matches( matches )
     tm = sum( matches.matches)
     println( "mot matches= $tm" )
@@ -866,6 +866,12 @@ end
 i = 0
 matches = nothing
 riter = eachrow( recip )
+
+targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
+bestmatches = [:shelter_1,:tenure_1,:acctype_1,:singlepar_1,:numadults_1,:numkids_1,:empstathigh_1,:sochigh_1,:agehigh_1,:ethnichigh_1,:datayear_1]
+worstmatches = [:shelter_3,:tenure_3,:acctype_3,:singlepar_3,:numadults_3,:numkids_3,:empstathigh_3,:sochigh_3,:agehigh_3,:ethnichigh_3,:datayear_3]
+critmatches = [:shelter_3,:singlepar_3,:numadults_2,:numkids_2,:empstathigh_3,:agehigh_3]
+
 for r1 in riter
     global matches,i
     i += 1
