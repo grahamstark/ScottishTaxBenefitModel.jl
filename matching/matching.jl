@@ -803,13 +803,11 @@ function shuffle_blocks( a :: Vector ) :: Vector
     block = fill( a[1], 0)
     n = size(a)[1]
     last = a[1]
-    println("n=$n")
     for i in 1:n
         if a[i].quality == last.quality
-            # println("pushing $(a[i])")
             push!( block, a[i] )
-        else
-            # println("adding block $(block)")
+        else 
+            # found a new qual; shuffle the block, append it to output & start a new block
             last = a[i]
             shuffle!( block )
             out = vcat( out, block )
@@ -817,6 +815,7 @@ function shuffle_blocks( a :: Vector ) :: Vector
             push!( block, a[i] )
         end
     end
+    # handle whatever's left
     if size(block)[1] > 0
         shuffle!( block )
         out = vcat( out, block )
@@ -825,7 +824,8 @@ function shuffle_blocks( a :: Vector ) :: Vector
 end
 
 """
-add columns 
+Add values for columns `shs_uniqidnew_n`, `shs_datayear_n` and `shs_quality_n` for one row of
+the recipient dataset, for up to 200 matches with best in 1, next in 2 and so on.
 """
 function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor :: DataFrame )
     nm = count(matches.matches)
