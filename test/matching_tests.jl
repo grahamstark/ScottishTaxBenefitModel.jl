@@ -57,13 +57,13 @@ max_matches = 2500
                 println( "on match=$(match)" )
             end
             # @test match.quality in 1:8
-            if match.quality == 2                                  
+            if match.quality == 2 # 1+1                    
                 @test (match.a_1 == r1.a_1)&&(match.b_1 == r1.b_1) # `a` and `b` should match fine.
-            elseif match.quality == 5
+            elseif match.quality == 5 # 1 + 2^2
                 @test ! ((match.a_1 == r1.a_1)&&(match.b_1 == r1.b_1)) # can't be a q=1 match
                 @test ((match.a_2 == r1.a_2)&&(match.b_1 == r1.b_1)||
                        (match.a_1 == r1.a_1)&&(match.b_2 == r1.b_2))# should be a_2 matches coarse, b_1 matches fine
-            elseif match.quality == 8
+            elseif match.quality == 8 # 2^2 + 2^2
                 if printrows
                     println( "q=3; r1=$r1" )
                     println( "q=3; match=$match" )
