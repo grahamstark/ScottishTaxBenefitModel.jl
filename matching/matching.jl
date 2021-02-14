@@ -866,10 +866,7 @@ end
 i = 0
 matches = nothing
 riter = eachrow( recip )
-
 targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
-
-
 for r1 in riter
     global matches,i
     i += 1
@@ -903,3 +900,20 @@ worstmatches = [:sernum, :datayear, :shelter_3,:tenure_3,:acctype_3,:singlepar_3
 # things that *have* to match
 critmatches = [:sernum, :datayear, :shelter_3,:singlepar_3,:numadults_2,:numkids_2,:empstathigh_3,:agehigh_3]
 critmatche1 = [:sernum, :datayear, :shelter_1,:singlepar_1,:numadults_2,:numkids_2,:empstathigh_1,:agehigh_1]
+
+unmatched = recip[((recip.shs_datayear_1 .== 0).&(recip.shelter_1 .== 1)),:]
+unmatched[!,critmatche1]
+riter = eachrow( unmatched )
+targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
+for r1 in riter
+    global matches,i
+    i += 1
+    matches = Utils.coarse_match( 
+        r1,
+        donor,
+        [:shelter],
+        3 )
+    load_matches_to_recip!( r1, matches, donor )
+   
+end
+
