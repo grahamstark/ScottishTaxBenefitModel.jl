@@ -181,7 +181,7 @@ shs_all_years = vcat(
 
 function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( 0, 3 )
-    if ismissing( tenure ) || tenure >= 5
+    if ismissing( tenure ) # || tenure >= 5
         return out;
     end
     out[3] = 1
@@ -200,7 +200,7 @@ function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
     elseif tenure == 5
         out[1] = 5
         out[2] = 2
-    elseif tenure in [6, 999998, 999998]
+    elseif tenure in [6, 7, 999998, 999998] # 7 is poss coding error
         out[1] = 6
         out[2] = 3
     else
