@@ -218,8 +218,14 @@ end
 #   2 -> 2
 #   3 -> 3:5
 #   4 -> > 5
+# level 3 
+#  1 adult -> 0
+#  2 adults -> 1
+#  > 2 adults -> 2
+#  0 child -> 0
+#  > 0 child -> 1
 #
-function total_people( n :: Union{Int,Missing}, def :: Int ) :: Vector{Int}
+function total_people( n :: Union{Int,Missing}, def :: Int, is_child :: Bool ) :: Vector{Int}
     out = fill( def, 3 )
     if ismissing( n )
         return out
@@ -236,8 +242,17 @@ function total_people( n :: Union{Int,Missing}, def :: Int ) :: Vector{Int}
     else
         out[2] = 4
     end
-    out[3] = out[2]
-    out
+    if is_child # any children
+       out[3] = out[2] > 0 : 1 : 0
+    else
+       if out[2] == 1
+            out[3] == 0
+       elseif out[2] == 2
+            out[3] = 1
+       else
+           out[3] = 2
+       end
+    return out
 end
 
 """
@@ -744,8 +759,8 @@ end
 assign!( recip, :shelter, setone.( frs_all_years_scot_he.shelter ))
 assign!( recip, :tenure, frs_tenuremap.(frs_all_years_scot_he.tentyp2))
 assign!( recip, :singlepar, setone.(frs_all_years_scot_he.hhcomps, is_sp))
-assign!( recip, :numadults, total_people.( frs_all_years_scot_he.adulth, -777 ))
-assign!( recip, :numkids, total_people.( frs_all_years_scot_he.depchldh, -776 ))
+assign!( recip, :numadults, total_people.( frs_all_years_scot_he.adulth, -777, false ))
+assign!( recip, :numkids, total_people.( frs_all_years_scot_he.depchldh, -776, true ))
 assign!( recip, :acctype, frs_btype.( frs_all_years_scot_he.typeacc ))
 assign!( recip, :agehigh, age.( frs_all_years_scot_he.age80 ))
 assign!( recip, :empstathigh, frs_empstat.( frs_all_years_scot_he.empstati ))
@@ -756,8 +771,8 @@ assign!( recip, :datayear, data_year.( frs_all_years_scot_he.datayear ))
 assign!( donor, :shelter, setone.( shs_all_years.accsup1 ))
 assign!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
 assign!( donor, :singlepar, setone.( shs_all_years.hhtype_new, 3 ))
-assign!( donor, :numadults, total_people.( shs_all_years.totads, -888 ))
-assign!( donor, :numkids, total_people.( shs_all_years.totkids, -887 ))
+assign!( donor, :numadults, total_people.( shs_all_years.totads, -888, false ))
+assign!( donor, :numkids, total_people.( shs_all_years.totkids, -887, true ))
 assign!( donor, :acctype, shs_btype.( shs_all_years.hb1, shs_all_years.hb2))
 assign!( donor, :agehigh, age.( shs_all_years.hihage ))
 assign!( donor, :empstathigh, shs_empstat.( shs_all_years.hihecon ))
@@ -828,29 +843,31 @@ Add values for columns `shs_uniqidnew_n`, `shs_datayear_n` and `shs_quality_n` f
 the recipient dataset, for up to 200 matches with best in 1, next in 2 and so on.
 """
 function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor :: DataFrame )
-    nm = count(matches.matches)
-    if nm == 0
+    num_matches = count(matches.matches) 
+    # matches is a list of all the donor records that match - get a count of trues
+    println( "num_matches=$num_matches")
+    if num_matches == 0
         println("Zero matches for frs $(r.sernum) $(r.datayear) ")
-        return;
+        return 0;
     end
-    n = size( matches.quality )[1]
-    m = size( donor )[1]
-    @assert n == m " m = $m n = $n "
+    # println( "matches $(matches.matches) ")
+    nq = size( matches.quality )[1]
+    nd = size( donor )[1]
+    @assert nq == nd " nq = $nq nd = $nd num_matches = $num_matches"
     v = fill(MatchRec(0,"",0),0)
-    for i in 1:n
+    for i in 1:nq
         if matches.matches[i]
             dr = donor[i,:]
             push!( v, MatchRec( matches.quality[i], dr.uniqidnew, dr.datayear ))
         end
     end
-    m = size(v)[1]  
-    
+    nv = size( v )
+    # println( "size v = $nv ")
     vs = shuffle_blocks( v )
     svs = size( vs )[1]
-    @assert m == svs "m=$m svs = $svs "
-    m = min( 200, m )
-    println( "m=$m n=$n")
-    for i in 1:m
+    @assert num_matches == svs "num_matches=$num_matches svs = $svs "
+    num_matches = min( 200, num_matches )
+    for i in 1:num_matches
        idkey = Symbol( "shs_uniqidnew_$(i)" )
        ykey = Symbol( "shs_datayear_$(i)" )
        qkey = Symbol( "shs_quality_$(i)" )
@@ -861,35 +878,44 @@ function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor
             @assert vs[i].quality >= vs[i-1].quality
        end
     end
+    return num_matches
 end
 
-i = 0
-matches = nothing
-riter = eachrow( recip )
-targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
-for r1 in riter
-    global matches,i
-    i += 1
-    if( i > 100 )
-        # break;
+
+
+function match_up_unmatched!( recip :: DataFrame, donor :: DataFrame, fields :: Vector{Symbol}, targets :: Vector ) 
+    n = size( targets )[1]
+    nr = size(recip)[1]
+    @assert n == nr " n = $n nr = $nr "
+    s = 0
+    for i in 1:n #iter
+        if targets[i]
+            s += 1
+            rs = recip[i,:]
+            matches = Utils.coarse_match( 
+                rs,
+                donor,
+                fields,
+                3 )
+            load_matches_to_recip!( rs, matches, donor )
+       end
     end
-    matches = Utils.coarse_match( 
-        r1,
-        donor,
-        targets,
-        3 )
-    load_matches_to_recip!( r1, matches, donor )
-    if i % 100 == 0
-        print_matches( matches )
-    end
+    return s
 end
+
+#
+# initial match across all FRS households.
+#
+targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
+all = fill( true, size( recip )[1] ) # match every frs household
+match_up_unmatched!( recip, donor, targets, all )
+
 #
 # ad hoc fixes for 0 matches 
 # 1. pick any sheltered accom
-# 2. pick any single parent
 
-CSV.write( "data/merging/shs_donor_data.tab", donor )
-CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip )
+CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
+CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
 
 #
 # useful lists for searching for cases with no matches 
@@ -901,19 +927,70 @@ worstmatches = [:sernum, :datayear, :shelter_3,:tenure_3,:acctype_3,:singlepar_3
 critmatches = [:sernum, :datayear, :shelter_3,:singlepar_3,:numadults_2,:numkids_2,:empstathigh_3,:agehigh_3]
 critmatche1 = [:sernum, :datayear, :shelter_1,:singlepar_1,:numadults_2,:numkids_2,:empstathigh_1,:agehigh_1]
 
-unmatched = recip[((recip.shs_datayear_1 .== 0).&(recip.shelter_1 .== 1)),:]
+unmatched = recip[(recip.shs_datayear_1 .== 0),:]
 unmatched[!,critmatche1]
-riter = eachrow( unmatched )
-targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
-for r1 in riter
-    global matches,i
-    i += 1
-    matches = Utils.coarse_match( 
-        r1,
-        donor,
-        [:shelter],
-        3 )
-    load_matches_to_recip!( r1, matches, donor )
-   
-end
 
+# match shelter on random shelter
+unmatched = Vector(((recip.shs_datayear_1 .== 0).&(recip.shelter_1 .== 1)))
+n = match_up_unmatched!( recip, donor, [:shelter], unmatched )
+
+
+CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
+CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
+
+"""
+
+
+final missing 7 cases after matching any sheltered home:
+
+ Row │ sernum  datayear  shelter_1  singlepar_1  numadults_2  numkids_2  empstathigh_1  agehigh_1 
+     │ Int64   Int64     Int64      Int64        Int64        Int64      Int64          Int64     
+─────┼────────────────────────────────────────────────────────────────────────────────────────────
+   1 │   6171        16          0            1            1          2              1         62
+   2 │  16510        16          0            0            3          1              1         19
+   3 │  10973        17          0            0            3          4              1         42
+   4 │  18803        17          0            0            3          2              5         80
+   5 │   4861        18          0            0            3          2              1         19
+   6 │   5234        18          0            0            3          0              6         18
+   7 │  14536        18          0            0            2          2              5         80
+
+   
+"""
+
+# reload so we can just start the script here 
+donor = CSV.File( "data/merging/shs_donor_data.tab"; delim='\t' ) |> DataFrame
+recip = CSV.File( "data/merging/frs_shs_merging_indexes.tab"; delim='\t' ) |> DataFrame
+
+# 1) so drop age & emp status for last 7
+
+final_unmatched = recip[(recip.shs_datayear_1 .== 0),:]
+
+final_targets = [:singlepar,:numadults,:numkids]
+
+# get rid of this cast
+final_unmatched = Vector((recip.shs_datayear_1 .== 0))
+
+#
+# matching the remaining 7 on sp, ads, kids 
+#
+n = match_up_unmatched!( recip, donor, final_targets, final_unmatched )
+# 
+# & we're down to 1 unmatched .. 
+#
+"""
+ Row │ sernum  datayear  shelter_1  singlepar_1  numadults_2  numkids_2  empstathigh_1  agehigh_1 
+     │ Int64   Int64     Int64      Int64        Int64        Int64      Int64          Int64     
+─────┼────────────────────────────────────────────────────────────────────────────────────────────
+   1 │  10973        17          0            0            3          4              1         42
+
+"""
+
+# try with just kids, no adults
+final_targets_2 = [:tenure,:singlepar,:numkids,:datayear]
+
+final_unmatched_2 = Vector(recip.shs_datayear_1 .== 0)
+n = match_up_unmatched!( recip, donor, final_targets_2, final_unmatched_2 )
+
+# no more than 4 children in SHS
+# maximum( donor.numkids_1 ) => 4
+# maximum( donor.
