@@ -243,8 +243,9 @@ function total_people( n :: Union{Int,Missing}, def :: Int, is_child :: Bool ) :
         out[2] = 4
     end
     if is_child # any children
-       out[3] = out[2] > 0 : 1 : 0
+       out[3] = out[2] > 0 ? 1 : 0
     else
+       @assert out[2] > 0 "no adults"
        if out[2] == 1
             out[3] == 0
        elseif out[2] == 2
@@ -252,6 +253,7 @@ function total_people( n :: Union{Int,Missing}, def :: Int, is_child :: Bool ) :
        else
            out[3] = 2
        end
+    end
     return out
 end
 
