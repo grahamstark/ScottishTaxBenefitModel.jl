@@ -772,7 +772,12 @@ assign!( donor, :shelter, setone.( shs_all_years.accsup1 ))
 assign!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
 assign!( donor, :singlepar, setone.( shs_all_years.hhtype_new, 3 ))
 assign!( donor, :numadults, total_people.( shs_all_years.totads, -888, false ))
-assign!( donor, :numkids, total_people.( shs_all_years.totkids, -887, true ))
+
+#
+# fixme: check distinction between `totkids` (max 4 in the data) and `numkids`
+# nothing much in docs
+#
+assign!( donor, :numkids, total_people.( shs_all_years.numkids, -887, true ))
 assign!( donor, :acctype, shs_btype.( shs_all_years.hb1, shs_all_years.hb2))
 assign!( donor, :agehigh, age.( shs_all_years.hihage ))
 assign!( donor, :empstathigh, shs_empstat.( shs_all_years.hihecon ))
