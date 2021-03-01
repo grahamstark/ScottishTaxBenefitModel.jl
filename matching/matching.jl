@@ -13,6 +13,14 @@ using .Utils: coarse_match
 const DIR="/mnt/data/"
 const SCOTLAND=299999999
 
+
+function match_in_column( 
+    recip :: DataFrame, 
+    donor :: DataFrame )
+    
+end
+    
+
 function make_highest_hh_income_marker( hhad :: DataFrame ) :: Vector{Bool}
 	sns = unique(hhad.sernum)
 	n = size( hhad )[1]
@@ -79,10 +87,12 @@ s18=loadshs(2018)
 #
 # Load 3 FRS hhld datasets, and then make Scotland only subsets.
 #
+hh15 = loadfrs( 2015, "househol" )
 hh16 = loadfrs( 2016, "househol" )
 hh17 = loadfrs( 2017, "househol" )
 hh18 = loadfrs( 2018, "househol" )
 
+shh15 = hh15[(hh15.gvtregn .== SCOTLAND),:]
 shh16 = hh16[(hh16.gvtregn .== SCOTLAND),:]
 shh17 = hh17[(hh17.gvtregn .== SCOTLAND),:]
 shh18 = hh18[(hh18.gvtregn .== SCOTLAND),:]
@@ -90,6 +100,7 @@ shh18 = hh18[(hh18.gvtregn .== SCOTLAND),:]
 #
 # FRS Adult datasets.
 #
+ad15 = loadfrs( 2015, "adult" )
 ad16 = loadfrs( 2016, "adult" )
 ad17 = loadfrs( 2017, "adult" )
 ad18 = loadfrs( 2018, "adult" )
@@ -97,6 +108,7 @@ ad18 = loadfrs( 2018, "adult" )
 #
 # joined household and adult FRS records, Scotland only
 #
+shhad15=innerjoin( ad15,shh15, on=:sernum; makeunique=true )
 shhad16=innerjoin( ad16,shh16, on=:sernum; makeunique=true )
 shhad17=innerjoin( ad17,shh17, on=:sernum; makeunique=true )
 shhad18=innerjoin( ad18,shh18, on=:sernum; makeunique=true )
@@ -104,6 +116,7 @@ shhad18=innerjoin( ad18,shh18, on=:sernum; makeunique=true )
 #
 # now, delete all but the adult with the highest income, since this is  
 # 
+shhad15[!,:highest_income] = make_highest_hh_income_marker( shhad15 )
 shhad16[!,:highest_income] = make_highest_hh_income_marker( shhad16 )
 shhad17[!,:highest_income] = make_highest_hh_income_marker( shhad17 )
 shhad18[!,:highest_income] = make_highest_hh_income_marker( shhad18 )
@@ -117,6 +130,7 @@ shhad18[((shhad18.highest_income.==1) .& (shhad18.person.>2)),[:sernum,:person,:
 # Stack all 3 years FRS.
 # 
 frs_all_years_scot_he = vcat(
+	shhad15[shhad15.highest_income,:],
 	shhad16[shhad16.highest_income,:],
 	shhad17[shhad17.highest_income,:],
 	shhad18[shhad18.highest_income,:];
@@ -913,7 +927,7 @@ end
 #
 # initial match across all FRS households.
 #
-targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh,:datayear]
+targets = [:shelter,:tenure,:acctype,:singlepar,:numadults,:numkids,:empstathigh,:sochigh,:agehigh,:ethnichigh] #  drop :datayear since year 15 doesn't overlap
 all = fill( true, size( recip )[1] ) # match every frs household
 match_up_unmatched!( recip, donor, targets, all )
 
@@ -927,8 +941,8 @@ CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true,
 #
 # useful lists for searching for cases with no matches 
 # 
-bestmatches = [:sernum, :datayear, :shelter_1,:tenure_1,:acctype_1,:singlepar_1,:numadults_1,:numkids_1,:empstathigh_1,:sochigh_1,:agehigh_1,:ethnichigh_1,:datayear_1]
-worstmatches = [:sernum, :datayear, :shelter_3,:tenure_3,:acctype_3,:singlepar_3,:numadults_3,:numkids_3,:empstathigh_3,:sochigh_3,:agehigh_3,:ethnichigh_3,:datayear_3]
+bestmatches = [:sernum, :datayear, :shelter_1,:tenure_1,:acctype_1,:singlepar_1,:numadults_1,:numkids_1,:empstathigh_1,:sochigh_1,:agehigh_1,:ethnichigh_1]
+worstmatches = [:sernum, :datayear, :shelter_3,:tenure_3,:acctype_3,:singlepar_3,:numadults_3,:numkids_3,:empstathigh_3,:sochigh_3,:agehigh_3,:ethnichigh_3]
 #
 # things that *have* to match
 critmatches = [:sernum, :datayear, :shelter_3,:singlepar_3,:numadults_2,:numkids_2,:empstathigh_3,:agehigh_3]
@@ -966,7 +980,10 @@ final missing 7 cases after matching any sheltered home:
 
 # reload so we can just start the script here 
 donor = CSV.File( "data/merging/shs_donor_data.tab"; delim='\t' ) |> DataFrame
-recip = CSV.File( "data/merging/frs_shs_merging_indexes.tab"; delim='\t' ) |> DataFrame
+#
+# no idea whatsoever why the 1st uniq needs cast, but it does seem to ..
+#
+recip = CSV.File( "data/merging/frs_shs_merging_indexes.tab"; delim='\t', types=Dict("shs_uniqidnew_1"=>String) ) |> DataFrame
 
 # 1) so drop age & emp status for last 7
 
@@ -1004,3 +1021,22 @@ n = match_up_unmatched!( recip, donor, final_targets_2, final_unmatched_2 )
 
 CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
 CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
+mhh = CSV.File( "data/model_households_scotland.tab"; delim='\t') |> DataFrame
+
+for r in eachrow(recip)
+    s1 = r.shs_uniqidnew_1
+    y1 = r.shs_datayear_1
+  
+    shsrow=shs_all_years[((shs.uniqidnew.==s1).&(shs.datayear.==y1)),:][1,:]
+    println( shsrow.council )
+    dy = r.datayear + 2000
+    mra = mhh[((mhh.hid .== r.sernum).&(mhh.data_year .== dy)),:]
+    if( size(mra)[1] == 0 )
+        println( "missing sernum $(r.sernum) datayear = $(r.datayear) ")
+    else
+        mr = mra[1,:]
+        println( mr )
+    end
+end
+
+>>>>>>> a58be94d977ce6520a9be2f1fc31d54c7e69e97b

@@ -2,7 +2,7 @@
 #
 # bits and pieces to load converted allissue schema files into a postgres database
 # you need to convert the .rtf files to ascii first. Do this with:
-# soffice --headless --convert-to tab *.rtf
+# soffice --headless --convert-to txt *.rtf
 #
 
 require 'ukds_schema_utils'
@@ -12,8 +12,9 @@ load 'conversion_constants.rb'
 
 # datasets = [  "frs", 'lcf', 'shs' ]
 # years = [2016,2017]
-datasets = [  "frs" ]
+datasets = [  "shs" ]
 years = [2018]
+
 
 #
 # parse all .tab files in a directory and load to ukds.dictionaries schema
