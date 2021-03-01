@@ -12,13 +12,57 @@ using .Utils: coarse_match
 #
 const DIR="/mnt/data/"
 const SCOTLAND=299999999
+const MAX_REPEATS = 200
 
-
-function match_in_column( 
-    recip :: DataFrame, 
-    donor :: DataFrame )
-    
+function count_councils( shs_all_years :: DataFrame, shs_councils  :: DataFrame ) :: Dict
+    ccounts = Dict()
+    for c in eachrow( shs_councils )
+        ccounts[c.Code] = 0.0
+    end
+    println( ccounts )
+    for s in eachrow(shs_all_years)   
+        if ! ismissing(s.council) 
+            cc = shs_councils[(shs_councils.SHS_ID .== s.council),:Code]
+            cc = cc[1]
+            println(cc)
+            ccounts[cc] += 1
+        end
+    end    
+    return ccounts
 end
+
+
+
+function add_in_las_to_recip!( 
+    recip         :: DataFrame, 
+    shs_all_years :: DataFrame,
+    shs_councils  :: DataFrame )
+    n_rows = size( recip )[1]
+    for i in 1:MAX_REPEATS
+       ckey = Symbol( "shs_council_$(i)" )
+       nkey = Symbol( "shs_nhs_board_$(i)" )
+       recip[!,ckey] = fill("  ",n_rows)
+       recip[!,nkey] = fill("  ",n_rows)
+    end
+    for r in eachrow( recip )
+        println( "on row $(r.sernum) $(r.datayear)" )
+        for n in 1:MAX_REPEATS
+            idkey = Symbol( "shs_uniqidnew_$(n)" )
+            ykey = Symbol( "shs_datayear_$(n)" )
+            ckey = Symbol( "shs_council_$(n)" )
+            nkey = Symbol( "shs_nhs_board_$(n)" )
+            y = r[ykey]
+            id = r[idkey]
+            if y > 0 # a match                
+                shsrow=shs_all_years[((shs_all_years.uniqidnew.==id).&(shs_all_years.datayear.==y)),:][1,:]
+                cc = shs_councils[(shs_councils.SHS_ID .== shsrow.council),:Code][1]
+                r[ckey] = cc
+                r[nkey] = shsrow.hlthbd2014
+            end
+        end    
+    end
+end
+
     
 
 function make_highest_hh_income_marker( hhad :: DataFrame ) :: Vector{Bool}
@@ -761,9 +805,8 @@ recip = DataFrame( datayear=frs_all_years_scot_he.datayear, sernum=frs_all_years
 
 # add placeholders for N matches
 
-n_matches = 200
 n_rows = size( recip )[1]
-for i in 1:n_matches
+for i in 1:MAX_REPEATS
    idkey = Symbol( "shs_uniqidnew_$(i)" )
    ykey = Symbol( "shs_datayear_$(i)" )
    qkey = Symbol( "shs_quality_$(i)" )
@@ -861,7 +904,7 @@ end
 
 """
 Add values for columns `shs_uniqidnew_n`, `shs_datayear_n` and `shs_quality_n` for one row of
-the recipient dataset, for up to 200 matches with best in 1, next in 2 and so on.
+the recipient dataset, for up to MAX_REPEATS matches with best in 1, next in 2 and so on.
 """
 function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor :: DataFrame )
     num_matches = count(matches.matches) 
@@ -887,7 +930,7 @@ function load_matches_to_recip!( r :: DataFrameRow, matches :: NamedTuple, donor
     vs = shuffle_blocks( v )
     svs = size( vs )[1]
     @assert num_matches == svs "num_matches=$num_matches svs = $svs "
-    num_matches = min( 200, num_matches )
+    num_matches = min( MAX_REPEATS, num_matches )
     for i in 1:num_matches
        idkey = Symbol( "shs_uniqidnew_$(i)" )
        ykey = Symbol( "shs_datayear_$(i)" )
@@ -1023,11 +1066,16 @@ CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\
 CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
 mhh = CSV.File( "data/model_households_scotland.tab"; delim='\t') |> DataFrame
 
+shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
+ccounts = Dict()
+for c in eachrow( shs_councils )
+    ccounts[c.Code] = 0.0
+end
 for r in eachrow(recip)
     s1 = r.shs_uniqidnew_1
     y1 = r.shs_datayear_1
   
-    shsrow=shs_all_years[((shs.uniqidnew.==s1).&(shs.datayear.==y1)),:][1,:]
+    shsrow=shs_all_years[((shs_all_years.uniqidnew.==s1).&(shs_all_years.datayear.==y1)),:][1,:]
     println( shsrow.council )
     dy = r.datayear + 2000
     mra = mhh[((mhh.hid .== r.sernum).&(mhh.data_year .== dy)),:]
@@ -1035,6 +1083,30 @@ for r in eachrow(recip)
         println( "missing sernum $(r.sernum) datayear = $(r.datayear) ")
     else
         mr = mra[1,:]
-        println( mr )
+        cc = shs_councils[(shs_councils.SHS_ID .== shsrow.council),:Code][1]
+        println( cc )
+        ccounts[cc] += ((shsrow.numads+shsrow.numkids)) #*mr.weight/4 # *shsrow.la_grwt
     end
 end
+
+ks = sort(collect(keys(ccounts)))
+tot = 0
+for k in ks
+   global tot
+   name = shs_councils[shs_councils.Code .== k, :name][1]
+   tot += ccounts[k]
+   println( "$name = $(ccounts[k])" )
+end
+
+println( "total $tot " )
+
+gf = 5463300/tot
+tot = 0
+for k in ks
+   name = shs_councils[shs_councils.Code .== k, :name][1]
+   c = ccounts[k]*gf
+   tot += c
+   println( "$name,$(k),$c" )
+end
+
+println( "total $tot " )
