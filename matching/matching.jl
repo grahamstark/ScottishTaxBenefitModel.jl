@@ -1001,3 +1001,6 @@ n = match_up_unmatched!( recip, donor, final_targets_2, final_unmatched_2 )
 # no more than 4 children in SHS
 # maximum( donor.numkids_1 ) => 4
 # maximum( donor.
+
+CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
+CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
