@@ -181,8 +181,7 @@ module P
         t = JSON3.read( io, Main.N.X{T} )
         close( io )
         return t                            
-    end    
- 
+    end 
 end
 
 
