@@ -15,6 +15,80 @@ const DIR="/mnt/data/"
 const SCOTLAND=299999999
 const MAX_REPEATS = 200
 
+
+function init_council_counter( shs_councils :: DataFrame ) :: Dict{String,Float64}
+    counts = Dict()
+    for c in eachrow( shs_councils )
+        counts[c.Code] = 0.0
+    end
+    counts
+end
+
+"""
+Add a matched council to each model frs household record
+this is chosen randomly from all the matched records, using 
+a the calculated inverse sample frequency of that council and
+the quality of the match (high q's -> more likely, obvs.)
+"""
+function add_council_to_frs!(
+    ;
+    mhh   :: DataFrame,
+    recip :: DataFrame,
+    shs_councils :: DataFrame,
+    inv_freqs :: Dict )
+    
+    n_rows = size( mhh )[1]
+    mhh[!,:council] = fill("  ", n_rows)
+    mhh[!,:nhs_board] = fill("  ", n_rows)
+
+    counts =  init_council_counter( shs_councils )
+    println( "counts $counts ")
+    for r in eachrow(recip)   
+        println( "on r" )
+        cnhs = []
+        weights = []
+        println( "r.sernum $(r.sernum) datayear $(r.datayear)" )
+        dy = r.datayear+2000
+        mpp = ((mhh.hid .== r.sernum).&(mhh.data_year .== dy ))
+        mppsize = count( mpp )
+        @assert mppsize in [0,1]
+        println( "mppsize $mppsize" )
+        if mppsize == 1
+            # mra = mra[1,:] # convert output frs to row
+            for n in 1:MAX_REPEATS
+                idkey = Symbol( "shs_uniqidnew_$(n)" )
+                ykey = Symbol( "shs_datayear_$(n)" )
+                qkey = qkey = Symbol( "shs_quality_$(n)" )
+                ckey = Symbol( "shs_council_$(n)" )
+                nkey = Symbol( "shs_nhs_board_$(n)" )
+                y = r[ykey]
+                id = r[idkey]
+                qual = r[qkey]
+                nhs = r[nkey] 
+                ccode = r[ckey]                
+                # println( "qual=$qual" )
+                if r[ykey] == 0 # no more match candidates
+                    break
+                end
+                weight = inv_freqs[ccode]/qual
+                # println( "got weight $weight, ccode $ccode " )
+                push!( weights,  weight )
+                push!( cnhs, (council=ccode,nhs=nhs))
+            end # best to worst matches
+            probs = ProbabilityWeights(weights/sum(weights)) # to a probability
+            println("probs $(probs)" )
+            println( "councils $(cnhs)" )
+            ccode = sample( cnhs, probs )
+            counts[ccode.council] += 1
+            mhh[mpp,:council] .= ccode.council
+            mhh[mpp,:nhs_board] .= ccode.nhs
+            println( "selected $ccode" )
+        end # frs model record exists
+    end # loop round recipients
+    return counts
+end
+
+
 function count_councils( shs_all_years :: DataFrame, shs_councils  :: DataFrame ) :: Dict
     ccounts = Dict()
     for c in eachrow( shs_councils )
@@ -1134,38 +1208,28 @@ end
 
 @assert s  ≈ 2495622
 
-for r in eachrow(recip)
-    
-    councils = []
-    weights = []
-    baseq = -1
-    for n in 1:MAX_REPEATS
-        idkey = Symbol( "shs_uniqidnew_$(n)" )
-        ykey = Symbol( "shs_datayear_$(n)" )
-        qkey = qkey = Symbol( "shs_quality_$(n)" )
-        ckey = Symbol( "shs_council_$(n)" )
-        nkey = Symbol( "shs_nhs_board_$(n)" )
-        y = r[ykey]
-        id = r[idkey]
-        qual = r[qkey]
-        ccode = r[ckey] 
-        println( "qual=$qual" )
-        if n == 1
-            baseq = qual
-        else
-            if baseq !== qual
-                println( "qual=$qual baseq=$baseq ; breaking after $n " )
-                break # all the best qs
-            end
-        end
-        weight = inv_freqs[ccode]
-        println( "got weight $weight, ccode $ccode " )
-        push!( weights,  weight )
-        push!( councils, ccode )
-    end
-    probs = weights/sum(weights) # to a probability
-    println("probs $(probs)" )
-    println( "councils $(councils)" )
-    ccode = sample( councils, probs )
-    println( "selected $ccode" )
+tot_hhlds_19 = 2_495_622
+
+counts = add_council_to_frs!(
+    ;
+    mhh   = mhh,
+    recip = recip,
+    shs_councils = shs_councils,
+    inv_freqs = inv_freqs )
+
+
+aw = tot_hhlds_19/sum(values(counts))
+
+println( "|code|name|shs sample freq| counts |" )
+println( "|----|----|-----------|------|" )
+for p in eachrow( shs_councils )
+    v = inv_freqs[p.Code]
+    c = counts[p.Code]*aw
+    println( "| $(p.Code) | $(p.name) | $v | $c")
 end
+
+for r in eachrow(mhh)
+    counts[r.council] += 1
+end
+
+CSV.write( "data/model_households_scotland.tab", mhh; delim='\t') 
