@@ -2,6 +2,7 @@ using CSV,DataFrames,Statistics,StatsBase
 using Random
 using ScottishTaxBenefitModel
 using .Utils: coarse_match
+
 #
 # Scripts for creating a merged FRS (recipient) and SHS (donor) datase
 # see the following:
@@ -1110,3 +1111,61 @@ for k in ks
 end
 
 println( "total $tot " )
+
+target_pops = CSV.File( "data/merging/hhlds_and_people_2019_nrs_estimates.csv" ) |> DataFrame
+shs_hhcounts = count_councils(shs_all_years, shs_councils )
+#
+# actual sampling frequencies by council, pooled over all shs years
+# we use these as probability weights
+#
+inv_freqs = Dict()
+
+for p in eachrow( target_pops )
+    inv_freqs[p.code] = p.hhlds_2019/shs_hhcounts[p.code]
+end
+#
+# idiot check that we sum back up
+#
+s = 0.0
+for p in eachrow( target_pops )
+    global s
+    s += inv_freqs[p.code]*shs_hhcounts[p.code]
+end
+
+@assert s  ≈ 2495622
+
+for r in eachrow(recip)
+    
+    councils = []
+    weights = []
+    baseq = -1
+    for n in 1:MAX_REPEATS
+        idkey = Symbol( "shs_uniqidnew_$(n)" )
+        ykey = Symbol( "shs_datayear_$(n)" )
+        qkey = qkey = Symbol( "shs_quality_$(n)" )
+        ckey = Symbol( "shs_council_$(n)" )
+        nkey = Symbol( "shs_nhs_board_$(n)" )
+        y = r[ykey]
+        id = r[idkey]
+        qual = r[qkey]
+        ccode = r[ckey] 
+        println( "qual=$qual" )
+        if n == 1
+            baseq = qual
+        else
+            if baseq !== qual
+                println( "qual=$qual baseq=$baseq ; breaking after $n " )
+                break # all the best qs
+            end
+        end
+        weight = inv_freqs[ccode]
+        println( "got weight $weight, ccode $ccode " )
+        push!( weights,  weight )
+        push!( councils, ccode )
+    end
+    probs = weights/sum(weights) # to a probability
+    println("probs $(probs)" )
+    println( "councils $(councils)" )
+    ccode = sample( councils, probs )
+    println( "selected $ccode" )
+end
