@@ -424,7 +424,7 @@ const HH_TYPE_HINTS = [
 function initialise_household(n::Integer)::DataFrame
         # .. example check
         # select value,count(value),label from dictionaries.enums where dataset='frs' and tables='househol' and variable_name='hhcomps' group by value,label;
-    hh = DataFrame(
+    return DataFrame(
         data_year = Vector{Union{Integer,Missing}}(missing, n),
         interview_year = Vector{Union{Integer,Missing}}(missing, n),
         interview_month = Vector{Union{Integer,Missing}}(missing, n),
@@ -448,8 +448,9 @@ function initialise_household(n::Integer)::DataFrame
         total_wealth = Vector{Union{Real,Missing}}(missing, n),
         house_value = Vector{Union{Real,Missing}}(missing, n),
         weight = Vector{Union{Real,Missing}}(missing, n),
+        council = fill( "", n ),
+        nhs_board = fill( "", n )
     )
-    hh
 end
 
 #

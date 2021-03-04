@@ -107,7 +107,9 @@ function count_councils( shs_all_years :: DataFrame, shs_councils  :: DataFrame 
 end
 
 
-
+"""
+Retrofit council and nhs region keys to the recipient dataset
+"""
 function add_in_las_to_recip!( 
     recip         :: DataFrame, 
     shs_all_years :: DataFrame,
