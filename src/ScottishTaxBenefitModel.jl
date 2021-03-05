@@ -52,8 +52,8 @@ export IncomeTaxCalculations
 include("NationalInsuranceCalculations.jl" )
 export NationalInsuranceCalculations
 
-include("HousingRestrictions.jl" )
-export HousingRestrictions
+include("LocalLevelCalculations.jl" )
+export LocalLevelCalculations
 
 include("LegacyMeansTestedBenefits.jl" )
 export LegacyMeansTestedBenefits

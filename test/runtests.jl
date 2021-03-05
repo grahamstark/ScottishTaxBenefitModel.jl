@@ -24,7 +24,7 @@ include( "complete_calc_tests.jl")
 include( "uprating_tests.jl")
 include( "social_security_tests_2.jl")
 include( "minimum_wage_tests.jl")
-include( "housing_restrictions_tests.jl" )
+include( "local_level_calculations_tests.jl" )
 
 if is_local
 	# These will only run if datasets are locally installed

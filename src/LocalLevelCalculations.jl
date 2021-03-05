@@ -1,4 +1,4 @@
-module HousingRestrictions
+module LocalLevelCalculations
 
 using ScottishTaxBenefitModel
 using .Definitions

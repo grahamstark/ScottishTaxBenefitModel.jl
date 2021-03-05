@@ -6,7 +6,7 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 
-using .HousingRestrictions: calc_lha, calc_bedroom_tax
+using .LocalLevelCalculations: calc_lha, calc_bedroom_tax
 
 using .STBParameters: LocalHousingAllowance
 
@@ -22,6 +22,11 @@ sys = get_system( scotland=true )
 end
 
 @testset "Bedroom Tax" begin
+
+
+end
+
+@testset "Council Tax" begin
 
 
 end

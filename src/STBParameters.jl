@@ -13,8 +13,6 @@ module STBParameters
     using .Utils
     using .TimeSeriesUtils: fy, fy_array
     
-    using JSON3
-
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
@@ -291,8 +289,8 @@ module STBParameters
         it.mca_income_maximum       /= WEEKS_PER_YEAR
         it.mca_credit_rate             /= 100.0
         it.mca_withdrawal_rate         /= 100.0
-        for k in it.company_car_charge_by_CO2_emissions
-            it.company_car_charge_by_CO2_emissions[k.first] /= WEEKS_PER_YEAR
+        for (k,v) in it.company_car_charge_by_CO2_emissions
+            it.company_car_charge_by_CO2_emissions[k] /= WEEKS_PER_YEAR
         end
         it.pension_contrib_basic_amount /= WEEKS_PER_YEAR
         it.pension_contrib_annual_allowance /= WEEKS_PER_YEAR
@@ -615,10 +613,18 @@ module STBParameters
     @with_kw mutable struct LocalTaxes{RT<:Real}
         council_tax_band_d :: Dict{Symbol,RT} = default_band_ds(RT)
         council_tax_ratios :: Dict{CT_Band,RT} = default_ct_ratios(RT)
-        
-    
+        single_person_reduction :: RT = 25.0
     end
     
+    function weeklyise!( lt :: LocalTaxes )
+        for (b,v) in lt.council_tax_band_d
+            if( v > 0.0 ) && ( Int( b ) > 0 ) # skip missing
+                lt.council_tax_band_d[b] /= WEEKS_PER_YEAR
+            end
+        end
+        single_person_reduction /= 100.0
+    end
+
     @with_kw mutable struct SavingsCredit{RT<:Real}
         withdrawal_rate :: RT = 60.0
         threshold_single :: RT = 144.38 
@@ -677,6 +683,7 @@ module STBParameters
         age_limits = AgeLimits()
         minwage = MinimumWage{RT}()
         lha = LocalHousingAllowance{RT}()
+        loctax = LocalTaxes{RT}()
     end
    
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )
@@ -691,6 +698,7 @@ module STBParameters
         weeklyise!( tb.it )
         weeklyise!( tb.ni )
         weeklyise!( tb.lmt )
+        weeklyise!( tb.loctax )
     end
     
    """
