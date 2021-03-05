@@ -15,20 +15,31 @@ using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
-	export calc_lha, calc_bedroom_tax
+    
 
-	function calc_lha()
+	export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
+
+	function load_ct()
+	    
+	end
+	
+	const COUNCIL_TAXES = load_ct()
+		
+	function calc_lha( council :: Symbol, )
 	
 	end
 	
 	
-	function calc_bedroom_tax()
+	function calc_bedroom_tax(council :: Symbol, num_children :: Int )
+	
+	end
+	
+	function calc_council_tax( council :: Symbol, band :: Char; stuff=nothing ) :: AbstractFloat
 	
 	end
 
-
-
-
-
+	function initialise()
+	
+	end
 
 end

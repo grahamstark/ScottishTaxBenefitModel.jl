@@ -85,38 +85,38 @@ const DEFAULT_TARGETS = [
     431_461,
     # council areas
     # FIXME note these sum to 0.992538132778121 of the household type totals above: Check Again
-    # 108381, # SS12000033 - Aberdeen City  # removed for collinearity 
-    112114, # SS12000034 - Aberdeenshire  
-    54221, # SS12000041 - Angus  
-    41789, # SS12000035 - Argyll and Bute  
-    238269, # SS12000036 - City of Edinburgh  
-    23890, # SS12000005 - Clackmannanshire  
-    69699, # SS12000006 - Dumfries and Galloway  
-    70685, # SS12000042 - Dundee City  
-    55387, # SS12000008 - East Ayrshire  
-    46228, # SS12000045 - East Dunbartonshire  
-    46771, # SS12000010 - East Lothian  
-    39345, # SS12000011 - East Renfrewshire  
-    72672, # SS12000014 - Falkirk  
-    169239, # SS12000047 - Fife  
-    294622, # SS12000049 - Glasgow City  
-    109514, # SS12000017 - Highland  
-    37614, # SS12000018 - Inverclyde  
-    39733, # SS12000019 - Midlothian  
-    42932, # SS12000020 - Moray  
-    12833, # SS12000013 - Na h-Eileanan Siar  
-    64140, # SS12000021 - North Ayrshire  
-    152443, # SS12000050 - North Lanarkshire  
-    10589, # SS12000023 - Orkney Islands  
-    69003, # SS12000048 - Perth and Kinross  
-    86683, # SS12000038 - Renfrewshire  
-    54715, # SS12000026 - Scottish Borders  
-    10439, # SS12000027 - Shetland Islands  
-    52588, # SS12000028 - South Ayrshire  
-    147434, # SS12000029 - South Lanarkshire  
-    39654, # SS12000030 - Stirling  
-    43030, # SS12000039 - West Dunbartonshire  
-    78966 # SS12000040 - West Lothian  
+    # 108381, # S12000033 - Aberdeen City  # removed for collinearity 
+    112114, # S12000034 - Aberdeenshire  
+    54221, # S12000041 - Angus  
+    41789, # S12000035 - Argyll and Bute  
+    238269, # S12000036 - City of Edinburgh  
+    23890, # S12000005 - Clackmannanshire  
+    69699, # S12000006 - Dumfries and Galloway  
+    70685, # S12000042 - Dundee City  
+    55387, # S12000008 - East Ayrshire  
+    46228, # S12000045 - East Dunbartonshire  
+    46771, # S12000010 - East Lothian  
+    39345, # S12000011 - East Renfrewshire  
+    72672, # S12000014 - Falkirk  
+    169239, # S12000047 - Fife  
+    294622, # S12000049 - Glasgow City  
+    109514, # S12000017 - Highland  
+    37614, # S12000018 - Inverclyde  
+    39733, # S12000019 - Midlothian  
+    42932, # S12000020 - Moray  
+    12833, # S12000013 - Na h-Eileanan Siar  
+    64140, # S12000021 - North Ayrshire  
+    152443, # S12000050 - North Lanarkshire  
+    10589, # S12000023 - Orkney Islands  
+    69003, # S12000048 - Perth and KinroS  
+    86683, # S12000038 - Renfrewshire  
+    54715, # S12000026 - Scottish Borders  
+    10439, # S12000027 - Shetland Islands  
+    52588, # S12000028 - South Ayrshire  
+    147434, # S12000029 - South Lanarkshire  
+    39654, # S12000030 - Stirling  
+    43030, # S12000039 - West Dunbartonshire  
+    78966 # S12000040 - West Lothian  
     
     ] # 51 PIP or DLA
 
@@ -177,38 +177,38 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
         aa = zeros(n),
         pip_or_dla = zeros(n),
         # councils    
-        # SS12000033 = zeros(n), #  Aberdeen City  # removed for collinearity 
-        SS12000034 = zeros(n), #  Aberdeenshire  
-        SS12000041 = zeros(n), #  Angus  
-        SS12000035 = zeros(n), #  Argyll and Bute  
-        SS12000036 = zeros(n), #  City of Edinburgh  
-        SS12000005 = zeros(n), #  Clackmannanshire  
-        SS12000006 = zeros(n), #  Dumfries and Galloway  
-        SS12000042 = zeros(n), #  Dundee City  
-        SS12000008 = zeros(n), #  East Ayrshire  
-        SS12000045 = zeros(n), #  East Dunbartonshire  
-        SS12000010 = zeros(n), #  East Lothian  
-        SS12000011 = zeros(n), #  East Renfrewshire  
-        SS12000014 = zeros(n), #  Falkirk  
-        SS12000047 = zeros(n), #  Fife  
-        SS12000049 = zeros(n), #  Glasgow City  
-        SS12000017 = zeros(n), #  Highland  
-        SS12000018 = zeros(n), #  Inverclyde  
-        SS12000019 = zeros(n), #  Midlothian  
-        SS12000020 = zeros(n), #  Moray  
-        SS12000013 = zeros(n), #  Na h-Eileanan Siar  
-        SS12000021 = zeros(n), #  North Ayrshire  
-        SS12000050 = zeros(n), #  North Lanarkshire  
-        SS12000023 = zeros(n), #  Orkney Islands  
-        SS12000048 = zeros(n), #  Perth and Kinross  
-        SS12000038 = zeros(n), #  Renfrewshire  
-        SS12000026 = zeros(n), #  Scottish Borders  
-        SS12000027 = zeros(n), #  Shetland Islands  
-        SS12000028 = zeros(n), #  South Ayrshire  
-        SS12000029 = zeros(n), #  South Lanarkshire  
-        SS12000030 = zeros(n), #  Stirling  
-        SS12000039 = zeros(n), #  West Dunbartonshire  
-        SS12000040 = zeros(n) #  West Lothian  
+        # S12000033 = zeros(n), #  Aberdeen City  # removed for collinearity 
+        S12000034 = zeros(n), #  Aberdeenshire  
+        S12000041 = zeros(n), #  Angus  
+        S12000035 = zeros(n), #  Argyll and Bute  
+        S12000036 = zeros(n), #  City of Edinburgh  
+        S12000005 = zeros(n), #  Clackmannanshire  
+        S12000006 = zeros(n), #  Dumfries and Galloway  
+        S12000042 = zeros(n), #  Dundee City  
+        S12000008 = zeros(n), #  East Ayrshire  
+        S12000045 = zeros(n), #  East Dunbartonshire  
+        S12000010 = zeros(n), #  East Lothian  
+        S12000011 = zeros(n), #  East Renfrewshire  
+        S12000014 = zeros(n), #  Falkirk  
+        S12000047 = zeros(n), #  Fife  
+        S12000049 = zeros(n), #  Glasgow City  
+        S12000017 = zeros(n), #  Highland  
+        S12000018 = zeros(n), #  Inverclyde  
+        S12000019 = zeros(n), #  Midlothian  
+        S12000020 = zeros(n), #  Moray  
+        S12000013 = zeros(n), #  Na h-Eileanan Siar  
+        S12000021 = zeros(n), #  North Ayrshire  
+        S12000050 = zeros(n), #  North Lanarkshire  
+        S12000023 = zeros(n), #  Orkney Islands  
+        S12000048 = zeros(n), #  Perth and KinroS  
+        S12000038 = zeros(n), #  Renfrewshire  
+        S12000026 = zeros(n), #  Scottish Borders  
+        S12000027 = zeros(n), #  Shetland Islands  
+        S12000028 = zeros(n), #  South Ayrshire  
+        S12000029 = zeros(n), #  South Lanarkshire  
+        S12000030 = zeros(n), #  Stirling  
+        S12000039 = zeros(n), #  West Dunbartonshire  
+        S12000040 = zeros(n) #  West Lothian  
     )
     return df
 end
@@ -373,7 +373,8 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
         @assert false "should never get here num_male_ads=$num_male_ads num_female_ads=$num_female_ads num_u_16s=$num_u_16s"
     end
     ## las
-    if hh.council !== :SS12000033
+    if hh.council !== :S12000033 
+        # aberdeen city, dropped to avoid collinearity, otherwise ...
         row[hh.council] = 1
     end
 end

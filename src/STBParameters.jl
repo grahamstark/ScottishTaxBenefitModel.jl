@@ -562,6 +562,63 @@ module STBParameters
         return mwsys.wage_per_hour[p]
     end
     
+    
+    function default_band_ds( RT :: Type ) :: Dict
+        return Dict{Symbol,RT}(
+            :S12000033  =>  1_377.30,
+            :S12000034  =>  1_300.81,
+            :S12000041  =>  1_206.54,
+            :S12000035  =>  1_367.73,
+            :S12000036  =>  1_338.59,
+            :S12000005  =>  1_304.63,
+            :S12000006  =>  1_222.63,
+            :S12000042  =>  1_379.00,
+            :S12000008  =>  1_375.35,
+            :S12000045  =>  1_308.98,
+            :S12000010  =>  1_302.62,
+            :S12000011  =>  1_289.96,
+            :S12000014  =>  1_225.58,
+            :S12000047  =>  1_280.80,
+            :S12000049  =>  1_386.00,
+            :S12000017  =>  1_332.33,
+            :S12000018  =>  1_331.84,
+            :S12000019  =>  1_409.00,
+            :S12000020  =>  1_322.87,
+            :S12000013  =>  1_193.49,
+            :S12000021  =>  1_342.69,
+            :S12000050  =>  1_221.25,
+            :S12000023  =>  1_208.48,
+            :S12000048  =>  1_318.00,
+            :S12000038  =>  1_315.42,
+            :S12000026  =>  1_253.91,
+            :S12000027  =>  1_206.33,
+            :S12000028  =>  1_344.96,
+            :S12000029  =>  1_203.00,
+            :S12000030  =>  1_344.28,
+            :S12000039  =>  1_293.55,
+            :S12000040  =>  1_276.42 )
+    end
+     
+    function default_ct_ratios(RT)
+        return Dict{CT_Band,RT}(
+        Band_A=>240/360,
+        Band_B=>280/360,
+        Band_C=>320/360,
+        Band_D=>360/360,
+        Band_E=>473/360,
+        Band_F=>585/360,                                                                      
+        Band_G=>705/360,
+        Band_H=>882/360,
+        Band_I=>-1)
+    end
+    
+    @with_kw mutable struct LocalTaxes{RT<:Real}
+        council_tax_band_d :: Dict{Symbol,RT} = default_band_ds(RT)
+        council_tax_ratios :: Dict{CT_Band,RT} = default_ct_ratios(RT)
+        
+    
+    end
+    
     @with_kw mutable struct SavingsCredit{RT<:Real}
         withdrawal_rate :: RT = 60.0
         threshold_single :: RT = 144.38 
