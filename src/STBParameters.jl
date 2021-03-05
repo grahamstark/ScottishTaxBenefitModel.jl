@@ -617,12 +617,10 @@ module STBParameters
     end
     
     function weeklyise!( lt :: LocalTaxes )
-        for (b,v) in lt.council_tax_band_d
-            if( v > 0.0 ) && ( Int( b ) > 0 ) # skip missing
-                lt.council_tax_band_d[b] /= WEEKS_PER_YEAR
-            end
+        for (c,v) in lt.council_tax_band_d
+            lt.council_tax_band_d[c] /= WEEKS_PER_YEAR
         end
-        single_person_reduction /= 100.0
+        lt.single_person_reduction /= 100.0
     end
 
     @with_kw mutable struct SavingsCredit{RT<:Real}
