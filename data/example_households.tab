@@ -1,7 +1,7 @@
-name	data_year	interview_year	interview_month	quarter	hid	tenure	region	ct_band	council_tax	water_and_sewerage	mortgage_payment	mortgage_interest	years_outstanding_on_mortgage	mortgage_outstanding	year_house_bought	gross_rent	rent_includes_water_and_sewerage	other_housing_charges	gross_housing_costs	total_income	total_wealth	house_value	weight	council	nhs_board
-example_hh1	2019	2019	1	1	1	5	299999999	3		7		44				0	false	1.1131147541					1149	S08000031	S12000049
-example_hh2	2019	2019	6	2	2	2	499999999	-1		0		0				115	false	0					225	S08000031	S12000049
-example_hh3	2019	2019	6	2	9	2	399999999	2		0		0				103	false	0					2810	S08000031	S12000049
-mel_c2	2019	2019	6	2	101	2	399999999	2		0		0				103	false	0					2810	S08000031	S12000049
-mel_c2_scot	2019	2019	6	2	102	2	299999999	2		0		0				103	false	0					2810	S08000031	S12000049
-single_parent_1	2019	2019	6	2	103	2	299999999	2		0		0				103	false	0					2810	S08000031	S12000049
+"name"	"data_year"	"interview_year"	"interview_month"	"quarter"	"hid"	"tenure"	"region"	"ct_band"	"council_tax"	"water_and_sewerage"	"mortgage_payment"	"mortgage_interest"	"years_outstanding_on_mortgage"	"mortgage_outstanding"	"year_house_bought"	"gross_rent"	"rent_includes_water_and_sewerage"	"other_housing_charges"	"gross_housing_costs"	"total_income"	"total_wealth"	"house_value"	"weight"	"council"	"nhs_board"	"bedrooms"
+"example_hh1"	2019	2019	1	1	1	5	299999999	3		7		44				0	"false"	1.1131147541					1149	"S08000031"	"S12000049"	2
+"example_hh2"	2019	2019	6	2	2	2	499999999	-1		0		0				115	"false"	0					225	"S08000031"	"S12000049"	2
+"example_hh3"	2019	2019	6	2	9	2	399999999	2		0		0				103	"false"	0					2810	"S08000031"	"S12000049"	2
+"mel_c2"	2019	2019	6	2	101	2	399999999	2		0		0				103	"false"	0					2810	"S08000031"	"S12000049"	2
+"mel_c2_scot"	2019	2019	6	2	102	2	299999999	2		0		0				103	"false"	0					2810	"S08000031"	"S12000049"	2
+"single_parent_1"	2019	2019	6	2	103	2	299999999	2		0		0				103	"false"	0					2810	"S08000031"	"S12000049"	2

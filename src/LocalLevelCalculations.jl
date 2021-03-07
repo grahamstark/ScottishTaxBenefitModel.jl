@@ -23,7 +23,7 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 	    
 	end
 	
-	function calc_lha( council :: Symbol, )
+	function calc_lha( council :: Symbol )
 	
 	end
 	
@@ -32,7 +32,7 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 	
 	end
 	
-	function calc_council_tax( hh :: ModelHousehold,  ) :: AbstractFloat
+	function calc_council_tax( hh :: Household ) :: AbstractFloat
 	
 	end
 

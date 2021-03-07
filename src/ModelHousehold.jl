@@ -116,7 +116,6 @@ mutable struct Household{RT<:Real}
     weight::RT
     council :: Symbol
     nhs_board :: Symbol
-    brma :: Symbol
     bedrooms :: Int
     people::People_Dict
 end

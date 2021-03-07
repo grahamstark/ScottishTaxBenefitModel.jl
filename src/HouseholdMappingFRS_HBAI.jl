@@ -423,6 +423,7 @@ const HH_TYPE_HINTS = [
 
 function initialise_household(n::Integer)::DataFrame
         # .. example check
+        # FIXME change all VectorUnioo to fill(0,n)
         # select value,count(value),label from dictionaries.enums where dataset='frs' and tables='househol' and variable_name='hhcomps' group by value,label;
     return DataFrame(
         data_year = Vector{Union{Integer,Missing}}(missing, n),
@@ -449,7 +450,8 @@ function initialise_household(n::Integer)::DataFrame
         house_value = Vector{Union{Real,Missing}}(missing, n),
         weight = Vector{Union{Real,Missing}}(missing, n),
         council = fill( "", n ),
-        nhs_board = fill( "", n )
+        nhs_board = fill( "", n ),
+        bedrooms = fill( 0, n )
     )
 end
 
@@ -1145,12 +1147,11 @@ function create_adults(
             model_adult.dlamobility_type = map123(model_adult.income_dlamobility, [30] )
             model_adult.attendence_allowance_type = map123( model_adult.income_attendence_allowance, [65] )
             model_adult.personal_independence_payment_daily_living_type = map12( model_adult.income_personal_independence_payment_daily_living, 65 )
-            model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )
-            
+            model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )            
         end # if in HBAI
     end # adult loop
     println("final adno $adno")
-    adult_model[1:adno, :]
+    return adult_model[1:adno, :]
 end # proc create_adult
 
 #
@@ -1326,6 +1327,7 @@ function create_household(
             ohc = safe_inc(ohc, hh.chrgamt8)
             ohc = safe_inc(ohc, hh.chrgamt9)
             hh_model[hhno, :other_housing_charges] = ohc
+            hh_model[hhno, :bedrooms] = hh.bedroom6
         # TODO
             # gross_housing_costs::Real
             # total_income::Real

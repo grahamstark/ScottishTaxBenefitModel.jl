@@ -219,6 +219,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
         m2z(frs_hh.weight),
         Symbol( frs_hh.council ),
         Symbol( frs_hh.nhs_board ),
+        frs_hh.bedrooms,
         people )
 end
 
