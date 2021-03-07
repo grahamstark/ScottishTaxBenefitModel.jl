@@ -11,7 +11,7 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
     Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
     WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit,
-    HousingBenefits, LocalHousingAllowance
+    HousingBenefits, LocalHousingAllowance, LocalTaxes
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
@@ -23,8 +23,6 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 	    
 	end
 	
-	const COUNCIL_TAXES = load_ct()
-		
 	function calc_lha( council :: Symbol, )
 	
 	end
@@ -34,7 +32,7 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 	
 	end
 	
-	function calc_council_tax( council :: Symbol, band :: Char; stuff=nothing ) :: AbstractFloat
+	function calc_council_tax( hh :: ModelHousehold,  ) :: AbstractFloat
 	
 	end
 

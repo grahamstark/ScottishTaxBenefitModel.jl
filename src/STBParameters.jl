@@ -16,7 +16,7 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
-    export HousingBenefits, LocalHousingAllowance, Premia, ChildTaxCredit
+    export HousingBenefits, LocalHousingAllowance, Premia, ChildTaxCredit, LocalTaxes
     export state_pension_age, reached_state_pension_age, load_file, load_file!
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter

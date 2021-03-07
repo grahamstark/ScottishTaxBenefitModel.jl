@@ -199,13 +199,6 @@ function loadfrs( year::Int, fname :: String ) :: DataFrame
 end
 
 #
-# Load all 3 shs social datasets
-#
-s16=loadshs(2016)
-s17=loadshs(2017)
-s18=loadshs(2018)
-
-#
 # Load 3 FRS hhld datasets, and then make Scotland only subsets.
 #
 hh15 = loadfrs( 2015, "househol" )
@@ -256,16 +249,34 @@ frs_all_years_scot_he = vcat(
 	shhad17[shhad17.highest_income,:],
 	shhad18[shhad18.highest_income,:];
 	cols=:intersect)
-                      
-# ... 
-# Stack shs.
-# 
-shs_all_years = vcat(
-    s16,
-    s17,
-    s18,
-    cols=:intersect
-)
+
+"""
+Load FRS hhld datasets, and then make Scotland only subsets.
+"""
+function create_frs( years :: UnitRange ) :: DataFrame
+    frs=[]
+    for y in years
+        hh = loadfrs( year, "househol" )
+        shh = hh[[(hh.gvtregn .== SCOTLAND),:]
+        ad = loadfrs( year, "adult" )
+        shhad=innerjoin( ad, shh, on=:sernum; makeunique=true )
+        highest_income = make_highest_hh_income_marker( shhad )
+        append!( frs, shhad[highest_income,:] )
+    end
+    return vcat( frs...; cols=:intersect )
+end
+
+"""
+Stack scottish household surveys. 
+"""
+function create_shs( years :: UnitRange ) :: DataFrame
+    shs = []
+    for y in years
+        append!(shs,loadshs(y))
+    end
+    return vcat( shs...; cols=:intersect )
+end
+
 
 
 # SHS Tenure
@@ -1235,3 +1246,7 @@ for r in eachrow(mhh)
 end
 
 CSV.write( "data/model_households_scotland.tab", mhh; delim='\t') 
+
+#
+# todo : add bedrooms bedroom6 frs capped at 6 hc4 shs
+# 
