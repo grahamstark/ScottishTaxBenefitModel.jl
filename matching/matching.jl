@@ -10,18 +10,18 @@ include( "matching/matching_funcs.jl")
 #
 # save everything
 #
-CSV.write( "data/merging/shs_donor_data.tab", donor )
-CSV.write( "data/merging/frs_recip_data.tab", recip )
+#CSV.write( "data/merging/shs_donor_data.tab", donor )
+#CSV.write( "data/merging/frs_recip_data.tab", recip )
 CSV.write( "data/merging/shs_all_years.tab", shs_all_years )
 CSV.write( "data/merging/frs_all_years_scot_he.tab", frs_all_years_scot_he )
 
 make_initial_match!( recip, donor )
-CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
-CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
 
-donor = CSV.File( "data/merging/shs_donor_data.tab"; types=Dict(:uniqidnew => String))|>DataFrame
-recip = CSV.File( "data/merging/frs_recip_data.tab" ) |> DataFrame
+# CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
+# CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
 
+# donor = CSV.File( "data/merging/shs_donor_data.tab"; types=Dict(:uniqidnew => String))|>DataFrame
+# recip = CSV.File( "data/merging/frs_recip_data.tab" ) |> DataFrame
 
 unmatched = recip[(recip.shs_datayear_1 .== 0),:]
 unmatched[!,critmatche1]
@@ -29,7 +29,6 @@ unmatched[!,critmatche1]
 # match shelter on random shelter
 unmatched = Vector(((recip.shs_datayear_1 .== 0).&(recip.shelter_1 .== 1)))
 n = match_up_unmatched!( recip, donor, [:shelter], unmatched )
-
 
 CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
 CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
@@ -54,11 +53,11 @@ final missing 7 cases after matching any sheltered home:
 """
 
 # reload so we can just start the script here 
-donor = CSV.File( "data/merging/shs_donor_data.tab"; delim='\t' ) |> DataFrame
+# donor = CSV.File( "data/merging/shs_donor_data.tab"; delim='\t' ) |> DataFrame
 #
 # no idea whatsoever why the 1st uniq needs cast, but it does seem to ..
 #
-recip = CSV.File( "data/merging/frs_shs_merging_indexes.tab"; delim='\t', types=Dict("shs_uniqidnew_1"=>String) ) |> DataFrame
+# recip = CSV.File( "data/merging/frs_shs_merging_indexes.tab"; delim='\t', types=Dict("shs_uniqidnew_1"=>String) ) |> DataFrame
 
 # 1) so drop age & emp status for last 7
 
@@ -95,10 +94,9 @@ n = match_up_unmatched!( recip, donor, final_targets_2, final_unmatched_2 )
 
 CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
 CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
+
 mhh = CSV.File( "data/model_households_scotland.tab"; delim='\t') |> DataFrame
-
 shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
-
 target_pops = CSV.File( "data/merging/hhlds_and_people_2019_nrs_estimates.csv" ) |> DataFrame
 shs_hhn = count_councils(shs_all_years, shs_councils )
 #

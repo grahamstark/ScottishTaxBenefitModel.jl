@@ -26,11 +26,14 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
     struct P
         sex :: Sex
         age :: Int
+        disabled :: Bool
         pid :: BigInt
     end
     
     function match( p1::P, p2::P )::Bool
-        if p1.age < 10 && p2.age < 10
+        if p1.disabled || p2.disabled
+            return false
+        elseif p1.age < 10 && p2.age < 10
             return true
         elseif p1.sex == p2.sex 
             return true
@@ -109,8 +112,10 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
         mr
     end    
     
-    function num_rooms( hh :: Household, 
-
+    function num_rooms( hh :: Household, lha = LocalHousingAllowance )
+        for (pid,pers) in hh.people
+            
+        end
     end
 
 	export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
