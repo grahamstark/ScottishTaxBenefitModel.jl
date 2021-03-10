@@ -11,9 +11,11 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
     Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
     WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit,
-    HousingBenefits, LocalHousingAllowance, LocalTaxes
+    HousingBenefits, HousingRestrictions, LocalTaxes
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
+
+export apply_size_criteria
 
     #
     # local stuff for numbers of rooms. A hack, almost certainly 
@@ -112,10 +114,27 @@ using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
         mr
     end    
     
-    function num_rooms( hh :: Household, lha = LocalHousingAllowance )
+    """
+    See CPAG Part 2 ch.6; Assume here this is identical between UC and HB
+    """
+    function apply_size_criteria( hh :: Household, lha :: HousingRestrictions ) :: Int
+        kids = Vector{P}(undef,30)
+        nkids = 0
+        rooms = 0
         for (pid,pers) in hh.people
-            
+            if pers.age < 16
+                nkids += 1
+                kids[nkids] = P( pers.sex, pers.age, is_severe_disability( pers ), pers.pid )
+             else
+                if ! pers.relationship_to_hoh in [Spouse,Cohabitee] # some exceptions to this - see p 96
+                    rooms += 1
+                end
+             end
         end
+        if nkids > 0
+            rooms += min_kids_rooms( kids[1:nkids] )
+        end     
+        
     end
 
 	export calc_lha, calc_bedroom_tax, calc_council_tax, initialise

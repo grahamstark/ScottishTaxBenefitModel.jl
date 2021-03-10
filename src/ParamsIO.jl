@@ -52,7 +52,7 @@ module ParamsIO
         
     StructTypes.StructType(::Type{LegacyMeansTestedBenefitSystem{T}}) = StructTypes.Struct()
         
-    StructTypes.StructType(::Type{LocalHousingAllowance{T}}) = StructTypes.Struct()
+    StructTypes.StructType(::Type{HousingRestrictions{T}}) = StructTypes.Struct()
     
     ## .. and so on
     

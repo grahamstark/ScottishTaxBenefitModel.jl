@@ -342,9 +342,9 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
     end # people
     if owner_occupier(hh.tenure)
         # row.owner_occupied = 1
-    elseif hh.tenure == LA_or_New_Town_or_NIHE_or_Council_rented
+    elseif hh.tenure == Council_Rented
         row.las_etc_rented = 1
-    elseif hh.tenure == Housing_Association_or_Co_Op_or_Trust_rented
+    elseif hh.tenure == Housing_Association
         row.housing_association = 1
     else
         row.private_rented_plus_rent_free = 1

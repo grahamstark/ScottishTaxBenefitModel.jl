@@ -11,7 +11,7 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
     Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
     WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit,
-    HousingBenefits, LocalHousingAllowance
+    HousingBenefits, HousingRestrictions
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
@@ -773,7 +773,7 @@ end
 """
 function calc_LHA(
     hh  :: Household,
-    lha :: LocalHousingAllowance ) :: Real
+    lha :: HousingRestrictions ) :: Real
     return lha.tmp_lha_prop*hh.gross_rent
 end
 
@@ -910,7 +910,7 @@ function calc_legacy_means_tested_benefits!(
     intermed :: MTIntermediate,
     age_limits :: AgeLimits, 
     mt_ben_sys  :: LegacyMeansTestedBenefitSystem,
-    lha :: LocalHousingAllowance )
+    lha :: HousingRestrictions )
     # aliases
     bures = benefit_unit_result
     bu = benefit_unit
@@ -1055,7 +1055,7 @@ function calc_legacy_means_tested_benefits!(
             household :: Household,
             age_limits :: AgeLimits, 
             mt_ben_sys  :: LegacyMeansTestedBenefitSystem,
-            lha :: LocalHousingAllowance )
+            lha :: HousingRestrictions )
             
             
 end

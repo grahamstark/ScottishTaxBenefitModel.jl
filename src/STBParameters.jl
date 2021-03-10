@@ -16,7 +16,7 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
-    export HousingBenefits, LocalHousingAllowance, Premia, ChildTaxCredit, LocalTaxes
+    export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes
     export state_pension_age, reached_state_pension_age, load_file, load_file!
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
@@ -668,9 +668,15 @@ module STBParameters
     end
     
     
-    @with_kw mutable struct LocalHousingAllowance{RT<:Real}
+    @with_kw mutable struct HousingRestrictions{RT<:Real}
         # Temp till we figure this stuff out
-        tmp_lha_prop :: RT = 1.0
+        maximum_rooms = Dict{Tenure_Type,Int}(
+            Private_Rented_Unfurnished=>4,
+            Private_Rented_Furnished=>4,
+            Council_Rented=>99,
+            Housing_Association=>99,
+            Mortgaged_Or_Shared=>99)
+       
     end
    
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
@@ -680,7 +686,7 @@ module STBParameters
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         age_limits = AgeLimits()
         minwage = MinimumWage{RT}()
-        lha = LocalHousingAllowance{RT}()
+        lha = HousingRestrictions{RT}()
         loctax = LocalTaxes{RT}()
     end
    

@@ -192,7 +192,7 @@ end
 function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
 
     people = People_Dict()
-
+    head_of_household = BigInt(-1) # this is set when we scan the actual people below
     Household{Float64}(
         hno,
         frs_hh.hid,
@@ -220,6 +220,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
         Symbol( frs_hh.council ),
         Symbol( frs_hh.nhs_board ),
         frs_hh.bedrooms,
+        head_of_household,
         people )
 end
 
@@ -228,10 +229,15 @@ function load_hhld_from_frame( hseq::Integer, hhld_fr :: DataFrameRow, pers_fr :
      pers_fr_in_this_hh = pers_fr[((pers_fr.data_year .== hhld_fr.data_year).&(pers_fr.hid .== hh.hid)),:]
      npers = size( pers_fr_in_this_hh )[1]
      @assert npers in 1:19
+     head_of_household = -1
      for p in 1:npers
          pers = map_person( pers_fr_in_this_hh[p,:], source )
          hh.people[pers.pid] = pers
+         if pers.relationship_to_hoh == This_Person
+            hh.head_of_household = pers.pid
+         end
      end
+     @assert hh.head_of_household !== -1
      hh
 end
 

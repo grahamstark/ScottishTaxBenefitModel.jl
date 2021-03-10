@@ -680,11 +680,11 @@ end
 
 
 export Tenure_Type  # mapped from tentyp2
-export LA_or_New_Town_or_NIHE_or_Council_rented,
-       Housing_Association_or_Co_Op_or_Trust_rented,
-       Other_private_rented_unfurnished,
-       Other_private_rented_furnished,
-       Owned_with_a_mortgage_includes_part_rent_or_part_own,
+export Council_Rented,
+       Housing_Association,
+       Private_Rented_Unfurnished,
+       Private_Rented_Furnished,
+       Mortgaged_Or_Shared,
        Owned_outright,
        Rent_free,
        Squats
@@ -692,22 +692,22 @@ export Missing_Tenure_Type,owner_occupier,renter
 
 @enum Tenure_Type begin  # mapped from tentyp2
    Missing_Tenure_Type = -1
-   LA_or_New_Town_or_NIHE_or_Council_rented = 1
-   Housing_Association_or_Co_Op_or_Trust_rented = 2
-   Other_private_rented_unfurnished = 3
-   Other_private_rented_furnished = 4
-   Owned_with_a_mortgage_includes_part_rent_or_part_own = 5
+   Council_Rented = 1
+   Housing_Association = 2
+   Private_Rented_Unfurnished = 3
+   Private_Rented_Furnished = 4
+   Mortgaged_Or_Shared = 5
    Owned_outright = 6
    Rent_free = 7
    Squats = 8
 end
 
 function renting(tt::Tenure_Type)::Bool
-   tt < Owned_with_a_mortgage_includes_part_rent_or_part_own
+   tt < Mortgaged_Or_Shared
 end
 
 function owner_occupier(tt::Tenure_Type)::Bool
-   tt in [Owned_with_a_mortgage_includes_part_rent_or_part_own, Owned_outright]
+   tt in [Mortgaged_Or_Shared, Owned_outright]
 end
 
 export CT_Band  # mapped from ctband

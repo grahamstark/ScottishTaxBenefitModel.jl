@@ -117,6 +117,7 @@ mutable struct Household{RT<:Real}
     council :: Symbol
     nhs_board :: Symbol
     bedrooms :: Int
+    head_of_household :: BigInt
     people::People_Dict
 end
 
@@ -327,6 +328,19 @@ end
 
 function get_head( bu :: BenefitUnit )::Person
     bu.people[bu.head]
+end
+
+function get_head( hh :: Household ) :: Person
+    return hh.people[hh.head_of_household]
+end
+
+function partner_of( pers :: Person ) :: Union{Nothing,BigInt}
+    for (pid,rel) in pers.relationships
+        if rel in [Spouse,Cohabitee]
+            return pid
+        end
+    end
+    return nothing
 end
 
 function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}

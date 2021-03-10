@@ -8,7 +8,7 @@ using .Definitions
 
 using .LocalLevelCalculations: calc_lha, calc_bedroom_tax
 
-using .STBParameters: LocalHousingAllowance
+using .STBParameters: HousingRestrictions
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
