@@ -115,7 +115,9 @@ export apply_size_criteria
     end    
     
     """
-    See CPAG Part 2 ch.6; Assume here this is identical between UC and HB
+    See CPAG Part 2 ch.6; Assume here this is identical between UC and HB.
+    Number of rooms is this bestial calculation for children, plus one per 
+    adult not related to the HoH.
     """
     function apply_size_criteria( hh :: Household, lha :: HousingRestrictions ) :: Int
         kids = Vector{P}(undef,30)
@@ -134,7 +136,18 @@ export apply_size_criteria
         if nkids > 0
             rooms += min_kids_rooms( kids[1:nkids] )
         end     
-        
+        return min( rooms, lha.maximum_rooms[ hh.tenure ], hh.bedrooms )
+    end
+
+    function local_housing_allowance( hh :: Household, lha :: HousingRestrictions ) :: Real
+        rent = hh.gross_rent ## check 
+        # FIXME deductions from gross rent TODO
+        if hh.tenure in [Private_Rented_Unfurnished, Private_Rented_Furnished, Mortgaged_Or_Shared ]
+            rooms = apply_size_criteria( hh, lha )
+            lha = lha.lhas[ hh.brma ][ rooms ]
+            rent = min( rent, lha )
+        end
+        return rent
     end
 
 	export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
