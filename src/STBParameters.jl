@@ -18,7 +18,7 @@ module STBParameters
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
     export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes
     export state_pension_age, reached_state_pension_age, load_file, load_file!
-    export BRMA, loadBRMAs
+    export BRMA, loadBRMAs, DEFAULT_BRMA_2021
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -686,6 +686,8 @@ module STBParameters
         end
         dict
     end
+
+    const DEFAULT_BRMA_2021 = "data/local/lha_rates_scotland_2020_21.csv"
     
     @with_kw mutable struct HousingRestrictions{RT<:Real}
         # Temp till we figure this stuff out
@@ -696,7 +698,7 @@ module STBParameters
             Housing_Association=>99,
             Mortgaged_Or_Shared=>99)
         # FIXME!!! load this somewhere
-        brmas = Dict{Symbol,BRMA} = loadBRMAS( RT, "data/local/lha_rates_scotland_2020_21.csv" )
+        brmas = Dict{Symbol,BRMA} = loadBRMAS( RT, DEFAULT_BRMA_2021 )
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
