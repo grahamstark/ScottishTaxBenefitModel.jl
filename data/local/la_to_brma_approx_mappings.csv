@@ -1,0 +1,33 @@
+ccode,cname,bcode,bname
+S12000033,Aberdeen City,S33000001,Aberdeen and Shire
+S12000034,Aberdeenshire,S33000001,Aberdeen and Shire
+S12000041,Angus,S33000005,Dundee and Angus
+S12000035,Argyll and Bute,S33000002,Argyll and Bute
+S12000036,City of Edinburgh,S33000011,Lothian
+S12000005,Clackmannanshire,S33000008,Forth Valley
+S12000006,Dumfries and Galloway,S33000004,Dumfries and Galloway
+S12000042,Dundee City,S33000005,Dundee and Angus
+S12000008,East Ayrshire,S33000003,Ayrshires
+S12000045,East Dunbartonshire,S33000006,East Dunbartonshire
+S12000010,East Lothian,S33000011,Lothian
+S12000011,East Renfrewshire,S33000014,Renfrewshire/ Inverclyde
+S12000014,Falkirk,S33000008,Forth Valley
+S12000047,Fife,S33000007,Fife
+S12000049,Glasgow City,S33000009,Greater Glasgow
+S12000017,Highland,S33000010,Highland and Islands
+S12000018,Inverclyde,S33000014,Renfrewshire/ Inverclyde
+S12000019,Midlothian,S33000011,Lothian
+S12000020,Moray,S33000010,Highland and Islands
+S12000013,Na h-Eileanan Siar,S33000010,Highland and Islands
+S12000021,North Ayrshire,S33000003,Ayrshires
+S12000050,North Lanarkshire,S33000012,North Lanarkshire
+S12000023,Orkney Islands,S33000010,Highland and Islands
+S12000048,Perth and Kinross,S33000013,Perth and Kinross
+S12000038,Renfrewshire,S33000014,Renfrewshire/ Inverclyde
+S12000026,Scottish Borders,S33000015,Scottish Borders
+S12000027,Shetland Islands,S33000010,Highland and Islands
+S12000028,South Ayrshire,S33000003,Ayrshires
+S12000029,South Lanarkshire,S33000016,South Lanarkshire
+S12000030,Stirling,S33000008,Forth Valley
+S12000039,West Dunbartonshire,S33000017,West Dunbartonshire
+S12000040,West Lothian,S33000018,West Lothian
