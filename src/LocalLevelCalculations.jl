@@ -15,7 +15,50 @@ using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
+using StaticArrays
+
 export apply_size_criteria
+
+    function make_la_to_brma_map()
+        lacsv = CSV.File( "data/local/la_to_brma_approx_mappings.csv" ) |> DataFrame
+        out = Dict{Symbol,Symbol}()
+        for r in eachrow( lacsv )
+            out[r.ccode] = r.bcode
+        end
+        return out
+    end
+
+    struct LA_To_BRMA_Wrap
+        map :: Dict{Symbol,Symbol}
+    end
+
+    struct BRMA{N,T}
+        name :: String 
+        code :: Symbol
+        bedrooms :: SVector{N,T}
+        room :: T
+    end
+
+    const LA_BRMA_MAP = LA_To_BRMA_Wrap( make_la_to_brma_map() )
+
+    function lookup( data , key :: Symbol ) :: T where T
+        return data[key]
+    end
+
+    function lookup( x :: BRMA{N,T}, n :: Int ) :: T where T where N
+        if n == 0
+           return x.room
+        end
+        x.bedrooms[n]
+    end
+
+    function loadBRMAs( file :: String) ::
+
+    end
+
+    function lookup( brmas :: Dict{Symbol,BRMA{N,T}}, which :: Symbol, n :: Integer ) :: T where N where T
+        return lookup( brmas[which], n )
+    end
 
     #
     # local stuff for numbers of rooms. A hack, almost certainly 
