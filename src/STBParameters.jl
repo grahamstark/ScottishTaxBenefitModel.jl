@@ -18,6 +18,7 @@ module STBParameters
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
     export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes
     export state_pension_age, reached_state_pension_age, load_file, load_file!
+    export BRMA, loadBRMAs
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -667,6 +668,24 @@ module STBParameters
         ctb = HousingBenefits{RT}( 20.0, DEFAULT_PASSPORTED_BENS, RateBands{RT}[], RateBands{RT}[])
     end
     
+    struct BRMA{N,T}
+        name :: String 
+        code :: Symbol
+        bedrooms :: SVector{N,T}
+        room :: T
+    end
+
+    function loadBRMAs( T :: Type, file :: String  ) :: Dict{Symbol,BRMA}
+        bd = CSV.File( file ) |> DataFrame
+        # FIXME infer N from bd
+        N = 4
+        dict = Dict{ Symbol, BRMA{ N, T }}() 
+        for r in eachrow( bd )
+            obd = BRMA( r.bname, Symbol( r.bcode ), SVector{N,T}([r.bed_1,r.bed_2,r.bed_3,r.bed_4]),r.room )
+            dict[ Symbol( r.bcode ) ] = obd
+        end
+        dict
+    end
     
     @with_kw mutable struct HousingRestrictions{RT<:Real}
         # Temp till we figure this stuff out
@@ -676,9 +695,10 @@ module STBParameters
             Council_Rented=>99,
             Housing_Association=>99,
             Mortgaged_Or_Shared=>99)
-       
+        # FIXME!!! load this somewhere
+        brmas = Dict{Symbol,BRMA} = loadBRMAS( RT, "data/local/lha_rates_scotland_2020_21.csv" )
     end
-   
+
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: String = "Scotland 2919/20"
         it   = IncomeTaxSys{RT}()

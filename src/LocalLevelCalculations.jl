@@ -32,13 +32,6 @@ export apply_size_criteria
         map :: Dict{Symbol,Symbol}
     end
 
-    struct BRMA{N,T}
-        name :: String 
-        code :: Symbol
-        bedrooms :: SVector{N,T}
-        room :: T
-    end
-
     const LA_BRMA_MAP = LA_To_BRMA_Wrap( make_la_to_brma_map() )
 
     function lookup( data , key :: Symbol ) :: T where T
@@ -52,12 +45,9 @@ export apply_size_criteria
         x.bedrooms[n]
     end
 
-    function loadBRMAs( file :: String) ::
-
-    end
-
-    function lookup( brmas :: Dict{Symbol,BRMA{N,T}}, which :: Symbol, n :: Integer ) :: T where N where T
-        return lookup( brmas[which], n )
+    function lookup( brmas :: Dict{Symbol,BRMA{N,T}}, ccode :: Symbol, n :: Integer ) :: T where N where T
+        bcode = LA_BRMA_MAP.map[ccode]
+        return lookup( brmas[bcode], n )
     end
 
     #

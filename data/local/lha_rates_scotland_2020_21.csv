@@ -1,4 +1,4 @@
-BRMA,code,Room,1 Bed,2 Bed,3 Bed,4 Bed
+bname,bcode,room,bed_1,bed_2,bed_3,bed_4
 Aberdeen and Shire,S33000001,74.79,97.81,136.93,172.6,230.14
 Argyll and Bute,S33000002,72.74,86.3,115.07,126.58,207.12
 Ayrshires,S33000003,76.99,80.55,97.81,115.07,159.95
