@@ -3,9 +3,10 @@ module STBParameters
     using Dates
     using Dates: Date, now, TimeType, Year
     using TimeSeries
-
+    using StaticArrays
     using Parameters
     using BudgetConstraints: BudgetConstraint
+    using DataFrames,CSV
 
     using ScottishTaxBenefitModel
     using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
@@ -675,10 +676,9 @@ module STBParameters
         room :: T
     end
 
-    function loadBRMAs( T :: Type, file :: String  ) :: Dict{Symbol,BRMA}
+    function loadBRMAs( N :: Int, T :: Type, file :: String  ) :: Dict{Symbol,BRMA{N,T}}
         bd = CSV.File( file ) |> DataFrame
         # FIXME infer N from bd
-        N = 4
         dict = Dict{ Symbol, BRMA{ N, T }}() 
         for r in eachrow( bd )
             obd = BRMA( r.bname, Symbol( r.bcode ), SVector{N,T}([r.bed_1,r.bed_2,r.bed_3,r.bed_4]),r.room )
@@ -687,7 +687,7 @@ module STBParameters
         dict
     end
 
-    const DEFAULT_BRMA_2021 = "data/local/lha_rates_scotland_2020_21.csv"
+    const DEFAULT_BRMA_2021 = "$(MODEL_DATA_DIR)/local/lha_rates_scotland_2020_21.csv"
     
     @with_kw mutable struct HousingRestrictions{RT<:Real}
         # Temp till we figure this stuff out
@@ -698,7 +698,7 @@ module STBParameters
             Housing_Association=>99,
             Mortgaged_Or_Shared=>99)
         # FIXME!!! load this somewhere
-        brmas = Dict{Symbol,BRMA} = loadBRMAS( RT, DEFAULT_BRMA_2021 )
+        brmas = loadBRMAs( 4, RT, DEFAULT_BRMA_2021 )
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
@@ -708,7 +708,7 @@ module STBParameters
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         age_limits = AgeLimits()
         minwage = MinimumWage{RT}()
-        lha = HousingRestrictions{RT}()
+        hr = HousingRestrictions{RT}()
         loctax = LocalTaxes{RT}()
     end
    

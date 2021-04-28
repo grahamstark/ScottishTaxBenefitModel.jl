@@ -385,7 +385,7 @@ function make_target_dataset( nhhlds :: Integer ) :: Matrix
         hh = FRSHouseholdGetter.get_household( hno )
         make_target_row!( df[hno,:], hh )
     end
-    return convert( Matrix, df )
+    return Matrix{Float64}(df) # convert( Matrix, df )
 end
 
 #

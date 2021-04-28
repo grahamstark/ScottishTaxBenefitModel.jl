@@ -8,22 +8,22 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
     
-using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
-    Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
-    WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit,
-    HousingBenefits, HousingRestrictions, LocalTaxes
+using .STBParameters
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
 using StaticArrays
+using CSV,DataFrames
 
-export apply_size_criteria
+export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup
+export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
+
 
     function make_la_to_brma_map()
-        lacsv = CSV.File( "data/local/la_to_brma_approx_mappings.csv" ) |> DataFrame
+        lacsv = CSV.File( "$(MODEL_DATA_DIR)/local/la_to_brma_approx_mappings.csv" ) |> DataFrame
         out = Dict{Symbol,Symbol}()
         for r in eachrow( lacsv )
-            out[r.ccode] = r.bcode
+            out[Symbol(r.ccode)] = Symbol(r.bcode)
         end
         return out
     end
@@ -45,9 +45,9 @@ export apply_size_criteria
         x.bedrooms[n]
     end
 
-    function lookup( brmas :: Dict{Symbol,BRMA{N,T}}, ccode :: Symbol, n :: Integer ) :: T where N where T
+    function lookup( brmas :: Dict{Symbol,BRMA{N,T}}, ccode :: Symbol, i :: Int ) :: T where T where N
         bcode = LA_BRMA_MAP.map[ccode]
-        return lookup( brmas[bcode], n )
+        return lookup( brmas[bcode], i )
     end
 
     #
@@ -152,7 +152,7 @@ export apply_size_criteria
     Number of rooms is this bestial calculation for children, plus one per 
     adult not related to the HoH.
     """
-    function apply_size_criteria( hh :: Household, lha :: HousingRestrictions ) :: Int
+    function apply_size_criteria( hh :: Household, hr :: HousingRestrictions ) :: Int
         kids = Vector{P}(undef,30)
         nkids = 0
         rooms = 0
@@ -169,21 +169,19 @@ export apply_size_criteria
         if nkids > 0
             rooms += min_kids_rooms( kids[1:nkids] )
         end     
-        return min( rooms, lha.maximum_rooms[ hh.tenure ], hh.bedrooms )
+        return min( rooms, hr.maximum_rooms[ hh.tenure ], hh.bedrooms )
     end
 
-    function local_housing_allowance( hh :: Household, lha :: HousingRestrictions ) :: Real
+    function local_housing_allowance( hh :: Household, hr :: HousingRestrictions ) :: Real
         rent = hh.gross_rent ## check 
         # FIXME deductions from gross rent TODO
         if hh.tenure in [Private_Rented_Unfurnished, Private_Rented_Furnished, Mortgaged_Or_Shared ]
-            rooms = apply_size_criteria( hh, lha )
-            lha = lha.lhas[ hh.brma ][ rooms ]
-            rent = min( rent, lha )
+            rooms = apply_size_criteria( hh, hr )
+            hr = hr.hrs[ hh.brma ][ rooms ]
+            rent = min( rent, hr )
         end
         return rent
     end
-
-	export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
 
 	function load_ct()
 	    
