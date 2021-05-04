@@ -71,6 +71,10 @@ end
     end
 end
 
+@testset "Local Housing Allowance" begin
+
+end
+
 @testset "Council Tax" begin
 
 
