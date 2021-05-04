@@ -60,6 +60,7 @@ end
     nbeds = apply_size_criteria( hh, sys.hr )
     @test nbeds == 5 # same as above - max should kick in 
     hh = deepcopy(EXAMPLES[cpl_w_2_children_hh]) 
+    
     for i in 1:0
         age += 1
         sex = iseven(i) ? Male : Female
@@ -67,8 +68,7 @@ end
         oldnbeds = nbeds
         nbeds = apply_size_criteria( hh, sys.hr )
         nc = num_children( hh )
-        println( "add a kid; got newpid as $np  num_children as $nc nbeds as $nbeds " )
-   end
+    end
 end
 
 @testset "Council Tax" begin

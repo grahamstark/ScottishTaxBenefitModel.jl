@@ -161,13 +161,16 @@ function retire!( pers :: Person )
    pers.employment_status = Retired
 end
 
+# FIXME relationships fixup
 function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
-    np = deepcopy( SPARE_CHILD )
-    np.pid = maximum( keys( hh.people ))+1
-    np.age = age
-    np.sex = sex
-    hh.people[ np.pid ] = np
-    return np.pid
+   head_pid = get_head(hh).pid
+   np = deepcopy( SPARE_CHILD )
+   np.relationships[head_pid] = Son_or_daughter_incl_adopted
+   np.pid = maximum( keys( hh.people ))+1
+   np.age = age
+   np.sex = sex
+   hh.people[ np.pid ] = np
+   return np.pid
 end
 
 function delete_person!( hh :: Household, pid :: BigInt )

@@ -21,17 +21,21 @@ sys = get_system( scotland=true )
 
 @testset "2 child policy" begin
     examples = get_ss_examples()
-    sparent = get_benefit_units(examples[single_parent_hh])[1]
-    println( sparent.children )
+    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sparent = get_benefit_units(sph)[1]
+    println( "keys of initial children  $(sparent.children)" )
+
     @test num_children( sparent ) == 2
     @test apply_2_child_policy( sparent ) == 2
-    np = add_child!( examples[single_parent_hh], 10, Female )
-    sparent = get_benefit_units(examples[single_parent_hh])[1]
+
+    np = add_child!( sph, 10, Female )
+    sparent = get_benefit_units(sph)[1]
+    println( "keys of children after 10yo added $(sparent.children) new pid = $np" )
     @test num_children( sparent ) == 3
     @test apply_2_child_policy( sparent ) == 3
 
-    np = add_child!( examples[single_parent_hh], 1, Female )
-    sparent = get_benefit_units(examples[single_parent_hh])[1]
+    np = add_child!( sph, 1, Female )
+    sparent = get_benefit_units(sph)[1]
     @test num_children( sparent ) == 4  
     @test apply_2_child_policy( sparent ) == 3
     @test apply_2_child_policy( sparent, child_limit=5 ) == 4

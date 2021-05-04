@@ -17,6 +17,9 @@ Manifest.toml
 model*.tab
 
 tmp.jl
-/output/
+output/
 data/merging/*.tab
 data/merging/*.csv
+\#.*\#
+docs/.sass-cache/*
+
