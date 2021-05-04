@@ -108,6 +108,6 @@ end
             hh,   
             sys.age_limits,
             sys.lmt,
-            sys.lha )
+            sys.hr )
     end
 end

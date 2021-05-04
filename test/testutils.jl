@@ -75,6 +75,9 @@ function get_ss_examples()::Dict{SS_Examples, Household}
     return d
 end
 
+const EXAMPLES = get_ss_examples()
+const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
+
 function unemploy!( pers::Person )
    pers.usual_hours_worked = 0
    pers.actual_hours_worked = 0
@@ -158,28 +161,15 @@ function retire!( pers :: Person )
    pers.employment_status = Retired
 end
 
-
-function add_child!( bu :: BenefitUnit, age :: Integer, sex :: Sex )::BigInt
-    nc = num_children( bu )
-    @assert nc > 0
-    np = deepcopy( bu.people[bu.children[1]] )
-    np.pid = maximum( bu.children ) + 1
+function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
+    np = deepcopy( SPARE_CHILD )
+    np.pid = maximum( keys( hh.people ))+1
     np.age = age
     np.sex = sex
-    bu.people[np.pid] = np
-    push!( bu.children, np.pid )
-    @assert num_children( bu ) == nc+1
+    hh.people[ np.pid ] = np
     return np.pid
 end
 
-function delete_child!( bu :: BenefitUnit, pid :: BigInt )
-    delete!( bu.people, pid )
-    pos :: BigInt = -1
-    nc = size(bu.children)[1]
-    for p in 1:nc
-        if bu.childreen[p] == pid
-            deleteat![p]
-            break;fam
-        end
-    end
+function delete_person!( hh :: Household, pid :: BigInt )
+    delete!( hh.people, pid )
 end

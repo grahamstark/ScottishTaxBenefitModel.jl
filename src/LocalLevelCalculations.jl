@@ -129,11 +129,12 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
     Find someone who knows combinatorics....
     """
     function min_kids_rooms( children :: Vector{P} ) :: Int
+        mr = 9999
+        n = size( children )[1]    
         if n == 0
             return 0
         end
-        mr = 9999
-        n = size( children )[1]    
+        prs = []
         for i in 2:n
             prs = []
             un = copy(children)
@@ -144,6 +145,9 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
             # println(sz)
             # println( prs )
         end
+        #for p in prs
+        #    println(p)
+        #end
         mr
     end    
     
@@ -153,6 +157,9 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
     adult not related to the HoH.
     """
     function apply_size_criteria( hh :: Household, hr :: HousingRestrictions ) :: Int
+        if ! (hh.tenure in keys(hr.maximum_rooms)) # rule out owned outright etc.
+            return 0
+        end
         kids = Vector{P}(undef,30)
         nkids = 0
         rooms = 0
@@ -161,14 +168,18 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
                 nkids += 1
                 kids[nkids] = P( pers.sex, pers.age, is_severe_disability( pers ), pers.pid )
              else
-                if ! pers.relationship_to_hoh in [Spouse,Cohabitee] # some exceptions to this - see p 96
+                if ! (pers.relationship_to_hoh in [Spouse,Cohabitee]) # some exceptions to this - see p 96
                     rooms += 1
                 end
              end
         end
         if nkids > 0
+            # println( "nkids = $nkids ")
             rooms += min_kids_rooms( kids[1:nkids] )
-        end     
+        end 
+        #println( "hh.bedrooms = $(hh.bedrooms)" )
+        #println( "needed rooms = $rooms" )
+        #println( "hr.maximum_rooms[ hh.tenure ] = $(hr.maximum_rooms[ hh.tenure ])")    
         return min( rooms, hr.maximum_rooms[ hh.tenure ], hh.bedrooms )
     end
 
