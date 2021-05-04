@@ -15,5 +15,8 @@
 /book/build/
 Manifest.toml
 model*.tab
+
 tmp.jl
 /output/
+data/merging/*.tab
+data/merging/*.csv
