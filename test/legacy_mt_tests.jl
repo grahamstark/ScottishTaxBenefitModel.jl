@@ -25,10 +25,13 @@ sys = get_system( scotland=true )
     println( sparent.children )
     @test num_children( sparent ) == 2
     @test apply_2_child_policy( sparent ) == 2
-    np = add_child!( sparent, 10, Female );
+    np = add_child!( examples[single_parent_hh], 10, Female )
+    sparent = get_benefit_units(examples[single_parent_hh])[1]
     @test num_children( sparent ) == 3
     @test apply_2_child_policy( sparent ) == 3
-    np = add_child!( sparent, 1, Female );
+
+    np = add_child!( examples[single_parent_hh], 1, Female )
+    sparent = get_benefit_units(examples[single_parent_hh])[1]
     @test num_children( sparent ) == 4  
     @test apply_2_child_policy( sparent ) == 3
     @test apply_2_child_policy( sparent, child_limit=5 ) == 4
