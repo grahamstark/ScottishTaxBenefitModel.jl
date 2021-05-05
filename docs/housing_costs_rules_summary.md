@@ -52,3 +52,10 @@ excess bedrooms = actual bedrooms - maximum bedrooms needed (as above).
 joint tenant stuff - ignore.
 
 
+Boswarva, Owen. 2017. ‘Broad Rental Market Areas (Scotland)’. independent researcher. https://doi.org/10.7488/ds/1968.
+
+Department of Work and Pensions. 2014. ‘Local Housing Allowance Guidance Manual – April 2014’. https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/324708/lha-guidance-manual.pdf.
+
+Statistics, Office for National. 2018. ‘Local Authority Districts (December 2017) Names and Codes in the United Kingdom’. 6 January 2018. https://data.gov.uk/dataset/ac30e7e4-edf5-44de-a6d1-c36eaa565b5f/local-authority-districts-december-2017-names-and-codes-in-the-united-kingdom.
+
+Child Poverty Action Group. 2019. Welfare Benefits & Tax Credits Handbook, 2019/20. CPAG.
