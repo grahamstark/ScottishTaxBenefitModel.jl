@@ -26,7 +26,9 @@ TODO: Additional beds for foster children, carers - ignore for now.
 
 1 bed shared accomodation - 
 
-Claimants under age of 35 if eligible for 1 bedroom - *claimant* is U35 in a couple (Head of Household in our case);
+Claimants under age of 35 if eligible for 1 bedroom - 
+
+*claimant* is U35 in a couple (Head of Household in our case) *NO* only single people; see [Shelter England](https://england.shelter.org.uk/housing_advice/benefits/local_housing_allowance_lha_for_private_renters)
 
 Then apply LHA rates to this.
 
@@ -39,6 +41,8 @@ Treat LA/HA tenants the same - weird distinction p 383
 Various exceptions p 384 - ignore.
 
 If neither is pension age. Social Sector Rules apply.
+
+[Shelter- if both are not pension age](https://england.shelter.org.uk/housing_advice/benefits/how_to_deal_with_the_bedroom_tax).
 
 various exceptions which we ignore p.393.
 
