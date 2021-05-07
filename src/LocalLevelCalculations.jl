@@ -180,18 +180,27 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
         #println( "hh.bedrooms = $(hh.bedrooms)" )
         #println( "needed rooms = $rooms" )
         #println( "hr.maximum_rooms[ hh.tenure ] = $(hr.maximum_rooms[ hh.tenure ])")    
-        return min( rooms, hr.maximum_rooms[ hh.tenure ], hh.bedrooms )
+        return min( rooms, hr.maximum_rooms, hh.bedrooms )
     end
 
-    function local_housing_allowance( hh :: Household, hr :: HousingRestrictions ) :: Real
-        rent = hh.gross_rent ## check 
+    function apply_rent_restrictions( hh :: Household{RT}, hr :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
+        hr = HousingResults{RT}()
+        hr.allowed_rooms = apply_size_criteria( hh, hr )
+        hr.excess_rooms = max( 0, hh.bedrooms - hr.allowed_rooms )            
+        hr.gross_rent = hh.gross_rent
+        hr.allowed_rent = hh.gross_rent
         # FIXME deductions from gross rent TODO
-        if hh.tenure in [Private_Rented_Unfurnished, Private_Rented_Furnished, Mortgaged_Or_Shared ]
-            rooms = apply_size_criteria( hh, hr )
-            hr = hr.hrs[ hh.brma ][ rooms ]
-            rent = min( rent, hr )
+        if private_renter(hh.tenure)
+            hr = hr.hrs[ hh.brma ][ hr.allowed_rooms ]
+            hr.allowed_rent = min( hh.gross_rent, hr )
+        elseif social_renter( hh.tenure )
+            if hr.excess_rooms  > 0
+                l = size(rooms_rent_reduction)[1]
+                m = min( excess_rooms, l )
+                hr.allowed_rent = hh.gross_rent * (1-hr.rooms_rent_reduction[m])
+            end
         end
-        return rent
+        return hr
     end
 
 	function load_ct()

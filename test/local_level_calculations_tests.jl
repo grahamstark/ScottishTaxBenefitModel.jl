@@ -72,7 +72,9 @@ end
 end
 
 @testset "Local Housing Allowance" begin
-
+    for hh in EXAMPLES
+        lha = apply_rent_restrictions( hh, sys.hr )
+    end
 end
 
 @testset "Council Tax" begin

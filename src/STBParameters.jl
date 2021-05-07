@@ -691,12 +691,8 @@ module STBParameters
     
     @with_kw mutable struct HousingRestrictions{RT<:Real}
         # Temp till we figure this stuff out
-        maximum_rooms = Dict{Tenure_Type,Int}(
-            Private_Rented_Unfurnished=>4,
-            Private_Rented_Furnished=>4,
-            Council_Rented=>99,
-            Housing_Association=>99,
-            Mortgaged_Or_Shared=>99)
+        maximum_rooms :: Int = 4
+        rooms_rent_reduction = SVector{2,RT}(0.14, 0.25)
         # FIXME!!! load this somewhere
         brmas = loadBRMAs( 4, RT, DEFAULT_BRMA_2021 )
     end

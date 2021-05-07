@@ -14,6 +14,7 @@ module Results
         NIResult, 
         IndividualResult,
         BenefitUnitResult,
+        HousingResult,
         HouseholdResult,
         init_household_result,
         init_benefit_unit_result,
@@ -23,7 +24,7 @@ module Results
         search, 
         has_income,
         aggregate!
-
+        
     
     @with_kw mutable struct LMTIncomes{RT<:Real}
         gross_earnings :: RT = zero(RT)
@@ -217,6 +218,13 @@ module Results
         adults = Pid_Array()
     end
 
+    @with_kw mutable struct HousingResult{RT<:Real}
+        allowed_rooms :: Int = 0
+        excess_rooms :: Int = 0
+        allowed_rent :: RT = zero(RT) # FIXME this name
+        gross_rent :: RT = zero(RT)
+    end
+
     @with_kw mutable struct HouseholdResult{RT<:Real}
         eq_scale  :: RT = zero(RT)
         bhc_net_income :: RT = zero(RT)
@@ -227,6 +235,7 @@ module Results
         income_taxes :: RT = zero(RT)
         means_tested_benefits :: RT = zero(RT)
         other_benefits  :: RT = zero(RT)
+        housing = HousingResult{RT}()
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
 
@@ -288,6 +297,7 @@ module Results
         return false
     end
 
+    # FIXME remove the type and use where RT
     function init_benefit_unit_result( RT::Type, bu :: BenefitUnit ) :: BenefitUnitResult
         bur = BenefitUnitResult{RT}()
         bur.adults = bu.adults
@@ -299,6 +309,7 @@ module Results
 
     # create results that mirror some
     # allocation of people to benefit units
+    # FIXME remove the type and use where RT
     function init_household_result( hh :: Household ) :: HouseholdResult
         RT = typeof( hh.council_tax )
         bus = get_benefit_units(hh)
