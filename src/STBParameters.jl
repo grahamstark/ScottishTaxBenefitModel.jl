@@ -692,9 +692,14 @@ module STBParameters
     @with_kw mutable struct HousingRestrictions{RT<:Real}
         # Temp till we figure this stuff out
         maximum_rooms :: Int = 4
-        rooms_rent_reduction = SVector{2,RT}(0.14, 0.25)
+        rooms_rent_reduction = SVector{2,RT}(14, 25)
         # FIXME!!! load this somewhere
-        brmas = loadBRMAs( 4, RT, DEFAULT_BRMA_2021 )
+        brmas = loadBRMAs( 4, RT, DEFAULT_BRMA_2021 )  
+        single_room_age = 35 # FIXME expand
+    end
+
+    function weeklyise!( hr :: HousingRestrictions )
+        hr. rooms_rent_reduction /= 100.0
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
@@ -708,6 +713,7 @@ module STBParameters
         loctax = LocalTaxes{RT}()
     end
    
+    
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )
         weeklyise!( lmt.working_tax_credit )
         weeklyise!( lmt.child_tax_credit )
@@ -720,6 +726,7 @@ module STBParameters
         weeklyise!( tb.it )
         weeklyise!( tb.ni )
         weeklyise!( tb.lmt )
+        weeklyise!( tb.hr )
         weeklyise!( tb.loctax )
     end
     

@@ -717,7 +717,7 @@ function social_renter( tt::Tenure_Type)::Bool
 end
 
 function private_renter( tt::Tenure_Type)::Bool
-   tt in [tt in [Private_Rented_Furnished, Private_Rented_Unfurnished]
+   tt in [Private_Rented_Furnished, Private_Rented_Unfurnished]
 end
 
 

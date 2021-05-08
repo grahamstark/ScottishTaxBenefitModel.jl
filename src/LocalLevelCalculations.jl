@@ -11,12 +11,12 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit
 using .STBParameters
     
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
-
+using .Results: HousingResult
 using StaticArrays
 using CSV,DataFrames
 
 export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup
-export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
+export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_restrictions
 
 
     function make_la_to_brma_map()
@@ -131,8 +131,8 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
     function min_kids_rooms( children :: Vector{P} ) :: Int
         mr = 9999
         n = size( children )[1]    
-        if n == 0
-            return 0
+        if n < 2 # no kids, or 1 kid
+            return n
         end
         prs = []
         for i in 2:n
@@ -157,9 +157,6 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
     adult not related to the HoH.
     """
     function apply_size_criteria( hh :: Household, hr :: HousingRestrictions ) :: Int
-        if ! (hh.tenure in keys(hr.maximum_rooms)) # rule out owned outright etc.
-            return 0
-        end
         kids = Vector{P}(undef,30)
         nkids = 0
         rooms = 0
@@ -173,34 +170,41 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise
                 end
              end
         end
+        println( "rooms before kids $rooms")
         if nkids > 0
-            # println( "nkids = $nkids ")
+            println( "nkids = $nkids ")
             rooms += min_kids_rooms( kids[1:nkids] )
         end 
-        #println( "hh.bedrooms = $(hh.bedrooms)" )
-        #println( "needed rooms = $rooms" )
-        #println( "hr.maximum_rooms[ hh.tenure ] = $(hr.maximum_rooms[ hh.tenure ])")    
+        println( "hh.bedrooms = $(hh.bedrooms)" )
+        println( "needed rooms = $rooms" )
+        println( "hr.maximum_rooms = $(hr.maximum_rooms)")    
         return min( rooms, hr.maximum_rooms, hh.bedrooms )
     end
 
-    function apply_rent_restrictions( hh :: Household{RT}, hr :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
-        hr = HousingResults{RT}()
-        hr.allowed_rooms = apply_size_criteria( hh, hr )
-        hr.excess_rooms = max( 0, hh.bedrooms - hr.allowed_rooms )            
-        hr.gross_rent = hh.gross_rent
-        hr.allowed_rent = hh.gross_rent
+    function apply_rent_restrictions( hh :: Household{RT}, hsys :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
+        hres = HousingResult{RT}()
+        if owner_occupier( hh.tenure )
+            return hres
+        end
+        hres.allowed_rooms = apply_size_criteria( hh, hsys )
+        hres.excess_rooms = max( 0, hh.bedrooms - hres.allowed_rooms )            
+        hres.gross_rent = hh.gross_rent
+        hres.allowed_rent = hh.gross_rent
         # FIXME deductions from gross rent TODO
         if private_renter(hh.tenure)
-            hr = hr.hrs[ hh.brma ][ hr.allowed_rooms ]
-            hr.allowed_rent = min( hh.gross_rent, hr )
+            hr = lookup( hsys.brmas, hh.council, hres.allowed_rooms )
+            hres.allowed_rent = min( hh.gross_rent, hr )
         elseif social_renter( hh.tenure )
-            if hr.excess_rooms  > 0
-                l = size(rooms_rent_reduction)[1]
-                m = min( excess_rooms, l )
-                hr.allowed_rent = hh.gross_rent * (1-hr.rooms_rent_reduction[m])
+
+            if hres.excess_rooms  > 0
+                if (num_people( hh ) == 1) 
+
+                l = size(hsys.rooms_rent_reduction)[1]
+                m = min( hres.excess_rooms, l )
+                hres.allowed_rent = hh.gross_rent * (1-hsys.rooms_rent_reduction[m])
             end
         end
-        return hr
+        return hres
     end
 
 	function load_ct()
