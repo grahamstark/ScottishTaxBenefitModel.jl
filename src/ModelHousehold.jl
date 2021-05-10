@@ -12,8 +12,8 @@ export uprate!, equivalence_scale, oldest_person, default_bu_allocation
 export get_benefit_units, num_people, get_head,get_spouse, printpids
 export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
 export is_single, search, pers_is_disabled, pers_is_carer, num_carers
-export le_age, between_ages, ge_age, num_adults, empl_status_in
-export has_children, num_children, is_severe_disability, age_then
+export le_age, between_ages, ge_age, num_adults, empl_status_in, child_pids, adult_pids
+export has_children, num_children, num_adults, is_severe_disability, age_then
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
@@ -267,6 +267,16 @@ function make_benefit_unit(
     return BenefitUnit( pd, head, spouse, adults, children )
 end
 
+function child_pids( hh :: Household ) :: Pid_Array
+    chlds = Pid_Array()
+    for (pid,pers) in hh.people
+        if is_child( pers )
+            push!( chlds, pid )
+        end
+    end
+    return chlds 
+end
+
 #
 # This creates a array of references to each person in the houshold, broken into
 # benefit units using the default FRS/EFS benefit unit number.
@@ -320,6 +330,20 @@ end
 
 function num_adults( bu :: BenefitUnit )::Integer
     size( bu.adults )[1]
+end
+
+function adult_pids( hh :: Household )::Pid_Array
+    pids = Pid_Array()
+    for (pid,pers) in hh.people
+        if ! is_child( pers )
+            push!( pids, pid )
+        end
+    end
+    return pids
+end
+
+function num_adults( hh )
+    return size( adult_pids(hh))[1]
 end
 
 function num_people( hh :: Household ) :: Integer

@@ -5,7 +5,7 @@ using .STBParameters:
     NationalInsuranceSys,
     IncomeTaxSys,
     weeklyise!
-using .ModelHousehold: Household, BenefitUnit, Person, num_children
+using .ModelHousehold: Household, BenefitUnit, Person, num_children, num_adults, num_adults, num_children, child_pids
 using .Definitions
 import .ExampleHouseholdGetter
 using DataFrames
@@ -174,5 +174,61 @@ function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
 end
 
 function delete_person!( hh :: Household, pid :: BigInt )
-    delete!( hh.people, pid )
+   delete!( hh.people, pid )
+end
+
+function delete_child!( hh :: Household )
+   chpids = child_pids( hh )
+   if size(chpids)[1] > 0
+      delete_person!( hh, chpids[1])
+   end
+end
+
+
+function make_hh( 
+   ;
+   adults   :: Int = 1,
+   children :: Int = 0,
+   earnings :: Real = -1,
+   rent     :: Real = -1,
+   rooms    :: Int  = 4,
+   tenure   :: Tenure_Type = Private_Rented_Furnished ) :: Household
+   hh = nothing
+   if adults == 2
+      if children > 0
+         hh = deepcopy( EXAMPLES[cpl_w_2_children_hh])
+      else
+         hh = deepcopy( EXAMPLES[childless_couple_hh])
+      end   
+   elseif adults == 1
+      if children > 0 
+         hh = deepcopy( EXAMPLES[single_parent_hh])
+      else
+         hh = deepcopy( EXAMPLES[single_hh])
+      end
+   else
+      error("can't do $adults adults yet")
+   end
+   hh.tenure = tenure
+   if rent !== -1
+      hh.gross_rent = rent
+   end
+   num_kids = num_children( hh )
+   if num_kids < children
+      for i in (num_kids+1):children
+         sex = (i % 2) == 0 ? Male : Female
+         add_child!( hh, i, sex ) # use the counter as age
+      end
+   elseif num_kids > children
+      delete_child!( hh )
+   end
+   nc = num_children( hh )
+   na = num_adults( hh )
+   @assert nc == children "num_childen=$nc but requested=$children"
+   @assert na == adults "num_adults=$na but requested=$adults"
+   if earnings !== -1
+      head = get_head( hh )
+      head.income[Earnings] = earnings
+   end
+   return hh
 end
