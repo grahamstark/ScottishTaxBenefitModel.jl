@@ -28,12 +28,22 @@ end
 
     hh = deepcopy(EXAMPLES[cpl_w_2_children_hh]) 
     hh.bedrooms = 12 # set to a big number 
+    delete_child!( hh ) # start with 1
+
     println( hh.tenure )
     hh.tenure = Private_Rented_Unfurnished
+
     println( sys.hr.maximum_rooms )
     bus = get_benefit_units(hh)
     bu = bus[1]
+    
     # single_parent_hh single_hh childless_couple_hh
+    nbeds = apply_size_criteria( hh, sys.hr )
+    println( "got nbeds as $nbeds " )
+    oldnbeds = 0
+    @test nbeds == 2 # so 1 bed for adults + 1 shared 
+
+    np = add_child!( hh, 11, Female )
     nbeds = apply_size_criteria( hh, sys.hr )
     println( "got nbeds as $nbeds " )
     oldnbeds = 0
@@ -41,6 +51,7 @@ end
     # base case: 2 children aged 2 and 5: different genders (sexes?)
     nbeds = apply_size_criteria( hh, sys.hr )
     @test nbeds == 2 # so 1 bed for adults + 1 shared
+    
     sys.hr.maximum_rooms = 5 # add 1 so we can test a bit more`
     np = add_child!( hh, 11, Female )
     nbeds = apply_size_criteria( hh, sys.hr )
@@ -48,7 +59,7 @@ end
     
     np = add_child!( hh, 11, Male )
     nbeds = apply_size_criteria( hh, sys.hr )
-    @test nbeds == 3 # so 1 bed for adults + 1 shared 11,2 yo male + 1 F
+    @test nbeds == 4 # so 1 bed for adults + 1 shared 11,2 yo male + 1 F
 
     np = add_child!( hh, 12, Male )
     nbeds = apply_size_criteria( hh, sys.hr )
@@ -71,6 +82,20 @@ end
         nbeds = apply_size_criteria( hh, sys.hr )
         nc = num_children( hh )
     end
+
+    hh = make_hh() # all at defaults 
+    head = get_head( hh )
+    head.age = 20
+    nbeds = apply_size_criteria( hh, sys.hr )
+    println( "beds for under 35s $nbeds ")
+    @test nbeds == 0 # single room
+    head.age = 40
+    nbeds = apply_size_criteria( hh, sys.hr )
+    println( "beds for over 35s $nbeds ")
+    @test nbeds == 1 # single room + bed for over 35
+
+   
+
 end
 
 @testset "Local Housing Allowance" begin
@@ -82,6 +107,38 @@ end
         rr = apply_rent_restrictions( hh, sys.hr )
         println( rr )
     end
+
+    for tenure in [Private_Rented_Furnished, Council_Rented]
+        for adults in 1:2
+            for kids in 0:5
+                hh = make_hh( adults=adults, children=kids, age=30, tenure=tenure, rent=500.0 )
+
+                rr = apply_rent_restrictions( hh, sys.hr )
+                if adults == 1
+                    if kids == 0
+                        @test rr.allowed_rooms == 0
+                    elseif kids == 1
+                        @test rr.allowed_rooms == 2 # you & the child, regardless of age
+                    end
+
+                else
+
+                end
+
+                if tenure == Private_Rented_Furnished
+
+                else
+                    if adults == 1
+
+                    else
+
+                    end
+
+                end
+            end # kids
+        end # adults
+    end # tenure
+
 end
 
 @testset "Council Tax" begin

@@ -4,8 +4,8 @@ using ScottishTaxBenefitModel
 using .Definitions
 
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
-    is_single, pers_is_disabled, pers_is_carer, search, count, num_carers,
-    has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
+    is_single, pers_is_disabled, pers_is_carer, search, count, num_carers, get_head,
+    has_disabled_member, has_carer_member, le_age, between_ages, ge_age, num_people,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
     
 using .STBParameters
@@ -154,21 +154,25 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
     """
     See CPAG Part 2 ch.6; Assume here this is identical between UC and HB.
     Number of rooms is this bestial calculation for children, plus one per 
-    adult not related to the HoH.
+    adult not related to the HoH. Returns 0 for single people aged 35 or under in default state
     """
     function apply_size_criteria( hh :: Household, hr :: HousingRestrictions ) :: Int
         kids = Vector{P}(undef,30)
         nkids = 0
         rooms = 0
-        for (pid,pers) in hh.people
-            if pers.age < 16
-                nkids += 1
-                kids[nkids] = P( pers.sex, pers.age, is_severe_disability( pers ), pers.pid )
-             else
-                if ! (pers.relationship_to_hoh in [Spouse,Cohabitee]) # some exceptions to this - see p 96
-                    rooms += 1
+        if num_people( hh ) > 1
+            for (pid,pers) in hh.people
+                if pers.age < 16
+                    nkids += 1
+                    kids[nkids] = P( pers.sex, pers.age, is_severe_disability( pers ), pers.pid )
+                else
+                    if ! (pers.relationship_to_hoh in [Spouse,Cohabitee]) # some exceptions to this - see p 96
+                        rooms += 1
+                    end
                 end
-             end
+            end
+        else
+            rooms = get_head( hh ).age <= hr.single_room_age ? 0 : 1 # single person
         end
         println( "rooms before kids $rooms")
         if nkids > 0
@@ -195,10 +199,7 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
             hr = lookup( hsys.brmas, hh.council, hres.allowed_rooms )
             hres.allowed_rent = min( hh.gross_rent, hr )
         elseif social_renter( hh.tenure )
-
             if hres.excess_rooms  > 0
-                if (num_people( hh ) == 1) 
-
                 l = size(hsys.rooms_rent_reduction)[1]
                 m = min( hres.excess_rooms, l )
                 hres.allowed_rent = hh.gross_rent * (1-hsys.rooms_rent_reduction[m])
@@ -228,4 +229,4 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
 	
 	end
 
-end
+end # module

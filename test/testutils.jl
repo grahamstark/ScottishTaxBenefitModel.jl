@@ -192,6 +192,7 @@ function make_hh(
    earnings :: Real = -1,
    rent     :: Real = -1,
    rooms    :: Int  = 4,
+   age      :: Int = -1,
    tenure   :: Tenure_Type = Private_Rented_Furnished ) :: Household
    hh = nothing
    if adults == 2
@@ -210,9 +211,6 @@ function make_hh(
       error("can't do $adults adults yet")
    end
    hh.tenure = tenure
-   if rent !== -1
-      hh.gross_rent = rent
-   end
    num_kids = num_children( hh )
    if num_kids < children
       for i in (num_kids+1):children
@@ -226,9 +224,15 @@ function make_hh(
    na = num_adults( hh )
    @assert nc == children "num_childen=$nc but requested=$children"
    @assert na == adults "num_adults=$na but requested=$adults"
-   if earnings !== -1
-      head = get_head( hh )
-      head.income[Earnings] = earnings
+   head = get_head( hh )
+   if age != -1
+      head.age = age
+   end
+   if earnings != -1
+      head.income[wages] = earnings
+   end
+   if rent != -1
+      hh.gross_rent = rent
    end
    return hh
 end
