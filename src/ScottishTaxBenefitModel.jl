@@ -43,6 +43,9 @@ export FRSHouseholdGetter
 include("STBParameters.jl" )
 export STBParameters
 
+include( "Intermediate.jl")
+export Intermediate
+
 include( "Results.jl")
 export Results
 

@@ -111,20 +111,24 @@ end
     for tenure in [Private_Rented_Furnished, Council_Rented]
         for adults in 1:2
             for kids in 0:5
-                hh = make_hh( adults=adults, children=kids, age=30, tenure=tenure, rent=500.0 )
-
-                rr = apply_rent_restrictions( hh, sys.hr )
-                if adults == 1
-                    if kids == 0
-                        @test rr.allowed_rooms == 0
-                    elseif kids == 1
-                        @test rr.allowed_rooms == 2 # you & the child, regardless of age
+                for age in [30,40]
+                    hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
+                    rr = apply_rent_restrictions( hh, sys.hr )
+                    if adults == 1
+                        if kids == 0
+                            if age == 30
+                                @test rr.allowed_rooms == 0
+                            else
+                                @test rr.allowed_rooms == 1
+                            end
+                        elseif kids == 1
+                            @test rr.allowed_rooms == 2 # you & the child, regardless of age
+                        end
+                        
+                    else
+                        
                     end
-
-                else
-
-                end
-
+                end # age
                 if tenure == Private_Rented_Furnished
 
                 else

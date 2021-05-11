@@ -185,7 +185,7 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
         return min( rooms, hr.maximum_rooms, hh.bedrooms )
     end
 
-    function apply_rent_restrictions( hh :: Household{RT}, hsys :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
+    function apply_rent_restrictions( hh :: Household{RT}, intermed :: hsys :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
         hres = HousingResult{RT}()
         if owner_occupier( hh.tenure )
             return hres
