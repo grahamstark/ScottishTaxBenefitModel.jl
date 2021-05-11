@@ -22,9 +22,11 @@ using .Utils: mult, haskeys
 
 using Dates: TimeType, Date, now, Year
 
+using Intermediate: MTIntermediate, make_intermediate
+
 export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
-    working_disabled, MTIntermediate, make_intermediate, calc_allowances,
+    working_disabled, make_intermediate, calc_allowances,
     born_before, num_born_before, apply_2_child_policy, calc_incomes,
     calcWTC_CTC!, calc_NDDs, calculateHB_CTR!
 
@@ -94,46 +96,6 @@ function num_born_before(
     end
     return nb
 end
-
-struct MTIntermediate
-    benefit_unit_number :: Int
-    age_youngest_adult :: Int
-    age_oldest_adult :: Int
-    age_youngest_child :: Int
-    age_oldest_child :: Int
-    num_adults :: Int
-    someone_pension_age  :: Bool
-    someone_pension_age_2016 :: Bool
-    all_pension_age :: Bool
-    working_ft  :: Bool 
-    num_working_pt :: Int 
-    num_working_24_plus :: Int 
-    total_hours_worked :: Int
-    is_carer :: Bool 
-    num_carers :: Int
-    
-    is_sparent  :: Bool 
-    is_sing  :: Bool 
-    is_disabled :: Bool
-    
-    num_disabled_adults :: Int
-    num_disabled_children :: Int
-    num_severely_disabled_adults :: Int
-    num_severely_disabled_children :: Int
-    
-    num_children :: Int
-    num_allowed_children :: Int
-    num_children_born_before :: Int
-    ge_16_u_pension_age  :: Bool 
-    limited_capacity_for_work  :: Bool 
-    has_children  :: Bool 
-    economically_active :: Bool
-    num_working_full_time :: Int 
-    num_not_working :: Int 
-    num_working_part_time :: Int
-    working_disabled :: Bool
-end
-
 
 
 """
@@ -287,160 +249,6 @@ function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
         end
     end
     return false
-end
-
-function make_intermediate(
-    buno :: Int,
-    bu   :: BenefitUnit, 
-    hrs  :: HoursLimits,
-    age_limits :: AgeLimits ) :: MTIntermediate
-    # {RT} where RT
-    age_youngest_adult :: Int = 9999
-    age_oldest_adult :: Int = -9999
-    age_youngest_child :: Int = 9999
-    age_oldest_child :: Int = -9999
-    
-    is_working_disabled :: Bool = false
-    num_adlts :: Int = num_adults( bu )
-    # check both & die as we need to think about counts again
-    # if we're going back in time to when these were unequal
-    # 
-    num_pens_age :: Int = 0
-    ge_16_u_pension_age  :: Bool = false
-    someone_pension_age_2016 :: Bool = false
-    for pid in bu.adults
-        pers = bu.people[pid]
-        if reached_state_pension_age( 
-            age_limits, 
-            pers.age, 
-            pers.sex )
-            num_pens_age += 1
-        else
-            ge_16_u_pension_age = true
-        end
-        if reached_state_pension_age(
-            age_limits, 
-            pers.age, 
-            pers.sex,
-            age_limits.savings_credit_to_new_state_pension )
-            someone_pension_age_2016 = true
-        end
-        
-    end
-    # println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
-    someone_pension_age  :: Bool = num_pens_age > 0
-    all_pension_age :: Bool = num_adlts == num_pens_age
-    working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
-    num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
-    num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
-    total_hours_worked :: Int = 0
-    num_carrs :: Int = num_carers( bu )
-    is_carer :: Bool = has_carer_member( bu )
-    is_sparent  :: Bool = is_lone_parent( bu )
-    is_sing  :: Bool = is_single( bu )   
-    limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
-    has_children  :: Bool = ModelHousehold.has_children( bu )
-    economically_active = search( bu, empl_status_in, 
-        Full_time_Employee,
-        Part_time_Employee,
-        Full_time_Self_Employed,
-        Part_time_Self_Employed,
-        Unemployed, 
-        Temporarily_sick_or_injured )
-    # can't think of a simple way of doing the rest with searches..
-    num_working_full_time = 0
-    num_not_working = 0
-    num_working_part_time = 0
-    is_disabled = has_disabled_member( bu )
-    num_disabled_adults = 0
-    num_severely_disabled_adults = 0
-    for pid in bu.adults
-        pers = bu.people[pid]
-        if pers.age > age_oldest_adult
-            age_oldest_adult = pers.age
-        end
-        if pers.age < age_youngest_adult
-            age_youngest_adult = pers.age
-        end
-        if ! is_working_hours( pers, hrs.lower )
-            num_not_working += 1
-        elseif pers.usual_hours_worked <= hrs.med
-            num_working_part_time += 1
-        else 
-            num_working_full_time += 1
-        end          
-        total_hours_worked += round(pers.usual_hours_worked)
-        if working_disabled( pers, hrs )
-            is_working_disabled = true
-        end 
-        if pers_is_disabled( pers )
-            num_disabled_adults += 1
-            println( "adding a disabled adult $num_disabled_adults ")
-            if is_severe_disability( pers )
-                num_severely_disabled_adults += 1
-            end
-        end
-    end
-    @assert 120 >= age_oldest_adult >= age_youngest_adult >= 16
-    num_children = size( bu.children )[1] # count( bu, le_age, 16 )
-    num_children_born_before = num_born_before( bu ) # fixme parameterise
-    num_disabled_children = 0
-    num_severely_disabled_children :: Int = 0
-    for pid in bu.children
-        pers = bu.people[pid]
-        if pers.age > age_oldest_child
-            age_oldest_child = pers.age
-        end
-        if pers.age < age_youngest_child
-            age_youngest_child = pers.age
-        end
-        if pers_is_disabled( pers )
-            num_disabled_children += 1
-            if is_severe_disability( pers )
-                num_severely_disabled_children += 1
-            end
-        end
-    end
-    ## fixme parameterise this
-    num_allowed_children :: Int = apply_2_child_policy( bu )
-    # println( "has_children $has_children age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
-    @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
-                                    
-    return MTIntermediate(
-        buno,
-        age_youngest_adult,
-        age_oldest_adult,
-        age_youngest_child,
-        age_oldest_child,
-        num_adlts,
-        someone_pension_age,
-        someone_pension_age_2016,
-        all_pension_age,
-        working_ft,
-        num_working_pt,
-        num_working_24_plus,
-        total_hours_worked,
-        is_carer,     
-        num_carrs,
-        is_sparent,
-        is_sing,    
-        is_disabled,
-        num_disabled_adults,
-        num_disabled_children,
-        num_severely_disabled_adults,
-        num_severely_disabled_children,
-        num_children,
-        num_allowed_children,
-        num_children_born_before,
-        ge_16_u_pension_age,
-        limited_capacity_for_work,
-        has_children,
-        economically_active,
-        num_working_full_time,
-        num_not_working,
-        num_working_part_time,
-        is_working_disabled
-    )
 end
 
 """

@@ -21,7 +21,7 @@ export MTIntermediate, make_intermediate
 #
 # FIXME some names here need clarified
 #
-struct MTIntermediate
+mutable struct MTIntermediate
     benefit_unit_number :: Int
     age_youngest_adult :: Int
     age_oldest_adult :: Int

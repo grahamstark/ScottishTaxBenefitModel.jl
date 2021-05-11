@@ -8,9 +8,10 @@ using .Definitions
 using .LegacyMeansTestedBenefits:  
     calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
-    working_disabled, MTIntermediate, make_intermediate, calc_allowances,
+    working_disabled, calc_allowances,
     apply_2_child_policy, calc_incomes
 using .TimeSeriesUtils
+using .Intermediate: MTIntermediate, make_intermediate
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits, 
     reached_state_pension_age, state_pension_age, AgeLimits

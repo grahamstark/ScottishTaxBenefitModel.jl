@@ -8,9 +8,11 @@ using .Definitions
 using .LegacyMeansTestedBenefits:  
     calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
-    working_disabled, MTIntermediate, make_intermediate, calc_allowances,
+    working_disabled, calc_allowances,
     apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTR!
 
+using .Intermediate: MTIntermediate, make_intermediate    
+    
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor, init_household_result
 using Dates
