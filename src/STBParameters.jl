@@ -708,6 +708,8 @@ module STBParameters
         ni   = NationalInsuranceSys{RT}()
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         age_limits = AgeLimits()
+        # just a copy of standard ft/pt hours; mt benefits may have their own copy
+        hours_limits :: HoursLimits = HoursLimits() 
         minwage = MinimumWage{RT}()
         hr = HousingRestrictions{RT}()
         loctax = LocalTaxes{RT}()

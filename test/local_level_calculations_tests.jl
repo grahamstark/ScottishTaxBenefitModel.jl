@@ -11,6 +11,7 @@ using .LocalLevelCalculations: calc_lha, calc_bedroom_tax, apply_size_criteria,
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions
 
 using .STBParameters
+using .Intermediate: make_intermediate, MTIntermediate
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
@@ -38,39 +39,47 @@ end
     bu = bus[1]
     
     # single_parent_hh single_hh childless_couple_hh
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     println( "got nbeds as $nbeds " )
     oldnbeds = 0
     @test nbeds == 2 # so 1 bed for adults + 1 shared 
 
     np = add_child!( hh, 11, Female )
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     println( "got nbeds as $nbeds " )
     oldnbeds = 0
     age = 4
     # base case: 2 children aged 2 and 5: different genders (sexes?)
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     @test nbeds == 2 # so 1 bed for adults + 1 shared
     
     sys.hr.maximum_rooms = 5 # add 1 so we can test a bit more`
     np = add_child!( hh, 11, Female )
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     @test nbeds == 3 # so 1 bed for adults + 1 shared + 1 for 11 yo
     
     np = add_child!( hh, 11, Male )
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     @test nbeds == 4 # so 1 bed for adults + 1 shared 11,2 yo male + 1 F
 
     np = add_child!( hh, 12, Male )
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     @test nbeds == 4 # so 1 bed for adults + 2 shared + 1 for 11 M and F
     
     np = add_child!( hh, 13, Female )
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     @test nbeds == 4 # so 1 bed for adults + 2 shared + 1 for 11 M and F
   
     np = add_child!( hh, 15, Female )
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     @test nbeds == 5 # same as above - max should kick in 
     hh = deepcopy(EXAMPLES[cpl_w_2_children_hh]) 
     
@@ -79,18 +88,22 @@ end
         sex = iseven(i) ? Male : Female
         np = add_child!( hh, age, sex )
         oldnbeds = nbeds
-        nbeds = apply_size_criteria( hh, sys.hr )
+        intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+        nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
         nc = num_children( hh )
     end
 
     hh = make_hh() # all at defaults 
     head = get_head( hh )
     head.age = 20
-    nbeds = apply_size_criteria( hh, sys.hr )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     println( "beds for under 35s $nbeds ")
     @test nbeds == 0 # single room
     head.age = 40
-    nbeds = apply_size_criteria( hh, sys.hr )
+
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     println( "beds for over 35s $nbeds ")
     @test nbeds == 1 # single room + bed for over 35
 
@@ -104,7 +117,8 @@ end
         println( "on hhld $name")
         hh.tenure = Private_Rented_Furnished
         hh.gross_rent = 300.0
-        rr = apply_rent_restrictions( hh, sys.hr )
+        intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )                
+        rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
         println( rr )
     end
 

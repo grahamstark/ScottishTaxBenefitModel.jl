@@ -20,82 +20,15 @@ using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
     
 using .Utils: mult, haskeys
 
-using Dates: TimeType, Date, now, Year
-
-using Intermediate: MTIntermediate, make_intermediate
+using .Intermediate: MTIntermediate, make_intermediate, working_disabled, is_working_hours,
+    born_before, num_born_before, apply_2_child_policy
 
 export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
-    working_disabled, make_intermediate, calc_allowances,
-    born_before, num_born_before, apply_2_child_policy, calc_incomes,
+    LMTResults,  make_lmt_benefit_applicability, calc_premia,
+    make_intermediate, calc_allowances,
+    apply_2_child_policy, calc_incomes,
     calcWTC_CTC!, calc_NDDs, calculateHB_CTR!
 
-function is_working_hours( pers :: Person, hours... ) :: Bool
-    # println( "hours=$hours employment=$(pers.employment_status)")
-    if length(hours) == 1 
-        return (pers.usual_hours_worked >= hours[1])
-    elseif length(hours) == 2
-        return (pers.usual_hours_worked >= hours[1]) &&
-               (pers.usual_hours_worked <= hours[2])
-    end
-    #(pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
-end
-
-
-"""
-examples: 
-
-2 children born before start_date, 1 after
- => allowable = 2
-3  children born before start_date, 1 after
- => allowable = 3
-1  children born before start_date, 2 after
- => allowable = 2
-0  children born before start_date, 2 after
- => allowable = 2
- @return number of children allowed
-"""
-function apply_2_child_policy(
-    bu             :: BenefitUnit
-    ;
-    child_limit    :: Integer = 2,
-    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
-    model_run_date :: TimeType = now() ) :: Integer
-    before_children = 0
-    after_children = 0
-    for pid in bu.children
-        ch = bu.people[pid]
-        if born_before( ch.age, start_date, model_run_date )
-            before_children += 1
-        else
-            after_children += 1
-        end          
-    end
-    # println( "before children $before_children after children $after_children " )
-    allowable = before_children + min( max(child_limit-before_children,0), after_children )
-end
-
-function born_before( age :: Integer,
-    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
-    model_run_date :: TimeType = now() )
-    bdate = model_run_date - Year(age)
-    # println( "age = $(age) => birthdate $bdate" )
-    return bdate < start_date   
-end
-
-function num_born_before(
-    bu             :: BenefitUnit,
-    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
-    model_run_date :: TimeType = now()) :: Integer
-    nb = 0
-    for pid in bu.children
-        ch = bu.people[pid]
-        if born_before( ch.age, start_date, model_run_date )
-            nb += 1
-        end
-    end
-    return nb
-end
 
 
 """
@@ -227,28 +160,6 @@ function calc_incomes(
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
     return inc
-end
-
-"""
-See CPAG ch 61 p 1426 and appendix 5
-"""
-function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
-    if pers.usual_hours_worked >= hrs.lower || pers.employment_status in [Full_time_Employee, Full_time_Self_Employed]
-        if pers.registered_blind || pers.registered_partially_sighted || pers.registered_deaf
-            return true
-        end
-        for (dis, t ) in pers.disabilities
-            return true
-        end
-        if haskeys( pers.income, 
-            [
-                Incapacity_Benefit, 
-                Severe_Disability_Allowance, 
-                Employment_and_Support_Allowance ])
-            return true
-        end
-    end
-    return false
 end
 
 """

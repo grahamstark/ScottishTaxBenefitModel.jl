@@ -3,7 +3,7 @@ module LocalLevelCalculations
 using ScottishTaxBenefitModel
 using .Definitions
 
-using .ModelHousehold: Person, BenefitUnit, Household, get_head
+using .ModelHousehold: Person, BenefitUnit, Household, get_head, num_people, is_severe_disability
 using .Intermediate: MTIntermediate
     
 using .STBParameters
@@ -154,11 +154,11 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
     Number of rooms is this bestial calculation for children, plus one per 
     adult not related to the HoH. Returns 0 for single people aged 35 or under in default state
     """
-    function apply_size_criteria( hh :: Household, hr :: HousingRestrictions ) :: Int
+    function apply_size_criteria( hh :: Household, intermed :: MTIntermediate, hr :: HousingRestrictions ) :: Int
         kids = Vector{P}(undef,30)
         nkids = 0
         rooms = 0
-        if num_people( hh ) > 1
+        if intermed.num_people > 1
             for (pid,pers) in hh.people
                 if pers.age < 16
                     nkids += 1
@@ -191,7 +191,7 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
         if owner_occupier( hh.tenure )
             return hres
         end
-        hres.allowed_rooms = apply_size_criteria( hh, hsys )
+        hres.allowed_rooms = apply_size_criteria( hh, intermed, hsys )
         hres.excess_rooms = max( 0, hh.bedrooms - hres.allowed_rooms )            
         hres.gross_rent = hh.gross_rent
         hres.allowed_rent = hh.gross_rent

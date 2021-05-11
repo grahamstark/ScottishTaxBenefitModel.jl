@@ -1,28 +1,127 @@
 module Intermediate
 
-"""
-    Some intial calculations for things like numbers and
-    ages of children, number of carers and so on. Intended
-    to simplify subsequent modelling of benefits, etc.. 
-    FIXME some of the names should be globally changed.
-"""
+#
+#    Some intial calculations for things like numbers and
+#    ages of children, number of carers and so on. Intended
+#    to simplify subsequent modelling of benefits, etc.. 
+#   FIXME some of the names should be globally changed.
+#
+
 using ScottishTaxBenefitModel
 using .Definitions
+
+using Dates: TimeType, Date, now, Year
 
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
     is_single, pers_is_disabled, pers_is_carer, search, count, num_carers, get_head,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age, num_people,
-    empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
+    empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability,
+    default_bu_allocation
     
-using .STBParameters: HoursLimits, AgeLimits
+using .STBParameters: HoursLimits, AgeLimits, reached_state_pension_age 
+  
+using .Utils: mult, haskeys
 
-export MTIntermediate, make_intermediate
+export MTIntermediate, make_intermediate, is_working_hours, working_disabled
+export born_before, num_born_before, apply_2_child_policy
+
+"""
+examples: 
+
+2 children born before start_date, 1 after
+ => allowable = 2
+3  children born before start_date, 1 after
+ => allowable = 3
+1  children born before start_date, 2 after
+ => allowable = 2
+0  children born before start_date, 2 after
+ => allowable = 2
+ @return number of children allowed
+"""
+function apply_2_child_policy(
+    bu             :: BenefitUnit
+    ;
+    child_limit    :: Integer = 2,
+    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
+    model_run_date :: TimeType = now() ) :: Integer
+    before_children = 0
+    after_children = 0
+    for pid in bu.children
+        ch = bu.people[pid]
+        if born_before( ch.age, start_date, model_run_date )
+            before_children += 1
+        else
+            after_children += 1
+        end          
+    end
+    # println( "before children $before_children after children $after_children " )
+    allowable = before_children + min( max(child_limit-before_children,0), after_children )
+end
+function born_before( age :: Integer,
+    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
+    model_run_date :: TimeType = now() )
+    bdate = model_run_date - Year(age)
+    # println( "age = $(age) => birthdate $bdate" )
+    return bdate < start_date   
+end
+
+function num_born_before(
+    bu             :: BenefitUnit,
+    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
+    model_run_date :: TimeType = now()) :: Integer
+    nb = 0
+    for pid in bu.children
+        ch = bu.people[pid]
+        if born_before( ch.age, start_date, model_run_date )
+            nb += 1
+        end
+    end
+    return nb
+end
+
+
+
+function is_working_hours( pers :: Person, hours... ) :: Bool
+    # println( "hours=$hours employment=$(pers.employment_status)")
+    if length(hours) == 1 
+        return (pers.usual_hours_worked >= hours[1])
+    elseif length(hours) == 2
+        return (pers.usual_hours_worked >= hours[1]) &&
+               (pers.usual_hours_worked <= hours[2])
+    end
+    #(pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
+end
+
+"""
+See CPAG ch 61 p 1426 and appendix 5
+"""
+function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
+    if pers.usual_hours_worked >= hrs.lower || pers.employment_status in [Full_time_Employee, Full_time_Self_Employed]
+        if pers.registered_blind || pers.registered_partially_sighted || pers.registered_deaf
+            return true
+        end
+        for (dis, t ) in pers.disabilities
+            return true
+        end
+        if haskeys( pers.income, 
+            [
+                Incapacity_Benefit, 
+                Severe_Disability_Allowance, 
+                Employment_and_Support_Allowance ])
+            return true
+        end
+    end
+    return false
+end
+
 
 #
 # FIXME some names here need clarified
 #
 mutable struct MTIntermediate
+
     benefit_unit_number :: Int
+    num_people :: Int
     age_youngest_adult :: Int
     age_oldest_adult :: Int
     age_youngest_child :: Int
@@ -62,6 +161,7 @@ end
 
 function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     # benefit_unit_number :: Int
+    sum.num_people += add.num_people
     sum.age_youngest_adult = min( sum.age_youngest_adult, add.age_youngest_adult ) 
     sum.age_oldest_adult = max( sum.age_oldest_adult, add.age_oldest_adult )  
     sum.age_youngest_child = min( sum.age_youngest_child, add.age_youngest_child ) 
@@ -212,6 +312,7 @@ function make_intermediate(
             end
         end
     end
+    
     ## fixme parameterise this
     num_allowed_children :: Int = apply_2_child_policy( bu )
     # println( "has_children $has_children age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
@@ -219,6 +320,7 @@ function make_intermediate(
                                     
     return MTIntermediate(
         buno,
+        num_people( bu ),
         age_youngest_adult,
         age_oldest_adult,
         age_youngest_child,
