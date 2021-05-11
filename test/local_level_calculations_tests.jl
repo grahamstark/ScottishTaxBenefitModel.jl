@@ -113,7 +113,8 @@ end
             for kids in 0:5
                 for age in [30,40]
                     hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
-                    rr = apply_rent_restrictions( hh, sys.hr )
+                    intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
+                    rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
                     if adults == 1
                         if kids == 0
                             if age == 30

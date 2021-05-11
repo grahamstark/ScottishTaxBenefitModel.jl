@@ -3,10 +3,8 @@ module LocalLevelCalculations
 using ScottishTaxBenefitModel
 using .Definitions
 
-using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
-    is_single, pers_is_disabled, pers_is_carer, search, count, num_carers, get_head,
-    has_disabled_member, has_carer_member, le_age, between_ages, ge_age, num_people,
-    empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
+using .ModelHousehold: Person, BenefitUnit, Household, get_head
+using .Intermediate: MTIntermediate
     
 using .STBParameters
     
@@ -185,7 +183,10 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
         return min( rooms, hr.maximum_rooms, hh.bedrooms )
     end
 
-    function apply_rent_restrictions( hh :: Household{RT}, intermed :: hsys :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
+    function apply_rent_restrictions( 
+        hh :: Household{RT}, 
+        intermed :: MTIntermediate,
+        hsys :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
         hres = HousingResult{RT}()
         if owner_occupier( hh.tenure )
             return hres
