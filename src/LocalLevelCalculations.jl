@@ -191,7 +191,11 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
         if owner_occupier( hh.tenure )
             return hres
         end
-        hres.allowed_rooms = apply_size_criteria( hh, intermed, hsys )
+        if intermed.over_pension_age && social_renter( hh.tenure )
+            hres.allowed_rooms = hh.bedrooms
+        else
+            hres.allowed_rooms = apply_size_criteria( hh, intermed, hsys )
+        end
         hres.excess_rooms = max( 0, hh.bedrooms - hres.allowed_rooms )            
         hres.gross_rent = hh.gross_rent
         hres.allowed_rent = hh.gross_rent
@@ -200,7 +204,7 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
             hr = lookup( hsys.brmas, hh.council, hres.allowed_rooms )
             hres.allowed_rent = min( hh.gross_rent, hr )
         elseif social_renter( hh.tenure )
-            if hres.excess_rooms  > 0
+            if hres.excess_rooms  > 0 # we've fixed it above so this never applies to hhlds with anyone over pension age
                 l = size(hsys.rooms_rent_reduction)[1]
                 m = min( hres.excess_rooms, l )
                 hres.allowed_rent = hh.gross_rent * (1-hsys.rooms_rent_reduction[m])
