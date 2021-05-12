@@ -13,9 +13,7 @@ using .Results: HousingResult
 using StaticArrays
 using CSV,DataFrames
 
-export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup
-export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_restrictions
-
+export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_council_tax, apply_rent_restrictions
 
     function make_la_to_brma_map()
         lacsv = CSV.File( "$(MODEL_DATA_DIR)/local/la_to_brma_approx_mappings.csv" ) |> DataFrame
@@ -191,7 +189,8 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
         if owner_occupier( hh.tenure )
             return hres
         end
-        if intermed.over_pension_age && social_renter( hh.tenure )
+        # You won't be affected if you - *and* your partner if you live with them - are pension age:
+        if intermed.all_over_pension_age && social_renter( hh.tenure ) # fixme should this just be 1st bu?
             hres.allowed_rooms = hh.bedrooms
         else
             hres.allowed_rooms = apply_size_criteria( hh, intermed, hsys )
@@ -213,24 +212,7 @@ export calc_lha, calc_bedroom_tax, calc_council_tax, initialise, apply_rent_rest
         return hres
     end
 
-	function load_ct()
-	    
-	end
-	
-	function calc_lha( council :: Symbol )
-	
-	end
-	
-	
-	function calc_bedroom_tax(council :: Symbol, num_children :: Int )
-	
-	end
-	
 	function calc_council_tax( hh :: Household ) :: AbstractFloat
-	
-	end
-
-	function initialise()
 	
 	end
 
