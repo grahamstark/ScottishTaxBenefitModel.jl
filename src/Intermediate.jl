@@ -170,14 +170,14 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.someone_pension_age = add.someone_pension_age || add.someone_pension_age 
     sum.someone_pension_age_2016 = sum.someone_pension_age_2016 || add.someone_pension_age_2016
     sum.all_pension_age = sum.all_pension_age && add.all_pension_age 
-    sum.working_ft  += add.working_ft 
+    sum.working_ft  =  sum.working_ft  || add.working_ft # someone FIXME
     sum.num_working_pt += add.num_working_pt 
-    sum.num_working_24_plus += sum.num_working_24_plus 
+    sum.num_working_24_plus += add.num_working_24_plus 
     sum.total_hours_worked += add.total_hours_worked 
-    sum.is_carer = sum.is_carer || add.is_carer
+    sum.is_carer = sum.is_carer || add.is_carer # rename someone FIXME
     sum.num_carers += add.num_carers
     
-    sum.is_sparent = sum.is_sparent || ad.is_sparent
+    sum.is_sparent = sum.is_sparent || add.is_sparent
     sum.is_sing = false # since we're adding a 2nd bu 
     sum.is_disabled = sum.is_disabled || add.is_disabled
     
@@ -189,7 +189,7 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.num_children += add.num_children
     sum.num_allowed_children += add.num_allowed_children 
     sum.num_children_born_before += add.num_children_born_before
-    sum.ge_16_u_pension_age  += add.ge_16_u_pension_age
+    sum.ge_16_u_pension_age = sum.ge_16_u_pension_age || add.ge_16_u_pension_age # SOMEONE: FIXME RENAME
     sum.limited_capacity_for_work = sum.limited_capacity_for_work || add.limited_capacity_for_work
     sum.has_children = sum.has_children || add.has_children
     sum.economically_active = sum.economically_active || add.economically_active

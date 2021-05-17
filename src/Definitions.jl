@@ -688,6 +688,7 @@ export Council_Rented,
        Owned_outright,
        Rent_free,
        Squats
+# FIXME is_social_renter ..
 export Missing_Tenure_Type,owner_occupier,renter, social_renter, private_renter
 
 @enum Tenure_Type begin  # mapped from tentyp2

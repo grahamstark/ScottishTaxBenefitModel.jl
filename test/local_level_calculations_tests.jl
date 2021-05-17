@@ -6,8 +6,9 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 using .Results: HousingResult
+using .FRSHouseholdGetter
 
-using .LocalLevelCalculations: calc_lha, calc_bedroom_tax, apply_size_criteria, 
+using .LocalLevelCalculations: calc_bedroom_tax, apply_size_criteria, apply_rent_restrictions
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions
 
 using .STBParameters
@@ -106,13 +107,11 @@ end
     nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     println( "beds for over 35s $nbeds ")
     @test nbeds == 1 # single room + bed for over 35
-
-   
-
 end
 
 @testset "Local Housing Allowance" begin
     @test sys.hr.rooms_rent_reduction ≈ [0.14, 0.25]
+    sys.hr.maximum_rooms = 4 # set this back to actual
     for (name,hh) in EXAMPLES
         println( "on hhld $name")
         hh.tenure = Private_Rented_Furnished
@@ -127,11 +126,18 @@ end
         for adults in 1:2
             for kids in 0:5
                 for age in [30,40,70]
-                    hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
+                    if adults == 1                    
+                        hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
+                    else
+                        hh = make_hh( adults=adults, children=kids, age=age, spouse_age=age, tenure=tenure, rent=500.0 )
+                    end
                     intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
                     rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
                     if adults == 1
-                        if age == 70 
+                        if age == 70 && tenure == Council_Rented
+                            # no bedroom tax for hhls all ads over pension age socially renting
+                            @test intermed.hhint.all_pension_age
+                            println( "intermed.all_pension_age $(intermed.hhint.all_pension_age)")
                             @test rr.allowed_rooms == hh.bedrooms
                         elseif kids == 0
                             if age == 30
@@ -141,26 +147,94 @@ end
                             end
                         elseif kids == 1
                             @test rr.allowed_rooms == 2 # you & the child, regardless of age
+                        elseif kids == 2
+                            @test rr.allowed_rooms == 3
+                        elseif 2 < kids > 4
+                            @test rr.allowed_rooms ∈ [3,4] # depends on ages
+                        elseif kids > 4
+                            @test rr.allowed_rooms == 4
                         end
                         
                     else # 2 adults
-                        
+                        if age == 70 && tenure == Council_Rented
+                            # no bedroom tax for hhls all ads over pension age socially renting
+                            @test intermed.hhint.all_pension_age
+                            println( "intermed.all_pension_age $(intermed.hhint.all_pension_age)")
+                            @test rr.allowed_rooms == hh.bedrooms
+                        elseif kids == 0
+                            @test rr.allowed_rooms == 1
+                        elseif kids == 1
+                            @test rr.allowed_rooms == 2 # you & the child, regardless of age
+                        elseif kids == 2
+                            @test rr.allowed_rooms ∈ [2,3] # this depends on whether kids can share
+                        elseif 2 < kids > 4
+                            @test rr.allowed_rooms ∈ [3,4] # depends on kids can share
+                        elseif kids > 4
+                            @test rr.allowed_rooms == 4
+                        end
                     end
-                end # age
-                if tenure == Private_Rented_Furnished
-
-                else
-                    if adults == 1
-
-                    else
-
-                    end
-
                 end
             end # kids
         end # adults
     end # tenure
 
+    for tenure in [Private_Rented_Furnished, Council_Rented]
+        for adults in 1:2
+            for kids in 0:5
+                for age in [30,40,70]
+                    if adults == 1                    
+                        hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
+                    else
+                        hh = make_hh( adults=adults, children=kids, age=age, spouse_age=age, tenure=tenure, rent=500.0 )
+                    end
+                    intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
+                    rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
+                    
+                    if tenure == Private_Rented_Furnished
+                        # GLASGOW 2020/1 
+                        allowed = [80.55 113.92 149.59 172.6 322.19]  
+                        @test rr.allowed_rent ≈ allowed[rr.allowed_rooms+1]                         
+                        @test rr.allowed_rooms ∈ 0:4                
+                    else
+                        if age != 70
+                            @test rr.allowed_rooms ∈ 0:4  
+                        end
+                        if rr.excess_rooms == 0
+                            @test rr.allowed_rent == 500
+                        elseif rr.excess_rooms == 1
+                            @test rr.allowed_rent ≈ 500*(1-0.14)
+                        else
+                            @test rr.allowed_rent ≈ 500*(1-0.25)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    rc = @timed begin
+        num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
+              household_name = "model_households_scotland",
+              people_name    = "model_people_scotland",
+              start_year     = 2015 )
+        
+    end
+    num_restricted = 0
+    bedroom_tax = 0
+    for hhno in 1:num_households
+        hh = FRSHouseholdGetter.get_household( hhno )
+        # TODO UPRATE
+        println( "on hhld $hhno")
+        intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
+        rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
+        if rr.excess_rooms > 0
+            num_restricted += 1
+            if social_renter( hh.tenure )
+                bedroom_tax += 1
+            end
+        end
+    end
+    println( "initial run: number with excess rooms $num_restricted bedroom tax $bedroom_tax" )
 end
 
 @testset "Council Tax" begin

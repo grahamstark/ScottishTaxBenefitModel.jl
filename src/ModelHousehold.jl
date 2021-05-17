@@ -367,6 +367,15 @@ function partner_of( pers :: Person ) :: Union{Nothing,BigInt}
     return nothing
 end
 
+function get_spouse( hh :: Household ) ::Union{Nothing,Person}
+    head = get_head( hh )
+    p = partner_of( head )
+    if p !== nothing
+        return hh.people[p]
+    end
+    return nothing
+end
+
 function get_spouse( bu :: BenefitUnit )::Union{Nothing,Person}
     if bu.spouse <= 0
         return nothing

@@ -191,7 +191,7 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
             return hres
         end
         # You won't be affected if you - *and* your partner if you live with them - are pension age:
-        if intermed.all_over_pension_age && social_renter( hh.tenure ) # fixme should this just be 1st bu?
+        if intermed.all_pension_age && social_renter( hh.tenure ) # fixme should this just be 1st bu?
             hres.allowed_rooms = hh.bedrooms
         else
             hres.allowed_rooms = apply_size_criteria( hh, intermed, hsys )

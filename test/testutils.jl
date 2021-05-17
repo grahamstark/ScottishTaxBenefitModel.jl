@@ -193,6 +193,7 @@ function make_hh(
    rent     :: Real = -1,
    rooms    :: Int  = 4,
    age      :: Int = -1,
+   spouse_age :: Int = -1,
    tenure   :: Tenure_Type = Private_Rented_Furnished ) :: Household
    hh = nothing
    if adults == 2
@@ -227,6 +228,11 @@ function make_hh(
    head = get_head( hh )
    if age != -1
       head.age = age
+   end
+   if spouse_age != -1
+      @assert na == 2 "need 2 adults for spouse age to be meaningful"
+      sp = get_spouse( hh )
+      sp.age = spouse_age
    end
    if earnings != -1
       head.income[wages] = earnings
