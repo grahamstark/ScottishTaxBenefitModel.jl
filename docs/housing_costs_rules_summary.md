@@ -28,7 +28,7 @@ TODO: Additional beds for foster children, carers - ignore for now.
 
 Claimants under age of 35 if eligible for 1 bedroom - 
 
-*claimant* is U35 in a couple (Head of Household in our case) *NO* only single people; see [Shelter England](https://england.shelter.org.uk/housing_advice/benefits/local_housing_allowance_lha_for_private_renters)
+*claimant* is U35 in a couple (Head of Household in our case) *NO* only single people; see [Shelter England](https://england.shelter.org.uk/housing_advice/benefits/local_housing_allowance_lha_for_is_private_renters)
 
 Then apply LHA rates to this.
 

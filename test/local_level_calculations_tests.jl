@@ -7,6 +7,7 @@ using .ExampleHouseholdGetter
 using .Definitions
 using .Results: HousingResult
 using .FRSHouseholdGetter
+using .Weighting: generate_weights
 
 using .LocalLevelCalculations: calc_bedroom_tax, apply_size_criteria, apply_rent_restrictions
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions
@@ -217,8 +218,8 @@ end
               household_name = "model_households_scotland",
               people_name    = "model_people_scotland",
               start_year     = 2015 )
-        
     end
+    @time weights = generate_weights( num_households )
     num_restricted = 0
     bedroom_tax = 0
     for hhno in 1:num_households
@@ -228,9 +229,9 @@ end
         intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
         rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
         if rr.excess_rooms > 0
-            num_restricted += 1
-            if social_renter( hh.tenure )
-                bedroom_tax += 1
+            num_restricted += weights[hhno]
+            if is_social_renter( hh.tenure )
+                bedroom_tax += weights[hhno]
             end
         end
     end

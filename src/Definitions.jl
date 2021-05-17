@@ -688,8 +688,7 @@ export Council_Rented,
        Owned_outright,
        Rent_free,
        Squats
-# FIXME is_social_renter ..
-export Missing_Tenure_Type,owner_occupier,renter, social_renter, private_renter
+export Missing_Tenure_Type,is_owner_occupier,renter, is_social_renter, is_private_renter
 
 @enum Tenure_Type begin  # mapped from tentyp2
    Missing_Tenure_Type = -1
@@ -709,15 +708,15 @@ function renter(tt::Tenure_Type)::Bool
    tt < Mortgaged_Or_Shared
 end
 
-function owner_occupier(tt::Tenure_Type)::Bool
+function is_owner_occupier(tt::Tenure_Type)::Bool
    tt in [Mortgaged_Or_Shared, Owned_outright]
 end
 
-function social_renter( tt::Tenure_Type)::Bool
+function is_social_renter( tt::Tenure_Type)::Bool
    tt in [Council_Rented, Housing_Association]
 end
 
-function private_renter( tt::Tenure_Type)::Bool
+function is_private_renter( tt::Tenure_Type)::Bool
    tt in [Private_Rented_Furnished, Private_Rented_Unfurnished]
 end
 

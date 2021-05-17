@@ -4,8 +4,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
-    is_single, pers_is_disabled, pers_is_carer, search, count, num_carers,
-    has_disabled_member, has_carer_member, le_age, between_ages, ge_age,
+    is_single, count, num_carers, le_age, between_ages, ge_age,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
     
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
@@ -201,8 +200,8 @@ function make_lmt_benefit_applicability(
     #
     # WTC - not quite so easy
     #
-    # println( "working_ft $(intermed.working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) someone_pension_age $(intermed.someone_pension_age) ")
-    if intermed.working_ft
+    # println( "someone_working_ft $(intermed.someone_working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) someone_pension_age $(intermed.someone_pension_age) ")
+    if intermed.someone_working_ft
         whichb.wtc = true
     elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_children 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has children
@@ -442,7 +441,7 @@ function calcWTC_CTC!(
         elseif intermed.num_adults > 1
             wtc_elements += wtc.couple
         end
-        if intermed.working_ft > 0
+        if intermed.someone_working_ft > 0
             wtc_elements += wtc.hours_ge_30      
         end
         if intermed.working_disabled
@@ -530,7 +529,7 @@ function calc_NDDs(
         any_pay_ndds = any_pay_ndds || pays_ndd
     end # pids loop
     if any_pay_ndds
-        if intermed.working_ft
+        if intermed.someone_working_ft
             n = size(hb.ndd_incomes)[1]
             w = n
             for i in 1:n

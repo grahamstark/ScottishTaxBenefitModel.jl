@@ -130,11 +130,11 @@ mutable struct MTIntermediate
     someone_pension_age  :: Bool
     someone_pension_age_2016 :: Bool
     all_pension_age :: Bool
-    working_ft  :: Bool 
+    someone_working_ft  :: Bool 
     num_working_pt :: Int 
     num_working_24_plus :: Int 
     total_hours_worked :: Int
-    is_carer :: Bool 
+    someone_is_carer :: Bool 
     num_carers :: Int
     
     is_sparent  :: Bool 
@@ -170,11 +170,11 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.someone_pension_age = add.someone_pension_age || add.someone_pension_age 
     sum.someone_pension_age_2016 = sum.someone_pension_age_2016 || add.someone_pension_age_2016
     sum.all_pension_age = sum.all_pension_age && add.all_pension_age 
-    sum.working_ft  =  sum.working_ft  || add.working_ft # someone FIXME
+    sum.someone_working_ft  =  sum.someone_working_ft  || add.someone_working_ft # someone FIXME
     sum.num_working_pt += add.num_working_pt 
     sum.num_working_24_plus += add.num_working_24_plus 
     sum.total_hours_worked += add.total_hours_worked 
-    sum.is_carer = sum.is_carer || add.is_carer # rename someone FIXME
+    sum.someone_is_carer = sum.someone_is_carer || add.someone_is_carer # rename someone FIXME
     sum.num_carers += add.num_carers
     
     sum.is_sparent = sum.is_sparent || add.is_sparent
@@ -241,12 +241,12 @@ function make_intermediate(
     # println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
     someone_pension_age  :: Bool = num_pens_age > 0
     all_pension_age :: Bool = num_adlts == num_pens_age
-    working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
+    someone_working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
     num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
     num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
     total_hours_worked :: Int = 0
     num_carrs :: Int = num_carers( bu )
-    is_carer :: Bool = has_carer_member( bu )
+    someone_is_carer :: Bool = has_carer_member( bu )
     is_sparent  :: Bool = is_lone_parent( bu )
     is_sing  :: Bool = is_single( bu )   
     limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
@@ -329,11 +329,11 @@ function make_intermediate(
         someone_pension_age,
         someone_pension_age_2016,
         all_pension_age,
-        working_ft,
+        someone_working_ft,
         num_working_pt,
         num_working_24_plus,
         total_hours_worked,
-        is_carer,     
+        someone_is_carer,     
         num_carrs,
         is_sparent,
         is_sing,    

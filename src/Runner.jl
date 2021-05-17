@@ -310,6 +310,7 @@ module Runner
         end
     end
 
+    # FIXME use the weights!
     function do_one_run!(
         settings :: RunSettings,
         params   :: Vector{TaxBenefitSystem{T}} ) where T # fixme simpler way of declaring this?

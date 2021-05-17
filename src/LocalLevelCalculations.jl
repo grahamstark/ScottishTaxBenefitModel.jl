@@ -187,11 +187,11 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
         intermed :: MTIntermediate,
         hsys :: HousingRestrictions{RT} ) :: HousingResult{RT} where RT
         hres = HousingResult{RT}()
-        if owner_occupier( hh.tenure )
+        if is_owner_occupier( hh.tenure )
             return hres
         end
         # You won't be affected if you - *and* your partner if you live with them - are pension age:
-        if intermed.all_pension_age && social_renter( hh.tenure ) # fixme should this just be 1st bu?
+        if intermed.all_pension_age && is_social_renter( hh.tenure ) # fixme should this just be 1st bu?
             hres.allowed_rooms = hh.bedrooms
         else
             hres.allowed_rooms = apply_size_criteria( hh, intermed, hsys )
@@ -200,10 +200,10 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
         hres.gross_rent = hh.gross_rent
         hres.allowed_rent = hh.gross_rent
         # FIXME deductions from gross rent TODO
-        if private_renter(hh.tenure)
+        if is_private_renter(hh.tenure)
             hr = lookup( hsys.brmas, hh.council, hres.allowed_rooms )
             hres.allowed_rent = min( hh.gross_rent, hr )
-        elseif social_renter( hh.tenure )
+        elseif is_social_renter( hh.tenure )
             if hres.excess_rooms  > 0 
                 # we've fixed it above so this never applies to hhlds with anyone over pension age
                 l = size(hsys.rooms_rent_reduction)[1]

@@ -340,7 +340,7 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
            row.pip_or_dla += 1
        end
     end # people
-    if owner_occupier(hh.tenure)
+    if is_owner_occupier(hh.tenure)
         # row.owner_occupied = 1
     elseif hh.tenure == Council_Rented
         row.las_etc_rented = 1

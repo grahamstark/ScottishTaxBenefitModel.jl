@@ -342,7 +342,7 @@ end
     println( intermed )
     @test ! intermed.someone_pension_age
     @test ! intermed.all_pension_age
-    @test intermed.working_ft
+    @test intermed.someone_working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 2
     @test intermed.total_hours_worked > 40
@@ -368,7 +368,7 @@ end
         sys.age_limits )
     @test ! intermed.someone_pension_age
     @test ! intermed.all_pension_age
-    @test ! intermed.working_ft
+    @test ! intermed.someone_working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0
     @test intermed.total_hours_worked == 0
@@ -391,7 +391,7 @@ end
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
-    @test ! intermed.working_ft
+    @test ! intermed.someone_working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0
     @test intermed.total_hours_worked == 0
@@ -414,7 +414,7 @@ end
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits )
-    @test ! intermed.working_ft
+    @test ! intermed.someone_working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0
     @test intermed.total_hours_worked == 0
@@ -437,7 +437,7 @@ end
         sparent,  
         sys.lmt.hours_limits,
         sys.age_limits )
-    @test intermed.working_ft
+    @test intermed.someone_working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 1
     @test intermed.total_hours_worked >= 40
