@@ -9,9 +9,9 @@ using .LegacyMeansTestedBenefits:
     calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
     working_disabled, calc_allowances,
-    apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTR!
+    calc_incomes, calc_NDDs, calculateHB_CTR!
 
-using .Intermediate: MTIntermediate, make_intermediate    
+using .Intermediate: MTIntermediate, make_intermediate, apply_2_child_policy
     
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: init_benefit_unit_result, LMTResults, LMTCanApplyFor, init_household_result
@@ -346,7 +346,7 @@ end
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 2
     @test intermed.total_hours_worked > 40
-    @test ! intermed.is_carer
+    @test ! intermed.someone_is_carer
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
@@ -372,7 +372,7 @@ end
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0
     @test intermed.total_hours_worked == 0
-    @test ! intermed.is_carer
+    @test ! intermed.someone_is_carer
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled
@@ -395,7 +395,7 @@ end
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0
     @test intermed.total_hours_worked == 0
-    @test ! intermed.is_carer
+    @test ! intermed.someone_is_carer
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test intermed.is_disabled
@@ -418,7 +418,7 @@ end
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0
     @test intermed.total_hours_worked == 0
-    @test intermed.is_carer
+    @test intermed.someone_is_carer
     @test ! intermed.is_sparent
     @test ! intermed.is_sing
     @test intermed.is_disabled
@@ -441,7 +441,7 @@ end
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 1
     @test intermed.total_hours_worked >= 40
-    @test ! intermed.is_carer
+    @test ! intermed.someone_is_carer
     @test intermed.is_sparent
     @test ! intermed.is_sing
     @test ! intermed.is_disabled

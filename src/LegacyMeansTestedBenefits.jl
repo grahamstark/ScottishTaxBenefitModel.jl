@@ -4,7 +4,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
-    is_single, count, num_carers, le_age, between_ages, ge_age,
+    is_single, count, num_carers, le_age, between_ages, ge_age, search,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
     
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
@@ -24,8 +24,7 @@ using .Intermediate: MTIntermediate, make_intermediate, working_disabled, is_wor
 
 export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults,  make_lmt_benefit_applicability, calc_premia,
-    make_intermediate, calc_allowances,
-    apply_2_child_policy, calc_incomes,
+    make_intermediate, calc_allowances, calc_incomes,
     calcWTC_CTC!, calc_NDDs, calculateHB_CTR!
 
 
