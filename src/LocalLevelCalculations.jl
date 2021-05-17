@@ -181,6 +181,7 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
         return min( rooms, hr.maximum_rooms, hh.bedrooms )
     end
 
+    
     function apply_rent_restrictions( 
         hh :: Household{RT}, 
         intermed :: MTIntermediate,
@@ -203,7 +204,8 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
             hr = lookup( hsys.brmas, hh.council, hres.allowed_rooms )
             hres.allowed_rent = min( hh.gross_rent, hr )
         elseif social_renter( hh.tenure )
-            if hres.excess_rooms  > 0 # we've fixed it above so this never applies to hhlds with anyone over pension age
+            if hres.excess_rooms  > 0 
+                # we've fixed it above so this never applies to hhlds with anyone over pension age
                 l = size(hsys.rooms_rent_reduction)[1]
                 m = min( hres.excess_rooms, l )
                 hres.allowed_rent = hh.gross_rent * (1-hsys.rooms_rent_reduction[m])

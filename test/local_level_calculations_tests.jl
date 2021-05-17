@@ -121,16 +121,19 @@ end
         rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
         println( rr )
     end
-
+    # this hhld is in Glasgow
+    # 
     for tenure in [Private_Rented_Furnished, Council_Rented]
         for adults in 1:2
             for kids in 0:5
-                for age in [30,40]
+                for age in [30,40,70]
                     hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
                     intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
                     rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
                     if adults == 1
-                        if kids == 0
+                        if age == 70 
+                            @test rr.allowed_rooms == hh.bedrooms
+                        elseif kids == 0
                             if age == 30
                                 @test rr.allowed_rooms == 0
                             else
@@ -140,7 +143,7 @@ end
                             @test rr.allowed_rooms == 2 # you & the child, regardless of age
                         end
                         
-                    else
+                    else # 2 adults
                         
                     end
                 end # age
