@@ -11,7 +11,8 @@ using .Weighting: generate_weights
 using .GeneralTaxComponents: WEEKS_PER_YEAR
 
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
-    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax
+    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax,
+    LA_NAMES, LA_CODES
 
 using .STBParameters
 using .Intermediate: make_intermediate, MTIntermediate
@@ -247,7 +248,7 @@ end
     for c in instances( CT_Band )
         by_band[c] = 0.0
     end
-    for c in keys( sys.loctax.ct.band_d )
+    for c in LA_CODES
         by_la[c] = [0.0, 0.0]
     end
     println( by_la[:S12000019][1] )
@@ -268,11 +269,12 @@ end
         println( "$c $(trunc(by_band[c]))")
     end
 
-    for c in keys( sys.loctax.ct.band_d )
+    for c in LA_CODES
+        name = LA_NAMES[c]
         raised = trunc( by_la[c][2] )
         hhlds = trunc( by_la[c][1] )
         av = trunc( by_la[c][2]/by_la[c][1])
-        println( "$c hhlds $hhlds raised $raised av $av")
+        println( "$(name)($c) hhlds $hhlds raised $raised av $av")
     end
 
 
