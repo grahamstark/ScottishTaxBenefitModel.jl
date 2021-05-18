@@ -286,5 +286,5 @@ end
     println( "ct band $(hh.ct_band) council $(hh.council)")
     ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
     @test hh.ct_band == Band_B
-    @test ct ≈ 1_078.00/WEEKS_PER_YEAR # glasgow 2020/1 CT band c per week
+    @test ct ≈ 1_078.00/WEEKS_PER_YEAR # glasgow 2020/1 CT band b per week
 end
