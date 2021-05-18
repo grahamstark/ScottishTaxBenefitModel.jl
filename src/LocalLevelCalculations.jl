@@ -13,7 +13,8 @@ using .Results: HousingResult
 using StaticArrays
 using CSV,DataFrames
 
-export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_council_tax, apply_rent_restrictions
+export apply_size_criteria, make_la_to_brma_map, 
+    LA_BRMA_MAP, lookup, calc_council_tax, apply_rent_restrictions
 
     function make_la_to_brma_map()
         lacsv = CSV.File( "$(MODEL_DATA_DIR)/local/la_to_brma_approx_mappings.csv" ) |> DataFrame
@@ -222,10 +223,10 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
     person rebate
     """
 	function calc_council_tax( 
-        hh :: Household{T}, 
-        intermed{T} :: MTIntermediate,
-        ct :: CouncilTax ) :: T where T
-        ct = zero(T)
+        hh :: Household{RT}, 
+        intermed :: MTIntermediate,
+        ct :: CouncilTax{RT} ) :: RT where RT 
+        ct = zero(RT)
         @assert hh.ct_band != Band_I # We're not Welsh
         ct = ct.band_d[hh.council]* ct.relativies[hh.ct_band]
         if intermed.is_single

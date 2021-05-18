@@ -17,7 +17,7 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
-    export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes, CouncilTax,
+    export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes, CouncilTax
     export state_pension_age, reached_state_pension_age, load_file, load_file!
     export BRMA, loadBRMAs, DEFAULT_BRMA_2021
 
@@ -601,17 +601,17 @@ module STBParameters
      
     function default_ct_ratios(RT)
         return Dict{CT_Band,RT}(
-        Band_A=>240/360,
-        Band_B=>280/360,
-        Band_C=>320/360,
-        Band_D=>360/360,
-        Band_E=>473/360,
-        Band_F=>585/360,                                                                      
-        Band_G=>705/360,
-        Band_H=>882/360,
-        Band_I=>-1, # wales only
-        Household_not_valued_separately => 0.0 # see CT note
-    )
+            Band_A=>240/360,
+            Band_B=>280/360,
+            Band_C=>320/360,
+            Band_D=>360/360,
+            Band_E=>473/360,
+            Band_F=>585/360,                                                                      
+            Band_G=>705/360,
+            Band_H=>882/360,
+            Band_I=>-1, # wales only
+            Household_not_valued_separately => 0.0 ) # see CT note
+    end
     
     @with_kw mutable struct CouncilTax{RT<:Real}
         band_d :: Dict{Symbol,RT} = default_band_ds(RT)
@@ -627,7 +627,7 @@ module STBParameters
     
     function weeklyise!( lt :: LocalTaxes )
         for (c,v) in lt.ct.band_d
-            lt.band_d[c] /= WEEKS_PER_YEAR
+            lt.ct.band_d[c] /= WEEKS_PER_YEAR
         end
         lt.ct.single_person_discount /= 100.0
     end

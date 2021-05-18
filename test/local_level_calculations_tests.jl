@@ -9,7 +9,7 @@ using .Results: HousingResult
 using .FRSHouseholdGetter
 using .Weighting: generate_weights
 
-using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions
+using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions
 
 using .STBParameters
@@ -18,6 +18,13 @@ using .Intermediate: make_intermediate, MTIntermediate
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
+rc = @timed begin
+    num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
+          household_name = "model_households_scotland",
+          people_name    = "model_people_scotland",
+          start_year     = 2015 )
+end
+@time weights = generate_weights( num_households )
 
 @testset "LHA and assoc. mappings" begin
     # basic test/retrieve 
@@ -213,19 +220,14 @@ end
         end
     end
 
-    rc = @timed begin
-        num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
-              household_name = "model_households_scotland",
-              people_name    = "model_people_scotland",
-              start_year     = 2015 )
-    end
-    @time weights = generate_weights( num_households )
     num_restricted = 0
     bedroom_tax = 0
     for hhno in 1:num_households
         hh = FRSHouseholdGetter.get_household( hhno )
         # TODO UPRATE
-        println( "on hhld $hhno")
+        if hhno % 500 == 0
+            println( "on hhld $hhno")
+        end
         intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
         rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
         if rr.excess_rooms > 0
@@ -239,6 +241,16 @@ end
 end
 
 @testset "Council Tax" begin
-
-
+    hh = make_hh(adults=2)
+    intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
+    println( "ct band $(hh.ct_band) council $(hh.council)")
+    ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
+    @test hh.ct_band == Band_C
+    @test ct ≈ 1_232.00/WEEKS_PER_YEAR # glasgow 2020/1 CT band c per week
+    for hhno in 1:num_households
+        hh = FRSHouseholdGetter.get_household( hhno )
+        intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
+        println( "ct band $(hh.ct_band) council $(hh.council)")
+        ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
+    end
 end
