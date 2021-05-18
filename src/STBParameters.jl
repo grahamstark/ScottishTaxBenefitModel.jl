@@ -17,7 +17,7 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
-    export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes
+    export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes, CouncilTax,
     export state_pension_age, reached_state_pension_age, load_file, load_file!
     export BRMA, loadBRMAs, DEFAULT_BRMA_2021
 
@@ -609,20 +609,27 @@ module STBParameters
         Band_F=>585/360,                                                                      
         Band_G=>705/360,
         Band_H=>882/360,
-        Band_I=>-1)
-    end
+        Band_I=>-1, # wales only
+        Household_not_valued_separately => 0.0 # see CT note
+    )
     
+    @with_kw mutable struct CouncilTax{RT<:Real}
+        band_d :: Dict{Symbol,RT} = default_band_ds(RT)
+        relativities :: Dict{CT_Band,RT} = default_ct_ratios(RT)
+        single_person_discount :: RT = 25.0
+        # TODO see CT note on disabled discounts
+    end
+
     @with_kw mutable struct LocalTaxes{RT<:Real}
-        council_tax_band_d :: Dict{Symbol,RT} = default_band_ds(RT)
-        council_tax_ratios :: Dict{CT_Band,RT} = default_ct_ratios(RT)
-        single_person_reduction :: RT = 25.0
+        ct = CouncilTax{RT}()
+        # other possible local taxes go here
     end
     
     function weeklyise!( lt :: LocalTaxes )
-        for (c,v) in lt.council_tax_band_d
-            lt.council_tax_band_d[c] /= WEEKS_PER_YEAR
+        for (c,v) in lt.ct.band_d
+            lt.band_d[c] /= WEEKS_PER_YEAR
         end
-        lt.single_person_reduction /= 100.0
+        lt.ct.single_person_discount /= 100.0
     end
 
     @with_kw mutable struct SavingsCredit{RT<:Real}
@@ -714,7 +721,7 @@ module STBParameters
         hr = HousingRestrictions{RT}()
         loctax = LocalTaxes{RT}()
     end
-   
+
     
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )
         weeklyise!( lmt.working_tax_credit )

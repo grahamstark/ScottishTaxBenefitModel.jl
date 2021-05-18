@@ -9,7 +9,7 @@ using .Results: HousingResult
 using .FRSHouseholdGetter
 using .Weighting: generate_weights
 
-using .LocalLevelCalculations: calc_bedroom_tax, apply_size_criteria, apply_rent_restrictions
+using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions
 
 using .STBParameters

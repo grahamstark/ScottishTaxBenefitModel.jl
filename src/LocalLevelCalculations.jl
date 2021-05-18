@@ -181,7 +181,9 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
         return min( rooms, hr.maximum_rooms, hh.bedrooms )
     end
 
-    
+    """
+
+    """
     function apply_rent_restrictions( 
         hh :: Household{RT}, 
         intermed :: MTIntermediate,
@@ -214,8 +216,22 @@ export apply_size_criteria, make_la_to_brma_map, LA_BRMA_MAP, lookup, calc_counc
         return hres
     end
 
-	function calc_council_tax( hh :: Household ) :: AbstractFloat
-	
-	end
-
+    """
+    Very simple implementation of the CT scheme
+    note this doesn't include rebates apart from single
+    person rebate
+    """
+	function calc_council_tax( 
+        hh :: Household{T}, 
+        intermed{T} :: MTIntermediate,
+        ct :: CouncilTax ) :: T where T
+        ct = zero(T)
+        @assert hh.ct_band != Band_I # We're not Welsh
+        ct = ct.band_d[hh.council]* ct.relativies[hh.ct_band]
+        if intermed.is_single
+            ct *= (1-ct.single_person_discount)
+        end
+        ## TODO disabled discounts. See CT note.
+        return ct
+    end
 end # module
