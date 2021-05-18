@@ -225,14 +225,14 @@ export apply_size_criteria, make_la_to_brma_map,
 	function calc_council_tax( 
         hh :: Household{RT}, 
         intermed :: MTIntermediate,
-        ct :: CouncilTax{RT} ) :: RT where RT 
-        ct = zero(RT)
+        ctsys :: CouncilTax{RT} ) :: RT where RT 
+        ctres = zero(RT)
         @assert hh.ct_band != Band_I # We're not Welsh
-        ct = ct.band_d[hh.council]* ct.relativies[hh.ct_band]
-        if intermed.is_single
-            ct *= (1-ct.single_person_discount)
+        ctres = ctsys.band_d[hh.council]* ctsys.relativities[hh.ct_band]
+        if intermed.is_sing
+            ctres *= (1-ctsys.single_person_discount)
         end
         ## TODO disabled discounts. See CT note.
-        return ct
+        return ctres
     end
 end # module

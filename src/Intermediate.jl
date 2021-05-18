@@ -138,7 +138,7 @@ mutable struct MTIntermediate
     num_carers :: Int
     
     is_sparent  :: Bool 
-    is_sing  :: Bool 
+    is_sing  :: Bool # FIXME RENAME: is_single
     is_disabled :: Bool
     
     num_disabled_adults :: Int

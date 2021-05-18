@@ -8,9 +8,10 @@ using .Definitions
 using .Results: HousingResult
 using .FRSHouseholdGetter
 using .Weighting: generate_weights
+using .GeneralTaxComponents: WEEKS_PER_YEAR
 
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
-    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions
+    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax
 
 using .STBParameters
 using .Intermediate: make_intermediate, MTIntermediate
@@ -241,16 +242,47 @@ end
 end
 
 @testset "Council Tax" begin
-    hh = make_hh(adults=2)
-    intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
-    println( "ct band $(hh.ct_band) council $(hh.council)")
-    ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
-    @test hh.ct_band == Band_C
-    @test ct ≈ 1_232.00/WEEKS_PER_YEAR # glasgow 2020/1 CT band c per week
+    by_band = Dict{CT_Band, Real}()
+    by_la = Dict()
+    for c in instances( CT_Band )
+        by_band[c] = 0.0
+    end
+    for c in keys( sys.loctax.ct.band_d )
+        by_la[c] = [0.0, 0.0]
+    end
+    println( by_la[:S12000019][1] )
+    value = 0.0
+    dwellings = 0.0
     for hhno in 1:num_households
         hh = FRSHouseholdGetter.get_household( hhno )
         intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
         println( "ct band $(hh.ct_band) council $(hh.council)")
         ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
+        by_band[hh.ct_band] += weights[hhno]
+        by_la[hh.council][2] += ct*weights[hhno]*WEEKS_PER_YEAR
+        by_la[hh.council][1] += weights[hhno]
+        value += ct*weights[hhno]*WEEKS_PER_YEAR
+        dwellings +=weights[hhno]
     end
+    for c in instances( CT_Band )
+        println( "$c $(trunc(by_band[c]))")
+    end
+
+    for c in keys( sys.loctax.ct.band_d )
+        raised = trunc( by_la[c][2] )
+        hhlds = trunc( by_la[c][1] )
+        av = trunc( by_la[c][2]/by_la[c][1])
+        println( "$c hhlds $hhlds raised $raised av $av")
+    end
+
+
+    println( "total raised $(trunc(value/1_000_000))m pa before rebates")
+    println( "dwellings $(trunc(dwellings)) ")
+    println( "av per dwelling, before ctrebate $(trunc(value/dwellings))")
+    hh = make_hh(adults=2)
+    intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
+    println( "ct band $(hh.ct_band) council $(hh.council)")
+    ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
+    @test hh.ct_band == Band_B
+    @test ct ≈ 1_078.00/WEEKS_PER_YEAR # glasgow 2020/1 CT band c per week
 end
