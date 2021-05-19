@@ -265,18 +265,20 @@ end
         value += ct*weights[hhno]*WEEKS_PER_YEAR
         dwellings +=weights[hhno]
     end
+    println( "band,num dwellings")
     for c in instances( CT_Band )
-        println( "$c $(trunc(by_band[c]))")
+        println( "$c,$(trunc(by_band[c]))")
     end
 
+    println( "name,ccode,hhlds,raised,av")
     for c in LA_CODES
         name = LA_NAMES[c]
         raised = trunc( by_la[c][2] )
         hhlds = trunc( by_la[c][1] )
         av = trunc( by_la[c][2]/by_la[c][1])
-        println( "$(name)($c) hhlds $hhlds raised $raised av $av")
+        println( "$(name),$c,$hhlds,$raised,$av")
     end
-
+    
 
     println( "total raised $(trunc(value/1_000_000))m pa before rebates")
     println( "dwellings $(trunc(dwellings)) ")
