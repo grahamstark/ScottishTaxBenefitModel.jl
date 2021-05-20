@@ -485,15 +485,6 @@ end
 
 
 
-"""
- Temp hack till I work this stuff out at least semi-sensibly
-"""
-function calc_LHA(
-    hh  :: Household,
-    lha :: HousingRestrictions ) :: Real
-    return lha.tmp_lha_prop*hh.gross_rent
-end
-
 function calc_NDDs( 
     bu       :: BenefitUnit, 
     bur      :: BenefitUnitResult,
@@ -596,6 +587,7 @@ function calculateHB_CTR!(
                     println( "taper=$taper excess=$excess" )
                     benefit = max( 0.0, benefit - taper*excess )    
                 end
+                
             end
             if which_ben == hb
                 bures.legacy_mtbens.hb = benefit
