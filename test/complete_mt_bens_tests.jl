@@ -104,7 +104,11 @@ end
         println( "name=$name" )
         res = df[df.Key.==k,:][1,:]
         println( res.CTB_NEW )
-        hhres = init_household_result( hh )   
+        hhres = init_household_result( hh )  
+        intermed = make_intermediate(
+            hh,
+            sys.hours_limits,
+            sys.age_limits )
         calc_legacy_means_tested_benefits!(
             hhres,
             hh,   

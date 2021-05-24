@@ -5,6 +5,7 @@ using .STBParameters:
     NationalInsuranceSys,
     IncomeTaxSys,
     weeklyise!
+import .Results: init_benefit_unit_result, BenefitUnitResult
 using .ModelHousehold: Household, BenefitUnit, Person, num_children, num_adults, num_adults, num_children, child_pids
 using .Definitions
 import .ExampleHouseholdGetter
@@ -184,6 +185,11 @@ function delete_child!( hh :: Household )
    end
 end
 
+
+    
+function init_benefit_unit_result( bu :: BenefitUnit ) :: BenefitUnitResult
+   return init_benefit_unit_result( Float64, bu )
+end
 
 function make_hh( 
    ;

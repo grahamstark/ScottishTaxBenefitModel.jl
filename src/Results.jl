@@ -23,7 +23,8 @@ module Results
         LMTCanApplyFor,
         search, 
         has_income,
-        aggregate!
+        aggregate!,
+        LocalTaxes
         
     
     @with_kw mutable struct LMTIncomes{RT<:Real}
@@ -218,12 +219,16 @@ module Results
         adults = Pid_Array()
     end
 
+    @with_kw mutable struct LocalTaxes{RT<:Real}
+        council_tax :: RT = zero(RT)
+    end
+
     @with_kw mutable struct HousingResult{RT<:Real}
         allowed_rooms :: Int = 0
         excess_rooms :: Int = 0
         allowed_rent :: RT = zero(RT) # FIXME this name
         gross_rent :: RT = zero(RT)
-    end
+     end
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
         eq_scale  :: RT = zero(RT)
@@ -236,6 +241,8 @@ module Results
         means_tested_benefits :: RT = zero(RT)
         other_benefits  :: RT = zero(RT)
         housing = HousingResult{RT}()
+        # FIXME note this is at the household level, which makes local income taxes, etc. akward. OK for now.
+        local_tax = LocalTaxes{RT}()
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
 
@@ -297,12 +304,12 @@ module Results
         return false
     end
 
-    # FIXME remove the type and use where RT
-    function init_benefit_unit_result( RT::Type, bu :: BenefitUnit ) :: BenefitUnitResult
-        bur = BenefitUnitResult{RT}()
+    # the T is needed because types 
+    function init_benefit_unit_result( T :: Type, bu :: BenefitUnit ) :: BenefitUnitResult
+        bur = BenefitUnitResult{T}()
         bur.adults = bu.adults
         for pid in keys( bu.people )
-            bur.pers[pid] = IndividualResult{RT}()
+            bur.pers[pid] = IndividualResult{T}()
         end
         return bur
     end
@@ -310,12 +317,12 @@ module Results
     # create results that mirror some
     # allocation of people to benefit units
     # FIXME remove the type and use where RT
-    function init_household_result( hh :: Household ) :: HouseholdResult
-        RT = typeof( hh.council_tax )
+    function init_household_result( hh :: Household{T} ) :: HouseholdResult{T} where T
+        # RT = typeof( hh.council_tax )
         bus = get_benefit_units(hh)
-        hr = HouseholdResult{RT}()
+        hr = HouseholdResult{T}()
         for bu in bus
-            push!( hr.bus, init_benefit_unit_result( RT, bu ))
+            push!( hr.bus, init_benefit_unit_result( T, bu ))
         end
         return hr
     end

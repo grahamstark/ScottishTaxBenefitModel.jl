@@ -35,20 +35,18 @@ The CPAG guide ch 21/21 has over 100 pages on this stuff
 this can no more than catch the gist.
 """
 function calc_incomes( 
-    which_ben :: LMTBenefitType, # esa hb is jsa pc wtc ctr
-    bu :: BenefitUnit, 
-    bur :: BenefitUnitResult, 
-    intermed :: MTIntermediate,
-    incrules :: IncomeRules,
-    hours :: HoursLimits ) :: LMTIncomes 
+    which_ben :: LMTBenefitType, # esa hb is jsa pc wtc ctr pc sc
+    bu        :: BenefitUnit, 
+    bur       :: BenefitUnitResult, 
+    intermed  :: MTIntermediate,
+    incrules  :: IncomeRules,
+    hours     :: HoursLimits ) :: LMTIncomes 
     T = typeof( incrules.permitted_work )
     mntr = bur.legacy_mtbens # shortcut
     inc = LMTIncomes{T}()
-    extra_incomes = zero(T)
     gross_earn = zero(T)
     net_earn = zero(T)
     other = zero(T)
-    total = zero(T)
     
     if which_ben in [hb,ctr]
         inclist = incrules.hb_incomes
@@ -537,12 +535,17 @@ function calc_NDDs(
 end
 
 function calculateHB_CTR!( 
-    which_ben :: LMTBenefitType,
     household_result :: HouseholdResult,
-    eligible_amount :: Real, 
-    hh :: Household,
-    lmt_ben_sys :: LegacyMeansTestedBenefitSystem,
-    age_limits :: AgeLimits )
+    which_ben        :: LMTBenefitType,
+    hh               :: Household,
+    intermed         :: NamedTuple,
+    lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,
+    age_limits       :: AgeLimits )
+    
+    eligible_amount = which_ben == ctr ? 
+        household_result.local_tax.council_tax :
+        household_result.housing.allowed_rent
+       
     
     @assert which_ben in [ctr, hb]
     bus = get_benefit_units( hh )
@@ -551,20 +554,20 @@ function calculateHB_CTR!(
     for bn in nbus:-1:1
         bures = household_result.bus[bn]
         bu = bus[bn]
-        intermed = make_intermediate( bn, bu, lmt_ben_sys.hours_limits, age_limits )
+        ## FIXME pass this in
         incomes = calc_incomes( 
             hb,
             bu,
             bures,
-            intermed,
+            intermed.bus[bb],
             lmt_ben_sys.income_rules,
             lmt_ben_sys.hours_limits )
         if bn == 1
-            benefit = max(0.0, eligible_amount - ndds )
+            benefit = max(0.0, eligible_amount - ndds ) # ndds deducted from eligible rent
             premia = 0.0
             allowances = 0.0
             passported = false
-            
+            # FIXME we're doing passpored twice            
             if has_income( bu, bures, lmt_ben_sys.hb.passported_bens... )
                 # no need to do anything
                 passported = true
@@ -603,22 +606,25 @@ function calculateHB_CTR!(
                 bures.legacy_mtbens.ctr_incomes = incomes               
             end
         else # ndds for hb, not ctr
-            ndds += calc_NDDs(
-                bu,
-                intermed,
-                lmt_ben_sys.hb )
+            if which_ben == hb
+                ndds += calc_NDDs(
+                    bu,
+                    bures,
+                    intermed,
+                    lmt_ben_sys.income_rules,
+                    lmt_ben_sys.hb )
+            end
         end
     end
 end # calculateHB_CTR
 
 function calc_legacy_means_tested_benefits!(
-    ;
-    buno :: Int,
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit :: BenefitUnit,
-    intermed :: MTIntermediate,
-    age_limits :: AgeLimits, 
-    mt_ben_sys  :: LegacyMeansTestedBenefitSystem,
+    intermed     :: MTIntermediate,
+    mt_ben_sys   :: LegacyMeansTestedBenefitSystem,
+    age_limits   :: AgeLimits, 
+    hours        :: HoursLimits
     lha :: HousingRestrictions )
     # aliases
     bures = benefit_unit_result
@@ -651,13 +657,13 @@ function calc_legacy_means_tested_benefits!(
             bu,
             bures,
             intermed,
-            mt_ben_sys.income_rules )
+            mt_ben_sys.income_rules,
+            hours )
         allowances = calc_allowances(
             which_mig,
             intermed,
             mt_ben_sys.allowances,
-            age_limits 
-        )        
+            age_limits )        
         mig = max( 0.0, premia+allowances - incomes.total_income );
         bures.legacy_mtbens.mig_incomes = incomes
         bures.legacy_mtbens.mig_allowances = allowances
@@ -686,8 +692,9 @@ function calc_legacy_means_tested_benefits!(
             pc,
             bu,
             bures,
-            intermed.
-            mt_ben_sys.income_rules )
+            intermed,
+            mt_ben_sys.income_rules,
+            hours )
         allowances = calc_allowances(
             pc,
             intermed,
@@ -708,11 +715,13 @@ function calc_legacy_means_tested_benefits!(
         if can_apply_for.sc && ( ! incomes.disqualified_on_capital )  
             scsys = mt_ben_sys.savings_credit #  shortcut
             sc_incomes = calc_incomes( 
-                pc,
+                sc,
                 bu,
-                bu_result,
-                intermed.
-                mt_ben_sys.income_rules )
+                bures,
+                intermed,
+                mt_ben_sys.income_rules,
+                hours
+                 )
             thresh = scsys.threshold_single
             maxpay = scsys.threshold_single
             if num_adults > 1
@@ -723,7 +732,7 @@ function calc_legacy_means_tested_benefits!(
             sc_income = scsys.withdrawal_rate * 
                 max(0.0, sc_incomes.total_income-thresh)
             
-            inc_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income-miglevel)
+            income_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income-miglevel)
             bures.legacy_mtbens.sc = max( 0.0, sc_income - income_over_mig )
             bures.legacy_mtbens.sc_incomes = sc_incomes   
         end
@@ -741,32 +750,52 @@ function calc_legacy_means_tested_benefits!(
     
     end
     
-    passported_hb = false
-    passported_ctr = false
     #
     # Passporting
-    #
+    # FIXME this is a duplicate
     if bures.legacy_mtbens.pc > 0 || bures.legacy_mtbens.jsa > 0 || bures.legacy_mtbens.is > 0 || bures.legacy_mtbens.esa > 0
-        passported_hb = true
-        passported_ctr = true        
+        legacy_mtbens.hb_passported = true
+        legacy_mtbens.ctr_passported = true
     end
 
-    if can_apply_for.hb
-    
-    end
-    if can_apply_for.ctr
-    
-    end
+   
 end
 
 function calc_legacy_means_tested_benefits!(
             household_result :: HouseholdResult,
-            household :: Household,
-            age_limits :: AgeLimits, 
-            mt_ben_sys  :: LegacyMeansTestedBenefitSystem,
-            lha :: HousingRestrictions )
-            
-            
+            household        :: Household,
+            intermed         :: NamedTuple,
+            age_limits       :: AgeLimits, 
+            mt_ben_sys       :: LegacyMeansTestedBenefitSystem,
+            hours            :: Hours_Limits,
+            hr               :: HousingRestrictions )
+    # fixme not just for renters?         
+    household_result.housing = apply_rent_restrictions( hh, intermed.hhint, hr )
+    bus = get_benefit_units(hh)
+    nbus = count( bus )[1]
+    for buno in 1:nbus
+        calc_legacy_means_tested_benefits!(
+            household_result.bus[buno],
+            bus[buno],
+            intermed.buint[buno],
+            mt_bens_sys,
+            age_limits,
+            hours )
+    end
+    calculateHB_CTR!( 
+        household_result,
+        hb,
+        household,
+        intermed,
+        lmt_ben_sys,
+        age_limits )
+    calculateHB_CTR!( 
+        household_result,            
+        ctr,
+        household,
+        intermed,
+        lmt_ben_sys,
+        age_limits )        
 end
 
 end # module LegacyMeansTestedBenefits

@@ -284,7 +284,7 @@ end
     println( "dwellings $(trunc(dwellings)) ")
     println( "av per dwelling, before ctrebate $(trunc(value/dwellings))")
     hh = make_hh(adults=2)
-    intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
     println( "ct band $(hh.ct_band) council $(hh.council)")
     ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
     @test hh.ct_band == Band_B

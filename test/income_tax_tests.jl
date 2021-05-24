@@ -18,7 +18,6 @@ using Dates: Date
 using .IncomeTaxCalculations: old_enough_for_mca, apply_allowance, calc_income_tax!
 using .STBParameters: IncomeTaxSys
 using .Results: 
-    init_benefit_unit_result,
     init_household_result,
     IndividualResult, 
     BenefitUnitResult, 
@@ -278,7 +277,7 @@ end # example1 ch3
     spouse.income[self_employment_income] = 20_000.0
     spouse_tax_due_ruk = 1_258.0
     bu = make_benefit_unit( PeopleArray([head,spouse]), head.pid, spouse.pid ) 
-    bruk = init_benefit_unit_result( Float64, bu )
+    bruk = init_benefit_unit_result( bu )
     calc_income_tax!( bruk, head, spouse, itsys_ruk )
     println( bruk )
     @test bruk.pers[spouse.pid].it.total_tax ≈ spouse_tax_due_ruk
@@ -293,7 +292,7 @@ end # example 2 ch3
     pers = ruk.people[RUK_PERSON]
     pers.registered_blind = true
     bu = make_benefit_unit( PeopleArray([pers]), pers.pid, BigInt(-1) ) 
-    bruk = init_benefit_unit_result( Float64,  bu )    
+    bruk = init_benefit_unit_result(  bu )    
     result = calc_income_tax!( bruk, pers, nothing, itsys_ruk )
     @test bruk.pers[pers.pid].it.allowance ≈ 
         itsys_ruk.personal_allowance + itsys_ruk.blind_persons_allowance
@@ -322,8 +321,8 @@ end
         # head.income[private_pension] = head_incomes[i]
         head.age = head_ages[i]
         spouse.age = spouse_ages[i]
-        bruk = init_benefit_unit_result( Float64, bu )    
-        brscot = init_benefit_unit_result( Float64, bu )    
+        bruk = init_benefit_unit_result( bu )    
+        brscot = init_benefit_unit_result( bu )    
         calc_income_tax!( bruk, head, spouse, itsys_ruk )
         calc_income_tax!( brscot, head, spouse, itsys_scot )
         if i == 1
@@ -363,8 +362,8 @@ end
     alana.income[pension_contributions_employee] = (400.00*12)*0.8 # net contribs per month; expressed gross in example
 
     bu = make_benefit_unit( PeopleArray([alana]), alana.pid, BigInt(-1)) 
-    bruk = init_benefit_unit_result( Float64, bu )    
-    brscot = init_benefit_unit_result( Float64, bu )    
+    bruk = init_benefit_unit_result( bu )    
+    brscot = init_benefit_unit_result( bu )    
 
     calc_income_tax!( bruk, alana, nothing, itsys_ruk );
     calc_income_tax!( brscot, alana, nothing, itsys_scot );
@@ -387,16 +386,16 @@ end
     gordon.income[self_employment_income] = 27_800.0
     gordon.income[pension_contributions_employee] =  27_800.00 # net contribs per month; expressed gross in example
     bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 
-    bruk = init_benefit_unit_result( Float64, bu )  
-    brscot = init_benefit_unit_result( Float64, bu )
+    bruk = init_benefit_unit_result( bu )  
+    brscot = init_benefit_unit_result( bu )
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk )
     calc_income_tax!( brscot, gordon, nothing, itsys_scot )
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 27_800.0
     @test brscot.pers[gordon.pid].it.pension_eligible_for_relief ≈ 27_800.0
     gordon.income[self_employment_income] = 2_500.0
     gordon.income[pension_contributions_employee] =  27_800.00 # net contribs per month; expressed gross in example
-    bruk = init_benefit_unit_result( Float64, bu )  
-    brscot = init_benefit_unit_result( Float64, bu )
+    bruk = init_benefit_unit_result( bu )  
+    brscot = init_benefit_unit_result( bu )
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk )
     calc_income_tax!( brscot, gordon, nothing, itsys_scot )
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 3_600.0
@@ -417,14 +416,14 @@ end
     gordon.income[self_employment_income] = 60_000.0
     gordon.income[pension_contributions_employer] =  50_000.00 # net contribs per month; expressed gross in example
     bu = make_benefit_unit( PeopleArray([gordon]),gordon.pid, BigInt(-1)) 
-    bruk = init_benefit_unit_result( Float64, bu )    
-    brscot = init_benefit_unit_result( Float64, bu )    
+    bruk = init_benefit_unit_result( bu )    
+    brscot = init_benefit_unit_result( bu )    
 
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 40_000
 
     gordon.income[self_employment_income] = 300_000.0
-    bruk = init_benefit_unit_result( Float64, bu )    
+    bruk = init_benefit_unit_result( bu )    
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 10_000
 
@@ -435,7 +434,7 @@ end
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 40_000
 
     # complete-ish calc from combes, tutin&rowes, 2018 edn, p199, updated to 2019/20 rates
-    bruk = init_benefit_unit_result( Float64, bu )    
+    bruk = init_benefit_unit_result( bu )    
     gordon.income[self_employment_income] = 180_000.0
     gordon.income[pension_contributions_employer] =  14_400.00 # net contribs per month; expressed gross in example
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
@@ -479,7 +478,7 @@ end
             # what remains of joint taxation..
             head = get_head( bu )
             spouse = get_spouse( bu )
-            bures = init_benefit_unit_result( Float64, bu )
+            bures = init_benefit_unit_result( bu )
             calc_income_tax!(
                 bures,
                 head,
