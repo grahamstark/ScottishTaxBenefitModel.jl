@@ -10,11 +10,12 @@ using .LegacyMeansTestedBenefits:
     LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
     working_disabled, calc_allowances,
     calc_incomes, calc_NDDs, calculateHB_CTR!
+using .LocalLevelCalculations: apply_rent_restrictions, calc_council_tax
 
 using .Intermediate: MTIntermediate, make_intermediate, apply_2_child_policy
     
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
-using .Results: LMTResults, LMTCanApplyFor, init_household_result
+using .Results: LMTResults, LMTCanApplyFor, init_household_result, BenefitUnitResult
 using Dates
 
 ## FIXME don't need both
@@ -643,11 +644,13 @@ end
     spouse.usual_hours_worked = 21
     head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
     hhres = init_household_result( joplings )
+    intermed = make_intermediate( joplings, sys.hours_limits, sys.age_limits )
+    hhres.housing = apply_rent_restrictions( joplings, intermed.hhint, sys.hr )
     calculateHB_CTR!( 
-        hb, 
         hhres, 
-        joplings.gross_rent, 
+        hb, 
         joplings,
+        intermed,
         sys.lmt, 
         sys.age_limits )
     println( "MTBens for Joblings:\n$(hhres.bus[1].legacy_mtbens)\n" )
@@ -664,11 +667,13 @@ end
     head.income[state_pension]=127.75
     mr_h.gross_rent = 88.50
     hhres = init_household_result( mr_h )
+    intermed = make_intermediate( mr_h, sys.hours_limits, sys.age_limits )
+    hhres.housing = apply_rent_restrictions( mr_h, intermed.hhint, sys.hr )
     calculateHB_CTR!( 
-        hb, 
         hhres, 
-        mr_h.gross_rent, 
+        hb, 
         mr_h,
+        intermed,
         sys.lmt, 
         sys.age_limits )
     println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
@@ -917,29 +922,4 @@ end
             @test (enhanced_disability_single ∈ premset) && length(premset)==2  
         end
     end
-end
-
-@testset "JSA" begin
-    
-
-end
-
-@testset "IS" begin
-    
-
-end
-
-@testset "PC" begin
-    
-
-end
-
-@testset "CTC" begin
-    
-
-end
-
-@testset "WTC" begin
-    
-
 end

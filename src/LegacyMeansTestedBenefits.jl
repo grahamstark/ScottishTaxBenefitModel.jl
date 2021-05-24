@@ -551,7 +551,7 @@ function calculateHB_CTR!(
     bus = get_benefit_units( hh )
     nbus = size(bus)[1]
     ndds = 0.0
-    for bn in nbus:-1:1
+    for bn in nbus:-1:1 # fixme bn=>buno for consistency
         bures = household_result.bus[bn]
         bu = bus[bn]
         ## FIXME pass this in
@@ -559,7 +559,7 @@ function calculateHB_CTR!(
             hb,
             bu,
             bures,
-            intermed.bus[bb],
+            intermed.buint[bn],
             lmt_ben_sys.income_rules,
             lmt_ben_sys.hours_limits )
         if bn == 1
@@ -575,13 +575,13 @@ function calculateHB_CTR!(
                 premia,premset = calc_premia(
                     hb,
                     bu,
-                    intermed,        
+                    intermed.buint[bn],        
                     lmt_ben_sys.premia,
                     age_limits )            
                 union!(bures.legacy_mtbens.premiums, premset)
                 allowances = calc_allowances(
                     hb,
-                    intermed,
+                    intermed.buint[bn],
                     lmt_ben_sys.allowances,
                     age_limits )
                 excess = max( 0.0, incomes.total_income - (premia+allowances))
@@ -610,7 +610,7 @@ function calculateHB_CTR!(
                 ndds += calc_NDDs(
                     bu,
                     bures,
-                    intermed,
+                    intermed.buint[buno],
                     lmt_ben_sys.income_rules,
                     lmt_ben_sys.hb )
             end
@@ -624,8 +624,8 @@ function calc_legacy_means_tested_benefits!(
     intermed     :: MTIntermediate,
     mt_ben_sys   :: LegacyMeansTestedBenefitSystem,
     age_limits   :: AgeLimits, 
-    hours        :: HoursLimits
-    lha :: HousingRestrictions )
+    hours        :: HoursLimits,
+    lha          :: HousingRestrictions )
     # aliases
     bures = benefit_unit_result
     bu = benefit_unit
@@ -767,10 +767,11 @@ function calc_legacy_means_tested_benefits!(
             intermed         :: NamedTuple,
             age_limits       :: AgeLimits, 
             mt_ben_sys       :: LegacyMeansTestedBenefitSystem,
-            hours            :: Hours_Limits,
+            hours            :: HoursLimits,
             hr               :: HousingRestrictions )
     # fixme not just for renters?         
-    household_result.housing = apply_rent_restrictions( hh, intermed.hhint, hr )
+    household_result.housing = apply_rent_restrictions( 
+        hh, intermed.hhint, hr )
     bus = get_benefit_units(hh)
     nbus = count( bus )[1]
     for buno in 1:nbus
