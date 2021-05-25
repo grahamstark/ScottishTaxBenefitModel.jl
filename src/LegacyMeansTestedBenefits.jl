@@ -22,6 +22,8 @@ using .Utils: mult, haskeys
 using .Intermediate: MTIntermediate, make_intermediate, working_disabled, is_working_hours,
     born_before, num_born_before, apply_2_child_policy
 
+using .LocalLevelCalculations: apply_rent_restrictions
+
 export calc_legacy_means_tested_benefits, tariff_income,
     LMTResults,  make_lmt_benefit_applicability, calc_premia,
     make_intermediate, calc_allowances, calc_incomes,
@@ -624,8 +626,7 @@ function calc_legacy_means_tested_benefits!(
     intermed     :: MTIntermediate,
     mt_ben_sys   :: LegacyMeansTestedBenefitSystem,
     age_limits   :: AgeLimits, 
-    hours        :: HoursLimits,
-    lha          :: HousingRestrictions )
+    hours        :: HoursLimits )
     # aliases
     bures = benefit_unit_result
     bu = benefit_unit
@@ -741,7 +742,7 @@ function calc_legacy_means_tested_benefits!(
     
     if can_apply_for.wtc || can_apply_for.ctc
         bures.legacy_mtbens.wtc = calcWTC_CTC!( 
-                bu_result,
+                bures,
                 bu,
                 intermed,
                 mt_ben_sys.working_tax_credit,
@@ -769,17 +770,17 @@ function calc_legacy_means_tested_benefits!(
             mt_ben_sys       :: LegacyMeansTestedBenefitSystem,
             hours            :: HoursLimits,
             hr               :: HousingRestrictions )
-    # fixme not just for renters?         
+    # fixme not just for renters? fixme do this earlier
     household_result.housing = apply_rent_restrictions( 
-        hh, intermed.hhint, hr )
-    bus = get_benefit_units(hh)
-    nbus = count( bus )[1]
+        household, intermed.hhint, hr )
+    bus = get_benefit_units(household)
+    nbus = size( bus )[1]
     for buno in 1:nbus
         calc_legacy_means_tested_benefits!(
             household_result.bus[buno],
             bus[buno],
             intermed.buint[buno],
-            mt_bens_sys,
+            mt_ben_sys,
             age_limits,
             hours )
     end

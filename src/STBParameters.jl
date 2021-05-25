@@ -718,8 +718,8 @@ module STBParameters
         # just a copy of standard ft/pt hours; mt benefits may have their own copy
         hours_limits :: HoursLimits = HoursLimits() 
         minwage = MinimumWage{RT}()
-        hr = HousingRestrictions{RT}()
-        loctax = LocalTaxes{RT}()
+        hr = HousingRestrictions{RT}() # fixme better name
+        loctax = LocalTaxes{RT}() # fixme better name
     end
 
     
