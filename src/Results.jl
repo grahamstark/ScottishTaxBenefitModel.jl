@@ -88,15 +88,14 @@ module Results
 
     # 
     @with_kw mutable struct LMTCanApplyFor
+        ctc  :: Bool = false
         esa :: Bool = false
+        hb  :: Bool = false
         is :: Bool = false
         jsa :: Bool = false
-        sc  :: Bool = false
         pc  :: Bool = false
-        ndds :: Bool = false
+        sc  :: Bool = false
         wtc  :: Bool = false
-        ctc  :: Bool = false
-        hb  :: Bool = false
         ctr :: Bool = false
     end
         
@@ -107,11 +106,12 @@ module Results
         is :: RT = zero(RT)
         jsa :: RT = zero(RT)
         pc  :: RT = zero(RT)
-        mig  :: RT = zero(RT)
         sc   :: RT = zero(RT)
-        ndds :: RT = zero(RT)
         wtc  :: RT = zero(RT)
         ctr  :: RT = zero(RT)
+        
+        ndds :: RT = zero(RT)
+        mig  :: RT = zero(RT)
         
         total_benefits :: RT = zero(RT) #  hb and ctr
         
@@ -266,8 +266,15 @@ module Results
     end
     
 
-    function complete_results!( ir :: BenefitUnitResult, bu :: BenefitUnit  )
-       
+    function complete_results!( br :: BenefitUnitResult, bu :: BenefitUnit  )
+        for( pid, pr ) in br.pers
+                if pid == bu.head
+                    complete_results!( pr, bu.people[pid], br )
+                else
+                    complete_results!( pr, bu.people[pid] )
+                end
+        end
+        
     end
 
 
