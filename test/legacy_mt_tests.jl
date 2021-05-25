@@ -585,7 +585,7 @@ end
     employ!( head )
     for i in 1:nt
         spouse.income[wages] = wage[i] / 3.0
-        head.income[wages] = wage[i] *2 / 3.0
+        head.income[wages] = wage[i] * 2 / 3.0
         intermed = make_intermediate( 
             1,
             cpl,  
@@ -627,63 +627,6 @@ end
     end # loop round various incomes
 end
 
-@testset "HB/CTB" begin
-    # CPAG 19/20 p190
-    sys = get_system( scotland=true )
-    examples = get_ss_examples()
-    joplings = examples[childless_couple_hh]
-    jbu = get_benefit_units(joplings)[1]
-    spouse = get_spouse( jbu )
-    head = get_head( jbu )
-    empty!( spouse.income )
-    empty!( head.income )
-    employ!( spouse )
-    unemploy!( head )
-    joplings.gross_rent = 120.00 # eligible rent
-    spouse.income[wages] = 201.75
-    spouse.usual_hours_worked = 21
-    head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
-    hhres = init_household_result( joplings )
-    intermed = make_intermediate( joplings, sys.hours_limits, sys.age_limits )
-    hhres.housing = apply_rent_restrictions( joplings, intermed.hhint, sys.hr )
-    calculateHB_CTR!( 
-        hhres, 
-        hb, 
-        joplings,
-        intermed,
-        sys.lmt, 
-        sys.age_limits )
-    println( "MTBens for Joblings:\n$(hhres.bus[1].legacy_mtbens)\n" )
-    println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
-    @test hhres.bus[1].legacy_mtbens.hb ≈ 22.50
-    
-    mr_h = examples[single_hh]
-    mrhbu = get_benefit_units(mr_h)[1]
-    head = get_head( mrhbu )
-    retire!( head )
-    empty!( head.income )
-    head.age = 67
-    head.income[private_pensions]=60.0
-    head.income[state_pension]=127.75
-    mr_h.gross_rent = 88.50
-    hhres = init_household_result( mr_h )
-    intermed = make_intermediate( mr_h, sys.hours_limits, sys.age_limits )
-    hhres.housing = apply_rent_restrictions( mr_h, intermed.hhint, sys.hr )
-    calculateHB_CTR!( 
-        hhres, 
-        hb, 
-        mr_h,
-        intermed,
-        sys.lmt, 
-        sys.age_limits )
-    println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
-    println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
-    println( "premiums $(hhres.bus[1].legacy_mtbens.premiums)\n")
-    @test length( hhres.bus[1].legacy_mtbens.premiums ) == 0
-    @test hhres.bus[1].legacy_mtbens.hb_allowances == 181.00
-    @test to_nearest_p( hhres.bus[1].legacy_mtbens.hb, 84.11 )
-    
-end
 
 @testset "Allowances" begin
     sys = get_system( scotland=true )
@@ -922,4 +865,67 @@ end
             @test (enhanced_disability_single ∈ premset) && length(premset)==2  
         end
     end
+end
+
+@testset "HB/CTB" begin
+    # CPAG 19/20 p190
+    sys = get_system( scotland=true )
+    examples = get_ss_examples()
+    joplings = examples[childless_couple_hh]
+    jbu = get_benefit_units(joplings)[1]
+    spouse = get_spouse( jbu )
+    head = get_head( jbu )
+    empty!( spouse.income )
+    empty!( head.income )
+    employ!( spouse )
+    unemploy!( head )
+    joplings.gross_rent = 120.00 # eligible rent
+    joplings.bedrooms = 1
+    spouse.income[wages] = 201.75
+    spouse.usual_hours_worked = 21
+    head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
+    hhres = init_household_result( joplings )
+    intermed = make_intermediate( joplings, sys.hours_limits, sys.age_limits )
+    hhres.housing = apply_rent_restrictions( joplings, intermed.hhint, sys.hr )
+    calculateHB_CTR!( 
+        hhres, 
+        hb, 
+        joplings,
+        intermed,
+        sys.lmt, 
+        sys.age_limits )
+    println( "Jopling: council $(joplings.council)")
+    println( "MTBens for Joblings:\n$(hhres.bus[1].legacy_mtbens)\n" )
+    println( "housing $(hhres.housing)")
+    println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
+    @test hhres.bus[1].legacy_mtbens.hb ≈ 22.50
+    
+    mr_h = examples[single_hh]
+    mrhbu = get_benefit_units(mr_h)[1]
+    head = get_head( mrhbu )
+    retire!( head )
+    empty!( head.income )
+    head.age = 67
+    head.income[private_pensions]=60.0
+    head.income[state_pension]=127.75
+    mr_h.gross_rent = 88.50
+    hhres = init_household_result( mr_h )
+    intermed = make_intermediate( mr_h, sys.hours_limits, sys.age_limits )
+    hhres.housing = apply_rent_restrictions( mr_h, intermed.hhint, sys.hr )
+    calculateHB_CTR!( 
+        hhres, 
+        hb, 
+        mr_h,
+        intermed,
+        sys.lmt, 
+        sys.age_limits )
+    println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
+    println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
+    println( "premia $(hhres.bus[1].legacy_mtbens.premia)\n")
+    @test length( hhres.bus[1].legacy_mtbens.premia ) == 0
+    @test hhres.bus[1].legacy_mtbens.hb_allowances == 181.00
+    @test to_nearest_p( hhres.bus[1].legacy_mtbens.hb, 84.11 )
+
+    ## FIXME MORE TESTS NEEDED HERE: passporting NDDS
+    
 end

@@ -75,6 +75,43 @@ module STBParameters
         )
     end
 
+    function GROSS_INCOME( t :: Type ) :: Incomes_Dict
+        Incomes_Dict{t}(
+            wages => one( t ),
+            self_employment_income => one( t ),
+            self_employment_expenses => one( t ),
+            self_employment_losses => one( t ),
+            odd_jobs => one( t ),
+            private_pensions => one( t ),
+            national_savings => one( t ),
+            bank_interest => one( t ),
+            stocks_shares => one( t ),
+            individual_savings_account => one( t ),
+            property => one( t ),
+            royalties => one( t ),
+            bonds_and_gilts => one( t ),
+            other_investment_income => one( t ),
+            other_income => one( t ),
+            alimony_and_child_support_received => one( t ),
+            health_insurance => -one( t ),
+            alimony_and_child_support_paid => -one( t ),
+            care_insurance => -one( t ),
+            trade_unions_etc => -one( t ),
+            friendly_societies => one( t ),
+            work_expenses => -one( t ),
+            avcs => -one( t ),
+            other_deductions => -one( t ),
+            loan_repayments => -one( t ),
+            student_loan_repayments => -one( t ),
+            pension_contributions_employee => one( t ),
+            pension_contributions_employer => one( t ),
+            education_allowances => one( t ),
+            foster_care_payments => one( t ),
+            student_grants => one( t ),
+            student_loans => one( t )
+        )
+    end
+
     #
     # add the other old MT bens to HB incomes
     #

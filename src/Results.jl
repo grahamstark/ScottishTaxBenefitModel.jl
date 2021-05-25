@@ -26,7 +26,54 @@ module Results
         aggregate!,
         LocalTaxes
         
-    
+    const POSITIVES = [
+            self_employment_income,
+            self_employment_expenses,
+            self_employment_losses,
+            odd_jobs,
+            private_pensions,
+            national_savings,
+            bank_interest,
+            stocks_shares,
+            individual_savings_account,
+            # dividends,
+            property,
+            royalties,
+            bonds_and_gilts,
+            other_investment_income,
+            free_school_meals ]
+        
+    const NEGATIVES = [
+            other_income,
+            alimony_and_child_support_received,
+            health_insurance,
+            alimony_and_child_support_paid,
+            care_insurance,
+            trade_unions_etc,
+            friendly_societies,
+            work_expenses,
+            avcs,
+            other_deductions,
+            loan_repayments,
+            student_loan_repayments,
+            pension_contributions_employee,
+            pension_contributions_employer,
+            education_allowances,
+            foster_care_payments,
+            student_grants,
+            student_loans ]
+        
+    function sum( inc :: Incomes_Dict{T} ) :: T where T
+        s = zero(T)
+        for i in POSTIVES
+            s += inc[i]
+        end
+        for in in NEGATIVES
+            s -= inc[i]
+        end
+        return s
+    end    
+        
     @with_kw mutable struct LMTIncomes{RT<:Real}
         gross_earnings :: RT = zero(RT)
         net_earnings   :: RT = zero(RT)
@@ -65,7 +112,11 @@ module Results
         ndds :: RT = zero(RT)
         wtc  :: RT = zero(RT)
         ctr  :: RT = zero(RT)
+        
+        total_benefits :: RT = zero(RT) #  hb and ctr
+        
         # FIXME better name than MIG here
+        # FIXME rename premia => premium everywhere here
         mig_premia :: RT = zero(RT)
         mig_allowances :: RT = zero(RT)
         mig_incomes = LMTIncomes{RT}()
@@ -92,7 +143,7 @@ module Results
         ctr_allowances :: RT = zero(RT)
         ctr_incomes = LMTIncomes{RT}()
         
-        premiums = LMTPremiaSet()
+        premia = LMTPremiaSet()
         can_apply_for = LMTCanApplyFor()
         # intermediate :: Dict = Dict()
     end
@@ -199,6 +250,27 @@ module Results
        incomes = Dict{Incomes_Type,RT}()
        # ...
     end
+    
+    function complete_results!( ir :: IndividualResult, pers :: Person  )
+        ir.income_taxes = ir.it.total_tax + it.ni.total_ni
+        pi = sum( pers.income )
+        ir.net_income = pi +ir.means_tested_benefits + ir.other_benefits - ir.income_taxes # allow to go negative
+    end
+
+    function complete_results!( ir :: IndividualResult, pers :: Person, bures :: BenefitUnitResult  )
+        complete_results!( ir, pers )
+        ir.incomes[working_tax_credit] = bures.legacy_mtbens.wtc
+        ir.incomes[child_tax_credit] = bures.legacy_mtbens.ctc
+        ir.incomes[income_support] = bures.legacy_mtbens.is
+        ir.incomes[employment_and_support_allowance] = ir.esa
+    end
+    
+
+    function complete_results!( ir :: BenefitUnitResult, bu :: BenefitUnit  )
+       
+    end
+
+
 
     @with_kw mutable struct BenefitUnitResult{RT<:Real}
         eq_scale  :: RT = zero(RT)
@@ -233,10 +305,12 @@ module Results
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
         eq_scale  :: RT = zero(RT)
+        
         bhc_net_income :: RT = zero(RT)
         eq_bhc_net_income :: RT = zero(RT)
-        ahc_net_income :: RT = zero(RT)
+        ahc_net_income :: RT = zero(RT)        
         eq_ahc_net_income :: RT = zero(RT)
+        
         net_housing_costs :: RT = zero(RT)
         income_taxes :: RT = zero(RT)
         means_tested_benefits :: RT = zero(RT)
@@ -247,6 +321,7 @@ module Results
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
 
+ 
     function has_income( pers::IndividualResult, which :: Incomes_Type )::Bool
         haskey( pers.incomes, which )
     end
@@ -367,5 +442,17 @@ module Results
         hhr.eq_scale = 1.0
         ## do something with hb,ctr
     end
+    
+    
+    function complete_results!( br :: BenefitUnitResult, bu :: BenefitUnit )
+    
+    end
+
+    function complete_results!( hr :: HouseholdResult, hh :: Household )
+    
+    end
+    
+    
+
 
 end

@@ -955,6 +955,7 @@ end
 Incomes_Dict = Dict{Incomes_Type,T} where T<:Real
 Incomes_Set = Set{Incomes_Type}
 
+
 function has_income( d :: Incomes_Dict, which :: Incomes_Type )::Bool
    haskey(d, which )
 end
