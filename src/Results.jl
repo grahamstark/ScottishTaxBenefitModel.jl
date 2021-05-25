@@ -54,6 +54,7 @@ module Results
     end
         
     @with_kw mutable struct LMTResults{RT<:Real}
+        ctc :: RT = zero(RT)
         esa :: RT = zero(RT)
         hb  :: RT = zero(RT)
         is :: RT = zero(RT)
@@ -156,7 +157,7 @@ module Results
         personal_savings_allowance :: RT = 0.0
     end
     
-    function add_to!( it :: ITResult; it2 :: ITResult )
+    function add_to!( it :: ITResult, it2 :: ITResult )
         it.total_tax += it2.total_tax
         it.taxable_income += it2.taxable_income
         it.adjusted_net_income += it2.adjusted_net_income

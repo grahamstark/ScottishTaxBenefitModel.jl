@@ -423,7 +423,7 @@ function calcWTC_CTC!(
     bur = benefit_unit_result.legacy_mtbens
     earn = 0.0
     non_earn = 0.0
-    it, ni = aggregate_tax( bu )
+    it, ni = aggregate_tax( benefit_unit_result )
     other_income = it.savings_income + it.dividends_income
     # FIXME does this tread pensions correctly - they're disgregarded
     if other_income < wtc.non_earnings_minima
@@ -455,7 +455,7 @@ function calcWTC_CTC!(
         cost_of_childcare *= wtc.childcare_proportion
         
         if intermed.num_children > 1 
-            cost_of_childcare = min( wtc.childcare_max_2_plus_children. cost_of_childcare )
+            cost_of_childcare = min( wtc.childcare_max_2_plus_children, cost_of_childcare )
         else
             cost_of_childcare = min( wtc.childcare_max_1_child, cost_of_childcare )
         end    
