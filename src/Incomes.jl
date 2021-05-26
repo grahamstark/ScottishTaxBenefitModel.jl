@@ -3,6 +3,7 @@ module Incomes
     using ScottishTaxBenefitModel
     using .Definitions
     using StaticArrays
+    using .ModelHousehold: Person
 
     # declarations  ----------------
     const WAGES = 1
@@ -107,14 +108,19 @@ module Incomes
     const SPARE_BEN_3 = 96
     const SPARE_BEN_4 = 97
     const SPARE_BEN_5 = 98
+    const SPARE_BEN_6 = 99
+    const SPARE_BEN_7 = 100
+    const SPARE_BEN_8 = 101
+    const SPARE_BEN_9 = 102
+    const SPARE_BEN_10 = 103
 
     const NON_CALCULATED = WAGES:SPARE_INC_5
-    const BENEFITS = CHILD_BENEFIT:SPARE_BEN_5
+    const BENEFITS = CHILD_BENEFIT:SPARE_BEN_10
     const LEGACY_MTS = WORKING_TAX_CREDIT:HOUSING_BENEFIT
-    const CALCULATED = INCOME_TAX:SPARE_BEN_5
+    const CALCULATED = INCOME_TAX:SPARE_BEN_10
     const SICKNESS_ILLNESS = SEVERE_DISABILITY_ALLOWANCE:DLA_MOBILITY
     const DEDUCTIONS = HEALTH_INSURANCE:SPARE_DEDUCT_5
-    const INC_ARRAY_SIZE = SPARE_BEN_5
+    const INC_ARRAY_SIZE = SPARE_BEN_10
 
     # exports ----------------
     export WAGES
@@ -215,6 +221,11 @@ module Incomes
     export SPARE_BEN_3
     export SPARE_BEN_4
     export SPARE_BEN_5
+    export SPARE_BEN_6
+    export SPARE_BEN_7
+    export SPARE_BEN_8
+    export SPARE_BEN_9
+    export SPARE_BEN_10
 
     export NON_CALCULATED
     export BENEFITS
@@ -464,12 +475,23 @@ module Incomes
             return "Spare Ben 4"
         elseif i == SPARE_BEN_5
             return "Spare Ben 5"
+        elseif i == SPARE_BEN_6
+            return "Spare Ben 6"
+        elseif i == SPARE_BEN_7
+            return "Spare Ben 7"
+        elseif i == SPARE_BEN_8
+            return "Spare Ben 8"
+        elseif i == SPARE_BEN_9
+            return "Spare Ben 9"
+        elseif i == SPARE_BEN_10
+            return "Spare Ben 10"
         end
         @assert false "$i not mapped in iname"
     end # iname
 
-    function map_incomes( incd :: Incomes_Dict{T}; include_calculated :: Bool=false ) :: MVector{INC_ARRAY_SIZE,T} where T
+    function map_incomes( pers :: Person{T}; include_calculated :: Bool=false ) :: MVector{INC_ARRAY_SIZE,T} where T
         out = MVector{INC_ARRAY_SIZE,T}( zeros(T,INC_ARRAY_SIZE ))
+        incd = pers.income
         if haskey(incd, Definitions.wages )
             out[WAGES] = incd[Definitions.wages]
         end
@@ -576,9 +598,13 @@ module Incomes
             if haskey(incd, Definitions.local_taxes )
                 out[LOCAL_TAXES] = incd[Definitions.local_taxes]
             end
-            if haskey(incd, Definitions.social_fund_loan_repayment )
-                out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment]
+            if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
+                out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment_from_is_or_pc]
             end
+            if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
+                out[SOCIAL_FUND_LOAN_REPAYMENT] += incd[Definitions.social_fund_loan_repayment_from_jsa_or_esa]
+            end
+
             if haskey(incd, Definitions.student_loan_repayments )
                 out[STUDENT_LOAN_REPAYMENTS] = incd[Definitions.student_loan_repayments]
             end
@@ -591,14 +617,14 @@ module Incomes
             if haskey(incd, Definitions.state_pension )
                 out[STATE_PENSION] = incd[Definitions.state_pension]
             end
-            if haskey(incd, Definitions.bereavement_allowance )
-                out[BEREAVEMENT_ALLOWANCE] = incd[Definitions.bereavement_allowance]
+            if haskey(incd, Definitions.bereavement_allowance_or_widowed_parents_allowance_or_bereavement )
+                out[BEREAVEMENT_ALLOWANCE] = incd[Definitions.bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
             end
             if haskey(incd, Definitions.armed_forces_compensation_scheme )
                 out[ARMED_FORCES_COMPENSATION_SCHEME] = incd[Definitions.armed_forces_compensation_scheme]
             end
-            if haskey(incd, Definitions.war_widows_pension )
-                out[WAR_WIDOWS_PENSION] = incd[Definitions.war_widows_pension]
+            if haskey(incd, Definitions.war_widows_or_widowers_pension )
+                out[WAR_WIDOWS_PENSION] = incd[Definitions.war_widows_or_widowers_pension]
             end
             if haskey(incd, Definitions.severe_disability_allowance )
                 out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
@@ -609,8 +635,8 @@ module Incomes
             if haskey(incd, Definitions.carers_allowance )
                 out[CARERS_ALLOWANCE] = incd[Definitions.carers_allowance]
             end
-            if haskey(incd, Definitions.industrial_injury_benefit )
-                out[INDUSTRIAL_INJURY_BENEFIT] = incd[Definitions.industrial_injury_benefit]
+            if haskey(incd, Definitions.industrial_injury_disablement_benefit )
+                out[INDUSTRIAL_INJURY_BENEFIT] = incd[Definitions.industrial_injury_disablement_benefit]
             end
             if haskey(incd, Definitions.incapacity_benefit )
                 out[INCAPACITY_BENEFIT] = incd[Definitions.incapacity_benefit]
@@ -621,11 +647,11 @@ module Incomes
             if haskey(incd, Definitions.personal_independence_payment_mobility )
                 out[PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY] = incd[Definitions.personal_independence_payment_mobility]
             end
-            if haskey(incd, Definitions.dla_self_care )
-                out[DLA_SELF_CARE] = incd[Definitions.dla_self_care]
+            if haskey(incd, Definitions.dlaself_care )
+                out[DLA_SELF_CARE] = incd[Definitions.dlaself_care]
             end
-            if haskey(incd, Definitions.dla_mobility )
-                out[DLA_MOBILITY] = incd[Definitions.dla_mobility]
+            if haskey(incd, Definitions.dlamobility )
+                out[DLA_MOBILITY] = incd[Definitions.dlamobility]
             end
             if haskey(incd, Definitions.education_allowances )
                 out[EDUCATION_ALLOWANCES] = incd[Definitions.education_allowances]
@@ -636,11 +662,11 @@ module Incomes
             if haskey(incd, Definitions.maternity_allowance )
                 out[MATERNITY_ALLOWANCE] = incd[Definitions.maternity_allowance]
             end
-            if haskey(incd, Definitions.maternity_grant )
-                out[MATERNITY_GRANT] = incd[Definitions.maternity_grant]
+            if haskey(incd, Definitions.maternity_grant_from_social_fund )
+                out[MATERNITY_GRANT] = incd[Definitions.maternity_grant_from_social_fund]
             end
-            if haskey(incd, Definitions.funeral_grant )
-                out[FUNERAL_GRANT] = incd[Definitions.funeral_grant]
+            if haskey(incd, Definitions.funeral_grant_from_social_fund )
+                out[FUNERAL_GRANT] = incd[Definitions.funeral_grant_from_social_fund]
             end
             if haskey(incd, Definitions.any_other_ni_or_state_benefit )
                 out[ANY_OTHER_NI_OR_STATE_BENEFIT] = incd[Definitions.any_other_ni_or_state_benefit]
@@ -651,8 +677,17 @@ module Incomes
             if haskey(incd, Definitions.government_training_allowances )
                 out[GOVERNMENT_TRAINING_ALLOWANCES] = incd[Definitions.government_training_allowances]
             end
-            if haskey(incd, Definitions.contrib_jobseekers_allowance )
-                out[CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.contrib_jobseekers_allowance]
+            if haskey(incd, Definitions.jobseekers_allowance )
+                if pers.jsa_type == contributory_jsa
+                    out[CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.jobseekers_allowance]
+                elseif pers.jsa_type == income_related_jsa
+                    out[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.jobseekers_allowance]
+                elseif pers.jsa_type == both_jsa
+                    out[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.jobseekers_allowance]/2
+                    out[CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.jobseekers_allowance]/2
+                else
+                    @assert false "jsa is positive but jsa_type unset"
+                end
             end
             if haskey(incd, Definitions.guardians_allowance )
                 out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
@@ -678,15 +713,21 @@ module Incomes
             if haskey(incd, Definitions.pension_credit )
                 out[PENSION_CREDIT] = incd[Definitions.pension_credit]
             end
-            if haskey(incd, Definitions.savings_credit )
-                out[SAVINGS_CREDIT] = incd[Definitions.savings_credit]
-            end
-            if haskey(incd, Definitions.non_contrib_jobseekers_allowance )
-                out[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.non_contrib_jobseekers_allowance]
-            end
+            # merged with pension credit in the frs, I think
+            # if haskey(incd, Definitions.savings_credit )
+            #    out[SAVINGS_CREDIT] = incd[Definitions.savings_credit]
+            # end
             if haskey(incd, Definitions.housing_benefit )
                 out[HOUSING_BENEFIT] = incd[Definitions.housing_benefit]
             end
+   
+            if haskey(incd, Definitions.working_tax_credit_lump_sum )
+                out[WORKING_TAX_CREDIT] += incd[Definitions.working_tax_credit_lump_sum]
+            end
+            if haskey(incd, Definitions.child_tax_credit_lump_sum )
+                out[CHILD_TAX_CREDIT] += incd[Definitions.child_tax_credit_lump_sum]
+            end
+
             if haskey(incd, Definitions.universal_credit )
                 out[UNIVERSAL_CREDIT] = incd[Definitions.universal_credit]
             end
@@ -702,9 +743,10 @@ module Incomes
             if haskey(incd, Definitions.free_school_meals )
                 out[FREE_SCHOOL_MEALS] = incd[Definitions.free_school_meals]
             end
-            if haskey(incd, Definitions.council_tax_rebate )
-                out[COUNCIL_TAX_REBATE] = incd[Definitions.council_tax_rebate]
-            end
+            # not in the income list
+            # if haskey(incd, Definitions.council_tax_rebate )
+            #     out[COUNCIL_TAX_REBATE] = incd[Definitions.council_tax_rebate]
+            # end
         end
         return out
     end 
