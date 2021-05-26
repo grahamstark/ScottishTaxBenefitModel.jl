@@ -8,6 +8,7 @@ module Results
     using .GeneralTaxComponents: RateBands
     using .ModelHousehold: Household, Person, BenefitUnits, BenefitUnit, 
         get_benefit_units, Pid_Array
+    using .Incomes
     
     export
         ITResult,
@@ -100,20 +101,20 @@ module Results
     end
         
     @with_kw mutable struct LMTResults{RT<:Real}
-        ctc :: RT = zero(RT)
-        esa :: RT = zero(RT)
-        hb  :: RT = zero(RT)
-        is :: RT = zero(RT)
-        jsa :: RT = zero(RT)
-        pc  :: RT = zero(RT)
-        sc   :: RT = zero(RT)
-        wtc  :: RT = zero(RT)
-        ctr  :: RT = zero(RT)
+        #ctc :: RT = zero(RT)
+        #esa :: RT = zero(RT)
+        #hb  :: RT = zero(RT)
+        #is :: RT = zero(RT)
+        #jsa :: RT = zero(RT)
+        #pc  :: RT = zero(RT)
+        #sc   :: RT = zero(RT)
+        #wtc  :: RT = zero(RT)
+        #ctr  :: RT = zero(RT)
         
         ndds :: RT = zero(RT)
         mig  :: RT = zero(RT)
         
-        total_benefits :: RT = zero(RT) #  hb and ctr
+        # total_benefits :: RT = zero(RT) #  hb and ctr
         
         # FIXME better name than MIG here
         # FIXME rename premia => premium everywhere here
@@ -150,7 +151,7 @@ module Results
 
     @with_kw mutable struct NIResult{RT<:Real}
         above_lower_earnings_limit :: Bool = false
-        total_ni :: RT = 0.0
+        # total_ni :: RT = 0.0
         class_1_primary    :: RT = 0.0
         class_1_secondary  :: RT = 0.0
         class_2   :: RT = 0.0
@@ -161,7 +162,7 @@ module Results
     
     function add_to!( ni :: NIResult, ni2 :: NIResult )
         ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
-        ni.total_ni += ni2.total_ni
+        # ni.total_ni += ni2.total_ni
         ni.class_1_primary    += ni2.class_1_primary   
         ni.class_1_secondary  += ni2.class_1_secondary 
         ni.class_2   += ni2.class_2  
@@ -171,7 +172,7 @@ module Results
     end
 
     @with_kw mutable struct ITResult{RT<:Real}
-        total_tax :: RT = 0.0
+        # total_tax :: RT = 0.0
         taxable_income :: RT = 0.0
         adjusted_net_income :: RT = 0.0
         total_income :: RT = 0.0
@@ -209,7 +210,7 @@ module Results
     end
     
     function add_to!( it :: ITResult, it2 :: ITResult )
-        it.total_tax += it2.total_tax
+        # it.total_tax += it2.total_tax
         it.taxable_income += it2.taxable_income
         it.adjusted_net_income += it2.adjusted_net_income
         it.total_income += it2.total_income
@@ -240,6 +241,7 @@ module Results
     end
     
     @with_kw mutable struct IndividualResult{RT<:Real}
+       
        eq_scale  :: RT = zero(RT)
        net_income :: RT =zero(RT)
        ni = NIResult{RT}()
@@ -247,7 +249,7 @@ module Results
        income_taxes :: RT = zero(RT)
        means_tested_benefits :: RT = zero(RT)
        other_benefits  :: RT = zero(RT)
-       incomes = Dict{Incomes_Type,RT}()
+       incomes = make_mutable_incs(RT)
        # ...
     end
     
@@ -371,6 +373,7 @@ module Results
         bur.adults = bu.adults
         for pid in keys( bu.people )
             bur.pers[pid] = IndividualResult{T}()
+            bur.pers[pid].income = map_incomes( bu.person[pid])
         end
         return bur
     end
