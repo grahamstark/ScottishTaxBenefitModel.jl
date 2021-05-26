@@ -1,0 +1,130 @@
+module Incomes
+    
+using Definitions
+using StaticArrays
+
+const wages = 1
+self_employment_income = 2
+odd_jobs = 5
+private_pensions = 6
+national_savings = 7
+bank_interest = 8
+stocks_shares = 9
+individual_savings_account = 10
+property = 12
+royalties = 13
+bonds_and_gilts = 14
+other_investment_income = 15
+other_income = 16
+alimony_and_child_support_received = 17
+
+# non-state bens nb receipts of these things
+self_employment_expenses = 3
+self_employment_losses = 4
+private_sickness_scheme_benefits = 19
+accident_insurance_scheme_benefits = 20
+hospital_savings_scheme_benefits = 21
+education_allowances = 22
+foster_care_payments = 23
+unemployment_or_redundancy_insurance = 24
+permanent_health_insurance = 25
+any_other_sickness_insurance = 26
+critical_illness_cover = 27
+trade_union_sick_or_strike_pay = 2031
+# spares
+spare_inc_1 = 24
+spare_inc_2 = 25
+spare_inc_3 = 26
+spare_inc_4 = 27
+spare_inc_5 = 28
+
+# payments
+health_insurance = 30
+alimony_and_child_support_paid = 31
+care_insurance = 32
+trade_unions_etc = 33
+friendly_societies = 34
+work_expenses = 35
+avcs = 36
+other_deductions = 37
+loan_repayments = 38
+student_loan_repayments = 39
+pension_contributions_employee = 40
+pension_contributions_employer = 41
+spare_deduct_1 = 46
+spare_deduct_2 = 47
+spare_deduct_3 = 48
+spare_deduct_4 = 49
+spare_deduct_5 = 50
+
+# taxes
+income_tax = 42
+national_insurance = 43
+local_taxes = 44
+social_fund_loan_repayment = 45
+spare_tax_1 = 46
+spare_tax_2 = 47
+spare_tax_3 = 48
+spare_tax_4 = 48
+spare_tax_5 = 48
+
+# state bens
+child_benefit = 2003
+state_pension = 2005
+bereavement_allowance = 2006
+armed_forces_compensation_scheme = 2008
+war_widows_pension = 2009
+
+# illness & disability
+severe_disability_allowance = 2010
+attendence_allowance = 2012
+carers_allowance = 2013
+industrial_injury_benefit = 2015
+incapacity_benefit = 2017
+personal_independence_payment_daily_living = 2096
+personal_independence_payment_mobility = 2097
+dla_self_care = 2001
+dla_mobility = 2002
+
+maternity_allowance = 2021
+maternity_grant = 2022
+funeral_grant = 2024
+any_other_ni_or_state_benefit = 2030
+friendly_society_benefits = 2032
+
+government_training_allowances = 2036
+contrib_jobseekers_allowance = 2014
+
+guardians_allowance = 2037
+widows_payment = 2060
+winter_fuel_payments = 2062
+working_tax_credit = 2090
+child_tax_credit = 2091
+employment_and_support_allowance = 2016
+income_support = 2019
+pension_credit = 2004
+savings_credit = 
+non_contrib_jobseekers_allowance = 2014
+housing_benefit = 2094
+# working_tax_credit_lump_sum = 2092
+# child_tax_credit_lump_sum = 2093
+council_tax_rebate 
+free_school_meals = 18
+universal_credit = 2095
+other_benefits = 3000
+student_grants = 32
+student_loans = 33
+spare_ben_1 =
+spare_ben_2 = 
+spare_ben_3 =
+spare_ben_4 = 
+spare_ben_5 =
+
+#dwp_third_party_payments_is_or_pc = 2065
+# dwp_third_party_payments_jsa_or_esa = 2066
+# social_fund_loan_repayment_from_jsa_or_esa = 2070
+# extended_hb = 2078
+# legacy mt bens
+
+
+end
