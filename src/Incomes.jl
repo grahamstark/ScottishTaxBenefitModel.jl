@@ -228,6 +228,7 @@ module Incomes
     export make_static_incs
     export make_mutable_incs
     export make_a
+    export map_incomes
 
     const ISet = Set{Int}
     const ZSet = Set{Int}()
@@ -260,8 +261,8 @@ module Incomes
         return MVector{INC_ARRAY_SIZE,T}(v)
     end
 
-    function make_a( T :: Type ) :: Vector
-        return Zeros(T, INC_ARRAY_SIZE)
+    function make_a( T :: Type ) :: SizedVector
+        return SizedVector(Zeros(T, INC_ARRAY_SIZE))
     end
 
 
@@ -467,7 +468,7 @@ module Incomes
         @assert false "$i not mapped in iname"
     end # iname
 
-    function map_incomes( incd :: Incomes_Dict{T}) :: MVector{INC_ARRAY_SIZE,T} where T
+    function map_incomes( incd :: Incomes_Dict{T}; include_calculated :: Bool=false ) :: MVector{INC_ARRAY_SIZE,T} where T
         out = MVector{INC_ARRAY_SIZE,T}( zeros(T,INC_ARRAY_SIZE ))
         if haskey(incd, Definitions.wages )
             out[WAGES] = incd[Definitions.wages]
@@ -565,143 +566,145 @@ module Incomes
         if haskey(incd, Definitions.pension_contributions_employer )
             out[PENSION_CONTRIBUTIONS_EMPLOYER] = incd[Definitions.pension_contributions_employer]
         end
-        if haskey(incd, Definitions.income_tax )
-            out[INCOME_TAX] = incd[Definitions.income_tax]
-        end
-        if haskey(incd, Definitions.national_insurance )
-            out[NATIONAL_INSURANCE] = incd[Definitions.national_insurance]
-        end
-        if haskey(incd, Definitions.local_taxes )
-            out[LOCAL_TAXES] = incd[Definitions.local_taxes]
-        end
-        if haskey(incd, Definitions.social_fund_loan_repayment )
-            out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment]
-        end
-        if haskey(incd, Definitions.student_loan_repayments )
-            out[STUDENT_LOAN_REPAYMENTS] = incd[Definitions.student_loan_repayments]
-        end
-        if haskey(incd, Definitions.care_insurance )
-            out[CARE_INSURANCE] = incd[Definitions.care_insurance]
-        end
-        if haskey(incd, Definitions.child_benefit )
-            out[CHILD_BENEFIT] = incd[Definitions.child_benefit]
-        end
-        if haskey(incd, Definitions.state_pension )
-            out[STATE_PENSION] = incd[Definitions.state_pension]
-        end
-        if haskey(incd, Definitions.bereavement_allowance )
-            out[BEREAVEMENT_ALLOWANCE] = incd[Definitions.bereavement_allowance]
-        end
-        if haskey(incd, Definitions.armed_forces_compensation_scheme )
-            out[ARMED_FORCES_COMPENSATION_SCHEME] = incd[Definitions.armed_forces_compensation_scheme]
-        end
-        if haskey(incd, Definitions.war_widows_pension )
-            out[WAR_WIDOWS_PENSION] = incd[Definitions.war_widows_pension]
-        end
-        if haskey(incd, Definitions.severe_disability_allowance )
-            out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
-        end
-        if haskey(incd, Definitions.attendence_allowance )
-            out[ATTENDENCE_ALLOWANCE] = incd[Definitions.attendence_allowance]
-        end
-        if haskey(incd, Definitions.carers_allowance )
-            out[CARERS_ALLOWANCE] = incd[Definitions.carers_allowance]
-        end
-        if haskey(incd, Definitions.industrial_injury_benefit )
-            out[INDUSTRIAL_INJURY_BENEFIT] = incd[Definitions.industrial_injury_benefit]
-        end
-        if haskey(incd, Definitions.incapacity_benefit )
-            out[INCAPACITY_BENEFIT] = incd[Definitions.incapacity_benefit]
-        end
-        if haskey(incd, Definitions.personal_independence_payment_daily_living )
-            out[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING] = incd[Definitions.personal_independence_payment_daily_living]
-        end
-        if haskey(incd, Definitions.personal_independence_payment_mobility )
-            out[PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY] = incd[Definitions.personal_independence_payment_mobility]
-        end
-        if haskey(incd, Definitions.dla_self_care )
-            out[DLA_SELF_CARE] = incd[Definitions.dla_self_care]
-        end
-        if haskey(incd, Definitions.dla_mobility )
-            out[DLA_MOBILITY] = incd[Definitions.dla_mobility]
-        end
-        if haskey(incd, Definitions.education_allowances )
-            out[EDUCATION_ALLOWANCES] = incd[Definitions.education_allowances]
-        end
-        if haskey(incd, Definitions.foster_care_payments )
-            out[FOSTER_CARE_PAYMENTS] = incd[Definitions.foster_care_payments]
-        end
-        if haskey(incd, Definitions.maternity_allowance )
-            out[MATERNITY_ALLOWANCE] = incd[Definitions.maternity_allowance]
-        end
-        if haskey(incd, Definitions.maternity_grant )
-            out[MATERNITY_GRANT] = incd[Definitions.maternity_grant]
-        end
-        if haskey(incd, Definitions.funeral_grant )
-            out[FUNERAL_GRANT] = incd[Definitions.funeral_grant]
-        end
-        if haskey(incd, Definitions.any_other_ni_or_state_benefit )
-            out[ANY_OTHER_NI_OR_STATE_BENEFIT] = incd[Definitions.any_other_ni_or_state_benefit]
-        end
-        if haskey(incd, Definitions.friendly_society_benefits )
-            out[FRIENDLY_SOCIETY_BENEFITS] = incd[Definitions.friendly_society_benefits]
-        end
-        if haskey(incd, Definitions.government_training_allowances )
-            out[GOVERNMENT_TRAINING_ALLOWANCES] = incd[Definitions.government_training_allowances]
-        end
-        if haskey(incd, Definitions.contrib_jobseekers_allowance )
-            out[CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.contrib_jobseekers_allowance]
-        end
-        if haskey(incd, Definitions.guardians_allowance )
-            out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
-        end
-        if haskey(incd, Definitions.widows_payment )
-            out[WIDOWS_PAYMENT] = incd[Definitions.widows_payment]
-        end
-        if haskey(incd, Definitions.winter_fuel_payments )
-            out[WINTER_FUEL_PAYMENTS] = incd[Definitions.winter_fuel_payments]
-        end
-        if haskey(incd, Definitions.working_tax_credit )
-            out[WORKING_TAX_CREDIT] = incd[Definitions.working_tax_credit]
-        end
-        if haskey(incd, Definitions.child_tax_credit )
-            out[CHILD_TAX_CREDIT] = incd[Definitions.child_tax_credit]
-        end
-        if haskey(incd, Definitions.employment_and_support_allowance )
-            out[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]
-        end
-        if haskey(incd, Definitions.income_support )
-            out[INCOME_SUPPORT] = incd[Definitions.income_support]
-        end
-        if haskey(incd, Definitions.pension_credit )
-            out[PENSION_CREDIT] = incd[Definitions.pension_credit]
-        end
-        if haskey(incd, Definitions.savings_credit )
-            out[SAVINGS_CREDIT] = incd[Definitions.savings_credit]
-        end
-        if haskey(incd, Definitions.non_contrib_jobseekers_allowance )
-            out[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.non_contrib_jobseekers_allowance]
-        end
-        if haskey(incd, Definitions.housing_benefit )
-            out[HOUSING_BENEFIT] = incd[Definitions.housing_benefit]
-        end
-        if haskey(incd, Definitions.universal_credit )
-            out[UNIVERSAL_CREDIT] = incd[Definitions.universal_credit]
-        end
-        if haskey(incd, Definitions.other_benefits )
-            out[OTHER_BENEFITS] = incd[Definitions.other_benefits]
-        end
-        if haskey(incd, Definitions.student_grants )
-            out[STUDENT_GRANTS] = incd[Definitions.student_grants]
-        end
-        if haskey(incd, Definitions.student_loans )
-            out[STUDENT_LOANS] = incd[Definitions.student_loans]
-        end
-        if haskey(incd, Definitions.free_school_meals )
-            out[FREE_SCHOOL_MEALS] = incd[Definitions.free_school_meals]
-        end
-        if haskey(incd, Definitions.council_tax_rebate )
-            out[COUNCIL_TAX_REBATE] = incd[Definitions.council_tax_rebate]
+        if include_calculated 
+            if haskey(incd, Definitions.income_tax )
+                out[INCOME_TAX] = incd[Definitions.income_tax]
+            end
+            if haskey(incd, Definitions.national_insurance )
+                out[NATIONAL_INSURANCE] = incd[Definitions.national_insurance]
+            end
+            if haskey(incd, Definitions.local_taxes )
+                out[LOCAL_TAXES] = incd[Definitions.local_taxes]
+            end
+            if haskey(incd, Definitions.social_fund_loan_repayment )
+                out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment]
+            end
+            if haskey(incd, Definitions.student_loan_repayments )
+                out[STUDENT_LOAN_REPAYMENTS] = incd[Definitions.student_loan_repayments]
+            end
+            if haskey(incd, Definitions.care_insurance )
+                out[CARE_INSURANCE] = incd[Definitions.care_insurance]
+            end
+            if haskey(incd, Definitions.child_benefit )
+                out[CHILD_BENEFIT] = incd[Definitions.child_benefit]
+            end
+            if haskey(incd, Definitions.state_pension )
+                out[STATE_PENSION] = incd[Definitions.state_pension]
+            end
+            if haskey(incd, Definitions.bereavement_allowance )
+                out[BEREAVEMENT_ALLOWANCE] = incd[Definitions.bereavement_allowance]
+            end
+            if haskey(incd, Definitions.armed_forces_compensation_scheme )
+                out[ARMED_FORCES_COMPENSATION_SCHEME] = incd[Definitions.armed_forces_compensation_scheme]
+            end
+            if haskey(incd, Definitions.war_widows_pension )
+                out[WAR_WIDOWS_PENSION] = incd[Definitions.war_widows_pension]
+            end
+            if haskey(incd, Definitions.severe_disability_allowance )
+                out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
+            end
+            if haskey(incd, Definitions.attendence_allowance )
+                out[ATTENDENCE_ALLOWANCE] = incd[Definitions.attendence_allowance]
+            end
+            if haskey(incd, Definitions.carers_allowance )
+                out[CARERS_ALLOWANCE] = incd[Definitions.carers_allowance]
+            end
+            if haskey(incd, Definitions.industrial_injury_benefit )
+                out[INDUSTRIAL_INJURY_BENEFIT] = incd[Definitions.industrial_injury_benefit]
+            end
+            if haskey(incd, Definitions.incapacity_benefit )
+                out[INCAPACITY_BENEFIT] = incd[Definitions.incapacity_benefit]
+            end
+            if haskey(incd, Definitions.personal_independence_payment_daily_living )
+                out[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING] = incd[Definitions.personal_independence_payment_daily_living]
+            end
+            if haskey(incd, Definitions.personal_independence_payment_mobility )
+                out[PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY] = incd[Definitions.personal_independence_payment_mobility]
+            end
+            if haskey(incd, Definitions.dla_self_care )
+                out[DLA_SELF_CARE] = incd[Definitions.dla_self_care]
+            end
+            if haskey(incd, Definitions.dla_mobility )
+                out[DLA_MOBILITY] = incd[Definitions.dla_mobility]
+            end
+            if haskey(incd, Definitions.education_allowances )
+                out[EDUCATION_ALLOWANCES] = incd[Definitions.education_allowances]
+            end
+            if haskey(incd, Definitions.foster_care_payments )
+                out[FOSTER_CARE_PAYMENTS] = incd[Definitions.foster_care_payments]
+            end
+            if haskey(incd, Definitions.maternity_allowance )
+                out[MATERNITY_ALLOWANCE] = incd[Definitions.maternity_allowance]
+            end
+            if haskey(incd, Definitions.maternity_grant )
+                out[MATERNITY_GRANT] = incd[Definitions.maternity_grant]
+            end
+            if haskey(incd, Definitions.funeral_grant )
+                out[FUNERAL_GRANT] = incd[Definitions.funeral_grant]
+            end
+            if haskey(incd, Definitions.any_other_ni_or_state_benefit )
+                out[ANY_OTHER_NI_OR_STATE_BENEFIT] = incd[Definitions.any_other_ni_or_state_benefit]
+            end
+            if haskey(incd, Definitions.friendly_society_benefits )
+                out[FRIENDLY_SOCIETY_BENEFITS] = incd[Definitions.friendly_society_benefits]
+            end
+            if haskey(incd, Definitions.government_training_allowances )
+                out[GOVERNMENT_TRAINING_ALLOWANCES] = incd[Definitions.government_training_allowances]
+            end
+            if haskey(incd, Definitions.contrib_jobseekers_allowance )
+                out[CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.contrib_jobseekers_allowance]
+            end
+            if haskey(incd, Definitions.guardians_allowance )
+                out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
+            end
+            if haskey(incd, Definitions.widows_payment )
+                out[WIDOWS_PAYMENT] = incd[Definitions.widows_payment]
+            end
+            if haskey(incd, Definitions.winter_fuel_payments )
+                out[WINTER_FUEL_PAYMENTS] = incd[Definitions.winter_fuel_payments]
+            end
+            if haskey(incd, Definitions.working_tax_credit )
+                out[WORKING_TAX_CREDIT] = incd[Definitions.working_tax_credit]
+            end
+            if haskey(incd, Definitions.child_tax_credit )
+                out[CHILD_TAX_CREDIT] = incd[Definitions.child_tax_credit]
+            end
+            if haskey(incd, Definitions.employment_and_support_allowance )
+                out[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]
+            end
+            if haskey(incd, Definitions.income_support )
+                out[INCOME_SUPPORT] = incd[Definitions.income_support]
+            end
+            if haskey(incd, Definitions.pension_credit )
+                out[PENSION_CREDIT] = incd[Definitions.pension_credit]
+            end
+            if haskey(incd, Definitions.savings_credit )
+                out[SAVINGS_CREDIT] = incd[Definitions.savings_credit]
+            end
+            if haskey(incd, Definitions.non_contrib_jobseekers_allowance )
+                out[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.non_contrib_jobseekers_allowance]
+            end
+            if haskey(incd, Definitions.housing_benefit )
+                out[HOUSING_BENEFIT] = incd[Definitions.housing_benefit]
+            end
+            if haskey(incd, Definitions.universal_credit )
+                out[UNIVERSAL_CREDIT] = incd[Definitions.universal_credit]
+            end
+            if haskey(incd, Definitions.other_benefits )
+                out[OTHER_BENEFITS] = incd[Definitions.other_benefits]
+            end
+            if haskey(incd, Definitions.student_grants )
+                out[STUDENT_GRANTS] = incd[Definitions.student_grants]
+            end
+            if haskey(incd, Definitions.student_loans )
+                out[STUDENT_LOANS] = incd[Definitions.student_loans]
+            end
+            if haskey(incd, Definitions.free_school_meals )
+                out[FREE_SCHOOL_MEALS] = incd[Definitions.free_school_meals]
+            end
+            if haskey(incd, Definitions.council_tax_rebate )
+                out[COUNCIL_TAX_REBATE] = incd[Definitions.council_tax_rebate]
+            end
         end
         return out
     end 
