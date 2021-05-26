@@ -1435,7 +1435,7 @@ end
     income_related_jsa =2 
     both_jsa = 3
 end
-export JSAType, contributory, income_related, both_jsa, no_jsa
+export JSAType, contributory_jsa, income_related_jsa, both_jsa, no_jsa
 
 @enum LMTBenefitType esa hb ctr is jsa pc wtc ctc sc 
 const LMTBenefitSet = Set{LMTBenefitType}
