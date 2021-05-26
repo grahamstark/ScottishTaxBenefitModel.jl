@@ -210,18 +210,6 @@ function mult(; data::Dict{K,T}, calculated :: Dict{K,T}, included :: Dict{K,T})
    return s;
 end # mult
 
-function mult(; data::Dict{K,T}, included :: Dict{K,T}) :: T where T<:Number where K
-   s = zero(T)
-   kg = keys( data )
-   ki = keys( included )
-   ka = intersect( ka, ki )
-   for k in ka
-      # choose the calculated value if there is one, otherwise the data one
-      s += data[k]*included[k]
-   end
-   return s
-end
-
 function has_non_z( d::AbstractDict, k ) :: Bool
    if haskey( d, k )
       if typeof(d[k]) <: Number

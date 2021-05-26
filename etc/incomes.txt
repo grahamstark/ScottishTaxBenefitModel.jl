@@ -108,12 +108,12 @@ non_contrib_jobseekers_allowance = 2014
 housing_benefit = 2094
 # working_tax_credit_lump_sum = 2092
 # child_tax_credit_lump_sum = 2093
-council_tax_rebate 
-free_school_meals = 18
 universal_credit = 2095
 other_benefits = 3000
 student_grants = 32
 student_loans = 33
+free_school_meals = 18
+council_tax_rebate = 99 
 spare_ben_1 =
 spare_ben_2 = 
 spare_ben_3 =

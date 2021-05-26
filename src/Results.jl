@@ -257,28 +257,6 @@ module Results
         ir.net_income = pi +ir.means_tested_benefits + ir.other_benefits - ir.income_taxes # allow to go negative
     end
 
-    function complete_results!( ir :: IndividualResult, pers :: Person, bures :: BenefitUnitResult  )
-        complete_results!( ir, pers )
-        ir.incomes[working_tax_credit] = bures.legacy_mtbens.wtc
-        ir.incomes[child_tax_credit] = bures.legacy_mtbens.ctc
-        ir.incomes[income_support] = bures.legacy_mtbens.is
-        ir.incomes[employment_and_support_allowance] = ir.esa
-    end
-    
-
-    function complete_results!( br :: BenefitUnitResult, bu :: BenefitUnit  )
-        for( pid, pr ) in br.pers
-                if pid == bu.head
-                    complete_results!( pr, bu.people[pid], br )
-                else
-                    complete_results!( pr, bu.people[pid] )
-                end
-        end
-        
-    end
-
-
-
     @with_kw mutable struct BenefitUnitResult{RT<:Real}
         eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
@@ -451,15 +429,22 @@ module Results
     end
     
     
-    function complete_results!( br :: BenefitUnitResult, bu :: BenefitUnit )
-    
+    function complete_results!( ir :: IndividualResult, pers :: Person, bures :: BenefitUnitResult  )
+        complete_results!( ir, pers )
+        ir.incomes[working_tax_credit] = bures.legacy_mtbens.wtc
+        ir.incomes[child_tax_credit] = bures.legacy_mtbens.ctc
+        ir.incomes[income_support] = bures.legacy_mtbens.is
+        ir.incomes[employment_and_support_allowance] = ir.esa
     end
 
-    function complete_results!( hr :: HouseholdResult, hh :: Household )
-    
+    function complete_results!( br :: BenefitUnitResult, bu :: BenefitUnit  )
+        for( pid, pr ) in br.pers
+            if pid == bu.head
+                complete_results!( pr, bu.people[pid], br )
+            else
+                complete_results!( pr, bu.people[pid] )
+            end
+        end       
     end
-    
-    
-
 
 end

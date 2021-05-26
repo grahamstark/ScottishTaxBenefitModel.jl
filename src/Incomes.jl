@@ -1,6 +1,7 @@
 module Incomes
     
-    using Definitions
+    using ScottishTaxBenefitModel
+    using .Definitions
     using StaticArrays
 
     # declarations  ----------------
@@ -31,6 +32,8 @@ module Incomes
     const SPARE_INC_3 = 25
     const SPARE_INC_4 = 26
     const SPARE_INC_5 = 27
+
+
     const HEALTH_INSURANCE = 28
     const ALIMONY_AND_CHILD_SUPPORT_PAID = 29
     const TRADE_UNIONS_ETC = 30
@@ -46,6 +49,7 @@ module Incomes
     const SPARE_DEDUCT_3 = 40
     const SPARE_DEDUCT_4 = 41
     const SPARE_DEDUCT_5 = 42
+
     const INCOME_TAX = 43
     const NATIONAL_INSURANCE = 44
     const LOCAL_TAXES = 45
@@ -57,6 +61,7 @@ module Incomes
     const SPARE_TAX_3 = 51
     const SPARE_TAX_4 = 52
     const SPARE_TAX_5 = 53
+
     const CHILD_BENEFIT = 54
     const STATE_PENSION = 55
     const BEREAVEMENT_ALLOWANCE = 56
@@ -96,12 +101,20 @@ module Incomes
     const OTHER_BENEFITS = 90
     const STUDENT_GRANTS = 91
     const STUDENT_LOANS = 92
-    const SPARE_BEN_1 = 93
-    const SPARE_BEN_2 = 94
-    const SPARE_BEN_3 = 95
-    const SPARE_BEN_4 = 96
-    const SPARE_BEN_5 = 97
+    const COUNCIL_TAX_BENEFIT = 93
+    const SPARE_BEN_1 = 94
+    const SPARE_BEN_2 = 95
+    const SPARE_BEN_3 = 96
+    const SPARE_BEN_4 = 97
+    const SPARE_BEN_5 = 98
 
+    const NON_CALCULATED = WAGES:SPARE_INC_5
+    const BENEFITS = CHILD_BENEFIT:SPARE_BEN_5
+    const LEGACY_MTS = WORKING_TAX_CREDIT:HOUSING_BENEFIT
+    const CALCULATED = INCOME_TAX:SPARE_BEN_5
+    const SICKNESS_ILLNESS = SEVERE_DISABILITY_ALLOWANCE:DLA_MOBILITY
+    const DEDUCTIONS = HEALTH_INSURANCE:SPARE_DEDUCT_5
+    const INC_ARRAY_SIZE = SPARE_BEN_5
 
     # exports ----------------
     export WAGES
@@ -196,11 +209,501 @@ module Incomes
     export OTHER_BENEFITS
     export STUDENT_GRANTS
     export STUDENT_LOANS
+    export COUNCIL_TAX_BENEFIT
     export SPARE_BEN_1
     export SPARE_BEN_2
     export SPARE_BEN_3
     export SPARE_BEN_4
     export SPARE_BEN_5
 
+    export NON_CALCULATED
+    export BENEFITS
+    export LEGACY_MTS
+    export CALCULATED
+    export DEDUCTIONS 
+    export SICKNESS_ILLNESS
+    export INC_ARRAY_SIZE
 
-end
+    export iname
+    export make_static_incs
+    export make_mutable_incs
+    export make_a
+
+    const ISet = Set{Int}
+    const ZSet = Set{Int}()
+
+    function make_static_incs( 
+        T         :: Type; 
+        ones      = ZSet, 
+        minusones = ZSet ) :: SVector # {INC_ARRAY_SIZE,T} where T
+        v = zeros(T, INC_ARRAY_SIZE) 
+        for i in ones
+            v[i] = one(T)
+        end
+        for i in minusones
+            v[i] = -one(T)
+        end
+        return SVector{INC_ARRAY_SIZE,T}(v)
+    end
+
+    function make_mutable_incs( 
+        T         :: Type; 
+        ones      = ZSet, 
+        minusones = ZSet ) :: MVector # {INC_ARRAY_SIZE,T} where T
+        v = zeros(T, INC_ARRAY_SIZE) 
+        for i in ones
+            v[i] = one(T)
+        end
+        for i in minusones
+            v[i] = -one(T)
+        end
+        return MVector{INC_ARRAY_SIZE,T}(v)
+    end
+
+    function make_a( T :: Type ) :: Vector
+        return Zeros(T, INC_ARRAY_SIZE)
+    end
+
+
+    function iname(i::Integer)::String
+        @assert i in 1:INC_ARRAY_SIZE 
+        if i == WAGES
+            return "Wages"
+        elseif i == SELF_EMPLOYMENT_INCOME
+            return "Self Employment Income"
+        elseif i == ODD_JOBS
+            return "Odd Jobs"
+        elseif i == PRIVATE_PENSIONS
+            return "Private Pensions"
+        elseif i == NATIONAL_SAVINGS
+            return "National Savings"
+        elseif i == BANK_INTEREST
+            return "Bank Interest"
+        elseif i == STOCKS_SHARES
+            return "Stocks Shares"
+        elseif i == INDIVIDUAL_SAVINGS_ACCOUNT
+            return "Individual Savings Account"
+        elseif i == PROPERTY
+            return "Property"
+        elseif i == ROYALTIES
+            return "Royalties"
+        elseif i == BONDS_AND_GILTS
+            return "Bonds And Gilts"
+        elseif i == OTHER_INVESTMENT_INCOME
+            return "Other Investment Income"
+        elseif i == OTHER_INCOME
+            return "Other Income"
+        elseif i == ALIMONY_AND_CHILD_SUPPORT_RECEIVED
+            return "Alimony And Child Support Received"
+        elseif i == PRIVATE_SICKNESS_SCHEME_BENEFITS
+            return "Private Sickness Scheme Benefits"
+        elseif i == ACCIDENT_INSURANCE_SCHEME_BENEFITS
+            return "Accident Insurance Scheme Benefits"
+        elseif i == HOSPITAL_SAVINGS_SCHEME_BENEFITS
+            return "Hospital Savings Scheme Benefits"
+        elseif i == UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE
+            return "Unemployment Or Redundancy Insurance"
+        elseif i == PERMANENT_HEALTH_INSURANCE
+            return "Permanent Health Insurance"
+        elseif i == ANY_OTHER_SICKNESS_INSURANCE
+            return "Any Other Sickness Insurance"
+        elseif i == CRITICAL_ILLNESS_COVER
+            return "Critical Illness Cover"
+        elseif i == TRADE_UNION_SICK_OR_STRIKE_PAY
+            return "Trade Union Sick Or Strike Pay"
+        elseif i == SPARE_INC_1
+            return "Spare Inc 1"
+        elseif i == SPARE_INC_2
+            return "Spare Inc 2"
+        elseif i == SPARE_INC_3
+            return "Spare Inc 3"
+        elseif i == SPARE_INC_4
+            return "Spare Inc 4"
+        elseif i == SPARE_INC_5
+            return "Spare Inc 5"
+        elseif i == HEALTH_INSURANCE
+            return "Health Insurance"
+        elseif i == ALIMONY_AND_CHILD_SUPPORT_PAID
+            return "Alimony And Child Support Paid"
+        elseif i == TRADE_UNIONS_ETC
+            return "Trade Unions Etc"
+        elseif i == FRIENDLY_SOCIETIES
+            return "Friendly Societies"
+        elseif i == WORK_EXPENSES
+            return "Work Expenses"
+        elseif i == AVCS
+            return "Avcs"
+        elseif i == OTHER_DEDUCTIONS
+            return "Other Deductions"
+        elseif i == LOAN_REPAYMENTS
+            return "Loan Repayments"
+        elseif i == PENSION_CONTRIBUTIONS_EMPLOYEE
+            return "Pension Contributions Employee"
+        elseif i == PENSION_CONTRIBUTIONS_EMPLOYER
+            return "Pension Contributions Employer"
+        elseif i == SPARE_DEDUCT_1
+            return "Spare Deduct 1"
+        elseif i == SPARE_DEDUCT_2
+            return "Spare Deduct 2"
+        elseif i == SPARE_DEDUCT_3
+            return "Spare Deduct 3"
+        elseif i == SPARE_DEDUCT_4
+            return "Spare Deduct 4"
+        elseif i == SPARE_DEDUCT_5
+            return "Spare Deduct 5"
+        elseif i == INCOME_TAX
+            return "Income Tax"
+        elseif i == NATIONAL_INSURANCE
+            return "National Insurance"
+        elseif i == LOCAL_TAXES
+            return "Local Taxes"
+        elseif i == SOCIAL_FUND_LOAN_REPAYMENT
+            return "Social Fund Loan Repayment"
+        elseif i == STUDENT_LOAN_REPAYMENTS
+            return "Student Loan Repayments"
+        elseif i == CARE_INSURANCE
+            return "Care Insurance"
+        elseif i == SPARE_TAX_1
+            return "Spare Tax 1"
+        elseif i == SPARE_TAX_2
+            return "Spare Tax 2"
+        elseif i == SPARE_TAX_3
+            return "Spare Tax 3"
+        elseif i == SPARE_TAX_4
+            return "Spare Tax 4"
+        elseif i == SPARE_TAX_5
+            return "Spare Tax 5"
+        elseif i == CHILD_BENEFIT
+            return "Child Benefit"
+        elseif i == STATE_PENSION
+            return "State Pension"
+        elseif i == BEREAVEMENT_ALLOWANCE
+            return "Bereavement Allowance"
+        elseif i == ARMED_FORCES_COMPENSATION_SCHEME
+            return "Armed Forces Compensation Scheme"
+        elseif i == WAR_WIDOWS_PENSION
+            return "War Widows Pension"
+        elseif i == SEVERE_DISABILITY_ALLOWANCE
+            return "Severe Disability Allowance"
+        elseif i == ATTENDENCE_ALLOWANCE
+            return "Attendence Allowance"
+        elseif i == CARERS_ALLOWANCE
+            return "Carers Allowance"
+        elseif i == INDUSTRIAL_INJURY_BENEFIT
+            return "Industrial Injury Benefit"
+        elseif i == INCAPACITY_BENEFIT
+            return "Incapacity Benefit"
+        elseif i == PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
+            return "Personal Independence Payment Daily Living"
+        elseif i == PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
+            return "Personal Independence Payment Mobility"
+        elseif i == DLA_SELF_CARE
+            return "Dla Self Care"
+        elseif i == DLA_MOBILITY
+            return "Dla Mobility"
+        elseif i == EDUCATION_ALLOWANCES
+            return "Education Allowances"
+        elseif i == FOSTER_CARE_PAYMENTS
+            return "Foster Care Payments"
+        elseif i == MATERNITY_ALLOWANCE
+            return "Maternity Allowance"
+        elseif i == MATERNITY_GRANT
+            return "Maternity Grant"
+        elseif i == FUNERAL_GRANT
+            return "Funeral Grant"
+        elseif i == ANY_OTHER_NI_OR_STATE_BENEFIT
+            return "Any Other Ni Or State Benefit"
+        elseif i == FRIENDLY_SOCIETY_BENEFITS
+            return "Friendly Society Benefits"
+        elseif i == GOVERNMENT_TRAINING_ALLOWANCES
+            return "Government Training Allowances"
+        elseif i == CONTRIB_JOBSEEKERS_ALLOWANCE
+            return "Contrib Jobseekers Allowance"
+        elseif i == GUARDIANS_ALLOWANCE
+            return "Guardians Allowance"
+        elseif i == WIDOWS_PAYMENT
+            return "Widows Payment"
+        elseif i == WINTER_FUEL_PAYMENTS
+            return "Winter Fuel Payments"
+        elseif i == WORKING_TAX_CREDIT
+            return "Working Tax Credit"
+        elseif i == CHILD_TAX_CREDIT
+            return "Child Tax Credit"
+        elseif i == EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+            return "Employment And Support Allowance"
+        elseif i == INCOME_SUPPORT
+            return "Income Support"
+        elseif i == PENSION_CREDIT
+            return "Pension Credit"
+        elseif i == SAVINGS_CREDIT
+            return "Savings Credit"
+        elseif i == NON_CONTRIB_JOBSEEKERS_ALLOWANCE
+            return "Non Contrib Jobseekers Allowance"
+        elseif i == HOUSING_BENEFIT
+            return "Housing Benefit"
+        elseif i == UNIVERSAL_CREDIT
+            return "Universal Credit"
+        elseif i == OTHER_BENEFITS
+            return "Other Benefits"
+        elseif i == STUDENT_GRANTS
+            return "Student Grants"
+        elseif i == STUDENT_LOANS
+            return "Student Loans"
+        elseif i == FREE_SCHOOL_MEALS
+            return "Free School Meals"
+        elseif i == COUNCIL_TAX_BENEFIT
+            return "Council Tax Rebate"
+        elseif i == SPARE_BEN_1
+            return "Spare Ben 1"
+        elseif i == SPARE_BEN_2
+            return "Spare Ben 2"
+        elseif i == SPARE_BEN_3
+            return "Spare Ben 3"
+        elseif i == SPARE_BEN_4
+            return "Spare Ben 4"
+        elseif i == SPARE_BEN_5
+            return "Spare Ben 5"
+        end
+        @assert false "$i not mapped in iname"
+    end # iname
+
+    function map_incomes( incd :: Incomes_Dict{T}) :: MVector{INC_ARRAY_SIZE,T} where T
+        out = MVector{INC_ARRAY_SIZE,T}( zeros(T,INC_ARRAY_SIZE ))
+        if haskey(incd, Definitions.wages )
+            out[WAGES] = incd[Definitions.wages]
+        end
+        if haskey(incd, Definitions.self_employment_income )
+            out[SELF_EMPLOYMENT_INCOME] = incd[Definitions.self_employment_income]
+        end
+        if haskey(incd, Definitions.odd_jobs )
+            out[ODD_JOBS] = incd[Definitions.odd_jobs]
+        end
+        if haskey(incd, Definitions.private_pensions )
+            out[PRIVATE_PENSIONS] = incd[Definitions.private_pensions]
+        end
+        if haskey(incd, Definitions.national_savings )
+            out[NATIONAL_SAVINGS] = incd[Definitions.national_savings]
+        end
+        if haskey(incd, Definitions.bank_interest )
+            out[BANK_INTEREST] = incd[Definitions.bank_interest]
+        end
+        if haskey(incd, Definitions.stocks_shares )
+            out[STOCKS_SHARES] = incd[Definitions.stocks_shares]
+        end
+        if haskey(incd, Definitions.individual_savings_account )
+            out[INDIVIDUAL_SAVINGS_ACCOUNT] = incd[Definitions.individual_savings_account]
+        end
+        if haskey(incd, Definitions.property )
+            out[PROPERTY] = incd[Definitions.property]
+        end
+        if haskey(incd, Definitions.royalties )
+            out[ROYALTIES] = incd[Definitions.royalties]
+        end
+        if haskey(incd, Definitions.bonds_and_gilts )
+            out[BONDS_AND_GILTS] = incd[Definitions.bonds_and_gilts]
+        end
+        if haskey(incd, Definitions.other_investment_income )
+            out[OTHER_INVESTMENT_INCOME] = incd[Definitions.other_investment_income]
+        end
+        if haskey(incd, Definitions.other_income )
+            out[OTHER_INCOME] = incd[Definitions.other_income]
+        end
+        if haskey(incd, Definitions.alimony_and_child_support_received )
+            out[ALIMONY_AND_CHILD_SUPPORT_RECEIVED] = incd[Definitions.alimony_and_child_support_received]
+        end
+        if haskey(incd, Definitions.private_sickness_scheme_benefits )
+            out[PRIVATE_SICKNESS_SCHEME_BENEFITS] = incd[Definitions.private_sickness_scheme_benefits]
+        end
+        if haskey(incd, Definitions.accident_insurance_scheme_benefits )
+            out[ACCIDENT_INSURANCE_SCHEME_BENEFITS] = incd[Definitions.accident_insurance_scheme_benefits]
+        end
+        if haskey(incd, Definitions.hospital_savings_scheme_benefits )
+            out[HOSPITAL_SAVINGS_SCHEME_BENEFITS] = incd[Definitions.hospital_savings_scheme_benefits]
+        end
+        if haskey(incd, Definitions.unemployment_or_redundancy_insurance )
+            out[UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE] = incd[Definitions.unemployment_or_redundancy_insurance]
+        end
+        if haskey(incd, Definitions.permanent_health_insurance )
+            out[PERMANENT_HEALTH_INSURANCE] = incd[Definitions.permanent_health_insurance]
+        end
+        if haskey(incd, Definitions.any_other_sickness_insurance )
+            out[ANY_OTHER_SICKNESS_INSURANCE] = incd[Definitions.any_other_sickness_insurance]
+        end
+        if haskey(incd, Definitions.critical_illness_cover )
+            out[CRITICAL_ILLNESS_COVER] = incd[Definitions.critical_illness_cover]
+        end
+        if haskey(incd, Definitions.trade_union_sick_or_strike_pay )
+            out[TRADE_UNION_SICK_OR_STRIKE_PAY] = incd[Definitions.trade_union_sick_or_strike_pay]
+        end
+        if haskey(incd, Definitions.health_insurance )
+            out[HEALTH_INSURANCE] = incd[Definitions.health_insurance]
+        end
+        if haskey(incd, Definitions.alimony_and_child_support_paid )
+            out[ALIMONY_AND_CHILD_SUPPORT_PAID] = incd[Definitions.alimony_and_child_support_paid]
+        end
+        if haskey(incd, Definitions.trade_unions_etc )
+            out[TRADE_UNIONS_ETC] = incd[Definitions.trade_unions_etc]
+        end
+        if haskey(incd, Definitions.friendly_societies )
+            out[FRIENDLY_SOCIETIES] = incd[Definitions.friendly_societies]
+        end
+        if haskey(incd, Definitions.work_expenses )
+            out[WORK_EXPENSES] = incd[Definitions.work_expenses]
+        end
+        if haskey(incd, Definitions.avcs )
+            out[AVCS] = incd[Definitions.avcs]
+        end
+        if haskey(incd, Definitions.other_deductions )
+            out[OTHER_DEDUCTIONS] = incd[Definitions.other_deductions]
+        end
+        if haskey(incd, Definitions.loan_repayments )
+            out[LOAN_REPAYMENTS] = incd[Definitions.loan_repayments]
+        end
+        if haskey(incd, Definitions.pension_contributions_employee )
+            out[PENSION_CONTRIBUTIONS_EMPLOYEE] = incd[Definitions.pension_contributions_employee]
+        end
+        if haskey(incd, Definitions.pension_contributions_employer )
+            out[PENSION_CONTRIBUTIONS_EMPLOYER] = incd[Definitions.pension_contributions_employer]
+        end
+        if haskey(incd, Definitions.income_tax )
+            out[INCOME_TAX] = incd[Definitions.income_tax]
+        end
+        if haskey(incd, Definitions.national_insurance )
+            out[NATIONAL_INSURANCE] = incd[Definitions.national_insurance]
+        end
+        if haskey(incd, Definitions.local_taxes )
+            out[LOCAL_TAXES] = incd[Definitions.local_taxes]
+        end
+        if haskey(incd, Definitions.social_fund_loan_repayment )
+            out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment]
+        end
+        if haskey(incd, Definitions.student_loan_repayments )
+            out[STUDENT_LOAN_REPAYMENTS] = incd[Definitions.student_loan_repayments]
+        end
+        if haskey(incd, Definitions.care_insurance )
+            out[CARE_INSURANCE] = incd[Definitions.care_insurance]
+        end
+        if haskey(incd, Definitions.child_benefit )
+            out[CHILD_BENEFIT] = incd[Definitions.child_benefit]
+        end
+        if haskey(incd, Definitions.state_pension )
+            out[STATE_PENSION] = incd[Definitions.state_pension]
+        end
+        if haskey(incd, Definitions.bereavement_allowance )
+            out[BEREAVEMENT_ALLOWANCE] = incd[Definitions.bereavement_allowance]
+        end
+        if haskey(incd, Definitions.armed_forces_compensation_scheme )
+            out[ARMED_FORCES_COMPENSATION_SCHEME] = incd[Definitions.armed_forces_compensation_scheme]
+        end
+        if haskey(incd, Definitions.war_widows_pension )
+            out[WAR_WIDOWS_PENSION] = incd[Definitions.war_widows_pension]
+        end
+        if haskey(incd, Definitions.severe_disability_allowance )
+            out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
+        end
+        if haskey(incd, Definitions.attendence_allowance )
+            out[ATTENDENCE_ALLOWANCE] = incd[Definitions.attendence_allowance]
+        end
+        if haskey(incd, Definitions.carers_allowance )
+            out[CARERS_ALLOWANCE] = incd[Definitions.carers_allowance]
+        end
+        if haskey(incd, Definitions.industrial_injury_benefit )
+            out[INDUSTRIAL_INJURY_BENEFIT] = incd[Definitions.industrial_injury_benefit]
+        end
+        if haskey(incd, Definitions.incapacity_benefit )
+            out[INCAPACITY_BENEFIT] = incd[Definitions.incapacity_benefit]
+        end
+        if haskey(incd, Definitions.personal_independence_payment_daily_living )
+            out[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING] = incd[Definitions.personal_independence_payment_daily_living]
+        end
+        if haskey(incd, Definitions.personal_independence_payment_mobility )
+            out[PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY] = incd[Definitions.personal_independence_payment_mobility]
+        end
+        if haskey(incd, Definitions.dla_self_care )
+            out[DLA_SELF_CARE] = incd[Definitions.dla_self_care]
+        end
+        if haskey(incd, Definitions.dla_mobility )
+            out[DLA_MOBILITY] = incd[Definitions.dla_mobility]
+        end
+        if haskey(incd, Definitions.education_allowances )
+            out[EDUCATION_ALLOWANCES] = incd[Definitions.education_allowances]
+        end
+        if haskey(incd, Definitions.foster_care_payments )
+            out[FOSTER_CARE_PAYMENTS] = incd[Definitions.foster_care_payments]
+        end
+        if haskey(incd, Definitions.maternity_allowance )
+            out[MATERNITY_ALLOWANCE] = incd[Definitions.maternity_allowance]
+        end
+        if haskey(incd, Definitions.maternity_grant )
+            out[MATERNITY_GRANT] = incd[Definitions.maternity_grant]
+        end
+        if haskey(incd, Definitions.funeral_grant )
+            out[FUNERAL_GRANT] = incd[Definitions.funeral_grant]
+        end
+        if haskey(incd, Definitions.any_other_ni_or_state_benefit )
+            out[ANY_OTHER_NI_OR_STATE_BENEFIT] = incd[Definitions.any_other_ni_or_state_benefit]
+        end
+        if haskey(incd, Definitions.friendly_society_benefits )
+            out[FRIENDLY_SOCIETY_BENEFITS] = incd[Definitions.friendly_society_benefits]
+        end
+        if haskey(incd, Definitions.government_training_allowances )
+            out[GOVERNMENT_TRAINING_ALLOWANCES] = incd[Definitions.government_training_allowances]
+        end
+        if haskey(incd, Definitions.contrib_jobseekers_allowance )
+            out[CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.contrib_jobseekers_allowance]
+        end
+        if haskey(incd, Definitions.guardians_allowance )
+            out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
+        end
+        if haskey(incd, Definitions.widows_payment )
+            out[WIDOWS_PAYMENT] = incd[Definitions.widows_payment]
+        end
+        if haskey(incd, Definitions.winter_fuel_payments )
+            out[WINTER_FUEL_PAYMENTS] = incd[Definitions.winter_fuel_payments]
+        end
+        if haskey(incd, Definitions.working_tax_credit )
+            out[WORKING_TAX_CREDIT] = incd[Definitions.working_tax_credit]
+        end
+        if haskey(incd, Definitions.child_tax_credit )
+            out[CHILD_TAX_CREDIT] = incd[Definitions.child_tax_credit]
+        end
+        if haskey(incd, Definitions.employment_and_support_allowance )
+            out[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]
+        end
+        if haskey(incd, Definitions.income_support )
+            out[INCOME_SUPPORT] = incd[Definitions.income_support]
+        end
+        if haskey(incd, Definitions.pension_credit )
+            out[PENSION_CREDIT] = incd[Definitions.pension_credit]
+        end
+        if haskey(incd, Definitions.savings_credit )
+            out[SAVINGS_CREDIT] = incd[Definitions.savings_credit]
+        end
+        if haskey(incd, Definitions.non_contrib_jobseekers_allowance )
+            out[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = incd[Definitions.non_contrib_jobseekers_allowance]
+        end
+        if haskey(incd, Definitions.housing_benefit )
+            out[HOUSING_BENEFIT] = incd[Definitions.housing_benefit]
+        end
+        if haskey(incd, Definitions.universal_credit )
+            out[UNIVERSAL_CREDIT] = incd[Definitions.universal_credit]
+        end
+        if haskey(incd, Definitions.other_benefits )
+            out[OTHER_BENEFITS] = incd[Definitions.other_benefits]
+        end
+        if haskey(incd, Definitions.student_grants )
+            out[STUDENT_GRANTS] = incd[Definitions.student_grants]
+        end
+        if haskey(incd, Definitions.student_loans )
+            out[STUDENT_LOANS] = incd[Definitions.student_loans]
+        end
+        if haskey(incd, Definitions.free_school_meals )
+            out[FREE_SCHOOL_MEALS] = incd[Definitions.free_school_meals]
+        end
+        if haskey(incd, Definitions.council_tax_rebate )
+            out[COUNCIL_TAX_REBATE] = incd[Definitions.council_tax_rebate]
+        end
+        return out
+    end 
+
+end # module
