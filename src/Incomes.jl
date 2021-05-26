@@ -3,7 +3,7 @@ module Incomes
 using Definitions
 using StaticArrays
 
-const wages = 1
+wages = 1
 self_employment_income = 2
 odd_jobs = 5
 private_pensions = 6
@@ -19,8 +19,6 @@ other_income = 16
 alimony_and_child_support_received = 17
 
 # non-state bens nb receipts of these things
-self_employment_expenses = 3
-self_employment_losses = 4
 private_sickness_scheme_benefits = 19
 accident_insurance_scheme_benefits = 20
 hospital_savings_scheme_benefits = 21
@@ -30,13 +28,13 @@ unemployment_or_redundancy_insurance = 24
 permanent_health_insurance = 25
 any_other_sickness_insurance = 26
 critical_illness_cover = 27
-trade_union_sick_or_strike_pay = 2031
+trade_union_sick_or_strike_pay = 28
 # spares
-spare_inc_1 = 24
-spare_inc_2 = 25
-spare_inc_3 = 26
-spare_inc_4 = 27
-spare_inc_5 = 28
+spare_inc_1 = 29
+spare_inc_2 = 30
+spare_inc_3 = 31
+spare_inc_4 = 32
+spare_inc_5 = 33
 
 # payments
 health_insurance = 30
