@@ -1,128 +1,206 @@
 module Incomes
     
-using Definitions
-using StaticArrays
+    using Definitions
+    using StaticArrays
 
-wages = 1
-self_employment_income = 2
-odd_jobs = 5
-private_pensions = 6
-national_savings = 7
-bank_interest = 8
-stocks_shares = 9
-individual_savings_account = 10
-property = 12
-royalties = 13
-bonds_and_gilts = 14
-other_investment_income = 15
-other_income = 16
-alimony_and_child_support_received = 17
+    # declarations  ----------------
+    const WAGES = 1
+    const SELF_EMPLOYMENT_INCOME = 2
+    const ODD_JOBS = 3
+    const PRIVATE_PENSIONS = 4
+    const NATIONAL_SAVINGS = 5
+    const BANK_INTEREST = 6
+    const STOCKS_SHARES = 7
+    const INDIVIDUAL_SAVINGS_ACCOUNT = 8
+    const PROPERTY = 9
+    const ROYALTIES = 10
+    const BONDS_AND_GILTS = 11
+    const OTHER_INVESTMENT_INCOME = 12
+    const OTHER_INCOME = 13
+    const ALIMONY_AND_CHILD_SUPPORT_RECEIVED = 14
+    const PRIVATE_SICKNESS_SCHEME_BENEFITS = 15
+    const ACCIDENT_INSURANCE_SCHEME_BENEFITS = 16
+    const HOSPITAL_SAVINGS_SCHEME_BENEFITS = 17
+    const UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE = 18
+    const PERMANENT_HEALTH_INSURANCE = 19
+    const ANY_OTHER_SICKNESS_INSURANCE = 20
+    const CRITICAL_ILLNESS_COVER = 21
+    const TRADE_UNION_SICK_OR_STRIKE_PAY = 22
+    const SPARE_INC_1 = 23
+    const SPARE_INC_2 = 24
+    const SPARE_INC_3 = 25
+    const SPARE_INC_4 = 26
+    const SPARE_INC_5 = 27
+    const HEALTH_INSURANCE = 28
+    const ALIMONY_AND_CHILD_SUPPORT_PAID = 29
+    const TRADE_UNIONS_ETC = 30
+    const FRIENDLY_SOCIETIES = 31
+    const WORK_EXPENSES = 32
+    const AVCS = 33
+    const OTHER_DEDUCTIONS = 34
+    const LOAN_REPAYMENTS = 35
+    const PENSION_CONTRIBUTIONS_EMPLOYEE = 36
+    const PENSION_CONTRIBUTIONS_EMPLOYER = 37
+    const SPARE_DEDUCT_1 = 38
+    const SPARE_DEDUCT_2 = 39
+    const SPARE_DEDUCT_3 = 40
+    const SPARE_DEDUCT_4 = 41
+    const SPARE_DEDUCT_5 = 42
+    const INCOME_TAX = 43
+    const NATIONAL_INSURANCE = 44
+    const LOCAL_TAXES = 45
+    const SOCIAL_FUND_LOAN_REPAYMENT = 46
+    const STUDENT_LOAN_REPAYMENTS = 47
+    const CARE_INSURANCE = 48
+    const SPARE_TAX_1 = 49
+    const SPARE_TAX_2 = 50
+    const SPARE_TAX_3 = 51
+    const SPARE_TAX_4 = 52
+    const SPARE_TAX_5 = 53
+    const CHILD_BENEFIT = 54
+    const STATE_PENSION = 55
+    const BEREAVEMENT_ALLOWANCE = 56
+    const ARMED_FORCES_COMPENSATION_SCHEME = 57
+    const WAR_WIDOWS_PENSION = 58
+    const SEVERE_DISABILITY_ALLOWANCE = 59
+    const ATTENDENCE_ALLOWANCE = 60
+    const CARERS_ALLOWANCE = 61
+    const INDUSTRIAL_INJURY_BENEFIT = 62
+    const INCAPACITY_BENEFIT = 63
+    const PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING = 64
+    const PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY = 65
+    const DLA_SELF_CARE = 66
+    const DLA_MOBILITY = 67
+    const EDUCATION_ALLOWANCES = 68
+    const FOSTER_CARE_PAYMENTS = 69
+    const MATERNITY_ALLOWANCE = 70
+    const MATERNITY_GRANT = 71
+    const FUNERAL_GRANT = 72
+    const ANY_OTHER_NI_OR_STATE_BENEFIT = 73
+    const FRIENDLY_SOCIETY_BENEFITS = 74
+    const GOVERNMENT_TRAINING_ALLOWANCES = 75
+    const CONTRIB_JOBSEEKERS_ALLOWANCE = 76
+    const GUARDIANS_ALLOWANCE = 77
+    const WIDOWS_PAYMENT = 78
+    const WINTER_FUEL_PAYMENTS = 79
+    const WORKING_TAX_CREDIT = 80
+    const CHILD_TAX_CREDIT = 81
+    const EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 82
+    const INCOME_SUPPORT = 83
+    const PENSION_CREDIT = 84
+    const SAVINGS_CREDIT = 85
+    const NON_CONTRIB_JOBSEEKERS_ALLOWANCE = 86
+    const HOUSING_BENEFIT = 87
+    const FREE_SCHOOL_MEALS = 88
+    const UNIVERSAL_CREDIT = 89
+    const OTHER_BENEFITS = 90
+    const STUDENT_GRANTS = 91
+    const STUDENT_LOANS = 92
+    const SPARE_BEN_1 = 93
+    const SPARE_BEN_2 = 94
+    const SPARE_BEN_3 = 95
+    const SPARE_BEN_4 = 96
+    const SPARE_BEN_5 = 97
 
-# non-state bens nb receipts of these things
-private_sickness_scheme_benefits = 19
-accident_insurance_scheme_benefits = 20
-hospital_savings_scheme_benefits = 21
-education_allowances = 22
-foster_care_payments = 23
-unemployment_or_redundancy_insurance = 24
-permanent_health_insurance = 25
-any_other_sickness_insurance = 26
-critical_illness_cover = 27
-trade_union_sick_or_strike_pay = 28
-# spares
-spare_inc_1 = 29
-spare_inc_2 = 30
-spare_inc_3 = 31
-spare_inc_4 = 32
-spare_inc_5 = 33
 
-# payments
-health_insurance = 30
-alimony_and_child_support_paid = 31
-care_insurance = 32
-trade_unions_etc = 33
-friendly_societies = 34
-work_expenses = 35
-avcs = 36
-other_deductions = 37
-loan_repayments = 38
-student_loan_repayments = 39
-pension_contributions_employee = 40
-pension_contributions_employer = 41
-spare_deduct_1 = 46
-spare_deduct_2 = 47
-spare_deduct_3 = 48
-spare_deduct_4 = 49
-spare_deduct_5 = 50
-
-# taxes
-income_tax = 42
-national_insurance = 43
-local_taxes = 44
-social_fund_loan_repayment = 45
-spare_tax_1 = 46
-spare_tax_2 = 47
-spare_tax_3 = 48
-spare_tax_4 = 48
-spare_tax_5 = 48
-
-# state bens
-child_benefit = 2003
-state_pension = 2005
-bereavement_allowance = 2006
-armed_forces_compensation_scheme = 2008
-war_widows_pension = 2009
-
-# illness & disability
-severe_disability_allowance = 2010
-attendence_allowance = 2012
-carers_allowance = 2013
-industrial_injury_benefit = 2015
-incapacity_benefit = 2017
-personal_independence_payment_daily_living = 2096
-personal_independence_payment_mobility = 2097
-dla_self_care = 2001
-dla_mobility = 2002
-
-maternity_allowance = 2021
-maternity_grant = 2022
-funeral_grant = 2024
-any_other_ni_or_state_benefit = 2030
-friendly_society_benefits = 2032
-
-government_training_allowances = 2036
-contrib_jobseekers_allowance = 2014
-
-guardians_allowance = 2037
-widows_payment = 2060
-winter_fuel_payments = 2062
-working_tax_credit = 2090
-child_tax_credit = 2091
-employment_and_support_allowance = 2016
-income_support = 2019
-pension_credit = 2004
-savings_credit = 
-non_contrib_jobseekers_allowance = 2014
-housing_benefit = 2094
-# working_tax_credit_lump_sum = 2092
-# child_tax_credit_lump_sum = 2093
-council_tax_rebate 
-free_school_meals = 18
-universal_credit = 2095
-other_benefits = 3000
-student_grants = 32
-student_loans = 33
-spare_ben_1 =
-spare_ben_2 = 
-spare_ben_3 =
-spare_ben_4 = 
-spare_ben_5 =
-
-#dwp_third_party_payments_is_or_pc = 2065
-# dwp_third_party_payments_jsa_or_esa = 2066
-# social_fund_loan_repayment_from_jsa_or_esa = 2070
-# extended_hb = 2078
-# legacy mt bens
+    # exports ----------------
+    export WAGES
+    export SELF_EMPLOYMENT_INCOME
+    export ODD_JOBS
+    export PRIVATE_PENSIONS
+    export NATIONAL_SAVINGS
+    export BANK_INTEREST
+    export STOCKS_SHARES
+    export INDIVIDUAL_SAVINGS_ACCOUNT
+    export PROPERTY
+    export ROYALTIES
+    export BONDS_AND_GILTS
+    export OTHER_INVESTMENT_INCOME
+    export OTHER_INCOME
+    export ALIMONY_AND_CHILD_SUPPORT_RECEIVED
+    export PRIVATE_SICKNESS_SCHEME_BENEFITS
+    export ACCIDENT_INSURANCE_SCHEME_BENEFITS
+    export HOSPITAL_SAVINGS_SCHEME_BENEFITS
+    export UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE
+    export PERMANENT_HEALTH_INSURANCE
+    export ANY_OTHER_SICKNESS_INSURANCE
+    export CRITICAL_ILLNESS_COVER
+    export TRADE_UNION_SICK_OR_STRIKE_PAY
+    export SPARE_INC_1
+    export SPARE_INC_2
+    export SPARE_INC_3
+    export SPARE_INC_4
+    export SPARE_INC_5
+    export HEALTH_INSURANCE
+    export ALIMONY_AND_CHILD_SUPPORT_PAID
+    export TRADE_UNIONS_ETC
+    export FRIENDLY_SOCIETIES
+    export WORK_EXPENSES
+    export AVCS
+    export OTHER_DEDUCTIONS
+    export LOAN_REPAYMENTS
+    export PENSION_CONTRIBUTIONS_EMPLOYEE
+    export PENSION_CONTRIBUTIONS_EMPLOYER
+    export SPARE_DEDUCT_1
+    export SPARE_DEDUCT_2
+    export SPARE_DEDUCT_3
+    export SPARE_DEDUCT_4
+    export SPARE_DEDUCT_5
+    export INCOME_TAX
+    export NATIONAL_INSURANCE
+    export LOCAL_TAXES
+    export SOCIAL_FUND_LOAN_REPAYMENT
+    export STUDENT_LOAN_REPAYMENTS
+    export CARE_INSURANCE
+    export SPARE_TAX_1
+    export SPARE_TAX_2
+    export SPARE_TAX_3
+    export SPARE_TAX_4
+    export SPARE_TAX_5
+    export CHILD_BENEFIT
+    export STATE_PENSION
+    export BEREAVEMENT_ALLOWANCE
+    export ARMED_FORCES_COMPENSATION_SCHEME
+    export WAR_WIDOWS_PENSION
+    export SEVERE_DISABILITY_ALLOWANCE
+    export ATTENDENCE_ALLOWANCE
+    export CARERS_ALLOWANCE
+    export INDUSTRIAL_INJURY_BENEFIT
+    export INCAPACITY_BENEFIT
+    export PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
+    export PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
+    export DLA_SELF_CARE
+    export DLA_MOBILITY
+    export EDUCATION_ALLOWANCES
+    export FOSTER_CARE_PAYMENTS
+    export MATERNITY_ALLOWANCE
+    export MATERNITY_GRANT
+    export FUNERAL_GRANT
+    export ANY_OTHER_NI_OR_STATE_BENEFIT
+    export FRIENDLY_SOCIETY_BENEFITS
+    export GOVERNMENT_TRAINING_ALLOWANCES
+    export CONTRIB_JOBSEEKERS_ALLOWANCE
+    export GUARDIANS_ALLOWANCE
+    export WIDOWS_PAYMENT
+    export WINTER_FUEL_PAYMENTS
+    export WORKING_TAX_CREDIT
+    export CHILD_TAX_CREDIT
+    export EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+    export INCOME_SUPPORT
+    export PENSION_CREDIT
+    export SAVINGS_CREDIT
+    export NON_CONTRIB_JOBSEEKERS_ALLOWANCE
+    export HOUSING_BENEFIT
+    export FREE_SCHOOL_MEALS
+    export UNIVERSAL_CREDIT
+    export OTHER_BENEFITS
+    export STUDENT_GRANTS
+    export STUDENT_LOANS
+    export SPARE_BEN_1
+    export SPARE_BEN_2
+    export SPARE_BEN_3
+    export SPARE_BEN_4
+    export SPARE_BEN_5
 
 
 end

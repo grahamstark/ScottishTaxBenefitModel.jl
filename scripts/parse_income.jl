@@ -16,12 +16,13 @@ for line in eachline("etc/incomes.txt")
         end
     end
 end
-
+println("\n\n# declarations  ----------------")
 n = size(items)[1]
 for i in 1:n
     println("    const $(items[i][2]) = $i")
 end
 
+println("\n\n# names ----------------")
 for i in 1:n
     censored = titlecase(replace(items[i][1], r"[_]" => " "))
     print("    elseif i == $(items[i][2])
@@ -29,14 +30,19 @@ for i in 1:n
     ")
 end
 
+println("\n\n# mappings ----------------")
 for i in 1:n
     k = items[i][2]
     j = items[i][1]
     if match( r"SPARE.*", k ) == nothing
-        println( "out[$k] = get_if_set( incd, Definitions.$j, 0.0 )")
+        print( "
+        if haskey(incd, Definitions.$j )
+            out[$k] = incd[Definitions.$j]
+        end")
     end
 end
 
+println("\n\n# exports ----------------")
 for i in 1:n
     k = items[i][2]
     println("export $k")

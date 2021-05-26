@@ -16,6 +16,9 @@ export TimeSeriesUtils
 include("Definitions.jl" )
 export Definitions
 
+include("Incomes.jl")
+export Incomes
+
 include("DataUtils.jl" )
 export DataUtils
 
@@ -72,8 +75,5 @@ export Weighting
 
 include( "Runner.jl" )
 export Runner
-
-# include( "ParamsIO.jl" )
-# export ParamsIO
 
 end
