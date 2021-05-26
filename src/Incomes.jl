@@ -720,6 +720,10 @@ module Incomes
             if haskey(incd, Definitions.housing_benefit )
                 out[HOUSING_BENEFIT] = incd[Definitions.housing_benefit]
             end
+
+            if haskey(incd, Definitions.extended_hb )
+                out[HOUSING_BENEFIT] += incd[Definitions.extended_hb]
+            end
    
             if haskey(incd, Definitions.working_tax_credit_lump_sum )
                 out[WORKING_TAX_CREDIT] += incd[Definitions.working_tax_credit_lump_sum]

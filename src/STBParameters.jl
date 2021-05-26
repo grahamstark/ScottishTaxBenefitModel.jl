@@ -13,6 +13,7 @@ module STBParameters
     using .Definitions
     using .Utils
     using .TimeSeriesUtils: fy, fy_array
+    using .Incomes
     
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
@@ -30,7 +31,51 @@ module STBParameters
             other_investment_income => one(t) )
     end
   
-    """
+    function SAVINGS_INCOME( t :: Type ) :: SVector
+        return make_static_incs( T, ones=[BANK_INTEREST, BONDS_AND_GILTS, OTHER_INVESTMENT_INCOME])
+    end
+
+    function LEGACY_MT_INCOME( t :: Type )::SVector
+        # wages and SE treated seperately
+        return make_static_incs( T,
+            ones = [ 
+                OTHER_INCOME,
+                CARERS_ALLOWANCE,
+                ALIMONY_AND_CHILD_SUPPORT_RECEIVED, # FIXME THERE IS A 15 DISREGARD SEE PP 438
+                EDUCATION_ALLOWANCES,
+                FOSTER_CARE_PAYMENTS,
+                STATE_PENSION,
+                PRIVATE_PENSIONS,
+                BEREAVEMENT_ALLOWANCE,
+                WAR_WIDOWS_PENSION,
+                CONTRIBURY_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED
+                INDUSTRIAL_INJURY_DISABLEMENT_BENEFIT,
+                INCAPACITY_BENEFIT,
+                MATERNITY_ALLOWANCE,
+                MATERNITY_GRANT_FROM_SOCIAL_FUND,
+                FUNERAL_GRANT_FROM_SOCIAL_FUND,
+                ANY_OTHER_NI_OR_STATE_BENEFIT,
+                TRADE_UNION_SICK_OR_STRIKE_PAY,
+                FRIENDLY_SOCIETY_BENEFITS,
+                WORKING_TAX_CREDIT ,
+                PRIVATE_SICKNESS_SCHEME_BENEFITS,
+                ACCIDENT_INSURANCE_SCHEME_BENEFITS,
+                HOSPITAL_SAVINGS_SCHEME_BENEFITS,
+                GOVERNMENT_TRAINING_ALLOWANCES,
+                GUARDIANS_ALLOWANCE,
+                WIDOWS_PAYMENT,
+                UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE,
+                WINTER_FUEL_PAYMENTS,
+                DWP_THIRD_PARTY_PAYMENTS_IS_OR_PC,
+                DWP_THIRD_PARTY_PAYMENTS_JSA_OR_ESA ],
+            minusones = [
+                STUDENT_LOAN_REPAYMENTS,
+                ALIMONY_AND_CHILD_SUPPORT_PAID ]
+            )
+
+    end
+
+    """ 
     TODO check this carefully against WTC,PC and IS chapters
     note this doesn't include wages and TaxBenefitSystem
     which are handled in the `calc_incomes` function.   
