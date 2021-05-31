@@ -514,7 +514,6 @@ module Results
  =#    
     @with_kw mutable struct IndividualResult{RT<:Real}
        
-       eq_scale  :: RT = zero(RT)
        net_income :: RT =zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
@@ -535,16 +534,19 @@ module Results
         eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
         eq_net_income :: RT = zero(RT)
+        #=
         income_taxes :: RT = zero(RT)
         means_tested_benefits :: RT = zero(RT)
 
         it_summed = false # so we can aggregated these bits before everything
                           # is complete without double counting
         ni_summed = false
+
         ni = NIResult{RT}()
         it = ITResult{RT}()
         it_adults = ITResult{RT}()
-        
+        =#
+
         legacy_mtbens = LMTResults{RT}()
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}()
@@ -582,7 +584,7 @@ module Results
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
 
- 
+    #=
     function has_income( pers::IndividualResult, which :: Incomes_Type )::Bool
         haskey( pers.incomes, which )
     end
@@ -608,7 +610,9 @@ module Results
         end
         return false
     end
+    =#
 
+    #=
     """
     FIXME: this assumes the default allocator for BUs
     """
@@ -640,6 +644,7 @@ module Results
         end
         return false
     end
+    =#
 
     function init_benefit_unit_result( bu :: BenefitUnit{T} ) :: BenefitUnitResult{T} where T
         bur = BenefitUnitResult{T}()
