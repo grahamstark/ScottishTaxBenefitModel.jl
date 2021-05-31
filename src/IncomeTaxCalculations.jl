@@ -355,7 +355,6 @@ function calc_income_tax!(
     sys    :: IncomeTaxSys )
     hdres = bres.pers[head.pid]
     calc_income_tax!( hdres, head, sys )
-    hdres.it = hdres.it # just a shorthand reference
     # FIXME the transferable stuff here
     # is not quite right as you can elect to transfer more than
     # the surplus allowance in some cases.

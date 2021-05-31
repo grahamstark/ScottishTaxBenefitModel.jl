@@ -24,7 +24,7 @@ module STBParameters
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
-    function SAVINGS_INCOME( t :: Type ) :: Incomes_Dict
+    function xSAVINGS_INCOME( t :: Type ) :: Incomes_Dict
         Incomes_Dict{t}(
             bank_interest => one(t),
             bonds_and_gilts => one(t),
@@ -81,7 +81,7 @@ module STBParameters
     which are handled in the `calc_incomes` function.   
     poss. have 2nd complete version for WTC/CTC
     """
-    function LEGACY_MT_INCOME( t :: Type ):: Incomes_Dict
+    function xLEGACY_MT_INCOME( t :: Type ):: Incomes_Dict
         # wages and SE treated seperately
         Incomes_Dict{t}(
             other_income=> one( t ),
