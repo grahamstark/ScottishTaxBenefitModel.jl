@@ -1,9 +1,9 @@
 module Incomes
     
     using ScottishTaxBenefitModel
-    using .Definitions
     using StaticArrays
  
+    
     # declarations  ----------------
     const WAGES = 1
     const SELF_EMPLOYMENT_INCOME = 2
