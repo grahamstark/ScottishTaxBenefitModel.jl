@@ -25,7 +25,6 @@ module Results
         LMTCanApplyFor,
         search, 
         has_income,
-        map_incomes,
         aggregate!,
         LocalTaxes,
         map_incomes
@@ -334,7 +333,7 @@ module Results
         return out
     end 
                 
-        
+  #=       
     function sum( inc :: Incomes_Dict{T} ) :: T where T
         s = zero(T)
         for i in POSTIVES
@@ -345,7 +344,7 @@ module Results
         end
         return s
     end    
-        
+ =#        
     @with_kw mutable struct LMTIncomes{RT<:Real}
         gross_earnings :: RT = zero(RT)
         net_earnings   :: RT = zero(RT)
@@ -430,7 +429,7 @@ module Results
         class_4   :: RT = 0.0
         assumed_gross_wage :: RT = 0.0
     end
-    
+  #=   
     function add_to!( ni :: NIResult, ni2 :: NIResult )
         ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
         # ni.total_ni += ni2.total_ni
@@ -441,7 +440,7 @@ module Results
         ni.class_4   += ni2.class_4  
         ni.assumed_gross_wage += ni2.assumed_gross_wage    
     end
-
+ =#
     @with_kw mutable struct ITResult{RT<:Real}
         # total_tax :: RT = 0.0
         taxable_income :: RT = 0.0
@@ -480,6 +479,8 @@ module Results
         personal_savings_allowance :: RT = 0.0
     end
     
+  #=   
+  
     function add_to!( it :: ITResult, it2 :: ITResult )
         # it.total_tax += it2.total_tax
         it.taxable_income += it2.taxable_income
@@ -510,26 +511,26 @@ module Results
                 
         it.personal_savings_allowance += it2.personal_savings_allowance
     end
-    
+ =#    
     @with_kw mutable struct IndividualResult{RT<:Real}
        
        eq_scale  :: RT = zero(RT)
        net_income :: RT =zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
-       income_taxes :: RT = zero(RT)
-       means_tested_benefits :: RT = zero(RT)
-       other_benefits  :: RT = zero(RT)
-       incomes = make_mutable_incs(RT)
+       incomes :: Vector{RT};
+       # means_tested_benefits :: RT = zero(RT)
+       # other_benefits  :: RT = zero(RT)
+       # incomes = make_mutable_incs(RT)
        # ...
     end
     
-    function complete_results!( ir :: IndividualResult, pers :: Person  )
+#=     function complete_results!( ir :: IndividualResult, pers :: Person  )
         ir.income_taxes = ir.it.total_tax + it.ni.total_ni
         pi = sum( pers.income )
         ir.net_income = pi +ir.means_tested_benefits + ir.other_benefits - ir.income_taxes # allow to go negative
     end
-
+ =#
     @with_kw mutable struct BenefitUnitResult{RT<:Real}
         eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
@@ -570,9 +571,11 @@ module Results
         eq_ahc_net_income :: RT = zero(RT)
         
         net_housing_costs :: RT = zero(RT)
+#=         
         income_taxes :: RT = zero(RT)
         means_tested_benefits :: RT = zero(RT)
         other_benefits  :: RT = zero(RT)
+ =#        
         housing = HousingResult{RT}()
         # FIXME note this is at the household level, which makes local income taxes, etc. akward. OK for now.
         local_tax = LocalTaxes{RT}()
@@ -638,8 +641,7 @@ module Results
         return false
     end
 
-    # the T is needed because types 
-    function init_benefit_unit_result( T :: Type, bu :: BenefitUnit ) :: BenefitUnitResult
+    function init_benefit_unit_result( bu :: BenefitUnit{T} ) :: BenefitUnitResult{T} where T
         bur = BenefitUnitResult{T}()
         bur.adults = bu.adults
         for pid in keys( bu.people )
@@ -657,7 +659,7 @@ module Results
         bus = get_benefit_units(hh)
         hr = HouseholdResult{T}()
         for bu in bus
-            push!( hr.bus, init_benefit_unit_result( T, bu ))
+            push!( hr.bus, init_benefit_unit_result( bu ))
         end
         return hr
     end
@@ -665,7 +667,7 @@ module Results
     #
     # used for the WTC calculation
     # 
-    function aggregate_tax( bu :: BenefitUnitResult; include_children :: Bool = true ) :: Tuple
+    #= function aggregate_tax( bu :: BenefitUnitResult; include_children :: Bool = true ) :: Tuple
         pids = include_children ? keys( bu.pers ) : bu.adults
         T = typeof( bu.eq_scale )
         it = ITResult{T}()
@@ -720,7 +722,7 @@ module Results
             end
         end       
     end
-
+ =#
 
     function map_incomes( pers :: Person{T}; include_calculated :: Bool=false ) :: MVector{INC_ARRAY_SIZE,T} where T
         out = MVector{INC_ARRAY_SIZE,T}( zeros(T,INC_ARRAY_SIZE ))
