@@ -82,11 +82,11 @@ const DEFAULT_TARGETS = [
     190_000, # 48 - 3+ adults
     77_842, # 49 - CARER’S ALLOWANCE
     127_307, # 50 - AA
-    431_461,
+    431_461, # 51 pip/dla
     # council areas
     # FIXME note these sum to 0.992538132778121 of the household type totals above: Check Again
     # 108381, # S12000033 - Aberdeen City  # removed for collinearity 
-    112114, # S12000034 - Aberdeenshire  
+    112114, # S12000034 - 52 Aberdeenshire  
     54221, # S12000041 - Angus  
     41789, # S12000035 - Argyll and Bute  
     238269, # S12000036 - City of Edinburgh  
