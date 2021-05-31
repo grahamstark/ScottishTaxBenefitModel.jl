@@ -10,6 +10,7 @@ using .ModelHousehold: Person
 using .STBParameters: IncomeTaxSys
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
 using .Utils: get_if_set, mult
+using .Incomes
 
 using .Results: ITResult, IndividualResult, BenefitUnitResult
 
@@ -138,6 +139,12 @@ function calc_income_tax!(
     sys    :: IncomeTaxSys,
     spouse_transfer :: Real = 0.0 )
 
+    total_income = sys.all_taxable'pres.incomes
+    non_savings_income = sys.non_savings_income'pres.incomes
+    savings_income = sys.savings_income'pres.incomes
+    dividends_income = sys.dividend_income'pres.incomes
+
+    #=
     total_income = mult( 
         data=pers.income, 
         calculated=pres.incomes, 
@@ -154,11 +161,12 @@ function calc_income_tax!(
         data=pers.income, 
         calculated=pres.incomes, 
         included=sys.dividend_income )
+    =#
 
     allowance = calculate_allowance( pers, sys )
     # allowance reductions goes here
 
-    non_dividends = non_savings_income + savings_income
+    # non_dividends = non_savings_income + savings_income
 
     adjusted_net_income = total_income
 
@@ -278,7 +286,7 @@ function calc_income_tax!(
             sys.non_savings_rates[sys.non_savings_basic_rate]*spouse_transfer
         total_tax = max( 0.0, total_tax - sp_reduction )
     end
-    pres.it.total_tax = total_tax
+    pres.incomes[INCOME_TAX] = total_tax
     pres.it.taxable_income = taxable_income
     pres.it.allowance = allowance
     pres.it.total_income = total_income
@@ -345,16 +353,17 @@ function calc_income_tax!(
     head   :: Person,
     spouse :: Union{Nothing, Person},
     sys    :: IncomeTaxSys )
-    calc_income_tax!( bres.pers[head.pid], head, sys )
-    headtax = bres.pers[head.pid].it # just a shorthand reference
+    hdres = bres.pers[head.pid]
+    calc_income_tax!( hdres, head, sys )
+    hdres.it = hdres.it # just a shorthand reference
     # FIXME the transferable stuff here
     # is not quite right as you can elect to transfer more than
     # the surplus allowance in some cases.
     # also - add in restrictions on transferring to
     # higher rate payers.
     if spouse !== nothing
-        spousetax = bres.pers[spouse.pid].it # reference
-        calc_income_tax!( bres.pers[spouse.pid], spouse, sys )
+        spres = bres.pers[spouse.pid]
+        calc_income_tax!( spres, spouse, sys )
         # This is not quite right - you can't claim the
         # MCA AND transfer an allowance. We're assuming
         # always MCA first (I think it's always more valuable?)
@@ -362,24 +371,23 @@ function calc_income_tax!(
             # shoud usually just go to the head but.. some stuff about partner
             # with greater income if married after 2005 and you can elect to do this if
             # married before, so:
-            if headtax.adjusted_net_income > spousetax.adjusted_net_income
-                headtax.mca = calculate_mca( head, headtax, sys )
-                headtax.total_tax = max( 0.0, headtax.total_tax - headtax.mca )
+            if hdres.it.adjusted_net_income > spres.it.adjusted_net_income
+                hdres.it.mca = calculate_mca( head, hdres.it, sys )
+                hdres.incomes[INCOME_TAX]= max( 0.0, hdres.incomes[INCOME_TAX]- hdres.it.mca )
             else
-                spousetax.mca = calculate_mca( spouse, spousetax, sys )
-                spousetax.total_tax = max( 0.0, spousetax.total_tax - spousetax.mca )
+                spres.it.mca = calculate_mca( spouse, spres.it, sys )
+                spres.incomes[INCOME_TAX] = max( 0.0, spres.incomes[INCOME_TAX] - spres.it.mca )
             end
         end
-        # TODO cleanup the bres.pers stuff
-        if spousetax.mca == 0.0 == headtax.mca
-            if allowed_to_transfer_allowance( sys, from=spousetax, to=headtax )
-                transferable_allow = min( spousetax.unused_allowance, sys.marriage_allowance )
-                calc_income_tax!( bres.pers[head.pid], head, sys, transferable_allow )
-                bres.pers[head.pid].it.transferred_allowance = transferable_allow
-            elseif allowed_to_transfer_allowance( sys, from=headtax, to=spousetax )
-                transferable_allow = min( headtax.unused_allowance, sys.marriage_allowance )
-                calc_income_tax!( bres.pers[spouse.pid], spouse, sys, transferable_allow )
-                bres.pers[spouse.pid].it.transferred_allowance = transferable_allow
+        if spres.it.mca == 0.0 == hdres.it.mca
+            if allowed_to_transfer_allowance( sys, from=spres.it, to=hdres.it )
+                transferable_allow = min( spres.it.unused_allowance, sys.marriage_allowance )
+                calc_income_tax!( hdres, head, sys, transferable_allow )
+                hdres.it.transferred_allowance = transferable_allow
+            elseif allowed_to_transfer_allowance( sys, from=hdres.it, to=spres.it )
+                transferable_allow = min( hdres.it.unused_allowance, sys.marriage_allowance )
+                calc_income_tax!( spres, spouse, sys, transferable_allow )
+                spres.it.transferred_allowance = transferable_allow
             end
         end
     end
