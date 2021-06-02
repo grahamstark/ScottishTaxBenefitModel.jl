@@ -3,6 +3,8 @@ import ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household, ge
 import ScottishTaxBenefitModel.ModelHousehold: Household, Person
 import ScottishTaxBenefitModel.Weighting: generate_weights, make_target_dataset, DEFAULT_TARGETS, initialise_target_dataframe
 using ScottishTaxBenefitModel
+using CSV
+using Tables
 
 start_year=2015
 
@@ -38,9 +40,9 @@ println( "num_households=$(get_num_households())")
         println( "$c $(DEFAULT_TARGETS[c])\t$(initial_weighted_popn[c])\t$diffpc%")
     end
 
-    # open( "data/scotmat.csv", "w" ) do io
-    #     writedlm(io, data)
-    # end
+    open( "scotmat.csv", "w" ) do io
+         CSV.write(io, Tables.table(data))
+    end
 
     for c in 1:nc
         @test( sum(data[:,c]) > 0 )
