@@ -1,5 +1,7 @@
 module Incomes
-    
+    #
+    # TODO Investigate Named Arrays
+    #
     using ScottishTaxBenefitModel
     using StaticArrays
  
@@ -238,14 +240,42 @@ module Incomes
     export make_static_incs
     export make_mutable_incs
     export make_a
+    export IncludedItems
+    export isum
 
     const ISet = Set{Int}
     const ZSet = Set{Int}()
 
+    function isum( a :: AbstractArray{T}, 
+        included; 
+        deducted = nothing ) :: T where T
+        s = zero(T)
+        for i in included
+            s += a[i]
+        end
+        if ! isnothing(deducted)
+            for i in deducted
+                s -= a[i]
+            end
+        end
+        return s
+    end
+
+    struct IncludedItems
+        included :: AbstractArray{<:Integer}
+        deducted :: Union{Nothing,AbstractArray{<:Integer}}
+    end
+
+    function isum( a :: AbstractArray, 
+        which :: IncludedItems )
+        isum( a, which.included, deducted=which.deducted)
+    end
+
     function make_static_incs( 
         T         :: Type; 
         ones      = ZSet, 
-        minusones = ZSet ) :: SVector # {INC_ARRAY_SIZE,T} where T
+        minusones = ZSet
+         ) :: SVector # {INC_ARRAY_SIZE,T} where T
         v = zeros(T, INC_ARRAY_SIZE) 
         for i in ones
             v[i] = one(T)

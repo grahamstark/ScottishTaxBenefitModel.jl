@@ -24,143 +24,111 @@ module STBParameters
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
-    function xSAVINGS_INCOME( t :: Type ) :: Incomes_Dict
-        Incomes_Dict{t}(
-            bank_interest => one(t),
-            bonds_and_gilts => one(t),
-            other_investment_income => one(t) )
-    end
-  
-    function SAVINGS_INCOME( t :: Type ) :: SVector
-        return make_static_incs( T, ones=[BANK_INTEREST, BONDS_AND_GILTS, OTHER_INVESTMENT_INCOME])
-    end
-
-    function LEGACY_MT_INCOME( t :: Type )::SVector
-        # wages and SE treated seperately
-        return make_static_incs( T,
-            ones = [ 
-                OTHER_INCOME,
-                CARERS_ALLOWANCE,
-                ALIMONY_AND_CHILD_SUPPORT_RECEIVED, # FIXME THERE IS A 15 DISREGARD SEE PP 438
-                EDUCATION_ALLOWANCES,
-                FOSTER_CARE_PAYMENTS,
-                STATE_PENSION,
-                PRIVATE_PENSIONS,
-                BEREAVEMENT_ALLOWANCE,
-                WAR_WIDOWS_PENSION,
-                CONTRIBURY_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED
-                INDUSTRIAL_INJURY_DISABLEMENT_BENEFIT,
-                INCAPACITY_BENEFIT,
-                MATERNITY_ALLOWANCE,
-                MATERNITY_GRANT_FROM_SOCIAL_FUND,
-                FUNERAL_GRANT_FROM_SOCIAL_FUND,
-                ANY_OTHER_NI_OR_STATE_BENEFIT,
-                TRADE_UNION_SICK_OR_STRIKE_PAY,
-                FRIENDLY_SOCIETY_BENEFITS,
-                WORKING_TAX_CREDIT ,
-                PRIVATE_SICKNESS_SCHEME_BENEFITS,
-                ACCIDENT_INSURANCE_SCHEME_BENEFITS,
-                HOSPITAL_SAVINGS_SCHEME_BENEFITS,
-                GOVERNMENT_TRAINING_ALLOWANCES,
-                GUARDIANS_ALLOWANCE,
-                WIDOWS_PAYMENT,
-                UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE,
-                WINTER_FUEL_PAYMENTS,
-                DWP_THIRD_PARTY_PAYMENTS_IS_OR_PC,
-                DWP_THIRD_PARTY_PAYMENTS_JSA_OR_ESA ],
-            minusones = [
-                STUDENT_LOAN_REPAYMENTS,
-                ALIMONY_AND_CHILD_SUPPORT_PAID ]
-            )
-
-    end
-
+    const SAVINGS_INCOME = 
+        [BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME]
+   
     """ 
     TODO check this carefully against WTC,PC and IS chapters
     note this doesn't include wages and TaxBenefitSystem
     which are handled in the `calc_incomes` function.   
     poss. have 2nd complete version for WTC/CTC
     """
-    function xLEGACY_MT_INCOME( t :: Type ):: Incomes_Dict
-        # wages and SE treated seperately
-        Incomes_Dict{t}(
-            other_income=> one( t ),
-            carers_allowance=>one( t ),
-            alimony_and_child_support_received=> one( t ), # FIXME there is a 15 disregard see pp 438
-            alimony_and_child_support_paid=> 0.0,
-            student_loan_repayments=> -one( t ),
-            education_allowances=> one( t ),
-            foster_care_payments=> one( t ),
-            # it and NI dealt with in wage seperately
-            state_pension=> one( t ),
-            private_pensions => one( t ),
-            bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> 0.0,
-            war_widows_or_widowers_pension=> one( t ),
-            jobseekers_allowance=> one( t ), ## contribution based
-            industrial_injury_disablement_benefit=> one( t ),
-            incapacity_benefit=> one( t ),
-            maternity_allowance=> one( t ),
-            maternity_grant_from_social_fund=> one( t ),
-            funeral_grant_from_social_fund=> one( t ),
-            any_other_ni_or_state_benefit=> one( t ),
-            trade_union_sick_or_strike_pay=> one( t ),
-            friendly_society_benefits=> one( t ),
-            working_tax_credit => one( t ),
-            private_sickness_scheme_benefits=> one( t ),
-            accident_insurance_scheme_benefits=> one( t ),
-            hospital_savings_scheme_benefits=> one( t ),
-            government_training_allowances=> one( t ),
-            guardians_allowance=> one( t ),
-            widows_payment=> one( t ),
-            unemployment_or_redundancy_insurance=> one( t ),
-            winter_fuel_payments=> one( t ),
-            dwp_third_party_payments_is_or_pc=> one( t ),
-            dwp_third_party_payments_jsa_or_esa=> one( t ),
-            extended_hb=> one( t ) # what is this?
-        )
-    end
+    ## FIXME CHECK THIS list
+    ## NOTE wages, se are treated seperately
+    const LEGACY_MT_INCOME = IncludedItems(
+        [
+            OTHER_INCOME,
+            CARERS_ALLOWANCE,
+            ALIMONY_AND_CHILD_SUPPORT_RECEIVED, # FIXME THERE IS A 15 DISREGARD SEE PP 438
+            EDUCATION_ALLOWANCES,
+            FOSTER_CARE_PAYMENTS,
+            STATE_PENSION,
+            PRIVATE_PENSIONS,
+            BEREAVEMENT_ALLOWANCE,
+            WAR_WIDOWS_PENSION,
+            CONTRIBURY_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED
+            INDUSTRIAL_INJURY_DISABLEMENT_BENEFIT,
+            INCAPACITY_BENEFIT,
+            MATERNITY_ALLOWANCE,
+            MATERNITY_GRANT_FROM_SOCIAL_FUND,
+            FUNERAL_GRANT_FROM_SOCIAL_FUND,
+            ANY_OTHER_NI_OR_STATE_BENEFIT,
+            TRADE_UNION_SICK_OR_STRIKE_PAY,
+            FRIENDLY_SOCIETY_BENEFITS,
+            WORKING_TAX_CREDIT ,
+            PRIVATE_SICKNESS_SCHEME_BENEFITS,
+            ACCIDENT_INSURANCE_SCHEME_BENEFITS,
+            HOSPITAL_SAVINGS_SCHEME_BENEFITS,
+            GOVERNMENT_TRAINING_ALLOWANCES,
+            GUARDIANS_ALLOWANCE,
+            WIDOWS_PAYMENT,
+            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE ],
 
-    function GROSS_INCOME( t :: Type ) :: Incomes_Dict
-        Incomes_Dict{t}(
-            wages => one( t ),
-            self_employment_income => one( t ),
-            self_employment_expenses => one( t ),
-            self_employment_losses => one( t ),
-            odd_jobs => one( t ),
-            private_pensions => one( t ),
-            national_savings => one( t ),
-            bank_interest => one( t ),
-            stocks_shares => one( t ),
-            individual_savings_account => one( t ),
-            property => one( t ),
-            royalties => one( t ),
-            bonds_and_gilts => one( t ),
-            other_investment_income => one( t ),
-            other_income => one( t ),
-            alimony_and_child_support_received => one( t ),
-            health_insurance => -one( t ),
-            alimony_and_child_support_paid => -one( t ),
-            care_insurance => -one( t ),
-            trade_unions_etc => -one( t ),
-            friendly_societies => one( t ),
-            work_expenses => -one( t ),
-            avcs => -one( t ),
-            other_deductions => -one( t ),
-            loan_repayments => -one( t ),
-            student_loan_repayments => -one( t ),
-            pension_contributions_employee => one( t ),
-            pension_contributions_employer => one( t ),
-            education_allowances => one( t ),
-            foster_care_payments => one( t ),
-            student_grants => one( t ),
-            student_loans => one( t )
-        )
-    end
+        [
+            STUDENT_LOAN_REPAYMENTS,
+            ALIMONY_AND_CHILD_SUPPORT_PAID
 
+        ]
+    )
+
+    const GROSS_INCOME = IncludedItems(
+        [
+    const WAGES = 1
+    const SELF_EMPLOYMENT_INCOME = 2
+    const ODD_JOBS = 3
+    const PRIVATE_PENSIONS = 4
+    const NATIONAL_SAVINGS = 5
+    const BANK_INTEREST = 6
+    const STOCKS_SHARES = 7
+    const INDIVIDUAL_SAVINGS_ACCOUNT = 8
+    const PROPERTY = 9
+    const ROYALTIES = 10
+    const BONDS_AND_GILTS = 11
+    const OTHER_INVESTMENT_INCOME = 12
+    const OTHER_INCOME = 13
+    const ALIMONY_AND_CHILD_SUPPORT_RECEIVED = 14
+    const PRIVATE_SICKNESS_SCHEME_BENEFITS = 15
+    const ACCIDENT_INSURANCE_SCHEME_BENEFITS = 16
+    const HOSPITAL_SAVINGS_SCHEME_BENEFITS = 17
+    const UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE = 18
+    const PERMANENT_HEALTH_INSURANCE = 19
+    const ANY_OTHER_SICKNESS_INSURANCE = 20
+    const CRITICAL_ILLNESS_COVER = 21
+    const TRADE_UNION_SICK_OR_STRIKE_PAY = 22
+    const SPARE_INC_1 = 23
+    const SPARE_INC_2 = 24
+    const SPARE_INC_3 = 25
+    const SPARE_INC_4 = 26
+    const SPARE_INC_5 = 27
+        ],
+        [
+    const HEALTH_INSURANCE = 28
+    const ALIMONY_AND_CHILD_SUPPORT_PAID = 29
+    const TRADE_UNIONS_ETC = 30
+    const FRIENDLY_SOCIETIES = 31
+    const WORK_EXPENSES = 32
+    const AVCS = 33
+    const OTHER_DEDUCTIONS = 34
+    const LOAN_REPAYMENTS = 35
+    const PENSION_CONTRIBUTIONS_EMPLOYEE = 36
+    const PENSION_CONTRIBUTIONS_EMPLOYER = 37
+    const SPARE_DEDUCT_1 = 38
+    const SPARE_DEDUCT_2 = 39
+    const SPARE_DEDUCT_3 = 40
+    const SPARE_DEDUCT_4 = 41
+    const SPARE_DEDUCT_5 = 42
+        ] )
+
+    const LEGACY_HB_INCOME = union( LEGACY_MT_INCOME, [
+
+
+    ]
+
+   
     #
     # add the other old MT bens to HB incomes
     #
-    function LEGACY_HB_INCOME(t::Type)::Incomes_Dict
+    function LEGACY_HB_INCOMELEGACY_HB_INCOME(t::Type)::Incomes_Dict
         inc = LEGACY_MT_INCOME(t)
         # since these are passported this should only
         # ever matter if we have a 'passporting' switch
