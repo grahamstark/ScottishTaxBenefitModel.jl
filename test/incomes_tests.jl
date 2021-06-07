@@ -6,6 +6,6 @@ include( "../src/Incomes.jl")
 
 @testset "Incomes" begin
 
-    print( Incomes.EXEMPT_INCOME )
+    print( Incomes.isettostr(Incomes.EXEMPT_INCOME ))
 
 end

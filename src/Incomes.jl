@@ -3,7 +3,8 @@ module Incomes
     # TODO Investigate Named Arrays
     #
     # using ScottishTaxBenefitModel
-    using StaticArrays
+    using Base: String
+using StaticArrays
  
     
     # declarations  ----------------
@@ -678,5 +679,27 @@ module Incomes
           EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
           CONTRIB_JOBSEEKERS_ALLOWANCE,
           PENSION_CREDIT ]  
+
+    export inctostr, isettostr
+
+    function inctostr( incs :: Vector ) :: String
+        n = size( incs )[1] 
+        @assert  n == INC_ARRAY_SIZE
+        s = ""
+        for i in 1:n
+            if incs[i] != 0
+                s *= "$(iname(i)) = $(incs[i])\n"
+            end
+        end
+        return s
+    end
+
+    function isettostr( iset )
+        s = ""
+        for i in iset
+            s *= "$(iname(i))\n"
+        end
+        return s
+    end
  
 end # module
