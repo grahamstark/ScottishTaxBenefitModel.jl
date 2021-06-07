@@ -122,6 +122,7 @@ module Incomes
     const SICKNESS_ILLNESS = SEVERE_DISABILITY_ALLOWANCE:DLA_MOBILITY
     const DEDUCTIONS = HEALTH_INSURANCE:SPARE_DEDUCT_5
     const INC_ARRAY_SIZE = SPARE_BEN_10
+    const ALL_INCOMES = WAGES:SPARE_BEN_10
 
     # exports ----------------
     export WAGES
@@ -235,6 +236,7 @@ module Incomes
     export DEDUCTIONS 
     export SICKNESS_ILLNESS
     export INC_ARRAY_SIZE
+    export ALL_INCOMES
 
     export iname
     export make_static_incs
@@ -517,5 +519,168 @@ module Incomes
         @assert false "$i not mapped in iname"
     end # iname
 
+    export LEGACY_HB_INCOME
+    export LEGACY_MT_INCOME
+    export GROSS_INCOME
+    export LEGACY_HB_INCOME
+    export LEGACY_PC_INCOME
+    export LEGACY_SAVINGS_CREDIT_INCOME
+    export DIVIDEND_INCOME
+    export EXEMPT_INCOME
+    export ALL_TAXABLE
+    export NON_SAVINGS
+    export DEFAULT_PASSPORTED_BENS
+    
+    const SAVINGS_INCOME = 
+    [BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME]
+
+    """ 
+    TODO check this carefully against WTC,PC and IS chapters
+    note this doesn't include wages and TaxBenefitSystem
+    which are handled in the `calc_incomes` function.   
+    poss. have 2nd complete version for WTC/CTC
+    """
+    ## FIXME CHECK THIS list
+    ## NOTE wages, se are treated seperately
+    const LEGACY_MT_INCOME = IncludedItems(
+        [
+            OTHER_INCOME,
+            CARERS_ALLOWANCE,
+            ALIMONY_AND_CHILD_SUPPORT_RECEIVED, # FIXME THERE IS A 15 DISREGARD SEE PP 438
+            EDUCATION_ALLOWANCES,
+            FOSTER_CARE_PAYMENTS,
+            STATE_PENSION,
+            PRIVATE_PENSIONS,
+            BEREAVEMENT_ALLOWANCE,
+            WAR_WIDOWS_PENSION,
+            CONTRIBURY_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED
+            INDUSTRIAL_INJURY_DISABLEMENT_BENEFIT,
+            INCAPACITY_BENEFIT,
+            MATERNITY_ALLOWANCE,
+            MATERNITY_GRANT_FROM_SOCIAL_FUND,
+            FUNERAL_GRANT_FROM_SOCIAL_FUND,
+            ANY_OTHER_NI_OR_STATE_BENEFIT,
+            TRADE_UNION_SICK_OR_STRIKE_PAY,
+            FRIENDLY_SOCIETY_BENEFITS,
+            WORKING_TAX_CREDIT ,
+            PRIVATE_SICKNESS_SCHEME_BENEFITS,
+            ACCIDENT_INSURANCE_SCHEME_BENEFITS,
+            HOSPITAL_SAVINGS_SCHEME_BENEFITS,
+            GOVERNMENT_TRAINING_ALLOWANCES,
+            GUARDIANS_ALLOWANCE,
+            WIDOWS_PAYMENT,
+            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE ],
+
+        [
+            STUDENT_LOAN_REPAYMENTS,
+            ALIMONY_AND_CHILD_SUPPORT_PAID
+
+        ]
+    )
+
+    const GROSS_INCOME = IncludedItems(
+        [
+            WAGES,
+            SELF_EMPLOYMENT_INCOME,
+            ODD_JOBS,
+            PRIVATE_PENSIONS,
+            NATIONAL_SAVINGS,
+            BANK_INTEREST,
+            STOCKS_SHARES,
+            INDIVIDUAL_SAVINGS_ACCOUNT,
+            PROPERTY,
+            ROYALTIES,
+            BONDS_AND_GILTS,
+            OTHER_INVESTMENT_INCOME,
+            OTHER_INCOME,
+            ALIMONY_AND_CHILD_SUPPORT_RECEIVED,
+            PRIVATE_SICKNESS_SCHEME_BENEFITS,
+            ACCIDENT_INSURANCE_SCHEME_BENEFITS,
+            HOSPITAL_SAVINGS_SCHEME_BENEFITS,
+            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE,
+            PERMANENT_HEALTH_INSURANCE,
+            ANY_OTHER_SICKNESS_INSURANCE,
+            CRITICAL_ILLNESS_COVER,
+            TRADE_UNION_SICK_OR_STRIKE_PAY
+        ],
+        [
+            HEALTH_INSURANCE,
+            ALIMONY_AND_CHILD_SUPPORT_PAID,
+            TRADE_UNIONS_ETC,
+            FRIENDLY_SOCIETIES,
+            WORK_EXPENSES,
+            AVCS,
+            OTHER_DEDUCTIONS,
+            LOAN_REPAYMENTS,
+            PENSION_CONTRIBUTIONS_EMPLOYEE,
+            PENSION_CONTRIBUTIONS_EMPLOYER,
+            SPARE_DEDUCT_1,
+            SPARE_DEDUCT_2,
+            SPARE_DEDUCT_3,
+            SPARE_DEDUCT_4,
+            SPARE_DEDUCT_5,
+        ] )
+
+    const LEGACY_HB_INCOME = union( LEGACY_MT_INCOME, 
+        # since these are passported this should only
+        # ever matter if we have a 'passporting' switch
+        # and it's turned off, but anyway ....       
+        [
+        INCOME_SUPPORT,
+        CONTRIB_JOBSEEKERS_ALLOWANCE,
+        NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
+        EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+        CHILD_TAX_CREDIT ] )
+
+    const LEGACY_PC_INCOME = setdiff(LEGACY_MT_INCOME, [WORKING_TAX_CREDIT] )
+
+    const LEGACY_SAVINGS_CREDIT_INCOME = setdiff( LEGACY_MT_INCOME, [
+        WORKING_TAX_CREDIT,
+        INCAPACITY_BENEFIT,
+        EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+        # TODO CHECK BOTH?
+        CONTRIB_JOBSEEKERS_ALLOWANCE,
+        MATERNITY_ALLOWANCE,
+        ALIMONY_AND_CHILD_SUPPORT_RECEIVED ])
+
+    const DIVIDEND_INCOME = [ STOCKS_SHARES ]
+
+    const EXEMPT_INCOME = [
+        CARERS_ALLOWANCE,
+        FREE_SCHOOL_MEALS,
+        DLA_SELF_CARE,
+        DLA_MOBILITY,
+        CHILD_BENEFIT,
+        PENSION_CREDIT,
+        BEREAVEMENT_ALLOWANCE,
+        ARMED_FORCES_COMPENSATION_SCHEME,
+        WAR_WIDOWS_PENSION,
+        SEVERE_DISABILITY_ALLOWANCE,
+        ATTENDENCE_ALLOWANCE,
+        INDUSTRIAL_INJURY_BENEFIT,
+        EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+        INCAPACITY_BENEFIT,
+        INCOME_SUPPORT,
+        MATERNITY_ALLOWANCE,
+        MATERNITY_GRANT,
+        FUNERAL_GRANT,
+        GUARDIANS_ALLOWANCE,
+        WINTER_FUEL_PAYMENTS,
+        WORKING_TAX_CREDIT,
+        CHILD_TAX_CREDIT,
+        HOUSING_BENEFIT,
+        PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+        PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
+    ]
+
+    const ALL_TAXABLE = setdiff( ALL_INCOMES, EXEMPT_INCOME )
+    const NON_SAVINGS = setdiff( TAXABLE, DIVIDEND_INCOME, SAVINGS_INCOME )
+
+    const DEFAULT_PASSPORTED_BENS = [
+        [ INCOME_SUPPORT,
+          EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+          CONTRIB_JOBSEEKERS_ALLOWANCE,
+          PENSION_CREDIT ]  
+ 
 
 end # module

@@ -24,208 +24,7 @@ module STBParameters
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
-    const SAVINGS_INCOME = 
-        [BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME]
-   
-    """ 
-    TODO check this carefully against WTC,PC and IS chapters
-    note this doesn't include wages and TaxBenefitSystem
-    which are handled in the `calc_incomes` function.   
-    poss. have 2nd complete version for WTC/CTC
-    """
-    ## FIXME CHECK THIS list
-    ## NOTE wages, se are treated seperately
-    const LEGACY_MT_INCOME = IncludedItems(
-        [
-            OTHER_INCOME,
-            CARERS_ALLOWANCE,
-            ALIMONY_AND_CHILD_SUPPORT_RECEIVED, # FIXME THERE IS A 15 DISREGARD SEE PP 438
-            EDUCATION_ALLOWANCES,
-            FOSTER_CARE_PAYMENTS,
-            STATE_PENSION,
-            PRIVATE_PENSIONS,
-            BEREAVEMENT_ALLOWANCE,
-            WAR_WIDOWS_PENSION,
-            CONTRIBURY_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED
-            INDUSTRIAL_INJURY_DISABLEMENT_BENEFIT,
-            INCAPACITY_BENEFIT,
-            MATERNITY_ALLOWANCE,
-            MATERNITY_GRANT_FROM_SOCIAL_FUND,
-            FUNERAL_GRANT_FROM_SOCIAL_FUND,
-            ANY_OTHER_NI_OR_STATE_BENEFIT,
-            TRADE_UNION_SICK_OR_STRIKE_PAY,
-            FRIENDLY_SOCIETY_BENEFITS,
-            WORKING_TAX_CREDIT ,
-            PRIVATE_SICKNESS_SCHEME_BENEFITS,
-            ACCIDENT_INSURANCE_SCHEME_BENEFITS,
-            HOSPITAL_SAVINGS_SCHEME_BENEFITS,
-            GOVERNMENT_TRAINING_ALLOWANCES,
-            GUARDIANS_ALLOWANCE,
-            WIDOWS_PAYMENT,
-            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE ],
-
-        [
-            STUDENT_LOAN_REPAYMENTS,
-            ALIMONY_AND_CHILD_SUPPORT_PAID
-
-        ]
-    )
-
-    const GROSS_INCOME = IncludedItems(
-        [
-    const WAGES = 1
-    const SELF_EMPLOYMENT_INCOME = 2
-    const ODD_JOBS = 3
-    const PRIVATE_PENSIONS = 4
-    const NATIONAL_SAVINGS = 5
-    const BANK_INTEREST = 6
-    const STOCKS_SHARES = 7
-    const INDIVIDUAL_SAVINGS_ACCOUNT = 8
-    const PROPERTY = 9
-    const ROYALTIES = 10
-    const BONDS_AND_GILTS = 11
-    const OTHER_INVESTMENT_INCOME = 12
-    const OTHER_INCOME = 13
-    const ALIMONY_AND_CHILD_SUPPORT_RECEIVED = 14
-    const PRIVATE_SICKNESS_SCHEME_BENEFITS = 15
-    const ACCIDENT_INSURANCE_SCHEME_BENEFITS = 16
-    const HOSPITAL_SAVINGS_SCHEME_BENEFITS = 17
-    const UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE = 18
-    const PERMANENT_HEALTH_INSURANCE = 19
-    const ANY_OTHER_SICKNESS_INSURANCE = 20
-    const CRITICAL_ILLNESS_COVER = 21
-    const TRADE_UNION_SICK_OR_STRIKE_PAY = 22
-    const SPARE_INC_1 = 23
-    const SPARE_INC_2 = 24
-    const SPARE_INC_3 = 25
-    const SPARE_INC_4 = 26
-    const SPARE_INC_5 = 27
-        ],
-        [
-    const HEALTH_INSURANCE = 28
-    const ALIMONY_AND_CHILD_SUPPORT_PAID = 29
-    const TRADE_UNIONS_ETC = 30
-    const FRIENDLY_SOCIETIES = 31
-    const WORK_EXPENSES = 32
-    const AVCS = 33
-    const OTHER_DEDUCTIONS = 34
-    const LOAN_REPAYMENTS = 35
-    const PENSION_CONTRIBUTIONS_EMPLOYEE = 36
-    const PENSION_CONTRIBUTIONS_EMPLOYER = 37
-    const SPARE_DEDUCT_1 = 38
-    const SPARE_DEDUCT_2 = 39
-    const SPARE_DEDUCT_3 = 40
-    const SPARE_DEDUCT_4 = 41
-    const SPARE_DEDUCT_5 = 42
-        ] )
-
-    const LEGACY_HB_INCOME = union( LEGACY_MT_INCOME, [
-
-
-    ]
-
-   
-    #
-    # add the other old MT bens to HB incomes
-    #
-    function LEGACY_HB_INCOMELEGACY_HB_INCOME(t::Type)::Incomes_Dict
-        inc = LEGACY_MT_INCOME(t)
-        # since these are passported this should only
-        # ever matter if we have a 'passporting' switch
-        # and it's turned off, but anyway ....
-        inc[income_support] = one( t )
-        inc[jobseekers_allowance] = one( t )
-        inc[employment_and_support_allowance] = one( t )
-        inc[child_tax_credit] = one( t )
-        return inc
-    end
-
-    ### NOT USED
-    function LEGACY_PC_INCOME(t::Type)::Incomes_Dict
-        inc = LEGACY_MT_INCOME(t)
-        inc[income_support] = one( t )
-        inc[jobseekers_allowance] = one( t )
-        inc[employment_and_support_allowance] = one( t )
-        delete!(inc, working_tax_credit )
-        return inc
-    end
-    
-    function LEGACY_SAVINGS_CREDIT_INCOME( t::Type )::Incomes_Dict
-        inc = LEGACY_PC_INCOME(t)
-        for todel in [
-            working_tax_credit, 
-            incapacity_benefit,
-            employment_and_support_allowance, # contributory only
-            jobseekers_allowance, # cont only
-            # severe_disablement_allowance,
-            maternity_allowance,
-            alimony_and_child_support_received ]
-            delete!( inc, todel )
-        end
-        return inc
-    end
-
-    function DIVIDEND_INCOME( t :: Type ) :: Incomes_Dict
-        Incomes_Dict{t}(
-             stocks_shares => one(t))
-    end
-
-    function Exempt_Income( t :: Type ) :: Incomes_Dict
-        Incomes_Dict{t}(
-            carers_allowance=>one( t ),
-            jobseekers_allowance =>one( t ),
-            free_school_meals => one( t ),
-            dlaself_care => one( t ),
-            dlamobility => one( t ),
-            child_benefit => one( t ),
-            pension_credit => one( t ),
-            bereavement_allowance_or_widowed_parents_allowance_or_bereavement=> one( t ),
-            armed_forces_compensation_scheme => one( t ), # FIXME not in my list check this
-            war_widows_or_widowers_pension => one( t ),
-            severe_disability_allowance => one( t ),
-            attendence_allowance => one( t ),
-            industrial_injury_disablement_benefit => one( t ),
-            employment_and_support_allowance => one( t ),
-            incapacity_benefit => one( t ),## taxable after 29 weeks,
-            income_support => one( t ),
-            maternity_allowance => one( t ),
-            maternity_grant_from_social_fund => one( t ),
-            funeral_grant_from_social_fund => one( t ),
-            guardians_allowance => one( t ),
-            winter_fuel_payments => one( t ),
-            dwp_third_party_payments_is_or_pc => one( t ),
-            dwp_third_party_payments_jsa_or_esa => one( t ),
-            extended_hb => one( t ),
-            working_tax_credit => one( t ),
-            child_tax_credit => one( t ),
-            working_tax_credit_lump_sum => one( t ),
-            child_tax_credit_lump_sum => one( t ),
-            housing_benefit => one( t ),
-            universal_credit => one( t ),
-            personal_independence_payment_daily_living => one( t ),
-            personal_independence_payment_mobility => 1.0 )
-    end
-
-    function make_all_taxable(t::Type)::Incomes_Dict
-        eis = union(Set( keys( Exempt_Income(t) )), Definitions.Expenses )
-        all_t = Incomes_Dict{t}()
-        for i in instances(Incomes_Type)
-            if ! (i ∈ eis )
-                all_t[i]=one(t)
-            end
-        end
-        all_t
-    end
-
-    function make_non_savings( t :: Type )::Incomes_Dict where T
-        excl = union(Set(keys(DIVIDEND_INCOME(t))), Set( keys(SAVINGS_INCOME(t))))
-        nsi = make_all_taxable(t)
-        for i in excl
-            delete!( nsi, i )
-        end
-        nsi
-    end
-
+ 
     ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
     # using Unitful
 
@@ -285,10 +84,11 @@ module STBParameters
         pension_contrib_threshold_income :: RT = 150_000.00
         pension_contrib_withdrawal_rate :: RT = 50.0
         
-        non_savings_income :: Incomes_Dict{RT} = make_non_savings(RT)
-        all_taxable :: Incomes_Dict{RT} = make_all_taxable(RT)
-        savings_income :: Incomes_Dict{RT} = SAVINGS_INCOME(RT)
-        dividend_income :: Incomes_Dict{RT} = DIVIDEND_INCOME(RT)
+        non_savings_income = NON_SAVINGS_INCOME
+        all_taxable = ALL_TAXABLE
+        savings_income = SAVINGS_INCOME
+        dividend_income = DIVIDEND_INCOME
+
         mca_date = MCA_DATE
     
     end
@@ -578,10 +378,10 @@ module STBParameters
         hb_additional :: RT = 17.10
         childcare_max_1 :: RT = 175.00
         childcare_max_2 :: RT = 300.00
-        incomes :: Incomes_Dict = LEGACY_MT_INCOME(RT)
-        hb_incomes :: Incomes_Dict = LEGACY_HB_INCOME(RT)  
-        pc_incomes :: Incomes_Dict = LEGACY_PC_INCOME(RT)  
-        sc_incomes :: Incomes_Dict = LEGACY_SAVINGS_CREDIT_INCOME(RT)
+        incomes     = LEGACY_MT_INCOME
+        hb_incomes  = LEGACY_HB_INCOME
+        pc_incomes  = LEGACY_PC_INCOME
+        sc_incomes  = LEGACY_SAVINGS_CREDIT_INCOME
         capital_min :: RT = 6_000.0    
         capital_max :: RT = 16_000.0
         pc_capital_min :: RT = 10_000.0
@@ -695,14 +495,7 @@ module STBParameters
         sc.withdrawal_rate /= 100.0
     end
     
-    const DEFAULT_PASSPORTED_BENS = Incomes_Set(
-            [ income_support, 
-              employment_and_support_allowance, 
-              jobseekers_allowance,
-              pension_credit] ) # fixme contrib jsa, only guaranteed pension credit
-
-     
-    @with_kw mutable struct HousingBenefits{RT<:Real}
+     @with_kw mutable struct HousingBenefits{RT<:Real}
         taper :: RT = 65.0
         passported_bens = DEFAULT_PASSPORTED_BENS
         ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
