@@ -139,10 +139,10 @@ function calc_income_tax!(
     sys    :: IncomeTaxSys,
     spouse_transfer :: Real = 0.0 )
 
-    total_income = sys.all_taxable'pres.incomes
-    non_savings_income = sys.non_savings_income'pres.incomes
-    savings_income = sys.savings_income'pres.incomes
-    dividends_income = sys.dividend_income'pres.incomes
+    total_income = isum( pres.incomes, sys.all_taxable )
+    non_savings_income = isum( pres.incomes, sys.non_savings_income )
+    savings_income = isum( pres.incomes, sys.savings_income )
+    dividends_income = isum( pres.incomes, sys.dividend_income )
 
     #=
     total_income = mult( 
