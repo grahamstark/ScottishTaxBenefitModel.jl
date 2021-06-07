@@ -2,7 +2,7 @@ module Incomes
     #
     # TODO Investigate Named Arrays
     #
-    using ScottishTaxBenefitModel
+    # using ScottishTaxBenefitModel
     using StaticArrays
  
     
@@ -247,6 +247,10 @@ module Incomes
 
     const ISet = Set{Int}
     const ZSet = Set{Int}()
+    struct IncludedItems
+        included :: AbstractArray{<:Integer}
+        deducted :: Union{Nothing,AbstractArray{<:Integer}}
+    end
 
     function isum( a :: AbstractArray{T}, 
         included; 
@@ -261,11 +265,6 @@ module Incomes
             end
         end
         return s
-    end
-
-    struct IncludedItems
-        included :: AbstractArray{<:Integer}
-        deducted :: Union{Nothing,AbstractArray{<:Integer}}
     end
 
     function isum( a :: AbstractArray, 
@@ -305,7 +304,6 @@ module Incomes
     function make_a( T :: Type ) :: SizedVector
         return SizedVector(Zeros(T, INC_ARRAY_SIZE))
     end
-
 
     function iname(i::Integer)::String
         @assert i in 1:INC_ARRAY_SIZE 
@@ -530,9 +528,8 @@ module Incomes
     export ALL_TAXABLE
     export NON_SAVINGS
     export DEFAULT_PASSPORTED_BENS
-    
-    const SAVINGS_INCOME = 
-    [BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME]
+
+    const SAVINGS_INCOME = [BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME]
 
     """ 
     TODO check this carefully against WTC,PC and IS chapters
@@ -553,12 +550,12 @@ module Incomes
             PRIVATE_PENSIONS,
             BEREAVEMENT_ALLOWANCE,
             WAR_WIDOWS_PENSION,
-            CONTRIBURY_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED
-            INDUSTRIAL_INJURY_DISABLEMENT_BENEFIT,
+            CONTRIB_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED Only
+            INDUSTRIAL_INJURY_BENEFIT,
             INCAPACITY_BENEFIT,
             MATERNITY_ALLOWANCE,
-            MATERNITY_GRANT_FROM_SOCIAL_FUND,
-            FUNERAL_GRANT_FROM_SOCIAL_FUND,
+            MATERNITY_GRANT,
+            FUNERAL_GRANT,
             ANY_OTHER_NI_OR_STATE_BENEFIT,
             TRADE_UNION_SICK_OR_STRIKE_PAY,
             FRIENDLY_SOCIETY_BENEFITS,
@@ -569,12 +566,11 @@ module Incomes
             GOVERNMENT_TRAINING_ALLOWANCES,
             GUARDIANS_ALLOWANCE,
             WIDOWS_PAYMENT,
-            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE ],
-
+            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE 
+        ],
         [
             STUDENT_LOAN_REPAYMENTS,
             ALIMONY_AND_CHILD_SUPPORT_PAID
-
         ]
     )
 
@@ -619,9 +615,10 @@ module Incomes
             SPARE_DEDUCT_3,
             SPARE_DEDUCT_4,
             SPARE_DEDUCT_5,
-        ] )
+        ]
+    )
 
-    const LEGACY_HB_INCOME = union( LEGACY_MT_INCOME, 
+    const LEGACY_HB_INCOME = union( LEGACY_MT_INCOME.included, 
         # since these are passported this should only
         # ever matter if we have a 'passporting' switch
         # and it's turned off, but anyway ....       
@@ -632,10 +629,10 @@ module Incomes
         EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         CHILD_TAX_CREDIT ] )
 
-    const LEGACY_PC_INCOME = setdiff(LEGACY_MT_INCOME, [WORKING_TAX_CREDIT] )
+    const LEGACY_PC_INCOME = setdiff(LEGACY_MT_INCOME.included, [WORKING_TAX_CREDIT] )
 
-    const LEGACY_SAVINGS_CREDIT_INCOME = setdiff( LEGACY_MT_INCOME, [
-        WORKING_TAX_CREDIT,
+    const LEGACY_SAVINGS_CREDIT_INCOME = setdiff( LEGACY_MT_INCOME.included,
+        [ WORKING_TAX_CREDIT,
         INCAPACITY_BENEFIT,
         EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         # TODO CHECK BOTH?
@@ -674,13 +671,12 @@ module Incomes
     ]
 
     const ALL_TAXABLE = setdiff( ALL_INCOMES, EXEMPT_INCOME )
-    const NON_SAVINGS = setdiff( TAXABLE, DIVIDEND_INCOME, SAVINGS_INCOME )
+    const NON_SAVINGS = setdiff( ALL_TAXABLE, DIVIDEND_INCOME, SAVINGS_INCOME )
 
     const DEFAULT_PASSPORTED_BENS = [
-        [ INCOME_SUPPORT,
+          INCOME_SUPPORT,
           EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
           CONTRIB_JOBSEEKERS_ALLOWANCE,
           PENSION_CREDIT ]  
  
-
 end # module
