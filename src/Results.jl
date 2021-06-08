@@ -602,14 +602,6 @@ module Results
         return false
     end
 
-    function has_income( bu :: BenefitUnit, br :: BenefitUnitResult, which... )::Bool
-        for pid in keys(bu.people)
-            if has_income( bu.people[pid], br.pers[pid], which... )
-                return true
-            end
-        end
-        return false
-    end
     =#
 
     #=
@@ -646,7 +638,16 @@ module Results
     end
     =#
 
-    function init_benefit_unit_result( bu :: BenefitUnit{T} ) :: BenefitUnitResult{T} where T
+    function has_income( bur :: BenefitUnitResult, which )::Bool
+        for (pid,pers) in bur.people
+            if any_positive( pers.income, which )
+                return true
+            end
+        end
+        return false
+    end
+
+   function init_benefit_unit_result( bu :: BenefitUnit{T} ) :: BenefitUnitResult{T} where T
         bur = BenefitUnitResult{T}()
         bur.adults = bu.adults
         for pid in keys( bu.people )

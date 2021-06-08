@@ -245,9 +245,11 @@ using StaticArrays
     export make_a
     export IncludedItems
     export isum
+    export any_positive
 
     const ISet = Set{Int}
     const ZSet = Set{Int}()
+
     struct IncludedItems
         included :: AbstractArray{<:Integer}
         deducted :: Union{Nothing,AbstractArray{<:Integer}}
@@ -270,7 +272,17 @@ using StaticArrays
 
     function isum( a :: AbstractArray, 
         which :: IncludedItems )
-        isum( a, which.included, deducted=which.deducted)
+        return isum( a, which.included, deducted=which.deducted)
+    end
+
+    function any_positive( a :: AbstractArray, 
+        which ) :: Bool
+        for i in which
+            if a[i] > 0
+                return true
+            end
+        end
+        return false
     end
 
     function make_static_incs( 

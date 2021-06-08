@@ -3,6 +3,8 @@ module LegacyMeansTestedBenefits
 using ScottishTaxBenefitModel
 using .Definitions
 
+using .Incomes
+
 using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
     is_single, count, num_carers, le_age, between_ages, ge_age, search,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
@@ -15,9 +17,7 @@ using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
-    LMTResults, has_income, LMTCanApplyFor, aggregate!, aggregate_tax
-    
-using .Utils: mult, haskeys
+    LMTResults, LMTCanApplyFor, aggregate!, aggregate_tax
 
 using .Intermediate: MTIntermediate, working_disabled, is_working_hours,
     born_before, num_born_before, apply_2_child_policy
@@ -78,10 +78,10 @@ function calc_incomes(
         end
         gross_earn += gross
         net_earn += max( 0.0, net )
-        other += mult( 
-            data=pers.income, 
-            calculated=pres.incomes, 
-            included=inclist )
+        other += isum( pres.incomes, inclist )
+        #    data=pers.income, 
+        #    calculated=pres.incomes, 
+        #    included=inclist )
     end
     # disregards
     # if which_ben in [hb,jsa,is,]
@@ -103,7 +103,7 @@ function calc_incomes(
 
     if( which_ben in [hb,ctr] ) 
         # fixme do this above
-        if( Results.has_income( bu, bur, employment_and_support_allowance ))     
+        if has_income( bur, [EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )     
             disreg = incrules.high
         end
         # HB disregard CPAG p432 this, too, is very approximate
@@ -467,21 +467,22 @@ function calc_NDDs(
         pays_ndd = true
         pers = bu.people[pid]
         persr = bur.pers[pid]
-        if has_income( pers, persr, 
-                attendence_allowance, dlaself_care,
-                personal_independence_payment_daily_living,
-                pension_credit )
+        # fixme check this list & reference
+        if any_positive( persr.income, 
+            [ATTENDENCE_ALLOWANCE,
+             DLA_SELF_CARE,
+             PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+             PENSION_CREDIT] )
             pays_ndd = false
         elseif pers.registered_blind || pers.registered_partially_sighted
             pays_ndd = false
         elseif pers.age < 18
             pays_ndd = false
         elseif pers.age < 25 
-            if has_income( 
-                    pers, persr, 
-                    income_support, 
-                    jobseekers_allowance, 
-                    employment_and_support_allowance )
+            if any_positive( 
+                    persr.income,
+                    [INCOME_SUPPORT,NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
+                    EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )
                 pays_ndd = false
             end
         end
@@ -539,7 +540,7 @@ function calculateHB_CTR!(
             allowances = 0.0
             passported = false
             # FIXME we're doing passpored twice            
-            if has_income( bu, bures, lmt_ben_sys.hb.passported_bens... )
+            if has_income( bures, lmt_ben_sys.hb.passported_bens )
                 # no need to do anything
                 passported = true
             else
@@ -732,9 +733,6 @@ function calc_legacy_means_tested_benefits!(
         bures.legacy_mtbens.sc   +
         bures.legacy_mtbens.ndds +
         bures.legacy_mtbens.wtc
-
-
-
     #
     # Passporting
     # FIXME this is a duplicate
