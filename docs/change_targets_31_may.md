@@ -3,7 +3,7 @@
 Results functions: 
 
 search
-has_income
+has_income X
 complete_results!
 aggregate!
 
