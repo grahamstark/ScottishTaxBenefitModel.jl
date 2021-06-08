@@ -103,7 +103,7 @@ function calc_incomes(
 
     if( which_ben in [hb,ctr] ) 
         # fixme do this above
-        if has_income( bur, [EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )     
+        if has_income( bur, EMPLOYMENT_AND_SUPPORT_ALLOWANCE )     
             disreg = incrules.high
         end
         # HB disregard CPAG p432 this, too, is very approximate
@@ -391,7 +391,7 @@ function calcWTC_CTC!(
     can_apply_for :: LMTCanApplyFor )
     
     bu = benefit_unit # aliases
-    bur = benefit_unit_result.legacy_mtbens
+    bu_lmt = benefit_unit_result.legacy_mtbens
     it, ni = aggregate_tax( benefit_unit_result )
     other_income = it.savings_income + it.dividends_income
     # FIXME does this tread pensions correctly - they're disgregarded
@@ -444,12 +444,21 @@ function calcWTC_CTC!(
     excess = wtc.taper * max( 0.0, income - threshold )
     wtc_ctc = max( 0.0, elements - excess )
     # allocate
-    bur.ctc = min( wtc_ctc, ctc_elements )
-    bur.wtc = wtc_ctc - bur.ctc
-    bur.wtc_income = income
-    bur.ctc_elements = ctc_elements
-    bur.wtc_elements = wtc_elements
-    bur.wtc_ctc_threshold = threshold
+    ctc_amt = min( wtc_ctc, ctc_elements )
+    wtc_amt = wtc_ctc - ctc_amt
+
+    ## assign to an individual
+    
+
+    bu_lmt.wtc_income = income
+    bu_lmt.ctc_elements = ctc_elements
+    bu_lmt.wtc_elements = wtc_elements
+    bu_lmt.wtc_ctc_threshold = threshold
+    # to spouse if has one
+
+    recipient :: BigInt = length(bur.adults)[1] == 2 ? bur.adults[2] : bur.adults[1]
+    benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
+    benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
 end
 
 

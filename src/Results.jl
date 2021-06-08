@@ -471,11 +471,13 @@ module Results
     end
 
    function init_benefit_unit_result( bu :: BenefitUnit{T} ) :: BenefitUnitResult{T} where T
+        # FIXME add an explicit head/spouse pid here
         bur = BenefitUnitResult{T}()
         bur.adults = bu.adults
         for pid in keys( bu.people )
             bur.pers[pid] = IndividualResult{T}()
             bur.pers[pid].income = map_incomes( bu.person[pid])
+
         end
         return bur
     end
