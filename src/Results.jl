@@ -274,7 +274,7 @@ module Results
         bur.adults = bu.adults
         for pid in keys( bu.people )
             bur.pers[pid] = IndividualResult{T}()
-            bur.pers[pid].income = map_incomes( bu.person[pid])
+            bur.pers[pid].income = map_incomes( bu.people[pid])
 
         end
         return bur

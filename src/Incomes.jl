@@ -123,7 +123,7 @@ using StaticArrays
     const SICKNESS_ILLNESS = SEVERE_DISABILITY_ALLOWANCE:DLA_MOBILITY
     const DEDUCTIONS = HEALTH_INSURANCE:SPARE_DEDUCT_5
     const INC_ARRAY_SIZE = SPARE_BEN_10
-    const ALL_INCOMES = WAGES:SPARE_BEN_10
+    const ALL_INCOMES = union( NON_CALCULATED, BENEFITS )
 
     # exports ----------------
     export WAGES
@@ -696,7 +696,7 @@ using StaticArrays
 
     export inctostr, isettostr
 
-    function inctostr( incs :: Vector ) :: String
+    function inctostr( incs :: AbstractVector ) :: String
         n = size( incs )[1] 
         @assert  n == INC_ARRAY_SIZE
         s = ""

@@ -22,7 +22,9 @@ using .Results:
     IndividualResult, 
     BenefitUnitResult, 
     ITResult, 
-    NIResult
+    NIResult,
+    map_incomes
+using .Incomes
 
 function get_tax(; scotland = false ) :: IncomeTaxSys
     it = get_default_it_system( year=2019, scotland=scotland, weekly=false )
@@ -67,6 +69,8 @@ end
         println( "Scotland $i : calculated $(prsc.income[INCOME_TAX]) expected $(taxes_scotland[i])")
         @test prsc.income[INCOME_TAX] ≈ taxes_scotland[i]
         pruk = IndividualResult{Float64}()
+        pruk.income[WAGES] = income[i]
+        
         calc_income_tax!( pruk, pers, itsys_ruk )
         println( "rUK $i : calculated $(prsc.income[INCOME_TAX]) expected $(taxes_ruk[i])")
         @test pruk.income[INCOME_TAX]  ≈ taxes_ruk[i]
@@ -113,8 +117,9 @@ end # example 2
     @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
 
     pruk = IndividualResult{Float64}()
+    pruk.income[SELF_EMPLOYMENT_INCOME] = 40_000.00
+    pruk.income[BANK_INTEREST] = 1_250.00
     calc_income_tax!( pruk, pers, itsys_ruk )
-    #
     tax_due_ruk = 5_550.00
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 3
@@ -168,15 +173,17 @@ end # example 5
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
-    pers.income[self_employment_income] = 240_235.00
-    pers.income[bank_interest] = 1_600.00
 
     tax_due_ruk = 93_825.75
     tax_due_scotland = 97_397.17
     prsc = IndividualResult{Float64}()
+    prsc.income[SELF_EMPLOYMENT_INCOME] = 240_235.00
+    prsc.income[BANK_INTEREST] = 1_600.00
     calc_income_tax!( prsc, pers, itsys_scot )
     @test prsc.income[INCOME_TAX]  ≈ tax_due_scotland
     pruk = IndividualResult{Float64}()
+    pruk.income[SELF_EMPLOYMENT_INCOME] = 240_235.00
+    pruk.income[BANK_INTEREST] = 1_600.00
     calc_income_tax!( pruk, pers, itsys_ruk )
     @test pruk.income[INCOME_TAX]  ≈ tax_due_ruk
 end # example 6
@@ -194,10 +201,12 @@ end # example 6
     tax_due_scotland = 10_092.00
     
     prsc = IndividualResult{Float64}()
+    prsc.income = map_incomes( pers )
     calc_income_tax!( prsc, pers, itsys_scot )
     @test prsc.income[INCOME_TAX] ≈ tax_due_ruk
     
     pruk = IndividualResult{Float64}()
+    pruk.income = map_incomes( pers )
     calc_income_tax!( pruk, pers, itsys_ruk )
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 
@@ -220,10 +229,12 @@ end # example 7
     tax_due_scotland = 74_834.94+140.97
 
     prsc = IndividualResult{Float64}()
+    prsc.income = map_incomes( pers )
     calc_income_tax!( prsc, pers, itsys_scot )
     @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
     
     pruk = IndividualResult{Float64}()
+    pruk.income = map_incomes( pers )
     calc_income_tax!( pruk, pers, itsys_ruk )
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 
@@ -241,10 +252,12 @@ end # example 8
     tax_due_ruk = 1_050.00 # inc already deducted at source
     tax_due_scotland = 1_050.00-20.49
     prsc = IndividualResult{Float64}()
+    prsc.income = map_incomes( pers )
     calc_income_tax!( prsc, pers, itsys_scot )
     @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
 
     pruk = IndividualResult{Float64}()
+    pruk.income = map_incomes( pers )
     calc_income_tax!( pruk, pers, itsys_ruk )
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 9
@@ -260,11 +273,14 @@ end # example 9
     pers.income[self_employment_income] = 110_520.00
     tax_due_ruk = 33_812.00
     pruk = IndividualResult{Float64}()
+    pruk.income = map_incomes( pers )
     calc_income_tax!( pruk, pers, itsys_ruk )
 
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
     pers.income[self_employment_income] += 100.0
+
     pruk = IndividualResult{Float64}()
+    pruk.income = map_incomes( pers )
     calc_income_tax!( pruk, pers, itsys_ruk )
     tax_due_ruk = 33_812.00+60.0
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
@@ -289,6 +305,10 @@ end # example1 ch3
     bruk = init_benefit_unit_result( bu )
     calc_income_tax!( bruk, head, spouse, itsys_ruk )
     println( bruk )
+    println( "HEAD\n$(inctostr(bruk.pers[head.pid].income ))")
+    println( bruk.pers[head.pid].it)
+    println( "SPOUSE\n$(inctostr(bruk.pers[spouse.pid].income ))")
+    println( bruk.pers[spouse.pid].it)
     @test bruk.pers[spouse.pid].income[INCOME_TAX] ≈ spouse_tax_due_ruk
 end # example 2 ch3
 
@@ -443,9 +463,9 @@ end
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 40_000
 
     # complete-ish calc from combes, tutin&rowes, 2018 edn, p199, updated to 2019/20 rates
-    bruk = init_benefit_unit_result( bu )    
     gordon.income[self_employment_income] = 180_000.0
     gordon.income[pension_contributions_employer] =  14_400.00 # net contribs per month; expressed gross in example
+    bruk = init_benefit_unit_result( bu )        
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
     @test bruk.pers[gordon.pid].income[INCOME_TAX] ≈ 61_500.0
 
