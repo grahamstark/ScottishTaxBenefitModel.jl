@@ -19,14 +19,8 @@ export Definitions
 include("Incomes.jl")
 export Incomes
 
-include("DataUtils.jl" )
-export DataUtils
-
 include("GeneralTaxComponents.jl" )
 export GeneralTaxComponents
-
-# include("MiniTB.jl" )
-# export MiniTB
 
 include("Uprating.jl" )
 export Uprating

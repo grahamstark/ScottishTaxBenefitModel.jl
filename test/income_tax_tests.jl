@@ -64,12 +64,12 @@ end
         prsc = IndividualResult{Float64}()
         pers.income[wages] = income[i]
         calc_income_tax!( prsc, pers, itsys_scot )
-        println( "Scotland $i : calculated $(prsc.it.total_tax) expected $(taxes_scotland[i])")
-        @test prsc.it.total_tax ≈ taxes_scotland[i]
+        println( "Scotland $i : calculated $(prsc.income[INCOME_TAX]) expected $(taxes_scotland[i])")
+        @test prsc.income[INCOME_TAX] ≈ taxes_scotland[i]
         pruk = IndividualResult{Float64}()
         calc_income_tax!( pruk, pers, itsys_ruk )
-        println( "rUK $i : calculated $(prsc.it.total_tax) expected $(taxes_ruk[i])")
-        @test pruk.it.total_tax  ≈ taxes_ruk[i]
+        println( "rUK $i : calculated $(prsc.income[INCOME_TAX]) expected $(taxes_ruk[i])")
+        @test pruk.income[INCOME_TAX]  ≈ taxes_ruk[i]
         println( ruk.people[RUK_PERSON].income )
     end
 end # example 1
@@ -107,13 +107,13 @@ end # example 2
     prsc = IndividualResult{Float64}()
     calc_income_tax!( prsc, pers, itsys_scot )
     #
-    @test prsc.it.total_tax ≈ tax_due_scotland
+    @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
 
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
     #
     tax_due_ruk = 5_550.00
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 3
 
 @testset "ch2 example 4; savings calc" begin
@@ -129,10 +129,10 @@ end # example 3
     tax_due_scotland = 819.51
     prsc = IndividualResult{Float64}()
     calc_income_tax!( prsc, pers, itsys_scot )
-    @test prsc.it.total_tax ≈ tax_due_scotland
+    @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 4
 
 @testset "ch2 example 5; savings calc" begin
@@ -147,10 +147,10 @@ end # example 4
     tax_due_scotland = 12_864.57
     prsc = IndividualResult{Float64}()
     calc_income_tax!( prsc, pers, itsys_scot )
-    @test prsc.it.total_tax ≈ tax_due_scotland
+    @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 5
 
 @testset "ch2 example 6; savings calc" begin
@@ -166,10 +166,10 @@ end # example 5
     tax_due_scotland = 97_397.17
     prsc = IndividualResult{Float64}()
     calc_income_tax!( prsc, pers, itsys_scot )
-    @test prsc.it.total_tax  ≈ tax_due_scotland
+    @test prsc.income[INCOME_TAX]  ≈ tax_due_scotland
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
-    @test pruk.it.total_tax  ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX]  ≈ tax_due_ruk
 end # example 6
 
 @testset "ch2 example 7; savings calc" begin
@@ -186,11 +186,11 @@ end # example 6
     
     prsc = IndividualResult{Float64}()
     calc_income_tax!( prsc, pers, itsys_scot )
-    @test prsc.it.total_tax ≈ tax_due_ruk
+    @test prsc.income[INCOME_TAX] ≈ tax_due_ruk
     
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 
 end # example 7
 
@@ -212,11 +212,11 @@ end # example 7
 
     prsc = IndividualResult{Float64}()
     calc_income_tax!( prsc, pers, itsys_scot )
-    @test prsc.it.total_tax ≈ tax_due_scotland
+    @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
     
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 
 end # example 8
 
@@ -233,11 +233,11 @@ end # example 8
     tax_due_scotland = 1_050.00-20.49
     prsc = IndividualResult{Float64}()
     calc_income_tax!( prsc, pers, itsys_scot )
-    @test prsc.it.total_tax ≈ tax_due_scotland
+    @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
 
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 9
 
 
@@ -253,12 +253,12 @@ end # example 9
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
 
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
     pers.income[self_employment_income] += 100.0
     pruk = IndividualResult{Float64}()
     calc_income_tax!( pruk, pers, itsys_ruk )
     tax_due_ruk = 33_812.00+60.0
-    @test pruk.it.total_tax ≈ tax_due_ruk
+    @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 
     # tax_due_scotland = 33_812.00+61.5 ## FIXME actually, check this by hand
 
@@ -280,7 +280,7 @@ end # example1 ch3
     bruk = init_benefit_unit_result( bu )
     calc_income_tax!( bruk, head, spouse, itsys_ruk )
     println( bruk )
-    @test bruk.pers[spouse.pid].it.total_tax ≈ spouse_tax_due_ruk
+    @test bruk.pers[spouse.pid].income[INCOME_TAX] ≈ spouse_tax_due_ruk
 end # example 2 ch3
 
 @testset "ch3 blind person" begin
@@ -438,7 +438,7 @@ end
     gordon.income[self_employment_income] = 180_000.0
     gordon.income[pension_contributions_employer] =  14_400.00 # net contribs per month; expressed gross in example
     calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
-    @test bruk.pers[gordon.pid].it.total_tax ≈ 61_500.0
+    @test bruk.pers[gordon.pid].income[INCOME_TAX] ≈ 61_500.0
 
 end
 
