@@ -62,7 +62,7 @@ end
     pers = bus[1][1]
     for i in 1:ntests
         prsc = IndividualResult{Float64}()
-        pers.income[wages] = income[i]
+        prsc.income[WAGES] = income[i]
         calc_income_tax!( prsc, pers, itsys_scot )
         println( "Scotland $i : calculated $(prsc.income[INCOME_TAX]) expected $(taxes_scotland[i])")
         @test prsc.income[INCOME_TAX] ≈ taxes_scotland[i]
@@ -86,8 +86,8 @@ end # example 1
     pers = ruk.people[RUK_PERSON] # doesn't matter S/RUK
 
     for i in size(income)[1]
-        pers.income[wages] = income[i]
         pruk = IndividualResult{Float64}()
+        pruk.income[WAGES] = income[i]
         println( "case $i income = $(income[i])")
         calc_income_tax!( pruk, pers, itsys_ruk )
         @test pruk.it.personal_savings_allowance == psa[i]
@@ -100,11 +100,14 @@ end # example 2
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
-    pers.income[self_employment_income] = 40_000.00
-    pers.income[bank_interest] = 1_250.00
     tax_due_scotland = 5680.07
     pruk = IndividualResult{Float64}()
+    pruk.income[SELF_EMPLOYMENT_INCOME] = 40_000.00
+    pruk.income[BANK_INTEREST] = 1_250.00
     prsc = IndividualResult{Float64}()
+    prsc.income[SELF_EMPLOYMENT_INCOME] = 40_000.00
+    prsc.income[BANK_INTEREST] = 1_250.00
+
     calc_income_tax!( prsc, pers, itsys_scot )
     #
     @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
@@ -123,14 +126,17 @@ end # example 3
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
-    pers.income[property] = 16_700.00
-    pers.income[bank_interest] = 1_100.00
     tax_due_ruk = 840.00
     tax_due_scotland = 819.51
     prsc = IndividualResult{Float64}()
+    prsc.income[PROPERTY] = 16_700.00
+    prsc.income[BANK_INTEREST] = 1_100.00
     calc_income_tax!( prsc, pers, itsys_scot )
     @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
     pruk = IndividualResult{Float64}()
+    pruk.income[PROPERTY] = 16_700.00
+    pruk.income[BANK_INTEREST] = 1_100.00
+
     calc_income_tax!( pruk, pers, itsys_ruk )
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 4
@@ -141,14 +147,17 @@ end # example 4
     names = ExampleHouseholdGetter.initialise()
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
-    pers.income[self_employment_income] = 58_850.00
-    pers.income[bank_interest] = 980.00
     tax_due_ruk = 11_232.00
     tax_due_scotland = 12_864.57
     prsc = IndividualResult{Float64}()
+    prsc.income[SELF_EMPLOYMENT_INCOME] = 58_850.00
+    prsc.income[BANK_INTEREST] = 980.00
     calc_income_tax!( prsc, pers, itsys_scot )
     @test prsc.income[INCOME_TAX] ≈ tax_due_scotland
     pruk = IndividualResult{Float64}()
+    pruk.income[SELF_EMPLOYMENT_INCOME] = 58_850.00
+    pruk.income[BANK_INTEREST] = 980.00
+
     calc_income_tax!( pruk, pers, itsys_ruk )
     @test pruk.income[INCOME_TAX] ≈ tax_due_ruk
 end # example 5

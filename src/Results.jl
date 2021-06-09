@@ -156,7 +156,7 @@ module Results
     
     @with_kw mutable struct IndividualResult{RT<:Real}
        
-       net_income :: RT =zero(RT)
+       net_income :: RT = zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
        income = Incomes.make_a( RT );

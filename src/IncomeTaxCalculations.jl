@@ -139,27 +139,27 @@ function calc_income_tax!(
     sys    :: IncomeTaxSys,
     spouse_transfer :: Real = 0.0 )
 
-    total_income = isum( pres.incomes, sys.all_taxable )
-    non_savings_income = isum( pres.incomes, sys.non_savings_income )
-    savings_income = isum( pres.incomes, sys.savings_income )
-    dividends_income = isum( pres.incomes, sys.dividend_income )
+    total_income = isum( pres.income, sys.all_taxable )
+    non_savings_income = isum( pres.income, sys.non_savings_income )
+    savings_income = isum( pres.income, sys.savings_income )
+    dividends_income = isum( pres.income, sys.dividend_income )
 
     #=
     total_income = mult( 
         data=pers.income, 
-        calculated=pres.incomes, 
+        calculated=pres.income, 
         included=sys.all_taxable )
     non_savings_income = mult( 
         data=pers.income, 
-        calculated=pres.incomes, 
+        calculated=pres.income, 
         included=sys.non_savings_income )
     savings_income = mult( 
         data=pers.income, 
-        calculated=pres.incomes, 
+        calculated=pres.income, 
         included=sys.savings_income )
     dividends_income = mult( 
         data=pers.income, 
-        calculated=pres.incomes, 
+        calculated=pres.income, 
         included=sys.dividend_income )
     =#
 
@@ -286,7 +286,7 @@ function calc_income_tax!(
             sys.non_savings_rates[sys.non_savings_basic_rate]*spouse_transfer
         total_tax = max( 0.0, total_tax - sp_reduction )
     end
-    pres.incomes[INCOME_TAX] = total_tax
+    pres.income[INCOME_TAX] = total_tax
     pres.it.taxable_income = taxable_income
     pres.it.allowance = allowance
     pres.it.total_income = total_income
@@ -372,10 +372,10 @@ function calc_income_tax!(
             # married before, so:
             if hdres.it.adjusted_net_income > spres.it.adjusted_net_income
                 hdres.it.mca = calculate_mca( head, hdres.it, sys )
-                hdres.incomes[INCOME_TAX]= max( 0.0, hdres.incomes[INCOME_TAX]- hdres.it.mca )
+                hdres.income[INCOME_TAX]= max( 0.0, hdres.income[INCOME_TAX]- hdres.it.mca )
             else
                 spres.it.mca = calculate_mca( spouse, spres.it, sys )
-                spres.incomes[INCOME_TAX] = max( 0.0, spres.incomes[INCOME_TAX] - spres.it.mca )
+                spres.income[INCOME_TAX] = max( 0.0, spres.income[INCOME_TAX] - spres.it.mca )
             end
         end
         if spres.it.mca == 0.0 == hdres.it.mca

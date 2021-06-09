@@ -1,3 +1,4 @@
+using StatsBase: self_avoid_sample!
 # using ScottishTaxBenefitModel
 using Test
 using ScottishTaxBenefitModel

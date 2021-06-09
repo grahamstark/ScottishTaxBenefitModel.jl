@@ -315,7 +315,7 @@ using StaticArrays
     end
 
     function make_a( T :: Type ) :: SizedVector
-        return SizedVector(Zeros(T, INC_ARRAY_SIZE))
+        return SizedVector{INC_ARRAY_SIZE,T}(zeros(T, INC_ARRAY_SIZE))
     end
 
     function iname(i::Integer)::String
