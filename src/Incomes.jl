@@ -530,6 +530,7 @@ using StaticArrays
         @assert false "$i not mapped in iname"
     end # iname
 
+    # FIXME what if we din't export these ones, deleted '_INCOME' and instead forced Incomes.SAVINGS ...
     export LEGACY_HB_INCOME
     export LEGACY_MT_INCOME
     export GROSS_INCOME
@@ -538,8 +539,9 @@ using StaticArrays
     export LEGACY_SAVINGS_CREDIT_INCOME
     export DIVIDEND_INCOME
     export EXEMPT_INCOME
-    export ALL_TAXABLE
-    export NON_SAVINGS
+    export ALL_TAXABLE_INCOME
+    export NON_SAVINGS_INCOME
+    export SAVINGS_INCOME
     export DEFAULT_PASSPORTED_BENS
 
     const SAVINGS_INCOME = [BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME]
@@ -683,8 +685,8 @@ using StaticArrays
         PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
     ]
 
-    const ALL_TAXABLE = setdiff( ALL_INCOMES, EXEMPT_INCOME )
-    const NON_SAVINGS = setdiff( ALL_TAXABLE, DIVIDEND_INCOME, SAVINGS_INCOME )
+    const ALL_TAXABLE_INCOME = setdiff( ALL_INCOMES, EXEMPT_INCOME )
+    const NON_SAVINGS_INCOME = setdiff( ALL_TAXABLE_INCOME, DIVIDEND_INCOME, SAVINGS_INCOME )
 
     const DEFAULT_PASSPORTED_BENS = [
           INCOME_SUPPORT,

@@ -85,7 +85,7 @@ module STBParameters
         pension_contrib_withdrawal_rate :: RT = 50.0
         
         non_savings_income = NON_SAVINGS_INCOME
-        all_taxable = ALL_TAXABLE
+        all_taxable = ALL_TAXABLE_INCOME
         savings_income = SAVINGS_INCOME
         dividend_income = DIVIDEND_INCOME
 

@@ -5,7 +5,7 @@ module ScottishTaxBenefitModel
 # Work in progress.
 #
 
-__precompile__(true)
+# __precompile__(true)
 
 include("Utils.jl" )
 export Utils

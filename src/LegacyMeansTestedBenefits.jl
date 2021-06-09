@@ -17,7 +17,7 @@ using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
-    LMTResults, LMTCanApplyFor, aggregate!, aggregate_tax
+    LMTResults, LMTCanApplyFor, aggregate_tax
 
 using .Intermediate: MTIntermediate, working_disabled, is_working_hours,
     born_before, num_born_before, apply_2_child_policy
@@ -393,6 +393,7 @@ function calcWTC_CTC!(
     bu = benefit_unit # aliases
     bu_lmt = benefit_unit_result.legacy_mtbens
     it, ni = aggregate_tax( benefit_unit_result )
+
     other_income = it.savings_income + it.dividends_income
     # FIXME does this tread pensions correctly - they're disgregarded
     if other_income < wtc.non_earnings_minima
