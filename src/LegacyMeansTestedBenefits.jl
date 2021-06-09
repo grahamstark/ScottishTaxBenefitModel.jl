@@ -490,7 +490,8 @@ function calc_NDDs(
         elseif pers.age < 25 
             if any_positive( 
                     persr.income,
-                    [INCOME_SUPPORT,NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
+                    [INCOME_SUPPORT,
+                    NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
                     EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )
                 pays_ndd = false
             end
@@ -576,13 +577,16 @@ function calculateHB_CTR!(
                 end
                 
             end
+            # FIXME this needs to be a function
+            recipient :: BigInt = bur.adults[1]
             if which_ben == hb
-                bures.legacy_mtbens.hb = benefit
+                bures.pers[recipient].income[HOUSING_BENEFIT] = benefit
                 bures.legacy_mtbens.hb_passported = passported
                 bures.legacy_mtbens.hb_premia = premium
                 bures.legacy_mtbens.hb_allowances = allowances
                 bures.legacy_mtbens.hb_incomes = incomes                           
             elseif which_ben == ctr
+                bures.pers[recipient].income[COUNCIL_TAX_BENEFIT] = benefit
                 bures.legacy_mtbens.ctr = benefit
                 bures.legacy_mtbens.ctr_passported = passported
                 bures.legacy_mtbens.ctr_premia = premium
@@ -652,12 +656,19 @@ function calc_legacy_means_tested_benefits!(
         bures.legacy_mtbens.mig_allowances = allowances
         bures.legacy_mtbens.mig_premia = premium
         if ! incomes.disqualified_on_capital
+            # FIXME we just allocate payment to the head of
+            # the BU - make this a function or make can_apply_for
+            # specify the payee as well as whether the BU qualifies
+            recipient :: BigInt = bur.adults[1]
             if can_apply_for.esa 
-                bures.legacy_mtbens.esa = mig
+                bures.pers[recipient].income[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = mig
+                # bures.legacy_mtbens.esa = mig
             elseif can_apply_for.jsa
-                bures.legacy_mtbens.jsa = mig
+                bures.pers[recipient].income[NON_CONTRIB_JOB_SEEKERS_ALLOWANCE] = mig
+                # bures.legacy_mtbens.jsa = mig
             elseif can_apply_for.is
-                bures.legacy_mtbens.is = mig
+                bures.pers[recipient].income[INCOME_SUPPORT] = mig                
+                # bures.legacy_mtbens.is = mig
             end
         end
     end
@@ -693,6 +704,9 @@ function calc_legacy_means_tested_benefits!(
         bures.legacy_mtbens.ctc_premia = premium
 
         miglevel = premium+allowances
+
+        # fixme make this a function
+        recipient = bures.adults[1]
         
         if can_apply_for.sc && ( ! incomes.disqualified_on_capital )  
             scsys = mt_ben_sys.savings_credit #  shortcut
@@ -715,10 +729,11 @@ function calc_legacy_means_tested_benefits!(
                 max(0.0, sc_incomes.total_income-thresh)
             
             income_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income-miglevel)
-            bures.legacy_mtbens.sc = max( 0.0, sc_income - income_over_mig )
+            bures.pers[recipient].income[SAVINGS_CREDIT] = max( 0.0, sc_income - income_over_mig )
             bures.legacy_mtbens.sc_incomes = sc_incomes   
         end
-        bures.legacy_mtbens.pc = bures.legacy_mtbens.mig + bures.legacy_mtbens.sc
+        bures.pers[recipient].income[PENSION_CREDIT] = bures.legacy_mtbens.mig
+        #  + bures.legacy_mtbens.sc
     end
     
     if can_apply_for.wtc || can_apply_for.ctc
@@ -732,20 +747,12 @@ function calc_legacy_means_tested_benefits!(
     
     end
     
-    bures.legacy_mtbens.total_benefits = 
-        bures.legacy_mtbens.ctc +
-        bures.legacy_mtbens.esa +
-        bures.legacy_mtbens.is +
-        bures.legacy_mtbens.jsa +
-        bures.legacy_mtbens.pc  +
-        bures.legacy_mtbens.mig  +
-        bures.legacy_mtbens.sc   +
-        bures.legacy_mtbens.ndds +
-        bures.legacy_mtbens.wtc
-    #
-    # Passporting
-    # FIXME this is a duplicate
-    if bures.legacy_mtbens.pc > 0 || bures.legacy_mtbens.jsa > 0 || bures.legacy_mtbens.is > 0 || bures.legacy_mtbens.esa > 0
+    if has_income( bures, 
+        [
+            PENSION_CREDIT, 
+            NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
+            EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+            INCOME_SUPPORT ])        
         bures.legacy_mtbens.hb_passported = true
         bures.legacy_mtbens.ctr_passported = true
     end

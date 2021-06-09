@@ -321,15 +321,15 @@ module Results
     end
         
     @with_kw mutable struct LMTResults{RT<:Real}
-        #ctc :: RT = zero(RT)
-        #esa :: RT = zero(RT)
-        #hb  :: RT = zero(RT)
-        #is :: RT = zero(RT)
-        #jsa :: RT = zero(RT)
-        #pc  :: RT = zero(RT)
-        #sc   :: RT = zero(RT)
+        #ctc :: RT = zero(RT) XX 
+        #esa :: RT = zero(RT) x
+        #hb  :: RT = zero(RT) x
+        #is :: RT = zero(RT) x
+        #jsa :: RT = zero(RT) x
+        #pc  :: RT = zero(RT) x
+        #sc   :: RT = zero(RT) x
         #wtc  :: RT = zero(RT)
-        #ctr  :: RT = zero(RT)
+        #ctr  :: RT = zero(RT) x
         
         ndds :: RT = zero(RT)
         mig  :: RT = zero(RT)
@@ -458,6 +458,10 @@ module Results
         housing = HousingResult{RT}()
         # FIXME note this is at the household level, which makes local income taxes, etc. akward. OK for now.
         local_tax = LocalTaxes{RT}()
+        # 
+        # FIXME make this `people` to match the ModelHousehold
+        # and adapt the get_benefit_units function 
+        #
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
     end
 

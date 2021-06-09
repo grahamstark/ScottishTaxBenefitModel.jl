@@ -95,12 +95,12 @@ function calculate_national_insurance!(
     # do something random for class 3
 
     # don't count employers NI here
-        pres.ni.total_ni = pres.ni.class_1_primary +
+        pres.income[NATIONAL_INSURANCE] = 
+            pres.ni.class_1_primary +
             pres.ni.class_2 +
             pres.ni.class_4
 
-    return pres.ni
-end
+ end
 
 function gross_from_net( bc :: BudgetConstraint, net :: Real )::Real
     return get_x_from_y( bc, net )
