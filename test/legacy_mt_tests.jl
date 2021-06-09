@@ -139,7 +139,7 @@ end
 
     # Evan and Mia example p 433
     e_and_m = get_benefit_units( examples[cpl_w_2_children_hh] )[1]
-    emr = init_benefit_unit_result( e_and_m )
+    emr = init_benefit_unit_result(  e_and_m )
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
     intermed = make_intermediate( 
@@ -471,7 +471,7 @@ end
     head = get_head( spers ) # the only person, obvs..
     head.age = 30
     empty!(head.income)
-    bur = init_benefit_unit_result( spers )
+    bur = init_benefit_unit_result(  spers )
     wage = [600.0,400,200,0]
     ndds = [100.65, 91.70, 35.85, 15.60]
     nt = size(wage)[1]
@@ -562,7 +562,7 @@ end
     employ!( spouse )
     empty!( head.income )
     unemploy!( head )
-    bur = init_benefit_unit_result( cpl )
+    bur = init_benefit_unit_result(  cpl )
     println( "FT Employed")
     println( spouse )
     for i in 1:nt
@@ -603,7 +603,7 @@ end
     end # loop round various incomes
     
     # no NDDs for CTB (I think)
-    bur = init_benefit_unit_result( spers )
+    bur = init_benefit_unit_result(  spers )
     head = get_head( spers )
     employ!( head )
     println( "FT Employed - CTB")

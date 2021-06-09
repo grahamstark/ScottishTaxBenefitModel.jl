@@ -19,6 +19,8 @@ using CSV
  const SCOT_HEAD = 320190010201
  const SCOT_SPOUSE = 320190010202
 
+ const DEFAULT_NUM_TYPE = Float64
+
 function get_default_it_system(
    ;
   year     :: Integer=2019,
@@ -26,7 +28,7 @@ function get_default_it_system(
   weekly   :: Bool = true )::Union{Nothing,IncomeTaxSys}
   it = nothing
   if year == 2019
-     it = IncomeTaxSys{Float64}()
+     it = IncomeTaxSys{DEFAULT_NUM_TYPE}()
      if ! scotland
         it.non_savings_rates = [20.0,40.0,45.0]
         it.non_savings_thresholds = [37_500, 150_000.0]
@@ -56,7 +58,7 @@ end
 
 
 function get_system(; scotland::Bool ) :: TaxBenefitSystem
-    tb = TaxBenefitSystem{Float64}()
+    tb = TaxBenefitSystem{DEFAULT_NUM_TYPE}()
     weeklyise!(tb)
     # overwrite IT to get RuK system as needed
     # println( itn )
@@ -188,7 +190,7 @@ end
 
     
 function init_benefit_unit_result( bu :: BenefitUnit ) :: BenefitUnitResult
-   return init_benefit_unit_result( Float64, bu )
+   return init_benefit_unit_result( DEFAULT_NUM_TYPE, bu )
 end
 
 function make_hh( 

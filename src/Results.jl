@@ -474,7 +474,7 @@ module Results
         return false
     end
 
-   function init_benefit_unit_result( bu :: BenefitUnit{T} ) :: BenefitUnitResult{T} where T
+   function init_benefit_unit_result( T::Type, bu :: BenefitUnit ) :: BenefitUnitResult{T}
         # FIXME add an explicit head/spouse pid here
         bur = BenefitUnitResult{T}()
         bur.adults = bu.adults
@@ -493,7 +493,7 @@ module Results
         bus = get_benefit_units(hh)
         hr = HouseholdResult{T}()
         for bu in bus
-            push!( hr.bus, init_benefit_unit_result( bu ))
+            push!( hr.bus, init_benefit_unit_result( T, bu ))
         end
         return hr
     end

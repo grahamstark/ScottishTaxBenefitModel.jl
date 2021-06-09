@@ -292,7 +292,7 @@ end # example 2 ch3
     pers = ruk.people[RUK_PERSON]
     pers.registered_blind = true
     bu = make_benefit_unit( PeopleArray([pers]), pers.pid, BigInt(-1) ) 
-    bruk = init_benefit_unit_result(  bu )    
+    bruk = init_benefit_unit_result( bu )    
     result = calc_income_tax!( bruk, pers, nothing, itsys_ruk )
     @test bruk.pers[pers.pid].it.allowance ≈ 
         itsys_ruk.personal_allowance + itsys_ruk.blind_persons_allowance
@@ -428,7 +428,7 @@ end
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 10_000
 
     gordon.income[self_employment_income] = 150_000.0
-    bruk = init_benefit_unit_result(Float64, bu )    
+    bruk = init_benefit_unit_result( Float64, bu )    
     res_uk = calc_income_tax!( bruk, gordon, nothing, itsys_ruk );
     # tapering thing seems really weird - this is approximarely right
     @test bruk.pers[gordon.pid].it.pension_eligible_for_relief ≈ 40_000
