@@ -130,23 +130,41 @@ end
 #
 # @returns ns for the JSType enum -1=no 1=cont, 2=income 3=mixed
 #
-function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Integer
+function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Tuple
    ad_frs = frs_res[((frs_res.sernum.==sernum ).&
-                     (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp]]
+                     (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp,:esatyphd,:esatypsp]]
    @assert size( ad_frs )[1] .== 1
    af = ad_frs[1,:]
    jsa = head ? af.jsatyphd : af.jsatypsp
+   # fixme refactor
+   jtype = -1
    if jsa == -1
-        return -1
+        jtype = -1
     elseif jsa in [1,3]
-        return 1
+        jtype = 1
     elseif jsa in [2,4]
-        return 2
+        jtype = 2
     elseif jsa in [5,6]
-        return 3
+        jtype = 3
     else
         @assert false "$jsa not mapped"
     end 
+    etype = -1
+    esa = head ? af.esatyphd : af.esatypsp
+    if esa == -1
+        etype = -1
+    elseif esa in [1,3]
+        etype = 1
+    elseif esa in [2,4]
+        etype = 2
+    elseif esa in [5,6]
+        etype = 3
+    else
+        @assert false "$esa not mapped"
+    end 
+    return( jtype, etype )
+
+
     
     # see benefits PDF file 
     # 1 = Contributory
@@ -310,6 +328,7 @@ function initialise_person(n::Integer)::DataFrame
         income_other_benefits = Vector{Union{Real,Missing}}(missing, n),
         
         jsa_type = Vector{Union{Integer,Missing}}(missing, n),
+        esa_type = Vector{Union{Integer,Missing}}(missing, n),
         dlaself_care_type = Vector{Union{Integer,Missing}}(missing, n),
         dlamobility_type = Vector{Union{Integer,Missing}}(missing, n),
         attendence_allowance_type = Vector{Union{Integer,Missing}}(missing, n),
@@ -1006,7 +1025,7 @@ function create_adults(
                 frs_person.benunit,
                 frs_person.person )
             
-            model_adult.jsa_type = make_jsa_type( 
+            model_adult.jsa_type, model_adult.esa_type = make_jsa_type( 
                 frsx,
                 frs_person.sernum,
                 frs_person.benunit,

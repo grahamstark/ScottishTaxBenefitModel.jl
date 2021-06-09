@@ -17,6 +17,7 @@ const MODEL_NAME="ScottishTaxBenefitModel"
 const PROJECT_DIR=Utils.get_project_path() #"//vw/$MODEL_NAME/"
 const MODEL_DATA_DIR="$(PROJECT_DIR)/data/"
 const PRICES_DIR="$MODEL_DATA_DIR/prices/obr/"
+const MATCHING_DIR="$MODEL_DATA_DIR/merging/"
 
 const RAW_DATA = "/mnt/data/"
 const FRS_DIR = "$RAW_DATA/frs/"

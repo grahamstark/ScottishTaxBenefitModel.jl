@@ -11,7 +11,20 @@ export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
 export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
 export coarse_match
+export nearest
 
+"""
+return the element of comps that's closest to x 
+"""
+function nearest( x :: Real , comps... )
+   n = length( comps )
+   dist = zeros( n )
+   for i in 1:n
+       dist[i] = abs( x - comps[i])
+   end
+   i = findmin( dist )
+   return comps[i[2]]
+end
 
 #
 # this has a higher top income than the BC default

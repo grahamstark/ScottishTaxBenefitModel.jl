@@ -73,8 +73,34 @@ module STBParameters
     end
 
     @with_kw mutable struct PersonalIndependencePayment{RT<:Real}
+        dl_standard :: RT = 58.70
+        dl_enhanced :: RT = 87.85
+        mobility_standard :: RT = 23.20
+        mobility_enhanced :: RT = 61.20
+    end
+
+
+    @with_kw mutable struct ContributoryESA{RT<:Real}
+        assessment_u25 :: RT = 57.90
+        assessment_25p :: RT = 73.10
+        main           :: RT = 73.10
+        # work, support component ...
+    end
+
+    #=
+    @with_kw IncapacityBenefit{RT<:Real}
+        upens_lower :: RT = 84.65
+        upens_higher :: RT = 100.20
+        upens_adult_dep :: RT = 50.80
+        opens_lower :: RT = 107.65
+        opens_higher :: RT = 112.25
+        opens_adult_dep :: RT = 62.75
 
     end
+    =#
+
+
+
     #
     # initial version - will be progressively replaced
     # with actual calculations based on disability, hours caring etc.
@@ -84,10 +110,9 @@ module STBParameters
         dla = DisabilityLivingAllowance{RT}()
         carers = CarersAllowance{RT}()
         pip = PersonalIndependencePayment{RT}()
+        esa = ContributoryESA{RT}()
+        incapacity = IncapacityBenefit{RT}()
         widowed_parent :: RT = 119.90
-        
-
-
     end
 
     @with_kw mutable struct IncomeTaxSys{RT<:Real}

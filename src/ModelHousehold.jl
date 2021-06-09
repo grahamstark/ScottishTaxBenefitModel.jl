@@ -42,7 +42,8 @@ mutable struct Person{RT<:Real}
 
     income::Incomes_Dict{RT}
     
-    jsa_type :: JSAType
+    jsa_type :: JSAType # FIXME change this name
+    esa_type :: JSAType
     dla_self_care_type :: LowMiddleHigh
     dla_mobility_type :: LowMiddleHigh
     attendence_allowance_type :: LowMiddleHigh

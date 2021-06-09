@@ -148,6 +148,8 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         income,
         
         JSAType(safe_assign(model_person.jsa_type)),
+        JSAType(safe_assign(model_person.esa_type)),
+        
         LowMiddleHigh( safe_assign( model_person.dlaself_care_type )),
         LowMiddleHigh( safe_assign( model_person.dlamobility_type)),
         LowMiddleHigh( safe_assign( model_person.attendence_allowance_type )),

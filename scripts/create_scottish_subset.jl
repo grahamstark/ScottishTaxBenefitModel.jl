@@ -13,5 +13,15 @@ dropmissing!(people_dataset,:data_year) # kill!!! non hbai kids
 scottish_hhlds = hh_dataset[(hh_dataset.region .== 299999999),:]
 scottish_people = semijoin(people_dataset, scottish_hhlds,on=[:hid,:data_year])
 
+shs_matches = CSV.File( "$(MATCHING_DIR)/mapped_from_shs_vars.tab" )|>DataFrame
+#
+# mh = innerjoin(scottish_hhlds,shs_matches,on=[:data_year,:hid],makeunique=true)
+# @assert size(mh)[1] == size( scottish_hhlds )[1]
+# match in previously calculated councils - no need for actual join
+#
+scottish_hhlds.council = shs_matches.council
+scottish_hhlds.nhs_board = shs_matches.nhs_board
+scottish_hhlds.bedrooms = shs_matches.bedrooms
+
 CSV.write("$(MODEL_DATA_DIR)model_households_scotland.tab", scottish_hhlds, delim = "\t")
 CSV.write("$(MODEL_DATA_DIR)model_people_scotland.tab", scottish_people, delim = "\t")
