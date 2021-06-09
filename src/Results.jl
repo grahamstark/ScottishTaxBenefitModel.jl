@@ -258,7 +258,7 @@ module Results
 
 
     function has_income( bur :: BenefitUnitResult, which )::Bool
-        for (pid,pers) in bur.people
+        for (pid,pers) in bur.pers
             if any_positive( pers.income, which )
                 return true
             end

@@ -17,7 +17,7 @@ using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,
 using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
 
 using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
-    LMTResults, LMTCanApplyFor, aggregate_tax
+    LMTResults, LMTCanApplyFor, aggregate_tax, has_income
 
 using .Intermediate: MTIntermediate, working_disabled, is_working_hours,
     born_before, num_born_before, apply_2_child_policy
@@ -70,7 +70,7 @@ function calc_incomes(
             net = 
                 gross - ## FIXME parameterise this so we can use gross/net
                 pres.it.non_savings_tax -
-                pres.ni.total_ni - 
+                pres.income[NATIONAL_INSURANCE] - 
                 0.5 * get(pers.income, pension_contributions_employee, 0.0 )
         else
             # wtc,ctr all pension contributions but not IT/NI
@@ -78,7 +78,7 @@ function calc_incomes(
         end
         gross_earn += gross
         net_earn += max( 0.0, net )
-        other += isum( pres.incomes, inclist )
+        other += isum( pres.income, inclist )
         #    data=pers.income, 
         #    calculated=pres.incomes, 
         #    included=inclist )
@@ -153,7 +153,7 @@ function calc_incomes(
         end
     end
     
-    inc.tariff_income = tariff # ex_income(cap, capmin, incrules.capital_tariff )
+    inc.tariff_income = tariff_income(cap, capmin, incrules.capital_tariff )
     inc.disqualified_on_capital = cap > capmax 
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg

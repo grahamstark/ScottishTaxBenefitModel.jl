@@ -46,6 +46,9 @@ export Intermediate
 include( "Results.jl")
 export Results
 
+include( "NonMeansTestedBenefits.jl")
+export NonMeansTestedBenefits
+
 include("IncomeTaxCalculations.jl" )
 export IncomeTaxCalculations
 

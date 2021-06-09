@@ -25,6 +25,8 @@ module STBParameters
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
  
+
+
     ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
     # using Unitful
 
@@ -40,6 +42,52 @@ module STBParameters
             Electric=>0.02,
             LPG=>0.02,
             Biofuel_eg_E85_fuel=>0.02 )
+    end
+
+    @with_kw mutable struct AttendanceAllowance{RT<:Real}
+        higher :: RT = 87.65
+        lower :: RT = 58.70
+
+    end
+
+    @with_kw mutable struct ChildBenefit{RT<:Real}
+        first_child :: RT = 20.70
+        other_children :: RT = 13.70
+        high_income_thresh :: RT = 50_0000
+        withdrawal = 1/100
+    end
+
+    @with_kw mutable struct DisabilityLivingAllowance{RT<:Real}
+        care_high :: RT = 87.65
+        care_middle  :: RT = 58.70
+        care_low  :: RT = 23.20
+        mob_high  :: RT = 61.20
+        mob_low  :: RT = 23.20
+
+    end
+
+    @with_kw mutable struct CarersAllowance{RT<:Real}
+        allowance :: RT = 66.15
+        scottish_supplement :: RT = 38.90
+        hours :: Int = 30
+    end
+
+    @with_kw mutable struct PersonalIndependencePayment{RT<:Real}
+
+    end
+    #
+    # initial version - will be progressively replaced
+    # with actual calculations based on disability, hours caring etc.
+    @with_kw mutable struct NonMeansTestedBenefits{RT<:Real}
+        attendance_allowance = AttendanceAllowance{RT}()
+        child_benefit = ChildBenefit{RT}()
+        dla = DisabilityLivingAllowance{RT}()
+        carers = CarersAllowance{RT}()
+        pip = PersonalIndependencePayment{RT}()
+        widowed_parent :: RT = 119.90
+        
+
+
     end
 
     @with_kw mutable struct IncomeTaxSys{RT<:Real}
