@@ -84,7 +84,13 @@ module STBParameters
         assessment_u25 :: RT = 57.90
         assessment_25p :: RT = 73.10
         main           :: RT = 73.10
-        # work, support component ...
+        work           :: RT = 29.05
+        support        :: RT = 38.55
+    end
+
+    @with_kw mutable struct JobSeekersAllowance{RT}
+        u25 :: RT = 57.90
+        o24 :: RT = 73.10
     end
 
     #=
@@ -99,7 +105,14 @@ module STBParameters
     end
     =#
 
-
+    @with_kw mutable struct RetirementPension{RT}
+        new_state_pension :: RT = 168.60
+        pension_start_date = Date( 2016, 04, 06 )
+        cat_a     :: RT = 129.20
+        cat_b     :: RT = 129.20
+        cat_b_survivor :: RT = 77.45
+        cat_d     :: RT = 77.45
+    end
 
     #
     # initial version - will be progressively replaced
@@ -111,8 +124,16 @@ module STBParameters
         carers = CarersAllowance{RT}()
         pip = PersonalIndependencePayment{RT}()
         esa = ContributoryESA{RT}()
-        incapacity = IncapacityBenefit{RT}()
+        incapacity = IncapacityBenefit{RT}()        
+        jsa = JobSeekersAllowance{RT}()
+        pensions = RetirementPension{RT}()
+        
         widowed_parent :: RT = 119.90
+        
+        maternity_allowance :: RT = 148.68
+        smp :: RT = 148.68
+        # not modelled SDA,Incapacity which we just wrap into
+        # ESA
     end
 
     @with_kw mutable struct IncomeTaxSys{RT<:Real}

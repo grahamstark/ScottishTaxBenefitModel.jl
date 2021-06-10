@@ -168,6 +168,7 @@ using StaticArrays
     export SPARE_DEDUCT_3
     export SPARE_DEDUCT_4
     export SPARE_DEDUCT_5
+    # taxation
     export INCOME_TAX
     export NATIONAL_INSURANCE
     export LOCAL_TAXES
@@ -179,6 +180,7 @@ using StaticArrays
     export SPARE_TAX_3
     export SPARE_TAX_4
     export SPARE_TAX_5
+    # benefits
     export CHILD_BENEFIT
     export STATE_PENSION
     export BEREAVEMENT_ALLOWANCE
