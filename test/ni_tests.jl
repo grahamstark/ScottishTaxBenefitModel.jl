@@ -1,8 +1,10 @@
 using Test
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, default_bu_allocation
+
 using .ExampleHouseholdGetter
 using .Definitions
+using .Incomes
 using .NationalInsuranceCalculations: 
     calculate_national_insurance!,
     calc_class1_secondary
@@ -10,7 +12,7 @@ using .NationalInsuranceCalculations:
 using .STBParameters: NationalInsuranceSys,weeklyise!
 using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .FRSHouseholdGetter: get_household
-using .Results: IndividualResult
+using .Results: IndividualResult, map_incomes
 
 const RUK_PERSON = 100000001001
 
@@ -40,6 +42,7 @@ end
         for (pid,person) in hh.people
             println( "on hh $hno; pid=$pid")
             pres = IndividualResult{Float64}()
+            pres.income = map_incomes( person )
             calculate_national_insurance!( pres, person, nisys )
             @test pres.ni.class_1_primary >= 0.0
             @test pres.ni.class_1_secondary >= 0.0
@@ -63,9 +66,10 @@ end #
     pers = hh.people[RUK_PERSON]
     pers.age = 50
     for i in 1:ntests
-        pers.income[wages] = income[i]
+        # pers.income[wages] = income[i]
         println( "case $i income = $(income[i])")
         pres = IndividualResult{Float64}()
+        pres.income[WAGES] = income[i]
         calculate_national_insurance!( pres, pers, nisys )
         class1sec = calc_class1_secondary( income[i], pers, nisys )
         @test pres.ni.class_1_primary ≈ nidue[i][1]
@@ -90,18 +94,18 @@ end
     nisys.class_2_threshold *= WEEKS_PER_YEAR
     nisys.class_4_bands *= WEEKS_PER_YEAR
     for i in 1:size(seinc)[1]
-        pers.income[self_employment_income] = seinc[i]
-        println( "case $i seinc = $(seinc[i])")
         pres = IndividualResult{Float64}()
+        pres.income[SELF_EMPLOYMENT_INCOME] = seinc[i]
+        println( "case $i seinc = $(seinc[i])")
         calculate_national_insurance!( pres, pers, nisys )
         @test pres.ni.class_2 ≈ class2[i]
     end
     seinc = [15_140.0, 55_000.0,7_500.0]
     class4 = [585.72, 3_823.12, 0.0 ]
     for i in 1:size(seinc)[1]
-        pers.income[self_employment_income] = seinc[i]
-        println( "case $i seinc = $(seinc[i])")
         pres = IndividualResult{Float64}()
+        pres.income[SELF_EMPLOYMENT_INCOME] = seinc[i]
+        println( "case $i seinc = $(seinc[i])")
         calculate_national_insurance!( pres, pers, nisys )
         @test pres.ni.class_4 ≈ class4[i]
     end

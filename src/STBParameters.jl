@@ -335,12 +335,9 @@ module STBParameters
         class_2_rate ::RT = 3.00;
         class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
         class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, 99999999999999.9 ]
-        class_1_income = Incomes_Dict{RT}(
-         wages => 1.0,
-         pension_contributions_employer => -1.0 )
-        class_4_income = Incomes_Dict{RT}( 
-         self_employment_income => 1.0 )      
-        ## some modelling of u21s and u25s in apprentiships here..
+        class_1_income = IncludedItems([WAGES],[PENSION_CONTRIBUTIONS_EMPLOYER])
+        class_4_income = [SELF_EMPLOYMENT_INCOME]
+            ## some modelling of u21s and u25s in apprentiships here..
         # gross_to_net_lookup = BudgetConstraint(undef,0)
     end
 

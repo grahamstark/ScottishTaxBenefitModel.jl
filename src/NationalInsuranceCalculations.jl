@@ -6,6 +6,7 @@ using Dates: Date, now, TimeType, Year
 using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
+using .Incomes
 using .Definitions
 using .ModelHousehold: Person
 using .STBParameters: NationalInsuranceSys
@@ -54,10 +55,9 @@ function calculate_national_insurance!(
     sys  :: NationalInsuranceSys )
     # employer's NI on any wages
     bc = make_gross_wage_bc( pers, sys )
-    wage = mult( 
-        data=pers.income, 
-        calculated=pres.incomes, 
-        included=sys.class_1_income )
+    wage = isum( 
+        pres.income, 
+        sys.class_1_income )
     
     wage = max(0.0, wage)
     gross = gross_from_net( bc, wage )
@@ -75,10 +75,9 @@ function calculate_national_insurance!(
         pres.ni.above_lower_earnings_limit = tres.end_band > 1
 
         if( pers.employment_status in [Full_time_Self_Employed, Part_time_Self_Employed])
-            seinc = mult( 
-                data=pers.income, 
-                calculated=pres.incomes, 
-                included=sys.class_4_income )
+            seinc = isum( 
+                pres.income, 
+                sys.class_4_income )
             # maybe? pers.principal_employment_type != An_Employee
             # FIXME do I need *any* check on whether someone is classed as SE, & not just se income present?
             if seinc > sys.class_2_threshold
@@ -95,10 +94,10 @@ function calculate_national_insurance!(
     # do something random for class 3
 
     # don't count employers NI here
-        pres.income[NATIONAL_INSURANCE] = 
-            pres.ni.class_1_primary +
-            pres.ni.class_2 +
-            pres.ni.class_4
+    pres.income[NATIONAL_INSURANCE] = 
+        pres.ni.class_1_primary +
+        pres.ni.class_2 +
+        pres.ni.class_4
 
  end
 
