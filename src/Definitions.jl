@@ -26,11 +26,16 @@ const HBAI_DIR = "$RAW_DATA/hbai/"
 export NUM_REPEATS
 const NUM_REPEATS = 30 # simulates a longer calculation
 
-# const RT :: Type = Float64 # experiment
+export old_style, new_style, OldOrNew
+@enum OldOrNew begin
+   old_style = 1
+   new_style = 2
+end
 
 export Illness_Length  # mapped from limitl
 export Less_than_six_months, Between_six_months_and_12_months, v_12_months_or_more
 export Missing_Illness_Length, RT
+
 
 @enum Illness_Length begin  # mapped from limitl
    Missing_Illness_Length = -1

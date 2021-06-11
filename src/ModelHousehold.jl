@@ -19,6 +19,7 @@ mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
     pno:: Int # person number in household
+    is_hrp :: Bool
     default_benefit_unit:: Int
     is_standard_child :: Bool
     age:: Int
@@ -40,7 +41,10 @@ mutable struct Person{RT<:Real}
     actual_hours_worked::RT
     usual_hours_worked::RT
 
+    age_started_first_job :: Int
+
     income::Incomes_Dict{RT}
+    benefit_ratios :: Incomes_Dict{RT}
     
     jsa_type :: JSAType # FIXME change this name
     esa_type :: JSAType
@@ -50,7 +54,9 @@ mutable struct Person{RT<:Real}
     pip_daily_living_type :: PIPType
     pip_mobility_type ::  PIPType
 
-    
+    widows_type :: OldOrNew
+    had_children_when_bereaved :: Bool 
+
     assets::Asset_Dict{RT}
     pay_includes ::Included_In_Pay_Dict{Bool}
     

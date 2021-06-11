@@ -51,6 +51,13 @@ function create_regression_dataframe(
     return fm
 end
 
+function make_benefit_ratios( mp :: DataFrameRow ) :: Incomes_Dict
+    d = IncomesDict{Float64}()
+
+    return d
+end
+
+
 function map_person( model_person :: DataFrameRow, source::DataSource )
 
     income = Dict{Incomes_Type,Float64}()
@@ -106,6 +113,12 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         end
     end
 
+    bereavment_type = model_person.type_of_bereavement_allowance
+    # only existed in 2016, as a holder for the new bereavementbenefit, so
+    if model_person.income_widows_payment > 0
+        bereavment_type = 2
+    end
+
     relationships = Relationship_Dict()
     for i in 1:14
         relmod = Symbol( "relationship_$(i)") # :relationship_10 or :relationship_2
@@ -120,11 +133,14 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         end
     end
 
+    benefit_ratios = make_benefits_ratios( model_person )
+
     Person{Float64}(
 
         BigInt(model_person.hid),  # BigInt# == sernum
         BigInt(model_person.pid),  # BigInt# == unique id (year * 100000)+
         model_person.pno,  # Integer# person number in household
+        safe_to_bool(model_person.is_hrp), 
         model_person.default_benefit_unit,  # Integer
         safe_to_bool(model_person.from_child_record), # Bool
         model_person.age,  # Integer
@@ -146,6 +162,7 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         m2z(model_person.usual_hours_worked),  # Real
 
         income,
+        benefit_ratios,
         
         JSAType(safe_assign(model_person.jsa_type)),
         JSAType(safe_assign(model_person.esa_type)),
@@ -155,7 +172,8 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         LowMiddleHigh( safe_assign( model_person.attendence_allowance_type )),
         PIPType( safe_assign( model_person.personal_independence_payment_daily_living_type )),
         PIPType( safe_assign( model_person.personal_independence_payment_mobility_type )),
-        
+        OldOrNew( bereavement_type ),
+        safe_to_bool(model_person.had_children_when_bereaved), 
         assets,
         pay_includes,
 
