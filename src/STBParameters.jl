@@ -5,7 +5,6 @@ module STBParameters
     using TimeSeries
     using StaticArrays
     using Parameters
-    using BudgetConstraints: BudgetConstraint
     using DataFrames,CSV
 
     using ScottishTaxBenefitModel
@@ -69,7 +68,8 @@ module STBParameters
     @with_kw mutable struct CarersAllowance{RT<:Real}
         allowance :: RT = 66.15
         scottish_supplement :: RT = 38.90
-        hours :: Int = 30
+        hours :: Int = 35
+        gainful_employment_min :: RT = 123.0
     end
 
     @with_kw mutable struct PersonalIndependencePayment{RT<:Real}
@@ -114,6 +114,24 @@ module STBParameters
         cat_d     :: RT = 77.45
     end
 
+    @with_kw mutable struct BereavementSupport{RT}
+        # higher effectively just means 'with children'; 
+        lump_sum_higher :: RT = 3_500 # convert to weekly
+        lump_sum_lower  :: RT = 1_000
+        higher :: RT = 350 # monthly
+        lower  :: RT = 100 # monthly 
+        deaths_after = Date( 2017, 04, 06 ) # noway of using this, but, key
+    end
+
+    @with_kw mutable struct WidowsPensions{RT}
+        industrial_higher :: RT = 129.20
+        industrial_lower :: RT = 38.76
+        standard_rate :: RT = 119.90
+        parent :: RT = 119.90
+        ages = collect(54:-1:45)
+        age_amounts = Vector{RT}([111.51,103.11,94.72,86.33,77.94,69.54,61.15,52.76,44.36,35.97])
+    end
+
     #
     # initial version - will be progressively replaced
     # with actual calculations based on disability, hours caring etc.
@@ -127,13 +145,21 @@ module STBParameters
         incapacity = IncapacityBenefit{RT}()        
         jsa = JobSeekersAllowance{RT}()
         pensions = RetirementPension{RT}()
-        
-        widowed_parent :: RT = 119.90
+        bereavement = BereavementSupport{RT}()
+        widows_pension = WidowsPensions{RT}(s)
         
         maternity_allowance :: RT = 148.68
         smp :: RT = 148.68
         # not modelled SDA,Incapacity which we just wrap into
         # ESA
+    end
+
+    function weeklyise!( nmt :: NonMeansTestedBenefits )
+        nmt.bereavement.lump_sum_higher /= WEEKS_PER_YEAR
+        nmt.bereavement.lump_sum_lower /= WEEKS_PER_YEAR
+        nmt.bereavement.lower /= WEEKS_PER_MONTH
+        nmt.bereavement.higher /= WEEKS_PER_MONTH
+        nmt.child_benefit.high_income_thresh /= WEEKS_PER_YEAR
     end
 
     @with_kw mutable struct IncomeTaxSys{RT<:Real}

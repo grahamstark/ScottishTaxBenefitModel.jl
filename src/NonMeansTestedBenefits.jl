@@ -11,5 +11,13 @@ module NonMeansTestedBenefits
     end
 
 
+    function widows( 
+        pers :: Person{T}, 
+        persr :: PersonalResult{T}
+        has_kids :: Boolean, 
+        wp :: WindowsPension{T})
+        nearz( pers.income[])
+        if pers.income[]
+    end
 
 end # package non-means-tested

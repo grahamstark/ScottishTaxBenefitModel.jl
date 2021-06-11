@@ -14,6 +14,7 @@ const RateBands = Vector{<:Real}
 const IncomesDict = Dict{Any,Number}
 
 const WEEKS_PER_YEAR = 365.25/7.0
+const WEEKS_PER_MONTH = WEEKS_PER_YEAR/12
 
 function weeklyise( annual_amount )
    round(annual_amount/WEEKS_PER_YEAR, digits=6) # round( x, digits=2) possibly
