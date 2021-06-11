@@ -1164,7 +1164,9 @@ function create_adults(
 
             model_adult.age_started_first_job = safe_assign( frs_person.jobbyr )
             # 2017/18 only
-            model_adult.type_of_bereavement_allowance = safe_assign( frs_person.wid )
+            if year >= 2017
+                model_adult.type_of_bereavement_allowance = safe_assign( frs_person.wid )
+            end
             model_adult.had_children_when_bereaved = safe_assign( frs_person.w2 )
 
             # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
