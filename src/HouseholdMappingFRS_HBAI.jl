@@ -184,6 +184,8 @@ function initialise_person(n::Integer)::DataFrame
         hid = Vector{Union{BigInt,Missing}}(missing, n),
         pid = Vector{Union{BigInt,Missing}}(missing, n),
         pno = Vector{Union{Integer,Missing}}(missing, n),
+        is_hrp = Vector{Union{Integer,Missing}}(missing, n),
+
         from_child_record = Vector{Union{Integer,Missing}}(missing, n),
         default_benefit_unit = Vector{Union{Integer,Missing}}(missing, n),
         age = Vector{Union{Integer,Missing}}(missing, n),
@@ -202,6 +204,11 @@ function initialise_person(n::Integer)::DataFrame
         usual_hours_worked = Vector{Union{Real,Missing}}(missing, n),
         actual_hours_worked = Vector{Union{Real,Missing}}(missing, n),
         
+        age_started_first_job = Vector{Union{Real,Missing}}(missing, n),
+        # for widow's benefits
+        type_of_bereavement_allowance = Vector{Union{Real,Missing}}(missing, n),
+        had_children_when_bereaved = Vector{Union{Real,Missing}}(missing, n),
+
         pay_includes_ssp = Vector{Union{Integer,Missing}}(missing, n),
         pay_includes_smp = Vector{Union{Integer,Missing}}(missing, n),
         pay_includes_spp = Vector{Union{Integer,Missing}}(missing, n),
@@ -1011,6 +1018,8 @@ function create_adults(
             model_adult = adult_model[adno, :]
             model_adult.pno = frs_person.person
             model_adult.hid = frs_person.sernum
+            model_adult.is_hrp = (frs_person.hrpid == 1) ? 1 : 0
+
             model_adult.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
             model_adult.from_child_record = 0
             model_adult.data_year = year
@@ -1019,6 +1028,8 @@ function create_adults(
             model_adult.sex = safe_assign(frs_person.sex)
             model_adult.ethnic_group = safe_assign(frs_person.ethgr3)
             
+            
+
             hdsp = is_bu_head( 
                 hbai_res,
                 frs_person.sernum,
@@ -1151,6 +1162,10 @@ function create_adults(
             model_adult.how_long_adls_reduced = (frs_person.limitl < 0 ? -1 : frs_person.limitl)
             model_adult.adls_are_reduced = (frs_person.condit < 0 ? -1 : frs_person.condit) # missings to 'not at all'
 
+            model_adult.age_started_first_job = safe_assign( frs_person.jobbyr )
+            # 2017/18 only
+            model_adult.type_of_bereavement_allowance = safe_assign( frs_person.wid )
+            model_adult.had_children_when_bereaved = safe_assign( frs_person.w2 )
 
             # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
             model_adult.health_status = safe_assign(frs_person.heathad)
