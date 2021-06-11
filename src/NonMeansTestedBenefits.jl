@@ -1,7 +1,11 @@
 module NonMeansTestedBenefits
-
+    using Dates
+    using Dates: Date, now, TimeType, Year
     using ScottishTaxBenefitModel
     using .Utils: nearest
+    using .ModelHousehold: Person
+    using .STBParameters: WidowsPensions
+    using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
 
     function nearz( x :: Real, comps ... ) :: Real
         if x ≈ 0
@@ -11,13 +15,16 @@ module NonMeansTestedBenefits
     end
 
 
-    function widows( 
+    function calc_widows_bens( 
         pers :: Person{T}, 
-        persr :: PersonalResult{T}
-        has_kids :: Boolean, 
-        wp :: WindowsPension{T})
+        has_kids :: Bool, 
+        wp :: WindowsPensions{T}) :: T where T
+        #=
         nearz( pers.income[])
         if pers.income[]
+
+        end
+        =#
     end
 
 end # package non-means-tested

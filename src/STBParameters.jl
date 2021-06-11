@@ -20,11 +20,12 @@ module STBParameters
     export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes, CouncilTax
     export state_pension_age, reached_state_pension_age, load_file, load_file!
     export BRMA, loadBRMAs, DEFAULT_BRMA_2021
-
+    export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
+    export CarersAllowance, PersonalIndependencePayment, ContributoryESA
+    export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
+    export NonMeansTestedBenefits
+    
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
-
- 
-
 
     ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
     # using Unitful
@@ -48,7 +49,7 @@ module STBParameters
         lower :: RT = 58.70
 
     end
-
+    
     @with_kw mutable struct ChildBenefit{RT<:Real}
         first_child :: RT = 20.70
         other_children :: RT = 13.70
@@ -78,7 +79,6 @@ module STBParameters
         mobility_standard :: RT = 23.20
         mobility_enhanced :: RT = 61.20
     end
-
 
     @with_kw mutable struct ContributoryESA{RT<:Real}
         assessment_u25 :: RT = 57.90
@@ -113,7 +113,6 @@ module STBParameters
         cat_b_survivor :: RT = 77.45
         cat_d     :: RT = 77.45
     end
-
     @with_kw mutable struct BereavementSupport{RT}
         # higher effectively just means 'with children'; 
         lump_sum_higher :: RT = 3_500 # convert to weekly
