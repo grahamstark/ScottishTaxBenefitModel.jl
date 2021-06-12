@@ -14,7 +14,7 @@ export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
 export is_single, search, pers_is_disabled, pers_is_carer, num_carers
 export le_age, between_ages, ge_age, num_adults, empl_status_in, child_pids, adult_pids
 export has_children, num_children, num_adults, is_severe_disability, age_then
-
+export interview_date
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
