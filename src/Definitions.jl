@@ -28,8 +28,22 @@ const NUM_REPEATS = 30 # simulates a longer calculation
 
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin
+   missing_style = -1
    old_style = 1
    new_style = 2
+end
+
+export BereavementType,
+   missing_bereave,
+   bereavement_allowance,
+   widowed_parents,
+   bereavement_support
+   
+@enum BereavementType begin
+   missing_bereave = -1
+   bereavement_allowance = 1
+   widowed_parents = 2
+   bereavement_support = 3
 end
 
 export Illness_Length  # mapped from limitl

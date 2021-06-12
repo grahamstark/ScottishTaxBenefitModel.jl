@@ -54,7 +54,7 @@ mutable struct Person{RT<:Real}
     pip_daily_living_type :: PIPType
     pip_mobility_type ::  PIPType
 
-    widows_type :: OldOrNew
+    widows_type :: BereavementType
     had_children_when_bereaved :: Bool 
 
     assets::Asset_Dict{RT}
@@ -126,6 +126,10 @@ mutable struct Household{RT<:Real}
     bedrooms :: Int
     head_of_household :: BigInt
     people::People_Dict
+end
+
+function interview_date( hh :: Household ) :: Date
+    return Date( hh.interview_year, hh.interview_month, 15 )
 end
 
 function uprate!( pid :: BigInt, year::Integer, quarter::Integer, person :: Person )

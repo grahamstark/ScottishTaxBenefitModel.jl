@@ -52,13 +52,15 @@ function create_regression_dataframe(
 end
 
 function make_benefit_ratios( mp :: DataFrameRow ) :: Incomes_Dict
-    d = IncomesDict{Float64}()
+    d = Incomes_Dict{Float64}()
 
     return d
 end
 
 
-function map_person( model_person :: DataFrameRow, source::DataSource )
+function map_person( 
+    hh :: Household, 
+    model_person :: DataFrameRow, source::DataSource )
 
     income = Dict{Incomes_Type,Float64}()
     for i in instances(Incomes_Type)
@@ -113,10 +115,12 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         end
     end
 
-    bereavment_type = model_person.type_of_bereavement_allowance
-    # only existed in 2016, as a holder for the new bereavementbenefit, so
-    if model_person.income_widows_payment > 0
-        bereavment_type = 2
+    bereavement_type = model_person.type_of_bereavement_allowance
+    # fixme missing in year <= 2016 m
+    # this field only existed in 2016, as a holder for the new bereavementbenefit, so
+    # fixme add year check here
+    if (! ismissing(model_person.income_widows_payment)) && (model_person.income_widows_payment > 0)
+        bereavement_type = 1
     end
 
     relationships = Relationship_Dict()
@@ -133,7 +137,7 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         end
     end
 
-    benefit_ratios = make_benefits_ratios( model_person )
+    benefit_ratios = make_benefit_ratios( model_person )
 
     Person{Float64}(
 
@@ -161,6 +165,8 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         m2z(model_person.actual_hours_worked),  # Real
         m2z(model_person.usual_hours_worked),  # Real
 
+        m2z(model_person.age_started_first_job),
+
         income,
         benefit_ratios,
         
@@ -172,7 +178,7 @@ function map_person( model_person :: DataFrameRow, source::DataSource )
         LowMiddleHigh( safe_assign( model_person.attendence_allowance_type )),
         PIPType( safe_assign( model_person.personal_independence_payment_daily_living_type )),
         PIPType( safe_assign( model_person.personal_independence_payment_mobility_type )),
-        OldOrNew( bereavement_type ),
+        BereavementType( safe_assign( bereavement_type )),
         safe_to_bool(model_person.had_children_when_bereaved), 
         assets,
         pay_includes,
@@ -251,7 +257,7 @@ function load_hhld_from_frame( hseq::Integer, hhld_fr :: DataFrameRow, pers_fr :
      @assert npers in 1:19
      head_of_household = -1
      for p in 1:npers
-         pers = map_person( pers_fr_in_this_hh[p,:], source )
+         pers = map_person( hh, pers_fr_in_this_hh[p,:], source )
          hh.people[pers.pid] = pers
          if pers.relationship_to_hoh == This_Person
             hh.head_of_household = pers.pid
