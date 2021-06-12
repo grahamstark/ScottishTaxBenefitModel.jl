@@ -43,7 +43,7 @@ export BereavementType,
    missing_bereave = -1
    bereavement_allowance = 1
    widowed_parents = 2
-   bereavement_support = 3
+   bereavement_support = 3 # old style 1 off payment. Only recorded in 2015 FRS I think
 end
 
 export Illness_Length  # mapped from limitl

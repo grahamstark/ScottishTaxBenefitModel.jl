@@ -115,12 +115,12 @@ function map_person(
         end
     end
 
-    bereavement_type = model_person.type_of_bereavement_allowance
-    # fixme missing in year <= 2016 m
-    # this field only existed in 2016, as a holder for the new bereavementbenefit, so
-    # fixme add year check here
-    if (! ismissing(model_person.income_widows_payment)) && (model_person.income_widows_payment > 0)
-        bereavement_type = 1
+    bereavement_type = missing 
+    if interview_date( hh ) < FY_2017
+        # maybe check (! ismissing(model_person.income_widows_payment))
+        bereavement_type = 2 # widowed parents allow    
+    else
+        model_person.type_of_bereavement_allowance
     end
 
     relationships = Relationship_Dict()

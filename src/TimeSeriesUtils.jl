@@ -1,8 +1,9 @@
 module TimeSeriesUtils
 
+using Base: Integer
 using TimeSeries, Dates
 
-export fy, fy_array, get_birthdate, fyear
+export fy, fy_array, get_birthdate, fyear, fy_from_date
 
 """
 For Unit testing. A date age_in_years + 1 month before today.
@@ -25,6 +26,14 @@ function fyear( year :: Integer  ) :: Date
     return Date( year, 04, 06 )
 end
 
+function fy_from_date( d :: Date ) :: Integer
+    y = year( d )
+    if (month( d ) >= 4) && (day( d ) >= 6)
+        y += 1
+    end
+    return y
+end
+
 function fy_array( years::UnitRange ) :: Vector{Date}
     n = size(years)[1]
     d = Vector{Date}(undef, n)
@@ -35,7 +44,7 @@ function fy_array( years::UnitRange ) :: Vector{Date}
     end
     return d
 end
-
+# FIXME the day needn't be the 6th; see for example IFS fiscal facts
 const FY_2000 = fyear(2000)
 const FY_2001 = fyear(2001)
 const FY_2002 = fyear(2002)

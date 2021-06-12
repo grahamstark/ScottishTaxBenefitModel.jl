@@ -131,6 +131,31 @@ module STBParameters
         age_amounts = Vector{RT}([111.51,103.11,94.72,86.33,77.94,69.54,61.15,52.76,44.36,35.97])
     end
 
+    HISTORIC_BENEFITS = Dict(
+            [ bereavement_allowance_or_widowed_parents_allowance_or_bereavement
+                => Dict( [
+                    2000=>1
+                    
+                    ],
+                ),
+              state_pension => Dict(
+                [
+
+
+                ]
+              )
+            ]
+        )
+    end
+
+    function benefit_ratio( 
+        fy :: Integer, 
+        amt :: Real, 
+        btype :: Incomes_Type ) :: Real
+        brat = HIST_BENEFITS[btype][year]
+        return rat
+    end
+
     #
     # initial version - will be progressively replaced
     # with actual calculations based on disability, hours caring etc.
