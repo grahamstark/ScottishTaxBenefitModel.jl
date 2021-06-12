@@ -23,7 +23,7 @@ module STBParameters
     export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
     export CarersAllowance, PersonalIndependencePayment, ContributoryESA
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
-    export NonMeansTestedBenefits
+    export NonMeansTestedBenefits, benefit_ratio
     
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -131,29 +131,33 @@ module STBParameters
         age_amounts = Vector{RT}([111.51,103.11,94.72,86.33,77.94,69.54,61.15,52.76,44.36,35.97])
     end
 
-    HISTORIC_BENEFITS = Dict(
-            [ bereavement_allowance_or_widowed_parents_allowance_or_bereavement
-                => Dict( [
-                    2000=>1
-                    
-                    ],
-                ),
-              state_pension => Dict(
-                [
-
-
-                ]
-              )
-            ]
-        )
+    function load_historic( file ) :: Dict
+        df = CSV.File( file ) |> DataFrame
+        nc = size( df )[2]
+        nms = strip.(names( df ))
+        db = Dict{Int,Dict}()
+        for dr in eachrow(df)
+            d = Dict{Symbol,Real}()
+            for i in 3:nc
+                rn = Symbol(nms[i])
+                println( rn )
+                println( typeof( rn ))                
+                d[rn] = dr[i]
+            end
+            db[dr.year] = d
+        end
+        return db
     end
+
+    const HISTORIC_BENEFITS = load_historic( "$(MODEL_PARAMS_DIR)/historic_benefits.csv" ) 
 
     function benefit_ratio( 
         fy :: Integer, 
         amt :: Real, 
         btype :: Incomes_Type ) :: Real
-        brat = HIST_BENEFITS[btype][year]
-        return rat
+        brat = HIST_BENEFITS[Symbol(btype)][fy]
+        return amt/brat
+    
     end
 
     #
@@ -704,6 +708,7 @@ module STBParameters
         minwage = MinimumWage{RT}()
         hr = HousingRestrictions{RT}() # fixme better name
         loctax = LocalTaxes{RT}() # fixme better name
+        nmt_bens = NonMeansTestedBenefits{RT}()
     end
 
     
@@ -721,6 +726,7 @@ module STBParameters
         weeklyise!( tb.lmt )
         weeklyise!( tb.hr )
         weeklyise!( tb.loctax )
+        weeklyise!( tb.nmt_bens )
     end
     
    """

@@ -9,6 +9,7 @@ export Employee, Self_employed
 export Missing_Employment_Status
 
 export PRICES_DIR, MODEL_DATA_DIR, FRS_DIR, HBAI_DIR
+export MODEL_DATA_DIR, MODEL_PARAMS_DIR
 
 #
 # FIXME move this to some config file
@@ -18,6 +19,7 @@ const PROJECT_DIR=Utils.get_project_path() #"//vw/$MODEL_NAME/"
 const MODEL_DATA_DIR="$(PROJECT_DIR)/data/"
 const PRICES_DIR="$MODEL_DATA_DIR/prices/obr/"
 const MATCHING_DIR="$MODEL_DATA_DIR/merging/"
+const MODEL_PARAMS_DIR="$PROJECT_DIR/params"
 
 const RAW_DATA = "/mnt/data/"
 const FRS_DIR = "$RAW_DATA/frs/"
