@@ -11,6 +11,8 @@ is_local = isdir("/mnt/data/frs/")
 include( "general_tests.jl")
 include( "testutils.jl")
 
+include("non_means_tested_bens_tests.jl")
+
 include( "income_tax_tests.jl")
 include( "matching_tests.jl" )
 include( "parameter_tests.jl")
