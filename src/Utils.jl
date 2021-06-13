@@ -11,7 +11,14 @@ export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
 export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
 export coarse_match
-export nearest
+export nearest, not_zero_or_missing
+
+function not_zero_or_missing( thing :: Union{Missing, Number }) :: Bool
+   if ismissing( thing )
+      return false
+   end
+   return thing != 0
+end
 
 """
 return the element of comps that's closest to x 

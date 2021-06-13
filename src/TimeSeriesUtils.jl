@@ -3,7 +3,7 @@ module TimeSeriesUtils
 using Base: Integer
 using TimeSeries, Dates
 
-export fy, fy_array, get_birthdate, fyear, fy_from_date
+export fy, fy_array, get_birthdate, fyear, fy_from_date, fy_from_bits
 
 """
 For Unit testing. A date age_in_years + 1 month before today.
@@ -32,6 +32,13 @@ function fy_from_date( d :: Date ) :: Integer
         y += 1
     end
     return y
+end
+
+function fy_from_bits( year :: Integer, month :: Integer, day :: Integer = 1) :: Integer
+    if month >= 4 && day >= 6
+        return year + 1
+    end
+    return year
 end
 
 function fy_array( years::UnitRange ) :: Vector{Date}

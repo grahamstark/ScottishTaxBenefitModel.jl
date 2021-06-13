@@ -2,16 +2,92 @@ using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .ExampleHouseholdGetter
 using Test: @testset, @test
+using StatsBase
 using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       PeopleArray, printpids,
       BenefitUnit, BenefitUnits, default_bu_allocation,
       get_benefit_units, get_head, get_spouse, num_people,
       has_disabled_member, is_lone_parent, has_carer_member, num_children,
       count
-
+using .TimeSeriesUtils: fy_from_bits
 using .Definitions
+using .HistoricBenefits: make_benefit_ratios, RATIO_BENS
+using Plots
+using PyPlot
 
 start_year=2015
+num_households = 0
+total_num_people = 0
+nhh2 = 0
+pyplot()
+
+rc = @timed begin
+      num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
+            household_name = "model_households_scotland",
+            people_name    = "model_people_scotland",
+            start_year = start_year )
+end
+println( "num_households=$num_households, num_people=$(total_num_people)")
+
+
+@testset "ratio tests" begin
+      hh = ExampleHouseholdGetter.get_household( "single_parent_1" )  
+      bu = get_benefit_units( hh )[1]
+      head = get_head( bu )
+      fy = fy_from_bits( hh.interview_year, hh.interview_month )
+      @test fy == 2019
+
+      # pension fy 2019 = 129.2
+      # wid fy 2019 = 119.9
+      head.income[state_pension] = 129.20
+      head.benefit_ratios = make_benefit_ratios( fy, head.income )
+
+      @test length( head.benefit_ratios ) == 1
+      @test head.benefit_ratios[state_pension] ≈ 1
+
+      head.income[bereavement_allowance_or_widowed_parents_allowance_or_bereavement] = 129.20
+      head.benefit_ratios = make_benefit_ratios( fy, head.income )
+      @test length( head.benefit_ratios ) == 2
+      # 129.2/119.9 \approx 1.0775646371976646
+      @test head.benefit_ratios[bereavement_allowance_or_widowed_parents_allowance_or_bereavement] ≈ 1.0775646371976646
+
+      # overall test
+      num_rats = Dict()
+      for target in RATIO_BENS
+            num_rats[target] = Vector{Float64}(undef,0)
+      end
+      for hhno in 1:num_households
+            hh = FRSHouseholdGetter.get_household( hhno )
+            fy = fy_from_bits( hh.interview_year, hh.interview_month )
+            # println("people in HH")
+            # printpids(hh.people)
+            for (pid,pers) in hh.people 
+                  for target in RATIO_BENS
+                        if haskey( pers.benefit_ratios, target )
+                              @test pers.income[target] > 0
+                              push!(num_rats[target], pers.benefit_ratios[target] )
+                        end
+                  end
+                  newrats = make_benefit_ratios( fy, pers.income )
+                  @test length(symdiff(keys( newrats ),keys( pers.benefit_ratios ))) == 0 # all same keys
+                  for k in keys( newrats )
+                        @test  newrats[k] ≈ pers.benefit_ratios[k]
+                  end
+            end
+      end
+      for target in RATIO_BENS
+            rat = num_rats[target]
+            print(typeof(rat))
+            n = length( rat )
+            println( "ratios for $target n = $n")
+            nb = target == state_pension ? 20 : 4
+            cm = fit(Histogram,rat, nbins=nb)
+            p = Plots.plot( cm )
+            println( "hist:\n $cm")
+            fname="$(target)_hist.svg"
+            Plots.svg( p, fname )
+      end
+end
 
 @testset "people search functions" begin
       @time names = ExampleHouseholdGetter.initialise()
@@ -42,13 +118,6 @@ start_year=2015
 end
 
 @testset "benefit unit allocations" begin
-      rc = @timed begin
-            num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
-                  household_name = "model_households_scotland",
-                  people_name    = "model_people_scotland",
-                  start_year = start_year )
-      end
-      println( "num_households=$num_households, num_people=$(total_num_people)")
       people_count = 0
       over_16_kids = 0
       for hhno in 1:num_households
@@ -111,3 +180,4 @@ end
       @test over_16_kids > 0
       println( "num people $people_count over_16_kids=$over_16_kids" )
 end
+

@@ -7,7 +7,8 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
-using .HistoricBenefits: benefit_ratio
+using .HistoricBenefits: benefit_ratio, RATIO_BENS
+using .Utils: not_zero_or_missing
 
 export load_hhld_from_frame, map_hhld, create_regression_dataframe
 
@@ -53,9 +54,14 @@ function create_regression_dataframe(
     return fm
 end
 
-function make_benefit_ratios( mp :: DataFrameRow ) :: Incomes_Dict
+function make_benefit_ratios( finyear :: Integer, mp :: DataFrameRow ) :: Incomes_Dict
     d = Incomes_Dict{Float64}()
-
+    for target in RATIO_BENS
+        dkey = Symbol( "income_$(target)")
+        if not_zero_or_missing( mp[dkey])
+            d[target] = benefit_ratio( finyear, mp[dkey], target )
+        end
+    end
     return d
 end
 
@@ -63,7 +69,7 @@ end
 function map_person( 
     hh :: Household, 
     model_person :: DataFrameRow, source::DataSource )
-
+    finyear :: Int = fy_from_bits( hh.interview_year, hh.interview_month )
     income = Dict{Incomes_Type,Float64}()
     for i in instances(Incomes_Type)
         ikey = make_sym_for_frame("income", i)
@@ -139,7 +145,7 @@ function map_person(
         end
     end
 
-    benefit_ratios = make_benefit_ratios( model_person )
+    benefit_ratios = make_benefit_ratios( finyear, model_person )
 
     Person{Float64}(
 

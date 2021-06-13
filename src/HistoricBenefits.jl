@@ -2,8 +2,10 @@ module HistoricBenefits
 
 using CSV, DataFrames
 using ScottishTaxBenefitModel.Definitions 
- 
-export benefit_ratio
+
+export benefit_ratio, RATIO_BENS, make_benefit_ratios
+
+const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
 
 function load_historic( file ) :: Dict
     df = CSV.File( file ) |> DataFrame
@@ -32,5 +34,15 @@ function benefit_ratio(
     brat = HISTORIC_BENEFITS[fy][Symbol(btype)]
     return amt/brat
 end
+
+function make_benefit_ratios( fy :: Integer, incd :: Incomes_Dict{T} ) ::Incomes_Dict{T} where T
+    d = Incomes_Dict{T}()
+    for target in RATIO_BENS
+        if haskey(incd, target )
+            d[target] = benefit_ratio( fy, incd[target], target )
+        end
+    end
+    return d
+end 
 
 end # module
