@@ -7,6 +7,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
+using .HistoricBenefits: benefit_ratio
 
 export load_hhld_from_frame, map_hhld, create_regression_dataframe
 
