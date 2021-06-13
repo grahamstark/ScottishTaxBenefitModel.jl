@@ -20,11 +20,11 @@ module NonMeansTestedBenefits
     function calc_widows_bens(
         pers :: Person{T}, 
         has_kids :: Bool, 
-        wp :: WindowsPensions{T}) :: T where T
+        wp :: WidowsPensions{T}) :: T where T
         if pers.widows_type == bereavement_allowance
 
         else
-            
+
         end
         #=
         nearz( pers.income[])

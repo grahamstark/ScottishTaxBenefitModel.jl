@@ -124,13 +124,16 @@ function map_person(
     end
 
     bereavement_type = missing 
-    if interview_date( hh ) < FY_2017
-        # maybe check (! ismissing(model_person.income_widows_payment))
-        bereavement_type = 2 # widowed parents allow    
-    else
-        model_person.type_of_bereavement_allowance
+    if not_zero_or_missing( model_person.income_bereavement_allowance_or_widowed_parents_allowance_or_bereavement ) ||
+       not_zero_or_missing( model_person.income_widows_payment )
+        if interview_date( hh ) < FY_2017        
+            # maybe check (! ismissing(model_person.income_widows_payment))
+            bereavement_type = 2 # widowed parents allow    
+        else
+            @assert ! ismissing( model_person.type_of_bereavement_allowance )
+            bereavement_type = model_person.type_of_bereavement_allowance
+        end
     end
-
     relationships = Relationship_Dict()
     for i in 1:14
         relmod = Symbol( "relationship_$(i)") # :relationship_10 or :relationship_2
