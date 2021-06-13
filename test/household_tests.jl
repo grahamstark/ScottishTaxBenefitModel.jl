@@ -73,6 +73,12 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
                               end
                               tot += 1
                               push!(num_rats[target], pts )
+                              if target == bereavement_allowance_or_widowed_parents_allowance_or_bereavement
+                                    @assert pers.widows_type in [
+                                          bereavement_allowance,
+                                          widowed_parents,
+                                          bereavement_support]                              
+                              end
                         end
                   end
                   newrats = make_benefit_ratios( fy, pers.income )
@@ -89,10 +95,10 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
             println( "ratios for $target n = $n")
             nb = target == state_pension ? 40 : 6
             cm = fit(Histogram,rat, nbins=nb)
-            p = Plots.plot( cm )
+            p = Plots.plot( cm, title="$target ratio of actual vs standard for year"  )
             println( "hist:\n $cm")
             fname="tmp/$(target)_hist.svg"
-            Plots.svg( p, fname )
+            Plots.svg( p, fname)
             println( "exacts = $exact tot = $tot")
       end
 end
