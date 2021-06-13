@@ -53,6 +53,8 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
 
       # overall test
       num_rats = Dict()
+      exact = 0
+      tot = 0
       for target in RATIO_BENS
             num_rats[target] = Vector{Float64}(undef,0)
       end
@@ -65,7 +67,12 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
                   for target in RATIO_BENS
                         if haskey( pers.benefit_ratios, target )
                               @test pers.income[target] > 0
-                              push!(num_rats[target], pers.benefit_ratios[target] )
+                              pts = pers.benefit_ratios[target]
+                              if pts ≈ 1
+                                    exact += 1
+                              end
+                              tot += 1
+                              push!(num_rats[target], pts )
                         end
                   end
                   newrats = make_benefit_ratios( fy, pers.income )
@@ -80,12 +87,13 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
             print(typeof(rat))
             n = length( rat )
             println( "ratios for $target n = $n")
-            nb = target == state_pension ? 20 : 4
+            nb = target == state_pension ? 40 : 6
             cm = fit(Histogram,rat, nbins=nb)
             p = Plots.plot( cm )
             println( "hist:\n $cm")
-            fname="$(target)_hist.svg"
+            fname="tmp/$(target)_hist.svg"
             Plots.svg( p, fname )
+            println( "exacts = $exact tot = $tot")
       end
 end
 
