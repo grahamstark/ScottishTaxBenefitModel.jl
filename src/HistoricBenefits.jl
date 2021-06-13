@@ -11,7 +11,7 @@ function load_historic( file ) :: Dict
     nms = strip.(names( df ))
     db = Dict{Int,Dict}()
     for dr in eachrow(df)
-        d = Dict{Symbol,Real}()
+        d = Dict{Symbol,Float64}()
         for i in 3:nc
             rn = Symbol(nms[i])
             # println( rn )
