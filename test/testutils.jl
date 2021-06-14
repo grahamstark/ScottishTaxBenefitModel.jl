@@ -9,18 +9,22 @@ import .Results: init_benefit_unit_result, BenefitUnitResult
 using .ModelHousehold: Household, BenefitUnit, Person, num_children, num_adults, num_adults, num_children, child_pids
 using .Definitions
 import .ExampleHouseholdGetter
-using DataFrames
-using CSV
+using DataFrames,CSV, Dates
 
 # pids for example people
 # see make_pid 
- const RUK_PERSON = 320190010101
+const RUK_PERSON = 320190010101
 
- const SCOT_HEAD = 320190010201
- const SCOT_SPOUSE = 320190010202
+const SCOT_HEAD = 320190010201
+const SCOT_SPOUSE = 320190010202
 
- const DEFAULT_NUM_TYPE = Float64
+const DEFAULT_NUM_TYPE = Float64
+const EXAMPLES = get_ss_examples()
+const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
 
+const TEST_BASE_DATE = Date( 2021, 06, 14 ) # All the tests ran on this date; `TEST_BASE_DATE` is used
+   # to adjust some ages e.g. social_security_ages_tests.jl so tests also pass next year.
+ 
 function get_default_it_system(
    ;
   year     :: Integer=2019,
@@ -78,8 +82,6 @@ function get_ss_examples()::Dict{SS_Examples, Household}
     return d
 end
 
-const EXAMPLES = get_ss_examples()
-const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
 
 function unemploy!( pers::Person )
    pers.usual_hours_worked = 0
@@ -185,6 +187,15 @@ function delete_child!( hh :: Household )
    if size(chpids)[1] > 0
       delete_person!( hh, chpids[1])
    end
+end
+
+"""
+ if the test was written at TEST_BASE_DATE, what age would we have to make somebody
+ to be sure the test will still work in some later year?
+"""
+function age_now( age :: Int ) :: Int
+   yd = (Date(now()) - TEST_BASE_DATE).value ÷ 365 # leap years; no function for this
+   return age + Int(yd)
 end
 
 

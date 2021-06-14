@@ -1,4 +1,5 @@
 using Test
+using Dates
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
@@ -16,7 +17,6 @@ using .Intermediate: MTIntermediate, make_intermediate
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits, 
     reached_state_pension_age, state_pension_age, AgeLimits
 using .Results: LMTResults, LMTCanApplyFor
-using Dates
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
@@ -48,8 +48,8 @@ sys = get_system( scotland=true )
         70, 
         Male,
         sys.age_limits.savings_credit_to_new_state_pension )
-    # FIXME the below tests will FAIL next year since they rely on 'now' being 2021; need to jam on a Fixed
-    # current date, or add 1 to some of these ages (add function to test_utils.jl). Make Wholesale_trade_except_of_motor_vehicles_and_motorcycles
+    # The tests below have 'now' being 2021; tge `age_now` thing effectively jams in a Fixed
+    # current date, by adding 1 to some of these ages next year and so on. Make Wholesale_trade_except_of_motor_vehicles_and_motorcycles
     # in June 2021, a 69 yo will have reached state pension age
     # but would have been 64 and so under state pension age (65) when the new state pension
     # was introduced in April 2016. Note all we have is years
@@ -57,24 +57,24 @@ sys = get_system( scotland=true )
     # hadn't reached in April 2016
     @test ! reached_state_pension_age(
         sys.age_limits, 
-        69, 
+        age_now(69), 
         Male,
         sys.age_limits.savings_credit_to_new_state_pension )
     # reached pension age *now* 
     @test reached_state_pension_age(
         sys.age_limits, 
-        69, 
+        age_now(69), 
         Male )
     # 68 yo woman would have been 63 in 2016, so at state pension age (63 for women)
     @test reached_state_pension_age(
         sys.age_limits, 
-        68, 
+        age_now(68), 
         Female,
         sys.age_limits.savings_credit_to_new_state_pension )
     # ..but a 67 yo would have been 62 so too young in '16 ...
     @test ! reached_state_pension_age(
         sys.age_limits, 
-        67, 
+        age_now(67), 
         Female,
         sys.age_limits.savings_credit_to_new_state_pension )
            
