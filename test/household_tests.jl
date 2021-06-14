@@ -74,7 +74,7 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
                               tot += 1
                               push!(num_rats[target], pts )
                               if target == bereavement_allowance_or_widowed_parents_allowance_or_bereavement
-                                    @assert pers.widows_type in [
+                                    @assert pers.bereavement_type in [
                                           bereavement_allowance,
                                           widowed_parents,
                                           bereavement_support]                              

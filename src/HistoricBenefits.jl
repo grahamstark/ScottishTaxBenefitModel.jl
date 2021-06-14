@@ -13,7 +13,7 @@ function load_historic( file ) :: Dict
     nms = strip.(names( df ))
     db = Dict{Int,Dict}()
     for dr in eachrow(df)
-        d = Dict{Symbol,Float64}()
+        d = Dict{Symbol,Union{Missing,Float64}}()
         for i in 3:nc
             rn = Symbol(nms[i])
             # println( rn )
@@ -44,5 +44,28 @@ function make_benefit_ratios( fy :: Integer, incd :: Incomes_Dict{T} ) ::Incomes
     end
     return d
 end 
+
+function add_pips!( rats :: Incomes_Dict{T}, fy :: Integer, incd :: Incomes_Dict )
+    if haskey( incd, :income_personal_independence_payment_daily_living)  
+        v = incd[:income_personal_independence_payment_daily_living]
+        if v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_enhanced]
+            rats[personal_independence_payment_daily_living] = 1
+        elseif v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_standard]
+            rats[personal_independence_payment_daily_living] = 2
+        else
+
+        end
+    end
+    if haskey( incd, :income_personal_independence_payment_mobility )    
+        v = incd[:income_personal_independence_payment_mobility]
+        if v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_enhanced]
+            rats[personal_independence_payment_mobility] = 1
+        elseif v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_standard]
+            rats[personal_independence_payment_mobility] = 2
+        else
+            println( "")
+        end
+    end
+end
 
 end # module

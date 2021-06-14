@@ -54,7 +54,7 @@ mutable struct Person{RT<:Real}
     pip_daily_living_type :: PIPType
     pip_mobility_type ::  PIPType
 
-    widows_type :: BereavementType
+    bereavement_type :: BereavementType
     had_children_when_bereaved :: Bool 
 
     assets::Asset_Dict{RT}

@@ -77,6 +77,7 @@ module STBParameters
         dl_enhanced :: RT = 87.85
         mobility_standard :: RT = 23.20
         mobility_enhanced :: RT = 61.20
+        
     end
 
     @with_kw mutable struct ContributoryESA{RT<:Real}

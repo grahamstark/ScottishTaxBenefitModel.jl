@@ -19,8 +19,6 @@ const SCOT_HEAD = 320190010201
 const SCOT_SPOUSE = 320190010202
 
 const DEFAULT_NUM_TYPE = Float64
-const EXAMPLES = get_ss_examples()
-const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
 
 const TEST_BASE_DATE = Date( 2021, 06, 14 ) # All the tests ran on this date; `TEST_BASE_DATE` is used
    # to adjust some ages e.g. social_security_ages_tests.jl so tests also pass next year.
@@ -70,7 +68,7 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
     return tb
 end
 
-@enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh
+@enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh pensioner_cpl
 
 function get_ss_examples()::Dict{SS_Examples, Household}
     d = Dict{SS_Examples, Household}()
@@ -81,6 +79,9 @@ function get_ss_examples()::Dict{SS_Examples, Household}
     d[childless_couple_hh] = ExampleHouseholdGetter.get_household("mel_c2_scot") 
     return d
 end
+
+const EXAMPLES = get_ss_examples()
+const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
 
 
 function unemploy!( pers::Person )
