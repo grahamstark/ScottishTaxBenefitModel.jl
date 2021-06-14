@@ -8,7 +8,7 @@ module STBParameters
     using DataFrames,CSV
 
     using ScottishTaxBenefitModel
-    using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+    using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR, WEEKS_PER_MONTH
     using .Definitions
     using .Utils
     using .TimeSeriesUtils: fy, fy_array
@@ -63,7 +63,6 @@ module STBParameters
         care_low  :: RT = 23.20
         mob_high  :: RT = 61.20
         mob_low  :: RT = 23.20
-
     end
 
     @with_kw mutable struct CarersAllowance{RT<:Real}
@@ -107,12 +106,13 @@ module STBParameters
 
     @with_kw mutable struct RetirementPension{RT}
         new_state_pension :: RT = 168.60
-        pension_start_date = Date( 2016, 04, 06 )
+        # pension_start_date = Date( 2016, 04, 06 )
         cat_a     :: RT = 129.20
         cat_b     :: RT = 129.20
         cat_b_survivor :: RT = 77.45
         cat_d     :: RT = 77.45
     end
+
     @with_kw mutable struct BereavementSupport{RT}
         # higher effectively just means 'with children'; 
         lump_sum_higher :: RT = 3_500 # convert to weekly
@@ -142,11 +142,11 @@ module STBParameters
         carers = CarersAllowance{RT}()
         pip = PersonalIndependencePayment{RT}()
         esa = ContributoryESA{RT}()
-        incapacity = IncapacityBenefit{RT}()        
+        # ?? TODO, maybe incapacity = IncapacityBenefit{RT}()        
         jsa = JobSeekersAllowance{RT}()
         pensions = RetirementPension{RT}()
         bereavement = BereavementSupport{RT}()
-        widows_pension = WidowsPensions{RT}(s)
+        widows_pension = WidowsPensions{RT}()
         
         maternity_allowance :: RT = 148.68
         smp :: RT = 148.68

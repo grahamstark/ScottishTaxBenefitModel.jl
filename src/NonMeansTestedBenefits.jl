@@ -4,7 +4,7 @@ module NonMeansTestedBenefits
     using ScottishTaxBenefitModel
     using .Utils: nearest
     using .ModelHousehold: Person
-    using .STBParameters: WidowsPensions
+    using .STBParameters: WidowsPensions, BereavementSupport, AgeLimits, RetirementPension
     using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
 
     export calc_widows_bens
@@ -48,12 +48,23 @@ module NonMeansTestedBenefits
 
     function state_pension( 
         pers :: Person{T}, 
-        rp :: RetirementPension{T} ) :: T where T
-        if 
-        # OLD style
-
-        # new style 
-
+        rp :: RetirementPension{T},
+        age_limits :: AgeLimits ) :: T where T
+        if reached_state_pension_age( 
+            age_limits, 
+            pers.age, 
+            pers.sex )
+            if reached_state_pension_age(
+                age_limits, 
+                pers.age, 
+                pers.sex,
+                age_limits.savings_credit_to_new_state_pension )
+                # old style 
+            else
+                # 
+                # new style
+            end
+        end
     end
 
 end # package non-means-tested

@@ -4,7 +4,7 @@ module GeneralTaxComponents
 Various Standard Tax calculations. Very incomplete.
 "
 
-export WEEKS_PER_YEAR, weeklyise, annualise, delete_thresholds_up_to
+export WEEKS_PER_YEAR, WEEKS_PER_MONTH, weeklyise, annualise, delete_thresholds_up_to
 export TaxResult, IncomesDict, RateBands
 export calctaxdue, calc_indirect, IndirResult,*,times
 

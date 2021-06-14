@@ -57,6 +57,7 @@ function apply_2_child_policy(
     # println( "before children $before_children after children $after_children " )
     allowable = before_children + min( max(child_limit-before_children,0), after_children )
 end
+
 function born_before( age :: Integer,
     start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
     model_run_date :: TimeType = now() )
