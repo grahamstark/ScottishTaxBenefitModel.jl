@@ -42,12 +42,6 @@ sys = get_system( scotland=true )
     @test reached_state_pension_age(sys.age_limits,67, Male, Date( 2046, 01, 01))
     # since this is financial year
     @test reached_state_pension_age(sys.age_limits,68, Male, 2046 )
-    # old style pension switch
-    @test reached_state_pension_age(
-        sys.age_limits, 
-        70, 
-        Male,
-        sys.age_limits.savings_credit_to_new_state_pension )
     # The tests below have 'now' being 2021; tge `age_now` thing effectively jams in a Fixed
     # current date, by adding 1 to some of these ages next year and so on. Make Wholesale_trade_except_of_motor_vehicles_and_motorcycles
     # in June 2021, a 69 yo will have reached state pension age
@@ -55,6 +49,12 @@ sys = get_system( scotland=true )
     # was introduced in April 2016. Note all we have is years
     # for ages. So: 
     # hadn't reached in April 2016
+    # old style pension switch
+    @test reached_state_pension_age(
+        sys.age_limits, 
+        age_now(70), 
+        Male,
+        sys.age_limits.savings_credit_to_new_state_pension )
     @test ! reached_state_pension_age(
         sys.age_limits, 
         age_now(69), 
@@ -77,8 +77,4 @@ sys = get_system( scotland=true )
         age_now(67), 
         Female,
         sys.age_limits.savings_credit_to_new_state_pension )
-           
-
 end
-
-
