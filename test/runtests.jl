@@ -25,7 +25,7 @@ include( "complete_mt_bens_tests.jl")
 
 include( "complete_calc_tests.jl")
 include( "uprating_tests.jl")
-include( "social_security_tests_2.jl")
+include( "social_security_age_tests.jl")
 include( "minimum_wage_tests.jl")
 include( "local_level_calculations_tests.jl" )
 
