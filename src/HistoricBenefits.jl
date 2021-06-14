@@ -53,7 +53,7 @@ function add_pips!( rats :: Incomes_Dict{T}, fy :: Integer, incd :: Incomes_Dict
         elseif v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_standard]
             rats[personal_independence_payment_daily_living] = 2
         else
-
+            println( "personal_independence_payment_daily_living $fy $v not matched")
         end
     end
     if haskey( incd, :income_personal_independence_payment_mobility )    
@@ -63,7 +63,7 @@ function add_pips!( rats :: Incomes_Dict{T}, fy :: Integer, incd :: Incomes_Dict
         elseif v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_standard]
             rats[personal_independence_payment_mobility] = 2
         else
-            println( "")
+            println( "personal_independence_payment_mobility $fy $v not matched")
         end
     end
 end

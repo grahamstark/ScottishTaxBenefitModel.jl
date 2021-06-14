@@ -54,12 +54,34 @@ function create_regression_dataframe(
     return fm
 end
 
+
+
 function make_benefit_ratios( finyear :: Integer, mp :: DataFrameRow ) :: Incomes_Dict
     d = Incomes_Dict{Float64}()
     for target in RATIO_BENS
         dkey = Symbol( "income_$(target)")
         if not_zero_or_missing( mp[dkey])
             d[target] = benefit_ratio( finyear, mp[dkey], target )
+        end
+    end
+    if not_zero_or_missing( mp.income_personal_independence_payment_daily_living )  
+        v = mp.income_personal_independence_payment_daily_living
+        if v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_enhanced]
+            d[personal_independence_payment_daily_living] = 1
+        elseif v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_standard]
+            d[personal_independence_payment_daily_living] = 2
+        else
+            println( "personal_independence_payment_daily_living $fy $v not matched")
+        end
+    end
+    if not_zero_or_missing( mp.income_personal_independence_payment_mobility )    
+        v = mp.income_personal_independence_payment_mobility
+        if v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_enhanced]
+            d[personal_independence_payment_mobility] = 1
+        elseif v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_standard]
+            d[personal_independence_payment_mobility] = 2
+        else
+            println( "personal_independence_payment_mobility $fy $v not matched")
         end
     end
     return d
