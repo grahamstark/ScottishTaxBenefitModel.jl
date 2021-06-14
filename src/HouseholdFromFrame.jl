@@ -127,7 +127,6 @@ function map_person(
     if not_zero_or_missing( model_person.income_bereavement_allowance_or_widowed_parents_allowance_or_bereavement ) ||
        not_zero_or_missing( model_person.income_widows_payment )
         if interview_date( hh ) < FY_2017        
-            # maybe check (! ismissing(model_person.income_widows_payment))
             bereavement_type = 2 # widowed parents allow    
         else
             @assert ! ismissing( model_person.type_of_bereavement_allowance )
