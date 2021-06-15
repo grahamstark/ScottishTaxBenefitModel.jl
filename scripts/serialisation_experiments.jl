@@ -174,7 +174,7 @@ module P
         io = open( filename, "r")
         #if T not in (Float64,Int)
               @eval begin
-                   StructTypes.numbertype( ::Type{$T ) = StructTypes.NumberType()
+                   StructTypes.numbertype( ::Type{$T}) = StructTypes.NumberType()
               end
          #  end
 

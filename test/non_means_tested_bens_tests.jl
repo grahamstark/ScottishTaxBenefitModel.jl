@@ -5,8 +5,6 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
     pers_is_disabled, pers_is_carer
 using .ExampleHouseholdGetter
 using .Definitions
-using .NonMeansTestedBenefits:  
-    calc_widows_bens
 using .TimeSeriesUtils: fy_from_bits
 using .HistoricBenefits: make_benefit_ratios, RATIO_BENS
 
@@ -16,7 +14,7 @@ using .NonMeansTestedBenefits: calc_widows_benefits, calc_state_pension
 using .STBParameters: AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance,
    CarersAllowance, PersonalIndependencePayment, ContributoryESA,
    WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance,
-   NonMeansTestedBenefits
+   NonMeansTestedSys
 
 using .Results: LMTResults, init_household_result, BenefitUnitResult
 using Dates

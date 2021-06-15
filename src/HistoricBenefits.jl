@@ -42,16 +42,12 @@ function make_benefit_ratios( fy :: Integer, incd :: Incomes_Dict{T} ) ::Incomes
             d[target] = benefit_ratio( fy, incd[target], target )
         end
     end
-    return d
-end 
-
-function add_pips!( rats :: Incomes_Dict{T}, fy :: Integer, incd :: Incomes_Dict )
     if haskey( incd, :income_personal_independence_payment_daily_living)  
         v = incd[:income_personal_independence_payment_daily_living]
         if v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_enhanced]
-            rats[personal_independence_payment_daily_living] = 1
+            d[personal_independence_payment_daily_living] = 1
         elseif v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_standard]
-            rats[personal_independence_payment_daily_living] = 2
+            d[personal_independence_payment_daily_living] = 2
         else
             println( "personal_independence_payment_daily_living $fy $v not matched")
         end
@@ -59,13 +55,14 @@ function add_pips!( rats :: Incomes_Dict{T}, fy :: Integer, incd :: Incomes_Dict
     if haskey( incd, :income_personal_independence_payment_mobility )    
         v = incd[:income_personal_independence_payment_mobility]
         if v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_enhanced]
-            rats[personal_independence_payment_mobility] = 1
+            d[personal_independence_payment_mobility] = 1
         elseif v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_standard]
-            rats[personal_independence_payment_mobility] = 2
+            d[personal_independence_payment_mobility] = 2
         else
             println( "personal_independence_payment_mobility $fy $v not matched")
         end
     end
+    return d
 end
 
 end # module

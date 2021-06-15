@@ -7,7 +7,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
-using .HistoricBenefits: benefit_ratio, RATIO_BENS
+using .HistoricBenefits: benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS
 using .Utils: not_zero_or_missing
 
 export load_hhld_from_frame, map_hhld, create_regression_dataframe
@@ -56,8 +56,13 @@ end
 
 
 
-function make_benefit_ratios( finyear :: Integer, mp :: DataFrameRow ) :: Incomes_Dict
+function make_benefit_ratios( 
+    interview_year :: Integer, 
+    interview_month :: Integer,
+    mp :: DataFrameRow ) :: Incomes_Dict
     d = Incomes_Dict{Float64}()
+    finyear :: Int = fy_from_bits( interview_year, interview_month )
+
     for target in RATIO_BENS
         dkey = Symbol( "income_$(target)")
         if not_zero_or_missing( mp[dkey])
@@ -66,22 +71,22 @@ function make_benefit_ratios( finyear :: Integer, mp :: DataFrameRow ) :: Income
     end
     if not_zero_or_missing( mp.income_personal_independence_payment_daily_living )  
         v = mp.income_personal_independence_payment_daily_living
-        if v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_enhanced]
+        if v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_daily_living_enhanced]
             d[personal_independence_payment_daily_living] = 1
-        elseif v ≈ HISTORIC_BENEFITS[fy][:pip_daily_daily_living_standard]
+        elseif v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_daily_living_standard]
             d[personal_independence_payment_daily_living] = 2
         else
-            println( "personal_independence_payment_daily_living $fy $v not matched")
+            println( "personal_independence_payment_daily_living $finyear $(interview_year) $(interview_month) $v not matched")
         end
     end
     if not_zero_or_missing( mp.income_personal_independence_payment_mobility )    
         v = mp.income_personal_independence_payment_mobility
-        if v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_enhanced]
+        if v ≈ HISTORIC_BENEFITS[finyear][:pip_mobility_enhanced]
             d[personal_independence_payment_mobility] = 1
-        elseif v ≈ HISTORIC_BENEFITS[fy][:pip_mobility_standard]
+        elseif v ≈ HISTORIC_BENEFITS[finyear][:pip_mobility_standard]
             d[personal_independence_payment_mobility] = 2
         else
-            println( "personal_independence_payment_mobility $fy $v not matched")
+            println( "personal_independence_payment_mobility $finyear $v not matched")
         end
     end
     return d
@@ -91,7 +96,6 @@ end
 function map_person( 
     hh :: Household, 
     model_person :: DataFrameRow, source::DataSource )
-    finyear :: Int = fy_from_bits( hh.interview_year, hh.interview_month )
     income = Dict{Incomes_Type,Float64}()
     for i in instances(Incomes_Type)
         ikey = make_sym_for_frame("income", i)
@@ -169,7 +173,7 @@ function map_person(
         end
     end
 
-    benefit_ratios = make_benefit_ratios( finyear, model_person )
+    benefit_ratios = make_benefit_ratios( hh.interview_year, hh.interview_month, model_person )
 
     Person{Float64}(
 

@@ -632,7 +632,7 @@ function calc_legacy_means_tested_benefits!(
     elseif can_apply_for.is
         which_mig = is
     end
-    if which_mig != nothing 
+    if which_mig !== nothing 
         premium,premset = calc_premia(
             which_mig,
             bu,

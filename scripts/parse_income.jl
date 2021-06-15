@@ -34,7 +34,7 @@ println("\n\n# mappings ----------------")
 for i in 1:n
     k = items[i][2]
     j = items[i][1]
-    if match( r"SPARE.*", k ) == nothing
+    if match( r"SPARE.*", k ) === nothing
         print( "
         if haskey(incd, Definitions.$j )
             out[$k] = incd[Definitions.$j]
