@@ -23,7 +23,7 @@ module STBParameters
     export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
     export CarersAllowance, PersonalIndependencePayment, ContributoryESA
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
-    export NonMeansTestedBenefits
+    export NonMeansTestedSys
     
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -136,7 +136,7 @@ module STBParameters
     #
     # initial version - will be progressively replaced
     # with actual calculations based on disability, hours caring etc.
-    @with_kw mutable struct NonMeansTestedBenefits{RT<:Real}
+    @with_kw mutable struct NonMeansTestedSys{RT<:Real}
         attendance_allowance = AttendanceAllowance{RT}()
         child_benefit = ChildBenefit{RT}()
         dla = DisabilityLivingAllowance{RT}()
@@ -155,7 +155,7 @@ module STBParameters
         # ESA
     end
 
-    function weeklyise!( nmt :: NonMeansTestedBenefits )
+    function weeklyise!( nmt :: NonMeansTestedSys )
         nmt.bereavement.lump_sum_higher /= WEEKS_PER_YEAR
         nmt.bereavement.lump_sum_lower /= WEEKS_PER_YEAR
         nmt.bereavement.lower /= WEEKS_PER_MONTH
@@ -681,7 +681,7 @@ module STBParameters
         minwage = MinimumWage{RT}()
         hr = HousingRestrictions{RT}() # fixme better name
         loctax = LocalTaxes{RT}() # fixme better name
-        nmt_bens = NonMeansTestedBenefits{RT}()
+        nmt_bens = NonMeansTestedSys{RT}()
     end
 
     
