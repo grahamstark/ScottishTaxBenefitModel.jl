@@ -71,9 +71,9 @@ function make_benefit_ratios(
     end
     if not_zero_or_missing( mp.income_personal_independence_payment_daily_living )  
         v = mp.income_personal_independence_payment_daily_living
-        if v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_daily_living_enhanced]
+        if v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_living_enhanced]
             d[personal_independence_payment_daily_living] = 1
-        elseif v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_daily_living_standard]
+        elseif v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_living_standard]
             d[personal_independence_payment_daily_living] = 2
         else
             println( "personal_independence_payment_daily_living $finyear $(interview_year) $(interview_month) $v not matched")

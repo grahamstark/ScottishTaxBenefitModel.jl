@@ -11,7 +11,7 @@ export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
 export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
 export coarse_match
-export nearest, not_zero_or_missing, is_zero_or_missing
+export nearest, nearesti, not_zero_or_missing, is_zero_or_missing
 
 function not_zero_or_missing( thing :: Union{Missing, Number }) :: Bool
    if ismissing( thing )
@@ -28,17 +28,25 @@ function is_zero_or_missing( thing :: Union{Missing, Number }) :: Bool
 end
 
 """
-return the element of comps that's closest to x 
+return the index of element of comps that's closest to x 
 """
-function nearest( x :: Real , comps... )
+function nearesti( x :: Real , comps... )
    n = length( comps )
    dist = zeros( n )
    for i in 1:n
        dist[i] = abs( x - comps[i])
    end
    i = findmin( dist )
-   return comps[i[2]]
+   return i[1]
 end
+
+"""
+return the element of comps that's closest to x 
+"""
+function nearest( x :: Real , comps... )
+   return comps[ nearesti( x, comps )]
+end
+
 
 #
 # this has a higher top income than the BC default
