@@ -57,6 +57,7 @@ end
 
 
 function make_benefit_ratios( 
+    hid :: BigInt,
     interview_year :: Integer, 
     interview_month :: Integer,
     mp :: DataFrameRow ) :: Incomes_Dict
@@ -71,11 +72,10 @@ function make_benefit_ratios(
     end
     if not_zero_or_missing( mp.income_personal_independence_payment_daily_living )  
         v = mp.income_personal_independence_payment_daily_living
-        println( "V=$v")
         matches = get_matches( v, finyear, :pip_daily_living_standard, :pip_daily_living_enhanced )
         d[personal_independence_payment_daily_living] = matches[1]
         if matches[2] > 1
-            println( "!! pip daily living imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
+            println( "!! hid $hid pip daily living imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
         end
     end
     if not_zero_or_missing( mp.income_personal_independence_payment_mobility )    
@@ -83,7 +83,7 @@ function make_benefit_ratios(
         matches = get_matches( v, finyear, :pip_mobility_standard, :pip_mobility_enhanced )
         d[personal_independence_payment_mobility] = matches[1]
         if matches[2] > 1
-            println( "!! pip mobility imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
+             println( "!! hid $hid pip mobility imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
         end
     end
     return d
@@ -170,7 +170,7 @@ function map_person(
         end
     end
 
-    benefit_ratios = make_benefit_ratios( hh.interview_year, hh.interview_month, model_person )
+    benefit_ratios = make_benefit_ratios( hh.hid, hh.interview_year, hh.interview_month, model_person )
 
     Person{Float64}(
 
