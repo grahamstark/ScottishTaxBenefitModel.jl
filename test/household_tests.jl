@@ -39,9 +39,10 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
 
       # pension fy 2019 = 129.2
       # wid fy 2019 = 119.9
+      empty!(head.income)
       head.income[state_pension] = 129.20
       head.benefit_ratios = make_benefit_ratios( fy, head.income )
-
+      println( "head.benefit_ratios = $(head.benefit_ratios)")
       @test length( head.benefit_ratios ) == 1
       @test head.benefit_ratios[state_pension] ≈ 1
 

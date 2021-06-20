@@ -7,7 +7,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
-using .HistoricBenefits: benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS
+using .HistoricBenefits: benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, get_matches
 using .Utils: not_zero_or_missing
 
 export load_hhld_from_frame, map_hhld, create_regression_dataframe
@@ -71,22 +71,19 @@ function make_benefit_ratios(
     end
     if not_zero_or_missing( mp.income_personal_independence_payment_daily_living )  
         v = mp.income_personal_independence_payment_daily_living
-        if v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_living_enhanced]
-            d[personal_independence_payment_daily_living] = 1
-        elseif v ≈ HISTORIC_BENEFITS[finyear][:pip_daily_living_standard]
-            d[personal_independence_payment_daily_living] = 2
-        else
-            println( "personal_independence_payment_daily_living $finyear $(interview_year) $(interview_month) $v not matched")
+        println( "V=$v")
+        matches = get_matches( v, finyear, :pip_daily_living_standard, :pip_daily_living_enhanced )
+        d[personal_independence_payment_daily_living] = matches[1]
+        if matches[2] > 1
+            println( "!! pip daily living imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
         end
     end
     if not_zero_or_missing( mp.income_personal_independence_payment_mobility )    
         v = mp.income_personal_independence_payment_mobility
-        if v ≈ HISTORIC_BENEFITS[finyear][:pip_mobility_enhanced]
-            d[personal_independence_payment_mobility] = 1
-        elseif v ≈ HISTORIC_BENEFITS[finyear][:pip_mobility_standard]
-            d[personal_independence_payment_mobility] = 2
-        else
-            println( "personal_independence_payment_mobility $finyear $v not matched")
+        matches = get_matches( v, finyear, :pip_mobility_standard, :pip_mobility_enhanced )
+        d[personal_independence_payment_mobility] = matches[1]
+        if matches[2] > 1
+            println( "!! pip mobility imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
         end
     end
     return d

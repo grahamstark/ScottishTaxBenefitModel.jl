@@ -40,7 +40,7 @@ end
 #
 # Year 1st, then 1 before and 1 after, then 2.. 
 #
-function get_historic( fy :: Integer, which :: Symbol, width::Int = 1 )::Vector{Int}
+function get_historic( fy :: Integer, which :: Symbol, width::Int = 1 )::Vector{Real}
     out = []
     push!(out, HISTORIC_BENEFITS[fy][which])
     for i in 1:width
@@ -58,7 +58,7 @@ end
   seems to be for the wrong year (calendar vs financial). If that fails, pick the
   index of the current values that's closest.
 """
-function get_matches( v :: Real, fy :: Int, which ... ) :: Tuple{Int}
+function get_matches( v :: Real, fy :: Int, which ... ) :: Tuple
     n = length(which)
     all_current = []
     for i in 1:n
@@ -67,11 +67,13 @@ function get_matches( v :: Real, fy :: Int, which ... ) :: Tuple{Int}
         push!(all_current,hvals[1]) 
         for j in 1:m
             if v ≈ hvals[j]
+                # println( "on $(which[i]) matched $v at pos $i j=$j vals are $hvals ")
                 return (i,j)
             end
         end
     end
     # if we get here, try searching nearest
+    println( "didn't match; trying against $(all_current)")
     n = nearesti( v, all_current... )
     return (n,99)
 end
@@ -94,17 +96,17 @@ function make_benefit_ratios( fy :: Integer, incd :: Incomes_Dict{T} ) ::Incomes
     end
 
     # these seem to be usually imputed in the data. Find which one matches best.
-    if haskey( incd, :income_personal_independence_payment_daily_living)  
-        v = incd[:income_personal_independence_payment_daily_living]
-        matches = get_matches( v, fy, :pip_daily_living_enhanced, :pip_daily_living_standard )
+    if haskey( incd, personal_independence_payment_daily_living)  
+        v = incd[personal_independence_payment_daily_living]
+        matches = get_matches( v, fy, :pip_daily_living_standard,  :pip_daily_living_enhanced )
         d[personal_independence_payment_daily_living] = matches[1]
         if matches[2] > 1
             println( "!! pip daily living matched at $(matches[2])")
         end
     end
-    if haskey( incd, :income_personal_independence_payment_mobility)  
-        v = incd[:income_personal_independence_payment_mobility]
-        matches = get_matches( v, fy, :pip_mobility_enhanced, :pip_mobility_standard )
+    if haskey( incd, personal_independence_payment_mobility)  
+        v = incd[personal_independence_payment_mobility]
+        matches = get_matches( v, fy, :pip_mobility_standard, :pip_mobility_enhanced )
         d[personal_independence_payment_mobility] = matches[1]
         if matches[2] > 1
             println( "!! pip mobility matched at $(matches[2])")
