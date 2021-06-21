@@ -14,6 +14,7 @@ using .Definitions
 using .HistoricBenefits: make_benefit_ratios!, RATIO_BENS
 using Plots
 using PyPlot
+using DataFrames
 
 start_year=2015
 num_households = 0
@@ -217,5 +218,96 @@ end
       @test people_count == total_num_people
       @test over_16_kids > 0
       println( "num people $people_count over_16_kids=$over_16_kids" )
+end
+
+@testset aggregate_nmt_bens begin
+      n = 10_000
+      cases = DataFrame(
+            hid :: zeros(BigInt, n ),
+            data_year = zeros(Int,n),
+            weight = zeros(Int,n)
+            pip_mobility_enhanced = zeros(n),
+            pip_mobility_standard = zeros(n),
+            carers_allowance = zeros(n),
+            attendance_allowance_higher = zeros(n),
+            attendance_allowance_lower = zeros(n),
+            dla_care_high = zeros(n),
+            dla_care_middle = zeros(n),
+            dla_care_low = zeros(n),
+            dla_mobility_high = zeros(n),
+            dla_mobility_low  = zeros(n))
+      r = 0
+      for hhno in 1:num_households
+            hh = FRSHouseholdGetter.get_household( hhno )
+            r += 1
+            row = cases[r]
+            row.weight = hh.weight;
+            row.hod = hh.hid
+            for (pid, pers) in hh.people
+                  if pers.dla_self_care_type == low
+                        row.dla_care_low += 1
+                  elseif pers.dla_self_care_type == med
+                        row.dla_care_med += 1
+                  elseif pers.dla_self_care_type == high
+                        row.dla_care_high += 1
+                  end
+                  if pers.dla_mobility_type == low
+                        row.dla_mobility_low += 1
+                  elseif pers.dla_mobility_type == med
+                        @test 1==2 "self care med should never happen"
+                  elseif pers.dla_mobility_type == high
+                        row.dla_mobility_high += 1
+                  end
+                  if pers.attendance_allowance_type == low
+                        row.attendance_allowance_lower += 1
+                  elseif pers.attendance_allowance_type == med
+                        @test 1==2 "self care med should never happen"
+                  elseif pers.attendance_allowance_type == high
+                        row.attendance_allowance_higher += 1
+                  end
+                  if pers.pip_daily_living_type == standard_pip
+                        row.pip_daily_living_standard += 1
+                  elseif pers.pip_daily_living_type == enhanced_pip
+                        row.pip_daily_living_endhanced += 1
+                  end
+                  if pers.pip_mobility_type == standard_pip
+                        row.pip_mobility_standard += 1
+                  elseif pers.pip_mobility_type == enhanced_pip
+                        row.pip_mobility_endhanced += 1
+                  end
+            end
+      end            
+             
+      print( cases )
+
+      pip_mobility_enhanced_tot = pip.pip_mobility_enhanced'pip.weight
+      println( "pip_mobility_enhanced total = pip_mobility_enhanced_tot" )
+
+      pip_mobility_standard_tot = pip.pip_mobility_standard'pip.weight
+      println( "pip_mobility_standard total = pip_mobility_standard_tot" )
+
+      carers_allowance_tot = pip.carers_allowance'pip.weight
+      println( "carers_allowance total = carers_allowance_tot" )
+
+      attendance_allowance_higher_tot = pip.attendance_allowance_higher'pip.weight
+      println( "attendance_allowance_higher total = attendance_allowance_higher_tot" )
+
+      attendance_allowance_lower_tot = pip.attendance_allowance_lower'pip.weight
+      println( "attendance_allowance_lower total = attendance_allowance_lower_tot" )
+
+      dla_care_high_tot = pip.dla_care_high'pip.weight
+      println( "dla_care_high total = dla_care_high_tot" )
+
+      dla_care_middle_tot = pip.dla_care_middle'pip.weight
+      println( "dla_care_middle total = dla_care_middle_tot" )
+
+      dla_care_low_tot = pip.dla_care_low'pip.weight
+      println( "dla_care_low total = dla_care_low_tot" )
+
+      dla_mobility_high_tot = pip.dla_mobility_high'pip.weight
+      println( "dla_mobility_high total = dla_mobility_high_tot" )
+
+      dla_mobility_low _tot = pip.dla_mobility_low'pip.weight
+      println( "dla_mobility_low  total = dla_mobility_low _tot" )
 end
 
