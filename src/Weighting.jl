@@ -327,7 +327,7 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
 
 
         end # female
-        if get(pers.income,attendence_allowance,0.0) > 0 ### sp!!!!!
+        if get(pers.income,attendance_allowance,0.0) > 0 ### sp!!!!!
             row.aa += 1
         end
         if get(pers.income,carers_allowance,0.0) > 0

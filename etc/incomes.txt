@@ -70,7 +70,7 @@ war_widows_pension = 2009
 
 # illness & disability
 severe_disability_allowance = 2010
-attendence_allowance = 2012
+attendance_allowance = 2012
 carers_allowance = 2013
 industrial_injury_benefit = 2015
 incapacity_benefit = 2017

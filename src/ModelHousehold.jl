@@ -50,7 +50,7 @@ mutable struct Person{RT<:Real}
     esa_type :: JSAType
     dla_self_care_type :: LowMiddleHigh
     dla_mobility_type :: LowMiddleHigh
-    attendence_allowance_type :: LowMiddleHigh
+    attendance_allowance_type :: LowMiddleHigh
     pip_daily_living_type :: PIPType
     pip_mobility_type ::  PIPType
 
@@ -465,7 +465,7 @@ end
 
 const DISABLE_BENEFITS = [
     severe_disability_allowance,
-    attendence_allowance,
+    attendance_allowance,
     incapacity_benefit,
     dlaself_care,
     dlamobility,
@@ -474,12 +474,12 @@ const DISABLE_BENEFITS = [
     
 
 """
-FIXME this is just random .. every 3rd is severe
+
 """
 function is_severe_disability( pers :: Person )
     return pers.dla_self_care_type == high ||
            pers.dla_mobility_type == high ||
-           pers.attendence_allowance_type == high ||
+           pers.attendance_allowance_type == high ||
            pers.pip_daily_living_type == enhanced_pip ||
            pers.pip_mobility_type == enhanced_pip ||
            pers.adls_are_reduced == reduced_a_lot ||

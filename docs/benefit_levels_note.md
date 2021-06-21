@@ -23,7 +23,7 @@ DLA Mobility
 using DataFrames,CSV
 
 ukp = CSV.File( "model_people.tab" ) |> DataFrame
-dropmissing!( ukp, [:income_attendence_allowance] )
+dropmissing!( ukp, [:income_attendance_allowance] )
 
 ```
 
@@ -116,10 +116,10 @@ Only 2 scottish cases though, so I'm just flagging & moving on.
 
 ```julia
 
-ukp[(ukp.income_attendence_allowance .> 0), [:data_year,:income_attendence_allowance ]]
+ukp[(ukp.income_attendance_allowance .> 0), [:data_year,:income_attendance_allowance ]]
 
 2442-element Array{Float64,1}:
-│ Row  │ data_year │ income_attendence_allowance │
+│ Row  │ data_year │ income_attendance_allowance │
 │      │ Int64?    │ Float64                     │
 ├──────┼───────────┼─────────────────────────────┤
 │ 1    │ 2015      │ 55.1                        │
@@ -168,7 +168,7 @@ ukp[(ukp.income_attendence_allowance .> 0), [:data_year,:income_attendence_allow
 │ 2442 │ 2018      │ 85.6                        │
  
  
-ukp[(ukp.income_attendence_allowance .> 100), [:data_year,:income_attendence_allowance ]]
+ukp[(ukp.income_attendance_allowance .> 100), [:data_year,:income_attendance_allowance ]]
 (no cases)
 
 ```

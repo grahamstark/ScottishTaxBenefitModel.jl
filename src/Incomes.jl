@@ -71,7 +71,7 @@ using StaticArrays
     const ARMED_FORCES_COMPENSATION_SCHEME = 57
     const WAR_WIDOWS_PENSION = 58
     const SEVERE_DISABILITY_ALLOWANCE = 59
-    const ATTENDENCE_ALLOWANCE = 60
+    const ATTENDANCE_ALLOWANCE = 60
     const CARERS_ALLOWANCE = 61
     const INDUSTRIAL_INJURY_BENEFIT = 62
     const INCAPACITY_BENEFIT = 63
@@ -187,7 +187,7 @@ using StaticArrays
     export ARMED_FORCES_COMPENSATION_SCHEME
     export WAR_WIDOWS_PENSION
     export SEVERE_DISABILITY_ALLOWANCE
-    export ATTENDENCE_ALLOWANCE
+    export ATTENDANCE_ALLOWANCE
     export CARERS_ALLOWANCE
     export INDUSTRIAL_INJURY_BENEFIT
     export INCAPACITY_BENEFIT
@@ -440,7 +440,7 @@ using StaticArrays
             return "War Widows Pension"
         elseif i == SEVERE_DISABILITY_ALLOWANCE
             return "Severe Disability Allowance"
-        elseif i == ATTENDENCE_ALLOWANCE
+        elseif i == ATTENDANCE_ALLOWANCE
             return "Attendence Allowance"
         elseif i == CARERS_ALLOWANCE
             return "Carers Allowance"
@@ -670,7 +670,7 @@ using StaticArrays
         ARMED_FORCES_COMPENSATION_SCHEME,
         WAR_WIDOWS_PENSION,
         SEVERE_DISABILITY_ALLOWANCE,
-        ATTENDENCE_ALLOWANCE,
+        ATTENDANCE_ALLOWANCE,
         INDUSTRIAL_INJURY_BENEFIT,
         EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         INCAPACITY_BENEFIT,

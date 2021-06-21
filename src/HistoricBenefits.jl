@@ -1,11 +1,17 @@
 module HistoricBenefits
-
+#
+# FIXME the intention is to replace much of this
+# with a series of complete parameter files, once we have 
+# everything defined fully.
+# 
 using CSV, DataFrames
 using ScottishTaxBenefitModel
 using .Definitions 
+using .ModelHousehold: Person
 using .Utils: nearesti
+using .TimeSeriesUtils: fy_from_bits
 
-export benefit_ratio, RATIO_BENS, make_benefit_ratios
+export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
 
 const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
 
@@ -30,39 +36,39 @@ end
 const HISTORIC_BENEFITS = load_historic( "$(MODEL_PARAMS_DIR)/historic_benefits.csv" ) 
 
 function benefit_ratio( 
-    fy :: Integer, 
+    finyear :: Integer, 
     amt :: Real, 
     btype :: Incomes_Type ) :: Real
-    brat = HISTORIC_BENEFITS[fy][Symbol(btype)]
+    brat = HISTORIC_BENEFITS[finyear][Symbol(btype)]
     return amt/brat
 end
 
 #
 # Year 1st, then 1 before and 1 after, then 2.. 
 #
-function get_historic( fy :: Integer, which :: Symbol, width::Int = 1 )::Vector{Real}
+function get_historic( finyear :: Integer, which :: Symbol, width::Int = 1 )::Vector{Real}
     out = []
-    push!(out, HISTORIC_BENEFITS[fy][which])
+    push!(out, HISTORIC_BENEFITS[finyear][which])
     for i in 1:width
-        year = fy-i 
+        year = finyear-i 
         push!(out, HISTORIC_BENEFITS[year][which])
-        year = fy+1
+        year = finyear+1
         push!(out, HISTORIC_BENEFITS[year][which]) 
     end
     return out
 end
 
 """
-  Find an exact match for some benefit level, given actual levels, -1..+1 years around fy, or find 
+  Find an exact match for some benefit level, given actual levels, -1..+1 years around finyear, or find 
   the nearest amongst the current values, since sometimes the imputation
   seems to be for the wrong year (calendar vs financial). If that fails, pick the
   index of the current values that's closest.
 """
-function get_matches( v :: Real, fy :: Int, which ... ) :: Tuple
+function get_matches( v :: Real, finyear :: Int, which ... ) :: Tuple
     n = length(which)
     all_current = []
     for i in 1:n
-        hvals = get_historic( fy, which[i])
+        hvals = get_historic( finyear, which[i])
         m = size(hvals)[1]
         push!(all_current,hvals[1]) 
         for j in 1:m
@@ -86,33 +92,69 @@ end
  Return a dict of either ratios of recorded receipt to actual values or an indicator of which
  level of benefit is closest.
 """
-function make_benefit_ratios( fy :: Integer, incd :: Incomes_Dict{T} ) ::Incomes_Dict{T} where T
-    d = Incomes_Dict{T}()
-    # for pensions, etc. we just accept what's there & assign the ratio 
+function make_benefit_ratios!( 
+    pers :: Person,
+    hid :: BigInt,
+    interview_year :: Integer, 
+    interview_month :: Integer,
+ ) 
+    finyear :: Int = fy_from_bits( interview_year, interview_month )
+    # short cut
+    incd = pers.income; 
+    # for pensions, etc. we just accept what's there & assign the 
+    # ratio. FIXME: is this right for people who get the new state_pension
+    # in the data
     for target in RATIO_BENS
         if haskey(incd, target )
-            d[target] = benefit_ratio( fy, incd[target], target )
+            pers.benefit_ratios[target] = benefit_ratio( finyear, incd[target], target )
         end
     end
-
     # these seem to be usually imputed in the data. Find which one matches best.
-    if haskey( incd, personal_independence_payment_daily_living)  
+    if haskey( incd, personal_independence_payment_daily_living )  
         v = incd[personal_independence_payment_daily_living]
-        matches = get_matches( v, fy, :pip_daily_living_standard,  :pip_daily_living_enhanced )
-        d[personal_independence_payment_daily_living] = matches[1]
+        matches = get_matches( v, finyear, :pip_daily_living_standard,  :pip_daily_living_enhanced )
+        pers.pip_daily_living_type = matches[1] == 1 ? standard_pip : enhanced_pip
         if matches[2] > 1
             # println( "!! pip daily living matched at $(matches[2])")
         end
     end
-    if haskey( incd, personal_independence_payment_mobility)  
+    if haskey( incd, personal_independence_payment_mobility )  
         v = incd[personal_independence_payment_mobility]
-        matches = get_matches( v, fy, :pip_mobility_standard, :pip_mobility_enhanced )
-        d[personal_independence_payment_mobility] = matches[1]
+        matches = get_matches( v, finyear, :pip_mobility_standard, :pip_mobility_enhanced )
+        pers.pip_mobility_type = matches[1] == 1 ? standard_pip : enhanced_pip
         if matches[2] > 1
             # println( "!! pip mobility matched at $(matches[2])")
         end
     end
-    return d
+    if haskey( incd, dlaself_care )  
+        v = incd[dlaself_care]        
+        matches = get_matches( v, finyear, 
+            :dla_care_low, 
+            :dla_care_middle, 
+            :dla_care_high )
+        pers.dla_self_care_type = if matches[1] == 1 
+                low
+            elseif matches[1] == 2 
+                mid
+            else 
+                high
+            end
+    end
+    if haskey( incd, dlamobility )  
+        v = incd[dlamobility] 
+        matches = get_matches( v, finyear, 
+            :dla_mobility_low, 
+            :dla_mobility_high )
+        pers.dla_mobility_type = matches[1] == 1 ? low : high # only 2 cases, despite low/mid/high
+    end
+    if haskey( incd, attendance_allowance ) 
+        v = incd[attendance_allowance] 
+        matches = get_matches( v, 
+            finyear, 
+            :attendance_allowance_lower,
+            :attendance_allowance_higher )
+        pers.attendance_allowance_type = matches[1] == 1 ? low : high # only 2 cases, despite low/mid/high
+    end
 end
     
 end # module

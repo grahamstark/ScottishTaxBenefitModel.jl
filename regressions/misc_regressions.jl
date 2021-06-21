@@ -56,9 +56,9 @@ fm.rec_pip = ( fm.income_personal_independence_payment_mobility.>0.0) .| ( fm.in
 fm.rec_pip_care = ( fm.income_personal_independence_payment_daily_living .>0.0 )
 fm.rec_pip_mob = ( fm.income_personal_independence_payment_mobility.>0.0)
 fm.rec_esa = ( fm.income_employment_and_support_allowance.>0.0)
-fm.rec_aa = ( fm.income_attendence_allowance.>0.0)
+fm.rec_aa = ( fm.income_attendance_allowance.>0.0)
 fm.rec_carers = ( fm.income_carers_allowance.>0.0)
-fm_rec_aa = ( fm.income_attendence_allowance.>0.0)
+fm_rec_aa = ( fm.income_attendance_allowance.>0.0)
 fm.scotland = fm.region .== 299999999
 fm.male = fm.sex .== 1
 

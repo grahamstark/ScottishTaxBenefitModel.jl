@@ -517,7 +517,7 @@ end
         @test ndd ≈ ndds[nt]
     end # loop round various incomes, unemployed
     disable_slightly!( head )
-    head.income[attendence_allowance] = 100.0
+    head.income[attendance_allowance] = 100.0
     println( "Disabled")
     for i in 1:nt
         head.income[wages] = wage[i]

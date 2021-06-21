@@ -268,7 +268,7 @@ function initialise_person(n::Integer)::DataFrame
         income_armed_forces_compensation_scheme = Vector{Union{Real,Missing}}(missing, n),
         income_war_widows_or_widowers_pension = Vector{Union{Real,Missing}}(missing, n),
         income_severe_disability_allowance = Vector{Union{Real,Missing}}(missing, n),
-        income_attendence_allowance = Vector{Union{Real,Missing}}(missing, n),
+        income_attendance_allowance = Vector{Union{Real,Missing}}(missing, n),
         income_carers_allowance = Vector{Union{Real,Missing}}(missing, n),
         income_jobseekers_allowance = Vector{Union{Real,Missing}}(missing, n),
         income_industrial_injury_disablement_benefit = Vector{Union{Real,Missing}}(
@@ -338,7 +338,7 @@ function initialise_person(n::Integer)::DataFrame
         esa_type = Vector{Union{Integer,Missing}}(missing, n),
         dlaself_care_type = Vector{Union{Integer,Missing}}(missing, n),
         dlamobility_type = Vector{Union{Integer,Missing}}(missing, n),
-        attendence_allowance_type = Vector{Union{Integer,Missing}}(missing, n),
+        attendance_allowance_type = Vector{Union{Integer,Missing}}(missing, n),
         personal_independence_payment_daily_living_type = Vector{Union{Integer,Missing}}(missing, n),
         personal_independence_payment_mobility_type  = Vector{Union{Integer,Missing}}(missing, n),
         
@@ -1181,7 +1181,7 @@ function create_adults(
             # See the note on this in docs/
             model_adult.dlaself_care_type = map123( model_adult.income_dlaself_care, [30, 60 ] )
             model_adult.dlamobility_type = map123(model_adult.income_dlamobility, [30] )
-            model_adult.attendence_allowance_type = map123( model_adult.income_attendence_allowance, [65] )
+            model_adult.attendance_allowance_type = map123( model_adult.income_attendance_allowance, [65] )
             model_adult.personal_independence_payment_daily_living_type = map12( model_adult.income_personal_independence_payment_daily_living, 65 )
             model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )            
         end # if in HBAI

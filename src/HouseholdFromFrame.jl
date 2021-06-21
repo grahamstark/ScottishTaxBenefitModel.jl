@@ -7,7 +7,8 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
-using .HistoricBenefits: benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, get_matches
+using .HistoricBenefits: make_benefit_ratios!
+# benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, get_matches
 using .Utils: not_zero_or_missing
 
 export load_hhld_from_frame, map_hhld, create_regression_dataframe
@@ -45,9 +46,9 @@ function create_regression_dataframe(
     fm.rec_pip_care = ( fm.income_personal_independence_payment_daily_living .>0.0 )
     fm.rec_pip_mob = ( fm.income_personal_independence_payment_mobility.>0.0)
     fm.rec_esa = ( fm.income_employment_and_support_allowance.>0.0)
-    fm.rec_aa = ( fm.income_attendence_allowance.>0.0)
+    fm.rec_aa = ( fm.income_attendance_allowance.>0.0)
     fm.rec_carers = ( fm.income_carers_allowance.>0.0)
-    fm_rec_aa = ( fm.income_attendence_allowance.>0.0)
+    fm_rec_aa = ( fm.income_attendance_allowance.>0.0)
     fm.scotland = fm.region .== 299999999
     fm.male = fm.sex .== 1
 
@@ -55,7 +56,7 @@ function create_regression_dataframe(
 end
 
 
-
+#=
 function make_benefit_ratios( 
     hid :: BigInt,
     interview_year :: Integer, 
@@ -88,7 +89,7 @@ function make_benefit_ratios(
     end
     return d
 end
-
+=#
 
 function map_person( 
     hh :: Household, 
@@ -170,9 +171,9 @@ function map_person(
         end
     end
 
-    benefit_ratios = make_benefit_ratios( hh.hid, hh.interview_year, hh.interview_month, model_person )
-
-    Person{Float64}(
+    benefit_ratios = Incomes_Dict{Float64}()
+    
+    pers = Person{Float64}(
 
         BigInt(model_person.hid),  # BigInt# == sernum
         BigInt(model_person.pid),  # BigInt# == unique id (year * 100000)+
@@ -208,7 +209,7 @@ function map_person(
         
         LowMiddleHigh( safe_assign( model_person.dlaself_care_type )),
         LowMiddleHigh( safe_assign( model_person.dlamobility_type)),
-        LowMiddleHigh( safe_assign( model_person.attendence_allowance_type )),
+        LowMiddleHigh( safe_assign( model_person.attendance_allowance_type )),
         PIPType( safe_assign( model_person.personal_independence_payment_daily_living_type )),
         PIPType( safe_assign( model_person.personal_independence_payment_mobility_type )),
         BereavementType( safe_assign( bereavement_type )),
@@ -245,7 +246,10 @@ function map_person(
         m2z(model_person.fuel_supplied)
 
     )
+    make_benefit_ratios!( 
+        pers, hh.hid, hh.interview_year, hh.interview_month )
 
+    return pers;
 end
 
 function map_hhld( hno::Integer, frs_hh :: DataFrameRow )

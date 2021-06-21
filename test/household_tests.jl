@@ -11,7 +11,7 @@ using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
       count
 using .TimeSeriesUtils: fy_from_bits
 using .Definitions
-using .HistoricBenefits: make_benefit_ratios, RATIO_BENS
+using .HistoricBenefits: make_benefit_ratios!, RATIO_BENS
 using Plots
 using PyPlot
 
@@ -40,17 +40,38 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
       # pension fy 2019 = 129.2
       # wid fy 2019 = 119.9
       empty!(head.income)
+      empty!(head.benefit_ratios)
       head.income[state_pension] = 129.20
-      head.benefit_ratios = make_benefit_ratios( fy, head.income )
+      make_benefit_ratios!(head, hh.hid, hh.interview_year, hh.interview_month )
       println( "head.benefit_ratios = $(head.benefit_ratios)")
       @test length( head.benefit_ratios ) == 1
       @test head.benefit_ratios[state_pension] ≈ 1
 
       head.income[bereavement_allowance_or_widowed_parents_allowance_or_bereavement] = 129.20
-      head.benefit_ratios = make_benefit_ratios( fy, head.income )
+      make_benefit_ratios!(head, hh.hid, hh.interview_year, hh.interview_month )
       @test length( head.benefit_ratios ) == 2
       # 129.2/119.9 \approx 1.0775646371976646
       @test head.benefit_ratios[bereavement_allowance_or_widowed_parents_allowance_or_bereavement] ≈ 1.0775646371976646
+
+      head.income[dlamobility] = 62.25
+      head.income[attendance_allowance] = 89.15
+      head.income[dlaself_care] = 89.15
+      make_benefit_ratios!(head, hh.hid, hh.interview_year, hh.interview_month )
+      @test head.dla_mobility_type == high
+      @test head.attendance_allowance_type == high
+      @test head.dla_self_care_type == high
+
+      head.income[dlamobility] = 23.60
+      head.income[attendance_allowance] = 59.7
+      head.income[dlaself_care] = 23.60
+      make_benefit_ratios!(head, hh.hid, hh.interview_year, hh.interview_month )
+      @test head.dla_mobility_type == low
+      @test head.attendance_allowance_type == low
+      @test head.dla_self_care_type == low
+      head.income[dlaself_care] = 59.7
+      make_benefit_ratios!(head, hh.hid, hh.interview_year, hh.interview_month )
+      @test head.dla_self_care_type == LowMiddleHigh.mid
+      
 
       # overall test
       num_rats = Dict()
@@ -82,11 +103,13 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
                               end
                         end
                   end
+                  #=
                   newrats = make_benefit_ratios( fy, pers.income )
                   @test length(symdiff(keys( newrats ),keys( pers.benefit_ratios ))) == 0 # all same keys
                   for k in keys( newrats )
                         @test  newrats[k] ≈ pers.benefit_ratios[k]
                   end
+                  =#
             end
       end
       for target in RATIO_BENS

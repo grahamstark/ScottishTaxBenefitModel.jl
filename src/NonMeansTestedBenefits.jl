@@ -23,8 +23,11 @@ module NonMeansTestedBenefits
         has_kids :: Bool, 
         bp :: BereavementSupport{T},
         wp :: WidowsPensions{T}) :: T where T
+        #
         # We don't know when someone was widowed
-        # so we rely on this.
+        # so we rely on this. FIXME Obviously this gets progressively worse as time goes on and
+        # we keep using the old years of FRS.
+        #
         wid = 0.0
         # new-style: payable for 18 months at a flat rate
         # 
@@ -54,7 +57,7 @@ module NonMeansTestedBenefits
         pers :: Person{T},
         pip  :: PersonalIndependencePayment{T}
     ) :: T where T
-        
+        # if pers.
         0.0
     end
 
@@ -67,6 +70,9 @@ module NonMeansTestedBenefits
             age_limits, 
             pers.age, 
             pers.sex )
+            # so, was someone over pension age *before* the new state pension?
+            # if so, use the proportion of the `class_a` they seemed to be on at 
+            # the time, times the current `class_a`. 
             if reached_state_pension_age(
                 age_limits, 
                 pers.age, 

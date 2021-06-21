@@ -70,10 +70,10 @@ export PIPType, no_pip, standard_pip, enhanced_pip
 @enum LowMiddleHigh begin
     missing_lmh = -1
     low = 1
-    middle = 2
+    mid = 2
     high = 3
 end
-export LowMiddleHigh, missing_lmh, low, middle, high
+export LowMiddleHigh, missing_lmh, low, mid, high
 
 
 export ADLS_Inhibited  # mapped from condit
@@ -846,7 +846,7 @@ export wages,
        armed_forces_compensation_scheme,
        war_widows_or_widowers_pension,
        severe_disability_allowance,
-       attendence_allowance, ## FIXME SP!
+       attendance_allowance, ## FIXME SP!
        carers_allowance,
        jobseekers_allowance,
        industrial_injury_disablement_benefit,
@@ -933,7 +933,7 @@ export wages,
    armed_forces_compensation_scheme = 2008
    war_widows_or_widowers_pension = 2009
    severe_disability_allowance = 2010
-   attendence_allowance = 2012
+   attendance_allowance = 2012
    carers_allowance = 2013
    jobseekers_allowance = 2014
    industrial_injury_disablement_benefit = 2015
@@ -1244,7 +1244,7 @@ export DLAself_care,
        Armed_Forces_Compensation_Scheme,
        War_Widows_or_Widowers_Pension,
        Severe_Disability_Allowance,
-       Attendence_Allowance,
+       Attendance_Allowance,
        Carers_Allowance,
        Jobseekers_Allowance,
        Industrial_Injury_Disablement_Benefit,
