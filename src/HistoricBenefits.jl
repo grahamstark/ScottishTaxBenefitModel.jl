@@ -96,8 +96,7 @@ function make_benefit_ratios!(
     pers :: Person,
     hid :: BigInt,
     interview_year :: Integer, 
-    interview_month :: Integer,
- ) 
+    interview_month :: Integer ) 
     finyear :: Int = fy_from_bits( interview_year, interview_month )
     # short cut
     incd = pers.income; 
@@ -110,6 +109,8 @@ function make_benefit_ratios!(
         end
     end
     # these seem to be usually imputed in the data. Find which one matches best.
+    
+    pers.pip_daily_living_type = no_pip
     if haskey( incd, personal_independence_payment_daily_living )  
         v = incd[personal_independence_payment_daily_living]
         matches = get_matches( v, finyear, :pip_daily_living_standard,  :pip_daily_living_enhanced )
@@ -118,6 +119,8 @@ function make_benefit_ratios!(
             # println( "!! pip daily living matched at $(matches[2])")
         end
     end
+
+    pers.pip_mobility_type = no_pip
     if haskey( incd, personal_independence_payment_mobility )  
         v = incd[personal_independence_payment_mobility]
         matches = get_matches( v, finyear, :pip_mobility_standard, :pip_mobility_enhanced )
@@ -126,11 +129,13 @@ function make_benefit_ratios!(
             # println( "!! pip mobility matched at $(matches[2])")
         end
     end
+    
+    pers.dla_self_care_type = missing_lmh
     if haskey( incd, dlaself_care )  
         v = incd[dlaself_care]        
         matches = get_matches( v, finyear, 
             :dla_care_low, 
-            :dla_care_middle, 
+            :dla_care_mid, 
             :dla_care_high )
         pers.dla_self_care_type = if matches[1] == 1 
                 low
@@ -140,6 +145,8 @@ function make_benefit_ratios!(
                 high
             end
     end
+
+    pers.dla_mobility_type = missing_lmh
     if haskey( incd, dlamobility )  
         v = incd[dlamobility] 
         matches = get_matches( v, finyear, 
@@ -147,12 +154,14 @@ function make_benefit_ratios!(
             :dla_mobility_high )
         pers.dla_mobility_type = matches[1] == 1 ? low : high # only 2 cases, despite low/mid/high
     end
+
+    pers.attendance_allowance_type = missing_lmh
     if haskey( incd, attendance_allowance ) 
         v = incd[attendance_allowance] 
         matches = get_matches( v, 
             finyear, 
-            :attendance_allowance_lower,
-            :attendance_allowance_higher )
+            :attendance_allowance_low,
+            :attendance_allowance_high )
         pers.attendance_allowance_type = matches[1] == 1 ? low : high # only 2 cases, despite low/mid/high
     end
 end
