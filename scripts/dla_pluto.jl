@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.7
+# v0.14.8
 
 using Markdown
 using InteractiveUtils
@@ -8,8 +8,8 @@ using InteractiveUtils
 begin
 	using Plots,DataFrames,CSV,Dates,GLM
 	# gr() 
-	plotly() 
-	# pyplot()
+	# plotly() 
+	pyplot()
 	# pgfplotsx()
 	default(fontfamily="Gill Sans", 
 		titlefont = (12,:grey), 
