@@ -13,6 +13,53 @@ export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
 export coarse_match
 export nearest, nearesti, not_zero_or_missing, is_zero_or_missing
 
+"""
+The index of the DataFrame row with a date field nearest to Date `d`, assuming dates are
+sorted low->high. Should really be a binary search but isn't quite.
+"""
+function nearest( d::Date, df :: DataFrame, col::Symbol=:Date ) :: Integer
+   pos = 0
+   n = size(df)[1]; 
+   p = -1;
+   mid = n÷2
+   mind = d - df[mid,col]
+   if mind == 0
+       return mid
+   elseif mind < Day(0)
+       direction = -1
+       las = 1
+       mid -= 1
+       if mid < 1 # idiot check for v short lists
+           return 1
+       end
+   else
+       direction = 1
+       las = n
+       mid += 1
+       if mid > n # idiot check for v short lists
+           return n
+       end
+   end    
+   mind = abs(mind)
+   pmind = mind
+   # println( "mid=$mid direction=$direction las=$las")
+   for i in mid:direction:las
+       dd = df[i,col]
+       diff = dd - d
+       diff = abs( diff ); # print( diff )
+       # println( "on pos $i diff=$diff dd  = $dd mind=$mind")
+       if diff < mind
+           mind = diff
+           p = i
+       end 
+       if pmind < mind # we've gone past 
+           return p
+       end
+       pmind = mind       
+  end
+  p
+end
+
 function not_zero_or_missing( thing :: Union{Missing, Number }) :: Bool
    if ismissing( thing )
       return false

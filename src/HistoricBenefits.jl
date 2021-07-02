@@ -39,6 +39,9 @@ function load_historic( file ) :: Dict
 end
 
 const HISTORIC_BENEFITS = load_historic( "$(MODEL_PARAMS_DIR)/historic_benefits.csv" ) 
+const DLA_RECEIPTS = 
+const PIP_RECEIPTS =  load_pip( "$(MODEL_DATA_DIR)/")
+
 
 function benefit_ratio( 
     finyear :: Integer, 
