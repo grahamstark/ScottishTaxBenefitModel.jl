@@ -1,4 +1,8 @@
 module NonMeansTestedBenefits
+#
+# This module provides routines for benefits which are (mostly) not means-tested benefits,
+# both current and historic. See [HistoricBenefits.jl] for the imputation routines used here.
+#
     using Dates
     using Dates: Date, now, TimeType, Year
     using ScottishTaxBenefitModel

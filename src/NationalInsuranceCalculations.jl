@@ -1,5 +1,7 @@
 module NationalInsuranceCalculations
-
+#
+# Does exactly what it says on the tin.
+#
 using BudgetConstraints #: BudgetConstraint, get_x_from_y
 using Dates
 using Dates: Date, now, TimeType, Year

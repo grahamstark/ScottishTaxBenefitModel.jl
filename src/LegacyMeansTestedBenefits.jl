@@ -1,5 +1,7 @@
 module LegacyMeansTestedBenefits
-
+#
+# This module implements the pre-universal credit means-tested benefit system.
+#
 using ScottishTaxBenefitModel
 using .Definitions
 

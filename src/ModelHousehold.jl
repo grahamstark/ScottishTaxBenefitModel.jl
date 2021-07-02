@@ -1,5 +1,10 @@
 module ModelHousehold
 
+#
+# This module provides a slightly abstracted view of a single Scottish household. The fields
+# are predominantly based on the FRS, but could in principle come from other sources
+# such as SHS, LCF and so on, or perhaps from a web form.
+#
 using Dates
 
 using ScottishTaxBenefitModel

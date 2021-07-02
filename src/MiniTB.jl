@@ -1,17 +1,16 @@
 module MiniTB
+#
+# This module provides a toy tax-benefit system with outlines of the components
+# a real model would need: models of people (and households)
+# a parameter system, a holder for results, and some calculations
+# using those things.
+#
+# Used (e.g.) in test building budget constraints and in various online demos.
+#
 
 import ScottishTaxBenefitModel.GeneralTaxComponents: calctaxdue, RateBands, TaxResult
 
 import Parameters: @with_kw
-#
-# A toy tax-benefit system with outlines of the components
-# a real model would need: models of people (and households)
-# a parameter system, a holder for results, and some calculations
-# using those things.
-# Used in test building budget constraints.
-# There's also some experiments of mine with constructors
-# and copying strucs.
-#
 
 export calculate, DEFAULT_PERSON, modifiedcopy, TBParameters, Person, getnet
 export modifiedcopy, DEFAULT_PARAMS, ZERO_PARAMS

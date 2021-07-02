@@ -1,5 +1,10 @@
 module HistoricBenefits
 #
+# This module provided matching routines to determine whether someone who was recieving
+# some benefit was getting high/low/enhanced/standard/middle/whatever levels of it.
+# Greatly messed up by what seem to be to be errors in benefit imputations in the FRS;
+# see the notes in `docs/` and the blog post. Not part of the model per. se..
+# 
 # FIXME the intention is to replace much of this
 # with a series of complete parameter files, once we have 
 # everything defined fully.

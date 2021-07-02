@@ -1,5 +1,11 @@
 module LocalLevelCalculations
-
+#
+# This module provides routines for various possible local taxation schemes, 
+# the bedroom tax, and local housing allowances. Housing Benefit and 
+# CTC reduction schemes are in the means-tested benefit modules.
+#
+# FIXME we need to improve the mapping between LAs and local housing allowances.
+#
 using ScottishTaxBenefitModel
 using .Definitions
 

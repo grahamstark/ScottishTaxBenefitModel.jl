@@ -1,12 +1,17 @@
 module Incomes
-    #
-    # TODO Investigate Named Arrays
-    #
-    # using ScottishTaxBenefitModel
-    using Base: String
+#
+# This module implements a list of incomes, roughly based on FRS incomes,
+# implemented with constants and
+# fixed length arrays. It's used by the calculation and results modules for
+# fast computation. In the household module, incomes are modelled as a Dictionary.
+# [Results.jl] has a routine to map between the two.
+#
+# TODO Investigate Named Arrays
+#
+
+using Base: String
 using StaticArrays
- 
-    
+     
     # declarations  ----------------
     const WAGES = 1
     const SELF_EMPLOYMENT_INCOME = 2

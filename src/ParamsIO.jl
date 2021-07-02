@@ -1,12 +1,15 @@
+module ParamsIO
+#
+# This is a failed experiment in reading and writing the model parameters in JSON - one
+# of several time-consuming failures. Kept around because json I/O would be lovely
+# if it could be made to work.
+# 
 # THIS DOESN'T WORK !!!1
 # json3 turns the structures below the top-level into Dicts
 # and I don't know why.
-# Wasted 2 days on this ...
 #
-# See scripts/serialisation_experiments.jl this one always works but has an ugly global variable
-# I'm using this for now.
+# See scripts/serialisation_experiments.jl 
 # 
-module ParamsIO
 
     using ScottishTaxBenefitModel
     using .STBParameters

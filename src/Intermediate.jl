@@ -1,9 +1,12 @@
 module Intermediate
 
 #
-#    Some intial calculations for things like numbers and
-#    ages of children, number of carers and so on. Intended
-#    to simplify subsequent modelling of benefits, etc.. 
+#   This module provides some intial calculations for things like numbers and
+#   ages of children, number of carers and so on, for benefit units and households. 
+#   It is intended to simplify subsequent modelling of benefits, etc.. 
+#   and to reduce the number of repeated calculations. It also holds code for some age and
+#   child count calculations that are also used stand-alone elsewhere.
+# 
 #   FIXME some of the names should be globally changed.
 #
 
