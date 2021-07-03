@@ -104,33 +104,31 @@ function get_matches( v :: Real, finyear :: Int, which ... ) :: Tuple
 end
 
 """
-If 25% of current are DLA
-and 70 were DLA when interviewed
-then 25/70 of those will remain on DLA
-with the rest assigned to PIP, plus everyone 
-actually receiving PIP.2
+Kinda-sorta randomly assign a dla case as pip so that the proportion
+of dla/pip in the data for some period is roughly the same as the latest
+dla/pip ratio. This is needed to model the DLA->PIP transition. 
 """
 function should_switch_dla_to_pip( 
     href  :: BigInt,
     interview_year :: Integer, 
     interview_month :: Integer) :: Bool
-    latest_dla = DLA_RECEIPTS[last,:Scotland]
-    latest_pip = PIP_RECEIPTS[last,:Scotland]
-    d = Date( interview_year, interview_month, 1 )
     #
     # This weird-looking calculation gives the proportion of
     # dla cases we need to switch to PIP for the ratio at the
     # interview point to match the latest DLA/PIP ratio.
     #
-    nearest_dla = dla[nearest( d, dla ),:Scotland]
-    nearest_pip = dla[nearest( d, pip ),:Scotland]
+    latest_dla = DLA_RECEIPTS[last,:Scotland]
+    latest_pip = PIP_RECEIPTS[last,:Scotland]
+    d = Date( interview_year, interview_month, 1 )
+    nearest_dla = DLA_RECEIPTS[nearest( d, dla ),:Scotland]
+    nearest_pip = PIP_RECEIPTS[nearest( d, pip ),:Scotland]
     nearest_all = nearest_pip + nearest_dla
     latest_all = latest_pip + latest_dla
     sw_prop = (latest_dla/nearest_dla)*(nearest_all/latest_all)
     #
     # Use the mod of the hid as a kind of repeatable random thing.             
     # So, if N=1000, href = 9001234 and sw_prop = 0.2
-    # then switch 234 > 200
+    # then switch if 234 > 200
     #
     N = 1_000
     ia = Int(trunc(sw_prop*N))
