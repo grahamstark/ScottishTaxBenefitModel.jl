@@ -9,13 +9,14 @@ module HistoricBenefits
 # with a series of complete parameter files, once we have 
 # everything defined fully.
 # 
-using CSV, DataFrames, DataValueInterfaces
+using CSV, DataFrames, Dates
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
-using .Utils: nearesti
+using .Utils: nearesti, nearest
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
+export should_switch_dla_to_pip, DLA_RECEIPTS, PIP_RECEIPTS
 
 const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
 
@@ -38,19 +39,24 @@ function load_historic( file ) :: Dict
 end
 
 function load_pip()
-    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip-2002-2020_from_stat_explore.csv" )|> DataFrame
+    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip_2002-2020_from_stat_explore.csv",
+        missingstrings=[".."],
+        types=Dict([:Date=>String]))|>DataFrame
     pip.Date = Date.( pip.Date, dateformat"yyyymm" )
     return pip
 end
 
 function load_dla()
-    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla-2002-2020_from_stat_explore.csv" )|> DataFrame
+    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla_2002-2020_from_stat_explore.csv" )|> DataFrame
     dla.Date = Date.( dla.Date, dateformat"u-yy" ) .+Year(2000)
     return dla
 end
 
 const HISTORIC_BENEFITS = load_historic( "$(MODEL_PARAMS_DIR)/historic_benefits.csv" ) 
+# a time series of DLA receipts, by quarter, downloaded from Stat-Xplore
 const DLA_RECEIPTS = load_dla()
+
+# likewise, monthly PIP receipts.
 const PIP_RECEIPTS =  load_pip()
 
 
@@ -109,7 +115,7 @@ of dla/pip in the data for some period is roughly the same as the latest
 dla/pip ratio. This is needed to model the DLA->PIP transition. 
 """
 function should_switch_dla_to_pip( 
-    href  :: BigInt,
+    pid  :: BigInt,
     interview_year :: Integer, 
     interview_month :: Integer) :: Bool
     #
@@ -117,22 +123,22 @@ function should_switch_dla_to_pip(
     # dla cases we need to switch to PIP for the ratio at the
     # interview point to match the latest DLA/PIP ratio.
     #
-    latest_dla = DLA_RECEIPTS[last,:Scotland]
-    latest_pip = PIP_RECEIPTS[last,:Scotland]
+    latest_dla = last(DLA_RECEIPTS).Scotland
+    latest_pip = last(PIP_RECEIPTS).Scotland
     d = Date( interview_year, interview_month, 1 )
-    nearest_dla = DLA_RECEIPTS[nearest( d, dla ),:Scotland]
-    nearest_pip = PIP_RECEIPTS[nearest( d, pip ),:Scotland]
+    nearest_dla = DLA_RECEIPTS[nearest( d, DLA_RECEIPTS ),:Scotland]
+    nearest_pip = PIP_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland]
     nearest_all = nearest_pip + nearest_dla
     latest_all = latest_pip + latest_dla
     sw_prop = (latest_dla/nearest_dla)*(nearest_all/latest_all)
     #
-    # Use the mod of the hid as a kind of repeatable random thing.             
-    # So, if N=1000, href = 9001234 and sw_prop = 0.2
+    # Use the last few digits of the person's pid as a kind of repeatable random thing.             
+    # So, if N=1000, pid = 9001234 and sw_prop = 0.2
     # then switch if 234 > 200
     #
     N = 1_000
     ia = Int(trunc(sw_prop*N))
-    hrm = href % N
+    hrm = pid % N
     return hrm > ia
 end
 

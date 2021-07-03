@@ -1,6 +1,7 @@
 using Test
 using ScottishTaxBenefitModel.HistoricBenefits
-using ScottishTaxBenefitModel.Definitions
+using ScottishTaxBenefitModel
+using .Definitions, .Utils
 
 include( "testutils.jl")
 
@@ -28,5 +29,13 @@ include( "testutils.jl")
         pe_99,
         state_pension
     ) ≈ 1
+
+ 
+    d = Date( 2019, 1, 1)
+    @test DLA_RECEIPTS[nearest( d, DLA_RECEIPTS ),:Scotland] ≈ 182_154  
+    @test PIP_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland] ≈ 220_043
+
+    @test ! should_switch_dla_to_pip( BigInt(1000), 2016, 1 )
+    @test should_switch_dla_to_pip( BigInt(1999), 2016, 1 )
 
 end
