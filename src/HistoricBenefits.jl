@@ -9,13 +9,12 @@ module HistoricBenefits
 # with a series of complete parameter files, once we have 
 # everything defined fully.
 # 
-using CSV, DataFrames
+using CSV, DataFrames, DataValueInterfaces
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
 using .Utils: nearesti
 using .TimeSeriesUtils: fy_from_bits
-
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
 
 const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
@@ -38,9 +37,21 @@ function load_historic( file ) :: Dict
     return db
 end
 
+function load_pip()
+    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip-2002-2020_from_stat_explore.csv" )|> DataFrame
+    pip.Date = Date.( pip.Date, dateformat"yyyymm" )
+    return pip
+end
+
+function load_dla()
+    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla-2002-2020_from_stat_explore.csv" )|> DataFrame
+    dla.Date = Date.( dla.Date, dateformat"u-yy" ) .+Year(2000)
+    return dla
+end
+
 const HISTORIC_BENEFITS = load_historic( "$(MODEL_PARAMS_DIR)/historic_benefits.csv" ) 
-const DLA_RECEIPTS = 
-const PIP_RECEIPTS =  load_pip( "$(MODEL_DATA_DIR)/")
+const DLA_RECEIPTS = load_dla()
+const PIP_RECEIPTS =  load_pip()
 
 
 function benefit_ratio( 
@@ -90,6 +101,31 @@ function get_matches( v :: Real, finyear :: Int, which ... ) :: Tuple
     println( "didn't match; trying against $(all_current)")
     n = nearesti( v, all_current... )
     return (n,99)
+end
+
+@enum PIPOrDLA rec_pip rec_dla
+
+"""
+If 25% of current are DLA
+and 70 were DLA when interviewed
+then 25/70 of those will remain on DLA
+with the rest assigned to PIP, plus everyone 
+actually receiving PIP.2
+"""
+function assign_pip_or_dla( 
+    which :: PIPOrDLA,
+    href  :: BigInt,
+    interview_year :: Integer, 
+    interview_month :: Integer) :: PIPOrDLA
+    latest_dla = DLA_RECEIPTS[last,:Scotland]
+    latest_pip = PIP_RECEIPTS[last,:Scotland]
+    d = Date( interview_year, interview_month, 1 )
+    nearest_dla = dla[nearest( d, dla ),:Scotland]
+    nearest_pip = dla[nearest( d, pip ),:Scotland]
+    dlaprop_old = nearest_dla/(nearest_dla+nearest_pip)
+    dlaprop_new = latest_dla/(latest_dla+latest_pip)
+    prop = dlaprop_new/dlaprop_old
+
 end
 
 # 

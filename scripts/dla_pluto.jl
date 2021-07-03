@@ -34,7 +34,7 @@ md"## DLA "
 # ╔═╡ 923d961b-0912-4d1e-976e-20b89150b563
 begin
 	cd("/home/graham_s/julia/vw/ScottishTaxBenefitModel/")
-	dla=CSV.File("docs/dla_2002-2020_from_stat_explore.csv")|>DataFrame
+	dla=CSV.File("data/receipts/dla_2002-2020_from_stat_explore.csv")|>DataFrame
 	dla.Date = Date.( dla.Date, dateformat"u-yy" ) .+Year(2000)
 	dla
 end
@@ -51,7 +51,7 @@ md"## Personal Independence Payment"
 
 # ╔═╡ a01723f5-e22a-4d36-9afa-6675d591bfeb
 begin
-	pip=CSV.File( "docs/pip-by-country-and-month-transposed.tab",missingstrings=[".."],types=Dict([:Date=>String]))|>DataFrame
+	pip=CSV.File( "data/receipts/pip-2002-2020_from_stat_explore.csv",missingstrings=[".."],types=Dict([:Date=>String]))|>DataFrame
 	pip.Date = Date.( pip.Date, dateformat"yyyymm" )
 	pip
 end
