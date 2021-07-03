@@ -103,8 +103,6 @@ function get_matches( v :: Real, finyear :: Int, which ... ) :: Tuple
     return (n,99)
 end
 
-@enum PIPOrDLA rec_pip rec_dla
-
 """
 If 25% of current are DLA
 and 70 were DLA when interviewed
@@ -112,27 +110,32 @@ then 25/70 of those will remain on DLA
 with the rest assigned to PIP, plus everyone 
 actually receiving PIP.2
 """
-function assign_pip_or_dla( 
-    which :: PIPOrDLA,
+function should_switch_dla_to_pip( 
     href  :: BigInt,
     interview_year :: Integer, 
-    interview_month :: Integer) :: PIPOrDLA
+    interview_month :: Integer) :: Bool
     latest_dla = DLA_RECEIPTS[last,:Scotland]
     latest_pip = PIP_RECEIPTS[last,:Scotland]
     d = Date( interview_year, interview_month, 1 )
-    # this weird-looking calculation gives the proportion of
+    #
+    # This weird-looking calculation gives the proportion of
     # dla cases we need to switch to PIP for the ratio at the
-    # interview point to match the latest DLA/PIP ratio 
+    # interview point to match the latest DLA/PIP ratio.
+    #
     nearest_dla = dla[nearest( d, dla ),:Scotland]
     nearest_pip = dla[nearest( d, pip ),:Scotland]
     nearest_all = nearest_pip + nearest_dla
     latest_all = latest_pip + latest_dla
-    a = (latest_dla/nearest_dla)*(nearest_all/latest_all)
-    ia = Int(trunc(a*1_000))
-    hrm = href % 1_000
-    if hrm > ia
-        # move a dla case to pip
-    end
+    sw_prop = (latest_dla/nearest_dla)*(nearest_all/latest_all)
+    #
+    # Use the mod of the hid as a kind of repeatable random thing.             
+    # So, if N=1000, href = 9001234 and sw_prop = 0.2
+    # then switch 234 > 200
+    #
+    N = 1_000
+    ia = Int(trunc(sw_prop*N))
+    hrm = href % N
+    return hrm > ia
 end
 
 # 
