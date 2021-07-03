@@ -120,12 +120,19 @@ function assign_pip_or_dla(
     latest_dla = DLA_RECEIPTS[last,:Scotland]
     latest_pip = PIP_RECEIPTS[last,:Scotland]
     d = Date( interview_year, interview_month, 1 )
+    # this weird-looking calculation gives the proportion of
+    # dla cases we need to switch to PIP for the ratio at the
+    # interview point to match the latest DLA/PIP ratio 
     nearest_dla = dla[nearest( d, dla ),:Scotland]
     nearest_pip = dla[nearest( d, pip ),:Scotland]
-    dlaprop_old = nearest_dla/(nearest_dla+nearest_pip)
-    dlaprop_new = latest_dla/(latest_dla+latest_pip)
-    prop = dlaprop_new/dlaprop_old
-
+    nearest_all = nearest_pip + nearest_dla
+    latest_all = latest_pip + latest_dla
+    a = (latest_dla/nearest_dla)*(nearest_all/latest_all)
+    ia = Int(trunc(a*1_000))
+    hrm = href % 1_000
+    if hrm > ia
+        # move a dla case to pip
+    end
 end
 
 # 
