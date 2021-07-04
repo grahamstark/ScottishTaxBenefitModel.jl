@@ -129,8 +129,8 @@ function should_switch_dla_to_pip(
     latest_all = latest_pip + latest_dla
     sw_prop = (latest_dla/nearest_dla)*(nearest_all/latest_all)
     #
-    # Use the mod of the hid as a kind of repeatable random thing.             
-    # So, if N=1000, href = 9001234 and sw_prop = 0.2
+    # Use a bit of `onerand` as a kind of repeatable random thing.             
+    # So, if N=1000, onerand = 9001234 and sw_prop = 0.2
     # then switch if 234 > 200
     #
     test = randchunk( onerand, 3, 3 ) # last 3 digits
