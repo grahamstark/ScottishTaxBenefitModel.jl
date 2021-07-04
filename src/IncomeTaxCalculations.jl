@@ -144,29 +144,8 @@ function calc_income_tax!(
     savings_income = isum( pres.income, sys.savings_income )
     dividends_income = isum( pres.income, sys.dividend_income )
 
-    #=
-    total_income = mult( 
-        data=pers.income, 
-        calculated=pres.income, 
-        included=sys.all_taxable )
-    non_savings_income = mult( 
-        data=pers.income, 
-        calculated=pres.income, 
-        included=sys.non_savings_income )
-    savings_income = mult( 
-        data=pers.income, 
-        calculated=pres.income, 
-        included=sys.savings_income )
-    dividends_income = mult( 
-        data=pers.income, 
-        calculated=pres.income, 
-        included=sys.dividend_income )
-    =#
-
     allowance = calculate_allowance( pers, sys )
     # allowance reductions goes here
-
-    # non_dividends = non_savings_income + savings_income
 
     adjusted_net_income = total_income
 
