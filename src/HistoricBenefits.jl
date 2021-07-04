@@ -38,7 +38,9 @@ function load_historic( file ) :: Dict
 end
 
 function load_pip()
-    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip_2002-2020_from_stat_explore.csv" )|> DataFrame
+    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip_2002-2020_from_stat_explore.csv",
+        missingstrings=[".."],
+        types=Dict([:Date=>String]))|>DataFrame
     pip.Date = Date.( pip.Date, dateformat"yyyymm" )
     return pip
 end
