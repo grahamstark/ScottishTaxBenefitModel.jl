@@ -213,7 +213,7 @@ function map_person(
         strtobi(model_person.onerand)
     )
     make_benefit_ratios!( 
-        pers, hh.hid, hh.interview_year, hh.interview_month )
+        pers, hh.interview_year, hh.interview_month )
 
     return pers;
 end
