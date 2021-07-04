@@ -13,7 +13,7 @@ using CSV, DataFrames, Dates
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
-using .Utils: nearesti, nearest
+using .Utils: nearesti, nearest, randchunk
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
 export should_switch_dla_to_pip,PIP_RECEIPTS,DLA_RECEIPTS
@@ -112,7 +112,7 @@ of dla/pip in the data for some period is roughly the same as the latest
 dla/pip ratio. This is needed to model the DLA->PIP transition. 
 """
 function should_switch_dla_to_pip( 
-    href  :: BigInt,
+    onerand  :: Integer,
     interview_year :: Integer, 
     interview_month :: Integer) :: Bool
     #
@@ -133,10 +133,9 @@ function should_switch_dla_to_pip(
     # So, if N=1000, href = 9001234 and sw_prop = 0.2
     # then switch if 234 > 200
     #
-    N = 1_000
-    ia = Int(trunc(sw_prop*N))
-    hrm = href % N
-    return hrm > ia
+    test = randchunk( onerand, 3, 3 ) # last 3 digits
+    ia = Int(trunc(sw_prop*1_000))
+    return test > ia
 end
 
 # 

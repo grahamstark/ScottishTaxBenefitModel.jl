@@ -54,7 +54,7 @@ Extract a chunk `len` long from one of our big numbers, starting at
 `start` (from right, so 1=the last digit, not the first).
 """
 function randchunk( b :: Integer, start::Int, len :: Int ) :: Int
-   return Int((r ÷ BigInt(10)^(start-len)) % (BigInt(10)^len))
+   return Int((b ÷ BigInt(10)^(start-len)) % (BigInt(10)^len))
 end
 
 """
