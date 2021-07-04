@@ -97,6 +97,7 @@ mutable struct Person{RT<:Real}
     company_car_value :: RT
     company_car_contribution :: RT
     fuel_supplied :: RT
+    onerand :: BigInt
 end
 
 People_Dict = Dict{BigInt,Person}
@@ -131,6 +132,7 @@ mutable struct Household{RT<:Real}
     bedrooms :: Int
     head_of_household :: BigInt
     people::People_Dict
+    onerand :: BigInt
 end
 
 function interview_date( hh :: Household ) :: Date

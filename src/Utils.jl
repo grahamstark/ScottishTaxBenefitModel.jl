@@ -1,5 +1,6 @@
 module Utils
 
+using Base: Integer, String
 using DataFrames
 using Dates
 using Base.Unicode
@@ -12,6 +13,49 @@ export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_stru
 export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
 export coarse_match
 export nearest, nearesti, not_zero_or_missing, is_zero_or_missing
+export BR_DIGITS, mybigrand, randchunk, strtobi, mybigrandstr
+
+#=
+Some functions to make a huge, 60 digit random number, and extract 
+groups of digits from it.
+
+One such number is attached to each person and household
+when the dataset is created. This seems a simple way to create
+repeatable but kinda-sort random numbers.
+=#
+const BR_DIGITS = 60
+
+"""
+The random number is mangled by spreadsheets even when
+it's enclosed in quotes, so one crude fix is to prefix it
+with a letter and extract from beyond that.
+"""
+function strtobi( s :: String ) :: BigInt
+   return parse( BigInt,s[2:end])
+end
+
+"""
+A random number which always has BR_DIGITS decimal digits.
+"""
+function mybigrand()::BigInt
+   return rand( BigInt(10)^BR_DIGITS:(BigInt(10)^(BR_DIGITS+1)-1))
+end
+
+"""
+one of our a `BR_DIGITS` random numbers, prefixed with a character so spreadsheets
+don't mangle it.
+"""
+function mybigrandstr()::String
+   return "X"*string(mybigrand())
+end
+
+"""
+Extract a chunk `len` long from one of our big numbers, starting at 
+`start` (from right, so 1=the last digit, not the first).
+"""
+function randchunk( b :: Integer, start::Int, len :: Int ) :: Int
+   return Int((r ÷ BigInt(10)^(start-len)) % (BigInt(10)^len))
+end
 
 """
 The index of the DataFrame row with a date field nearest to Date `d`, assuming dates are

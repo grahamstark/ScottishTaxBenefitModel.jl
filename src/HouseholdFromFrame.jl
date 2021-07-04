@@ -9,7 +9,7 @@ using .ModelHousehold
 using .TimeSeriesUtils
 using .HistoricBenefits: make_benefit_ratios!
 # benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, get_matches
-using .Utils: not_zero_or_missing
+using .Utils: not_zero_or_missing,strtobi
 
 export load_hhld_from_frame, map_hhld, create_regression_dataframe
 
@@ -56,40 +56,6 @@ function create_regression_dataframe(
 end
 
 
-#=
-function make_benefit_ratios( 
-    hid :: BigInt,
-    interview_year :: Integer, 
-    interview_month :: Integer,
-    mp :: DataFrameRow ) :: Incomes_Dict
-    d = Incomes_Dict{Float64}()
-    finyear :: Int = fy_from_bits( interview_year, interview_month )
-
-    for target in RATIO_BENS
-        dkey = Symbol( "income_$(target)")
-        if not_zero_or_missing( mp[dkey])
-            d[target] = benefit_ratio( finyear, mp[dkey], target )
-        end
-    end
-    if not_zero_or_missing( mp.income_personal_independence_payment_daily_living )  
-        v = mp.income_personal_independence_payment_daily_living
-        matches = get_matches( v, finyear, :pip_daily_living_standard, :pip_daily_living_enhanced )
-        d[personal_independence_payment_daily_living] = matches[1]
-        if matches[2] > 1
-            println( "!! hid $hid pip daily living imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
-        end
-    end
-    if not_zero_or_missing( mp.income_personal_independence_payment_mobility )    
-        v = mp.income_personal_independence_payment_mobility
-        matches = get_matches( v, finyear, :pip_mobility_standard, :pip_mobility_enhanced )
-        d[personal_independence_payment_mobility] = matches[1]
-        if matches[2] > 1
-             println( "!! hid $hid pip mobility imperfectly matched at $(matches[2]) $finyear $(interview_year) $(interview_month) $v")
-        end
-    end
-    return d
-end
-=#
 
 function map_person( 
     hh :: Household, 
@@ -243,8 +209,8 @@ function map_person(
         Fuel_Type( m2z(model_person.company_car_fuel_type )),
         m2z(model_person.company_car_value),
         m2z(model_person.company_car_contribution),
-        m2z(model_person.fuel_supplied)
-
+        m2z(model_person.fuel_supplied),
+        strtobi(model_person.onerand)
     )
     make_benefit_ratios!( 
         pers, hh.hid, hh.interview_year, hh.interview_month )
@@ -284,7 +250,8 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
         Symbol( frs_hh.nhs_board ),
         frs_hh.bedrooms,
         head_of_household,
-        people )
+        people,        
+        strtobi(frs_hh.onerand) )
 end
 
 function load_hhld_from_frame( hseq::Integer, hhld_fr :: DataFrameRow, pers_fr :: DataFrame, source::DataSource ) :: Household

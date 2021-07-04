@@ -433,8 +433,8 @@ function initialise_person(n::Integer)::DataFrame
         relationship_12 = Vector{Union{Integer,Missing}}(missing, n),
         relationship_13 = Vector{Union{Integer,Missing}}(missing, n),
         relationship_14 = Vector{Union{Integer,Missing}}(missing, n),
-        relationship_15 = Vector{Union{Integer,Missing}}(missing, n)
-
+        relationship_15 = Vector{Union{Integer,Missing}}(missing, n),
+        onerand = Vector{String}(undef,n)
     )
 
 end
@@ -477,7 +477,8 @@ function initialise_household(n::Integer)::DataFrame
         weight = Vector{Union{Real,Missing}}(missing, n),
         council = fill( "", n ),
         nhs_board = fill( "", n ),
-        bedrooms = fill( 0, n )
+        bedrooms = fill( 0, n ),
+        onerand = Vector{String}(undef,n)
     )
 end
 
@@ -1184,6 +1185,7 @@ function create_adults(
             model_adult.attendance_allowance_type = map123( model_adult.income_attendance_allowance, [65] )
             model_adult.personal_independence_payment_daily_living_type = map12( model_adult.income_personal_independence_payment_daily_living, 65 )
             model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )            
+            model_adult.onerand = mybigrandstr()
         end # if in HBAI
     end # adult loop
     println("final adno $adno")
@@ -1199,7 +1201,7 @@ function create_children(
     childcare::DataFrame,
     hbai_res::DataFrame
 )::DataFrame
-    # I don;t care if the child is in HBAI or not - we'll sort that out when we match with the
+    # I don't care if the child is in HBAI or not - we'll sort that out when we match with the
     # live benefit units
     num_children = size(frs_children)[1]
     child_model = initialise_person(num_children)
@@ -1218,6 +1220,7 @@ function create_children(
             adno += 1
                 ## also for children
             model_child = child_model[chno, :]
+
             model_child.pno = frs_person.person
             model_child.hid = frs_person.sernum
             model_child.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
@@ -1279,6 +1282,7 @@ function create_children(
                     a_childcare[c, :chhr]
                 )
             end # child care loop
+            model_child.onerand = mybigrandstr()
         end  # if in HBAI
     end # chno loop
     child_model # send them all back ...
@@ -1364,6 +1368,7 @@ function create_household(
             ohc = safe_inc(ohc, hh.chrgamt9)
             hh_model[hhno, :other_housing_charges] = ohc
             hh_model[hhno, :bedrooms] = hh.bedroom6
+            hh_model[hhno, :onerand] = mybigrandstr()
         # TODO
             # gross_housing_costs::Real
             # total_income::Real
