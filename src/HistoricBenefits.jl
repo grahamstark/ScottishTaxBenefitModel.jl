@@ -9,7 +9,7 @@ module HistoricBenefits
 # with a series of complete parameter files, once we have 
 # everything defined fully.
 # 
-using CSV, DataFrames, DataValueInterfaces
+using CSV, DataFrames, Dates
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
@@ -38,13 +38,13 @@ function load_historic( file ) :: Dict
 end
 
 function load_pip()
-    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip-2002-2020_from_stat_explore.csv" )|> DataFrame
+    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip_2002-2020_from_stat_explore.csv" )|> DataFrame
     pip.Date = Date.( pip.Date, dateformat"yyyymm" )
     return pip
 end
 
 function load_dla()
-    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla-2002-2020_from_stat_explore.csv" )|> DataFrame
+    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla_2002-2020_from_stat_explore.csv" )|> DataFrame
     dla.Date = Date.( dla.Date, dateformat"u-yy" ) .+Year(2000)
     return dla
 end
