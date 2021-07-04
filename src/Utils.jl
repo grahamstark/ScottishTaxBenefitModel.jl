@@ -86,12 +86,10 @@ function nearest( d::Date, df :: DataFrame, col::Symbol=:Date ) :: Integer
    end    
    mind = abs(mind)
    pmind = mind
-   # println( "mid=$mid direction=$direction las=$las")
    for i in mid:direction:las
        dd = df[i,col]
        diff = dd - d
        diff = abs( diff ); # print( diff )
-       # println( "on pos $i diff=$diff dd  = $dd mind=$mind")
        if diff < mind
            mind = diff
            p = i

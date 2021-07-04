@@ -17,6 +17,7 @@ using .Utils: nearesti, nearest, randchunk
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
 export should_switch_dla_to_pip,PIP_RECEIPTS,DLA_RECEIPTS
+export switch_dla_to_pip
 
 const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
 
@@ -118,7 +119,7 @@ function should_switch_dla_to_pip(
     #
     # This weird-looking calculation gives the proportion of
     # dla cases we need to switch to PIP for the ratio at the
-    # interview point to match the latest DLA/PIP ratio.
+    # interview point to (roughly) match the latest DLA/PIP ratio.
     #
     latest_dla = last(DLA_RECEIPTS).Scotland
     latest_pip = last(PIP_RECEIPTS).Scotland
@@ -138,6 +139,36 @@ function should_switch_dla_to_pip(
     return test > ia
 end
 
+function switch_dla_to_pip( 
+    pers :: Person,
+    interview_year :: Integer, 
+    interview_month :: Integer ) 
+    if (pers.dla_daily_living_type != missing_lmh )||
+       (pers.dla_mobility_type != missing_lmh)
+        if should_switch_dla_to_pip( 
+            pers.onerand, interview_year, interview_month )
+            pers.pip_daily_living_type = 
+                if pers.dla_daily_living_type == missing_dla
+                    no_pip
+                elseif pers.dla_daily_living_type in (low,mid)
+                    standard_pip
+                else
+                    enhanced_pip
+                end
+            pers.pip_mobility_type = 
+                if pers.dla_mobility_type == missing_dla
+                    no_pip
+                elseif pers.dla_mobililty_type in (low,mid)
+                    standard_pip
+                else
+                    enhanced_pip
+                end
+            pers.dla_mobility_type = missing_lmh
+            pers.dla_daily_living_type = missing_lmh
+        end
+    end
+end # proc
+
 # 
 # FIXME make all these names the same. Use the integer constants in `.Incomes.jl`.
 # FIXME historic bit should be the whole parameter system eventually.
@@ -148,7 +179,6 @@ end
 """
 function make_benefit_ratios!( 
     pers :: Person,
-    hid :: BigInt,
     interview_year :: Integer, 
     interview_month :: Integer ) 
     finyear :: Int = fy_from_bits( interview_year, interview_month )
