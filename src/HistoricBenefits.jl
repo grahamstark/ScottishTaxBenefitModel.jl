@@ -13,9 +13,10 @@ using CSV, DataFrames, Dates
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
-using .Utils: nearesti
+using .Utils: nearesti, nearest
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
+export should_switch_dla_to_pip,PIP_RECEIPTS,DLA_RECEIPTS
 
 const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
 
@@ -119,11 +120,11 @@ function should_switch_dla_to_pip(
     # dla cases we need to switch to PIP for the ratio at the
     # interview point to match the latest DLA/PIP ratio.
     #
-    latest_dla = DLA_RECEIPTS[last,:Scotland]
-    latest_pip = PIP_RECEIPTS[last,:Scotland]
+    latest_dla = last(DLA_RECEIPTS).Scotland
+    latest_pip = last(PIP_RECEIPTS).Scotland
     d = Date( interview_year, interview_month, 1 )
-    nearest_dla = DLA_RECEIPTS[nearest( d, dla ),:Scotland]
-    nearest_pip = PIP_RECEIPTS[nearest( d, pip ),:Scotland]
+    nearest_dla = DLA_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland]
+    nearest_pip = PIP_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland]
     nearest_all = nearest_pip + nearest_dla
     latest_all = latest_pip + latest_dla
     sw_prop = (latest_dla/nearest_dla)*(nearest_all/latest_all)
