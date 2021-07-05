@@ -12,7 +12,7 @@ export addsysnotoname, diff_between, mult_dict!, get_project_path
 export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
 export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
 export coarse_match
-export nearest, nearesti, not_zero_or_missing, is_zero_or_missing
+export nearest, nearesti, nearz, not_zero_or_missing, is_zero_or_missing
 export BR_DIGITS, mybigrand, randchunk, strtobi, mybigrandstr
 
 #=
@@ -104,6 +104,8 @@ function nearest( d::Date, df :: DataFrame, col::Symbol=:Date ) :: Integer
   return p
 end
 
+
+
 function not_zero_or_missing( thing :: Union{Missing, Number }) :: Bool
    if ismissing( thing )
       return false
@@ -137,6 +139,19 @@ return the element of comps that's closest to x
 function nearest( x :: Real , comps... )
    return comps[ nearesti( x, comps )]
 end
+
+"""
+The thing (comps...) that x is closest to, but returning zero even
+if 0 isn't in comps..
+"""
+function nearz( x :: Real, comps ... ) :: Real
+    if x ≈ 0
+        return 0.0
+    end
+    return nearest( x, comps ... )
+end
+
+
 
 
 #

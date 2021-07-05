@@ -214,7 +214,7 @@ function map_person(
     )
     make_benefit_ratios!( 
         pers, hh.interview_year, hh.interview_month )
-
+    switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
     return pers;
 end
 

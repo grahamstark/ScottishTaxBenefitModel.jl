@@ -55,6 +55,7 @@ module STBParameters
         other_children :: RT = 13.70
         high_income_thresh :: RT = 50_0000
         withdrawal = 1/100
+        guardians_allowance :: RT = 17
     end
 
     @with_kw mutable struct DisabilityLivingAllowance{RT<:Real}
