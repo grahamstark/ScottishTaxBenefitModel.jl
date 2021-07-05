@@ -67,7 +67,7 @@ function nearest( d::Date, df :: DataFrame, col::Symbol=:Date ) :: Integer
    p = -1;
    mid = n÷2
    mind = d - df[mid,col]
-   if mind == 0
+   if mind == Day(0)
        return mid
    elseif mind < Day(0)
        direction = -1
@@ -86,20 +86,22 @@ function nearest( d::Date, df :: DataFrame, col::Symbol=:Date ) :: Integer
    end    
    mind = abs(mind)
    pmind = mind
+   # println( "p=$p mid=$mid direction=$direction las=$las mind=$mind")
    for i in mid:direction:las
        dd = df[i,col]
        diff = dd - d
        diff = abs( diff ); # print( diff )
        if diff < mind
-           mind = diff
-           p = i
+         mind = diff
+         p = i
        end 
        if pmind < mind # we've gone past 
-           return p
+         # println( "returning pmind=$pmind mind=$mind")
+         return p
        end
        pmind = mind       
   end
-  p
+  return p
 end
 
 function not_zero_or_missing( thing :: Union{Missing, Number }) :: Bool

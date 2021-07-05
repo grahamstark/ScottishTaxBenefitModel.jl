@@ -47,10 +47,10 @@ function to_nearest_p( x, y :: Real ) :: Bool
     round(x, digits=2) == round(y, digits=2)
 end
 
-function init_data()
+function init_data(; reset :: Bool = false )
    nhh = get_num_households()
    num_people = -1
-   if nhh == 0
+   if( nhh == 0 ) || reset 
       @time nhh, num_people,nhh2 = initialise(
             household_name = "model_households_scotland",
             people_name    = "model_people_scotland" )

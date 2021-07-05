@@ -17,7 +17,7 @@ using .Utils: nearesti, nearest, randchunk
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
 export should_switch_dla_to_pip,PIP_RECEIPTS,DLA_RECEIPTS
-export switch_dla_to_pip
+export switch_dla_to_pip!
 
 const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
 
@@ -124,7 +124,7 @@ function should_switch_dla_to_pip(
     latest_dla = last(DLA_RECEIPTS).Scotland
     latest_pip = last(PIP_RECEIPTS).Scotland
     d = Date( interview_year, interview_month, 1 )
-    nearest_dla = DLA_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland]
+    nearest_dla = DLA_RECEIPTS[nearest( d, DLA_RECEIPTS ),:Scotland]
     nearest_pip = PIP_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland]
     nearest_all = nearest_pip + nearest_dla
     latest_all = latest_pip + latest_dla
@@ -136,35 +136,38 @@ function should_switch_dla_to_pip(
     #
     test = randchunk( onerand, 3, 3 ) # last 3 digits
     ia = Int(trunc(sw_prop*1_000))
-    return test > ia
+    switch = test > ia
+    # println( "test $test ia=$ia switch=$switch")
+    return switch
 end
 
-function switch_dla_to_pip( 
+function switch_dla_to_pip!( 
     pers :: Person,
     interview_year :: Integer, 
     interview_month :: Integer ) 
-    if (pers.dla_daily_living_type != missing_lmh )||
+    if (pers.dla_self_care_type != missing_lmh )||
        (pers.dla_mobility_type != missing_lmh)
         if should_switch_dla_to_pip( 
             pers.onerand, interview_year, interview_month )
+            # println("switching person $(pers.pid) year=$interview_year month=$interview_month")
             pers.pip_daily_living_type = 
-                if pers.dla_daily_living_type == missing_dla
+                if pers.dla_self_care_type == missing_lmh
                     no_pip
-                elseif pers.dla_daily_living_type in (low,mid)
+                elseif pers.dla_self_care_type in (low,mid)
                     standard_pip
                 else
                     enhanced_pip
                 end
             pers.pip_mobility_type = 
-                if pers.dla_mobility_type == missing_dla
+                if pers.dla_mobility_type == missing_lmh
                     no_pip
-                elseif pers.dla_mobililty_type in (low,mid)
+                elseif pers.dla_mobility_type in (low,mid)
                     standard_pip
                 else
                     enhanced_pip
                 end
             pers.dla_mobility_type = missing_lmh
-            pers.dla_daily_living_type = missing_lmh
+            pers.dla_self_care_type = missing_lmh
         end
     end
 end # proc

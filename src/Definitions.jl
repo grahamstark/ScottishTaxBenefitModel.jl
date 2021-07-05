@@ -68,7 +68,7 @@ end
 export PIPType, no_pip, standard_pip, enhanced_pip
 
 @enum LowMiddleHigh begin
-    missing_lmh = -1
+    missing_lmh = -1 # fixme global change to "no_lmh"
     low = 1
     mid = 2
     high = 3
