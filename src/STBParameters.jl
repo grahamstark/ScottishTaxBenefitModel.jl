@@ -134,6 +134,11 @@ module STBParameters
         age_amounts = Vector{RT}([111.51,103.11,94.72,86.33,77.94,69.54,61.15,52.76,44.36,35.97])
     end
 
+    @with_kw mutable struct MaternityAllowance{RT}
+        rate :: RT = 148.68
+        
+    end
+
 
     #
     # initial version - will be progressively replaced

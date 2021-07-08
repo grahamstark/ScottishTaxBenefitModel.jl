@@ -98,7 +98,7 @@ using StaticArrays
     const WINTER_FUEL_PAYMENTS = 79
     const WORKING_TAX_CREDIT = 80
     const CHILD_TAX_CREDIT = 81
-    const EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 82
+    const CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 82
     const INCOME_SUPPORT = 83
     const PENSION_CREDIT = 84
     const SAVINGS_CREDIT = 85
@@ -110,17 +110,18 @@ using StaticArrays
     const STUDENT_GRANTS = 91
     const STUDENT_LOANS = 92
     const COUNCIL_TAX_BENEFIT = 93
-    const SPARE_BEN_1 = 94
-    const SPARE_BEN_2 = 95
-    const SPARE_BEN_3 = 96
-    const SPARE_BEN_4 = 97
-    const SPARE_BEN_5 = 98
-    const SPARE_BEN_6 = 99
-    const SPARE_BEN_7 = 100
-    const SPARE_BEN_8 = 101
-    const SPARE_BEN_9 = 102
-    const SCOTTISH_CARERS_SUPPLEMENT = 103
-
+    const NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 94
+    const SCOTTISH_CARERS_SUPPLEMENT = 95
+    const SPARE_BEN_1 = 96
+    const SPARE_BEN_2 = 97
+    const SPARE_BEN_3 = 98
+    const SPARE_BEN_4 = 99
+    const SPARE_BEN_5 = 100
+    const SPARE_BEN_6 = 101
+    const SPARE_BEN_7 = 102
+    const SPARE_BEN_8 = 103
+    const SPARE_BEN_9 = 104
+    
     const NON_CALCULATED = WAGES:SPARE_INC_5
     const BENEFITS = CHILD_BENEFIT:SCOTTISH_CARERS_SUPPLEMENT
     const LEGACY_MTS = WORKING_TAX_CREDIT:HOUSING_BENEFIT
@@ -128,6 +129,22 @@ using StaticArrays
     const SICKNESS_ILLNESS = SEVERE_DISABILITY_ALLOWANCE:DLA_MOBILITY
     const DEDUCTIONS = HEALTH_INSURANCE:SPARE_DEDUCT_5
     const INC_ARRAY_SIZE = SCOTTISH_CARERS_SUPPLEMENT
+    const PASSED_THROUGH_BENEFITS = [
+            ARMED_FORCES_COMPENSATION_SCHEME,
+            WAR_WIDOWS_PENSION,
+            SEVERE_DISABILITY_ALLOWANCE,
+            INDUSTRIAL_INJURY_BENEFIT,
+            INCAPACITY_BENEFIT,
+            EDUCATION_ALLOWANCES,
+            FOSTER_CARE_PAYMENTS,
+            MATERNITY_GRANT,
+            FUNERAL_GRANT,
+            ANY_OTHER_NI_OR_STATE_BENEFIT,
+            GUARDIANS_ALLOWANCE,
+            FREE_SCHOOL_MEALS,
+            OTHER_BENEFITS,
+            STUDENT_GRANTS,
+            STUDENT_LOANS ]
     const ALL_INCOMES = union( NON_CALCULATED, BENEFITS )
 
     # exports ----------------
@@ -191,11 +208,11 @@ using StaticArrays
     export BEREAVEMENT_ALLOWANCE
     export ARMED_FORCES_COMPENSATION_SCHEME
     export WAR_WIDOWS_PENSION
-    export SEVERE_DISABILITY_ALLOWANCE
+    export SEVERE_DISABILITY_ALLOWANCE # obselete not modelled 
     export ATTENDANCE_ALLOWANCE
     export CARERS_ALLOWANCE
     export INDUSTRIAL_INJURY_BENEFIT
-    export INCAPACITY_BENEFIT
+    export INCAPACITY_BENEFIT # obselete not modelled 
     export PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
     export PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
     export DLA_SELF_CARE
@@ -214,7 +231,8 @@ using StaticArrays
     export WINTER_FUEL_PAYMENTS
     export WORKING_TAX_CREDIT
     export CHILD_TAX_CREDIT
-    export EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+    export CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+    export NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
     export INCOME_SUPPORT
     export PENSION_CREDIT
     export SAVINGS_CREDIT
@@ -245,6 +263,7 @@ using StaticArrays
     export SICKNESS_ILLNESS
     export INC_ARRAY_SIZE
     export ALL_INCOMES
+    export PASSED_THROUGH_BENEFITS
 
     export iname
     export make_static_incs
@@ -489,7 +508,9 @@ using StaticArrays
             return "Working Tax Credit"
         elseif i == CHILD_TAX_CREDIT
             return "Child Tax Credit"
-        elseif i == EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+        elseif i == CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+            return "Employment And Support Allowance"
+        elseif i == NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
             return "Employment And Support Allowance"
         elseif i == INCOME_SUPPORT
             return "Income Support"
@@ -648,7 +669,7 @@ using StaticArrays
         INCOME_SUPPORT,
         CONTRIB_JOBSEEKERS_ALLOWANCE,
         NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
-        EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+        NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         CHILD_TAX_CREDIT ] )
 
     const LEGACY_PC_INCOME = setdiff(LEGACY_MT_INCOME.included, [WORKING_TAX_CREDIT] )
@@ -656,7 +677,7 @@ using StaticArrays
     const LEGACY_SAVINGS_CREDIT_INCOME = setdiff( LEGACY_MT_INCOME.included,
         [ WORKING_TAX_CREDIT,
         INCAPACITY_BENEFIT,
-        EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+        CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         # TODO CHECK BOTH?
         CONTRIB_JOBSEEKERS_ALLOWANCE,
         MATERNITY_ALLOWANCE,
@@ -677,7 +698,7 @@ using StaticArrays
         SEVERE_DISABILITY_ALLOWANCE,
         ATTENDANCE_ALLOWANCE,
         INDUSTRIAL_INJURY_BENEFIT,
-        EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+        CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         INCAPACITY_BENEFIT,
         INCOME_SUPPORT,
         MATERNITY_ALLOWANCE,
@@ -697,8 +718,8 @@ using StaticArrays
 
     const DEFAULT_PASSPORTED_BENS = [
           INCOME_SUPPORT,
-          EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
-          CONTRIB_JOBSEEKERS_ALLOWANCE,
+          NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+          NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
           PENSION_CREDIT ]  
 
     export inctostr, isettostr

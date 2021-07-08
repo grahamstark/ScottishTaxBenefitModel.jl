@@ -392,6 +392,67 @@ module Results
         if haskey(incd, Definitions.pension_contributions_employer )
             out[PENSION_CONTRIBUTIONS_EMPLOYER] = incd[Definitions.pension_contributions_employer]
         end
+
+        ### passed through benefits
+        if haskey(incd, Definitions.other_benefits )
+            out[OTHER_BENEFITS] = incd[Definitions.other_benefits]
+        end
+        if haskey(incd, Definitions.student_grants )
+            out[STUDENT_GRANTS] = incd[Definitions.student_grants]
+        end
+        if haskey(incd, Definitions.student_loans )
+            out[STUDENT_LOANS] = incd[Definitions.student_loans]
+        end
+        if haskey(incd, Definitions.free_school_meals )
+            out[FREE_SCHOOL_MEALS] = incd[Definitions.free_school_meals]
+        end
+        if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
+            out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment_from_is_or_pc]
+        end
+        if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
+            out[SOCIAL_FUND_LOAN_REPAYMENT] += incd[Definitions.social_fund_loan_repayment_from_jsa_or_esa]
+        end
+        if haskey(incd, Definitions.student_loan_repayments )
+            out[STUDENT_LOAN_REPAYMENTS] = incd[Definitions.student_loan_repayments]
+        end
+        if haskey(incd, Definitions.armed_forces_compensation_scheme )
+            out[ARMED_FORCES_COMPENSATION_SCHEME] = incd[Definitions.armed_forces_compensation_scheme]
+        end
+        if haskey(incd, Definitions.war_widows_or_widowers_pension )
+            out[WAR_WIDOWS_PENSION] = incd[Definitions.war_widows_or_widowers_pension]
+        end
+        if haskey(incd, Definitions.severe_disability_allowance )
+            out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
+        end
+        if haskey(incd, Definitions.attendance_allowance )
+            out[ATTENDENCE_ALLOWANCE] = incd[Definitions.attendance_allowance]
+        end
+        if haskey(incd, Definitions.foster_care_payments )
+            out[FOSTER_CARE_PAYMENTS] = incd[Definitions.foster_care_payments]
+        end
+        if haskey(incd, Definitions.maternity_grant_from_social_fund )
+            out[MATERNITY_GRANT] = incd[Definitions.maternity_grant_from_social_fund]
+        end
+        if haskey(incd, Definitions.funeral_grant_from_social_fund )
+            out[FUNERAL_GRANT] = incd[Definitions.funeral_grant_from_social_fund]
+        end
+        if haskey(incd, Definitions.any_other_ni_or_state_benefit )
+            out[ANY_OTHER_NI_OR_STATE_BENEFIT] = incd[Definitions.any_other_ni_or_state_benefit]
+        end
+        if haskey(incd, Definitions.friendly_society_benefits )
+            out[FRIENDLY_SOCIETY_BENEFITS] = incd[Definitions.friendly_society_benefits]
+        end
+        if haskey(incd, Definitions.government_training_allowances )
+            out[GOVERNMENT_TRAINING_ALLOWANCES] = incd[Definitions.government_training_allowances]
+        end
+        if haskey(incd, Definitions.guardians_allowance )
+            out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
+        end
+
+        #
+        # 
+        #
+
         if include_calculated 
             if haskey(incd, Definitions.income_tax )
                 out[INCOME_TAX] = incd[Definitions.income_tax]
@@ -402,16 +463,7 @@ module Results
             if haskey(incd, Definitions.local_taxes )
                 out[LOCAL_TAXES] = incd[Definitions.local_taxes]
             end
-            if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
-                out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment_from_is_or_pc]
-            end
-            if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
-                out[SOCIAL_FUND_LOAN_REPAYMENT] += incd[Definitions.social_fund_loan_repayment_from_jsa_or_esa]
-            end
 
-            if haskey(incd, Definitions.student_loan_repayments )
-                out[STUDENT_LOAN_REPAYMENTS] = incd[Definitions.student_loan_repayments]
-            end
             if haskey(incd, Definitions.care_insurance )
                 out[CARE_INSURANCE] = incd[Definitions.care_insurance]
             end
@@ -423,18 +475,6 @@ module Results
             end
             if haskey(incd, Definitions.bereavement_allowance_or_widowed_parents_allowance_or_bereavement )
                 out[BEREAVEMENT_ALLOWANCE] = incd[Definitions.bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
-            end
-            if haskey(incd, Definitions.armed_forces_compensation_scheme )
-                out[ARMED_FORCES_COMPENSATION_SCHEME] = incd[Definitions.armed_forces_compensation_scheme]
-            end
-            if haskey(incd, Definitions.war_widows_or_widowers_pension )
-                out[WAR_WIDOWS_PENSION] = incd[Definitions.war_widows_or_widowers_pension]
-            end
-            if haskey(incd, Definitions.severe_disability_allowance )
-                out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
-            end
-            if haskey(incd, Definitions.attendance_allowance )
-                out[ATTENDENCE_ALLOWANCE] = incd[Definitions.attendance_allowance]
             end
             if haskey(incd, Definitions.carers_allowance )
                 out[CARERS_ALLOWANCE] = incd[Definitions.carers_allowance]
@@ -460,26 +500,8 @@ module Results
             if haskey(incd, Definitions.education_allowances )
                 out[EDUCATION_ALLOWANCES] = incd[Definitions.education_allowances]
             end
-            if haskey(incd, Definitions.foster_care_payments )
-                out[FOSTER_CARE_PAYMENTS] = incd[Definitions.foster_care_payments]
-            end
             if haskey(incd, Definitions.maternity_allowance )
                 out[MATERNITY_ALLOWANCE] = incd[Definitions.maternity_allowance]
-            end
-            if haskey(incd, Definitions.maternity_grant_from_social_fund )
-                out[MATERNITY_GRANT] = incd[Definitions.maternity_grant_from_social_fund]
-            end
-            if haskey(incd, Definitions.funeral_grant_from_social_fund )
-                out[FUNERAL_GRANT] = incd[Definitions.funeral_grant_from_social_fund]
-            end
-            if haskey(incd, Definitions.any_other_ni_or_state_benefit )
-                out[ANY_OTHER_NI_OR_STATE_BENEFIT] = incd[Definitions.any_other_ni_or_state_benefit]
-            end
-            if haskey(incd, Definitions.friendly_society_benefits )
-                out[FRIENDLY_SOCIETY_BENEFITS] = incd[Definitions.friendly_society_benefits]
-            end
-            if haskey(incd, Definitions.government_training_allowances )
-                out[GOVERNMENT_TRAINING_ALLOWANCES] = incd[Definitions.government_training_allowances]
             end
             if haskey(incd, Definitions.jobseekers_allowance )
                 if pers.jsa_type == contributory_jsa
@@ -492,9 +514,6 @@ module Results
                 else
                     @assert false "jsa is positive but jsa_type unset"
                 end
-            end
-            if haskey(incd, Definitions.guardians_allowance )
-                out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
             end
             if haskey(incd, Definitions.widows_payment )
                 out[WIDOWS_PAYMENT] = incd[Definitions.widows_payment]
@@ -509,7 +528,16 @@ module Results
                 out[CHILD_TAX_CREDIT] = incd[Definitions.child_tax_credit]
             end
             if haskey(incd, Definitions.employment_and_support_allowance )
-                out[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]
+                if pers.esa_type == contributory_jsa
+                    out[CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]
+                elseif pers.esa_type == income_related_jsa
+                    out[NON_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]
+                elseif pers.esa_type == both_jsa
+                    out[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]/2
+                    out[CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = incd[Definitions.employment_and_support_allowance]/2
+                else
+                    @assert false "jsa is positive but jsa_type unset"
+                end
             end
             if haskey(incd, Definitions.income_support )
                 out[INCOME_SUPPORT] = incd[Definitions.income_support]
@@ -538,18 +566,6 @@ module Results
 
             if haskey(incd, Definitions.universal_credit )
                 out[UNIVERSAL_CREDIT] = incd[Definitions.universal_credit]
-            end
-            if haskey(incd, Definitions.other_benefits )
-                out[OTHER_BENEFITS] = incd[Definitions.other_benefits]
-            end
-            if haskey(incd, Definitions.student_grants )
-                out[STUDENT_GRANTS] = incd[Definitions.student_grants]
-            end
-            if haskey(incd, Definitions.student_loans )
-                out[STUDENT_LOANS] = incd[Definitions.student_loans]
-            end
-            if haskey(incd, Definitions.free_school_meals )
-                out[FREE_SCHOOL_MEALS] = incd[Definitions.free_school_meals]
             end
             # not in the income list
             # if haskey(incd, Definitions.council_tax_rebate )

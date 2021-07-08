@@ -1452,6 +1452,7 @@ end
     income_related_jsa =2 
     both_jsa = 3
 end
+# FIXME we also use this for ESA, which makes the names confusing
 export JSAType, contributory_jsa, income_related_jsa, both_jsa, no_jsa
 
 @enum LMTBenefitType esa hb ctr is jsa pc wtc ctc sc 

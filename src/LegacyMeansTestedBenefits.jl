@@ -495,7 +495,7 @@ function calc_NDDs(
                     persr.income,
                     [INCOME_SUPPORT,
                     NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
-                    EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )
+                    NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )
                 pays_ndd = false
             end
         end
@@ -754,7 +754,7 @@ function calc_legacy_means_tested_benefits!(
         [
             PENSION_CREDIT, 
             NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
-            EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+            NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
             INCOME_SUPPORT ])        
         bures.legacy_mtbens.hb_passported = true
         bures.legacy_mtbens.ctr_passported = true

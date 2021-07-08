@@ -57,7 +57,7 @@ module NonMeansTestedBenefits
             withdrawl = ch.withdrawal*(max_inc - cb.high_income_thresh)
             c = max(0.0, withdrawal)
         end
-        # FIXME todo guardian's allowance
+        # FIXME TODO guardian's allowance
         bures.pers[recipient].income[CHILD_BENEFIT] = c
     end
 
@@ -189,15 +189,34 @@ module NonMeansTestedBenefits
     """
     function calc_esa(     
         pers :: Person{T}, 
-        pres :: PersonalResult{T},
         esa  :: {T}) :: T where T
         e = zero(T)
         if pers.esa_type == contributory_jsa
-            e = esa.main
+            if pers.age < 25
+                # FIXME not quite right since
+                # could be past assessment stage;
+                # maybe check time out of work?
+                e = assessment_u25
+            else
+                e = esa.main
+            end
+            if has_limited_capactity_for_work_activity( pers )
+                e += esa.support
+            end
         end
         return e
     end
 
+    function calc_maternity_allowance( 
+        pers :: Person{T},
+        ma :: MaternityAllowance ) :: T where T
+        m = zero(T)
+        # fixme the design means you should never have to check the incomes dict here
+        if has_income( pers, maternity_allowance ) 
+            m = ma.rate
+        end
+        return m
+    end
 
     function calc_carers_allowance( 
         pers :: Person{T}, 
@@ -215,6 +234,19 @@ module NonMeansTestedBenefits
         return c
     end
 
+    function calc_jsa( 
+        pers :: Person{T}, 
+        jsa :: JobSeekersAllowance{T},
+        hrs  :: HoursLimits ) :: T where T
+        j = zero(T)        
+        if pers.jsa_type == contributory_jsa &&
+           pers.usual_hours_worked <= hrs.med &&
+           (! has_limited_capactity_for_work( pers ))
+            j = pers.age < 25 ? jsa.u25 : jsa.o24
+        end
+        return j
+    end
+
     """
     Household level calculations for all nmt benefits that don't require knowlege
     of income tax/ni liabilties - not necessarily taxable benefits, just things
@@ -225,6 +257,7 @@ module NonMeansTestedBenefits
         hhres :: HouseholdResult{T},
         hh    :: ModelHousehold{T},
         sys   :: NonMeansTestedSys,
+        hours_limits   :: HoursLimits,
         age_limits :: AgeLimits )
         ## maybe add a benefit unit allocator
         bus = get_benefit_units( hh )
@@ -257,6 +290,10 @@ module NonMeansTestedBenefits
                 #
                 if reached_state_pension_age( age_limits, pers.age, pers.sex )
                     pres.income[ATTENDANCE_ALLOWANCE] = calc_attendance_allowance( pers, sys.aa )
+                else
+                    pres.income[CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = calc_esa( pers, sys.esa )
+                    pres.income[CONTRIB_JOBSEEKERS_ALLOWANCE] = calc_jsa( pers, sys.jsa, hours_limits )
+                    pres.income[MATERNITY_ALLOWANCE] = calc_maternity_allowance( pers, sys.maternity )
                 end
                 # NON-overlapping rules p1178 go here 
             end # ad loop

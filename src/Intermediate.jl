@@ -20,7 +20,7 @@ using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit
     is_single, pers_is_disabled, pers_is_carer, search, count, num_carers, get_head,
     has_disabled_member, has_carer_member, le_age, between_ages, ge_age, num_people,
     empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability,
-    default_bu_allocation
+    default_bu_allocation, has_income
     
 using .STBParameters: HoursLimits, AgeLimits, reached_state_pension_age 
   
@@ -70,22 +70,46 @@ function born_before( age :: Integer,
     return bdate < start_date   
 end
 
+"""
+Very loose implementation of CPAG 2020/1 ch 45 
+"""
 function has_limited_capactity_for_work( pers :: Person ) :: Bool
-    l = false
     # based on cpag 2020/1 ch45 pp 1100-
-    if pers.employment_status in
+    l =  pers.employment_status in
         [   Retired,
             Permanently_sick_or_disabled,
             Temporarily_sick_or_injured,
-            Other_Inactive] # FIXME - retired/temp sick/looking after family ??
-            
-    end
+            Other_Inactive] &&  # FIXME - retired/temp sick/looking after family ??        
+        is_disabled( pers )
     return l
 end
 
+"""
+Very loose implementation of CPAG 2020/1 ch 45. Until we have
+something better, maybe regression-based.
+`Work Activity` here means attending interviews, assessments and the like.
+"""
 function has_limited_capactity_for_work_activity( pers :: Person ) :: Bool
     l = false
-
+    if has_limited_capactity_for_work( pers )
+        has_high_esa = false
+        if has_non_z( pers.income,EMPLOYMENT_AND_SUPPORT_ALLOWANCE ) &&
+            (pers.esa_type == contributory_jsa)
+            esa = pers.income[EMPLOYMENT_AND_SUPPORT_ALLOWANCE]
+            if( pers.age < 25 ) 
+                if esa > 80 # crudely including support component
+                    has_high_esa = true
+                end
+            else
+                if esa > 100 # crudely including support component
+                    has_high_esa = true
+                end
+            end
+        end # crude ESA check
+        if is_severe_disability( pers ) || has_high_esa
+            l = true
+        end            
+    end
     return l
 end
 
@@ -243,8 +267,12 @@ function make_intermediate(
     num_pens_age :: Int = 0
     ge_16_u_pension_age  :: Bool = false
     someone_pension_age_2016 :: Bool = false
+    limited_capacity_for_work = false
     for pid in bu.adults
         pers = bu.people[pid]
+        if has_limited_capactity_for_work( pers )
+            limited_capacity_for_work = true
+        end
         if reached_state_pension_age( 
             age_limits, 
             pers.age, 
@@ -273,7 +301,7 @@ function make_intermediate(
     someone_is_carer :: Bool = has_carer_member( bu )
     is_sparent  :: Bool = is_lone_parent( bu )
     is_sing  :: Bool = is_single( bu )   
-    limited_capacity_for_work  :: Bool = has_disabled_member( bu ) # FIXTHIS
+    
     has_children  :: Bool = ModelHousehold.has_children( bu )
     economically_active = search( bu, empl_status_in, 
         Full_time_Employee,
