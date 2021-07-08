@@ -36,17 +36,6 @@ function calculate_company_car_charge(
     value * prop
 end
 
-# TODO pension contributions
-
-function make_non_savings()::Incomes_Dict
-    excl = union(Set(keys(DIVIDEND_INCOME)), Set( keys(SAVINGS_INCOME)))
-    nsi = make_all_taxable()
-    for i in excl
-        delete!( nsi, i )
-    end
-    nsi
-end
-
 """
 Very rough approximation to MCA age - ignores all months since we don't have that in a typical dataset
 TODO maybe overload this with age as a Date?

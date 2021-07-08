@@ -47,7 +47,6 @@ module STBParameters
     @with_kw mutable struct AttendanceAllowance{RT<:Real}
         higher :: RT = 87.65
         lower :: RT = 58.70
-
     end
     
     @with_kw mutable struct ChildBenefit{RT<:Real}
@@ -68,9 +67,11 @@ module STBParameters
 
     @with_kw mutable struct CarersAllowance{RT<:Real}
         allowance :: RT = 66.15
-        scottish_supplement :: RT = 38.90
+        scottish_supplement :: RT = 231.40 # per 6 months
         hours :: Int = 35
         gainful_employment_min :: RT = 123.0
+        earnings = [SELF_EMPLOYMENT_INCOME,WAGES]
+        deductions = [INCOME_TAX,NATIONAL_INSURANCE]
     end
 
     @with_kw mutable struct PersonalIndependencePayment{RT<:Real}
@@ -149,7 +150,7 @@ module STBParameters
         pensions = RetirementPension{RT}()
         bereavement = BereavementSupport{RT}()
         widows_pension = WidowsPensions{RT}()
-        
+        # young carer grant
         maternity_allowance :: RT = 148.68
         smp :: RT = 148.68
         # not modelled SDA,Incapacity which we just wrap into
@@ -161,6 +162,7 @@ module STBParameters
         nmt.bereavement.lump_sum_lower /= WEEKS_PER_YEAR
         nmt.bereavement.lower /= WEEKS_PER_MONTH
         nmt.bereavement.higher /= WEEKS_PER_MONTH
+        nmt.carers.scottish_supplement /= (WEEKS_PER_YEAR/2) # kinda sorta
         nmt.child_benefit.high_income_thresh /= WEEKS_PER_YEAR
     end
 

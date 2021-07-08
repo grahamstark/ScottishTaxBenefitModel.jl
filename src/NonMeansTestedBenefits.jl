@@ -15,8 +15,8 @@ module NonMeansTestedBenefits
     using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
     using .Definitions
 
-    export calc_widows_benefits, calc_state_pension, calc_dla, calc_pip, calc_non_means_tested!
-    export calc_child_benefit!
+    export calc_widows_benefits, calc_state_pension, calc_dla, calc_pip
+    export calc_child_benefit!, calc_pre_tax_non_means_tested!, calc_post_tax_calc_non_means_tested!
  
     """
     Child Benefit - this has to be done *after* income tax, so we have
@@ -120,6 +120,21 @@ module NonMeansTestedBenefits
         return (pl, pm )
     end # pip calc
 
+    function calc_attendance_allowance(
+        pers :: Person{T},
+        aa  :: AttendanceAllowance{T},
+         ) :: T where T
+        a =zero(T)
+        if pers.attendance_allowance_type == missing_lmh
+            a = zero(T)
+        elseif pers.attendance_allowance_type == high
+            a = aa.higher
+        else
+            a = aa.lower;
+        end
+        return a
+    end
+
     function calc_dla(
         pers :: Person{T},
         dla  :: DisabilityLivingAllowance{T} ) :: Tuple{T,T} where T
@@ -170,9 +185,43 @@ module NonMeansTestedBenefits
     end
 
     """
-    Household level calculations for all nmt benefits.
+    FIXME Model this properly
     """
-    function calc_non_means_tested!( 
+    function calc_esa(     
+        pers :: Person{T}, 
+        pres :: PersonalResult{T},
+        esa  :: {T}) :: T where T
+        e = zero(T)
+        if pers.esa_type == contributory_jsa
+            e = esa.main
+        end
+        return e
+    end
+
+
+    function calc_carers_allowance( 
+        pers :: Person{T}, 
+        pres :: PersonalResult{T},
+        carers :: CarersAllowance{T}) :: T where T
+        c = zero(T)
+        earnings :: T = isum(
+            pers.income, 
+            sys.earnings, 
+            deductions=sys.deductions )
+        if pers.hours_of_care_given >= care.hours && 
+            earnings < care.gainful_employment_min
+            c = care.allowance
+        end
+        return c
+    end
+
+    """
+    Household level calculations for all nmt benefits that don't require knowlege
+    of income tax/ni liabilties - not necessarily taxable benefits, just things
+    that don't require any kind of net income calculation and so can be done
+    before IT/NI.
+    """
+    function calc_pre_tax_non_means_tested!( 
         hhres :: HouseholdResult{T},
         hh    :: ModelHousehold{T},
         sys   :: NonMeansTestedSys,
@@ -191,14 +240,64 @@ module NonMeansTestedBenefits
                     sys.pensions, age_limits );
                 pres.income[WIDOWS_PAYMENT] = calc_widows_benefits(
                     pers, has_children, sys.bereavement, sys.widows_pension )
+                #
+                # FIXME
+                # pip/dla can only be claimed 
+                # if ! reached_state_pension_age( age_limits, pers.age, pers.sex )
+                # but claims can run on indefinitely and for now we're just using 
+                # receipts, so ignore any upper age limits until we model these fully.
+                #
                 pres.income[DLA_SELF_CARE],pres.income[DLA_MOBILITY] = calc_dla( pers, sys.dla );
                 pres.income[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING],
                 pres.income[PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY] = calc_pip( pers, sys.pip )
+                
+                #
+                # .. conversely, this age limit seems safe: a 62 yo female recieving
+                # in the data should be disallowed now the pension age has increased.
+                #
+                if reached_state_pension_age( age_limits, pers.age, pers.sex )
+                    pres.income[ATTENDANCE_ALLOWANCE] = calc_attendance_allowance( pers, sys.aa )
+                end
                 # NON-overlapping rules p1178 go here 
             end # ad loop
             buno += 1
         end # bu loop
     end # calc_non_means_tested
 
+    """
+    NMT Benefits that require knowlege of tax and NI liabilities and so have to be done
+    after a tax calculation - not necessarily tax free as such (CB higher charge). Kinda-sorta
+    means-tested bens, I suppose.
+    """
+    function calc_post_tax_calc_non_means_tested!( 
+        hhres :: HouseholdResult{T},
+        hh    :: ModelHousehold{T},
+        sys   :: NonMeansTestedSys,
+        age_limits :: AgeLimits )
+        ## maybe add a benefit unit allocator
+        bus = get_benefit_units( hh )
+        buno = 1 
+        for bu in bus 
+            has_children = size( bu.children )[1] > 0
+            bures = hhres.bus[buno]
+            calc_child_benefit!( 
+                bures,
+                bu, 
+                sys.cb )
+            for adno in bu.adults
+                pers = bu.people[adno]
+                pres = bures[adno]
+                pres.income[CARERS_ALLOWANCE] = calc_carers_allowance( pers, pres, sys.carers )
+            
+                if hh.region == Scotland
+                    if pres.income[CARERS_ALLOWANCE] > 0
+                        pres.INCOME[SCOTTISH_CARERS_SUPPLEMENT] = sys.carers.scottish_supplement
+                    end
+                end
+                # NON-overlapping rules p1178 go here 
+            end # ad loop
+            buno += 1
+        end # bu loop
+    end # calc_non_means_tested
 
 end # package non-means-tested

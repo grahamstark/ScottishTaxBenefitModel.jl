@@ -119,15 +119,15 @@ using StaticArrays
     const SPARE_BEN_7 = 100
     const SPARE_BEN_8 = 101
     const SPARE_BEN_9 = 102
-    const SPARE_BEN_10 = 103
+    const SCOTTISH_CARERS_SUPPLEMENT = 103
 
     const NON_CALCULATED = WAGES:SPARE_INC_5
-    const BENEFITS = CHILD_BENEFIT:SPARE_BEN_10
+    const BENEFITS = CHILD_BENEFIT:SCOTTISH_CARERS_SUPPLEMENT
     const LEGACY_MTS = WORKING_TAX_CREDIT:HOUSING_BENEFIT
-    const CALCULATED = INCOME_TAX:SPARE_BEN_10
+    const CALCULATED = INCOME_TAX:SCOTTISH_CARERS_SUPPLEMENT
     const SICKNESS_ILLNESS = SEVERE_DISABILITY_ALLOWANCE:DLA_MOBILITY
     const DEDUCTIONS = HEALTH_INSURANCE:SPARE_DEDUCT_5
-    const INC_ARRAY_SIZE = SPARE_BEN_10
+    const INC_ARRAY_SIZE = SCOTTISH_CARERS_SUPPLEMENT
     const ALL_INCOMES = union( NON_CALCULATED, BENEFITS )
 
     # exports ----------------
@@ -226,7 +226,7 @@ using StaticArrays
     export STUDENT_GRANTS
     export STUDENT_LOANS
     export COUNCIL_TAX_BENEFIT
-    export SPARE_BEN_1
+    export SPARE_BEN_1 # scottish carers supplement
     export SPARE_BEN_2
     export SPARE_BEN_3
     export SPARE_BEN_4
@@ -235,7 +235,7 @@ using StaticArrays
     export SPARE_BEN_7
     export SPARE_BEN_8
     export SPARE_BEN_9
-    export SPARE_BEN_10
+    export SCOTTISH_CARERS_SUPPLEMENT
 
     export NON_CALCULATED
     export BENEFITS
@@ -531,7 +531,7 @@ using StaticArrays
             return "Spare Ben 8"
         elseif i == SPARE_BEN_9
             return "Spare Ben 9"
-        elseif i == SPARE_BEN_10
+        elseif i == SCOTTISH_CARERS_SUPPLEMENT
             return "Spare Ben 10"
         end
         @assert false "$i not mapped in iname"
