@@ -23,7 +23,7 @@ module STBParameters
     export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
     export CarersAllowance, PersonalIndependencePayment, ContributoryESA
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
-    export NonMeansTestedSys
+    export NonMeansTestedSys, MaternityAllowance
     
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -136,7 +136,7 @@ module STBParameters
 
     @with_kw mutable struct MaternityAllowance{RT}
         rate :: RT = 148.68
-        
+
     end
 
 

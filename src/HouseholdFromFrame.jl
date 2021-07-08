@@ -7,7 +7,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
-using .HistoricBenefits: make_benefit_ratios!
+using .HistoricBenefits: make_benefit_ratios!, switch_dla_to_pip!
 # benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, get_matches
 using .Utils: not_zero_or_missing,strtobi
 

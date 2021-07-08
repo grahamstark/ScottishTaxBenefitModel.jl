@@ -10,8 +10,9 @@ module NonMeansTestedBenefits
     using .Utils: nearest
     using .ModelHousehold: Person, get_benefit_units, Household, BenefitUnit
     using .STBParameters: NonMeansTestedSys, WidowsPensions, BereavementSupport, AgeLimits, 
-        RetirementPension, PersonalIndependencePayment, 
-        DisabilityLivingAllowance, reached_state_pension_age
+        RetirementPension, PersonalIndependencePayment, ChildBenefit, MaternityAllowance,
+        DisabilityLivingAllowance, reached_state_pension_age, ContributoryESA,
+        AttendanceAllowance, CarersAllowance, JobSeekersAllowance, AgeLimits, HoursLimits
     using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
     using .Definitions
 
@@ -25,7 +26,7 @@ module NonMeansTestedBenefits
     function calc_child_benefit!( 
         bures :: BenefitUnitResult,
         bu    :: BenefitUnit, 
-        cb    :: ChildBenefit{T} )
+        cb    :: ChildBenefit{T} ) :: T where T
         c = zero(T)
         #= FIXME something to check the exact type of children - 
         for now, assume the BU allocation has got this right.
@@ -189,7 +190,7 @@ module NonMeansTestedBenefits
     """
     function calc_esa(     
         pers :: Person{T}, 
-        esa  :: {T}) :: T where T
+        esa  :: ContributoryESA{T}) :: T where T
         e = zero(T)
         if pers.esa_type == contributory_jsa
             if pers.age < 25
@@ -220,7 +221,7 @@ module NonMeansTestedBenefits
 
     function calc_carers_allowance( 
         pers :: Person{T}, 
-        pres :: PersonalResult{T},
+        pres :: IndividualResult{T},
         carers :: CarersAllowance{T}) :: T where T
         c = zero(T)
         earnings :: T = isum(
@@ -254,11 +255,11 @@ module NonMeansTestedBenefits
     before IT/NI.
     """
     function calc_pre_tax_non_means_tested!( 
-        hhres :: HouseholdResult{T},
-        hh    :: ModelHousehold{T},
+        hhres :: HouseholdResult,
+        hh    :: Household,
         sys   :: NonMeansTestedSys,
         hours_limits   :: HoursLimits,
-        age_limits :: AgeLimits )
+        age_limits :: AgeLimits ) 
         ## maybe add a benefit unit allocator
         bus = get_benefit_units( hh )
         buno = 1 
@@ -307,10 +308,10 @@ module NonMeansTestedBenefits
     means-tested bens, I suppose.
     """
     function calc_post_tax_calc_non_means_tested!( 
-        hhres :: HouseholdResult{T},
-        hh    :: ModelHousehold{T},
+        hhres :: HouseholdResult,
+        hh    :: Household,
         sys   :: NonMeansTestedSys,
-        age_limits :: AgeLimits )
+        age_limits :: AgeLimits ) 
         ## maybe add a benefit unit allocator
         bus = get_benefit_units( hh )
         buno = 1 
