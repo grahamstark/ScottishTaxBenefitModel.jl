@@ -10,6 +10,7 @@ module Intermediate
 #   FIXME some of the names should be globally changed.
 #
 
+using Base: Bool
 using ScottishTaxBenefitModel
 using .Definitions
 
@@ -27,7 +28,7 @@ using .Utils: mult, haskeys
 
 export MTIntermediate, make_intermediate, is_working_hours, working_disabled
 export born_before, num_born_before, apply_2_child_policy
-
+export has_limited_capactity_for_work, has_limited_capactity_for_work_activity
 """
 examples: 
 
@@ -67,6 +68,25 @@ function born_before( age :: Integer,
     bdate = model_run_date - Year(age)
     # println( "age = $(age) => birthdate $bdate" )
     return bdate < start_date   
+end
+
+function has_limited_capactity_for_work( pers :: Person ) :: Bool
+    l = false
+    # based on cpag 2020/1 ch45 pp 1100-
+    if pers.employment_status in
+        [   Retired,
+            Permanently_sick_or_disabled,
+            Temporarily_sick_or_injured,
+            Other_Inactive] # FIXME - retired/temp sick/looking after family ??
+            
+    end
+    return l
+end
+
+function has_limited_capactity_for_work_activity( pers :: Person ) :: Bool
+    l = false
+
+    return l
 end
 
 function num_born_before(

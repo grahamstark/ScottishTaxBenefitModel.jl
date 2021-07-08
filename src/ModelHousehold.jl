@@ -19,7 +19,8 @@ export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
 export is_single, search, pers_is_disabled, pers_is_carer, num_carers
 export le_age, between_ages, ge_age, num_adults, empl_status_in, child_pids, adult_pids
 export has_children, num_children, num_adults, is_severe_disability, age_then
-export interview_date
+export interview_date, has_income
+
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
@@ -540,6 +541,15 @@ ge_age( pers :: Person, age ... ) = pers.age >= age[1]
 between_ages( pers :: Person, age ... ) = age[1] >= pers.age <= age[2] 
 
 has_income( pers::Person, which :: Incomes_Type ) = haskey( pers.income, which )
+
+function has_income( pers::Person, which ... )::Bool
+    for k in which
+        if has_income( pers, k )
+            return true
+        end
+    end
+    return false
+end
 
 function search( people :: People_Dict, func :: Function, params... ) :: Bool
     for ( pid,pers ) in people
