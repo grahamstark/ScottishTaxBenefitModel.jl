@@ -18,6 +18,7 @@ module NonMeansTestedBenefits
         Household, 
         Person, 
         get_benefit_units,
+        has_income,
         num_children
 
     using .Intermediate:
@@ -32,14 +33,14 @@ module NonMeansTestedBenefits
         ChildBenefit, 
         ContributoryESA,
         DisabilityLivingAllowance, 
-        HoursLimits
+        HoursLimits,
         JobSeekersAllowance, 
         MaternityAllowance,
         NonMeansTestedSys, 
         PersonalIndependencePayment, 
         RetirementPension, 
         WidowsPensions, 
-        reached_state_pension_age, 
+        reached_state_pension_age
         
     using .Results: 
         BenefitUnitResult, 
@@ -50,11 +51,11 @@ module NonMeansTestedBenefits
     export 
         calc_child_benefit!, 
         calc_dla, 
-        calc_pip
-        calc_post_tax_calc_non_means_tested!
+        calc_pip,
+        calc_post_tax_calc_non_means_tested!,
         calc_pre_tax_non_means_tested!, 
         calc_state_pension, 
-        calc_widows_benefits, 
+        calc_widows_benefits
  
     """
     Child Benefit - this has to be done *after* income tax, so we have

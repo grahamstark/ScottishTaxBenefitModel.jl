@@ -160,7 +160,9 @@ end
     mat = sys.nmt_bens.maternity
     sph = deepcopy(EXAMPLES[single_parent_hh])
     head = get_head( sph )
-    
+    head.income[maternity_allowance] = 123
+    m = calc_maternity_allowance( head, mat )
+    @test m ≈ 148.68
 
 end
 

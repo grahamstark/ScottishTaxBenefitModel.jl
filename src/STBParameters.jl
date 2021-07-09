@@ -156,7 +156,7 @@ module STBParameters
         bereavement = BereavementSupport{RT}()
         widows_pension = WidowsPensions{RT}()
         # young carer grant
-        maternity_allowance :: RT = 148.68
+        maternity = MaternityAllowance{RT}()
         smp :: RT = 148.68
         # not modelled SDA,Incapacity which we just wrap into
         # ESA

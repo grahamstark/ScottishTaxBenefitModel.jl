@@ -18,13 +18,13 @@ using .ModelHousehold:
     get_benefit_units,
     has_children, 
     is_lone_parent, 
-    is_severe_disability
+    is_severe_disability,
     is_single, 
     le_age, 
     num_adults, 
     num_carers, 
     pers_is_disabled, 
-    search,
+    search
     
 using .STBParameters: 
     AgeLimits, 
@@ -60,21 +60,22 @@ using .Results:
 
 using .Intermediate: 
     MTIntermediate, 
-    apply_2_child_policy
+    apply_2_child_policy,
     born_before, 
     is_working_hours,
     num_born_before, 
-    working_disabled, 
+    working_disabled
 
 using .LocalLevelCalculations: 
     apply_rent_restrictions
 
-export calc_legacy_means_tested_benefits, 
+export 
+    calc_legacy_means_tested_benefits, 
     calc_allowances, 
     calc_incomes,
     calc_NDDs, 
     calc_premia,
-    calculateHB_CTR!
+    calculateHB_CTR!,
     calcWTC_CTC!, 
     make_lmt_benefit_applicability, 
     tariff_income

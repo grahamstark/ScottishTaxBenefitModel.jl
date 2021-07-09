@@ -20,7 +20,7 @@ using .GeneralTaxComponents:
     calctaxdue, 
     delete_thresholds_up_to
     # , *
-    
+
 using .Utils: 
     get_if_set
 
@@ -34,8 +34,8 @@ using .Results:
 export 
     apply_allowance,
     calc_income_tax!, 
-    calculate_company_car_charge
-    old_enough_for_mca, 
+    calculate_company_car_charge,
+    old_enough_for_mca
 
 ## FIXME just use the dict..
 function guess_car_percentage_2020_21( sys :: IncomeTaxSys, company_car_fuel_type :: Fuel_Type )

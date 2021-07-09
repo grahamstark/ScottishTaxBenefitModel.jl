@@ -48,15 +48,15 @@ using .STBParameters:
     reached_state_pension_age 
   
 using .Utils: 
-    has_non_z
+    has_non_z,
     haskeys, 
-    mult, 
+    mult 
 
 export 
     MTIntermediate,     
     apply_2_child_policy,
     born_before, 
-    has_limited_capactity_for_work_activity
+    has_limited_capactity_for_work_activity,
     has_limited_capactity_for_work, 
     is_working_hours, 
     make_intermediate, 

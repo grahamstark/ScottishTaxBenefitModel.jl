@@ -24,7 +24,7 @@ export
     age_then,
     between_ages, 
     child_pids, 
-    default_bu_allocation
+    default_bu_allocation,
     empl_status_in, 
     equivalence_scale, 
     ge_age, 
