@@ -6,7 +6,7 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 using .TimeSeriesUtils: fy_from_bits
-using .HistoricBenefits: make_benefit_ratios, RATIO_BENS
+using .HistoricBenefits: make_benefit_ratios!, RATIO_BENS
 
 using .Incomes
 using .Intermediate: MTIntermediate, make_intermediate, apply_2_child_policy
@@ -35,7 +35,7 @@ ruksys = get_system( scotland=false )
     # old style 
     head.income[bereavement_allowance_or_widowed_parents_allowance_or_bereavement] = 100.0
     head.bereavement_type = widowed_parents    
-    head.benefit_ratios = make_benefit_ratios( fy, head.income )
+    make_benefit_ratios!( head.benefit_ratios, sph.interview_year, sph.interview_month )
     
     p = calc_widows_benefits( head, true, bp, wp )
     @test p ≈ wp.standard_rate*100.0/119.9 # sys.widows_pension.standard_rate
@@ -52,7 +52,7 @@ end
     bu = get_benefit_units( hh )[1]
     head = get_head( bu )
     head.income[state_pension] = 100.0
-    head.benefit_ratios = make_benefit_ratios( fy, head.income )
+    make_benefit_ratios!( head, sph.interview_year, sph.interview_month )
     head.age = age_now(65)
     # female over pension age but too young to have been on old pension
     p = calc_state_pension( 
