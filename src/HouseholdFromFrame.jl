@@ -7,11 +7,16 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
-using .HistoricBenefits: make_benefit_ratios!, switch_dla_to_pip!
-# benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, get_matches
+using .HistoricBenefits: 
+    make_benefit_ratios!, 
+    switch_dla_to_pip!
+
 using .Utils: not_zero_or_missing,strtobi
 
-export load_hhld_from_frame, map_hhld, create_regression_dataframe
+export 
+    create_regression_dataframe,
+    load_hhld_from_frame, 
+    map_hhld 
 
 #
 # Create the dataframe used in the regressions for (e.g) disability

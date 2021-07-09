@@ -1,19 +1,23 @@
 module Weighting
 
-using Reexport
-
-using SurveyDataWeighting: do_reweighting, DistanceFunctionType, chi_square,
-    d_and_s_type_a, d_and_s_type_b, constrained_chi_square, d_and_s_constrained,
-    ITERATIONS_EXCEEDED
-
+    
 using DataFrames
+
+using SurveyDataWeighting: 
+    DistanceFunctionType, 
+    ITERATIONS_EXCEEDED,
+    constrained_chi_square,
+    do_reweighting
 
 using ScottishTaxBenefitModel
 using .ModelHousehold
 using .Definitions
 
-
-export generate_weights, make_target_dataset, TARGETS, initialise_target_dataframe
+export 
+    TARGETS, 
+    generate_weights, 
+    initialise_target_dataframe,
+    make_target_dataset
 
 # FIXME rewrite this to load from a file.
 

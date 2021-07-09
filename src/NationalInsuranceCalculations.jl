@@ -24,7 +24,7 @@ using .Utils:
     get_if_set
     
 using .Results: 
-    IndividualResult
+    IndividualResult,
     NIResult
     
 export 
