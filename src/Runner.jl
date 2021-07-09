@@ -1,33 +1,47 @@
 module Runner
 
-    using BudgetConstraints: BudgetConstraint
-
+    
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow
     using CSV
 
+    using BudgetConstraints: BudgetConstraint
+
     using ScottishTaxBenefitModel:
-        GeneralTaxComponents,
         Definitions,
-        Utils,
-        STBParameters,
-        Results,
         FRSHouseholdGetter,
+        GeneralTaxComponents,
         ModelHousehold,
+        Results,
         SingleHouseholdCalculations,
+        STBParameters,
+        Utils,
         Weighting
 
     using .Definitions
     using .Utils
     using .STBParameters
     using .Weighting: generate_weights
-    using .ModelHousehold: Household, Person, get_benefit_units
-    using .Results: IndividualResult,
+
+    using .ModelHousehold: 
+        Household, 
+        Person, 
+        get_benefit_units
+
+    using .Results: 
         BenefitUnitResult,
-        HouseholdResult
-    using .FRSHouseholdGetter: initialise, get_household
+        HouseholdResult,
+        IndividualResult
+        
+    using .FRSHouseholdGetter: 
+        get_household,
+        initialise
+    
     using .SingleHouseholdCalculations: do_one_calc
-    export do_one_run!,RunSettings
+    
+    export 
+        RunSettings,
+        do_one_run!
 
     @with_kw mutable struct RunSettings
         run_name :: String = "default_run"

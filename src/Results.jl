@@ -2,33 +2,41 @@ module Results
 
     using Parameters: @with_kw
     using DataFrames
+    using StaticArrays
 
     using ScottishTaxBenefitModel
+    
     using .Definitions
+    
     using .GeneralTaxComponents: RateBands
-    using .ModelHousehold: Household, Person, BenefitUnits, BenefitUnit, 
-        get_benefit_units, Pid_Array
+
+    using .ModelHousehold: 
+        BenefitUnit, 
+        BenefitUnits, 
+        Household, 
+        Person, 
+        Pid_Array,
+        get_benefit_units
+
     using .Incomes
-    using StaticArrays
     
     export
-        ITResult,
-        NIResult, 
-        IndividualResult,
+        aggregate_tax,
         BenefitUnitResult,
-        HousingResult,
+        has_income,
         HouseholdResult,
-        init_household_result,
+        HousingResult,
+        IndividualResult,
         init_benefit_unit_result,
+        init_household_result,
+        ITResult,
+        LMTCanApplyFor,
         LMTIncomes,
         LMTResults,
-        LMTCanApplyFor,
-        search, 
-        has_income,
-        aggregate_tax,
-        # aggregate!,
         LocalTaxes,
-        map_incomes
+        map_incomes,
+        NIResult, 
+        search
 
     
                 

@@ -12,13 +12,24 @@ using .Incomes
 using .Definitions
 using .ModelHousehold: Person
 using .STBParameters: NationalInsuranceSys
-using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, *
-using .Utils: get_if_set, eq_nearest_p,BC_SETTINGS, mult
-using .Results: NIResult, IndividualResult
+using .GeneralTaxComponents: 
+    RateBands, 
+    TaxResult, 
+    *,
+    calctaxdue;
 
-export calculate_national_insurance, calc_class1_secondary
-
-
+using .Utils: 
+    BC_SETTINGS, 
+    eq_nearest_p,
+    get_if_set
+    
+using .Results: 
+    IndividualResult
+    NIResult
+    
+export 
+    calc_class1_secondary,
+    calculate_national_insurance
 
 function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsuranceSys ) :: Real
     rates = copy( sys.secondary_class_1_rates )

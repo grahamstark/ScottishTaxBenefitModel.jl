@@ -641,6 +641,7 @@ module STBParameters
         premia :: Premia = Premia{RT}()
         allowances :: PersonalAllowances = PersonalAllowances{RT}()
         income_rules :: IncomeRules = IncomeRules{RT}()
+        # FIXME why do we need a seperate copy of HoursLimits here?
         hours_limits :: HoursLimits = HoursLimits()
         savings_credit :: SavingsCredit = SavingsCredit{RT}()
         working_tax_credit = WorkingTaxCredit{RT}()

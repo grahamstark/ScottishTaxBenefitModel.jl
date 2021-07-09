@@ -283,12 +283,13 @@ module NonMeansTestedBenefits
         carers :: CarersAllowance{T}) :: T where T
         c = zero(T)
         earnings :: T = isum(
-            pers.income, 
-            sys.earnings, 
-            deductions=sys.deductions )
-        if pers.hours_of_care_given >= care.hours && 
-            earnings < care.gainful_employment_min
-            c = care.allowance
+            pres.income, 
+            carers.earnings;
+            deducted=carers.deductions )
+        println( "earnings=$earnings carers.gainful_employment_min=$(carers.gainful_employment_min)")
+        if pers.hours_of_care_given >= carers.hours && 
+            earnings < carers.gainful_employment_min
+            c = carers.allowance
         end
         return c
     end

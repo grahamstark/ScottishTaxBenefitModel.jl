@@ -66,10 +66,10 @@ using Dates
 ## FIXME don't need both
 sys = get_system( scotland=true )
 ruksys = get_system( scotland=false )
+itsys_scot = get_default_it_system( year=2019, scotland=true )
 
 @testset "CB" begin
     cb = sys.nmt_bens.child_benefit
-    itsys_scot :: IncomeTaxSys = get_default_it_system( year=2019, scotland=true )
     sph = deepcopy(EXAMPLES[single_parent_hh])
     hhres = init_household_result( sph )
     bu = get_benefit_units( sph )[1]
@@ -167,11 +167,51 @@ end
 end
 
 @testset "Carers" begin
-    
+    care = sys.nmt_bens.carers
+    sph = deepcopy(EXAMPLES[single_parent_hh])
+    head = get_head( sph )
+    hp = head.pid
+    unemploy!( head )
+    head.hours_of_care_given = 60
+    hhres = init_household_result( sph )
+    bures = hhres.bus[1]
+    # for total income calculation
+    calc_income_tax!(
+        bures,
+        head,
+        nothing,
+        itsys_scot )
+    pres = bures.pers[hp]    
+    c = calc_carers_allowance( head, pres, care )
+    @test c ≈ 66.15
+    employ!( head )
+    hhres = init_household_result( sph )
+    bures = hhres.bus[1]    
+    calc_income_tax!(
+        bures,
+        head,
+        nothing,
+        itsys_scot )
+    pres = bures.pers[hp]    
+    c = calc_carers_allowance( head, pres, care )
+    @test c == 0.0
 end
 
 @testset "JSA" begin
-    
+    sph = deepcopy(EXAMPLES[single_parent_hh])
+    head = get_head( sph )
+    hp = head.pid
+    unemploy!( head )
+    head.jsa_type = contributory_jsa
+    head.age = 23
+    j = calc_jsa( head, sys.nmt_bens.jsa, sys.hours_limits )
+    @test j ≈ 57.90
+    head.age = 50
+    j = calc_jsa( head, sys.nmt_bens.jsa, sys.hours_limits  )
+    @test j ≈ 73.10
+    employ!( head )
+    j = calc_jsa( head, sys.nmt_bens.jsa, sys.hours_limits  )
+    @test j ≈ 0.0    
 end
 
 @testset "Widows" begin
