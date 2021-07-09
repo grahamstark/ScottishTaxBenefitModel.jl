@@ -52,7 +52,7 @@ module NonMeansTestedBenefits
         calc_child_benefit!, 
         calc_dla, 
         calc_pip,
-        calc_post_tax_calc_non_means_tested!,
+        calc_post_tax_non_means_tested!,
         calc_pre_tax_non_means_tested!, 
         calc_state_pension, 
         calc_widows_benefits
@@ -366,7 +366,7 @@ module NonMeansTestedBenefits
     after a tax calculation - not necessarily tax free as such (CB higher charge). Kinda-sorta
     means-tested bens, I suppose.
     """
-    function calc_post_tax_calc_non_means_tested!( 
+    function calc_post_tax_non_means_tested!( 
         hhres :: HouseholdResult,
         hh    :: Household,
         sys   :: NonMeansTestedSys,
@@ -380,7 +380,7 @@ module NonMeansTestedBenefits
             calc_child_benefit!( 
                 bures,
                 bu, 
-                sys.cb )
+                sys.child_benefit )
             for adno in bu.adults
                 pers = bu.people[adno]
                 pres = bures.pers[adno]

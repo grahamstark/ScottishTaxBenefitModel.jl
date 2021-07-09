@@ -4,15 +4,15 @@ using .ModelHousehold:
     Household, 
     Person, 
     People_Dict, 
-    is_single,
     default_bu_allocation, 
     get_benefit_units, 
     get_head, 
     get_spouse, 
-    search,
-    pers_is_disabled, 
+    is_single,
+    num_children,
     pers_is_carer,
-    num_children
+    pers_is_disabled, 
+    search
 
 using .GeneralTaxComponents: 
     WEEKS_PER_MONTH,
@@ -22,7 +22,10 @@ using .ExampleHouseholdGetter
 using .Definitions
 
 using .TimeSeriesUtils: fy_from_bits
-using .HistoricBenefits: make_benefit_ratios!, RATIO_BENS
+using .HistoricBenefits: 
+    RATIO_BENS,
+    make_benefit_ratios!
+    
 
 using .Incomes
 using .Intermediate: MTIntermediate, make_intermediate, apply_2_child_policy
@@ -38,7 +41,7 @@ using .NonMeansTestedBenefits:
     calc_carers_allowance,
     calc_jsa,
     calc_pre_tax_non_means_tested!,
-    calc_post_tax_calc_non_means_tested!
+    calc_post_tax_non_means_tested!
     
 using .IncomeTaxCalculations: 
     calc_income_tax!
