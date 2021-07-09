@@ -150,7 +150,7 @@ module NonMeansTestedBenefits
                 wp.standard_rate 
         else
             # check we're not missing anyone
-            @assert ! has_key( pers.benefit_ratios, bereavement_allowance_or_widowed_parents_allowance_or_bereavement)
+            @assert ! haskey( pers.benefit_ratios, bereavement_allowance_or_widowed_parents_allowance_or_bereavement)
         end
         return wid
     end
@@ -327,7 +327,7 @@ module NonMeansTestedBenefits
             bures = hhres.bus[buno]
             for adno in bu.adults
                 pers = bu.people[adno]
-                pres = bures[adno]
+                pres = bures.pers[adno]
                 pres.income[STATE_PENSION] = calc_state_pension( 
                     pers,
                     sys.pensions, age_limits );
@@ -349,7 +349,7 @@ module NonMeansTestedBenefits
                 # in the data should be disallowed now the pension age has increased.
                 #
                 if reached_state_pension_age( age_limits, pers.age, pers.sex )
-                    pres.income[ATTENDANCE_ALLOWANCE] = calc_attendance_allowance( pers, sys.aa )
+                    pres.income[ATTENDANCE_ALLOWANCE] = calc_attendance_allowance( pers, sys.attendance_allowance )
                 else
                     pres.income[CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = calc_esa( pers, sys.esa )
                     pres.income[CONTRIB_JOBSEEKERS_ALLOWANCE] = calc_jsa( pers, sys.jsa, hours_limits )
@@ -383,7 +383,7 @@ module NonMeansTestedBenefits
                 sys.cb )
             for adno in bu.adults
                 pers = bu.people[adno]
-                pres = bures[adno]
+                pres = bures.pers[adno]
                 pres.income[CARERS_ALLOWANCE] = calc_carers_allowance( pers, pres, sys.carers )
             
                 if hh.region == Scotland

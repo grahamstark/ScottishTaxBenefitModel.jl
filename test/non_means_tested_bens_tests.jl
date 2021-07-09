@@ -268,7 +268,17 @@ end
     
 
 @testset "Pre-Tax NMT" begin
-    
+    for exn in instances( SS_Examples )
+        hh = deepcopy( EXAMPLES[exn])
+        println( "on $exn")
+        hhres = init_household_result( hh )
+        calc_pre_tax_non_means_tested!( 
+            hhres, # :: HouseholdResult,
+            hh,    #    :: Household,
+            sys.nmt_bens, #   :: NonMeansTestedSys,
+            sys.hours_limits, #  :: HoursLimits,
+            sys.age_limits ) # :: AgeLimits ) 
+    end
 end
 
 @testset "Post-Tax NMT" begin

@@ -75,7 +75,7 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
     return tb
 end
 
-@enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh pensioner_cpl
+@enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh 
 
 function get_ss_examples()::Dict{SS_Examples, Household}
     d = Dict{SS_Examples, Household}()
