@@ -7,17 +7,54 @@ module NonMeansTestedBenefits
     using Dates
     using Dates: Date, now, TimeType, Year
     using ScottishTaxBenefitModel
-    using .Utils: nearest
-    using .ModelHousehold: Person, get_benefit_units, Household, BenefitUnit
-    using .STBParameters: NonMeansTestedSys, WidowsPensions, BereavementSupport, AgeLimits, 
-        RetirementPension, PersonalIndependencePayment, ChildBenefit, MaternityAllowance,
-        DisabilityLivingAllowance, reached_state_pension_age, ContributoryESA,
-        AttendanceAllowance, CarersAllowance, JobSeekersAllowance, AgeLimits, HoursLimits
-    using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes
-    using .Definitions
 
-    export calc_widows_benefits, calc_state_pension, calc_dla, calc_pip
-    export calc_child_benefit!, calc_pre_tax_non_means_tested!, calc_post_tax_calc_non_means_tested!
+    using .Definitions
+    using .Incomes
+
+    using .Utils: nearest
+
+    using .ModelHousehold: 
+        BenefitUnit,        
+        Household, 
+        Person, 
+        get_benefit_units,
+        num_children
+
+    using .Intermediate:
+        has_limited_capactity_for_work_activity,
+        has_limited_capactity_for_work
+        
+    using .STBParameters: 
+        AgeLimits, 
+        AttendanceAllowance, 
+        BereavementSupport, 
+        CarersAllowance, 
+        ChildBenefit, 
+        ContributoryESA,
+        DisabilityLivingAllowance, 
+        HoursLimits
+        JobSeekersAllowance, 
+        MaternityAllowance,
+        NonMeansTestedSys, 
+        PersonalIndependencePayment, 
+        RetirementPension, 
+        WidowsPensions, 
+        reached_state_pension_age, 
+        
+    using .Results: 
+        BenefitUnitResult, 
+        HouseholdResult, 
+        IndividualResult, 
+        LMTIncomes
+
+    export 
+        calc_child_benefit!, 
+        calc_dla, 
+        calc_pip
+        calc_post_tax_calc_non_means_tested!
+        calc_pre_tax_non_means_tested!, 
+        calc_state_pension, 
+        calc_widows_benefits, 
  
     """
     Child Benefit - this has to be done *after* income tax, so we have
@@ -42,24 +79,44 @@ module NonMeansTestedBenefits
         if nc > 1
             c += (nc-1)*cb.other_children
         end
-        max_inc = zero(T)
         recipient :: BigInt = bu.spouse > 0 ? bu.spouse : bu.head
+        # guardian's allowance
+        bures.pers[recipient].income[GUARDIANS_ALLOWANCE] = 0.0
+        if c > 0 # fixme not quite right - qualify for CB for each child
+            for cp in bu.children
+                # this checks if anyone in the BU has a parent-like
+                # relationship to the child
+                is_guardian = true
+                for pid in bu.adults
+                    if ! (bu.people[pid].relationships[cp] in [Grand_parent, Other_relative, Other_non_relative])
+                        is_guardian = false
+                        break;
+                    end
+                end
+                if is_guardian 
+                    # FIXME we could also guess approx number of kids 
+                    # qualifying for GA from receipt in HistoricBenefits || has_income( bu, guardians_allowance )
+                    bures.pers[recipient].income[GUARDIANS_ALLOWANCE] += 
+                        cb.guardians_allowance
+                end
+            end
+        end # guardian's allowance
+        # cb but not guardians withdrawn with high incomes
         # high income thing - highest of the BU's *individual* income; see cpag ch.27
+        max_inc = zero(T)
         for pid in bu.adults
             max_inc = max( max_inc, bures.pers[pid].it.total_income )
-            if bu.person[pid].sex == female
+            if bu.people[pid].sex == Female
                 recipient = pid
             end
         end
-        # withdrawn 
         if max_inc > cb.high_income_thresh
             # this should really be done in steps £1 for every £100, but since
             # everything is weekly here we'll just multiply
-            withdrawl = ch.withdrawal*(max_inc - cb.high_income_thresh)
-            c = max(0.0, withdrawal)
+            withdrawn = cb.withdrawal*(max_inc - cb.high_income_thresh)
+            c = max(0.0, c-withdrawn)
         end
-        # FIXME TODO guardian's allowance
-        bures.pers[recipient].income[CHILD_BENEFIT] = c
+        bures.pers[recipient].income[CHILD_BENEFIT] = c       
     end
 
     function calc_widows_benefits(
@@ -197,7 +254,7 @@ module NonMeansTestedBenefits
                 # FIXME not quite right since
                 # could be past assessment stage;
                 # maybe check time out of work?
-                e = assessment_u25
+                e = esa.assessment_u25
             else
                 e = esa.main
             end

@@ -12,14 +12,46 @@ using .Definitions
 using .Utils: has_non_z, todays_date
 using .Uprating: uprate, UPRATE_MAPPINGS
 
-export Household, Person, People_Dict
-export uprate!, equivalence_scale, oldest_person, default_bu_allocation
-export get_benefit_units, num_people, get_head,get_spouse, printpids
-export make_benefit_unit, is_lone_parent, has_carer_member, has_disabled_member
-export is_single, search, pers_is_disabled, pers_is_carer, num_carers
-export le_age, between_ages, ge_age, num_adults, empl_status_in, child_pids, adult_pids
-export has_children, num_children, num_adults, is_severe_disability, age_then
-export interview_date, has_income
+export 
+    Household, 
+    BenefitUnit,
+    BenefitUnits,
+    BUAllocation,
+    Person, 
+    People_Dict,
+
+    adult_pids,
+    age_then,
+    between_ages, 
+    child_pids, 
+    default_bu_allocation
+    empl_status_in, 
+    equivalence_scale, 
+    ge_age, 
+    get_benefit_units, 
+    get_head,
+    get_spouse, 
+    has_carer_member, 
+    has_children, 
+    has_disabled_member,
+    has_income,
+    interview_date, 
+    is_lone_parent, 
+    is_severe_disability, 
+    is_single, 
+    le_age, 
+    make_benefit_unit, 
+    num_adults, 
+    num_adults, 
+    num_carers,
+    num_children, 
+    num_people, 
+    oldest_person, 
+    pers_is_carer, 
+    pers_is_disabled, 
+    printpids,
+    search, 
+    uprate!
 
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum

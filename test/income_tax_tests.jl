@@ -15,7 +15,11 @@ using .ModelHousehold:
 using .ExampleHouseholdGetter
 using .Definitions
 using Dates: Date
-using .IncomeTaxCalculations: old_enough_for_mca, apply_allowance, calc_income_tax!
+using .IncomeTaxCalculations: 
+    old_enough_for_mca, 
+    apply_allowance, 
+    calc_income_tax!
+
 using .STBParameters: IncomeTaxSys
 using .Results: 
     init_household_result,
@@ -35,7 +39,6 @@ function get_tax(; scotland = false ) :: IncomeTaxSys
     it.mca_credit_rate /= 100.0
     it.mca_withdrawal_rate /= 100.0
     it.pension_contrib_withdrawal_rate /= 100.0
-
     it
 end
 

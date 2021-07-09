@@ -7,29 +7,77 @@ using .Definitions
 
 using .Incomes
 
-using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
-    is_single, count, num_carers, le_age, between_ages, ge_age, search,
-    empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability
+using .ModelHousehold: 
+    BenefitUnit,
+    Household, 
+    Person,    
+    between_ages, 
+    count, 
+    empl_status_in, 
+    ge_age, 
+    get_benefit_units,
+    has_children, 
+    is_lone_parent, 
+    is_severe_disability
+    is_single, 
+    le_age, 
+    num_adults, 
+    num_carers, 
+    pers_is_disabled, 
+    search,
     
-using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules,  
-    Premia, PersonalAllowances, HoursLimits, AgeLimits, reached_state_pension_age, state_pension_age,
-    WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, ChildTaxCredit,
-    HousingBenefits, HousingRestrictions
+using .STBParameters: 
+    AgeLimits, 
+    ChildTaxCredit,
+    HoursLimits, 
+    HousingBenefits, 
+    HousingRestrictions,
+    IncomeRules, 
+    IncomeRules,  
+    LegacyMeansTestedBenefitSystem, 
+    MinimumWage, 
+    PersonalAllowances, 
+    Premia, 
+    SavingsCredit, 
+    WorkingTaxCredit, 
+    reached_state_pension_age, 
+    state_pension_age
     
-using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
+using .GeneralTaxComponents: 
+    RateBands,
+    TaxResult, 
+    calctaxdue
 
-using .Results: BenefitUnitResult, HouseholdResult, IndividualResult, LMTIncomes,
-    LMTResults, LMTCanApplyFor, aggregate_tax, has_income
+using .Results: 
+    BenefitUnitResult, 
+    HouseholdResult, 
+    IndividualResult, 
+    LMTIncomes,
+    LMTResults, 
+    LMTCanApplyFor, 
+    aggregate_tax, 
+    has_income
 
-using .Intermediate: MTIntermediate, working_disabled, is_working_hours,
-    born_before, num_born_before, apply_2_child_policy
+using .Intermediate: 
+    MTIntermediate, 
+    apply_2_child_policy
+    born_before, 
+    is_working_hours,
+    num_born_before, 
+    working_disabled, 
 
-using .LocalLevelCalculations: apply_rent_restrictions
+using .LocalLevelCalculations: 
+    apply_rent_restrictions
 
-export calc_legacy_means_tested_benefits, tariff_income,
-    LMTResults,  make_lmt_benefit_applicability, calc_premia,
-    calc_allowances, calc_incomes,
-    calcWTC_CTC!, calc_NDDs, calculateHB_CTR!
+export calc_legacy_means_tested_benefits, 
+    calc_allowances, 
+    calc_incomes,
+    calc_NDDs, 
+    calc_premia,
+    calculateHB_CTR!
+    calcWTC_CTC!, 
+    make_lmt_benefit_applicability, 
+    tariff_income
 
 
 
@@ -105,7 +153,7 @@ function calc_incomes(
 
     if( which_ben in [hb,ctr] ) 
         # fixme do this above
-        if has_income( bur, EMPLOYMENT_AND_SUPPORT_ALLOWANCE )     
+        if has_income( bur, [CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )     
             disreg = incrules.high
         end
         # HB disregard CPAG p432 this, too, is very approximate
@@ -481,7 +529,7 @@ function calc_NDDs(
         persr = bur.pers[pid]
         # fixme check this list & reference
         if any_positive( persr.income, 
-            [ATTENDENCE_ALLOWANCE,
+            [ATTENDANCE_ALLOWANCE,
              DLA_SELF_CARE,
              PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
              PENSION_CREDIT] )
@@ -581,7 +629,7 @@ function calculateHB_CTR!(
                 
             end
             # FIXME this needs to be a function
-            recipient :: BigInt = bur.adults[1]
+            recipient :: BigInt = bures.adults[1]
             if which_ben == hb
                 bures.pers[recipient].income[HOUSING_BENEFIT] = benefit
                 bures.legacy_mtbens.hb_passported = passported

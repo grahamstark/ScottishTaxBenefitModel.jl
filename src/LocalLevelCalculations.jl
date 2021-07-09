@@ -6,21 +6,43 @@ module LocalLevelCalculations
 #
 # FIXME we need to improve the mapping between LAs and local housing allowances.
 #
-using ScottishTaxBenefitModel
-using .Definitions
 
-using .ModelHousehold: Person, BenefitUnit, Household, get_head, num_people, is_severe_disability
-using .Intermediate: MTIntermediate
-    
-using .STBParameters
-    
-using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands
-using .Results: HousingResult
 using StaticArrays
 using CSV,DataFrames
 
-export apply_size_criteria, make_la_to_brma_map, LA_CODES, LA_NAMES,
-    LA_BRMA_MAP, lookup, calc_council_tax, apply_rent_restrictions
+using ScottishTaxBenefitModel
+using .Definitions
+
+using .ModelHousehold: 
+    BenefitUnit, 
+    Household, 
+    Person, 
+    get_head, 
+    is_severe_disability,
+    num_people
+
+using .Intermediate: 
+    MTIntermediate
+    
+using .STBParameters
+    
+using .GeneralTaxComponents: 
+    RateBands,
+    TaxResult, 
+    calctaxdue
+
+using .Results: 
+    HousingResult
+
+export 
+    LA_BRMA_MAP, 
+    LA_CODES, 
+    LA_NAMES,
+    apply_rent_restrictions,
+    apply_size_criteria, 
+    calc_council_tax, 
+    lookup, 
+    make_la_to_brma_map
 
     # la codes in order
     const LA_CODES = [

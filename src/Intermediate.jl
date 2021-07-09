@@ -11,24 +11,58 @@ module Intermediate
 #
 
 using Base: Bool
+using Dates: TimeType, Date, now, Year
+
 using ScottishTaxBenefitModel
 using .Definitions
 
-using Dates: TimeType, Date, now, Year
-
-using .ModelHousehold: Person,BenefitUnit,Household, is_lone_parent, get_benefit_units,
-    is_single, pers_is_disabled, pers_is_carer, search, count, num_carers, get_head,
-    has_disabled_member, has_carer_member, le_age, between_ages, ge_age, num_people,
-    empl_status_in, has_children, num_adults, pers_is_disabled, is_severe_disability,
-    default_bu_allocation, has_income
+using .ModelHousehold: 
+    BenefitUnit,
+    Household, 
+    Person,    
+    between_ages, 
+    count, 
+    default_bu_allocation, 
+    empl_status_in, 
+    ge_age, 
+    get_benefit_units,
+    get_head,
+    has_carer_member, 
+    has_children, 
+    has_disabled_member, 
+    has_income,
+    is_lone_parent, 
+    is_severe_disability,
+    is_single, 
+    le_age, 
+    num_adults, 
+    num_carers, 
+    num_people,
+    pers_is_carer, 
+    pers_is_disabled, 
+    search
     
-using .STBParameters: HoursLimits, AgeLimits, reached_state_pension_age 
+using .STBParameters: 
+    AgeLimits, 
+    HoursLimits, 
+    reached_state_pension_age 
   
-using .Utils: mult, haskeys
+using .Utils: 
+    has_non_z
+    haskeys, 
+    mult, 
 
-export MTIntermediate, make_intermediate, is_working_hours, working_disabled
-export born_before, num_born_before, apply_2_child_policy
-export has_limited_capactity_for_work, has_limited_capactity_for_work_activity
+export 
+    MTIntermediate,     
+    apply_2_child_policy,
+    born_before, 
+    has_limited_capactity_for_work_activity
+    has_limited_capactity_for_work, 
+    is_working_hours, 
+    make_intermediate, 
+    num_born_before, 
+    working_disabled
+
 """
 examples: 
 
@@ -80,7 +114,7 @@ function has_limited_capactity_for_work( pers :: Person ) :: Bool
             Permanently_sick_or_disabled,
             Temporarily_sick_or_injured,
             Other_Inactive] &&  # FIXME - retired/temp sick/looking after family ??        
-        is_disabled( pers )
+        pers_is_disabled( pers )
     return l
 end
 
@@ -93,9 +127,9 @@ function has_limited_capactity_for_work_activity( pers :: Person ) :: Bool
     l = false
     if has_limited_capactity_for_work( pers )
         has_high_esa = false
-        if has_non_z( pers.income,EMPLOYMENT_AND_SUPPORT_ALLOWANCE ) &&
+        if has_non_z( pers.income, employment_and_support_allowance ) &&
             (pers.esa_type == contributory_jsa)
-            esa = pers.income[EMPLOYMENT_AND_SUPPORT_ALLOWANCE]
+            esa = pers.income[employment_and_support_allowance]
             if( pers.age < 25 ) 
                 if esa > 80 # crudely including support component
                     has_high_esa = true

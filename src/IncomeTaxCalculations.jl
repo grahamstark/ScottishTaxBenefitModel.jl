@@ -5,18 +5,37 @@ using Dates: Date, now, TimeType, Year
 using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
+
 using .Definitions
-using .ModelHousehold: Person
-using .STBParameters: IncomeTaxSys
-using .GeneralTaxComponents: TaxResult, calctaxdue, RateBands, delete_thresholds_up_to, *
-using .Utils: get_if_set, mult
+
+using .ModelHousehold: 
+    Person
+
+using .STBParameters: 
+    IncomeTaxSys
+
+using .GeneralTaxComponents: 
+    RateBands, 
+    TaxResult, 
+    calctaxdue, 
+    delete_thresholds_up_to
+    # , *
+    
+using .Utils: 
+    get_if_set
+
 using .Incomes
 
-using .Results: ITResult, IndividualResult, BenefitUnitResult
+using .Results: 
+    BenefitUnitResult,
+    IndividualResult, 
+    ITResult
 
-export calc_income_tax!, 
-    old_enough_for_mca, apply_allowance
-export calculate_company_car_charge
+export 
+    apply_allowance,
+    calc_income_tax!, 
+    calculate_company_car_charge
+    old_enough_for_mca, 
 
 ## FIXME just use the dict..
 function guess_car_percentage_2020_21( sys :: IncomeTaxSys, company_car_fuel_type :: Fuel_Type )
@@ -79,6 +98,7 @@ function calculate_pension_taxation!(
     itres.dividend_thresholds = copy( sys.dividend_thresholds )
     itres.non_savings_thresholds = copy( sys.non_savings_thresholds )
     # fixme check avs here
+    # FIXME use the incomes array & constants here
     avc = get_if_set(pers.income, avcs, 0.0)
     pen = get_if_set(pers.income, pension_contributions_employee, 0.0)
     pen += get_if_set(pers.income, pension_contributions_employer, 0.0)

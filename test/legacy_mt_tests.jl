@@ -150,11 +150,9 @@ end
     mia.income[wages] = 136.0
     mia.usual_hours_worked = 17
     empty!(evan.income)
-    evan.income[employment_and_support_allowance] = 1.0
     ep = evan.pid
     emr = init_benefit_unit_result(  e_and_m )
-    emr.pers[ep].income[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = 1.0
-    #@test Results.has_income( emr, EMPLOYMENT_AND_SUPPORT_ALLOWANCE )
+    emr.pers[ep].income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = 1.0
     inc = calc_incomes(
         hb,
         e_and_m,
@@ -518,6 +516,7 @@ end
     end # loop round various incomes, unemployed
     disable_slightly!( head )
     head.income[attendance_allowance] = 100.0
+    bur = init_benefit_unit_result(  spers )
     println( "Disabled")
     for i in 1:nt
         head.income[wages] = wage[i]
@@ -539,6 +538,7 @@ end
     empty!(head.income)
     enable!( head )
     blind!( head )
+    bur = init_benefit_unit_result(  spers )
     println( "Blind")
     for i in 1:nt
         head.income[wages] = wage[i]
@@ -564,6 +564,7 @@ end
     employ!( spouse )
     empty!( head.income )
     unemploy!( head )
+    bur = init_benefit_unit_result(  spers )
     bur = init_benefit_unit_result(  cpl )
     println( "FT Employed")
     println( spouse )
@@ -608,6 +609,7 @@ end
     bur = init_benefit_unit_result(  spers )
     head = get_head( spers )
     employ!( head )
+    bur = init_benefit_unit_result(  spers )
     println( "FT Employed - CTB")
     println( head )
     for i in 1:nt
@@ -926,7 +928,8 @@ end
     println( "premia $(hhres.bus[1].legacy_mtbens.premia)\n")
     @test length( hhres.bus[1].legacy_mtbens.premia ) == 0
     @test hhres.bus[1].legacy_mtbens.hb_allowances == 181.00
-    @test to_nearest_p( hhres.bus[1].legacy_mtbens.hb, 84.11 )
+    println( "hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT]=$(hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT])")
+    @test to_nearest_p( hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT], 84.11 )
 
     ## FIXME MORE TESTS NEEDED HERE: passporting NDDS
     

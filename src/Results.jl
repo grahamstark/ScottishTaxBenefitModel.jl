@@ -425,7 +425,7 @@ module Results
             out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
         end
         if haskey(incd, Definitions.attendance_allowance )
-            out[ATTENDENCE_ALLOWANCE] = incd[Definitions.attendance_allowance]
+            out[ATTENDANCE_ALLOWANCE] = incd[Definitions.attendance_allowance]
         end
         if haskey(incd, Definitions.foster_care_payments )
             out[FOSTER_CARE_PAYMENTS] = incd[Definitions.foster_care_payments]
@@ -444,9 +444,6 @@ module Results
         end
         if haskey(incd, Definitions.government_training_allowances )
             out[GOVERNMENT_TRAINING_ALLOWANCES] = incd[Definitions.government_training_allowances]
-        end
-        if haskey(incd, Definitions.guardians_allowance )
-            out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
         end
 
         #
@@ -566,6 +563,9 @@ module Results
 
             if haskey(incd, Definitions.universal_credit )
                 out[UNIVERSAL_CREDIT] = incd[Definitions.universal_credit]
+            end
+            if haskey(incd, Definitions.guardians_allowance )
+                out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
             end
             # not in the income list
             # if haskey(incd, Definitions.council_tax_rebate )

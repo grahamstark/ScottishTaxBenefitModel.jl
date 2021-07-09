@@ -52,9 +52,9 @@ module STBParameters
     @with_kw mutable struct ChildBenefit{RT<:Real}
         first_child :: RT = 20.70
         other_children :: RT = 13.70
-        high_income_thresh :: RT = 50_0000
+        high_income_thresh :: RT = 50_000.0
         withdrawal = 1/100
-        guardians_allowance :: RT = 17
+        guardians_allowance :: RT = 17.20
     end
 
     @with_kw mutable struct DisabilityLivingAllowance{RT<:Real}
@@ -169,6 +169,10 @@ module STBParameters
         nmt.bereavement.higher /= WEEKS_PER_MONTH
         nmt.carers.scottish_supplement /= (WEEKS_PER_YEAR/2) # kinda sorta
         nmt.child_benefit.high_income_thresh /= WEEKS_PER_YEAR
+        # this is unintuitive, but the weekly amount of CB
+        # is withdrawn by 1% of the annual excess of income,
+        # and the whole model is weekly, so ...
+        nmt.child_benefit.withdrawal *= WEEKS_PER_YEAR
     end
 
     @with_kw mutable struct IncomeTaxSys{RT<:Real}

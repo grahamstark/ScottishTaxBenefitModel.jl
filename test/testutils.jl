@@ -6,7 +6,14 @@ using .STBParameters:
     IncomeTaxSys,
     weeklyise!
 import .Results: init_benefit_unit_result, BenefitUnitResult
-using .ModelHousehold: Household, BenefitUnit, Person, num_children, num_adults, num_adults, num_children, child_pids
+using .ModelHousehold: 
+   BenefitUnit, 
+   Household, 
+   Person,    
+   child_pids,
+   num_adults, 
+   num_children
+
 using .Definitions
 import .ExampleHouseholdGetter
 using DataFrames,CSV, Dates
