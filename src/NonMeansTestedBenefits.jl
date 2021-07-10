@@ -74,7 +74,7 @@ module NonMeansTestedBenefits
         =#
         nc = num_children(bu)
         if nc == 0
-            return
+            return 0.0
         end
         c += cb.first_child
         if nc > 1
@@ -83,6 +83,9 @@ module NonMeansTestedBenefits
         recipient :: BigInt = bu.spouse > 0 ? bu.spouse : bu.head
         # guardian's allowance
         bures.pers[recipient].income[GUARDIANS_ALLOWANCE] = 0.0
+
+        # println( bu.people[bu.head].relationships)
+                    
         if c > 0 # fixme not quite right - qualify for CB for each child
             for cp in bu.children
                 # this checks if anyone in the BU has a parent-like
