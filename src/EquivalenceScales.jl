@@ -191,8 +191,10 @@ module EquivalenceScales
     """
     Make a struct full of Equivalence Scales; see: 
     https://www.gov.scot/binaries/content/documents/govscot/publications/statistics/2020/01/equivalence-scales/documents/equivalence-scales-rationales-uses-and-assumptions/equivalence-scales-rationales-uses-and-assumptions/govscot%3Adocument/paper%2Bdiscussing%2Bequivalence%2Bscales%2Band%2Bunderlying%2Bassumptions.pdf
+    perss is some collection of things each of which can respond to 
+    `get_age` and `eq_get_rel`
     """
-    function get_equivalence_scales( T :: Type, perss::Vector{EQ_Person}) :: EQScales{T} 
+    function get_equivalence_scales( T :: Type, perss ) :: EQScales{T} 
         v_oecd_bhc = onescale( T, oecd, perss, true )
         v_oecd_ahc = onescale( T, oecd, perss, false )
         v_oxford = onescale( T, oxford, perss, false ) # bhc irrelevant

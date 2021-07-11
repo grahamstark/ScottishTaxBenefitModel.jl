@@ -13,9 +13,10 @@ using .Utils: has_non_z, todays_date
 using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,
-    get_equivalence_scales,
-    get_age,
-    eq_rel_to_hoh
+    get_equivalence_scales
+
+import .EquivalenceScales.get_age 
+import .EquivalenceScales.eq_rel_to_hoh
 
 using .Uprating: uprate, UPRATE_MAPPINGS
 
