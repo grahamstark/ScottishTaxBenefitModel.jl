@@ -171,6 +171,7 @@ module Results
     end
     
     @with_kw mutable struct BenefitUnitResult{RT<:Real}
+        income = Incomes.make_a( RT )
         eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
         eq_net_income :: RT = zero(RT)
@@ -192,6 +193,7 @@ module Results
      end
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
+        income = Incomes.make_a( RT )
         eq_scale  :: RT = zero(RT)
         
         bhc_net_income :: RT = zero(RT)
@@ -274,6 +276,28 @@ module Results
         return false
     end
 
+    function aggregate!( bures :: BenefitUnitResult{T} )
+        bures.income .= zero(T)
+        for (pid,pers) in bures.pers
+            bures.income .+= pers.income
+        end
+        #= TODO 
+        eq_scale  :: RT = zero(RT)
+        net_income    :: RT = zero(RT)
+        eq_net_income :: RT = zero(RT)
+        legacy_mtbens = LMTResults{RT}()
+        other_benefits  :: RT = zero(RT)
+        pers = Dict{BigInt,IndividualResult{RT}}()
+        adults = Pid_Array()
+        bures.
+        =#
+    end
+
+    function aggregate!( hres :: HouseholdResult{T} )
+        for bu in hres.bus
+            aggregate!( bu )
+        end
+    end
 
 
    function init_benefit_unit_result( T::Type, bu :: BenefitUnit ) :: BenefitUnitResult{T}
