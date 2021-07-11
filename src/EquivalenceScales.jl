@@ -29,78 +29,7 @@ module EquivalenceScales
         square_root :: T
         per_capita :: T
     end
-
-    #=
-    function onescale( T::Type, scale :: Scales, perss::Vector{EQ_Person}, before_hc :: Bool ) :: T
-        s = zero(T)
-        n = size(perss)[1]
-        add = zero(T)
-        eq = zero(T)
-        if scale == per_capita
-            return n
-        elseif scale == square_root
-            return sqrt(n)
-        elseif scale in [oxford,oecd]
-            for p in perss
-                if p.eqtype == eq_head
-                    eq += 1
-                else
-                    if p.age <= 14
-                        add = if scale == oxford 
-                            0.5
-                        elseif scale == oecd 
-                            before_hc ? 0.3 : 0.34
-                        end
-                    else
-                        add = if scale == oxford 
-                            0.7
-                        elseif scale == oecd 
-                            before_hc ? 0.5 : 0.72
-                        end
-                    end
-                    eq += add
-                end
-            end # pers loop
-            @assert eq >= 1
-        elseif scale == mcclements
-            num_extra_adults = 0
-            for p in perss
-                if p.eqtype == eq_head
-                    eq += 1
-                elseif p.eq_type == eq_spouse_of_head
-                    eq += before_hc ? 0.64 : 0.82
-                elseif p.eqtype == eq_other_adult
-                    num_extra_adults += 1
-                    if num_extra_adults == 1
-                        eq += before_hc ? 0.75 : 0.82
-                    elseif num_extra_adults == 2
-                        eq += before_hc ? 0.69 : 0.82
-                    else
-                        eq += before_hc ? 0.59 : 0.73
-                    end
-                elseif p.eqtype == eq_dependent_child
-                    if p.age in 0:1
-                        eq += before_hc ? 0.148 : 0.13
-                    elseif p.age in 2:4
-                        eq += before_hc ?  0.295 : 0.33
-                    elseif p.age in 5:7 
-                        eq += before_hc ? 0.344 : 0.38
-                    elseif p.age in 8:10 
-                        eq += before_hc ? 0.377 : 0.42
-                    elseif p.age in 11:12  
-                        eq += before_hc ? 0.41 : 0.47
-                    elseif p.age in 13:15 
-                        eq += before_hc ? 0.443 : 0.51
-                    elseif p.age in 16:21
-                        eq += before_hc ? 0.59 : 0.69
-                    end 
-                end # dependent child
-            end # mcclements
-        end
-        return eq
-    end
-    =#
-
+ 
     function eq_rel_to_hoh( p )::EQ_P_Type
         p.eqtype
     end
