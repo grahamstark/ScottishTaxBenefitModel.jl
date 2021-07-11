@@ -417,7 +417,7 @@ module Results
         if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
             out[SOCIAL_FUND_LOAN_REPAYMENT] = incd[Definitions.social_fund_loan_repayment_from_is_or_pc]
         end
-        if haskey(incd, Definitions.social_fund_loan_repayment_from_is_or_pc) 
+        if haskey(incd, Definitions.social_fund_loan_repayment_from_jsa_or_esa) 
             out[SOCIAL_FUND_LOAN_REPAYMENT] += incd[Definitions.social_fund_loan_repayment_from_jsa_or_esa]
         end
         if haskey(incd, Definitions.student_loan_repayments )

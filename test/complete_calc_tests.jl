@@ -14,15 +14,21 @@ using ScottishTaxBenefitModel.STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
     IncomeTaxSys
+
 using ScottishTaxBenefitModel.SingleHouseholdCalculations:do_one_calc
+
 using ScottishTaxBenefitModel.Results:
     IndividualResult,
     BenefitUnitResult,
     HouseholdResult,
     init_household_result
-using ScottishTaxBenefitModel.GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+using ScottishTaxBenefitModel.GeneralTaxComponents: 
+    RateBands, 
+    WEEKS_PER_YEAR
 using ScottishTaxBenefitModel.SingleHouseholdCalculations: do_one_calc
-using ScottishTaxBenefitModel.Runner: do_one_run!, RunSettings
+using ScottishTaxBenefitModel.Runner: 
+    do_one_run!, 
+    RunSettings
 
 include( "testutils.jl")
 
@@ -63,8 +69,8 @@ ExampleHouseholdGetter.initialise()
         hres = do_one_calc( hh, sys[1] )
         hres_scot = do_one_calc( hh, sys[2] )
         if i == 1
-            @test round(hres_scot.bus[1].pers[RUK_PERSON].it.total_tax*WEEKS_PER_YEAR) ≈ 9_044
+            @test round(hres_scot.bus[1].pers[RUK_PERSON].income[INCOME_TAX]*WEEKS_PER_YEAR) ≈ 9_044
         end
-        @test hres.bus[1].pers[RUK_PERSON].it.total_tax ≈ liabilities[i]
+        @test hres.bus[1].pers[RUK_PERSON].income[INCOME_TAX] ≈ liabilities[i]
     end
 end

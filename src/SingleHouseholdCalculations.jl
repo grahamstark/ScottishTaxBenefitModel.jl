@@ -68,7 +68,7 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
     bus = get_benefit_units( hh )
     hres :: HouseholdResult = init_household_result(hh)
     calc_pre_tax_non_means_tested!( 
-        hhres,
+        hres,
         hh, 
         sys.nmt_bens,
         sys.hours_limits,

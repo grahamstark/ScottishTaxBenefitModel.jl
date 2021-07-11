@@ -6,7 +6,11 @@ using DataFrames
 using SurveyDataWeighting: 
     DistanceFunctionType, 
     ITERATIONS_EXCEEDED,
+    chi_square,
     constrained_chi_square,
+    d_and_s_constrained,
+    d_and_s_type_a,
+    d_and_s_type_b,
     do_reweighting
 
 using ScottishTaxBenefitModel

@@ -1,7 +1,19 @@
 import Test: @testset, @test
-import ScottishTaxBenefitModel.FRSHouseholdGetter: initialise, get_household, get_num_households
-import ScottishTaxBenefitModel.ModelHousehold: Household, Person
-import ScottishTaxBenefitModel.Weighting: generate_weights, make_target_dataset, DEFAULT_TARGETS, initialise_target_dataframe
+import ScottishTaxBenefitModel.FRSHouseholdGetter: 
+    get_household, 
+    get_num_households,
+    initialise
+
+import ScottishTaxBenefitModel.ModelHousehold: 
+    Household, 
+    Person
+
+import ScottishTaxBenefitModel.Weighting: 
+    DEFAULT_TARGETS, 
+    generate_weights, 
+    initialise_target_dataframe,
+    make_target_dataset
+    
 using ScottishTaxBenefitModel
 using CSV
 using Tables
@@ -18,7 +30,9 @@ println( "num_households=$(get_num_households())")
 
 #end
 
-
+function sum(v::Vector)
+    reduce(+,v)
+end
 
 @testset "weighting tests" begin
     nhh = get_num_households()

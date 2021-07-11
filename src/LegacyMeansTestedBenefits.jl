@@ -506,9 +506,9 @@ function calcWTC_CTC!(
     bu_lmt.ctc_elements = ctc_elements
     bu_lmt.wtc_elements = wtc_elements
     bu_lmt.wtc_ctc_threshold = threshold
-    # to spouse if has one
 
-    recipient :: BigInt = length(bur.adults)[1] == 2 ? bur.adults[2] : bur.adults[1]
+    # to spouse if has one
+    recipient :: BigInt = length(benefit_unit_result.adults)[1] == 2 ? benefit_unit_result.adults[2] : benefit_unit_result.adults[1]
     benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
     benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
 end
@@ -639,7 +639,7 @@ function calculateHB_CTR!(
                 bures.legacy_mtbens.hb_incomes = incomes                           
             elseif which_ben == ctr
                 bures.pers[recipient].income[COUNCIL_TAX_BENEFIT] = benefit
-                bures.legacy_mtbens.ctr = benefit
+                # bures.legacy_mtbens.ctr = benefit
                 bures.legacy_mtbens.ctr_passported = passported
                 bures.legacy_mtbens.ctr_premia = premium
                 bures.legacy_mtbens.ctr_allowances = allowances
@@ -711,12 +711,12 @@ function calc_legacy_means_tested_benefits!(
             # FIXME we just allocate payment to the head of
             # the BU - make this a function or make can_apply_for
             # specify the payee as well as whether the BU qualifies
-            recipient :: BigInt = bur.adults[1]
+            recipient :: BigInt = bures.adults[1]
             if can_apply_for.esa 
                 bures.pers[recipient].income[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = mig
                 # bures.legacy_mtbens.esa = mig
             elseif can_apply_for.jsa
-                bures.pers[recipient].income[NON_CONTRIB_JOB_SEEKERS_ALLOWANCE] = mig
+                bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = mig
                 # bures.legacy_mtbens.jsa = mig
             elseif can_apply_for.is
                 bures.pers[recipient].income[INCOME_SUPPORT] = mig                
@@ -789,7 +789,8 @@ function calc_legacy_means_tested_benefits!(
     end
     
     if can_apply_for.wtc || can_apply_for.ctc
-        bures.legacy_mtbens.wtc = calcWTC_CTC!( 
+        recipient = bures.adults[1] # CHECK SPOUSE
+        bures.pers[recipient].income[WORKING_TAX_CREDIT] = calcWTC_CTC!( 
                 bures,
                 bu,
                 intermed,
