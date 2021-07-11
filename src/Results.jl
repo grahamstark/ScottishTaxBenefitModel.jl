@@ -16,6 +16,7 @@ module Results
         Household, 
         Person, 
         Pid_Array,
+        equivalence_scale,
         get_benefit_units
 
     using .Incomes
@@ -185,6 +186,14 @@ module Results
         council_tax :: RT = zero(RT)
     end
 
+
+    function calc_net_income(incs::AbstractArray{T})::T where T
+        return isum(incs, 
+            ALL_INCOMES, 
+            deducted=DIRECT_TAXES_AND_DEDUCTIONS )
+    end
+
+
     @with_kw mutable struct HousingResult{RT<:Real}
         allowed_rooms :: Int = 0
         excess_rooms :: Int = 0
@@ -281,6 +290,8 @@ module Results
         for (pid,pers) in bures.pers
             bures.income .+= pers.income
         end
+        bures.net_income = calc_net_income( bures.income )
+       
         #= TODO 
         eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
@@ -293,10 +304,33 @@ module Results
         =#
     end
 
-    function aggregate!( hres :: HouseholdResult{T} )
+    function aggregate!( hh :: Household{T}, hres :: HouseholdResult{T} )
+        hres.income .= zero(T)
         for bu in hres.bus
             aggregate!( bu )
+            hres.income .+= bu.income
         end
+        aggregate!( hres.bus )
+        hres.bhc_net_income = calc_net_income( hres.income ) -
+            hres.income[HOUSING_BENEFIT] - 
+            hres.income[COUNCIL_TAX_BENEFIT]
+        @assert hres.bhc_net_income > 0
+
+        hres.net_housing_costs = hh.gross_rent + 
+            hres.income[LOCAL_TAXES] +
+            hh.mortgage_payment + 
+            hh.other_housing_charges + 
+            hh.water_and_sewerage -
+            hres.income[HOUSING_BENEFIT] - 
+            hres.income[COUNCIL_TAX_BENEFIT]
+        hres.ahc_net_income = hres.bhc_net_income - net_housing_costs
+
+        hres.eq_scale = equivalence_scale( hh.people )
+        hres.eq_net_income = hres.net_income/hres.eq_scale 
+        
+        hres.eq_bhc_net_income = hres.bhc_net_income/hres.eq_scale
+        hres.eq_ahc_net_income = hres.ahc_net_income/hres.eq_scale
+        
     end
 
 

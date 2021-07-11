@@ -19,6 +19,9 @@ export Definitions
 include("Incomes.jl")
 export Incomes
 
+include( "EquivalenceScales.jl")
+export EquivalenceScales
+
 include("GeneralTaxComponents.jl" )
 export GeneralTaxComponents
 

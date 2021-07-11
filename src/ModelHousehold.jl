@@ -10,6 +10,11 @@ using Dates
 using ScottishTaxBenefitModel
 using .Definitions
 using .Utils: has_non_z, todays_date
+using .EquivenceScales:
+    EQ_P_Type,
+    EQ_Person,
+    get_equivalence_scales
+
 using .Uprating: uprate, UPRATE_MAPPINGS
 
 export 
@@ -133,7 +138,7 @@ mutable struct Person{RT<:Real}
     onerand :: BigInt
 end
 
-People_Dict = Dict{BigInt,Person}
+People_Dict = Dict{BigInt,Person{T<:Real}}
 Pid_Array = Vector{BigInt}
 
 mutable struct Household{RT<:Real}
@@ -164,7 +169,7 @@ mutable struct Household{RT<:Real}
     nhs_board :: Symbol
     bedrooms :: Int
     head_of_household :: BigInt
-    people::People_Dict
+    people::People_Dict{RT}
     onerand :: BigInt
 end
 
@@ -214,7 +219,7 @@ end
 """
 FIXME finish this!
 """
-function equivalence_scale( people :: People_Dict ) :: Dict{Equivalence_Scale_Type,Real}
+function equivalence_scale( people :: People_Dict{T} ) :: EQScales
     np = length(people)
     eqp = Vector{EQ_Person}()
     oldest_pid = oldest_person( people )
@@ -234,13 +239,13 @@ function equivalence_scale( people :: People_Dict ) :: Dict{Equivalence_Scale_Ty
         push!( eqp, EQ_Person( person.age, eqtype ))
     end
     ## FIXME TODO
-    get_equivalence_scales( eqp )
+    get_equivalence_scales( T, eqp )
 end
 
 PeopleArray = Vector{Person}
 
-struct BenefitUnit
-    people :: People_Dict
+struct BenefitUnit{T<:Real}
+    people :: People_Dict{T}
     head :: BigInt
     spouse :: BigInt
     adults :: Pid_Array
