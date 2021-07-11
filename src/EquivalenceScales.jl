@@ -25,7 +25,7 @@ module EquivalenceScales
         square_root :: T
     end
 
-    function onescale( T::Type, scale :: Scales, perss::Vector{EQ_Person}) :: T where T
+    function onescale( T::Type, scale :: Scales, perss::Vector{EQ_Person}) :: T
         s = zero(T)
         n = size(perss)[1]
         add = zero(T)
