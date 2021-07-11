@@ -68,6 +68,7 @@ One complete calculation for a single household and tb system.
 function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdResult
     bus = get_benefit_units( hh )
     hres :: HouseholdResult = init_household_result(hh)
+    hd :: BigInt = get_head( hh )
     calc_pre_tax_non_means_tested!( 
         hres,
         hh, 
@@ -100,24 +101,25 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         end
         buno += 1
     end # bus loop
-    # TODO add Legacy MT Bens in here
-
-
     calc_post_tax_non_means_tested!( 
         hres,
         hh, 
         sys.nmt_bens, 
         sys.age_limits )
-
+        
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    
+    hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
+        calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
+    
     calc_legacy_means_tested_benefits!(
         hres,
         hh,
         intermed,
         sys.age_limits,
         sys.lmt_ben_sys,
-        hours_limits,
-        
-        hr               :: HousingRestrictions )
+        sys.hours_limits,
+        sys.hr )
 
     aggregate!( hh, hres )
     return hres
