@@ -43,7 +43,7 @@ start_year=2015
 num_households = 0
 total_num_people = 0
 nhh2 = 0
-pyplot()
+# pyplot()
 
 rc = @timed begin
       num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
