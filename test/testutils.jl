@@ -12,7 +12,8 @@ using .ModelHousehold:
    Person,    
    child_pids,
    num_adults, 
-   num_children
+   num_children,
+   make_eq_scales!
 
 using .Definitions
 import .ExampleHouseholdGetter
@@ -183,11 +184,13 @@ function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
    np.age = age
    np.sex = sex
    hh.people[ np.pid ] = np
+   make_eq_scales!( hh )
    return np.pid
 end
 
 function delete_person!( hh :: Household, pid :: BigInt )
    delete!( hh.people, pid )
+   make_eq_scales!( hh )
 end
 
 function delete_child!( hh :: Household )
@@ -195,6 +198,7 @@ function delete_child!( hh :: Household )
    if size(chpids)[1] > 0
       delete_person!( hh, chpids[1])
    end
+   make_eq_scales!( hh )
 end
 
 """
@@ -267,5 +271,6 @@ function make_hh(
    if rent != -1
       hh.gross_rent = rent
    end
+   make_eq_scales!( hh )
    return hh
 end

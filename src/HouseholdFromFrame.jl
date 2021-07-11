@@ -10,7 +10,7 @@ using .TimeSeriesUtils
 using .HistoricBenefits: 
     make_benefit_ratios!, 
     switch_dla_to_pip!
-
+using .EquivalenceScales: EQScales
 using .Utils: not_zero_or_missing,strtobi
 
 export 
@@ -18,7 +18,7 @@ export
     load_hhld_from_frame, 
     map_hhld 
 
-const ZERO_EQ_SCALE = EQScales(Float64,0,0,0,0,0,0,0)
+const ZERO_EQ_SCALE = EQScales(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
  
 #
 # Create the dataframe used in the regressions for (e.g) disability
@@ -217,13 +217,11 @@ function map_person(
         m2z(model_person.company_car_value),
         m2z(model_person.company_car_contribution),
         m2z(model_person.fuel_supplied),
-        strtobi(model_person.onerand),
-        ZERO_EQ_SCALE
+        strtobi(model_person.onerand)
     )
     make_benefit_ratios!( 
         pers, hh.interview_year, hh.interview_month )
     switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
-    make_eq_scales!( hh )
     return pers;
 end
 
@@ -231,7 +229,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
 
     people = People_Dict{Float64}()
     head_of_household = BigInt(-1) # this is set when we scan the actual people below
-    Household{Float64}(
+    hh = Household{Float64}(
         hno,
         frs_hh.hid,
         frs_hh.interview_year,
@@ -260,24 +258,28 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
         frs_hh.bedrooms,
         head_of_household,
         people,        
-        strtobi(frs_hh.onerand) )
+        strtobi(frs_hh.onerand),
+        ZERO_EQ_SCALE )
+    return hh
 end
 
 function load_hhld_from_frame( hseq::Integer, hhld_fr :: DataFrameRow, pers_fr :: DataFrame, source::DataSource ) :: Household
-     hh = map_hhld( hseq, hhld_fr )
-     pers_fr_in_this_hh = pers_fr[((pers_fr.data_year .== hhld_fr.data_year).&(pers_fr.hid .== hh.hid)),:]
-     npers = size( pers_fr_in_this_hh )[1]
-     @assert npers in 1:19
-     head_of_household = -1
-     for p in 1:npers
-         pers = map_person( hh, pers_fr_in_this_hh[p,:], source )
-         hh.people[pers.pid] = pers
-         if pers.relationship_to_hoh == This_Person
+    hh = map_hhld( hseq, hhld_fr )
+    pers_fr_in_this_hh = pers_fr[((pers_fr.data_year .== hhld_fr.data_year).&(pers_fr.hid .== hh.hid)),:]
+    npers = size( pers_fr_in_this_hh )[1]
+    @assert npers in 1:19
+    head_of_household = -1
+    for p in 1:npers
+        pers = map_person( hh, pers_fr_in_this_hh[p,:], source )
+        hh.people[pers.pid] = pers
+        if pers.relationship_to_hoh == This_Person
             hh.head_of_household = pers.pid
-         end
-     end
-     @assert hh.head_of_household !== -1
-     hh
+        end
+    end
+    # rewrite the eq scale once we know everything
+    make_eq_scales!( hh )
+    @assert hh.head_of_household !== -1
+    return hh
 end
 
 end # module

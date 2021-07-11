@@ -13,6 +13,7 @@ using .Utils: has_non_z, todays_date
 using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,
+    EQScales,
     get_equivalence_scales,
     eq_dependent_child,
     eq_head,
@@ -53,6 +54,7 @@ export
     is_single, 
     le_age, 
     make_benefit_unit, 
+    make_eq_scales!,    
     num_adults, 
     num_adults, 
     num_carers,
@@ -178,7 +180,7 @@ mutable struct Household{RT<:Real}
     head_of_household :: BigInt
     people::People_Dict{RT}
     onerand :: BigInt
-    equivalence_scales : EQScales{RT}
+    equivalence_scales :: EQScales{RT}
 end
 
 """
@@ -203,8 +205,11 @@ function eq_rel_to_hoh( p :: Person ) :: EQ_P_Type
     end
 end
 
-function make_eq_scales!( hh :: Household{T} )
-    hh.equivalence_scales = get_equivalence_scales( T, collect(values(hh.people)))
+function make_eq_scales!( hh :: Household{T} ) where T
+    pl = collect(values(hh.people))
+    # sz = size( pl )[1]
+    # print( "num people $sz" )
+    hh.equivalence_scales = get_equivalence_scales( T, pl )
 end
 
 function interview_date( hh :: Household ) :: Date
@@ -339,7 +344,8 @@ function make_benefit_unit(
     head :: BigInt, 
     spouse:: BigInt = -1 ) :: BenefitUnit
     npeople = size( people )[1]
-    pd = People_Dict()
+    T = eltype( people[1].income )
+    pd = People_Dict{T}()
     children = Pid_Array()
     adults = Pid_Array()
     push!( adults, head )
@@ -371,11 +377,11 @@ end
 # This creates a array of references to each person in the houshold, broken into
 # benefit units using the default FRS/EFS benefit unit number.
 #
-function allocate_to_bus( bua :: BUAllocation ) :: BenefitUnits
+function allocate_to_bus( T::Type, bua :: BUAllocation ) :: BenefitUnits
     nbus = size(bua)[1]
     bus = BenefitUnits(undef, nbus)
     for i in 1:nbus
-        people = People_Dict()
+        people = People_Dict{T}()
         head_pid :: BigInt = -1
         spouse_pid :: BigInt = -1
         children = Pid_Array()
@@ -409,9 +415,9 @@ function allocate_to_bus( bua :: BUAllocation ) :: BenefitUnits
 end
 
 function get_benefit_units(
-    hh :: Household,
-    allocator :: Function=default_bu_allocation ) :: BenefitUnits
-    allocate_to_bus( allocator(hh))
+    hh :: Household{T},
+    allocator :: Function=default_bu_allocation ) :: BenefitUnits where T
+    allocate_to_bus( T, allocator(hh))
 end
 
 function num_people( bu :: BenefitUnit )::Integer

@@ -33,26 +33,27 @@ function initialise(
     for hseq in 1:nhhlds
         hhf = hh_dataset[hseq,:]
         push!( KEYMAP, hhf.name )
+        println( "loading $(hhf.name)")
         EXAMPLE_HOUSEHOLDS[hhf.name] = load_hhld_from_frame( hseq, hhf, people_dataset, ExampleSource )
     end
-    KEYMAP
+    return KEYMAP
 end
 
 function example_names()
     global KEYMAP
-    KEYMAP
+    return KEYMAP
 end
 
 function get_household( pos :: Integer ) :: Household
     global EXAMPLE_HOUSEHOLDS
     global KEYMAP
     key = KEYMAP[pos]
-    EXAMPLE_HOUSEHOLDS[key]
+    return EXAMPLE_HOUSEHOLDS[key]
 end
 
 function get_household( name :: AbstractString ) :: Household
     global EXAMPLE_HOUSEHOLDS
-    EXAMPLE_HOUSEHOLDS[name]
+    return EXAMPLE_HOUSEHOLDS[name]
 end
 
 

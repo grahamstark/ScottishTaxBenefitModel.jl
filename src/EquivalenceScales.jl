@@ -52,8 +52,12 @@ module EquivalenceScales
             return sqrt(n)
         elseif scale in [oxford,oecd]
             for p in perss
-                if eq_rel_to_hoh(p) == eq_head
+                rel = eq_rel_to_hoh(p)
+                if rel == eq_head
                     eq += 1
+                elseif n == 1
+                    eq += 1
+                    println( "only 1 person; non head rel=$rel")
                 else
                     if get_age(p) <= 14
                         add = if scale == oxford 
@@ -71,7 +75,7 @@ module EquivalenceScales
                     eq += add
                 end
             end # pers loop
-            @assert eq >= 1
+            @assert eq >= 1 "eq is $eq num people $n scale $scale"
         elseif scale == mcclements
             num_extra_adults = 0
             for p in perss
