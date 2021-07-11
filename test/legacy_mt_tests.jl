@@ -13,7 +13,11 @@ using .LegacyMeansTestedBenefits:
 using .LocalLevelCalculations: apply_rent_restrictions, calc_council_tax
 using .Incomes
 using .Intermediate: MTIntermediate, make_intermediate, apply_2_child_policy
-    
+
+using .NonMeansTestedBenefits:
+    calc_pre_tax_non_means_tested!,
+    calc_post_tax_non_means_tested!
+
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: LMTResults, LMTCanApplyFor, init_household_result, BenefitUnitResult
 using Dates
@@ -902,11 +906,13 @@ end
     println( "MTBens for Joblings:\n$(hhres.bus[1].legacy_mtbens)\n" )
     println( "housing $(hhres.housing)")
     println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
-    @test hhres.bus[1].legacy_mtbens.hb ≈ 22.50
+    @test hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT] ≈ 22.50
     
     mr_h = examples[single_hh]
     mrhbu = get_benefit_units(mr_h)[1]
     head = get_head( mrhbu )
+    println( "mr h:: initial: head.dla_self_care_type $(head.dla_self_care_type)" )
+    head.dla_self_care_type = missing_lmh # turn off the dla in the spreadsheet
     retire!( head )
     empty!( head.income )
     head.age = 67
@@ -915,6 +921,16 @@ end
     mr_h.gross_rent = 88.50
     hhres = init_household_result( mr_h )
     intermed = make_intermediate( mr_h, sys.hours_limits, sys.age_limits )
+    println( "mr h:: after changes: head.dla_self_care_type $(head.dla_self_care_type)" )
+    calc_pre_tax_non_means_tested!( 
+        hhres,
+        mr_h, 
+        sys.nmt_bens,
+        sys.hours_limits,
+        sys.age_limits )    
+        
+    hhres.bus[1].pers[head.pid].income[STATE_PENSION] = 127.75 # override calculated pension to march cpag example
+   
     hhres.housing = apply_rent_restrictions( mr_h, intermed.hhint, sys.hr )
     calculateHB_CTR!( 
         hhres, 
@@ -923,6 +939,8 @@ end
         intermed,
         sys.lmt, 
         sys.age_limits )
+    println("Head's incomes:")
+    println( inctostr( hhres.bus[1].pers[head.pid].income))
     println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
     println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
     println( "premia $(hhres.bus[1].legacy_mtbens.premia)\n")

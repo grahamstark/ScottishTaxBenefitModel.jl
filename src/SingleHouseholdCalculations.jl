@@ -9,13 +9,13 @@ import ScottishTaxBenefitModel:
     IncomeTaxCalculations,
     LegacyMeansTestedBenefits,
     ModelHousehold,
-    NationalInsuranceCalculations
+    NationalInsuranceCalculations,
     NonMeansTestedBenefits,
     Results,
-    STBParameters,
-
+    STBParameters
 
 using .Definitions
+
 using .Results: 
     IndividualResult,
     BenefitUnitResult,
@@ -42,12 +42,16 @@ using .ModelHousehold:
 
 # using .LegacyMeansTestedBenefits
 
-using NonMeansTestedBenefits:
+using .NonMeansTestedBenefits:
     calc_pre_tax_non_means_tested!,
     calc_post_tax_non_means_tested!
 
-using .IncomeTaxCalculations: calc_income_tax!
-using .NationalInsuranceCalculations: calculate_national_insurance!
+using .IncomeTaxCalculations: 
+    calc_income_tax!
+
+using .NationalInsuranceCalculations: 
+    calculate_national_insurance!
+
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
@@ -64,11 +68,11 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
     bus = get_benefit_units( hh )
     hres :: HouseholdResult = init_household_result(hh)
     calc_pre_tax_non_means_tested!( 
-        hhres, # :: HouseholdResult,
-        hh,    #    :: Household,
-        sys.nmt_bens, #   :: NonMeansTestedSys,
-        sys.hours_limits, #  :: HoursLimits,
-        sys.age_limits ) # :: AgeLimits ) 
+        hhres,
+        hh, 
+        sys.nmt_bens,
+        sys.hours_limits,
+        sys.age_limits )
     buno = 1
     for bu in bus
         # income tax, with some nonsense for
@@ -96,10 +100,10 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         buno += 1
     end # bus loop
     calc_post_tax_non_means_tested!( 
-        hres, # :: HouseholdResult,
-        hh,    #    :: Household,
-        sys.nmt_bens, #   :: NonMeansTestedSys,
-        sys.age_limits ) # :: AgeLimits ) 
+        hres,
+        hh, 
+        sys.nmt_bens, 
+        sys.age_limits )
     return hres
 end
 
