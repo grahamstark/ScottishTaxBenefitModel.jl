@@ -285,7 +285,7 @@ module Results
         return false
     end
 
-    function aggregate!( bures :: BenefitUnitResult{T} )
+    function aggregate!( bures :: BenefitUnitResult{T} ) where T
         bures.income .= zero(T)
         for (pid,pers) in bures.pers
             bures.income .+= pers.income
@@ -304,7 +304,7 @@ module Results
         =#
     end
 
-    function aggregate!( hh :: Household{T}, hres :: HouseholdResult{T} )
+    function aggregate!( hh :: Household{T}, hres :: HouseholdResult{T} ) where T
         hres.income .= zero(T)
         for bu in hres.bus
             aggregate!( bu )

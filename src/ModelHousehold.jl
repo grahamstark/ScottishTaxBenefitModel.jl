@@ -10,7 +10,7 @@ using Dates
 using ScottishTaxBenefitModel
 using .Definitions
 using .Utils: has_non_z, todays_date
-using .EquivenceScales:
+using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,
     get_equivalence_scales
@@ -138,7 +138,7 @@ mutable struct Person{RT<:Real}
     onerand :: BigInt
 end
 
-People_Dict = Dict{BigInt,Person{T<:Real}}
+People_Dict = Dict{BigInt,Person{T}} where T<:Real
 Pid_Array = Vector{BigInt}
 
 mutable struct Household{RT<:Real}
@@ -219,7 +219,7 @@ end
 """
 FIXME finish this!
 """
-function equivalence_scale( people :: People_Dict{T} ) :: EQScales
+function equivalence_scale( people :: People_Dict{T} ) :: EQScales{T} where T
     np = length(people)
     eqp = Vector{EQ_Person}()
     oldest_pid = oldest_person( people )

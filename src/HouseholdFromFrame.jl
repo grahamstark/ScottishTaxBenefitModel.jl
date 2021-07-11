@@ -225,7 +225,7 @@ end
 
 function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
 
-    people = People_Dict()
+    people = People_Dict{Float64}()
     head_of_household = BigInt(-1) # this is set when we scan the actual people below
     Household{Float64}(
         hno,
