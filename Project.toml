@@ -63,7 +63,7 @@ StructTypes = "1.2"
 SurveyDataWeighting = "1.0.1"
 TableTraits = "1.0.0"
 Tables = "1"
-TimeSeries = "0.19.1, 0.20, 0.21, 0.22"
+TimeSeries = "0.19.1, 0.20, 0.21, 0.22, 0.23"
 Unitful = "1.2.1"
 julia = "1"
 
