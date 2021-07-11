@@ -185,9 +185,9 @@ module Runner
         hr.tenure = hh.tenure
         hr.region = hh.region
         hr.gross_decile = -1
-        hr.income_taxes = isum(hres.income, DIRECT_TAXES )
-        hr.means_tested_benefits = isum( hr.income, MEANS_TESTED_BENS )
-        hr.other_benefits = isum( hh.income, NON_MEANS_TESTED_BENS )
+        hr.income_taxes = isum(hres.income, INCOME_TAXES )
+        hr.means_tested_benefits = isum( hres.income, MEANS_TESTED_BENS )
+        hr.other_benefits = isum( hres.income, NON_MEANS_TESTED_BENS )
         hr.bhc_net_income = hres.bhc_net_income
         hr.ahc_net_income = hres.ahc_net_income
         hr.eq_scale = hres.eq_scale
@@ -219,18 +219,18 @@ module Runner
         pr.ethnic_group = pers.ethnic_group
         pr.is_child = from_child_record
 
-        pr.income_taxes = pres.income_taxes
-        pr.means_tested_benefits = pres.means_tested_benefits
-        pr.other_benefits = pres.other_benefits
+        pr.income_taxes = isum( pres.income, INCOME_TAXES)
+        pr.means_tested_benefits = isum( pres.income, MEANS_TESTED_BENS )
+        pr.other_benefits = isum( pres.income, NON_MEANS_TESTED_BENS )
 
-        pr.income_tax = pres.it.total_tax
+        pr.income_tax = pres.income[INCOME_TAX]
         pr.it_non_savings = pres.it.non_savings_tax
         pr.it_savings = pres.it.savings_tax
         pr.it_dividends = pres.it.dividends_tax
         pr.it_pension_relief_at_source = pres.it.pension_relief_at_source
 
         pr.ni_above_lower_earnings_limit = pres.ni.above_lower_earnings_limit
-        pr.ni_total_ni = pres.ni.total_ni
+        pr.ni_total_ni = pres.income[NATIONAL_INSURANCE]
         pr.ni_class_1_primary = pres.ni.class_1_primary
         pr.ni_class_1_secondary = pres.ni.class_1_secondary
         pr.ni_class_2  = pres.ni.class_2

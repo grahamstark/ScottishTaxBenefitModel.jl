@@ -100,11 +100,25 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         end
         buno += 1
     end # bus loop
+    # TODO add Legacy MT Bens in here
+
+
     calc_post_tax_non_means_tested!( 
         hres,
         hh, 
         sys.nmt_bens, 
         sys.age_limits )
+
+    calc_legacy_means_tested_benefits!(
+        hres,
+        hh,
+        intermed,
+        sys.age_limits,
+        sys.lmt_ben_sys,
+        hours_limits,
+        
+        hr               :: HousingRestrictions )
+
     aggregate!( hh, hres )
     return hres
 end
