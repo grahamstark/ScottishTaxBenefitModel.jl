@@ -18,6 +18,8 @@ export
     load_hhld_from_frame, 
     map_hhld 
 
+const ZERO_EQ_SCALE = EQScales(Float64,0,0,0,0,0,0,0)
+ 
 #
 # Create the dataframe used in the regressions for (e.g) disability
 # by joining the household and person frames, and adding
@@ -215,11 +217,13 @@ function map_person(
         m2z(model_person.company_car_value),
         m2z(model_person.company_car_contribution),
         m2z(model_person.fuel_supplied),
-        strtobi(model_person.onerand)
+        strtobi(model_person.onerand),
+        ZERO_EQ_SCALE
     )
     make_benefit_ratios!( 
         pers, hh.interview_year, hh.interview_month )
     switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
+    make_eq_scales!( hh )
     return pers;
 end
 

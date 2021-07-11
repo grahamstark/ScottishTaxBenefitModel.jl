@@ -178,6 +178,7 @@ mutable struct Household{RT<:Real}
     head_of_household :: BigInt
     people::People_Dict{RT}
     onerand :: BigInt
+    equivalence_scales : EQScales{RT}
 end
 
 """
@@ -200,6 +201,10 @@ function eq_rel_to_hoh( p :: Person ) :: EQ_P_Type
     else 
         return eq_other_adult
     end
+end
+
+function make_eq_scales!( hh :: Household{T} )
+    hh.equivalence_scales = get_equivalence_scales( T, collect(values(hh.people)))
 end
 
 function interview_date( hh :: Household ) :: Date

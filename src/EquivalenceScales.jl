@@ -29,7 +29,7 @@ module EquivalenceScales
         square_root :: T
         per_capita :: T
     end
- 
+
     function eq_rel_to_hoh( p )::EQ_P_Type
         p.eqtype
     end

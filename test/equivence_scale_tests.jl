@@ -9,7 +9,12 @@ using .EquivalenceScales:
     eq_other_adult,
     eq_head
 
-
+#
+# Replicates cases based on tables 1,2 of:
+# Chanfreau, Jenny, and Tania Burchard. 2008. 
+# ‘Scottish Government - Income and Poverty Statistics - Equivalence Scales Paper’. September 2008. https://www2.gov.scot/Topics/Statistics/Browse/Social-Welfare/IncomePoverty/equivalence-scales-paper.
+# https://www2.gov.scot/Topics/Statistics/Browse/Social-Welfare/IncomePoverty/equivalence-scales-paper
+#
 @testset "Eq Scales" begin
     for (key,hh) in EXAMPLES
         eqs :: EQScales = get_equivalence_scales( 
@@ -42,7 +47,6 @@ using .EquivalenceScales:
             @test eqs.mcclements_ahc ≈ 1+0.82
             @test eqs.square_root == sqrt(2)
             @test eqs.per_capita == 2
-
         elseif key == cpl_w_2_children_hh
             # chidren 2 5
             @test eqs.oxford ≈ 1+0.7+0.5+0.5
@@ -53,5 +57,6 @@ using .EquivalenceScales:
             @test eqs.square_root ≈  sqrt(4)
             @test eqs.per_capita ≈ 4
         end
+        @test eqs == hh.equivalence_scales        
     end
 end
