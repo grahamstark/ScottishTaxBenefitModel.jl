@@ -13,7 +13,9 @@ using .Utils: has_non_z, todays_date
 using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,
-    get_equivalence_scales
+    get_equivalence_scales,
+    get_age,
+    eq_rel_to_hoh
 
 using .Uprating: uprate, UPRATE_MAPPINGS
 
@@ -171,6 +173,28 @@ mutable struct Household{RT<:Real}
     head_of_household :: BigInt
     people::People_Dict{RT}
     onerand :: BigInt
+end
+
+"""
+for equivalence scale implicit interface
+"""
+function get_age( p::Person ) :: Int
+    return p.age;
+end
+
+"""
+for the eq scale implicit interface
+"""
+function eq_rel_to_hoh( p :: Person ) :: EQ_P_Type
+    if p.relationship_to_hoh == This_Person
+        return eq_head
+    elseif p.is_standard_child
+        return eq_dependent_child
+    elseif p.relationship_to_hoh in [Spouse,Cohabitee]
+        return eq_spouse_of_head
+    else 
+        return eq_other_adult
+    end
 end
 
 function interview_date( hh :: Household ) :: Date

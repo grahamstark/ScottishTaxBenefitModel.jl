@@ -8,7 +8,9 @@ module EquivalenceScales
         eq_head,
         eq_other_adult,
         eq_spouse_of_head,
-        get_equivalence_scales
+        get_equivalence_scales,
+        get_age,
+        eq_rel_to_hoh
 
 
     @enum EQ_P_Type eq_head eq_spouse_of_head eq_other_adult eq_dependent_child
@@ -19,18 +21,24 @@ module EquivalenceScales
     end
 
     struct EQScales{T<:Real}
-        oecd :: T 
         oxford :: T
-        mcclements :: T
+        oecd_bhc :: T 
+        oecd_ahc :: T
+        mcclements_bhc :: T
+        mcclements_ahc :: T
         square_root :: T
+        per_capita :: T
     end
 
-    function onescale( T::Type, scale :: Scales, perss::Vector{EQ_Person}) :: T
+    #=
+    function onescale( T::Type, scale :: Scales, perss::Vector{EQ_Person}, before_hc :: Bool ) :: T
         s = zero(T)
         n = size(perss)[1]
         add = zero(T)
         eq = zero(T)
-        if scale == square_root
+        if scale == per_capita
+            return n
+        elseif scale == square_root
             return sqrt(n)
         elseif scale in [oxford,oecd]
             for p in perss
@@ -38,9 +46,17 @@ module EquivalenceScales
                     eq += 1
                 else
                     if p.age <= 14
-                        add = scale == oxford ? 0.5 : 0.3
+                        add = if scale == oxford 
+                            0.5
+                        elseif scale == oecd 
+                            before_hc ? 0.3 : 0.34
+                        end
                     else
-                        add = scale == oxford ? 0.5 : 0.3
+                        add = if scale == oxford 
+                            0.7
+                        elseif scale == oecd 
+                            before_hc ? 0.5 : 0.72
+                        end
                     end
                     eq += add
                 end
@@ -52,45 +68,146 @@ module EquivalenceScales
                 if p.eqtype == eq_head
                     eq += 1
                 elseif p.eq_type == eq_spouse_of_head
-                    eq += 0.64
+                    eq += before_hc ? 0.64 : 0.82
                 elseif p.eqtype == eq_other_adult
                     num_extra_adults += 1
                     if num_extra_adults == 1
-                        eq += 0.75
+                        eq += before_hc ? 0.75 : 0.82
                     elseif num_extra_adults == 2
-                        eq += 0.69
+                        eq += before_hc ? 0.69 : 0.82
                     else
-                        eq += 0.59
+                        eq += before_hc ? 0.59 : 0.73
                     end
                 elseif p.eqtype == eq_dependent_child
-                    if p.age in 0:1 => 
-                        eq += 0.148
-                    elseif p.age in 2:4 => 
-                        eq += 0.295
-                    elseif p.age in 5:7 => 
-                        eq += 0.344
-                    elseif p.age in 8:10 => 
-                        eq += 0.377
-                    elseif p.age in 11:12 => 
-                        eq += 0.41
-                    elseif p.age in 13:15 => 
-                        eq += 0.443
+                    if p.age in 0:1
+                        eq += before_hc ? 0.148 : 0.13
+                    elseif p.age in 2:4
+                        eq += before_hc ?  0.295 : 0.33
+                    elseif p.age in 5:7 
+                        eq += before_hc ? 0.344 : 0.38
+                    elseif p.age in 8:10 
+                        eq += before_hc ? 0.377 : 0.42
+                    elseif p.age in 11:12  
+                        eq += before_hc ? 0.41 : 0.47
+                    elseif p.age in 13:15 
+                        eq += before_hc ? 0.443 : 0.51
                     elseif p.age in 16:21
-                        eq += 0.59
+                        eq += before_hc ? 0.59 : 0.69
                     end 
                 end # dependent child
             end # mcclements
-            
+        end
+        return eq
+    end
+    =#
+
+    function eq_rel_to_hoh( p )::EQ_P_Type
+        p.eqtype
+    end
+
+    function get_age( p )::Int
+        p.age        
+    end
+
+    """
+    More Julian version, perhaps?
+    """
+    function onescale( T::Type, scale :: Scales, perss , before_hc :: Bool ) :: T
+        s = zero(T)
+        n = size(perss)[1]
+        add = zero(T)
+        eq = zero(T)
+        if scale == per_capita
+            return n
+        elseif scale == square_root
+            return sqrt(n)
+        elseif scale in [oxford,oecd]
+            for p in perss
+                if eq_rel_to_hoh(p) == eq_head
+                    eq += 1
+                else
+                    if get_age(p) <= 14
+                        add = if scale == oxford 
+                            0.5
+                        elseif scale == oecd 
+                            before_hc ? 0.3 : 0.34
+                        end
+                    else
+                        add = if scale == oxford 
+                            0.7
+                        elseif scale == oecd 
+                            before_hc ? 0.5 : 0.72
+                        end
+                    end
+                    eq += add
+                end
+            end # pers loop
+            @assert eq >= 1
+        elseif scale == mcclements
+            num_extra_adults = 0
+            for p in perss
+                age = get_age(p)
+                rel = eq_rel_to_hoh( p )
+                if rel == eq_head
+                    eq += 1
+                elseif rel == eq_spouse_of_head
+                    eq += before_hc ? 0.64 : 0.82
+                elseif rel == eq_other_adult
+                    num_extra_adults += 1
+                    if num_extra_adults == 1
+                        eq += before_hc ? 0.75 : 0.82
+                    elseif num_extra_adults == 2
+                        eq += before_hc ? 0.69 : 0.82
+                    else
+                        eq += before_hc ? 0.59 : 0.73
+                    end
+                elseif rel == eq_dependent_child
+                    if age in 0:1
+                        eq += before_hc ? 0.148 : 0.13
+                    elseif age in 2:4
+                        eq += before_hc ?  0.295 : 0.33
+                    elseif age in 5:7 
+                        eq += before_hc ? 0.344 : 0.38
+                    elseif age in 8:10 
+                        eq += before_hc ? 0.377 : 0.42
+                    elseif age in 11:12  
+                        eq += before_hc ? 0.41 : 0.47
+                    elseif age in 13:15 
+                        eq += before_hc ? 0.443 : 0.51
+                    elseif age in 16:21
+                        eq += before_hc ? 0.59 : 0.69
+                    end 
+                end # dependent child
+            end # mcclements
         end
         return eq
     end
 
+
+    #
+    # more julian? anything with get_age, get_relation_to_hoh
+    #
+
+    """
+    Make a struct full of Equivalence Scales; see: 
+    https://www.gov.scot/binaries/content/documents/govscot/publications/statistics/2020/01/equivalence-scales/documents/equivalence-scales-rationales-uses-and-assumptions/equivalence-scales-rationales-uses-and-assumptions/govscot%3Adocument/paper%2Bdiscussing%2Bequivalence%2Bscales%2Band%2Bunderlying%2Bassumptions.pdf
+    """
     function get_equivalence_scales( T :: Type, perss::Vector{EQ_Person}) :: EQScales{T} 
-        oecd = onescale( T, oecd, perss )
-        oxford = onescale( T, oxford, perss )
-        mcclements = onescale( T, mcclements, perss )
-        square_root = onescale( T, square_root, perss )
-        return EQScales{T}( oecd, oxford, mclements, square_root )
+        v_oecd_bhc = onescale( T, oecd, perss, true )
+        v_oecd_ahc = onescale( T, oecd, perss, false )
+        v_oxford = onescale( T, oxford, perss, false ) # bhc irrelevant
+        v_mcclements_bhc = onescale( T, mcclements, perss, true )
+        v_mcclements_ahc = onescale( T, mcclements, perss, false )
+        v_square_root = onescale( T, square_root, perss, false )
+        v_per_capita = onescale( T, per_capita, perss, false )
+        return EQScales{T}( 
+            v_oxford,
+            v_oecd_bhc, 
+            v_oecd_ahc,  
+            v_mclements_bhc, 
+            v_mclements_ahc, 
+            v_square_root, 
+            v_per_capita )
     end
 
 end
