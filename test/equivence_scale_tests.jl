@@ -1,5 +1,4 @@
 using Test
-using Dates
 using ScottishTaxBenefitModel
 using .EquivalenceScales:  
     EQScales, 
@@ -12,6 +11,10 @@ using .EquivalenceScales:
 
 
 @testset "Eq Scales" begin
-
-
+    for (key,hh) in EXAMPLES
+        eqs :: EQScales = get_equivalence_scales( 
+            Float64,
+            collect(values(hh.people)))
+        println( "hh $key $eqs" )
+    end
 end

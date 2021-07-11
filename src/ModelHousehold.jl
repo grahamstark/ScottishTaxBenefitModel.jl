@@ -13,7 +13,11 @@ using .Utils: has_non_z, todays_date
 using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,
-    get_equivalence_scales
+    get_equivalence_scales,
+    eq_dependent_child,
+    eq_head,
+    eq_other_adult,
+    eq_spouse_of_head
 
 import .EquivalenceScales.get_age 
 import .EquivalenceScales.eq_rel_to_hoh

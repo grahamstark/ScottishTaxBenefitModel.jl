@@ -14,7 +14,7 @@ module EquivalenceScales
 
 
     @enum EQ_P_Type eq_head eq_spouse_of_head eq_other_adult eq_dependent_child
-    @enum Scales oecd oxford mcclements square_root
+    @enum Scales oecd oxford mcclements square_root per_capita
     struct EQ_Person
         age :: Int
         eqtype :: EQ_P_Type
@@ -206,8 +206,8 @@ module EquivalenceScales
             v_oxford,
             v_oecd_bhc, 
             v_oecd_ahc,  
-            v_mclements_bhc, 
-            v_mclements_ahc, 
+            v_mcclements_bhc, 
+            v_mcclements_ahc, 
             v_square_root, 
             v_per_capita )
     end
