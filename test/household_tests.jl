@@ -14,7 +14,6 @@ using .TimeSeriesUtils: fy_from_bits
 using .Definitions
 using .HistoricBenefits: make_benefit_ratios!, RATIO_BENS
 using Plots
-using PyPlot
 using DataFrames
 
 start_year=2015
