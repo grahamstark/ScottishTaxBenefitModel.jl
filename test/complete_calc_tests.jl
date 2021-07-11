@@ -1,5 +1,6 @@
 using Test
 using ScottishTaxBenefitModel
+using .Incomes
 using ScottishTaxBenefitModel.ModelHousehold:
     Household,
     Person,

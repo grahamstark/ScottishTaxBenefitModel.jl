@@ -39,7 +39,6 @@ export
     child_pids, 
     default_bu_allocation,
     empl_status_in, 
-    equivalence_scale, 
     ge_age, 
     get_benefit_units, 
     get_head,
@@ -255,32 +254,6 @@ function oldest_person( people :: People_Dict ) :: NamedTuple
     oldest
 end
 
-"""
-FIXME finish this!
-"""
-function equivalence_scale( people :: People_Dict{T} ) :: EQScales{T} where T
-    np = length(people)
-    eqp = Vector{EQ_Person}()
-    oldest_pid = oldest_person( people )
-    for (pid,person) in people
-        eqtype = eq_other_adult
-        if pid == oldest_pid.pid
-            eqtype = eq_head
-        else
-            if (person.age < 16) || (( person.age < 18 ) & ( person.employment_status in [Student,Other_Inactive]))
-                eqtype = eq_dependent_child # needn't actually be dependent, of course
-            elseif person.relationships[ oldest_pid.pid ] in [Spouse,Cohabitee,Civil_Partner]
-                eqtype = eq_spouse_of_head
-            else
-                eqtype = eq_other_adult
-            end
-        end
-        push!( eqp, EQ_Person( person.age, eqtype ))
-    end
-    ## FIXME TODO
-    get_equivalence_scales( T, eqp )
-end
-
 PeopleArray = Vector{Person}
 
 struct BenefitUnit{T<:Real}
@@ -344,7 +317,7 @@ function make_benefit_unit(
     head :: BigInt, 
     spouse:: BigInt = -1 ) :: BenefitUnit
     npeople = size( people )[1]
-    T = eltype( people[1].income )
+    T = typeof( people[1].hours_of_care_received )
     pd = People_Dict{T}()
     children = Pid_Array()
     adults = Pid_Array()

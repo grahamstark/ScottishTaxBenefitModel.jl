@@ -20,7 +20,8 @@ using .Results:
     IndividualResult,
     BenefitUnitResult,
     HouseholdResult,
-    init_household_result
+    init_household_result,
+    aggregate!
 
 using .STBParameters: 
     TaxBenefitSystem
@@ -104,6 +105,7 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         hh, 
         sys.nmt_bens, 
         sys.age_limits )
+    aggregate!( hh, hres )
     return hres
 end
 

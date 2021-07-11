@@ -9,6 +9,7 @@ module Runner
 
     using ScottishTaxBenefitModel:
         Definitions,
+        Incomes,
         FRSHouseholdGetter,
         GeneralTaxComponents,
         ModelHousehold,
@@ -21,6 +22,7 @@ module Runner
     using .Definitions
     using .Utils
     using .STBParameters
+    using .Incomes
     using .Weighting: generate_weights
 
     using .ModelHousehold: 
@@ -183,9 +185,9 @@ module Runner
         hr.tenure = hh.tenure
         hr.region = hh.region
         hr.gross_decile = -1
-        hr.income_taxes = hres.income_taxes
-        hr.means_tested_benefits = hr.means_tested_benefits
-        hr.other_benefits = hr.other_benefits
+        hr.income_taxes = isum(hres.income, DIRECT_TAXES )
+        hr.means_tested_benefits = isum( hr.income, MEANS_TESTED_BENS )
+        hr.other_benefits = isum( hh.income, NON_MEANS_TESTED_BENS )
         hr.bhc_net_income = hres.bhc_net_income
         hr.ahc_net_income = hres.ahc_net_income
         hr.eq_scale = hres.eq_scale

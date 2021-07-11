@@ -16,7 +16,6 @@ module Results
         Household, 
         Person, 
         Pid_Array,
-        equivalence_scale,
         get_benefit_units
 
     using .Incomes
@@ -310,7 +309,6 @@ module Results
             aggregate!( bu )
             hres.income .+= bu.income
         end
-        aggregate!( hres.bus )
         hres.bhc_net_income = calc_net_income( hres.income ) -
             hres.income[HOUSING_BENEFIT] - 
             hres.income[COUNCIL_TAX_BENEFIT]
@@ -323,14 +321,9 @@ module Results
             hh.water_and_sewerage -
             hres.income[HOUSING_BENEFIT] - 
             hres.income[COUNCIL_TAX_BENEFIT]
-        hres.ahc_net_income = hres.bhc_net_income - net_housing_costs
-
-        hres.eq_scale = equivalence_scale( hh.people )
-        hres.eq_net_income = hres.net_income/hres.eq_scale 
-        
-        hres.eq_bhc_net_income = hres.bhc_net_income/hres.eq_scale
-        hres.eq_ahc_net_income = hres.ahc_net_income/hres.eq_scale
-        
+        hres.ahc_net_income = hres.bhc_net_income - hres.net_housing_costs        
+        hres.eq_bhc_net_income = hres.bhc_net_income/hh.equivalence_scales.oecd_bhc
+        hres.eq_ahc_net_income = hres.ahc_net_income/hh.equivalence_scales.oecd_ahc        
     end
 
 
