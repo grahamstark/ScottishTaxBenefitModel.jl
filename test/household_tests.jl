@@ -1,19 +1,42 @@
+using Test: @testset, @test
+
+using StatsBase
+
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
-using .ExampleHouseholdGetter
-using Test: @testset, @test
-using StatsBase
+
 using .Weighting: generate_weights
-using .ModelHousehold: Household, Person, People_Dict, BUAllocation,
-      PeopleArray, printpids,
-      BenefitUnit, BenefitUnits, default_bu_allocation,
-      get_benefit_units, get_head, get_spouse, num_people,
-      has_disabled_member, is_lone_parent, has_carer_member, num_children,
-      count
+
+using .ExampleHouseholdGetter
+
+using .ModelHousehold: 
+      BenefitUnit, 
+      BenefitUnits, 
+      BUAllocation,
+      Household, 
+      People_Dict, 
+      PeopleArray, 
+      Person,       
+      count,
+      default_bu_allocation,
+      get_benefit_units, 
+      get_head, 
+      get_spouse, 
+      has_carer_member, 
+      has_disabled_member, 
+      is_lone_parent, 
+      num_children,
+      num_people,
+      printpids
+
 using .TimeSeriesUtils: fy_from_bits
+
 using .Definitions
-using .HistoricBenefits: make_benefit_ratios!, RATIO_BENS
-using Plots
+
+using .HistoricBenefits: 
+      RATIO_BENS,
+      make_benefit_ratios!
+# using Plots
 using DataFrames
 
 start_year=2015
@@ -120,10 +143,12 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
             println( "ratios for $target n = $n")
             nb = target == state_pension ? 40 : 6
             cm = fit(Histogram,rat, nbins=nb)
+            #=
             p = Plots.plot( cm, title="$target ratio of actual vs standard for year"  )
             println( "hist:\n $cm")
             fname="tmp/$(target)_hist.svg"
             Plots.svg( p, fname)
+            =#
             println( "exacts = $exact tot = $tot")
       end
 end
