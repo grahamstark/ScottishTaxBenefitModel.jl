@@ -650,7 +650,7 @@ function calculateHB_CTR!(
                 ndds += calc_NDDs(
                     bu,
                     bures,
-                    intermed.buint[buno],
+                    intermed.buint[bn],
                     lmt_ben_sys.income_rules,
                     lmt_ben_sys.hb )
             end
