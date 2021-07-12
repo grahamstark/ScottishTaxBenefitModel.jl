@@ -221,7 +221,7 @@ module Results
     end
 
     function add_to!( ni :: NIResult, ni2 :: NIResult )
-        ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
+        # ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
         # ni.total_ni += ni2.total_ni
         ni.class_1_primary    += ni2.class_1_primary   
         ni.class_1_secondary  += ni2.class_1_secondary 
