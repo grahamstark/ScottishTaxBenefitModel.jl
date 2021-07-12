@@ -149,6 +149,7 @@ module NonMeansTestedBenefits
             # the standard rate by the ratio of
             # their receipt to the standard rate at the time
             # of interview.
+            
             wid = pers.benefit_ratios[bereavement_allowance_or_widowed_parents_allowance_or_bereavement]*
                 wp.standard_rate 
         else
@@ -202,6 +203,7 @@ module NonMeansTestedBenefits
         dla  :: DisabilityLivingAllowance{T} ) :: Tuple{T,T} where T
         dc = zero(T)
         dm = zero(T)
+        println( "dla self_care=$(pers.dla_self_care_type)")
         # FIXME make all these names constisent (mid/middle,care->self_care etc.)
         if pers.dla_self_care_type == high 
             dc = dla.care_high
@@ -215,6 +217,7 @@ module NonMeansTestedBenefits
         elseif pers.dla_mobility_type in (low,mid)
             dm = dla.mob_low
         end
+        println( "setting DLA as $dc, $dm")
         return (dc,dm);
     end # dla calc
 
@@ -236,7 +239,7 @@ module NonMeansTestedBenefits
                 pers.age, 
                 pers.sex,
                 age_limits.savings_credit_to_new_state_pension )
-                println( "pers.benefit_ratios $(pers.benefit_ratios)")
+                # println( "pers.benefit_ratios $(pers.benefit_ratios)")
                 if ! haskey( pers.benefit_ratios, state_pension ) 
                     ratio =  pers.age < 70 ? 0.0 : 1.0 # kinda crude deferrment
                 else
@@ -295,7 +298,7 @@ module NonMeansTestedBenefits
             pres.income, 
             carers.earnings;
             deducted=carers.deductions )
-        println( "earnings=$earnings carers.gainful_employment_min=$(carers.gainful_employment_min)")
+        # println( "earnings=$earnings carers.gainful_employment_min=$(carers.gainful_employment_min)")
         if pers.hours_of_care_given >= carers.hours && 
             earnings < carers.gainful_employment_min
             c = carers.allowance

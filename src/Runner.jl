@@ -345,7 +345,8 @@ module Runner
                         people_name    = settings.people_name,
                         start_year     = settings.start_year )
             println( "generating weights" )
-            @time weights = generate_weights( settings.num_households )
+            @time weights = ones( nhh2 ) 
+            #generate_weights( settings.num_households )
         end
         # num_households=11048, num_people=23140
         # println( "settings $settings")
@@ -354,6 +355,7 @@ module Runner
         println( "starting run " )
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
+            println( "on household hno $(hh.hid) $(hh.interview_year)")
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
                 # println( "hno $hno sysno $sysno frame_starts $frame_starts")

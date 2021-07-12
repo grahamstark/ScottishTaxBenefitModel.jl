@@ -273,14 +273,14 @@ export
         else
             rooms = get_head( hh ).age <= hr.single_room_age ? 0 : 1 # single person
         end
-        println( "rooms before kids $rooms")
+        # println( "rooms before kids $rooms")
         if nkids > 0
             println( "nkids = $nkids ")
             rooms += min_kids_rooms( kids[1:nkids] )
         end 
-        println( "hh.bedrooms = $(hh.bedrooms)" )
-        println( "needed rooms = $rooms" )
-        println( "hr.maximum_rooms = $(hr.maximum_rooms)")    
+        # println( "hh.bedrooms = $(hh.bedrooms)" )
+        # println( "needed rooms = $rooms" )
+        # println( "hr.maximum_rooms = $(hr.maximum_rooms)")    
         return min( rooms, hr.maximum_rooms, hh.bedrooms )
     end
 
