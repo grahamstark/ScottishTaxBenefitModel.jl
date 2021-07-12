@@ -77,7 +77,7 @@ end
             lmt.hours_limits,
             sys.age_limits )
 
-        @test size(bus)[1] == 1
+        @test (size(bus)[1] == 1) || (hht == mbu )
         spouse = nothing
         head = get_head(bu)
         hdwork = is_working_hours( head, lmt.hours_limits.lower )
@@ -951,4 +951,66 @@ end
 
     ## FIXME MORE TESTS NEEDED HERE: passporting NDDS
     # PENSION CREDIT 
+end
+
+
+@testset "NDDs" begin
+    sys = get_system( scotland=true )
+    bu3 = deepcopy( EXAMPLES[mbu])
+    bus = get_benefit_units( bu3 )
+    @assert size(bus)[1] == 3
+    head = get_head( bu3 )
+    @assert head.age == 26
+    intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
+    bu2p = get_head( bus[2])
+    employ!( bu2p )
+    # cpag 19/0 ch 10 p194
+    incomes = [500,380,300.0,250.0,175.0]
+    ndds = [100.65,91.70,80.55,49.20,35.85,15.60]
+    ntests = size( incomes)[1]
+    for i in 1:ntests
+        bu2p.income[wages] = incomes[i]
+        bures = init_benefit_unit_result( Float64, bus[2])
+        lmt_incomes = calc_incomes(
+            hb,
+            bus[2],
+            bur,
+            intermed,
+            sys.lmt.income_rules,
+            sys.lmt.hours_limits ) 
+        ndd = calc_NDDs(
+            bus[2],
+            bures,
+            intermed.buint[2],
+            lmt_incomes,
+            sys.lmt.hb )
+        @test ndds ≈ ndds[i]        
+    end
+    unemploy!( bu2p )
+    intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
+    bures = init_benefit_unit_result( Float64, bus[2] )
+    lmt_incomes = calc_incomes(
+        hb,
+        bus[2],
+        bur,
+        intermed,
+        sys.lmt.income_rules,
+        sys.lmt.hours_limits ) 
+    ndd = calc_NDDs(
+        bus[2],
+        bures,
+        intermed.buint[2],
+        lmt_incomes,
+        sys.lmt.hb )
+    @test ndds ≈ 0.0
+end
+
+@testset "PC/SC" begin
+    
+
+end
+
+@testset "Passporting" begin
+    
+
 end
