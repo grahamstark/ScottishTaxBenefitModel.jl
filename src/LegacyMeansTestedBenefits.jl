@@ -748,15 +748,15 @@ function calc_legacy_means_tested_benefits!(
         )        
         # NOTE - there can be 'qualifying housing costs' in the MIG;
         # see: CPAG 2122
-        if ! incomes.disqualified_on_capital    
+       miglevel = premium+allowances
+       if ! incomes.disqualified_on_capital    
             bures.legacy_mtbens.mig = max( 0.0, miglevel - incomes.total_income );
         end
-        bures.legacy_mtbens.ctc_incomes = incomes
-        bures.legacy_mtbens.ctc_allowances = allowances
-        bures.legacy_mtbens.ctc_premia = premium
+        bures.legacy_mtbens.pc_incomes = incomes
+        bures.legacy_mtbens.pc_allowances = allowances
+        bures.legacy_mtbens.pc_premia = premium
 
-        miglevel = premium+allowances
-
+ 
         # fixme make this a function
         recipient = bures.adults[1]
         

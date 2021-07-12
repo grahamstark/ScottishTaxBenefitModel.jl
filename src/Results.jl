@@ -108,6 +108,10 @@ module Results
         ctr_premia :: RT = zero(RT)
         ctr_allowances :: RT = zero(RT)
         ctr_incomes = LMTIncomes{RT}()
+
+        pc_premia :: RT = zero(RT)
+        pc_allowances :: RT = zero(RT)
+        pc_incomes = LMTIncomes{RT}()
         
         premia = LMTPremiaSet()
         can_apply_for = LMTCanApplyFor()
