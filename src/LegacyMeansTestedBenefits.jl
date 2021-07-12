@@ -772,7 +772,7 @@ function calc_legacy_means_tested_benefits!(
                  )
             thresh = scsys.threshold_single
             maxpay = scsys.threshold_single
-            if num_adults > 1
+            if intermed.num_adults > 1
                 thresh = scsys.threshold_couple
                 maxpay = scsys.max_couple
             end
