@@ -338,7 +338,7 @@ module Results
         hres.bhc_net_income = calc_net_income( hres.income ) -
             hres.income[HOUSING_BENEFIT] - 
             hres.income[COUNCIL_TAX_BENEFIT]
-        @assert hres.bhc_net_income > 0 "bhc_net_income $(hres.bhc_net_income) HOUSING_BENEFIT=$(hres.income[HOUSING_BENEFIT]) COUNCIL_TAX_BENEFIT=$(hres.income[COUNCIL_TAX_BENEFIT]) hres.income[COUNCIL_TAX_BENEFIT]=$(hres.income[COUNCIL_TAX_BENEFIT])"
+        @assert hres.bhc_net_income > 0 "zero bhc_net_income for hid=$(hh.hid) year=$(hh.data_year) bhc_net_income $(hres.bhc_net_income) HOUSING_BENEFIT=$(hres.income[HOUSING_BENEFIT]) COUNCIL_TAX_BENEFIT=$(hres.income[COUNCIL_TAX_BENEFIT]) hres.income[COUNCIL_TAX_BENEFIT]=$(hres.income[COUNCIL_TAX_BENEFIT])"
 
         hres.net_housing_costs = hh.gross_rent + 
             hres.income[LOCAL_TAXES] +

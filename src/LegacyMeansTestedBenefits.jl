@@ -733,7 +733,7 @@ function calc_legacy_means_tested_benefits!(
             end
             if can_apply_for.ctc
                 bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
-                    calc_full_ctc( intermed, sys.legacy_mtbens.child_tax_credit )
+                    calc_full_ctc( intermed, mt_ben_sys.child_tax_credit )
             end
             can_apply_for.wtc = false # no overlapping
         end
