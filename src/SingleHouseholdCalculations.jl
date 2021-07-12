@@ -131,8 +131,8 @@ function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: Househ
         hres,
         hh,
         intermed,
-        sys.age_limits,
         sys.lmt,
+        sys.age_limits,
         sys.hours_limits,
         sys.hr )
 

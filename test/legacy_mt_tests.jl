@@ -1026,5 +1026,59 @@ end
 
 @testset "Full Legacy Benefits" begin
 #TODO
+    for (key,hh) in EXAMPLES
+        println( "on $key")
+        hhc = deepcopy( hh )
+        head = get_head( hhc )
+        intermed = make_intermediate( hhc, sys.hours_limits, sys.age_limits )
+        hhres = init_household_result( hhc )        
+        calc_legacy_means_tested_benefits!(
+            hhres,
+            hhc,
+            intermed,
+            sys.lmt,
+            sys.age_limits,
+            sys.hours_limits,
+            sys.hr )
 
+        # head is unemployed
+        unemploy!( head )
+        intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+        hhres = init_household_result( hh )        
+        calc_legacy_means_tested_benefits!(
+            hhres,
+            hh,
+            intermed,
+            sys.lmt,
+            sys.age_limits,
+            sys.hours_limits,
+            sys.hr )
+
+        # head is seriously disabled
+        disable_seriously!( head )
+        intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+        hhres = init_household_result( hh )        
+        calc_legacy_means_tested_benefits!(
+            hhres,
+            hh,
+            intermed,
+            sys.lmt,
+            sys.age_limits,
+            sys.hours_limits,
+            sys.hr )
+        # head is an informal carer    
+        enable!( head )
+        carer!( head )
+        intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+        hhres = init_household_result( hh )        
+        calc_legacy_means_tested_benefits!(
+            hhres,
+            hh,
+            intermed,
+            sys.lmt,
+            sys.age_limits,
+            sys.hours_limits,
+            sys.hr )
+
+    end
 end

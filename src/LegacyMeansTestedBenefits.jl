@@ -733,7 +733,7 @@ function calc_legacy_means_tested_benefits!(
             end
             if can_apply_for.ctc
                 bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
-                    calc_full_ctc( intermed, bures.legacy_mtbens.child_tax_credit )
+                    calc_full_ctc( intermed, sys.legacy_mtbens.child_tax_credit )
             end
             can_apply_for.wtc = false # no overlapping
         end
@@ -829,8 +829,8 @@ function calc_legacy_means_tested_benefits!(
             household_result :: HouseholdResult,
             household        :: Household,
             intermed         :: NamedTuple,
-            age_limits       :: AgeLimits, 
             lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,
+            age_limits       :: AgeLimits, 
             hours            :: HoursLimits,
             hr               :: HousingRestrictions )
     # fixme not just for renters? fixme do this earlier
