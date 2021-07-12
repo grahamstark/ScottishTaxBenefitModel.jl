@@ -6,8 +6,11 @@ module SingleHouseholdCalculations
 
 import ScottishTaxBenefitModel:
     Definitions,
+    Incomes,
+    Intermediate,
     IncomeTaxCalculations,
     LegacyMeansTestedBenefits,
+    LocalLevelCalculations,
     ModelHousehold,
     NationalInsuranceCalculations,
     NonMeansTestedBenefits,
@@ -53,6 +56,12 @@ using .IncomeTaxCalculations:
 using .NationalInsuranceCalculations: 
     calculate_national_insurance!
 
+using .Incomes
+
+using .Intermediate: 
+    MTIntermediate,
+    make_intermediate
+
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
@@ -60,15 +69,23 @@ using .Results:
     ITResult, 
     NIResult
 
+using .LocalLevelCalculations:
+    calc_council_tax
+
+using .LegacyMeansTestedBenefits: 
+    calc_legacy_means_tested_benefits!
+
 export do_one_calc
 
 """
 One complete calculation for a single household and tb system.
 """
-function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdResult
+function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: HouseholdResult{T} where T
     bus = get_benefit_units( hh )
-    hres :: HouseholdResult = init_household_result(hh)
-    hd :: BigInt = get_head( hh )
+    hres :: HouseholdResult{T} = init_household_result(hh)
+    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    
+    hd :: BigInt = get_head( hh ).pid
     calc_pre_tax_non_means_tested!( 
         hres,
         hh, 
@@ -107,8 +124,6 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         sys.nmt_bens, 
         sys.age_limits )
         
-    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
-    
     hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
         calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
     
@@ -117,7 +132,7 @@ function do_one_calc( hh :: Household, sys :: TaxBenefitSystem ) :: HouseholdRes
         hh,
         intermed,
         sys.age_limits,
-        sys.lmt_ben_sys,
+        sys.lmt,
         sys.hours_limits,
         sys.hr )
 

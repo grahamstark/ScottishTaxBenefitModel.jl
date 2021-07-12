@@ -1,33 +1,47 @@
 using Test
-using ScottishTaxBenefitModel
+using Dates: Date
+
+using ScottishTaxBenefitModel:
+    ModelHousehold,
+    ExampleHouseholdGetter,
+    Definitions,
+    Incomes,
+    STBParameters,
+    SingleHouseholdCalculations,
+    Results,
+    GeneralTaxComponents,
+    Runner
+
 using .Incomes
-using ScottishTaxBenefitModel.ModelHousehold:
+using .ModelHousehold:
     Household,
     Person,
     People_Dict,
     default_bu_allocation,
     get_benefit_units
-# using FRSHouseholdGetter
-using ScottishTaxBenefitModel.ExampleHouseholdGetter
-using ScottishTaxBenefitModel.Definitions
-using Dates: Date
-using ScottishTaxBenefitModel.STBParameters:
+    
+using .ExampleHouseholdGetter
+
+using .Definitions
+
+using .STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
     IncomeTaxSys
+    
+using .SingleHouseholdCalculations:do_one_calc
 
-using ScottishTaxBenefitModel.SingleHouseholdCalculations:do_one_calc
-
-using ScottishTaxBenefitModel.Results:
+using .Results:
     IndividualResult,
     BenefitUnitResult,
     HouseholdResult,
     init_household_result
-using ScottishTaxBenefitModel.GeneralTaxComponents: 
+
+using .GeneralTaxComponents: 
     RateBands, 
     WEEKS_PER_YEAR
-using ScottishTaxBenefitModel.SingleHouseholdCalculations: do_one_calc
-using ScottishTaxBenefitModel.Runner: 
+
+using .Runner: 
     do_one_run!, 
     RunSettings
 
@@ -67,8 +81,8 @@ ExampleHouseholdGetter.initialise()
         hh.people[ RUK_PERSON ].income[wages] = wage[i]
         hh.people[ RUK_PERSON ].income[bank_interest] = savings[i]
         hh.people[ RUK_PERSON ].income[stocks_shares] = divs[i]
-        hres = do_one_calc( hh, sys[1] )
-        hres_scot = do_one_calc( hh, sys[2] )
+        hres = ScottishTaxBenefitModel.SingleHouseholdCalculations.do_one_calc( hh, sys[1] )
+        hres_scot = ScottishTaxBenefitModel.SingleHouseholdCalculations.do_one_calc( hh, sys[2] )
         if i == 1
             @test round(hres_scot.bus[1].pers[RUK_PERSON].income[INCOME_TAX]*WEEKS_PER_YEAR) ≈ 9_044
         end
