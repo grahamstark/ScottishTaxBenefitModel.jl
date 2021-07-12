@@ -481,7 +481,8 @@ module STBParameters
         child  :: RT = 2_555.00
         disability :: RT = 2_800.00
         severe_disability :: RT = 1_130.00    
-        disregard :: RT = 16_105.00
+        threshold :: RT = 16_105.00
+       
     end
 
     function weeklyise!( ctc :: ChildTaxCredit )
@@ -489,7 +490,7 @@ module STBParameters
         ctc.child /= WEEKS_PER_YEAR
         ctc.disability /= WEEKS_PER_YEAR
         ctc.severe_disability /= WEEKS_PER_YEAR
-        ctc.disregard/= WEEKS_PER_YEAR
+        ctc.threshold/= WEEKS_PER_YEAR
     end
     
     

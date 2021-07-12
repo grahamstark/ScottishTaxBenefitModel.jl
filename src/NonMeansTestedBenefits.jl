@@ -231,12 +231,18 @@ module NonMeansTestedBenefits
             # if so, use the proportion of the `class_a` they seemed to be on at 
             # the time, times the current `class_a`. 
             if reached_state_pension_age(
+                # old style 
                 age_limits, 
                 pers.age, 
                 pers.sex,
                 age_limits.savings_credit_to_new_state_pension )
-                pen = pers.benefit_ratios[state_pension]*rp.cat_a
-                # old style 
+                println( "pers.benefit_ratios $(pers.benefit_ratios)")
+                if ! haskey( pers.benefit_ratios, state_pension ) 
+                    ratio =  pers.age < 70 ? 0.0 : 1.0 # kinda crude deferrment
+                else
+                    ratio = pers.benefit_ratios[state_pension]
+                end
+                pen = ratio*rp.cat_a
             else
                 # 
                 # new style
@@ -391,7 +397,7 @@ module NonMeansTestedBenefits
             
                 if hh.region == Scotland
                     if pres.income[CARERS_ALLOWANCE] > 0
-                        pres.INCOME[SCOTTISH_CARERS_SUPPLEMENT] = sys.carers.scottish_supplement
+                        pres.income[SCOTTISH_CARERS_SUPPLEMENT] = sys.carers.scottish_supplement
                     end
                 end
                 # NON-overlapping rules p1178 go here 

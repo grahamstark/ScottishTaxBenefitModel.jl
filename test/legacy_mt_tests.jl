@@ -961,7 +961,6 @@ end
     @assert size(bus)[1] == 3
     head = get_head( bu3 )
     @assert head.age == 26
-    intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
     bu2p = get_head( bus[2])
     employ!( bu2p )
     # cpag 19/0 ch 10 p194
@@ -970,21 +969,26 @@ end
     ntests = size( incomes)[1]
     for i in 1:ntests
         bu2p.income[wages] = incomes[i]
+        println( bu2p.income )
+        println( "bu2p.usual_hours_worked $(bu2p.usual_hours_worked)" )
+        println( "hours_limits $(sys.lmt.hours_limits) ")
         bures = init_benefit_unit_result( Float64, bus[2])
+        intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
         lmt_incomes = calc_incomes(
             hb,
             bus[2],
-            bur,
-            intermed,
+            bures,
+            intermed.buint[2],
             sys.lmt.income_rules,
             sys.lmt.hours_limits ) 
+        println( "lmt_incomes $(lmt_incomes)" )
         ndd = calc_NDDs(
             bus[2],
             bures,
             intermed.buint[2],
             lmt_incomes,
             sys.lmt.hb )
-        @test ndds ≈ ndds[i]        
+        @test ndd ≈ ndds[i]        
     end
     unemploy!( bu2p )
     intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
@@ -992,8 +996,8 @@ end
     lmt_incomes = calc_incomes(
         hb,
         bus[2],
-        bur,
-        intermed,
+        bures,
+        intermed.buint[2],
         sys.lmt.income_rules,
         sys.lmt.hours_limits ) 
     ndd = calc_NDDs(
@@ -1002,15 +1006,25 @@ end
         intermed.buint[2],
         lmt_incomes,
         sys.lmt.hb )
-    @test ndds ≈ 0.0
+    @test ndd ≈ 15.60
 end
 
 @testset "PC/SC" begin
-    
+    # cpag19/20 examples on p274
+    sys = get_system( scotland=true )
+    bu3 = deepcopy( EXAMPLES[mbu])
 
 end
 
 @testset "Passporting" begin
-    
+    #TODO
+end
+
+@testset "CTC" begin
+#TODO
+end
+
+@testset "Full Legacy Benefits" begin
+#TODO
 
 end

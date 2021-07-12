@@ -185,6 +185,16 @@ module Results
         adults = Pid_Array()
     end
 
+    function has_any( bur :: BenefitUnitResult, things ... ) :: Bool
+        for p in pers
+            if any_positive( bur.income, collect( things ))
+                return true
+            end
+        end
+        return false
+    end
+
+
     @with_kw mutable struct LocalTaxes{RT<:Real}
         council_tax :: RT = zero(RT)
     end
@@ -222,6 +232,18 @@ module Results
         # and adapt the get_benefit_units function 
         #
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
+    end
+
+    """
+    Test the individual incomes in hhr for some values
+    """
+    function has_any( hhr :: HouseholdResult, things ... ) :: Bool
+        for bu in hhr.bus
+            if has_any( bu, things ... )
+                return true
+            end
+        end
+        return false
     end
 
     function add_to!( ni :: NIResult, ni2 :: NIResult )

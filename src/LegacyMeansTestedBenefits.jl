@@ -433,6 +433,16 @@ function calc_allowances(
     return pers_allow
 end
 
+function calc_full_ctc( 
+    intermed :: MTIntermediate, 
+    ctc :: ChildTaxCredit )
+    ctc_elements = ctc.family
+    ctc_elements += (intermed.num_allowed_children*ctc.child)
+    ctc_elements += intermed.num_disabled_children*ctc.disability
+    ctc_elements += intermed.num_severely_disabled_children*ctc.severe_disability 
+    return ctc_elements
+end
+
 function calcWTC_CTC!(
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit :: BenefitUnit, 
@@ -483,10 +493,7 @@ function calcWTC_CTC!(
         wtc_elements += cost_of_childcare
     end
     if can_apply_for.ctc 
-        ctc_elements = ctc.family
-        ctc_elements += (intermed.num_allowed_children*ctc.child)
-        ctc_elements += intermed.num_disabled_children*ctc.disability
-        ctc_elements += intermed.num_severely_disabled_children*ctc.severe_disability
+        ctc_elements = calc_full_ctc( intermed, ctc)
         if ! can_apply_for.wtc
             threshold = ctc.threshold
         end
@@ -550,6 +557,8 @@ function calc_NDDs(
         end
         any_pay_ndds = any_pay_ndds || pays_ndd
     end # pids loop
+    # println( "any pay ndds $any_pay_ndds incomes.gross_earnings=$(incomes.gross_earnings)")
+    # println( "someone full time $(intermed.someone_working_ft)")
     if any_pay_ndds
         if intermed.someone_working_ft
             n = size(hb.ndd_incomes)[1]
@@ -586,7 +595,7 @@ function calculateHB_CTR!(
     ndds = 0.0
     for bn in nbus:-1:1 # fixme bn=>buno for consistency
         bures = household_result.bus[bn]
-        println( "loop start; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
+        # println( "loop start; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
         bu = bus[bn]
         ## FIXME pass this in
         incomes = calc_incomes( 
@@ -606,15 +615,15 @@ function calculateHB_CTR!(
                 # no need to do anything
                 passported = true
             else
-                println( "else; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
+                # println( "else; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
                 premium, premset = calc_premia(
                     hb,
                     bu,
                     intermed.buint[bn],        
                     lmt_ben_sys.premia,
                     age_limits )            
-                println( "bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")
-                println( "premset $(premset))")
+                # println( "bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")
+                # println( "premset $(premset))")
                 union!(bures.legacy_mtbens.premia, premset)
                 allowances = calc_allowances(
                     hb,
@@ -624,7 +633,7 @@ function calculateHB_CTR!(
                 excess = max( 0.0, incomes.total_income - (premium+allowances))
                 if excess > 0
                     taper = which_ben == ctc ?  lmt_ben_sys.ctc.taper : lmt_ben_sys.hb.taper
-                    println( "taper=$taper excess=$excess" )
+                    # println( "taper=$taper excess=$excess" )
                     benefit = max( 0.0, benefit - taper*excess )    
                 end
                 
@@ -651,7 +660,7 @@ function calculateHB_CTR!(
                     bu,
                     bures,
                     intermed.buint[bn],
-                    lmt_ben_sys.income_rules,
+                    incomes,
                     lmt_ben_sys.hb )
             end
         end
@@ -707,13 +716,13 @@ function calc_legacy_means_tested_benefits!(
         bures.legacy_mtbens.mig_incomes = incomes
         bures.legacy_mtbens.mig_allowances = allowances
         bures.legacy_mtbens.mig_premia = premium
-        if ! incomes.disqualified_on_capital
+        if (! incomes.disqualified_on_capital) && (mig > 0)
             # FIXME we just allocate payment to the head of
             # the BU - make this a function or make can_apply_for
             # specify the payee as well as whether the BU qualifies
             recipient :: BigInt = bures.adults[1]
             if can_apply_for.esa 
-                bures.pers[recipient].income[EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = mig
+                bures.pers[recipient].income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = mig
                 # bures.legacy_mtbens.esa = mig
             elseif can_apply_for.jsa
                 bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = mig
@@ -722,6 +731,9 @@ function calc_legacy_means_tested_benefits!(
                 bures.pers[recipient].income[INCOME_SUPPORT] = mig                
                 # bures.legacy_mtbens.is = mig
             end
+            bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
+                calc_full_ctc( intermed, bures.legacy_mtbens.ctc )
+            can_apply_for.wtc = false # no overlapping
         end
     end
     

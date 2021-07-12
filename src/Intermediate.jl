@@ -164,7 +164,7 @@ end
 
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
-    # println( "hours=$hours employment=$(pers.employment_status)")
+    # println( "pers.hours=$(pers.usual_hours_worked) hours=$hours employment=$(pers.employment_status)")
     if length(hours) == 1 
         return (pers.usual_hours_worked >= hours[1])
     elseif length(hours) == 2
