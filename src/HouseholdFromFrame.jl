@@ -232,6 +232,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
     hh = Household{Float64}(
         hno,
         frs_hh.hid,
+        frs_hh.data_year, 
         frs_hh.interview_year,
         frs_hh.interview_month,
         frs_hh.quarter,

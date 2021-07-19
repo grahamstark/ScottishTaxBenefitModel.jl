@@ -5,7 +5,9 @@ module ModelHousehold
 # are predominantly based on the FRS, but could in principle come from other sources
 # such as SHS, LCF and so on, or perhaps from a web form.
 #
+using Base: String
 using Dates
+import Base.show
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -63,7 +65,8 @@ export
     pers_is_carer, 
     pers_is_disabled, 
     printpids,
-    search, 
+    search,
+    to_string, 
     uprate!
 
 mutable struct Person{RT<:Real}
@@ -152,6 +155,7 @@ Pid_Array = Vector{BigInt}
 mutable struct Household{RT<:Real}
     sequence:: Int # position in current generated dataset
     hid::BigInt
+    data_year :: Int
     interview_year:: Int
     interview_month:: Int
     quarter:: Int
@@ -181,6 +185,114 @@ mutable struct Household{RT<:Real}
     onerand :: BigInt
     equivalence_scales :: EQScales{RT}
 end
+
+function to_string( hh :: Household ) :: String
+    s = """
+    ##Household $(hh.hid)
+    
+    |:-----------|-------------:|
+    |sequence | $(hh.sequence) |
+    |data_year  | $(hh.data_year ) |
+    |interview_year | $(hh.interview_year) |
+    |interview_month | $(hh.interview_month) |
+    |quarter | $(hh.quarter) |
+    |tenure | $(hh.tenure) |
+    |region | $(hh.region) |
+    |ct_band | $(hh.ct_band) |
+    |council_tax | $(hh.council_tax) |
+    |water_and_sewerage  | $(hh.water_and_sewerage ) |
+    |mortgage_payment | $(hh.mortgage_payment) |
+    |mortgage_interest | $(hh.mortgage_interest) |
+    |years_outstanding_on_mortgage | $(hh.years_outstanding_on_mortgage) |
+    |mortgage_outstanding | $(hh.mortgage_outstanding) |
+    |year_house_bought | $(hh.year_house_bought) |
+    |gross_rent | $(hh.gross_rent) |
+    |rent_includes_water_and_sewerage | $(hh.rent_includes_water_and_sewerage) |
+    |other_housing_charges | $(hh.other_housing_charges) |
+    |gross_housing_costs | $(hh.gross_housing_costs) |
+    |total_income | $(hh.total_income) |
+    |total_wealth | $(hh.total_wealth) |
+    |house_value | $(hh.house_value) |
+    |weight | $(hh.weight) |
+    |council  | $(hh.council ) |
+    |nhs_board  | $(hh.nhs_board ) |
+    |bedrooms  | $(hh.bedrooms ) |
+    |head_of_household  | $(hh.head_of_household ) |
+    |people | $(hh.people) |
+    |onerand  | $(hh.onerand ) |
+    """
+    
+    for (pid,pers) in hh.people
+        s *= to_string( pers )
+    end
+    return s;
+end
+
+function to_string( pers :: Person ) :: String
+    s = """
+    ### Person $(pers.pno)
+
+    |:-----------|-------------:|
+    |pid | $(pers.pid) |
+    |is_hrp  | $(pers.is_hrp ) |
+    |default_benefit_unit | $(pers.default_benefit_unit) |
+    |is_standard_child  | $(pers.is_standard_child ) |
+    |age | $(pers.age) |
+    |sex | $(pers.sex) |
+    |ethnic_group | $(pers.ethnic_group) |
+    |marital_status | $(pers.marital_status) |
+    |highest_qualification | $(pers.highest_qualification) |
+    |sic | $(pers.sic) |
+    |occupational_classification | $(pers.occupational_classification) |
+    |public_or_private  | $(pers.public_or_private ) |
+    |principal_employment_type  | $(pers.principal_employment_type ) |
+    |socio_economic_grouping | $(pers.socio_economic_grouping) |
+    |age_completed_full_time_education | $(pers.age_completed_full_time_education) |
+    |years_in_full_time_work | $(pers.years_in_full_time_work) |
+    |employment_status | $(pers.employment_status) |
+    |actual_hours_worked | $(pers.actual_hours_worked) |
+    |usual_hours_worked | $(pers.usual_hours_worked) |
+    |age_started_first_job  | $(pers.age_started_first_job ) |
+    |income | $(pers.income) |
+    |benefit_ratios  | $(pers.benefit_ratios ) |
+    |jsa_type  | $(pers.jsa_type ) |
+    |esa_type  | $(pers.esa_type ) |
+    |dla_self_care_type  | $(pers.dla_self_care_type ) |
+    |dla_mobility_type  | $(pers.dla_mobility_type ) |
+    |attendance_allowance_type  | $(pers.attendance_allowance_type ) |
+    |pip_daily_living_type  | $(pers.pip_daily_living_type ) |
+    |pip_mobility_type  | $(pers.pip_mobility_type ) |
+    |bereavement_type  | $(pers.bereavement_type ) |
+    |had_children_when_bereaved  | $(pers.had_children_when_bereaved ) |
+    |assets | $(pers.assets) |
+    |pay_includes  | $(pers.pay_includes ) |    
+    |registered_blind | $(pers.registered_blind) |
+    |registered_partially_sighted | $(pers.registered_partially_sighted) |
+    |registered_deaf | $(pers.registered_deaf) |
+    |disabilities | $(pers.disabilities) |        
+    |health_status | $(pers.health_status) |
+    |has_long_standing_illness  | $(pers.has_long_standing_illness ) |
+    |adls_are_reduced  | $(pers.adls_are_reduced ) |
+    |how_long_adls_reduced  | $(pers.how_long_adls_reduced ) |
+    |relationships | $(pers.relationships) |
+    |relationship_to_hoh  | $(pers.relationship_to_hoh ) |
+    |is_informal_carer | $(pers.is_informal_carer) |
+    |receives_informal_care_from_non_householder | $(pers.receives_informal_care_from_non_householder) |
+    |hours_of_care_received | $(pers.hours_of_care_received) |
+    |hours_of_care_given | $(pers.hours_of_care_given) |
+    |hours_of_childcare  | $(pers.hours_of_childcare ) |
+    |cost_of_childcare  | $(pers.cost_of_childcare ) |
+    |childcare_type  | $(pers.childcare_type ) |
+    |employer_provides_child_care  | $(pers.employer_provides_child_care ) |
+    |company_car_fuel_type  | $(pers.company_car_fuel_type ) |
+    |company_car_value  | $(pers.company_car_value ) |
+    |company_car_contribution  | $(pers.company_car_contribution ) |
+    |fuel_supplied  | $(pers.fuel_supplied ) |
+    |onerand  | $(pers.onerand ) |
+    """
+    return s
+end
+
 
 """
 for equivalence scale implicit interface
