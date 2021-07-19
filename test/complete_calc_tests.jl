@@ -89,3 +89,12 @@ ExampleHouseholdGetter.initialise()
         @test hres.bus[1].pers[RUK_PERSON].income[INCOME_TAX] ≈ liabilities[i]
     end
 end
+
+@testset "Diagnose frs households" begin
+    sys = get_system( scotland=true )
+    target_hids = [1500]
+    for hd in [target_hids]
+        hh = FRSHouseholdGetter.get_household( hhno )
+        hres = do_one_calc( hh, sys )
+    end    
+end

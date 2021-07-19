@@ -50,6 +50,7 @@ module Runner
         start_year :: Int = 2015
         end_year :: Int = 2018
         scotland_only :: Bool = true
+        weighted :: Bool = false
         household_name = "model_households_scotland"
         people_name    = "model_people_scotland"
         num_households :: Int = 0
@@ -345,8 +346,11 @@ module Runner
                         people_name    = settings.people_name,
                         start_year     = settings.start_year )
             println( "generating weights" )
-            @time weights = ones( nhh2 ) 
-            #generate_weights( settings.num_households )
+            if settings.weighted 
+                @time weights = generate_weights( nhh2 )
+            else 
+                weights = ones( nhh2 ) 
+            end
         end
         # num_households=11048, num_people=23140
         # println( "settings $settings")
@@ -355,7 +359,7 @@ module Runner
         println( "starting run " )
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
-            println( "on household hno $(hh.hid) $(hh.interview_year)")
+            println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year)")
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
                 # println( "hno $hno sysno $sysno frame_starts $frame_starts")
