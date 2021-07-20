@@ -62,7 +62,7 @@ function addqstrdict(app, req  :: Dict )
  
 
 struct RawData 
-    frsx  :: DataFrame
+    # frsx  :: DataFrame
     hbai_res :: DataFrame
     accounts :: DataFrame
     benunit :: DataFrame
@@ -77,7 +77,7 @@ struct RawData
     govpay :: DataFrame
     mortgage :: DataFrame
     assets :: DataFrame
-    childcare :: DataFrame
+    chldcare :: DataFrame
     househol :: DataFrame
     oddjob :: DataFrame
     rentcont :: DataFrame
@@ -93,7 +93,7 @@ function load_raw()::RawData
     year = 2015
     y = year - 2000
     ystr = "$(y)$(y+1)"
-    frsx = l_loadfrs( "frs$ystr", year )
+    # frsx = l_loadfrs( "frs$ystr", year )
     hbai_res = l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year])
     print("on year $year ")
     accounts = l_loadfrs("accounts", year)
@@ -149,9 +149,9 @@ function load_raw()::RawData
         =#
         y = year - 2000
         ystr = "$(y)$(y+1)"
-        frsx = vcat( frsx, l_loadfrs( "frs$ystr", year ), cols=:union )
-        n = size(frsx)
+        # frsx = vcat( frsx, l_loadfrs( "frs$ystr", year ), cols=:union )
         hbai_res = vcat( hbai_res, l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year]),  cols=:union )
+        n = size(hbai_res)
         print("on year $year frsx size=$n")
         accounts = vcat( accounts, l_loadfrs("accounts", year),  cols=:union )
         benunit = vcat( benunit, l_loadfrs("benunit", year),  cols=:union )
@@ -180,7 +180,7 @@ function load_raw()::RawData
     model_people = CSV.File( "data/model_people_scotland.tab") |> DataFrame   
     
     return RawData(
-            frsx ,
+            # frsx ,
             hbai_res,
             accounts,
             benunit,
@@ -301,9 +301,11 @@ function get_data( hno, bits )::String
     if :hbai in bits
         s *= get_one( "HBAI", rd.hbai_res, mhh.hid, mhh.data_year)
     end
+    #=
     if :frsx in bits
         s *= get_one( "FRS-Flatfile", rd.frsx, mhh.hid, mhh.data_year)
     end
+    =#
     return s #md"$s"
 end
 

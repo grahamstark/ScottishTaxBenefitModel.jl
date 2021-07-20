@@ -188,7 +188,7 @@ end
 
 function to_string( hh :: Household ) :: String
     s = """
-    ##Household $(hh.hid)
+    ## Household $(hh.hid)
     
     |            |              |
     |:-----------|-------------:|
@@ -219,9 +219,7 @@ function to_string( hh :: Household ) :: String
     |**nhs_board**| $(hh.nhs_board ) |
     |**bedrooms**| $(hh.bedrooms ) |
     |**head_of_household**| $(hh.head_of_household ) |
-    |**onerand**| $(hh.onerand ) |
-
-
+  
     """
     
     for (pid,pers) in hh.people
@@ -290,9 +288,7 @@ function to_string( pers :: Person ) :: String
     |**company_car_value**| $(pers.company_car_value ) |
     |**company_car_contribution**| $(pers.company_car_contribution ) |
     |**fuel_supplied**| $(pers.fuel_supplied ) |
-    |**onerand**| $(pers.onerand ) |
-
-
+    
     """
     return s
 end
