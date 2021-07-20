@@ -4,18 +4,24 @@ module Definitions
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
 
-export Employment_Status  # mapped from empstat
-export Employee, Self_employed
-export Missing_Employment_Status
-
-export PRICES_DIR, MODEL_DATA_DIR, FRS_DIR, HBAI_DIR
-export MODEL_DATA_DIR, MODEL_PARAMS_DIR
+export 
+   Employment_Status,  # mapped from empstat
+   Employee, 
+   Missing_Employment_Status,
+   Self_employed,   
+   FRS_DIR, 
+   HBAI_DIR,
+   MODEL_DATA_DIR, 
+   MODEL_DATA_DIR, 
+   MODEL_PARAMS_DIR, 
+   PRICES_DIR, 
+   PROJECT_DIR
 
 #
 # FIXME move this to some config file
 #
 const MODEL_NAME="ScottishTaxBenefitModel"
-# const PROJECT_DIR=Utils.get_project_path() #"//vw/$MODEL_NAME/"
+# const PROJECT_DIR=Utils.() #"//vw/$MODEL_NAME/"
 # FIXME TEMP TEMP TEMP TEMP TEMP
 const PROJECT_DIR="/home/graham_s/julia/vw/$(MODEL_NAME)/"
 
