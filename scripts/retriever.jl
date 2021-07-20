@@ -299,19 +299,21 @@ function get_hh( req  :: Dict ) :: Dict
 end
 
 init_data()
+println("data initialised")
 
 @app retriever = (
    Mux.defaults,
    page("/get_hh", req -> get_hh )
    )
-
+println("app created")
 
 port = DEFAULT_PORT
 if length(ARGS) > 0
-   port = parse(Int64, ARGS[1])
+   port = parse(Int, ARGS[1])
 end
 
 serve( retriever, port )
+println( "server started on port $port ")
 
 while true # FIXME better way?
    @debug "main loop; server running on port $port"
