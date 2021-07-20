@@ -24,7 +24,7 @@ load a file into a dataframe and force all the identifiers into
 lower case
 """
 function l_load_to_frame(filename::AbstractString)::DataFrame
-   println( "loading $filename")
+    println( "loading $filename")
     df = CSV.File(filename, delim = '\t',missingstrings=["-1",""]) |> DataFrame #
     lcnames = Symbol.(lowercase.(string.(names(df))))
     rename!(df, lcnames)
@@ -102,7 +102,7 @@ function load_raw()::RawData
 
 
     for year in 2016:2018
-
+        #=
         global frsx 
         global hbai_res
         global accounts
@@ -127,12 +127,13 @@ function load_raw()::RawData
         global job
         global owner
         global renter
-
+        =#
         y = year - 2000
         ystr = "$(y)$(y+1)"
         frsx = vcat( frsx, l_loadfrs( "frs$ystr", year ), cols=:union )
+        n = size(frsx)
         hbai_res = vcat( hbai_res, l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year]),  cols=:union )
-        print("on year $year ")
+        print("on year $year frsx size=$n")
         accounts = vcat( accounts, l_loadfrs("accounts", year),  cols=:union )
         benunit = vcat( benunit, l_loadfrs("benunit", year),  cols=:union )
         extchild = vcat( extchild, l_loadfrs("extchild", year),  cols=:union )
