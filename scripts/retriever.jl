@@ -1,11 +1,17 @@
 using CSV, DataFrames, Markdown
+using Mux
+import Mux.WebSockets
+using JSON
+using HttpCommon
+using Logging, LoggingExtras
+
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .Utils
 using .ModelHousehold
 using .FRSHouseholdGetter: initialise, get_household, get_num_households
 
-
+const DEFAULT_PORT=8002
 
 
 #=
@@ -228,5 +234,27 @@ end
 
 init_data()
 
+function get_hh( req  :: Dict ) :: AbstractString
 
+    
+    get_hhld( hno, bits )
+
+end
+
+@app retriever = (
+   Mux.defaults,
+   page("/get_one", req -> get_hh, req ))
+)
+
+port = DEFAULT_PORT
+if length(ARGS) > 0
+   port = parse(Int64, ARGS[1])
+end
+
+serve( retriever, port )
+
+while true # FIXME better way?
+   @debug "main loop; server running on port $port"
+   sleep( 60 )
+end
 
