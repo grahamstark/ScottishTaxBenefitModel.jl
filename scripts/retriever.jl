@@ -120,7 +120,7 @@ function load_raw()::RawData
     renter = l_loadfrs("renter", year)
 
 
-    for year in 2019:2018
+    for year in 2016:2018
         #=
         global frsx 
         global hbai_res
