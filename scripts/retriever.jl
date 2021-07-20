@@ -1,3 +1,4 @@
+# module ... 
 using CSV, DataFrames, Markdown
 using Mux
 import Mux.WebSockets
@@ -14,21 +15,7 @@ using .FRSHouseholdGetter: initialise, get_household, get_num_households
 const DEFAULT_PORT=8002
 
 
-#=
-const MODEL_NAME="ScottishTaxBenefitModel"
-const PROJECT_DIR=Utils.get_project_path() #"//vw/$MODEL_NAME/"
-const MODEL_DATA_DIR="$(PROJECT_DIR)/data/"
-const PRICES_DIR="$MODEL_DATA_DIR/prices/obr/"
-const MATCHING_DIR="$MODEL_DATA_DIR/merging/"
-const MODEL_PARAMS_DIR="$PROJECT_DIR/params"
-
-const RAW_DATA = "/mnt/data/"
-const FRS_DIR = "$RAW_DATA/frs/"
-const HBAI_DIR = "$RAW_DATA/hbai/"
-=#
-
 include("../src/HouseholdMappingFRS_HBAI.jl")
-
 
 """
 LOCAL version treating '-1' as missing.
@@ -55,95 +42,126 @@ function l_loadfrs(which::AbstractString, year::Integer)::DataFrame
     return df
 end
 
-adult = DataFrame()
+struct RawData 
+    frsx  :: DataFrame
+    hbai_res :: DataFrame
+    accounts :: DataFrame
+    benunit :: DataFrame
+    extchild :: DataFrame
+    maint :: DataFrame
+    penprov :: DataFrame
+    care :: DataFrame
+    mortcont :: DataFrame
+    pension :: DataFrame
+    adult :: DataFrame
+    child :: DataFrame
+    govpay :: DataFrame
+    mortgage :: DataFrame
+    assets :: DataFrame
+    childcare :: DataFrame
+    househol :: DataFrame
+    oddjob :: DataFrame
+    rentcont :: DataFrame
+    benefits :: DataFrame
+    endowmnt :: DataFrame
+    job :: DataFrame
+    owner :: DataFrame
+    renter :: DataFrame
 
-year = 2015
-y = year - 2000
-ystr = "$(y)$(y+1)"
-frsx = l_loadfrs( "frs$ystr", year )
-hbai_res = l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year])
-print("on year $year ")
-accounts = l_loadfrs("accounts", year)
-benunit = l_loadfrs("benunit", year)
-extchild = l_loadfrs("extchild", year)
-maint = l_loadfrs("maint", year)
-penprov = l_loadfrs("penprov", year)
-care = l_loadfrs("care", year)
-mortcont = l_loadfrs("mortcont", year)
-pension = l_loadfrs("pension", year)
-adult = l_loadfrs("adult", year)
-child = l_loadfrs("child", year)
-govpay = l_loadfrs("govpay", year)
-mortgage = l_loadfrs("mortgage", year)
-assets = l_loadfrs("assets", year)
-chldcare = l_loadfrs("chldcare", year)
-househol = l_loadfrs("househol", year)
-oddjob = l_loadfrs("oddjob", year)
-rentcont = l_loadfrs("rentcont", year)
-benefits = l_loadfrs("benefits", year)
-endowmnt = l_loadfrs("endowmnt", year)
-job = l_loadfrs("job", year)
-owner = l_loadfrs("owner", year)
-renter = l_loadfrs("renter", year)
-
-
-for year in 2016:2018
-    global ystr, y
-    global frsx, hbai_res
-    global accounts
-    global benunit
-    global extchild
-    global maint
-    global penprov
-    global care
-    global mortcont
-    global pension
-    global adult
-    global child
-    global govpay
-    global mortgage
-    global assets
-    global childcare
-    global househol
-    global oddjob
-    global rentcont
-    global benefits
-    global endowmnt
-    global job
-    global owner
-    global renter
-   
-    y = year - 2000
-    ystr = "$(y)$(y+1)"
-    frsx = vcat( frsx, l_loadfrs( "frs$ystr", year ), cols=:union )
-    hbai_res = vcat( hbai_res, l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year]),  cols=:union )
-    print("on year $year ")
-    accounts = vcat( accounts, l_loadfrs("accounts", year),  cols=:union )
-    benunit = vcat( benunit, l_loadfrs("benunit", year),  cols=:union )
-    extchild = vcat( extchild, l_loadfrs("extchild", year),  cols=:union )
-    maint = vcat( maint, l_loadfrs("maint", year),  cols=:union )
-    penprov = vcat( penprov, l_loadfrs("penprov", year),  cols=:union )
-    care = vcat( care, l_loadfrs("care", year),  cols=:union )
-    mortcont = vcat( mortcont, l_loadfrs("mortcont", year),  cols=:union )
-    pension = vcat( pension, l_loadfrs("pension", year),  cols=:union )
-    adult = vcat( adult, l_loadfrs("adult", year),  cols=:union )
-    child = vcat( child, l_loadfrs("child", year),  cols=:union )
-    govpay = vcat( govpay, l_loadfrs("govpay", year),  cols=:union )
-    mortgage = vcat( mortgage, l_loadfrs("mortgage", year),  cols=:union )
-    assets = vcat( assets, l_loadfrs("assets", year),  cols=:union )
-    childcare = vcat( chldcare, l_loadfrs("chldcare", year),  cols=:union )
-    househol = vcat( househol, l_loadfrs("househol", year),  cols=:union )
-    oddjob = vcat( oddjob, l_loadfrs("oddjob", year),  cols=:union )
-    rentcont = vcat( rentcont, l_loadfrs("rentcont", year),  cols=:union )
-    benefits = vcat( benefits, l_loadfrs("benefits", year),  cols=:union )
-    endowmnt = vcat( endowmnt, l_loadfrs("endowmnt", year),  cols=:union )
-    job = vcat( job, l_loadfrs("job", year),  cols=:union )
-    owner = vcat( owner, l_loadfrs("owner", year),  cols=:union )
-    renter = vcat( renter, l_loadfrs("renter", year),  cols=:union )
 end
 
-model_households = CSV.File( "data/model_households_scotland.tab") |> DataFrame
-model_people = CSV.File( "data/model_people_scotland.tab") |> DataFrame
+function load_raw()::RawData
+    year = 2015
+    y = year - 2000
+    ystr = "$(y)$(y+1)"
+    frsx = l_loadfrs( "frs$ystr", year )
+    hbai_res = l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year])
+    print("on year $year ")
+    accounts = l_loadfrs("accounts", year)
+    benunit = l_loadfrs("benunit", year)
+    extchild = l_loadfrs("extchild", year)
+    maint = l_loadfrs("maint", year)
+    penprov = l_loadfrs("penprov", year)
+    care = l_loadfrs("care", year)
+    mortcont = l_loadfrs("mortcont", year)
+    pension = l_loadfrs("pension", year)
+    adult = l_loadfrs("adult", year)
+    child = l_loadfrs("child", year)
+    govpay = l_loadfrs("govpay", year)
+    mortgage = l_loadfrs("mortgage", year)
+    assets = l_loadfrs("assets", year)
+    chldcare = l_loadfrs("chldcare", year)
+    househol = l_loadfrs("househol", year)
+    oddjob = l_loadfrs("oddjob", year)
+    rentcont = l_loadfrs("rentcont", year)
+    benefits = l_loadfrs("benefits", year)
+    endowmnt = l_loadfrs("endowmnt", year)
+    job = l_loadfrs("job", year)
+    owner = l_loadfrs("owner", year)
+    renter = l_loadfrs("renter", year)
+
+
+    for year in 2016:2018
+        y = year - 2000
+        ystr = "$(y)$(y+1)"
+        frsx = vcat( frsx, l_loadfrs( "frs$ystr", year ), cols=:union )
+        hbai_res = vcat( hbai_res, l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year]),  cols=:union )
+        print("on year $year ")
+        accounts = vcat( accounts, l_loadfrs("accounts", year),  cols=:union )
+        benunit = vcat( benunit, l_loadfrs("benunit", year),  cols=:union )
+        extchild = vcat( extchild, l_loadfrs("extchild", year),  cols=:union )
+        maint = vcat( maint, l_loadfrs("maint", year),  cols=:union )
+        penprov = vcat( penprov, l_loadfrs("penprov", year),  cols=:union )
+        care = vcat( care, l_loadfrs("care", year),  cols=:union )
+        mortcont = vcat( mortcont, l_loadfrs("mortcont", year),  cols=:union )
+        pension = vcat( pension, l_loadfrs("pension", year),  cols=:union )
+        adult = vcat( adult, l_loadfrs("adult", year),  cols=:union )
+        child = vcat( child, l_loadfrs("child", year),  cols=:union )
+        govpay = vcat( govpay, l_loadfrs("govpay", year),  cols=:union )
+        mortgage = vcat( mortgage, l_loadfrs("mortgage", year),  cols=:union )
+        assets = vcat( assets, l_loadfrs("assets", year),  cols=:union )
+        childcare = vcat( chldcare, l_loadfrs("chldcare", year),  cols=:union )
+        househol = vcat( househol, l_loadfrs("househol", year),  cols=:union )
+        oddjob = vcat( oddjob, l_loadfrs("oddjob", year),  cols=:union )
+        rentcont = vcat( rentcont, l_loadfrs("rentcont", year),  cols=:union )
+        benefits = vcat( benefits, l_loadfrs("benefits", year),  cols=:union )
+        endowmnt = vcat( endowmnt, l_loadfrs("endowmnt", year),  cols=:union )
+        job = vcat( job, l_loadfrs("job", year),  cols=:union )
+        owner = vcat( owner, l_loadfrs("owner", year),  cols=:union )
+        renter = vcat( renter, l_loadfrs("renter", year),  cols=:union )
+    end
+    model_households = CSV.File( "data/model_households_scotland.tab") |> DataFrame
+    model_people = CSV.File( "data/model_people_scotland.tab") |> DataFrame   
+    
+    return RawData(
+            frsx ,
+            hbai_res,
+            accounts,
+            benunit,
+            extchild,
+            maint,
+            penprov,
+            care,
+            mortcont,
+            pension,
+            adult,
+            child,
+            govpay,
+            mortgage,
+            assets,
+            childcare,
+            househol,
+            oddjob,
+            rentcont,
+            benefits,
+            endowmnt,
+            job,
+            owner,
+            renter
+    )
+end
+
+const rd = load_raw()
 
 function init_data(; reset :: Bool = false )
     nhh = get_num_households()
@@ -195,55 +213,69 @@ function get_hhld( hno, bits )
     mhh = FRSHouseholdGetter.get_household( hno )
     s = to_string( mhh )
     if :househol in bits
-        s *= get_one( "Househol", househol, mhh.hid, mhh.data_year)
-        s *= get_one( "Renter", renter, mhh.hid, mhh.data_year)
-        s *= get_one( "Mortcont", mortcont, mhh.hid, mhh.data_year)
-        s *= get_one( "Owner", owner, mhh.hid, mhh.data_year)
-        s *= get_one( "RentCont", rentcont, mhh.hid, mhh.data_year)
+        s *= get_one( "Househol", rd.househol, mhh.hid, mhh.data_year)
+        s *= get_one( "Renter", rd.renter, mhh.hid, mhh.data_year)
+        s *= get_one( "Mortcont", rd.mortcont, mhh.hid, mhh.data_year)
+        s *= get_one( "Owner", rd.owner, mhh.hid, mhh.data_year)
+        s *= get_one( "RentCont", rd.rentcont, mhh.hid, mhh.data_year)
     end
     if :adult in bits
-        s *= get_one( "Adult", adult, mhh.hid, mhh.data_year)
+        s *= get_one( "Adult", rd.adult, mhh.hid, mhh.data_year)
         
-        s *= get_one( "Job", job, mhh.hid, mhh.data_year)
-        s *= get_one( "Benefits", benefits, mhh.hid, mhh.data_year)
-        s *= get_one( "OddJob", oddjob, mhh.hid, mhh.data_year)
-        s *= get_one( "Accounts", accounts, mhh.hid, mhh.data_year)
-        s *= get_one( "Pension", pension, mhh.hid, mhh.data_year)
-        s *= get_one( "Penprov", penprov, mhh.hid, mhh.data_year)
-        s *= get_one( "Assets", assets, mhh.hid, mhh.data_year)
-        s *= get_one( "Endowment", endowmnt, mhh.hid, mhh.data_year)
-        s *= get_one( "GovPay", govpay, mhh.hid, mhh.data_year)
-        s *= get_one( "Maint", maint, mhh.hid, mhh.data_year)
-        s *= get_one( "Care", care, mhh.hid, mhh.data_year)
+        s *= get_one( "Job", rd.job, mhh.hid, mhh.data_year)
+        s *= get_one( "Benefits", rd.benefits, mhh.hid, mhh.data_year)
+        s *= get_one( "OddJob", rd.oddjob, mhh.hid, mhh.data_year)
+        s *= get_one( "Accounts", rd.accounts, mhh.hid, mhh.data_year)
+        s *= get_one( "Pension", rd.pension, mhh.hid, mhh.data_year)
+        s *= get_one( "Penprov", rd.penprov, mhh.hid, mhh.data_year)
+        s *= get_one( "Assets", rd.assets, mhh.hid, mhh.data_year)
+        s *= get_one( "Endowment", rd.endowmnt, mhh.hid, mhh.data_year)
+        s *= get_one( "GovPay", rd.govpay, mhh.hid, mhh.data_year)
+        s *= get_one( "Maint", rd.maint, mhh.hid, mhh.data_year)
+        s *= get_one( "Care", rd.care, mhh.hid, mhh.data_year)
     end
     if :child in bits
-        s *= get_one( "Child", child, mhh.hid, mhh.data_year)
-        s *= get_one( "ExtChild", extchild, mhh.hid, mhh.data_year)
-        s *= get_one( "Childcare", chldcare, mhh.hid, mhh.data_year)
+        s *= get_one( "Child", rd.child, mhh.hid, mhh.data_year)
+        s *= get_one( "ExtChild", rd.extchild, mhh.hid, mhh.data_year)
+        s *= get_one( "Childcare", rd.chldcare, mhh.hid, mhh.data_year)
     end
     if :hbai in bits
-        s *= get_one( "HBAI", hbai_res, mhh.hid, mhh.data_year)
+        s *= get_one( "HBAI", rd.hbai_res, mhh.hid, mhh.data_year)
     end
     if :frsx in bits
-        s *= get_one( "FRS-Flatfile", frsx, mhh.hid, mhh.data_year)
+        s *= get_one( "FRS-Flatfile", rd.frsx, mhh.hid, mhh.data_year)
     end
 
     return s
 end
 
 
-init_data()
-
-function get_hh( req  :: Dict ) :: AbstractString
-
-    
-    get_hhld( hno, bits )
-
+# Headers -- set Access-Control-Allow-Origin for either dev or prod
+# this is from https://github.com/JuliaDiffEq/DiffEqOnlineServer
+#
+function add_headers( md :: AbstractString ) :: Dict
+    headers  = HttpCommon.headers()
+    headers["Content-Type"] = "text/markdown; charset=utf-8"
+    headers["Access-Control-Allow-Origin"] = "*"
+    Dict(
+       :headers => headers,
+       :body=> md
+    )
 end
+
+function get_hh( req  :: Dict ) :: Dict
+    querydict = req[:parsed_querystring]
+    hno = querydict["hno"]
+    bits = [:househol] # todo
+    s = get_hhld( hno, bits )
+    return add_headers( s )
+end
+
+init_data()
 
 @app retriever = (
    Mux.defaults,
-   page("/get_one", req -> get_hh, req ))
+   page("/get_hh", req -> get_hh, req ))
 )
 
 port = DEFAULT_PORT
