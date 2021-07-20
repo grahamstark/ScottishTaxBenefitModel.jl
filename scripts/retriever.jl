@@ -1,13 +1,30 @@
-# module ... 
+#
+# This is a crude hacked together thing for dumping everything
+# we have on some household into MD tables 
+# Use with 
+# TODO : 
+#   * Add DDI stuff for labels
+#   * clean up everything.
+#   * records in person order
+# Use with `scripts/pluto_get_hh.jl`.
+#
 using CSV, DataFrames, Markdown
+using Mux
+import Mux.WebSockets
+using JSON
+using HttpCommon
+using Logging, LoggingExtras
+
 
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .Definitions
 using .Utils
 using .ModelHousehold
-using .FRSHouseholdGetter: initialise, get_household, get_num_households
-using Logging, LoggingExtras
+using .FRSHouseholdGetter: 
+    initialise, 
+    get_household, 
+    get_num_households
 
 
 include("$(PROJECT_DIR)/src/HouseholdMappingFRS_HBAI.jl")
@@ -292,15 +309,9 @@ end
 
 init_data()
 
-#=
-WEB = false
+WEB = true
 
 if WEB
-
-    using Mux
-    import Mux.WebSockets
-    using JSON
-    using HttpCommon
 
     const DEFAULT_PORT=8002
 
@@ -312,8 +323,8 @@ if WEB
         headers["Content-Type"] = "text/markdown; charset=utf-8"
         headers["Access-Control-Allow-Origin"] = "*"
         return Dict(
-        :headers => headers,
-        :body=> md
+            :headers => headers,
+            :body=> md
         )
     end
 
@@ -321,23 +332,12 @@ if WEB
         @debug "get hh hdstr=$hdstr"
         hno = parse( Int, hdstr )
         @debug "get hh parsed hid=$hno"    
-        bits = [:househol]
+        bits = [:househol,:adult,:child]
         s = get_data( hno, bits )
         println( "got s $s")
         return add_headers( s )
     end
 
-    function x_get_hh( req  :: Dict ) :: Dict
-        println( "get_hh entered")
-        querydict = req[:parsed_querystring]
-        println("get_hh; req=$req")
-        println( "querydict=$(querydict)")
-        hno = querydict["hno"]
-        bits = [:househol] # todo
-        s = get_hhld( hno, bits )
-        println( "got s $s")
-        return add_headers( s )
-    end
 
     init_data()
     println("data initialised")
