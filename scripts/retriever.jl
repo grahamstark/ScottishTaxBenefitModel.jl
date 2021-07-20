@@ -302,8 +302,9 @@ init_data()
 
 @app retriever = (
    Mux.defaults,
-   page("/get_hh", req -> get_hh, req ))
-)
+   page("/get_hh", req -> get_hh )
+   )
+
 
 port = DEFAULT_PORT
 if length(ARGS) > 0
