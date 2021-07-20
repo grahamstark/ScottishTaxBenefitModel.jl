@@ -284,7 +284,7 @@ function add_headers( md :: AbstractString ) :: Dict
     headers  = HttpCommon.headers()
     headers["Content-Type"] = "text/markdown; charset=utf-8"
     headers["Access-Control-Allow-Origin"] = "*"
-    Dict(
+    return Dict(
        :headers => headers,
        :body=> md
     )
@@ -292,9 +292,12 @@ end
 
 function get_hh( req  :: Dict ) :: Dict
     querydict = req[:parsed_querystring]
+    println("get_hh; req=$req")
+    println( "querydict=$(querydict)")
     hno = querydict["hno"]
     bits = [:househol] # todo
     s = get_hhld( hno, bits )
+    println( "got s $s")
     return add_headers( s )
 end
 
@@ -304,7 +307,7 @@ println("data initialised")
 @app retriever = (
    Mux.defaults,
    page("/get_hh", req -> get_hh )
-   )
+)
 println("app created")
 
 port = DEFAULT_PORT
@@ -314,9 +317,3 @@ end
 
 serve( retriever, port )
 println( "server started on port $port ")
-
-while true # FIXME better way?
-   @debug "main loop; server running on port $port"
-   sleep( 60 )
-end
-
