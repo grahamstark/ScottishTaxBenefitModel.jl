@@ -102,6 +102,32 @@ function load_raw()::RawData
 
 
     for year in 2016:2018
+
+        global frsx 
+        global hbai_res
+        global accounts
+        global benunit
+        global extchild
+        global maint
+        global penprov
+        global care
+        global mortcont
+        global pension
+        global adult
+        global child
+        global govpay
+        global mortgage
+        global assets
+        global childcare
+        global househol
+        global oddjob
+        global rentcont
+        global benefits
+        global endowmnt
+        global job
+        global owner
+        global renter
+
         y = year - 2000
         ystr = "$(y)$(y+1)"
         frsx = vcat( frsx, l_loadfrs( "frs$ystr", year ), cols=:union )
@@ -120,7 +146,7 @@ function load_raw()::RawData
         govpay = vcat( govpay, l_loadfrs("govpay", year),  cols=:union )
         mortgage = vcat( mortgage, l_loadfrs("mortgage", year),  cols=:union )
         assets = vcat( assets, l_loadfrs("assets", year),  cols=:union )
-        childcare = vcat( chldcare, l_loadfrs("chldcare", year),  cols=:union )
+        chldcare = vcat( chldcare, l_loadfrs("chldcare", year),  cols=:union )
         househol = vcat( househol, l_loadfrs("househol", year),  cols=:union )
         oddjob = vcat( oddjob, l_loadfrs("oddjob", year),  cols=:union )
         rentcont = vcat( rentcont, l_loadfrs("rentcont", year),  cols=:union )
@@ -149,7 +175,7 @@ function load_raw()::RawData
             govpay,
             mortgage,
             assets,
-            childcare,
+            chldcare,
             househol,
             oddjob,
             rentcont,
