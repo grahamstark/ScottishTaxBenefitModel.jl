@@ -1,21 +1,16 @@
 # module ... 
 using CSV, DataFrames, Markdown
-using Mux
-import Mux.WebSockets
-using JSON
-using HttpCommon
-using Logging, LoggingExtras
 
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
+using .Definitions
 using .Utils
 using .ModelHousehold
 using .FRSHouseholdGetter: initialise, get_household, get_num_households
+using Logging, LoggingExtras
 
-const DEFAULT_PORT=8002
 
-
-include("../src/HouseholdMappingFRS_HBAI.jl")
+include("$(PROJECT_DIR)/src/HouseholdMappingFRS_HBAI.jl")
 
 """
 LOCAL version treating '-1' as missing.
@@ -41,6 +36,13 @@ function l_loadfrs(which::AbstractString, year::Integer)::DataFrame
     df.data_year = fill( year, n )
     return df
 end
+
+
+function addqstrdict(app, req  :: Dict )
+    req[:parsed_querystring] = qstrtodict(req[:query])
+    return app(req)
+ end
+ 
 
 struct RawData 
     frsx  :: DataFrame
@@ -101,7 +103,7 @@ function load_raw()::RawData
     renter = l_loadfrs("renter", year)
 
 
-    for year in 2016:2018
+    for year in 2019:2018
         #=
         global frsx 
         global hbai_res
@@ -236,7 +238,7 @@ function get_one( label :: String, frame :: DataFrame, sernum :: BigInt, data_ye
     return s
 end
     
-function get_hhld( hno, bits )
+function get_data( hno, bits )
     mhh = FRSHouseholdGetter.get_household( hno )
     s = to_string( mhh )
     if :househol in bits
@@ -276,50 +278,79 @@ function get_hhld( hno, bits )
     return s
 end
 
+WEB = false
 
-# Headers -- set Access-Control-Allow-Origin for either dev or prod
-# this is from https://github.com/JuliaDiffEq/DiffEqOnlineServer
-#
-function add_headers( md :: AbstractString ) :: Dict
-    headers  = HttpCommon.headers()
-    headers["Content-Type"] = "text/markdown; charset=utf-8"
-    headers["Access-Control-Allow-Origin"] = "*"
-    return Dict(
-       :headers => headers,
-       :body=> md
+if WEB
+
+    using Mux
+    import Mux.WebSockets
+    using JSON
+    using HttpCommon
+
+    const DEFAULT_PORT=8002
+
+    # Headers -- set Access-Control-Allow-Origin for either dev or prod
+    # this is from https://github.com/JuliaDiffEq/DiffEqOnlineServer
+    #
+    function add_headers( md :: AbstractString ) :: Dict
+        headers  = HttpCommon.headers()
+        headers["Content-Type"] = "text/markdown; charset=utf-8"
+        headers["Access-Control-Allow-Origin"] = "*"
+        return Dict(
+        :headers => headers,
+        :body=> md
+        )
+    end
+
+    function get_hh( hdstr :: AbstractString ) :: Dict
+        @debug "get hh hdstr=$hdstr"
+        hno = parse( Int, hdstr )
+        @debug "get hh parsed hid=$hno"    
+        bits = [:househol]
+        s = get_data( hno, bits )
+        println( "got s $s")
+        return add_headers( s )
+    end
+
+    function x_get_hh( req  :: Dict ) :: Dict
+        println( "get_hh entered")
+        querydict = req[:parsed_querystring]
+        println("get_hh; req=$req")
+        println( "querydict=$(querydict)")
+        hno = querydict["hno"]
+        bits = [:househol] # todo
+        s = get_hhld( hno, bits )
+        println( "got s $s")
+        return add_headers( s )
+    end
+
+    init_data()
+    println("data initialised")
+    logger = FileLogger("/var/tmp/retriever.log")
+    global_logger(logger)
+    LogLevel( Logging.Info )
+
+    @app retriever = (
+    Mux.defaults,
+    page( respond("<h1>STB Data Retrieval</h1>")),   
+    # addqstrdict,
+    # page("/get_hh:hid", req -> get_hh( ) )
+    page( "/hhld/:hid", req -> get_hh( req[:params][:hid] )),
+    Mux.notfound()
     )
-end
+    println("app created")
 
-function get_hh( req  :: Dict ) :: Dict
-    querydict = req[:parsed_querystring]
-    println("get_hh; req=$req")
-    println( "querydict=$(querydict)")
-    hno = querydict["hno"]
-    bits = [:househol] # todo
-    s = get_hhld( hno, bits )
-    println( "got s $s")
-    return add_headers( s )
-end
+    port = DEFAULT_PORT
+    if length(ARGS) > 0
+    port = parse(Int, ARGS[1])
+    end
 
-init_data()
-println("data initialised")
+    serve( retriever, port )
+    println( "server started on port $port ")
 
-@app retriever = (
-   Mux.defaults,
-   page("/get_hh", req -> get_hh )
-)
-println("app created")
+    while true # FIXME better way?
+    println( "main loop; server running on port $port" )
+    sleep( 60 )
+    end
 
-port = DEFAULT_PORT
-if length(ARGS) > 0
-   port = parse(Int, ARGS[1])
-end
-
-serve( retriever, port )
-println( "server started on port $port ")
-
-while true # FIXME better way?
-   @debug "main loop; server running on port $port"
-   sleep( 60 )
-end
-
+end # run as web server
