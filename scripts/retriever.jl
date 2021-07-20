@@ -317,3 +317,9 @@ end
 
 serve( retriever, port )
 println( "server started on port $port ")
+
+while true # FIXME better way?
+   @debug "main loop; server running on port $port"
+   sleep( 60 )
+end
+
