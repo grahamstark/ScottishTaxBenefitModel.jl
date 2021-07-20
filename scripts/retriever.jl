@@ -205,15 +205,21 @@ function init_data(; reset :: Bool = false )
  
 function print_one( r :: DataFrameRow ) :: String
     nms = names( r )
-    s = "|:-----------|-------------:|\n"
+    s = """
+    |            |              |
+    |:-----------|-------------:|
+    """
     for n in nms
         sym = Symbol(n)
         v = r[sym] 
         if ! ismissing( v )
-            s *= "|**$n**|$v|\n"
+            s *= """|**$n**|$v|
+            """
         end
     end
-    s *= "\n\n"
+    s *= """
+
+    """
     return s
 end
 
@@ -222,15 +228,22 @@ function get_one( label :: String, frame :: DataFrame, sernum :: BigInt, data_ye
     items = frame[(frame.sernum .== sernum).&(frame.data_year .== data_year),:]
     n = size(items)[1]
     if n == 0
-        s *= "###No $(label)s\n"
+        s *= """
+        ### No $(label)s
+
+        """
         return s
     elseif n == 1
-        s *= "##$label\n"
+        s *= """
+        ## $label
+        """
         s *= print_one(items[1,:])
     else
         i = 1        
         for item in eachrow(items)
-            s *= "##$label ($i)\n"
+            s *= """
+            ## $label ($i)
+            """
             s *= print_one(item)
             i += 1
         end
@@ -238,7 +251,7 @@ function get_one( label :: String, frame :: DataFrame, sernum :: BigInt, data_ye
     return s
 end
     
-function get_data( hno, bits )
+function get_data( hno, bits )::String
     mhh = FRSHouseholdGetter.get_household( hno )
     s = to_string( mhh )
     if :househol in bits
@@ -274,10 +287,12 @@ function get_data( hno, bits )
     if :frsx in bits
         s *= get_one( "FRS-Flatfile", rd.frsx, mhh.hid, mhh.data_year)
     end
-
-    return s
+    return s #md"$s"
 end
 
+init_data()
+
+#=
 WEB = false
 
 if WEB
@@ -354,3 +369,4 @@ if WEB
     end
 
 end # run as web server
+=#

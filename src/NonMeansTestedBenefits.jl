@@ -135,8 +135,8 @@ module NonMeansTestedBenefits
         #
         wid = 0.0
         # new-style: payable for 18 months at a flat rate
-        # 
-        if pers.bereavement_type == bereavement_allowance
+        # CHECK 2829 2017 why is that bereavment_support?
+        if pers.bereavement_type in [bereavement_allowance,bereavement_support]
             # payable for 18 months so we'll allocate
             # 2/3rds of the weekly value of the lump-sum
             if has_kids
@@ -145,13 +145,21 @@ module NonMeansTestedBenefits
                 wid = bp.lower + bp.lump_sum_lower*2/3
             end
         elseif pers.bereavement_type == widowed_parents # At least 3 years ago so no 
-            # need to worry about lump-sums; just eq_scale
+            # need to worry about lump-sums; just scale
             # the standard rate by the ratio of
             # their receipt to the standard rate at the time
-            # of interview.
-            
-            wid = pers.benefit_ratios[bereavement_allowance_or_widowed_parents_allowance_or_bereavement]*
-                wp.standard_rate 
+            # of interview. CHECK hhld 477 2015 for an example
+            # of someone with the lump sum but no standard benefit
+            # so no ratio; for us, just assign the standard 
+            # rate in those cases.
+            #
+            # println( "pers.benefit_ratios $(pers.benefit_ratios)")
+            if haskey( pers.benefit_ratios, bereavement_allowance_or_widowed_parents_allowance_or_bereavement )
+                wid = pers.benefit_ratios[bereavement_allowance_or_widowed_parents_allowance_or_bereavement]*
+                    wp.standard_rate 
+            else
+                wid = wp.standard_rate
+            end
         else
             # check we're not missing anyone
             @assert ! haskey( pers.benefit_ratios, bereavement_allowance_or_widowed_parents_allowance_or_bereavement)
@@ -203,7 +211,7 @@ module NonMeansTestedBenefits
         dla  :: DisabilityLivingAllowance{T} ) :: Tuple{T,T} where T
         dc = zero(T)
         dm = zero(T)
-        println( "dla self_care=$(pers.dla_self_care_type)")
+        # println( "dla self_care=$(pers.dla_self_care_type)")
         # FIXME make all these names constisent (mid/middle,care->self_care etc.)
         if pers.dla_self_care_type == high 
             dc = dla.care_high
@@ -217,7 +225,7 @@ module NonMeansTestedBenefits
         elseif pers.dla_mobility_type in (low,mid)
             dm = dla.mob_low
         end
-        println( "setting DLA as $dc, $dm")
+        # println( "setting DLA as $dc, $dm")
         return (dc,dm);
     end # dla calc
 

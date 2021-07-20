@@ -93,7 +93,7 @@ end
 @testset "Diagnose frs households" begin
     sys = get_system( scotland=true )
     target_hids = [1500]
-    for hd in [target_hids]
+    for hhno in target_hids
         hh = FRSHouseholdGetter.get_household( hhno )
         hres = do_one_calc( hh, sys )
     end    

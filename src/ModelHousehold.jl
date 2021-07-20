@@ -190,13 +190,14 @@ function to_string( hh :: Household ) :: String
     s = """
     ##Household $(hh.hid)
     
+    |            |              |
     |:-----------|-------------:|
-    |sequence | $(hh.sequence) |
-    |data_year  | $(hh.data_year ) |
-    |interview_year | $(hh.interview_year) |
-    |interview_month | $(hh.interview_month) |
-    |quarter | $(hh.quarter) |
-    |tenure | $(hh.tenure) |
+    |**sequence** | $(hh.sequence) |
+    |**data_year**  | $(hh.data_year ) |
+    |**interview_year** | $(hh.interview_year) |
+    |**interview_month** | $(hh.interview_month) |
+    |**quarter** | $(hh.quarter) |
+    |**tenure** | $(hh.tenure) |
     |region | $(hh.region) |
     |ct_band | $(hh.ct_band) |
     |council_tax | $(hh.council_tax) |
@@ -218,8 +219,9 @@ function to_string( hh :: Household ) :: String
     |nhs_board  | $(hh.nhs_board ) |
     |bedrooms  | $(hh.bedrooms ) |
     |head_of_household  | $(hh.head_of_household ) |
-    |people | $(hh.people) |
     |onerand  | $(hh.onerand ) |
+
+
     """
     
     for (pid,pers) in hh.people
@@ -231,7 +233,7 @@ end
 function to_string( pers :: Person ) :: String
     s = """
     ### Person $(pers.pno)
-
+    |            |              |
     |:-----------|-------------:|
     |pid | $(pers.pid) |
     |is_hrp  | $(pers.is_hrp ) |
@@ -289,6 +291,8 @@ function to_string( pers :: Person ) :: String
     |company_car_contribution  | $(pers.company_car_contribution ) |
     |fuel_supplied  | $(pers.fuel_supplied ) |
     |onerand  | $(pers.onerand ) |
+
+
     """
     return s
 end
