@@ -330,7 +330,7 @@ module Runner
     # FIXME use the weights!
     function do_one_run!(
         settings :: RunSettings,
-        params   :: Vector{TaxBenefitSystem{T}} ) where T # fixme simpler way of declaring this?
+        params   :: Vector{TaxBenefitSystem{T}} ) :: NamedTuple where T # fixme simpler way of declaring this?
         num_systems = size( params )[1]
         println("start of do_one_run; params:")
         for p in 1:num_systems
@@ -354,12 +354,14 @@ module Runner
         end
         # num_households=11048, num_people=23140
         # println( "settings $settings")
-        frames = initialise_frames( T, settings, num_systems )
+        frames :: NamedTuple = initialise_frames( T, settings, num_systems )
         frame_starts = FrameStarts(0,0,0)
         println( "starting run " )
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
-            println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year)")
+            if hno % 100 == 0
+                println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year)")
+            end
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
                 # println( "hno $hno sysno $sysno frame_starts $frame_starts")
@@ -368,6 +370,7 @@ module Runner
         end #household loop
         println( "dumping frames" )
         dump_frames( settings, frames )
+        return frames
     end # do one run
 
 end # module

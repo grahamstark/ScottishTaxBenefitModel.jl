@@ -372,7 +372,7 @@ function make_intermediate(
         end 
         if pers_is_disabled( pers )
             num_disabled_adults += 1
-            println( "adding a disabled adult $num_disabled_adults ")
+            # println( "adding a disabled adult $num_disabled_adults ")
             if is_severe_disability( pers )
                 num_severely_disabled_adults += 1
             end
