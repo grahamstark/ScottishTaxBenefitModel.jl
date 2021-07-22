@@ -26,23 +26,27 @@ function basic_run( ; print_test :: Bool )
 
     #
     #
-    if print_test
-         summary_output = summarise_results!( results=results, base_results=base_results )
-         print( "   deciles = $( summary_output.deciles)\n\n" )
-         print( "   poverty_line = $(summary_output.poverty_line)\n\n" )
-         print( "   inequality = $(summary_output.inequality)\n\n" )        
-         print( "   poverty = $(summary_output.poverty)\n\n" )
-         print( "   gainlose_by_sex = $(summary_output.gainlose_by_sex)\n\n" )
-         print( "   gainlose_by_thing = $(summary_output.gainlose_by_thing)\n\n" )
-         print( "   metr_histogram= $(summary_output.metr_histogram)\n\n")
-         println( "SUMMARY OUTPUT")
-         println( summary_output )
-         println( "as JSON")
-         println( JSON.json( summary_output ))
-    end
 end 
 
 @testset "basic run timing" begin
-    t = @benchmark basic_run( print_test=false )
+    t = @benchmark basic_run( print_test=true )
     print(t)
 end
+
+#=
+if print_test
+    summary_output = summarise_results!( results=results, base_results=base_results )
+    print( "   deciles = $( summary_output.deciles)\n\n" )
+    print( "   poverty_line = $(summary_output.poverty_line)\n\n" )
+    print( "   inequality = $(summary_output.inequality)\n\n" )        
+    print( "   poverty = $(summary_output.poverty)\n\n" )
+    print( "   gainlose_by_sex = $(summary_output.gainlose_by_sex)\n\n" )
+    print( "   gainlose_by_thing = $(summary_output.gainlose_by_thing)\n\n" )
+    print( "   metr_histogram= $(summary_output.metr_histogram)\n\n")
+    println( "SUMMARY OUTPUT")
+    println( summary_output )
+    println( "as JSON")
+    println( JSON.json( summary_output ))
+end
+
+=#

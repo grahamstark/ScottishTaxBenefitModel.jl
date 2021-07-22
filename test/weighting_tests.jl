@@ -30,13 +30,13 @@ println( "num_households=$(get_num_households())")
 
 #end
 
-function sum(v::Vector)
+function lsum(v::Vector)
     reduce(+,v)
 end
 
 @testset "weighting tests" begin
     nhh = get_num_households()
-    hhlds_in_popn = sum( DEFAULT_TARGETS[42:48]) # sum of all hhld types
+    hhlds_in_popn = lsum( DEFAULT_TARGETS[42:48]) # sum of all hhld types
     data = make_target_dataset( nhh )
     nr,nc = size(data)
 
