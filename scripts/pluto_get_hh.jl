@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.15.1
+# v0.14.7
 
 using Markdown
 using InteractiveUtils
@@ -12,7 +12,7 @@ end
 # ╔═╡ 55bf5b39-c01d-4696-97e2-5273f14a5ef1
 begin
 	function get_hh( hno :: Int )
-		r  = HTTP.request("GET", "http://localhost:8002/hhld/$hno")
+		r  = HTTP.request("GET", "http://192.168.1.2:8002/hhld/$hno")
 		s = String(r.body)
 		@eval @md_str $s
 	end
@@ -20,7 +20,10 @@ begin
 end
 
 # ╔═╡ 75121b89-4e25-4f85-aaef-6de8de0aa18d
-get_hh( 1000 )
+get_hh( 900)
+
+# ╔═╡ 0946f3fb-afcd-41fe-8496-eb4083894720
+get_hh(900)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -112,9 +115,14 @@ version = "1.3.0"
 uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 """
 
+# ╔═╡ 9ad89f76-bf0f-4626-96b2-c26a1fcc47f0
+
+
 # ╔═╡ Cell order:
 # ╠═a341a594-e99b-11eb-376f-af0d7f593c65
 # ╠═55bf5b39-c01d-4696-97e2-5273f14a5ef1
-# ╠═75121b89-4e25-4f85-aaef-6de8de0aa18d
+# ╟─75121b89-4e25-4f85-aaef-6de8de0aa18d
+# ╠═0946f3fb-afcd-41fe-8496-eb4083894720
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
+# ╠═9ad89f76-bf0f-4626-96b2-c26a1fcc47f0
