@@ -60,7 +60,7 @@ using .Results:
 
 using .Intermediate: 
     MTIntermediate, 
-    HHintermed,
+    HHIntermed,
     apply_2_child_policy,
     born_before, 
     is_working_hours,
@@ -582,7 +582,7 @@ function calculateHB_CTR!(
     household_result :: HouseholdResult,
     which_ben        :: LMTBenefitType,
     hh               :: Household,
-    intermed         :: NamedTuple,
+    intermed         :: HHIntermed,
     lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,
     age_limits       :: AgeLimits )
     

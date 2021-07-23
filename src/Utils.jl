@@ -7,13 +7,40 @@ using Base.Unicode
 using CSV
 using BudgetConstraints
 
-export @exported_enum, qstrtodict, pretty, basiccensor, get_if_set
-export addsysnotoname, diff_between, mult_dict!, get_project_path
-export loadtoframe, age_in_years, isapprox, ≈, operate_on_struct!, uprate_struct
-export eq_nearest_p,  mult, has_non_z, haskeys, todays_date, age_then
-export coarse_match
-export nearest, nearesti, nearz, not_zero_or_missing, is_zero_or_missing
-export BR_DIGITS, mybigrand, randchunk, strtobi, mybigrandstr
+export 
+   @exported_enum, 
+   BR_DIGITS, 
+   ≈, 
+   addsysnotoname, 
+   age_in_years, 
+   age_then,
+   basiccensor, 
+   coarse_match,
+   diff_between, 
+   eq_nearest_p,  
+   get_if_set,
+   get_project_path
+   has_non_z, 
+   haskeys, 
+   is_zero_or_missing,
+   isapprox, 
+   loadtoframe, 
+   mult_dict!, 
+   mult, 
+   mybigrand, 
+   mybigrandstr,
+   nearest, 
+   nearesti, 
+   nearz, 
+   not_zero_or_missing, 
+   operate_on_struct!, 
+   pretty, 
+   qstrtodict, 
+   randchunk, 
+   strtobi, 
+   to_md_table
+   todays_date, 
+   uprate_struct
 
 #=
 Some functions to make a huge, 60 digit random number, and extract 
@@ -539,5 +566,45 @@ function get_project_path()
    end
    join( path[1:n],"/")*"/"
 end
+
+"""
+Crude but more-or-less effective thing that prints out a struct (which may contain other structs) as
+a markdown table. 
+"""
+function to_md_table( f; exclude=[], depth=0 ) :: String
+    F = typeof(f)
+    @assert isstructtype( F )
+    names = fieldnames(F)
+    prinames = []
+    structnames = []
+
+    for n in names
+        v = getfield(f,n)
+        if n in exclude 
+            ;
+        elseif isstructtype( typeof(v))
+            push!(structnames, n )
+        else
+            push!(prinames, n )
+        end
+    end
+    s = """
+    |            |              |
+    |:-----------|-------------:|
+    """
+    for n in prinames
+        v = getfield(f,n)
+        s *= "|**($n)**|$v|\n"
+    end
+    s *= "\n\n"
+    depth += 1
+    for n in structnames
+        v = getfield(f,n)
+        s *= "#"*repeat( "#", depth ) * "$n\n"
+        s *= to_md_table( v, exclude=exclude, depth=depth )
+    end
+    return s;
+end
+
 
 end # module

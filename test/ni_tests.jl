@@ -14,7 +14,6 @@ using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .FRSHouseholdGetter: get_household
 using .Results: IndividualResult, map_incomes
 
-const RUK_PERSON = 100000001001
 
 @testset "Run on actual Data" begin
     nhhs,npeople = init_data()

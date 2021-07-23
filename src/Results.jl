@@ -20,6 +20,9 @@ module Results
 
     using .Incomes
     
+    using .Utils:
+        to_md_table
+
     export
         aggregate_tax,
         BenefitUnitResult,
@@ -36,7 +39,8 @@ module Results
         LocalTaxes,
         map_incomes,
         NIResult, 
-        search
+        search,
+        to_string
 
     
                 
@@ -173,6 +177,13 @@ module Results
        it = ITResult{RT}()
        income = Incomes.make_a( RT );
     end
+
+    function to_string( ir :: IndividualResult, depth=2 )::String
+        s = to_md_table( ir, exclude=[:income], depth )
+        s *= #*repeat("#",depth)*"Incomes";
+        s *= inctostr( income )
+        return s
+    end
     
     @with_kw mutable struct BenefitUnitResult{RT<:Real}
         income = Incomes.make_a( RT )
@@ -183,6 +194,15 @@ module Results
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}()
         adults = Pid_Array()
+    end
+
+    function to_string( br :: BenefitUnitResult, depth=1 )::String
+        s = to_md_table( br, exclude=[:pers,:adults], depth )
+        for (pid,per) in br.pers
+            s *= "### Person $(pid)"
+            s *= to_string( per )
+        end
+        return s
     end
 
     function has_any( bur :: BenefitUnitResult, things ... ) :: Bool
@@ -232,6 +252,14 @@ module Results
         # and adapt the get_benefit_units function 
         #
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
+    end
+
+    function to_string( hr :: HouseholdResult, depth=0 )::String
+        s = to_md_table( br, exclude=[:bus], depth )
+        for bn in eachindex(bus)
+            s *= repeat("#",depth+1)*"Benefit Unit Result #(bn)"
+            s *= to_string( br.bus[bn], depth+1)
+        end
     end
 
     """

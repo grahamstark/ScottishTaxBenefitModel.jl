@@ -742,12 +742,17 @@ using StaticArrays
     function inctostr( incs :: AbstractVector ) :: String
         n = size( incs )[1] 
         @assert  n == INC_ARRAY_SIZE
-        s = ""
+        s = 
+        """
+        |            |              |
+        |:-----------|-------------:|
+        """
         for i in 1:n
             if incs[i] != 0
-                s *= "$(iname(i)) = $(incs[i])\n"
+                s *= "|**$(iname(i))**|$(incs[i])|\n"
             end
         end
+        s *= "\n\n"
         return s
     end
 

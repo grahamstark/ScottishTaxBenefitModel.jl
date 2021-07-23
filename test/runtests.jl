@@ -9,6 +9,8 @@ using ScottishTaxBenefitModel
 # 
 is_local = isdir("/mnt/data/frs/")
 
+include( "testutils.jl")
+
 include( "general_tests.jl")
 
 include( "equivence_scale_tests.jl")
