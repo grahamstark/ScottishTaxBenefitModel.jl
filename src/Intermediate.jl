@@ -50,7 +50,8 @@ using .STBParameters:
 using .Utils: 
     has_non_z,
     haskeys, 
-    mult 
+    mult,
+    to_md_table
 
 export 
     MTIntermediate,     
@@ -61,6 +62,7 @@ export
     is_working_hours, 
     make_intermediate, 
     num_born_before, 
+    to_string,
     working_disabled,
     HHIntermed
 
@@ -248,56 +250,20 @@ struct HHIntermed
     buint ::  Vector{MTIntermediate}
 end
 
-function to_string( int :: MTIntermediate )::String
-    s = 
-    """ Intermediate: benunit $(int.benefit_unit_number)
-        |            |              |
-        |:-----------|-------------:|    
-    |**benefit_unit_number**|$(int.benefit_unit_number)|
-    |**num_people**|$(int.num_people)|
-    |**age_youngest_adult**|$(int.age_youngest_adult)|
-    |**age_oldest_adult**|$(int.age_oldest_adult)|
-    |**age_youngest_child**|$(int.age_youngest_child)|
-    |**age_oldest_child**|$(int.age_oldest_child)|
-    |**num_adults**|$(int.num_adults)|
-    |**someone_pension_age**|$(int.someone_pension_age )|
-    |**someone_pension_age_2016**|$(int.someone_pension_age_2016)|
-    |**all_pension_age**|$(int.all_pension_age)|
-    |**someone_working_ft**|$(int.someone_working_ft)|
-    |**num_working_pt**|$(int.num_working_pt)|
-    |**num_working_24_plus**|$(int.num_working_24_plus)|
-    |**total_hours_worked**|$(int.total_hours_worked)|
-    |**someone_is_carer**|$(int.someone_is_carer)|
-    |**num_carers**|$(int.num_carers)|        
-    |**is_sparent**|$(int.is_sparent )|
-    |**is_sing**|$(int.is_sing )|
-    |**is_disabled**|$(int.is_disabled)|        
-    |**num_disabled_adults**|$(int.num_disabled_adults)|
-    |**num_disabled_children**|$(int.num_disabled_children)|
-    |**num_severely_disabled_adults**|$(int.num_severely_disabled_adults)|
-    |**num_severely_disabled_children**|$(int.num_severely_disabled_children)|        
-    |**num_children**|$(int.num_children)|
-    |**num_allowed_children**|$(int.num_allowed_children)|
-    |**num_children_born_before**|$(int.num_children_born_before)|
-    |**ge_16_u_pension_age**|$(int.ge_16_u_pension_age )|
-    |**limited_capacity_for_work**|$(int.limited_capacity_for_work )|
-    |**has_children**|$(int.has_children )|
-    |**economically_active**|$(int.economically_active)|
-    |**num_working_full_time**|$(int.num_working_full_time)|
-    |**num_not_working**|$(int.num_not_working)|
-    |**num_working_part_time**|$(int.num_working_part_time)|
-    |**working_disabled**|$(int.working_disabled)|
-
-    """
+function to_string( it :: MTIntermediate )::String
+    s = #### Itermediate: Ben Unit $(it.benefit_unit_number)"
+    s *= to_md_table( it, depth=2 ) :
+    return s
 end
 
-function to_string( hh :: HHIntermed ) :: String
+function to_string( hh :: HHIntermed ) :: String                          
     s = "## Household"
     s *= to_string( hh.hhint )
     for i in eachindex( hh.buint )
         s *= "### Bu $i"
-        s *= to_string( hh.bunit[i])
+        s *= to_string( hh.buint[i])
     end
+    return s
 end
     
 

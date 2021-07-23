@@ -35,7 +35,8 @@ using .Results:
     IndividualResult,
     BenefitUnitResult,
     HouseholdResult,
-    init_household_result
+    init_household_result,
+    to_string
 
 using .GeneralTaxComponents: 
     RateBands, 
@@ -60,7 +61,7 @@ function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
     false
 end
 
-ExampleHouseholdGetter.initialise()
+init_data()
 
 # examples from https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/812844/Income_Tax_Liabilities_Statistics_June_2019.pdf
 # table 2
@@ -94,5 +95,6 @@ end
     for hhno in target_hids
         hh = FRSHouseholdGetter.get_household( hhno )
         hres = do_one_calc( hh, sys )
+        println(to_string( hres ))
     end    
 end

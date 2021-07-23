@@ -19,7 +19,7 @@ export
    diff_between, 
    eq_nearest_p,  
    get_if_set,
-   get_project_path
+   get_project_path,
    has_non_z, 
    haskeys, 
    is_zero_or_missing,
@@ -38,7 +38,7 @@ export
    qstrtodict, 
    randchunk, 
    strtobi, 
-   to_md_table
+   to_md_table,
    todays_date, 
    uprate_struct
 
@@ -589,18 +589,21 @@ function to_md_table( f; exclude=[], depth=0 ) :: String
         end
     end
     s = """
+
+    
     |            |              |
     |:-----------|-------------:|
     """
     for n in prinames
         v = getfield(f,n)
-        s *= "|**($n)**|$v|\n"
+        pn = pretty(n)
+        s *= "|**$(pn)**|$v|\n"
     end
     s *= "\n\n"
     depth += 1
     for n in structnames
         v = getfield(f,n)
-        s *= "#"*repeat( "#", depth ) * "$n\n"
+        s *= "#"*repeat( "#", depth ) * " " * pretty(n) *"\n"
         s *= to_md_table( v, exclude=exclude, depth=depth )
     end
     return s;

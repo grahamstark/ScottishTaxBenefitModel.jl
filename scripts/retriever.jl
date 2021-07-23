@@ -20,12 +20,26 @@ using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .Definitions
 using .Utils
-using .ModelHousehold
+using .ModelHousehold:
+    Household,
+    to_string
+
 using .FRSHouseholdGetter: 
     initialise, 
     get_household, 
     get_num_households
-using .Intermediate: to_string, make_intermediate
+
+using .Intermediate: 
+    HHIntermed,
+    to_string, 
+    make_intermediate
+
+using .Results:
+    HouseholdResult,
+    to_string
+
+using .SingleHouseholdCalculations: 
+    do_one_calc
 
 include("$(PROJECT_DIR)/src/HouseholdMappingFRS_HBAI.jl")
 
@@ -128,33 +142,7 @@ function load_raw()::RawData
     renter = l_loadfrs("renter", year)
 
 
-    for year in 2016:2018
-        #=
-        global frsx 
-        global hbai_res
-        global accounts
-        global benunit
-        global extchild
-        global maint
-        global penprov
-        global care
-        global mortcont
-        global pension
-        global adult
-        global child
-        global govpay
-        global mortgage
-        global assets
-        global childcare
-        global househol
-        global oddjob
-        global rentcont
-        global benefits
-        global endowmnt
-        global job
-        global owner
-        global renter
-        =#
+    for year in 2016:2018       
         y = year - 2000
         ystr = "$(y)$(y+1)"
         # FIXME clean hbai load up
@@ -280,12 +268,13 @@ function get_one( label :: String, frame :: DataFrame, sernum :: BigInt, data_ye
 end
     
 function get_data( hno, bits )::String
-    mhh = FRSHouseholdGetter.get_household( hno )
-    s = to_string( mhh )
+    mhh :: Household = FRSHouseholdGetter.get_household( hno )
+    s = ModelHousehold.to_string( mhh )
     sys = get_system(scotland=true)
-    intermed = make_intermediate(  mhh, sys.lmt.hours_limits,sys.age_limits )
-    s *= to_string( intermed )
-
+    intermed :: HHIntermed = make_intermediate(  mhh, sys.lmt.hours_limits,sys.age_limits )
+    s *= Intermediate.to_string( intermed )
+    hres :: HouseholdResult = do_one_calc( mhh, sys )
+    s *= Results.to_string( hres )
     if :househol in bits
         s *= get_one( "Househol", rd.househol, mhh.hid, mhh.data_year)
         s *= get_one( "Renter", rd.renter, mhh.hid, mhh.data_year)

@@ -179,9 +179,9 @@ module Results
     end
 
     function to_string( ir :: IndividualResult, depth=2 )::String
-        s = to_md_table( ir, exclude=[:income], depth )
+        s = to_md_table( ir, exclude=[:income], depth=depth )
         s *= #*repeat("#",depth)*"Incomes";
-        s *= inctostr( income )
+        s *= inctostr( ir.income )
         return s
     end
     
@@ -197,7 +197,7 @@ module Results
     end
 
     function to_string( br :: BenefitUnitResult, depth=1 )::String
-        s = to_md_table( br, exclude=[:pers,:adults], depth )
+        s = to_md_table( br, exclude=[:pers,:adults], depth=depth )
         for (pid,per) in br.pers
             s *= "### Person $(pid)"
             s *= to_string( per )
@@ -236,8 +236,7 @@ module Results
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
         income = Incomes.make_a( RT )
-        eq_scale  :: RT = zero(RT)
-        
+         
         bhc_net_income :: RT = zero(RT)
         eq_bhc_net_income :: RT = zero(RT)
         ahc_net_income :: RT = zero(RT)        
@@ -255,11 +254,15 @@ module Results
     end
 
     function to_string( hr :: HouseholdResult, depth=0 )::String
-        s = to_md_table( br, exclude=[:bus], depth )
-        for bn in eachindex(bus)
+        s = to_md_table( hr, exclude=[:bus,:income], depth=depth )
+        s *= "## HH Income"
+        s *= inctostr( hr.income )
+        s *= "\n\n"
+        for bn in eachindex(hr.bus)
             s *= repeat("#",depth+1)*"Benefit Unit Result #(bn)"
-            s *= to_string( br.bus[bn], depth+1)
+            s *= to_string( hr.bus[bn], depth+1)
         end
+        return s
     end
 
     """
