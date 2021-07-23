@@ -360,9 +360,9 @@ end
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_children
     @test intermed.economically_active
-    @test intermed.num_working_full_time == 2
+    @test intermed.num_working_ft == 2
     @test intermed.num_not_working == 0
-    @test intermed.num_working_part_time == 0
+    @test intermed.num_working_pt == 0
     
     unemploy!( head )
     unemploy!( spouse )
@@ -386,9 +386,7 @@ end
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_children
     @test intermed.economically_active # not_working is active
-    @test intermed.num_working_full_time == 0
-    @test intermed.num_not_working == 2
-    @test intermed.num_working_part_time == 0
+    @test intermed.num_working_ft == 0
     
     disable_slightly!( spouse )
     intermed = make_intermediate( 
@@ -409,9 +407,9 @@ end
     @test intermed.limited_capacity_for_work
     @test intermed.has_children
     @test intermed.economically_active # not_working is active
-    @test intermed.num_working_full_time == 0
+    @test intermed.num_working_ft == 0
     @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
-    @test intermed.num_working_part_time == 0
+    @test intermed.num_working_pt == 0
     
     carer!( head )
     intermed = make_intermediate( 
@@ -420,7 +418,9 @@ end
         sys.lmt.hours_limits,
         sys.age_limits )
     @test ! intermed.someone_working_ft
+    @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
     @test intermed.num_working_pt == 0
+    @test intermed.num_working_ft == 0
     @test intermed.num_working_24_plus == 0
     @test intermed.total_hours_worked == 0
     @test intermed.someone_is_carer
@@ -432,9 +432,6 @@ end
     @test intermed.limited_capacity_for_work
     @test intermed.has_children
     @test ! intermed.economically_active # not_working is active
-    @test intermed.num_working_full_time == 0
-    @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
-    @test intermed.num_working_part_time == 0
 
     sparent = get_benefit_units(examples[single_parent_hh])[1]
     intermed = make_intermediate( 
@@ -455,9 +452,9 @@ end
     @test ! intermed.limited_capacity_for_work
     @test intermed.has_children
     @test intermed.economically_active # not_working is active
-    @test intermed.num_working_full_time == 1
+    @test intermed.num_working_ft == 1
     @test intermed.num_not_working == 0 # ! 1 not_working/1 inactive?
-    @test intermed.num_working_part_time == 0
+    @test intermed.num_working_pt == 0
     @test ! intermed.working_disabled
         
 end

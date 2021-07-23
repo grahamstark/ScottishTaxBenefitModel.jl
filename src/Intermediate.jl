@@ -216,6 +216,9 @@ mutable struct MTIntermediate
     someone_pension_age_2016 :: Bool
     all_pension_age :: Bool
     someone_working_ft  :: Bool 
+    
+    num_not_working :: Int
+    num_working_ft :: Int
     num_working_pt :: Int 
     num_working_24_plus :: Int 
     total_hours_worked :: Int
@@ -238,9 +241,6 @@ mutable struct MTIntermediate
     limited_capacity_for_work  :: Bool 
     has_children  :: Bool 
     economically_active :: Bool
-    num_working_full_time :: Int 
-    num_not_working :: Int 
-    num_working_part_time :: Int
     working_disabled :: Bool
 end
 
@@ -251,13 +251,12 @@ struct HHIntermed
 end
 
 function to_string( it :: MTIntermediate )::String
-    s = #### Itermediate: Ben Unit $(it.benefit_unit_number)"
-    s *= to_md_table( it, depth=2 ) :
+    s = to_md_table( it, depth=2 )
     return s
 end
 
 function to_string( hh :: HHIntermed ) :: String                          
-    s = "## Household"
+    s = "## Household\n"
     s *= to_string( hh.hhint )
     for i in eachindex( hh.buint )
         s *= "### Bu $i"
@@ -280,6 +279,9 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.all_pension_age = sum.all_pension_age && add.all_pension_age 
     sum.someone_working_ft  =  sum.someone_working_ft  || add.someone_working_ft # someone FIXME
     sum.num_working_pt += add.num_working_pt 
+    sum.num_working_ft += add.num_working_ft 
+    sum.num_not_working += add.num_not_working
+    
     sum.num_working_24_plus += add.num_working_24_plus 
     sum.total_hours_worked += add.total_hours_worked 
     sum.someone_is_carer = sum.someone_is_carer || add.someone_is_carer # rename someone FIXME
@@ -301,9 +303,6 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.limited_capacity_for_work = sum.limited_capacity_for_work || add.limited_capacity_for_work
     sum.has_children = sum.has_children || add.has_children
     sum.economically_active = sum.economically_active || add.economically_active
-    sum.num_working_full_time += add.num_working_full_time
-    sum.num_not_working += add.num_not_working
-    sum.num_working_part_time += add.num_working_part_time
     sum.working_disabled = sum.working_disabled || add.working_disabled
 end
 
@@ -353,9 +352,20 @@ function make_intermediate(
     # println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
     someone_pension_age  :: Bool = num_pens_age > 0
     all_pension_age :: Bool = num_adlts == num_pens_age
-    someone_working_ft  :: Bool = search( bu, is_working_hours, hrs.higher )
+    num_working_ft :: Int = count( bu, is_working_hours, hrs.higher )
     num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
+    num_not_working :: Int = count( bu, empl_status_in, 
+       Unemployed,
+       Retired,
+       Student,
+       Looking_after_family_or_home,
+       Permanently_sick_or_disabled,
+       Temporarily_sick_or_injured,
+       Other_Inactive
+        )
     num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
+    someone_working_ft  :: Bool = num_working_ft > 0
+
     total_hours_worked :: Int = 0
     num_carrs :: Int = num_carers( bu )
     someone_is_carer :: Bool = has_carer_member( bu )
@@ -370,10 +380,9 @@ function make_intermediate(
         Part_time_Self_Employed,
         Unemployed, 
         Temporarily_sick_or_injured )
+    
     # can't think of a simple way of doing the rest with searches..
-    num_working_full_time = 0
-    num_not_working = 0
-    num_working_part_time = 0
+
     is_disabled = has_disabled_member( bu )
     num_disabled_adults = 0
     num_severely_disabled_adults = 0
@@ -385,13 +394,6 @@ function make_intermediate(
         if pers.age < age_youngest_adult
             age_youngest_adult = pers.age
         end
-        if ! is_working_hours( pers, hrs.lower )
-            num_not_working += 1
-        elseif pers.usual_hours_worked <= hrs.med
-            num_working_part_time += 1
-        else 
-            num_working_full_time += 1
-        end          
         total_hours_worked += round(pers.usual_hours_worked)
         if working_disabled( pers, hrs )
             is_working_disabled = true
@@ -442,6 +444,8 @@ function make_intermediate(
         someone_pension_age_2016,
         all_pension_age,
         someone_working_ft,
+        num_not_working,
+        num_working_ft,
         num_working_pt,
         num_working_24_plus,
         total_hours_worked,
@@ -461,9 +465,6 @@ function make_intermediate(
         limited_capacity_for_work,
         has_children,
         economically_active,
-        num_working_full_time,
-        num_not_working,
-        num_working_part_time,
         is_working_disabled
     )
 end

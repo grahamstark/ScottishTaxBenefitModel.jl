@@ -230,7 +230,7 @@ function make_lmt_benefit_applicability(
     # ESA, JSA, IS, crudely
     if ! intermed.all_pension_age 
         if ((intermed.num_adults == 1 && intermed.num_not_working == 1) || 
-        (intermed.num_adults == 2 && (intermed.num_not_working>=1 && intermed.num_working_part_time<=1))) &&
+        (intermed.num_adults == 2 && (intermed.num_not_working>=1 && intermed.num_working_pt<=1))) &&
         intermed.ge_16_u_pension_age
             if intermed.limited_capacity_for_work
                 whichb.esa = true 

@@ -82,7 +82,7 @@ module Runner
             gross_decile = zeros( Int, n ),
             bhc_net_income = zeros(RT,n),
             ahc_net_income = zeros(RT,n),
-            eq_scale = zeros(RT,n),
+            # eq_scale = zeros(RT,n),
             eq_bhc_net_income = zeros(RT,n),
             eq_ahc_net_income = zeros(RT,n), # etc.
             income_taxes = zeros(RT,n),
@@ -105,7 +105,7 @@ module Runner
             region    = zeros( Int, n ),
             gross_decile = zeros( Int, n ),
             net_income = zeros(RT,n),
-            eq_scale   = zeros(RT,n),
+            # eq_scale   = zeros(RT,n),
             eq_net_income = zeros(RT,n),
             income_taxes = zeros(RT,n),
             means_tested_benefits = zeros(RT,n),
@@ -155,7 +155,7 @@ module Runner
 
          bhc_net_income = zeros(RT,n),
          ahc_net_income = zeros(RT,n),
-         eq_scale = zeros(RT,n),
+         # eq_scale = zeros(RT,n),
          eq_bhc_net_income = zeros(RT,n),
          eq_ahc_net_income = zeros(RT,n), # etc.
 
@@ -191,7 +191,7 @@ module Runner
         hr.other_benefits = isum( hres.income, NON_MEANS_TESTED_BENS )
         hr.bhc_net_income = hres.bhc_net_income
         hr.ahc_net_income = hres.ahc_net_income
-        hr.eq_scale = hres.eq_scale
+        # hr.eq_scale = hres.eq_scale
         eq_bhc_net_income = hres.eq_bhc_net_income
         eq_ahc_net_income = hres.eq_ahc_net_income
     end
