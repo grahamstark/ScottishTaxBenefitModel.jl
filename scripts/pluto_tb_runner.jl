@@ -39,11 +39,11 @@ begin
 	BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
 
-	function basic_run()
+	function basic_run()::NamedTuple
 
 		sys = [get_system(scotland=false), get_system( scotland=true )]
 		results = do_one_run!( settings, sys )
-
+		return results
 	end 
 
 end

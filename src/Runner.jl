@@ -364,7 +364,6 @@ module Runner
             end
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno] )
-                # println( "hno $hno sysno $sysno frame_starts $frame_starts")
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts, num_systems )
             end
         end #household loop

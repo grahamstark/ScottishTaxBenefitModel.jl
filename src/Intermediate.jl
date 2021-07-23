@@ -10,7 +10,7 @@ module Intermediate
 #   FIXME some of the names should be globally changed.
 #
 
-using Base: Bool
+using Base: Bool, String
 using Dates: TimeType, Date, now, Year
 
 using ScottishTaxBenefitModel
@@ -61,7 +61,8 @@ export
     is_working_hours, 
     make_intermediate, 
     num_born_before, 
-    working_disabled
+    working_disabled,
+    HHIntermed
 
 """
 examples: 
@@ -240,6 +241,65 @@ mutable struct MTIntermediate
     num_working_part_time :: Int
     working_disabled :: Bool
 end
+
+
+struct HHIntermed
+    hhint :: MTIntermediate
+    buint ::  Vector{MTIntermediate}
+end
+
+function to_string( int :: MTIntermediate )::String
+    s = 
+    """ Intermediate: benunit $(int.benefit_unit_number)
+        |            |              |
+        |:-----------|-------------:|    
+    |**benefit_unit_number**|$(int.benefit_unit_number)|
+    |**num_people**|$(int.num_people)|
+    |**age_youngest_adult**|$(int.age_youngest_adult)|
+    |**age_oldest_adult**|$(int.age_oldest_adult)|
+    |**age_youngest_child**|$(int.age_youngest_child)|
+    |**age_oldest_child**|$(int.age_oldest_child)|
+    |**num_adults**|$(int.num_adults)|
+    |**someone_pension_age**|$(int.someone_pension_age )|
+    |**someone_pension_age_2016**|$(int.someone_pension_age_2016)|
+    |**all_pension_age**|$(int.all_pension_age)|
+    |**someone_working_ft**|$(int.someone_working_ft)|
+    |**num_working_pt**|$(int.num_working_pt)|
+    |**num_working_24_plus**|$(int.num_working_24_plus)|
+    |**total_hours_worked**|$(int.total_hours_worked)|
+    |**someone_is_carer**|$(int.someone_is_carer)|
+    |**num_carers**|$(int.num_carers)|        
+    |**is_sparent**|$(int.is_sparent )|
+    |**is_sing**|$(int.is_sing )|
+    |**is_disabled**|$(int.is_disabled)|        
+    |**num_disabled_adults**|$(int.num_disabled_adults)|
+    |**num_disabled_children**|$(int.num_disabled_children)|
+    |**num_severely_disabled_adults**|$(int.num_severely_disabled_adults)|
+    |**num_severely_disabled_children**|$(int.num_severely_disabled_children)|        
+    |**num_children**|$(int.num_children)|
+    |**num_allowed_children**|$(int.num_allowed_children)|
+    |**num_children_born_before**|$(int.num_children_born_before)|
+    |**ge_16_u_pension_age**|$(int.ge_16_u_pension_age )|
+    |**limited_capacity_for_work**|$(int.limited_capacity_for_work )|
+    |**has_children**|$(int.has_children )|
+    |**economically_active**|$(int.economically_active)|
+    |**num_working_full_time**|$(int.num_working_full_time)|
+    |**num_not_working**|$(int.num_not_working)|
+    |**num_working_part_time**|$(int.num_working_part_time)|
+    |**working_disabled**|$(int.working_disabled)|
+
+    """
+end
+
+function to_string( hh :: HHIntermed ) :: String
+    s = "## Household"
+    s *= to_string( hh.hhint )
+    for i in eachindex( hh.buint )
+        s *= "### Bu $i"
+        s *= to_string( hh.bunit[i])
+    end
+end
+    
 
 function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     # benefit_unit_number :: Int
@@ -446,7 +506,7 @@ function make_intermediate(
     hh   :: Household, 
     hrs  :: HoursLimits,
     age_limits :: AgeLimits,
-    allocator :: Function=default_bu_allocation ) :: NamedTuple
+    allocator :: Function=default_bu_allocation ) :: HHIntermed
 
     bus = get_benefit_units( hh, allocator )
     n = size( bus )[1]
@@ -458,7 +518,8 @@ function make_intermediate(
     for buno in 2:n
         aggregate!( hhint, buint[buno])
     end
-    return ( hhint = hhint, buint=buint )
+    return HHIntermed( hhint, buint )
 end
+
 
 end # module Intermediate

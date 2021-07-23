@@ -6,8 +6,6 @@ using ScottishTaxBenefitModel.ExampleHouseholdGetter
 using ScottishTaxBenefitModel.FRSHouseholdGetter
 using ScottishTaxBenefitModel.Definitions
 
-include( "testutils.jl")
-
 prfr = Uprating.load_prices()
 
 print( prfr )

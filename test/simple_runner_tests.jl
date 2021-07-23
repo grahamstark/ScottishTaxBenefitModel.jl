@@ -11,8 +11,6 @@ using ScottishTaxBenefitModel.Runner: do_one_run!, RunSettings
 
 using .Utils
 
-include("testutils.jl")
-
 settings = RunSettings()
 
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
@@ -24,8 +22,6 @@ function basic_run( ; print_test :: Bool )
     sys = [get_system(scotland=false), get_system( scotland=true )]
     results = do_one_run!( settings, sys )
 
-    #
-    #
 end 
 
 @testset "basic run timing" begin

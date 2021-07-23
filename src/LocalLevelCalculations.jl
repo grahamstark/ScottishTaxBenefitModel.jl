@@ -275,7 +275,7 @@ export
         end
         # println( "rooms before kids $rooms")
         if nkids > 0
-            println( "nkids = $nkids ")
+            # println( "nkids = $nkids ")
             rooms += min_kids_rooms( kids[1:nkids] )
         end 
         # println( "hh.bedrooms = $(hh.bedrooms)" )

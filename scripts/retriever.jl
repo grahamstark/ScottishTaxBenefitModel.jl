@@ -25,9 +25,12 @@ using .FRSHouseholdGetter:
     initialise, 
     get_household, 
     get_num_households
-
+using .Intermediate: to_string, make_intermediate
 
 include("$(PROJECT_DIR)/src/HouseholdMappingFRS_HBAI.jl")
+
+include( "../test/testutils.jl")
+
 
 """
 LOCAL version treating '-1' as missing.
@@ -94,7 +97,12 @@ function load_raw()::RawData
     y = year - 2000
     ystr = "$(y)$(y+1)"
     # frsx = l_loadfrs( "frs$ystr", year )
+    
+    # FIXME clean hbai load up        
     hbai_res = l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year])
+    n = size(hbai_res)[1]
+    hbai_res.data_year = fill( year, n )
+
     print("on year $year ")
     accounts = l_loadfrs("accounts", year)
     benunit = l_loadfrs("benunit", year)
@@ -149,8 +157,11 @@ function load_raw()::RawData
         =#
         y = year - 2000
         ystr = "$(y)$(y+1)"
-        # frsx = vcat( frsx, l_loadfrs( "frs$ystr", year ), cols=:union )
-        hbai_res = vcat( hbai_res, l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year]),  cols=:union )
+        # FIXME clean hbai load up
+        hbai_y = l_load_to_frame("$(HBAI_DIR)/tab/"*HBAIS[year])
+        n = size(hbai_y)[1]
+        hbai_y.data_year = fill( year, n )       
+        hbai_res = vcat( hbai_res, hbai_y,  cols=:union )
         n = size(hbai_res)
         print("on year $year frsx size=$n")
         accounts = vcat( accounts, l_loadfrs("accounts", year),  cols=:union )
@@ -271,6 +282,10 @@ end
 function get_data( hno, bits )::String
     mhh = FRSHouseholdGetter.get_household( hno )
     s = to_string( mhh )
+    sys = get_system(scotland=true)
+    intermed = make_intermediate(  mhh, sys.lmt.hours_limits,sys.age_limits )
+    s *= to_string( intermed )
+
     if :househol in bits
         s *= get_one( "Househol", rd.househol, mhh.hid, mhh.data_year)
         s *= get_one( "Renter", rd.renter, mhh.hid, mhh.data_year)
@@ -334,7 +349,7 @@ if WEB
         @debug "get hh hdstr=$hdstr"
         hno = parse( Int, hdstr )
         @debug "get hh parsed hid=$hno"    
-        bits = [:househol,:adult,:child]
+        bits = [:househol,:adult,:child,:hbai]
         s = get_data( hno, bits )
         println( "got s $s")
         return add_headers( s )

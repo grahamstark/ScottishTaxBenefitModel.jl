@@ -16,8 +16,6 @@ using .Results: IndividualResult, map_incomes
 
 const RUK_PERSON = 100000001001
 
-include( "testutils.jl")
-
 @testset "Run on actual Data" begin
     nhhs,npeople = init_data()
     nisys = NationalInsuranceSys{Float64}()

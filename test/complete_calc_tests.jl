@@ -45,8 +45,6 @@ using .Runner:
     do_one_run!, 
     RunSettings
 
-include( "testutils.jl")
-
 function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
     bus = get_benefit_units( hh )
     if length(hhr.bus) != size( bus )[1]

@@ -60,6 +60,7 @@ using .Results:
 
 using .Intermediate: 
     MTIntermediate, 
+    HHintermed,
     apply_2_child_policy,
     born_before, 
     is_working_hours,
@@ -828,7 +829,7 @@ end
 function calc_legacy_means_tested_benefits!(
             household_result :: HouseholdResult,
             household        :: Household,
-            intermed         :: NamedTuple,
+            intermed         :: HHIntermed,
             lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,
             age_limits       :: AgeLimits, 
             hours            :: HoursLimits,

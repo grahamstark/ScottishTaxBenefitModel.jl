@@ -339,8 +339,9 @@ module Results
             hres.income[HOUSING_BENEFIT] - 
             hres.income[COUNCIL_TAX_BENEFIT]
         if hres.bhc_net_income <= 0 
-            println("zero bhc_net_income for hid=$(hh.hid) year=$(hh.interview_year) ")
-            println("income $(hres.income)")
+            println("zero bhc_net_income for seq=$(hh.sequence); hid=$(hh.hid) year=$(hh.interview_year) ")
+            println("income")
+            println( inctostr( hres.income ))
             println( "bhc_net_income $(hres.bhc_net_income) HOUSING_BENEFIT=$(hres.income[HOUSING_BENEFIT]) COUNCIL_TAX_BENEFIT=$(hres.income[COUNCIL_TAX_BENEFIT]) hres.income[COUNCIL_TAX_BENEFIT]=$(hres.income[COUNCIL_TAX_BENEFIT])")
         end
         hres.net_housing_costs = hh.gross_rent + 

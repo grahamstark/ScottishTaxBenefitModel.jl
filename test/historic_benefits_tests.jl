@@ -3,8 +3,6 @@ using ScottishTaxBenefitModel.HistoricBenefits
 using ScottishTaxBenefitModel
 using .Definitions, .Utils
 
-include( "testutils.jl")
-
 ## NOTE this test has the 2019 OBR data and 2019Q4 as a target jammed on - will need
 ## changing with update versions
 
