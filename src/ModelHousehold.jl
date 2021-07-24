@@ -243,7 +243,7 @@ function to_string( pers :: Person ) :: String
     s = """
     ### Person $(pers.pno)
     """
-    s *= to_md_table( pers, depth=1)
+    s *= to_md_table( pers, depth=1,exclude=[:onerand])
     #=
     """
     |            |              |

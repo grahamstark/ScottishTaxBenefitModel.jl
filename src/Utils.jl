@@ -1,6 +1,6 @@
 module Utils
 
-using Base: Integer, String
+using Base: Integer, String, Bool
 using DataFrames
 using Dates
 using Base.Unicode
@@ -604,6 +604,13 @@ function md_format( a )
 end
 
 
+function is_a_struct( T::Type )::Bool
+   if ! isstructtype( T )
+      return false
+   end
+   return ! (( T <: AbstractArray)||(T<:AbstractDict)||(T<:Real)||(T<:AbstractString)||(T<:Symbol))
+end
+
 """
 Crude but more-or-less effective thing that prints out a struct (which may contain other structs) as
 a markdown table. 
@@ -620,7 +627,7 @@ function to_md_table( f; exclude=[], depth=0 ) :: String
         T = typeof(v)
         if n in exclude 
             ;
-        elseif isstructtype( T ) && (!(( T <: AbstractArray)||(T<:AbstractDict)||(T<:Real)))
+        elseif is_a_struct( T )
             push!(structnames, n )
         else
             push!(prinames, n )
