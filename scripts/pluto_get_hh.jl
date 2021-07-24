@@ -22,47 +22,14 @@ end
 # ╔═╡ 75121b89-4e25-4f85-aaef-6de8de0aa18d
 get_hh( 4000 )
 
-# ╔═╡ 9ad89f76-bf0f-4626-96b2-c26a1fcc47f0
-get_hh(6267)
-
-# ╔═╡ bf11c144-544c-4cb8-bdb1-b9457c346936
-get_hh(6508)
-
 # ╔═╡ 21eb7e5f-c242-4c76-ad03-6dcd29d46b0c
 begin
 	
 	hbai2017 = CSV.File( "/mnt/data/hbai/tab/h1718.tab" )|>DataFrame
 end
 
-# ╔═╡ 740acad8-6d9a-4cd4-bcc6-c4308dc5f6f8
-begin
-	
-	h7233 = hbai2017[(hbai2017.SERNUM.==7233),:][1,:]
-	
-end
-
-# ╔═╡ 9eebaa11-5814-4144-b994-2e61f05bd57d
-sort(names(h7233))
-
-# ╔═╡ 1e6b648a-4091-420e-9976-5466d0ab8ac8
-begin
-	
-	h7233[[:ESGJOBHD,:S_OE_BHC,:S_OE_AHC]]
-	
-end
-
-# ╔═╡ 77ca1139-c412-4e3f-ae94-d0948db07eef
-get_hh(6732)
-
-# ╔═╡ 1ef36d6a-b2d4-4c68-a5d0-85e709f42eed
-
-h8828 = hbai2017[(hbai2017.SERNUM.==8828),:][1,:]
-
-# ╔═╡ b6c993ed-7851-409a-a877-cc9fb60bd0f9
-begin
-	h8828[[:ESGJOBHD,:S_OE_BHC,:S_OE_AHC]]
-	
-end
+# ╔═╡ 38bd1fcc-9825-4e22-9944-dbbee14f8e30
+get_hh(22)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -368,14 +335,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═a341a594-e99b-11eb-376f-af0d7f593c65
 # ╠═55bf5b39-c01d-4696-97e2-5273f14a5ef1
 # ╟─75121b89-4e25-4f85-aaef-6de8de0aa18d
-# ╠═9ad89f76-bf0f-4626-96b2-c26a1fcc47f0
-# ╠═bf11c144-544c-4cb8-bdb1-b9457c346936
 # ╠═21eb7e5f-c242-4c76-ad03-6dcd29d46b0c
-# ╠═740acad8-6d9a-4cd4-bcc6-c4308dc5f6f8
-# ╠═9eebaa11-5814-4144-b994-2e61f05bd57d
-# ╠═1e6b648a-4091-420e-9976-5466d0ab8ac8
-# ╠═77ca1139-c412-4e3f-ae94-d0948db07eef
-# ╠═1ef36d6a-b2d4-4c68-a5d0-85e709f42eed
-# ╠═b6c993ed-7851-409a-a877-cc9fb60bd0f9
+# ╠═38bd1fcc-9825-4e22-9944-dbbee14f8e30
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

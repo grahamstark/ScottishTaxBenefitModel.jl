@@ -6,6 +6,7 @@ using Dates
 using Base.Unicode
 using CSV
 using BudgetConstraints
+using Printf
 
 export 
    @exported_enum, 
@@ -567,6 +568,42 @@ function get_project_path()
    join( path[1:n],"/")*"/"
 end
 
+function md_format( a :: Union{AbstractArray,Tuple} )::String
+   s = ""
+   for i in eachindex(a)
+      vs = md_format(a[i])
+      s *= "[$i = $(vs)]"
+      if i != lastindex(a)
+         s *= ", "
+      end
+   end
+   return s
+end
+
+function md_format( a :: AbstractDict )::String
+   s = ""
+   n = length(a)
+   i = 0
+   for (k,v) in a
+      i += 1
+      vs = md_format(v)
+      s *= "[$k = $vs]"
+      if i != n
+         s *= ", "
+      end
+   end
+   return s
+end
+
+function md_format( a :: AbstractFloat )::String
+   return @sprintf( "%0.2f", a)
+end
+
+function md_format( a )
+   "$a"
+end
+
+
 """
 Crude but more-or-less effective thing that prints out a struct (which may contain other structs) as
 a markdown table. 
@@ -580,9 +617,10 @@ function to_md_table( f; exclude=[], depth=0 ) :: String
 
     for n in names
         v = getfield(f,n)
+        T = typeof(v)
         if n in exclude 
             ;
-        elseif isstructtype( typeof(v))
+        elseif isstructtype( T ) && (!(( T <: AbstractArray)||(T<:AbstractDict)||(T<:Real)))
             push!(structnames, n )
         else
             push!(prinames, n )
@@ -590,14 +628,15 @@ function to_md_table( f; exclude=[], depth=0 ) :: String
     end
     s = """
 
-    
+
     |            |              |
     |:-----------|-------------:|
     """
     for n in prinames
-        v = getfield(f,n)
-        pn = pretty(n)
-        s *= "|**$(pn)**|$v|\n"
+      v = getfield(f,n)
+      pn = pretty(n)
+      vs = md_format(v)    
+      s *= "|**$(pn)**|$vs|\n"
     end
     s *= "\n\n"
     depth += 1

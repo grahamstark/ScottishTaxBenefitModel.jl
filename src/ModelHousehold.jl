@@ -11,7 +11,11 @@ import Base.show
 
 using ScottishTaxBenefitModel
 using .Definitions
-using .Utils: has_non_z, todays_date
+using .Utils: 
+    has_non_z, 
+    todays_date, 
+    to_md_table
+
 using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,
@@ -187,6 +191,12 @@ mutable struct Household{RT<:Real}
 end
 
 function to_string( hh :: Household ) :: String
+    s = to_md_table( hh, exclude=[:people,:onerand])
+    for (pid,pers) in hh.people
+        s *= to_string( pers )
+    end
+    return s
+    #=    
     s = """
     ## Household $(hh.hid)
     
@@ -226,11 +236,16 @@ function to_string( hh :: Household ) :: String
         s *= to_string( pers )
     end
     return s;
+    =#
 end
 
 function to_string( pers :: Person ) :: String
     s = """
     ### Person $(pers.pno)
+    """
+    s *= to_md_table( pers, depth=1)
+    #=
+    """
     |            |              |
     |:-----------|-------------:|
     |**pid**| $(pers.pid) |
@@ -290,6 +305,7 @@ function to_string( pers :: Person ) :: String
     |**fuel_supplied**| $(pers.fuel_supplied ) |
     
     """
+    =#
     return s
 end
 
