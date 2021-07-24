@@ -197,10 +197,13 @@ module Results
     end
 
     function to_string( br :: BenefitUnitResult, depth=1 )::String
-        s = to_md_table( br, exclude=[:pers,:adults], depth=depth )
-        for (pid,per) in br.pers
-            s *= "### Person $(pid)"
-            s *= to_string( per )
+        s *= "## Benefit Unit Result "
+        s *= to_md_table( br, exclude=[:pers,:adults,:income], depth=depth )
+        s *- "#### Benefit Unit Incomes "
+        s *= inctostr(br.income)
+        for pid in sort(collect(keys(br.pers)))
+            s *= "### Individual Result; Person $(pid)"
+            s *= to_string( br.pers[pid] )
         end
         return s
     end
@@ -254,12 +257,13 @@ module Results
     end
 
     function to_string( hr :: HouseholdResult, depth=0 )::String
-        s = to_md_table( hr, exclude=[:bus,:income], depth=depth )
+        s = "# Results for Household"
+        s *= to_md_table( hr, exclude=[:bus,:income], depth=depth )
         s *= "## HH Income"
         s *= inctostr( hr.income )
         s *= "\n\n"
         for bn in eachindex(hr.bus)
-            s *= repeat("#",depth+1)*"Benefit Unit Result #(bn)"
+            s *= repeat("#",depth+1)*" Benefit Unit Result #(bn)"
             s *= to_string( hr.bus[bn], depth+1)
         end
         return s
