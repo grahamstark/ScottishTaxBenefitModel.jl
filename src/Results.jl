@@ -197,9 +197,8 @@ module Results
     end
 
     function to_string( br :: BenefitUnitResult, depth=1 )::String
-        s *= "## Benefit Unit Result "
         s *= to_md_table( br, exclude=[:pers,:adults,:income], depth=depth )
-        s *- "#### Benefit Unit Incomes "
+        s *= "#### Benefit Unit Incomes "
         s *= inctostr(br.income)
         for pid in sort(collect(keys(br.pers)))
             s *= "### Individual Result; Person $(pid)"
@@ -263,7 +262,7 @@ module Results
         s *= inctostr( hr.income )
         s *= "\n\n"
         for bn in eachindex(hr.bus)
-            s *= repeat("#",depth+1)*" Benefit Unit Result #(bn)"
+            s *= repeat("#",depth+1)*" Benefit Unit Result $(bn)"
             s *= to_string( hr.bus[bn], depth+1)
         end
         return s
@@ -280,7 +279,7 @@ module Results
         end
         return false
     end
-
+    #=
     function add_to!( ni :: NIResult, ni2 :: NIResult )
         # ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
         # ni.total_ni += ni2.total_ni
@@ -334,7 +333,7 @@ module Results
         end
         return (it,ni)
     end
-
+    =#
 
     function has_income( bur :: BenefitUnitResult, which )::Bool
         for (pid,pers) in bur.pers
@@ -348,20 +347,9 @@ module Results
     function aggregate!( bures :: BenefitUnitResult{T} ) where T
         bures.income .= zero(T)
         for (pid,pers) in bures.pers
-            bures.income .+= pers.income
+            bures.income .+= pers.income            
         end
         bures.net_income = calc_net_income( bures.income )
-       
-        #= TODO 
-        eq_scale  :: RT = zero(RT)
-        net_income    :: RT = zero(RT)
-        eq_net_income :: RT = zero(RT)
-        legacy_mtbens = LMTResults{RT}()
-        other_benefits  :: RT = zero(RT)
-        pers = Dict{BigInt,IndividualResult{RT}}()
-        adults = Pid_Array()
-        bures.
-        =#
     end
 
     function aggregate!( hh :: Household{T}, hres :: HouseholdResult{T} ) where T

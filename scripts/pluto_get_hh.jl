@@ -22,12 +22,6 @@ end
 # ╔═╡ 75121b89-4e25-4f85-aaef-6de8de0aa18d
 get_hh( 4000 )
 
-# ╔═╡ 21eb7e5f-c242-4c76-ad03-6dcd29d46b0c
-begin
-	
-	hbai2017 = CSV.File( "/mnt/data/hbai/tab/h1718.tab" )|>DataFrame
-end
-
 # ╔═╡ 38bd1fcc-9825-4e22-9944-dbbee14f8e30
 get_hh(203)
 
@@ -335,7 +329,6 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═a341a594-e99b-11eb-376f-af0d7f593c65
 # ╠═55bf5b39-c01d-4696-97e2-5273f14a5ef1
 # ╟─75121b89-4e25-4f85-aaef-6de8de0aa18d
-# ╠═21eb7e5f-c242-4c76-ad03-6dcd29d46b0c
 # ╠═38bd1fcc-9825-4e22-9944-dbbee14f8e30
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

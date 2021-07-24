@@ -454,6 +454,7 @@ function calcWTC_CTC!(
     
     bu = benefit_unit # aliases
     bu_lmt = benefit_unit_result.legacy_mtbens
+    can_apply_for = bu_lmt.can_apply_for
     it, ni = aggregate_tax( benefit_unit_result )
 
     other_income = it.savings_income + it.dividends_income
@@ -587,7 +588,7 @@ function calculateHB_CTR!(
     age_limits       :: AgeLimits )
     
     eligible_amount = which_ben == ctr ? 
-        household_result.local_tax.council_tax :
+        household_result.local_tax.council_tax : # FIXME we need this from income
         household_result.housing.allowed_rent
        
     @assert which_ben in [ctr, hb]
@@ -679,10 +680,12 @@ function calc_legacy_means_tested_benefits!(
     bures = benefit_unit_result
     bu = benefit_unit
     premium = 0.0
-    can_apply_for :: LMTCanApplyFor = make_lmt_benefit_applicability(
+    bures.legacy_mtbens.can_apply_for :: LMTCanApplyFor = make_lmt_benefit_applicability(
         intermed,
         mt_ben_sys.hours_limits
     )
+    # alias
+    can_apply_for = bures.legacy_mtbens.can_apply_for
     # FIXME MIG not really the right name for is,jsa,esa
     which_mig = nothing
     mig = 0.0
@@ -728,7 +731,7 @@ function calc_legacy_means_tested_benefits!(
             elseif can_apply_for.jsa
                 bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = mig
                 # bures.legacy_mtbens.jsa = mig
-            elseif can_apply_for.is
+            elseif bures.an_apply_for.is
                 bures.pers[recipient].income[INCOME_SUPPORT] = mig                
                 # bures.legacy_mtbens.is = mig
             end
@@ -810,8 +813,7 @@ function calc_legacy_means_tested_benefits!(
                 bu,
                 intermed,
                 mt_ben_sys.working_tax_credit,
-                mt_ben_sys.child_tax_credit,
-                can_apply_for )
+                mt_ben_sys.child_tax_credit )
     
     end
     
