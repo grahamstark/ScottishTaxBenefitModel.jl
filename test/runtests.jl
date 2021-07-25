@@ -13,6 +13,8 @@ include( "testutils.jl")
 
 include( "general_tests.jl")
 
+include( "results_tests.jl")
+
 include( "equivence_scale_tests.jl")
 
 include( "historic_benefits_tests.jl")

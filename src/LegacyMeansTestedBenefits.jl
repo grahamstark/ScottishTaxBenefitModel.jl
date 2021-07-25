@@ -56,7 +56,8 @@ using .Results:
     LMTResults, 
     LMTCanApplyFor, 
     aggregate_tax, 
-    has_income
+    has_any,
+    total
 
 using .Intermediate: 
     MTIntermediate, 
@@ -155,7 +156,7 @@ function calc_incomes(
 
     if( which_ben in [hb,ctr] ) 
         # fixme do this above
-        if has_income( bur, [CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] )     
+        if has_any( bur, CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE )     
             disreg = incrules.high
         end
         # HB disregard CPAG p432 this, too, is very approximate
@@ -449,8 +450,7 @@ function calcWTC_CTC!(
     benefit_unit :: BenefitUnit, 
     intermed :: MTIntermediate,
     wtc :: WorkingTaxCredit,
-    ctc :: ChildTaxCredit,
-    can_apply_for :: LMTCanApplyFor )
+    ctc :: ChildTaxCredit )
     
     bu = benefit_unit # aliases
     bu_lmt = benefit_unit_result.legacy_mtbens
@@ -588,7 +588,7 @@ function calculateHB_CTR!(
     age_limits       :: AgeLimits )
     
     eligible_amount = which_ben == ctr ? 
-        household_result.local_tax.council_tax : # FIXME we need this from income
+        total(household_result, LOCAL_TAXES ) :
         household_result.housing.allowed_rent
        
     @assert which_ben in [ctr, hb]
@@ -613,7 +613,7 @@ function calculateHB_CTR!(
             allowances = 0.0
             passported = false
             # FIXME we're doing passpored twice            
-            if has_income( bures, lmt_ben_sys.hb.passported_bens )
+            if has_any( bures, lmt_ben_sys.hb.passported_bens )
                 # no need to do anything
                 passported = true
             else
@@ -817,7 +817,7 @@ function calc_legacy_means_tested_benefits!(
     
     end
     
-    if has_income( bures, 
+    if has_any( bures, 
         [
             PENSION_CREDIT, 
             NON_CONTRIB_JOBSEEKERS_ALLOWANCE,

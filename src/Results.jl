@@ -24,23 +24,25 @@ module Results
         to_md_table
 
     export
-        aggregate_tax,
         BenefitUnitResult,
-        has_income,
         HouseholdResult,
         HousingResult,
         IndividualResult,
-        init_benefit_unit_result,
-        init_household_result,
         ITResult,
         LMTCanApplyFor,
         LMTIncomes,
         LMTResults,
         LocalTaxes,
-        map_incomes,
         NIResult, 
-        search,
-        to_string
+
+        aggregate_tax,
+        aggregate!,
+        has_any,
+        init_benefit_unit_result,
+        init_household_result,
+        map_incomes,
+        to_string,
+        total
 
     
                 
@@ -207,18 +209,25 @@ module Results
         return s
     end
 
-    function has_any( bur :: BenefitUnitResult, things ... ) :: Bool
-        for p in pers
-            if any_positive( bur.income, collect( things ))
+    function has_any( bur :: BenefitUnitResult, things :: AbstractArray ) :: Bool
+        for (pid,pers) in bur.pers
+            if any_positive( pers.income, things )
                 return true
             end
         end
         return false
     end
 
+    function has_any( bur :: BenefitUnitResult, things ... ) :: Bool
+        return has_any( bur, collect( things ))
+    end
 
     @with_kw mutable struct LocalTaxes{RT<:Real}
-        council_tax :: RT = zero(RT)
+        # council_tax :: RT = zero(RT) 
+        # this isn't really used at present since LOCAL_TAXES
+        # are in the incomes list, but we'll keep it around for modelling other types of local 
+        # tax in future.
+        thing_just_to_make_with_kw_work :: RT = -99
     end
 
 
@@ -279,7 +288,23 @@ module Results
         end
         return false
     end
-    #=
+
+    function total( bur :: BenefitUnitResult{T}, which :: Int ) ::T where T
+        t = zero(T)
+        for (pid,pers) in bur.pers
+            t += pers.income[which]
+        end
+        return t
+    end
+
+    function total( hhr :: HouseholdResult{T}, which :: Int ) :: T where T
+        t = zero(T)
+        for bu in hhr.bus
+            t += total( bu, which )
+        end
+        return t
+    end
+    
     function add_to!( ni :: NIResult, ni2 :: NIResult )
         # ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
         # ni.total_ni += ni2.total_ni
@@ -322,7 +347,10 @@ module Results
         it.personal_savings_allowance += it2.personal_savings_allowance
     end
 
-
+    """
+    This is used to get aggregate taxable income for means-tested benefits;
+    we don't really need bu/hh aggregated data in the results record other than total tax
+    """
     function aggregate_tax( bu :: BenefitUnitResult{T}; include_children :: Bool = true ) :: Tuple where T
         pids = include_children ? keys( bu.pers ) : bu.adults
         it = ITResult{T}()
@@ -333,16 +361,7 @@ module Results
         end
         return (it,ni)
     end
-    =#
-
-    function has_income( bur :: BenefitUnitResult, which )::Bool
-        for (pid,pers) in bur.pers
-            if any_positive( pers.income, which )
-                return true
-            end
-        end
-        return false
-    end
+    
 
     function aggregate!( bures :: BenefitUnitResult{T} ) where T
         bures.income .= zero(T)
