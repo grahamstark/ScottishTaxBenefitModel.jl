@@ -1009,7 +1009,43 @@ end
 @testset "PC/SC" begin
     # cpag19/20 examples on p274
     sys = get_system( scotland=true )
-    bu3 = deepcopy( EXAMPLES[mbu])
+    bhh= deepcopy( EXAMPLES[single_hh])
+    barbara = get_head(bhh)
+    retire!( barbara )
+    disable_seriously!( barbara )
+    barbara.age = 68
+    bpid = barbara.pid
+    hhres = init_household_result( bhh )        
+    bres = hhres.bus[1].pers[bpid]
+    bres.income .= 0.0
+    bres.income[STATE_PENSION] = 129.20
+    bres.income[ATTENDANCE_ALLOWANCE] = sys.nmt_bens.attendance_allowance.higher
+
+    intermed = make_intermediate( bhh, sys.hours_limits, sys.age_limits )
+    calc_legacy_means_tested_benefits!(
+        hhres,
+        bhh,
+        intermed,
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.hr )
+    lmt = hhres.bus[1].legacy_mtbens
+
+    println( to_string( hhres ))
+
+    @test lmt.can_apply_for.pc
+    @test ! lmt.can_apply_for.sc # needs to be > pension age in 2016 - test make age 80 or
+    @test ! lmt.can_apply_for.ctc
+    @test ! lmt.can_apply_for.esa
+    
+    
+    @test lmt.mig ≈ 233.10
+    @test lmt.pc_premia ≈ 65.85
+    @test hhres.bus[1].pers[bpid].income[PENSION_CREDIT] ≈ 103.90
+    @test lmt.hb_passported
+    @test lmt.ctr_passported
+
 
 end
 

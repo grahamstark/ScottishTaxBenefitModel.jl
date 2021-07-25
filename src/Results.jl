@@ -199,7 +199,7 @@ module Results
     end
 
     function to_string( br :: BenefitUnitResult, depth=1 )::String
-        s *= to_md_table( br, exclude=[:pers,:adults,:income], depth=depth )
+        s = to_md_table( br, exclude=[:pers,:adults,:income], depth=depth )
         s *= "#### Benefit Unit Incomes "
         s *= inctostr(br.income)
         for pid in sort(collect(keys(br.pers)))

@@ -330,13 +330,14 @@ function calc_premia(
             union!( premset,[disability_couple])
         end        
     end
-    if which_ben in [hb,ctr,esa,is,jsa] # FIXME check ESA here
+    if which_ben in [hb,ctr,esa,is,jsa,pc] # FIXME check ESA here
         premium += intermed.num_severely_disabled_children*prem_sys.enhanced_disability_child
         if intermed.num_severely_disabled_children > 0
             union!( premset,[enhanced_disability_child] )
         end
         if intermed.num_severely_disabled_adults == 1
             premium += prem_sys.enhanced_disability_single
+            println( "intermed.num_severely_disabled_adults; premium now $premium added $(prem_sys.enhanced_disability_single)")
             union!( premset, [enhanced_disability_single] )
         elseif intermed.num_severely_disabled_adults == 2
             premium += prem_sys.enhanced_disability_couple
@@ -680,7 +681,7 @@ function calc_legacy_means_tested_benefits!(
     bures = benefit_unit_result
     bu = benefit_unit
     premium = 0.0
-    bures.legacy_mtbens.can_apply_for :: LMTCanApplyFor = make_lmt_benefit_applicability(
+    bures.legacy_mtbens.can_apply_for = make_lmt_benefit_applicability(
         intermed,
         mt_ben_sys.hours_limits
     )
@@ -716,24 +717,25 @@ function calc_legacy_means_tested_benefits!(
             intermed,
             mt_ben_sys.allowances,
             age_limits )        
-        mig = max( 0.0, premium+allowances - incomes.total_income );
+        bures.legacy_mtbens.mig = premium+allowances
         bures.legacy_mtbens.mig_incomes = incomes
         bures.legacy_mtbens.mig_allowances = allowances
         bures.legacy_mtbens.mig_premia = premium
-        if (! incomes.disqualified_on_capital) && (mig > 0)
+        entitlement = max( 0.0, bures.legacy_mtbens.mig - incomes.total_income );
+        if (! incomes.disqualified_on_capital) && (entitlement > 0)
             # FIXME we just allocate payment to the head of
             # the BU - make this a function or make can_apply_for
             # specify the payee as well as whether the BU qualifies
             recipient :: BigInt = bures.adults[1]
             if can_apply_for.esa 
-                bures.pers[recipient].income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = mig
-                # bures.legacy_mtbens.esa = mig
+                bures.pers[recipient].income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = entitlement
+                # bures.legacy_mtbens.esa = entitlement
             elseif can_apply_for.jsa
-                bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = mig
-                # bures.legacy_mtbens.jsa = mig
-            elseif bures.an_apply_for.is
-                bures.pers[recipient].income[INCOME_SUPPORT] = mig                
-                # bures.legacy_mtbens.is = mig
+                bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = entitlement
+                # bures.legacy_mtbens.jsa = entitlement
+            elseif can_apply_for.is
+                bures.pers[recipient].income[INCOME_SUPPORT] = entitlement
+                # bures.legacy_mtbens.is = entitlement
             end
             if can_apply_for.ctc
                 bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
@@ -766,14 +768,13 @@ function calc_legacy_means_tested_benefits!(
         )        
         # NOTE - there can be 'qualifying housing costs' in the MIG;
         # see: CPAG 2122
-       miglevel = premium+allowances
-       if ! incomes.disqualified_on_capital    
-            bures.legacy_mtbens.mig = max( 0.0, miglevel - incomes.total_income );
-        end
+        bures.legacy_mtbens.mig = premium+allowances # = max( 0.0, entitlement - incomes.total_income );
         bures.legacy_mtbens.pc_incomes = incomes
         bures.legacy_mtbens.pc_allowances = allowances
         bures.legacy_mtbens.pc_premia = premium
-
+        pc_entitlement = max( 0.0, 
+            bures.legacy_mtbens.mig - 
+            bures.legacy_mtbens.pc_incomes.total_income )
  
         # fixme make this a function
         recipient = bures.adults[1]
@@ -798,11 +799,11 @@ function calc_legacy_means_tested_benefits!(
             sc_income = scsys.withdrawal_rate * 
                 max(0.0, sc_incomes.total_income-thresh)
             
-            income_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income-miglevel)
+            income_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income - bures.legacy_mtbens.mig )
             bures.pers[recipient].income[SAVINGS_CREDIT] = max( 0.0, sc_income - income_over_mig )
             bures.legacy_mtbens.sc_incomes = sc_incomes   
         end
-        bures.pers[recipient].income[PENSION_CREDIT] = bures.legacy_mtbens.mig
+        bures.pers[recipient].income[PENSION_CREDIT] = pc_entitlement
         #  + bures.legacy_mtbens.sc
     end
     
