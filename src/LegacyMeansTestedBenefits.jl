@@ -2,6 +2,7 @@ module LegacyMeansTestedBenefits
 #
 # This module implements the pre-universal credit means-tested benefit system.
 #
+using Base: Bool
 using ScottishTaxBenefitModel
 using .Definitions
 
@@ -149,7 +150,15 @@ function calc_incomes(
     elseif which_ben in [hb,jsa,is,pc]
         if intermed.is_sparent            
             disreg = which_ben == hb ? incrules.lone_parent_hb : incrules.high 
-        elseif ! isdisjoint( mntr.premia, [carer_single, carer_couple, disability_couple, disability_single, severe_disability_couple, severe_disability_single] )
+        elseif ! isdisjoint( mntr.premia, [
+                carer_single, 
+                carer_couple, 
+                disability_couple, 
+                disability_single, 
+                severe_disability_couple, 
+                severe_disability_single, 
+                enhanced_disability_couple, 
+                enhanced_disability_single] )
             disreg = incrules.high
         end       
     end
@@ -305,10 +314,35 @@ function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )::Real
     return ceil( max(0.0, cap-capital_min)/tariff)
 end
 
+"""
+CPAG 2019/20 p347
+"""
+function qualifies_for_severe_disability( 
+    bu :: BenefitUnit,
+    bures :: BenefitUnitResult,
+    num_bus :: Int ) :: Bool
+    if num_bus > 1
+        return false;
+    end
+    for pid in bu.adults
+        pers = bu.people[pid]
+        if ! (pers.dla_self_care_type in [higher,mid] ||
+              pers.attendance_allowance_type in [higher,mid] ||
+              pers.pip_daily_living_type == enhanced_pip ||
+              pers.registered_blind )
+              return false
+        end
+        if bures.pers[pid].income[CARERS_ALLOWANCE] > 0
+            return false
+        end
+    end
+    return true
+end
 
 function calc_premia(     
     which_ben :: LMTBenefitType,
     bu :: BenefitUnit,
+    bures :: BenefitUnitResult,
     intermed :: MTIntermediate, 
     prem_sys :: Premia,
     ages :: AgeLimits  ) :: Tuple
@@ -330,7 +364,7 @@ function calc_premia(
             union!( premset,[disability_couple])
         end        
     end
-    if which_ben in [hb,ctr,esa,is,jsa,pc] # FIXME check ESA here
+    if which_ben in [hb,ctr,is,jsa,esa] # FIXME check ESA here
         premium += intermed.num_severely_disabled_children*prem_sys.enhanced_disability_child
         if intermed.num_severely_disabled_children > 0
             union!( premset,[enhanced_disability_child] )
@@ -343,6 +377,18 @@ function calc_premia(
             premium += prem_sys.enhanced_disability_couple
             union!( premset,[enhanced_disability_couple]) 
         end                
+    end
+    if which_ben in [ hb, ctr, is, jsa, esa, pc, sc ] 
+        # CPAG 19/20 
+        if qualifies_for_severe_disability( bu, bures, intermed.num_bus )
+            if intermed.num_adults == 1
+                premium += prem_sys.severe_disability_single
+                union!( premset, [severe_disability_single])
+            else if intermed.num_adults == 2
+                premium += prem_sys.severe_disability_couple
+                union!( premset, [severe_disability_couple])
+            end
+        end
     end
     if which_ben in [ is, jsa, esa ] # this should almost never happen given our routing; cpag p345
         if intermed.someone_pension_age
@@ -622,6 +668,7 @@ function calculateHB_CTR!(
                 premium, premset = calc_premia(
                     hb,
                     bu,
+                    bures,
                     intermed.buint[bn],        
                     lmt_ben_sys.premia,
                     age_limits )            
@@ -701,6 +748,7 @@ function calc_legacy_means_tested_benefits!(
         premium,premset = calc_premia(
             which_mig,
             bu,
+            bures,
             intermed,        
             mt_ben_sys.premia,
             age_limits )            
@@ -749,6 +797,7 @@ function calc_legacy_means_tested_benefits!(
         premium, premset = calc_premia(
             pc,
             bu,
+            bures,            
             intermed,        
             mt_ben_sys.premia,
             age_limits )            

@@ -28,7 +28,11 @@ using .HistoricBenefits:
     
 
 using .Incomes
-using .Intermediate: MTIntermediate, make_intermediate, apply_2_child_policy
+using .Intermediate: 
+    MTIntermediate, 
+    apply_2_child_policy,
+    make_intermediate
+    
 using .NonMeansTestedBenefits: 
     calc_widows_benefits, 
     calc_state_pension,

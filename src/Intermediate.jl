@@ -242,6 +242,7 @@ mutable struct MTIntermediate
     has_children  :: Bool 
     economically_active :: Bool
     working_disabled :: Bool
+    num_benefit_units :: Int
 end
 
 
@@ -311,7 +312,8 @@ function make_intermediate(
     buno :: Int,
     bu   :: BenefitUnit, 
     hrs  :: HoursLimits,
-    age_limits :: AgeLimits ) :: MTIntermediate
+    age_limits :: AgeLimits,
+    num_benefit_units :: Int ) :: MTIntermediate
     # {RT} where RT
     age_youngest_adult :: Int = 9999
     age_oldest_adult :: Int = -9999
@@ -465,7 +467,8 @@ function make_intermediate(
         limited_capacity_for_work,
         has_children,
         economically_active,
-        is_working_disabled
+        is_working_disabled,
+        num_benefit_units,
     )
 end
 
@@ -479,7 +482,7 @@ function make_intermediate(
     n = size( bus )[1]
     buint = Vector{MTIntermediate}(undef,n)
     for buno in 1:n
-        buint[buno] = make_intermediate( buno, bus[buno], hrs, age_limits )        
+        buint[buno] = make_intermediate( buno, bus[buno], hrs, age_limits, n )        
     end
     hhint = deepcopy( buint[1] )
     for buno in 2:n

@@ -19,7 +19,7 @@ using .NonMeansTestedBenefits:
     calc_post_tax_non_means_tested!
 
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
-using .Results: LMTResults, LMTCanApplyFor, init_household_result, BenefitUnitResult
+using .Results: LMTResults, LMTCanApplyFor, init_household_result, init_benefit_unit_result, BenefitUnitResult
 using Dates
 
 ## FIXME don't need both
@@ -75,7 +75,8 @@ end
             1,
             bu,  
             lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
 
         @test (size(bus)[1] == 1) || (hht == mbu )
         spouse = nothing
@@ -149,7 +150,8 @@ end
         1,
         e_and_m,  
         lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     empty!(mia.income)
     mia.income[wages] = 136.0
     mia.usual_hours_worked = 17
@@ -180,7 +182,8 @@ end # test set
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     head = get_head( cpl )
     println( "head=$head")
@@ -202,7 +205,8 @@ end # test set
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "not_working: sp=$spouse" )
     println( "not_working couple $eligs_cpl" )
@@ -220,7 +224,8 @@ end # test set
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "not_working: sp=$spouse" )
     println( "not_working couple $eligs_cpl" )
@@ -237,7 +242,8 @@ end # test set
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( eligs_cpl )
     @test ! eligs_cpl.esa
@@ -249,7 +255,8 @@ end # test set
         1,
         sparent,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
@@ -264,7 +271,8 @@ end # test set
         1,
         sparent,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
@@ -278,7 +286,8 @@ end # test set
         1,
         sparent,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test eligs_sp.is
@@ -292,7 +301,8 @@ end # test set
         1,
         sparent,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
@@ -306,7 +316,8 @@ end # test set
         1,
         sparent,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_sp = make_lmt_benefit_applicability( 
         intermed, 
         sys.lmt.hours_limits )
@@ -321,7 +332,8 @@ end # test set
         1,
         sparent,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
@@ -343,7 +355,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     println( intermed )
     @test ! intermed.someone_pension_age
     @test ! intermed.all_pension_age
@@ -370,7 +383,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     @test ! intermed.someone_pension_age
     @test ! intermed.all_pension_age
     @test ! intermed.someone_working_ft
@@ -393,7 +407,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     @test ! intermed.someone_working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 0
@@ -416,7 +431,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     @test ! intermed.someone_working_ft
     @test intermed.num_not_working == 2 # ! 1 not_working/1 inactive?
     @test intermed.num_working_pt == 0
@@ -438,7 +454,8 @@ end
         1,
         sparent,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     @test intermed.someone_working_ft
     @test intermed.num_working_pt == 0
     @test intermed.num_working_24_plus == 1
@@ -485,7 +502,8 @@ end
             1,
             spers,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
         incomes = calc_incomes(
             hb,
             spers,
@@ -504,7 +522,8 @@ end
             1,
             spers,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
         incomes = calc_incomes(
             hb,
             spers,
@@ -525,7 +544,8 @@ end
             1,
             spers,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
         incomes = calc_incomes(
             hb,
             spers,
@@ -547,7 +567,8 @@ end
             1,
             spers,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
         incomes = calc_incomes(
             hb,
             spers,
@@ -575,7 +596,8 @@ end
             1,
             cpl,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
         incomes = calc_incomes(
             hb,
             cpl,
@@ -594,7 +616,8 @@ end
             1,
             cpl,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
         incomes = calc_incomes(
             hb,
             cpl,
@@ -619,7 +642,8 @@ end
             1,   
             spers,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
         incomes = calc_incomes(
             hb,
             spers,
@@ -645,7 +669,8 @@ end
             1,   
             singbu,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
 
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances(
@@ -661,7 +686,8 @@ end
             1,   
             singbu,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances(
             ben,
@@ -683,13 +709,15 @@ end
             1,   
             sparbu,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
     head.age = 17
     intermed = make_intermediate( 
             1,   
             sparbu,  
             sys.lmt.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            1 )
     @test intermed.num_children == 2
     @test intermed.num_allowed_children == 2
     for ben in [hb,ctr,is,jsa,esa]
@@ -720,7 +748,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     println( intermed )
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances( 
@@ -741,7 +770,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     println( intermed )
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances( 
@@ -761,7 +791,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     println( intermed )
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances( 
@@ -781,7 +812,8 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances( 
             ben, 
@@ -801,6 +833,7 @@ end
     examples = get_ss_examples()
     cplhh = examples[cpl_w_2_children_hh]
     cpl = get_benefit_units(cplhh)[1]
+    bures = init_benefit_unit_result(cpl)
     spouse = get_spouse( cpl )
     head = get_head( cpl )
     spouse.age = 60
@@ -809,11 +842,13 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     for ben in [hb,ctr,is,jsa,esa]
         premia, premset = calc_premia( 
             ben, 
-            cpl,            
+            cpl,  
+            bures,          
             intermed, 
             sys.lmt.premia,
             sys.age_limits )
@@ -825,14 +860,16 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     @test pers_is_disabled( head )
     @test intermed.num_disabled_adults == 1
     @test intermed.working_disabled
     for ben in [hb,ctr,is,jsa,esa]
         premia, premset = calc_premia( 
             ben, 
-            cpl,            
+            cpl, 
+            bures,           
             intermed, 
             sys.lmt.premia,
             sys.age_limits )
@@ -850,14 +887,16 @@ end
         1,
         cpl,  
         sys.lmt.hours_limits,
-        sys.age_limits )
+        sys.age_limits,
+        1 )
     @test pers_is_disabled( head )
     @test intermed.num_disabled_adults == 1
     @test intermed.working_disabled
     for ben in [hb,ctr,is,jsa,esa]
         premia, premset = calc_premia( 
             ben, 
-            cpl,            
+            cpl,    
+            bures,        
             intermed, 
             sys.lmt.premia,
             sys.age_limits )
@@ -970,7 +1009,7 @@ end
         println( "bu2p.usual_hours_worked $(bu2p.usual_hours_worked)" )
         println( "hours_limits $(sys.lmt.hours_limits) ")
         bures = init_benefit_unit_result( Float64, bus[2])
-        intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
+        intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits, 3 )
         lmt_incomes = calc_incomes(
             hb,
             bus[2],
@@ -988,7 +1027,7 @@ end
         @test ndd ≈ ndds[i]        
     end
     unemploy!( bu2p )
-    intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
+    intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits, 3 )
     bures = init_benefit_unit_result( Float64, bus[2] )
     lmt_incomes = calc_incomes(
         hb,
