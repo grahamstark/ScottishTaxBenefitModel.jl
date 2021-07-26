@@ -881,7 +881,7 @@ function calc_legacy_means_tested_benefits!(
             end
             bures.pers[recipient].income[SAVINGS_CREDIT] = scent
             bures.legacy_mtbens.sc_incomes = sc_incomes  
-            println( "SC: maxpay=$maxpay; thresh=$thresh income_over_thresh=$income_over_thresh sc_maximum $sc_maximum income_over_mig $income_over_mig bures.pers[recipient].income[SAVINGS_CREDIT]=$(bures.pers[recipient].income[SAVINGS_CREDIT])") 
+            # println( "SC: maxpay=$maxpay; thresh=$thresh income_over_thresh=$income_over_thresh sc_maximum $sc_maximum income_over_mig $income_over_mig bures.pers[recipient].income[SAVINGS_CREDIT]=$(bures.pers[recipient].income[SAVINGS_CREDIT])") 
         end
         bures.pers[recipient].income[PENSION_CREDIT] = pc_entitlement
         #  + bures.legacy_mtbens.sc
