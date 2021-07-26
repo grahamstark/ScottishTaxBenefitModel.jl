@@ -11,6 +11,7 @@ using .ModelHousehold:
    Household, 
    Person,    
    child_pids,
+   get_head,
    num_adults, 
    num_children,
    make_eq_scales!
@@ -91,7 +92,7 @@ end
 
 const EXAMPLES = get_ss_examples()
 const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
-
+const SPARE_ADULT = get_head( EXAMPLES[single_hh])
 
 function unemploy!( pers::Person )
    pers.usual_hours_worked = 0
@@ -178,14 +179,40 @@ end
 
 # FIXME relationships fixup
 function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
-   head_pid = get_head(hh).pid
+   head = get_head(hh)   
    np = deepcopy( SPARE_CHILD )
-   np.relationships[head_pid] = Son_or_daughter_incl_adopted
+   np.relationships[head.pid] = Son_or_daughter_incl_adopted
+   # TODO fill in other relationships
+   np.default_benefit_unit = head.default_benefit_unit
    np.pid = maximum( keys( hh.people ))+1
    np.age = age
    np.sex = sex
    hh.people[ np.pid ] = np
    make_eq_scales!( hh )
+   return np.pid
+end
+
+function add_non_dependent!( 
+   hh  :: Household, 
+   age :: Integer, 
+   sex :: Sex ) :: BigInt
+
+   head = get_head(hh)
+   np = deepcopy( SPARE_ADULT )
+   bus = get_benefit_units( hh )
+   nbus = size(bus)[1]
+   np.pid = maximum( keys( hh.people ))+1
+   np.relationships[head.pid] = Son_or_daughter_incl_adopted
+   # TODO fill in other relationships
+   np.age = age
+   np.sex = sex
+   np.default_benefit_unit = nbus + 1
+   hh.people[ np.pid ] = np
+   bus = get_benefit_units( hh )
+   nnbus = size(bus)[1]
+   @assert nnbus == nbus + 1
+   @assert get_head( bus[nnbus] ) == np
+   make_eq_scales!( hh )   
    return np.pid
 end
 

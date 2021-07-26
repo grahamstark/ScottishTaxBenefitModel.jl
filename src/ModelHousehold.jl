@@ -175,7 +175,7 @@ mutable struct Household{RT<:Real}
     year_house_bought:: Int
     gross_rent::RT # rentg Gross rent including Housing Benefit  or rent Net amount of last rent payment
     rent_includes_water_and_sewerage::Bool
-    other_housing_charges::RT # rent Net amount of last rent payment
+    other_housing_charges::RT 
     gross_housing_costs::RT
     total_income::RT
     total_wealth::RT

@@ -521,6 +521,7 @@ module STBParameters
         pensioner_capital_max :: RT = 16_000.0
         
         capital_tariff :: RT = 250 # £1pw per 250 
+        pensioner_tariff :: RT = 500
     end
     
     @with_kw mutable struct MinimumWage{RT<:Real}

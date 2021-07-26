@@ -8,6 +8,8 @@ using .Definitions
 
 using .Incomes
 
+using .Utils: to_md_table
+
 using .ModelHousehold: 
     BenefitUnit,
     Household, 
@@ -58,6 +60,7 @@ using .Results:
     LMTCanApplyFor, 
     aggregate_tax, 
     has_any,
+    to_string,
     total
 
 using .Intermediate: 
@@ -205,17 +208,19 @@ function calc_incomes(
     inc.net_earnings = max(0.0, gross_earn - disreg - inc.childcare )
     capmin = incrules.capital_min
     capmax = incrules.capital_max
+    tariff = incrules.capital_tariff
     if intermed.someone_pension_age
+        tariff = incrules.pensioner_tariff
         if which_ben == pc 
             capmin = incrules.pc_capital_min
-            capmax = incrules.pc_capital_min
+            capmax = incrules.pc_capital_max
         else
             capmin = incrules.pensioner_capital_min
-            capmax = incrules.pensioner_capital_min
+            capmax = incrules.pensioner_capital_max
         end
     end
     
-    inc.tariff_income = tariff_income(cap, capmin, incrules.capital_tariff )
+    inc.tariff_income = tariff_income(cap, capmin, tariff )
     inc.disqualified_on_capital = cap > capmax 
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
@@ -315,28 +320,30 @@ function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )::Real
 end
 
 """
-CPAG 2019/20 p347
+CPAG 2019/20 p347. I *think* this is what it means ...
+Moved to own function since it's convoluted.
 """
-function qualifies_for_severe_disability( 
+function num_qualifying_for_severe_disability( 
     bu :: BenefitUnit,
     bures :: BenefitUnitResult,
-    num_bus :: Int ) :: Bool
+    num_bus :: Int ) :: Int
     if num_bus > 1
-        return false;
+        return 0;
     end
+    n = 0
     for pid in bu.adults
         pers = bu.people[pid]
-        if ! (pers.dla_self_care_type in [higher,mid] ||
-              pers.attendance_allowance_type in [higher,mid] ||
-              pers.pip_daily_living_type == enhanced_pip ||
+        if (pers.dla_self_care_type in [high,mid] ||
+              pers.attendance_allowance_type != missing_lmh ||
+              pers.pip_daily_living_type == enhanced_pip || #?? *any* daily living pip?
               pers.registered_blind )
-              return false
+              n += 1
         end
         if bures.pers[pid].income[CARERS_ALLOWANCE] > 0
-            return false
+            n -= 1
         end
-    end
-    return true
+    end    
+    return max( 0, n )
 end
 
 function calc_premia(     
@@ -355,7 +362,7 @@ function calc_premia(
             union!( premset, [disabled_child])
         end
     end
-    if which_ben != esa
+    if ! (which_ben in [esa, pc, sc]) # FIXME not quite right but perhaps near enough - should be reached pension age? CPAG19 p344
         if intermed.num_disabled_adults == 1
             premium += prem_sys.disability_single
             union!( premset,[disability_single])
@@ -379,15 +386,14 @@ function calc_premia(
         end                
     end
     if which_ben in [ hb, ctr, is, jsa, esa, pc, sc ] 
-        # CPAG 19/20 
-        if qualifies_for_severe_disability( bu, bures, intermed.num_bus )
-            if intermed.num_adults == 1
-                premium += prem_sys.severe_disability_single
-                union!( premset, [severe_disability_single])
-            else if intermed.num_adults == 2
-                premium += prem_sys.severe_disability_couple
-                union!( premset, [severe_disability_couple])
-            end
+        # CPAG 19/20 - I *think* this is what it means..
+        nsd = num_qualifying_for_severe_disability( bu, bures, intermed.num_benefit_units ) > 0
+        if nsd == 1
+            premium += prem_sys.severe_disability_single
+            union!( premset, [severe_disability_single])
+        elseif nsd == 2
+            premium += prem_sys.severe_disability_couple
+            union!( premset, [severe_disability_couple])
         end
     end
     if which_ben in [ is, jsa, esa ] # this should almost never happen given our routing; cpag p345
@@ -410,6 +416,9 @@ function calc_premia(
     #
     # we're ignoring support components (p355-) for now.
     #
+    if which_ben == pc
+        println( "premset $(premset))")
+    end
     return (premium, premset)
 end
 
@@ -417,7 +426,8 @@ function calc_allowances(
     which_ben :: LMTBenefitType,
     intermed :: MTIntermediate, 
     pas :: PersonalAllowances,
-    ages :: AgeLimits ) :: Real
+    ages :: AgeLimits,
+    oo_housing_costs :: Real  ) :: Real
     pers_allow = 0.0
     @assert intermed.num_adults in [1,2]
     if which_ben == pc
@@ -478,6 +488,7 @@ function calc_allowances(
             pers_allow += pas.child * intermed.num_allowed_children
         end
     end
+    pers_allow += oo_housing_costs
     @assert pers_allow > 0
     return pers_allow
 end
@@ -679,7 +690,8 @@ function calculateHB_CTR!(
                     hb,
                     intermed.buint[bn],
                     lmt_ben_sys.allowances,
-                    age_limits )
+                    age_limits,
+                    0.0  )
                 excess = max( 0.0, incomes.total_income - (premium+allowances))
                 if excess > 0
                     taper = which_ben == ctc ?  lmt_ben_sys.ctc.taper : lmt_ben_sys.hb.taper
@@ -723,7 +735,8 @@ function calc_legacy_means_tested_benefits!(
     intermed     :: MTIntermediate,
     mt_ben_sys   :: LegacyMeansTestedBenefitSystem,
     age_limits   :: AgeLimits, 
-    hours        :: HoursLimits )
+    hours        :: HoursLimits,
+    hh :: Union{Nothing,Household} ) # passed on 1st BU only
     # aliases
     bures = benefit_unit_result
     bu = benefit_unit
@@ -732,11 +745,17 @@ function calc_legacy_means_tested_benefits!(
         intermed,
         mt_ben_sys.hours_limits
     )
+    # FIXME we need to check the fuck out of this charge
+    oo_housing_costs = 0.0
+    if hh !== nothing
+        if is_owner_occupier( hh.tenure ) 
+            oo_housing_costs = hh.other_housing_charges
+        end
+    end
     # alias
     can_apply_for = bures.legacy_mtbens.can_apply_for
     # FIXME MIG not really the right name for is,jsa,esa
     which_mig = nothing
-    mig = 0.0
     if can_apply_for.esa 
         which_mig = esa
     elseif can_apply_for.jsa
@@ -764,7 +783,8 @@ function calc_legacy_means_tested_benefits!(
             which_mig,
             intermed,
             mt_ben_sys.allowances,
-            age_limits )        
+            age_limits,
+            oo_housing_costs )        
         bures.legacy_mtbens.mig = premium+allowances
         bures.legacy_mtbens.mig_incomes = incomes
         bures.legacy_mtbens.mig_allowances = allowances
@@ -813,7 +833,8 @@ function calc_legacy_means_tested_benefits!(
             pc,
             intermed,
             mt_ben_sys.allowances,
-            age_limits 
+            age_limits,
+            oo_housing_costs
         )        
         # NOTE - there can be 'qualifying housing costs' in the MIG;
         # see: CPAG 2122
@@ -839,18 +860,28 @@ function calc_legacy_means_tested_benefits!(
                 hours
                  )
             thresh = scsys.threshold_single
-            maxpay = scsys.threshold_single
+            maxpay = scsys.max_single
             if intermed.num_adults > 1
                 thresh = scsys.threshold_couple
                 maxpay = scsys.max_couple
             end
             # see: CPAG 2011/12 edition ch 19
-            sc_income = scsys.withdrawal_rate * 
-                max(0.0, sc_incomes.total_income-thresh)
-            
-            income_over_mig = (1-scsys.withdrawal_rate)*max(0.0, incomes.total_income - bures.legacy_mtbens.mig )
-            bures.pers[recipient].income[SAVINGS_CREDIT] = max( 0.0, sc_income - income_over_mig )
-            bures.legacy_mtbens.sc_incomes = sc_incomes   
+            scent = 0.0
+            income_over_thresh = max(0.0, sc_incomes.total_income - thresh )
+            if income_over_thresh > 0
+                sc_maximum = min( maxpay, scsys.withdrawal_rate * income_over_thresh)
+            else
+                sc_maximum = maxpay
+            end
+            income_over_mig = incomes.total_income - bures.legacy_mtbens.mig
+            if income_over_mig <= 0.0
+                scent = sc_maximum
+            else
+                scent = max( 0.0, sc_maximum - (1-scsys.withdrawal_rate)*income_over_mig)
+            end
+            bures.pers[recipient].income[SAVINGS_CREDIT] = scent
+            bures.legacy_mtbens.sc_incomes = sc_incomes  
+            println( "SC: maxpay=$maxpay; thresh=$thresh income_over_thresh=$income_over_thresh sc_maximum $sc_maximum income_over_mig $income_over_mig bures.pers[recipient].income[SAVINGS_CREDIT]=$(bures.pers[recipient].income[SAVINGS_CREDIT])") 
         end
         bures.pers[recipient].income[PENSION_CREDIT] = pc_entitlement
         #  + bures.legacy_mtbens.sc
@@ -898,7 +929,8 @@ function calc_legacy_means_tested_benefits!(
             intermed.buint[buno],
             lmt_ben_sys,
             age_limits,
-            hours )
+            hours,
+            buno == 1 ? household : nothing )
     end
     # hb using the whole hhls but assigned to 1st bu
     calculateHB_CTR!( 

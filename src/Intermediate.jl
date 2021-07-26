@@ -307,7 +307,6 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.working_disabled = sum.working_disabled || add.working_disabled
 end
 
-
 function make_intermediate(
     buno :: Int,
     bu   :: BenefitUnit, 
@@ -468,7 +467,7 @@ function make_intermediate(
         has_children,
         economically_active,
         is_working_disabled,
-        num_benefit_units,
+        num_benefit_units
     )
 end
 
@@ -482,7 +481,12 @@ function make_intermediate(
     n = size( bus )[1]
     buint = Vector{MTIntermediate}(undef,n)
     for buno in 1:n
-        buint[buno] = make_intermediate( buno, bus[buno], hrs, age_limits, n )        
+        buint[buno] = make_intermediate( 
+            buno, 
+            bus[buno], 
+            hrs, 
+            age_limits, 
+            n ) 
     end
     hhint = deepcopy( buint[1] )
     for buno in 2:n

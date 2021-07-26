@@ -1,26 +1,64 @@
 using Test
+using Dates
+
 using ScottishTaxBenefitModel
-using .ModelHousehold: Household, Person, People_Dict, is_single,
-    default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
-    pers_is_disabled, pers_is_carer
-using .ExampleHouseholdGetter
+
+using .ModelHousehold: 
+    Household, 
+    Person, 
+    People_Dict,     
+    default_bu_allocation, 
+    get_benefit_units, 
+    get_head, 
+    get_spouse, 
+    is_single,
+    pers_is_carer,
+    pers_is_disabled, 
+    search
+
 using .Definitions
+
 using .LegacyMeansTestedBenefits:  
-    calc_legacy_means_tested_benefits!, tariff_income,
-    LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
-    working_disabled, calc_allowances,
-    calc_incomes, calc_NDDs, calculateHB_CTR!
-using .LocalLevelCalculations: apply_rent_restrictions, calc_council_tax
+    LMTResults, 
+    calc_allowances,
+    calc_incomes, 
+    calc_legacy_means_tested_benefits!, 
+    calc_NDDs, 
+    calc_premia,
+    calculateHB_CTR!,
+    is_working_hours, 
+    make_lmt_benefit_applicability, 
+    tariff_income,
+    working_disabled
+
+using .LocalLevelCalculations: 
+    apply_rent_restrictions, 
+    calc_council_tax
+
 using .Incomes
-using .Intermediate: MTIntermediate, make_intermediate, apply_2_child_policy
+
+using .Intermediate: 
+    MTIntermediate, 
+    apply_2_child_policy,
+    make_intermediate 
 
 using .NonMeansTestedBenefits:
     calc_pre_tax_non_means_tested!,
     calc_post_tax_non_means_tested!
 
-using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
-using .Results: LMTResults, LMTCanApplyFor, init_household_result, init_benefit_unit_result, BenefitUnitResult
-using Dates
+using .STBParameters: 
+    HoursLimits,
+    IncomeRules, 
+    LegacyMeansTestedBenefitSystem
+    
+using .Results: 
+    BenefitUnitResult,
+    LMTResults, 
+    LMTCanApplyFor, 
+    init_household_result, 
+    init_benefit_unit_result, 
+    to_string
+using .Utils: eq_nearest_p
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
@@ -677,7 +715,8 @@ end
             ben,
             intermed,
             sys.lmt.allowances,
-            sys.age_limits
+            sys.age_limits,
+            0.0 # oo h costs
         )
         @test allow ==  sys.lmt.allowances.age_25_and_over
     end
@@ -693,7 +732,8 @@ end
             ben,
             intermed,
             sys.lmt.allowances,
-            sys.age_limits
+            sys.age_limits,
+            0.0 # oo h costs
         )
         @test allow ==  sys.lmt.allowances.age_18_24 # you get the 18 except in odd cases; cpag p336
     end
@@ -725,7 +765,8 @@ end
             ben,
             intermed,
             sys.lmt.allowances,
-            sys.age_limits
+            sys.age_limits,
+            0.0 
         )
         println( "on $ben allow=$allow" )
         if ben in [hb,ctr]
@@ -756,7 +797,8 @@ end
             ben, 
             intermed, 
             sys.lmt.allowances, 
-            sys.age_limits )
+            sys.age_limits,
+            0.0  )
         if ben in [hb,ctr]
             @test allow ≈ 87.50 + 2*sys.lmt.allowances.child   
         else
@@ -778,7 +820,8 @@ end
             ben, 
             intermed, 
             sys.lmt.allowances, 
-            sys.age_limits )
+            sys.age_limits,
+            0.0 )
         if ben in [hb,ctr]
             @test allow ≈ 114.85 + 2*sys.lmt.allowances.child   
         else
@@ -799,7 +842,8 @@ end
             ben, 
             intermed, 
             sys.lmt.allowances, 
-            sys.age_limits )
+            sys.age_limits,
+            0.0 )
         if ben in [hb,ctr]
             @test allow ≈ 114.85 + 2*sys.lmt.allowances.child   
         else
@@ -819,7 +863,8 @@ end
             ben, 
             intermed, 
             sys.lmt.allowances, 
-            sys.age_limits )
+            sys.age_limits,
+            0.0 )
         if ben in [hb,ctr]
             @test allow ≈ 114.85 + 2*sys.lmt.allowances.child   
         else
@@ -1009,7 +1054,8 @@ end
         println( "bu2p.usual_hours_worked $(bu2p.usual_hours_worked)" )
         println( "hours_limits $(sys.lmt.hours_limits) ")
         bures = init_benefit_unit_result( Float64, bus[2])
-        intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits, 3 )
+        intermed = make_intermediate( 
+            bu3, sys.hours_limits, sys.age_limits )
         lmt_incomes = calc_incomes(
             hb,
             bus[2],
@@ -1027,7 +1073,7 @@ end
         @test ndd ≈ ndds[i]        
     end
     unemploy!( bu2p )
-    intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits, 3 )
+    intermed = make_intermediate( bu3, sys.hours_limits, sys.age_limits )
     bures = init_benefit_unit_result( Float64, bus[2] )
     lmt_incomes = calc_incomes(
         hb,
@@ -1045,48 +1091,6 @@ end
     @test ndd ≈ 15.60
 end
 
-@testset "PC/SC" begin
-    # cpag19/20 examples on p274
-    sys = get_system( scotland=true )
-    bhh= deepcopy( EXAMPLES[single_hh])
-    barbara = get_head(bhh)
-    retire!( barbara )
-    disable_seriously!( barbara )
-    barbara.age = 68
-    bpid = barbara.pid
-    hhres = init_household_result( bhh )        
-    bres = hhres.bus[1].pers[bpid]
-    bres.income .= 0.0
-    bres.income[STATE_PENSION] = 129.20
-    bres.income[ATTENDANCE_ALLOWANCE] = sys.nmt_bens.attendance_allowance.higher
-
-    intermed = make_intermediate( bhh, sys.hours_limits, sys.age_limits )
-    calc_legacy_means_tested_benefits!(
-        hhres,
-        bhh,
-        intermed,
-        sys.lmt,
-        sys.age_limits,
-        sys.hours_limits,
-        sys.hr )
-    lmt = hhres.bus[1].legacy_mtbens
-
-    println( to_string( hhres ))
-
-    @test lmt.can_apply_for.pc
-    @test ! lmt.can_apply_for.sc # needs to be > pension age in 2016 - test make age 80 or
-    @test ! lmt.can_apply_for.ctc
-    @test ! lmt.can_apply_for.esa
-    
-    
-    @test lmt.mig ≈ 233.10
-    @test lmt.pc_premia ≈ 65.85
-    @test hhres.bus[1].pers[bpid].income[PENSION_CREDIT] ≈ 103.90
-    @test lmt.hb_passported
-    @test lmt.ctr_passported
-
-
-end
 
 @testset "Passporting" begin
     #TODO
@@ -1153,4 +1157,158 @@ end
             sys.hr )
 
     end
+end
+
+
+@testset "PC/SC" begin
+    # cpag19/20 examples on p274
+    sys = get_system( scotland=true )
+    bhh= deepcopy( EXAMPLES[single_hh])
+    barbara = get_head(bhh)
+    retire!( barbara )
+    disable_seriously!( barbara )
+    barbara.age = 68
+    bpid = barbara.pid
+    barbara.pip_daily_living_type = enhanced_pip
+    hhres = init_household_result( bhh )        
+    bres = hhres.bus[1].pers[bpid]
+    bres.income .= 0.0
+    bres.income[STATE_PENSION] = 129.20
+    bres.income[ATTENDANCE_ALLOWANCE] = sys.nmt_bens.attendance_allowance.higher
+
+    intermed = make_intermediate( bhh, sys.hours_limits, sys.age_limits )
+    calc_legacy_means_tested_benefits!(
+        hhres,
+        bhh,
+        intermed,
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.hr )
+    lmt = hhres.bus[1].legacy_mtbens
+
+    println( to_string( hhres ))
+
+    @test lmt.can_apply_for.pc
+    @test ! lmt.can_apply_for.sc # needs to be > pension age in 2016 - test make age 80 or
+    @test ! lmt.can_apply_for.ctc
+    @test ! lmt.can_apply_for.esa
+    
+    
+    @test lmt.mig ≈ 233.10
+    @test lmt.pc_premia ≈ 65.85
+    @test hhres.bus[1].pers[bpid].income[PENSION_CREDIT] ≈ 103.90
+    @test lmt.hb_passported
+    @test lmt.ctr_passported
+
+    m_and_j= deepcopy( EXAMPLES[childless_couple_hh])
+    maria = get_head( m_and_j )
+    maria.age = 66
+    retire!( maria )
+    maria.dla_self_care_type = high
+    
+    geoff = get_spouse( m_and_j )
+    retire!( geoff )
+    geoff.attendance_allowance_type = high
+    geoff.age = 67
+    geoff.assets[A_Stocks_Shares_Bonds_etc] = 11_500.0
+
+    newpid = add_non_dependent!( m_and_j, 24, Female )
+    bus = get_benefit_units( m_and_j )
+    @test size( bus )[1] == 2
+    daught = get_head(bus[2])
+    hhres = init_household_result( m_and_j )  
+
+    mres = hhres.bus[1].pers[maria.pid]
+    gres = hhres.bus[1].pers[geoff.pid]
+    dres = hhres.bus[2].pers[daught.pid]
+
+    mres.income .= 0
+    mres.income[STATE_PENSION] = 77.45
+
+    gres.income .= 0
+    gres.income[STATE_PENSION] = 129.20
+    gres.income[PRIVATE_PENSIONS] = 90
+    
+    dres.income .= 0
+    dres.income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = 100.0 # anything ..
+    intermed = make_intermediate( m_and_j, sys.hours_limits, sys.age_limits )
+   
+    calc_legacy_means_tested_benefits!(
+        hhres,
+        m_and_j,
+        intermed,
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.hr )
+    lmt = hhres.bus[1].legacy_mtbens
+    @test lmt.mig ≈ 255.25
+    @test lmt.pc_premia ≈ 0
+    @test hhres.bus[1].pers[maria.pid].income[PENSION_CREDIT] ≈ 0
+    @test ! lmt.hb_passported
+    @test ! lmt.ctr_passported
+    @test lmt.pc_incomes.tariff_income ≈ 3
+    @test lmt.pc_incomes.total_income ≈ 299.65
+    
+    # SAVINGS_CREDIT
+
+    # from CPAG 2011/12 updated by me.
+
+    t_and_j= deepcopy( EXAMPLES[childless_couple_hh])
+    june = get_head( t_and_j )
+    retire!( june )
+    june.age = 75
+    
+    terry = get_spouse( t_and_j )
+    retire!( terry )
+    terry.age = 75 # should still qualify on June's age
+    intermed = make_intermediate( t_and_j, sys.hours_limits, sys.age_limits )   
+    @test intermed.buint[1].someone_pension_age_2016
+    
+    hhres = init_household_result( t_and_j )  
+    jres = hhres.bus[1].pers[june.pid]
+    jres.income[PRIVATE_PENSIONS] = 30.0
+    tres = hhres.bus[1].pers[terry.pid]
+    tres.income .= 0
+    tres.income[STATE_PENSION] = 193.35
+    calc_legacy_means_tested_benefits!(
+        hhres,
+        t_and_j,
+        intermed,
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.hr )
+    lmt = hhres.bus[1].legacy_mtbens
+    @test lmt.can_apply_for.pc
+    @test lmt.can_apply_for.sc
+    @test lmt.mig ≈ 255.25
+    @test lmt.pc_premia ≈ 0
+    @test hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT] ≈ 15.35 
+    @test lmt.hb_passported
+    @test lmt.ctr_passported
+    @test lmt.sc_incomes.total_income ≈ 193.35+30
+    jres.income[PRIVATE_PENSIONS] = 60
+    calc_legacy_means_tested_benefits!(
+        hhres,
+        t_and_j,
+        intermed,
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.hr )
+    lmt = hhres.bus[1].legacy_mtbens
+    @test eq_nearest_p(hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT], 14.21 )
+    jres.income[PRIVATE_PENSIONS] = 100
+    calc_legacy_means_tested_benefits!(
+        hhres,
+        t_and_j,
+        intermed,
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.hr )
+    lmt = hhres.bus[1].legacy_mtbens
+    @test eq_nearest_p(hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT], 0.11 )
 end
