@@ -573,7 +573,6 @@ using StaticArrays
     end # iname
 
     # FIXME what if we din't export these ones, deleted '_INCOME' and instead forced Incomes.SAVINGS ...
-    export LEGACY_HB_INCOME
     export LEGACY_MT_INCOME
     export GROSS_INCOME
     export LEGACY_HB_INCOME

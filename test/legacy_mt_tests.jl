@@ -16,6 +16,9 @@ using .ModelHousehold:
     pers_is_disabled, 
     search
 
+using .IncomeTaxCalculations: 
+    calc_income_tax!
+
 using .Definitions
 
 using .LegacyMeansTestedBenefits:  
@@ -26,6 +29,7 @@ using .LegacyMeansTestedBenefits:
     calc_NDDs, 
     calc_premia,
     calculateHB_CTR!,
+    calcWTC_CTC!,
     is_working_hours, 
     make_lmt_benefit_applicability, 
     tariff_income,
@@ -45,7 +49,10 @@ using .Intermediate:
 using .NonMeansTestedBenefits:
     calc_pre_tax_non_means_tested!,
     calc_post_tax_non_means_tested!
-
+    
+using .LocalLevelCalculations: 
+    calc_council_tax
+    
 using .STBParameters: 
     HoursLimits,
     IncomeRules, 
@@ -58,7 +65,10 @@ using .Results:
     init_household_result, 
     init_benefit_unit_result, 
     to_string
-using .Utils: eq_nearest_p
+using .Utils: 
+    eq_nearest_p,
+    to_md_table
+
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
@@ -1034,7 +1044,6 @@ end
     # PENSION CREDIT 
 end
 
-
 @testset "NDDs" begin
     sys = get_system( scotland=true )
     bu3 = deepcopy( EXAMPLES[mbu])
@@ -1096,8 +1105,8 @@ end
     #TODO
 end
 
-@testset "CTC" begin
-#TODO
+@testset "CTC/WTC" begin
+
 end
 
 @testset "Full Legacy Benefits" begin
@@ -1312,3 +1321,130 @@ end
     lmt = hhres.bus[1].legacy_mtbens
     @test eq_nearest_p(hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT], 0.11 )
 end
+
+
+
+@testset "CTC/WTC/Childcare CPAG Ch 61" begin
+    relevant_period = 366
+    cpag_wpy = 366/365.25
+    sys = get_system( scotland=true )
+    mt_ben_sys = sys.lmt
+
+    
+    tracyh = deepcopy( EXAMPLES[single_parent_hh])
+    @test num_children( tracyh ) == 2
+    for pid in child_pids( tracyh )
+        tracyh.people[pid].hours_of_childcare = 40
+        tracyh.people[pid].cost_of_childcare = 100.0
+        tracyh.people[pid].age = 4
+    end
+    tracy = get_head( tracyh )
+    tracy.usual_hours_worked = 20
+    
+    intermed = make_intermediate( 
+        tracyh, sys.hours_limits, sys.age_limits )
+    bus = get_benefit_units( tracyh )
+    bures = init_benefit_unit_result( Float64, bus[1])
+    bures.pers[tracy.pid].income .= 0.0
+    bures.pers[tracy.pid].income[WAGES] = 20*8
+
+    #
+    # needed since we use IT calculated incomes
+    #
+    calc_income_tax!(
+        bures,
+        tracy,
+        nothing,
+    sys.it )
+
+    #
+    # benefit unit level - this doesn't include ct/hb
+    # which are done once for the household
+    #
+    calc_legacy_means_tested_benefits!(
+            bures,
+            bus[1], 
+            intermed.buint[1],
+            sys.lmt,
+            sys.age_limits,
+            sys.hours_limits,
+            tracyh )
+
+    #
+    # calculatint these from scratch 
+    # in since I can't work out the CPAG
+    # DWP period stuff, which has variously 366 and 365
+    # day years in their example, while I have 365.25 day
+    # years
+    # 
+    targetwtc = sys.lmt.working_tax_credit.basic +
+        sys.lmt.working_tax_credit.lone_parent + 
+        bures.legacy_mtbens.cost_of_childcare
+    targetwtc -= sys.lmt.working_tax_credit.taper*max( 0.0,
+        bures.pers[tracy.pid].income[WAGES] - sys.lmt.working_tax_credit.threshold )
+
+    @test bures.legacy_mtbens.cost_of_childcare ≈ 7280.0/52
+    println( bures.legacy_mtbens.can_apply_for )
+    println( to_md_table(intermed.buint[1]))
+    println( to_md_table(bures))
+    println( inctostr( bures.pers[tracy.pid].income ))
+    targetctc = sys.lmt.child_tax_credit.family+2*(sys.lmt.child_tax_credit.child)
+    @test bures.pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
+    targetwtc = sys.lmt.working_tax_credit.basic +
+        sys.lmt.working_tax_credit.lone_parent + 
+        bures.legacy_mtbens.cost_of_childcare
+    targetwtc -= sys.lmt.working_tax_credit.taper*max( 0.0,
+        bures.pers[tracy.pid].income[WAGES] - sys.lmt.working_tax_credit.threshold )
+    @test bures.pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ targetwtc
+
+    unemploy!( tracy )
+    intermed = make_intermediate( 
+        tracyh, sys.hours_limits, sys.age_limits )
+    calc_income_tax!(
+        bures,
+        tracy,
+        nothing,
+        sys.it )
+    bures = init_benefit_unit_result( Float64, bus[1])
+    bures.pers[tracy.pid].income .= 0.0
+    calc_legacy_means_tested_benefits!(
+        bures,
+        bus[1], 
+        intermed.buint[1],
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        tracyh )
+    @test bures.pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
+    @test bures.pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ 0
+    println( inctostr( bures.pers[tracy.pid].income ))
+    println( ModelHousehold.to_string( tracyh ))
+
+    # same at hhld level
+    hhres = init_household_result( tracyh )
+    hhres.bus[1].pers[tracy.pid].income .= 0.0
+    calc_income_tax!(
+        hhres.bus[1],
+        tracy,
+        nothing,
+        sys.it )
+    
+    hhres.bus[1].pers[tracy.pid].income[LOCAL_TAXES] = 
+        calc_council_tax( tracyh, intermed.hhint, sys.loctax.ct )
+    
+    calc_legacy_means_tested_benefits!(
+        hhres,
+        tracyh,
+        intermed,
+        sys.lmt,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.hr
+    )
+    println( to_string(hhres))
+    println( inctostr( hhres.bus[1].pers[tracy.pid].income ))
+    @test hhres.bus[1].pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
+    @test hhres.bus[1].pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ 0
+ 
+end
+

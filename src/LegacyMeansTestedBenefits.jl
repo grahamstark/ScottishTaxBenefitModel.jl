@@ -524,6 +524,7 @@ function calcWTC_CTC!(
     wtc_elements = 0.0
     ctc_elements = 0.0
     threshold = wtc.threshold
+    cost_of_childcare = 0.0
     if can_apply_for.wtc 
         wtc_elements = wtc.basic
         if intermed.is_sparent
@@ -562,22 +563,29 @@ function calcWTC_CTC!(
     elements = ctc_elements + wtc_elements
     excess = wtc.taper * max( 0.0, income - threshold )
     wtc_ctc = max( 0.0, elements - excess )
+    println( "excess = $excess wtc.taper=$(wtc.taper) threshold=$threshold" )
+    println( "elements = $elements ctc_elements=$ctc_elements  wtc_elements=$wtc_elements")
     # allocate
     ctc_amt = min( wtc_ctc, ctc_elements )
     wtc_amt = wtc_ctc - ctc_amt
-
+    println( "ctc_amt = $ctc_amt wtc_amt = $wtc_amt")
+    
     ## assign to an individual
     
-
+    bu_lmt.wtc_ctc_tapered_excess = excess
     bu_lmt.wtc_income = income
     bu_lmt.ctc_elements = ctc_elements
     bu_lmt.wtc_elements = wtc_elements
+    bu_lmt.cost_of_childcare = cost_of_childcare
     bu_lmt.wtc_ctc_threshold = threshold
 
     # to spouse if has one
     recipient :: BigInt = length(benefit_unit_result.adults)[1] == 2 ? benefit_unit_result.adults[2] : benefit_unit_result.adults[1]
     benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
     benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
+    println( "income at end of wtc calc")
+    println( inctostr( benefit_unit_result.pers[recipient].income ))
+
 end
 
 
@@ -654,10 +662,8 @@ function calculateHB_CTR!(
     nbus = size(bus)[1]
     ndds = 0.0
     for bn in nbus:-1:1 # fixme bn=>buno for consistency
-        bures = household_result.bus[bn]
-        # println( "loop start; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
         bu = bus[bn]
-        ## FIXME pass this in
+        bures = household_result.bus[bn]
         incomes = calc_incomes( 
             hb,
             bu,
@@ -665,6 +671,7 @@ function calculateHB_CTR!(
             intermed.buint[bn],
             lmt_ben_sys.income_rules,
             lmt_ben_sys.hours_limits )
+        # println( "loop start; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
         if bn == 1
             benefit = max(0.0, eligible_amount - ndds ) # ndds deducted from eligible rent
             premium = 0.0
@@ -673,8 +680,10 @@ function calculateHB_CTR!(
             # FIXME we're doing passpored twice            
             if has_any( bures, lmt_ben_sys.hb.passported_bens )
                 # no need to do anything
+                println("passporting ")
                 passported = true
             else
+                ## FIXME pass this in
                 # println( "else; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
                 premium, premset = calc_premia(
                     hb,
@@ -705,16 +714,22 @@ function calculateHB_CTR!(
             if which_ben == hb
                 bures.pers[recipient].income[HOUSING_BENEFIT] = benefit
                 bures.legacy_mtbens.hb_passported = passported
-                bures.legacy_mtbens.hb_premia = premium
-                bures.legacy_mtbens.hb_allowances = allowances
-                bures.legacy_mtbens.hb_incomes = incomes                           
+                bures.legacy_mtbens.hb_eligible_rent = eligible_amount
+                if ! passported
+                    bures.legacy_mtbens.hb_premia = premium
+                    bures.legacy_mtbens.hb_allowances = allowances
+                    bures.legacy_mtbens.hb_incomes = incomes                           
+                end
             elseif which_ben == ctr
                 bures.pers[recipient].income[COUNCIL_TAX_BENEFIT] = benefit
                 # bures.legacy_mtbens.ctr = benefit
                 bures.legacy_mtbens.ctr_passported = passported
-                bures.legacy_mtbens.ctr_premia = premium
-                bures.legacy_mtbens.ctr_allowances = allowances
-                bures.legacy_mtbens.ctr_incomes = incomes               
+                bures.legacy_mtbens.ctr_eligible_amount = eligible_amount
+                if ! passported
+                    bures.legacy_mtbens.ctr_premia = premium
+                    bures.legacy_mtbens.ctr_allowances = allowances               
+                    bures.legacy_mtbens.ctr_incomes = incomes                               
+                end
             end
         else # ndds for hb, not ctr
             if which_ben == hb
@@ -889,7 +904,7 @@ function calc_legacy_means_tested_benefits!(
     
     if can_apply_for.wtc || can_apply_for.ctc
         recipient = bures.adults[1] # CHECK SPOUSE
-        bures.pers[recipient].income[WORKING_TAX_CREDIT] = calcWTC_CTC!( 
+        calcWTC_CTC!( 
                 bures,
                 bu,
                 intermed,
