@@ -1397,6 +1397,61 @@ end
         bures.pers[tracy.pid].income[WAGES] - sys.lmt.working_tax_credit.threshold )
     @test bures.pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ targetwtc
 
+    bures.pers[tracy.pid].income .= 0.0
+    bures.pers[tracy.pid].income[WAGES] = 20*10
+
+    #
+    # needed since we use IT calculated incomes
+    #
+    calc_income_tax!(
+        bures,
+        tracy,
+        nothing,
+    sys.it )
+
+    #
+    # benefit unit level - this doesn't include ct/hb
+    # which are done once for the household
+    #
+    calc_legacy_means_tested_benefits!(
+            bures,
+            bus[1], 
+            intermed.buint[1],
+            sys.lmt,
+            sys.age_limits,
+            sys.hours_limits,
+            tracyh )
+
+    #
+    # calculatint these from scratch 
+    # in since I can't work out the CPAG
+    # DWP period stuff, which has variously 366 and 365
+    # day years in their example, while I have 365.25 day
+    # years
+    # 
+    targetwtc = sys.lmt.working_tax_credit.basic +
+        sys.lmt.working_tax_credit.lone_parent + 
+        bures.legacy_mtbens.cost_of_childcare
+    targetwtc -= sys.lmt.working_tax_credit.taper*max( 0.0,
+        bures.pers[tracy.pid].income[WAGES] - sys.lmt.working_tax_credit.threshold )
+
+    @test bures.legacy_mtbens.cost_of_childcare ≈ 7280.0/52
+    println( bures.legacy_mtbens.can_apply_for )
+    println( to_md_table(intermed.buint[1]))
+    println( to_md_table(bures))
+    println( inctostr( bures.pers[tracy.pid].income ))
+    targetctc = sys.lmt.child_tax_credit.family+2*(sys.lmt.child_tax_credit.child)
+    @test bures.pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
+    targetwtc = sys.lmt.working_tax_credit.basic +
+        sys.lmt.working_tax_credit.lone_parent + 
+        bures.legacy_mtbens.cost_of_childcare
+    targetwtc -= sys.lmt.working_tax_credit.taper*max( 0.0,
+        bures.pers[tracy.pid].income[WAGES] - sys.lmt.working_tax_credit.threshold )
+    @test bures.pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ targetwtc
+
+
+
+
     unemploy!( tracy )
     intermed = make_intermediate( 
         tracyh, sys.hours_limits, sys.age_limits )

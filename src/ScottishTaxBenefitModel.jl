@@ -67,6 +67,15 @@ export LocalLevelCalculations
 include("LegacyMeansTestedBenefits.jl" )
 export LegacyMeansTestedBenefits
 
+include( "UniversalCredit.jl")
+export UniversalCredit
+
+include("BenefitCap.jl" )
+export BenefitCap
+
+
+
+
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
 
