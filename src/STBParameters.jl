@@ -690,7 +690,7 @@ module STBParameters
         age_25_and_over :: RT = 317.82
 
         couple_both_under_25 :: RT = 395.20
-        couple_someone_25_plus :: RT = 498.89
+        couple_oldest_25_plus :: RT = 498.89
 
         first_child  :: RT = 277.08
         subsquent_child :: RT = 231.67
