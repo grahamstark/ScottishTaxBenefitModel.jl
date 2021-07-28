@@ -4,9 +4,9 @@ module FRSHouseholdGetter
     import DataFrames: DataFrame
     
     import ScottishTaxBenefitModel: ModelHousehold, Definitions, HouseholdFromFrame
-    
     using .Definitions
     import .ModelHousehold: Household, uprate!
+    import .Weighting: generate_weights
     import .HouseholdFromFrame: load_hhld_from_frame
     
     export initialise, get_household, num_households
@@ -19,7 +19,8 @@ module FRSHouseholdGetter
     # performance of the getter.
     #
     struct HHWrapper 
-        hhlds :: Vector{Household{Float64}}
+        hhlds  :: Vector{Household{Float64}}
+        weight :: Vector{Float64}
     end
     
     const MODEL_HOUSEHOLDS = HHWrapper(Vector{Household{Float64}}(undef, 0 ))
@@ -43,11 +44,15 @@ module FRSHouseholdGetter
             MODEL_HOUSEHOLDS.hhlds[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
             uprate!( MODEL_HOUSEHOLDS.hhlds[hseq] )
         end
+
+        @time MODEL_HOUSEHOLDS.weight = generate_weights( nhhlds)
+
         (size(MODEL_HOUSEHOLDS.hhlds)[1],npeople,nhhlds)
     end
     
     function get_household( pos :: Integer ) :: Household
-        MODEL_HOUSEHOLDS.hhlds[pos]
+        hh = MODEL_HOUSEHOLDS.hhlds[pos]
+        hh.weight = MODEL_HOUSEHOLDS.weight[pos]
     end
     
     function get_num_households()::Integer
