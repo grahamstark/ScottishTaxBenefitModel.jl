@@ -378,7 +378,7 @@ function calc_premia(
         end
         if intermed.num_severely_disabled_adults == 1
             premium += prem_sys.enhanced_disability_single
-            println( "intermed.num_severely_disabled_adults; premium now $premium added $(prem_sys.enhanced_disability_single)")
+            # println( "intermed.num_severely_disabled_adults; premium now $premium added $(prem_sys.enhanced_disability_single)")
             union!( premset, [enhanced_disability_single] )
         elseif intermed.num_severely_disabled_adults == 2
             premium += prem_sys.enhanced_disability_couple
@@ -416,9 +416,6 @@ function calc_premia(
     #
     # we're ignoring support components (p355-) for now.
     #
-    if which_ben == pc
-        println( "premset $(premset))")
-    end
     return (premium, premset)
 end
 
@@ -563,12 +560,12 @@ function calcWTC_CTC!(
     elements = ctc_elements + wtc_elements
     excess = wtc.taper * max( 0.0, income - threshold )
     wtc_ctc = max( 0.0, elements - excess )
-    println( "excess = $excess wtc.taper=$(wtc.taper) threshold=$threshold" )
-    println( "elements = $elements ctc_elements=$ctc_elements  wtc_elements=$wtc_elements")
+    # println( "excess = $excess wtc.taper=$(wtc.taper) threshold=$threshold" )
+    # println( "elements = $elements ctc_elements=$ctc_elements  wtc_elements=$wtc_elements")
     # allocate
     ctc_amt = min( wtc_ctc, ctc_elements )
     wtc_amt = wtc_ctc - ctc_amt
-    println( "ctc_amt = $ctc_amt wtc_amt = $wtc_amt")
+    # println( "ctc_amt = $ctc_amt wtc_amt = $wtc_amt")
     
     ## assign to an individual
     
@@ -583,8 +580,8 @@ function calcWTC_CTC!(
     recipient :: BigInt = length(benefit_unit_result.adults)[1] == 2 ? benefit_unit_result.adults[2] : benefit_unit_result.adults[1]
     benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
     benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
-    println( "income at end of wtc calc")
-    println( inctostr( benefit_unit_result.pers[recipient].income ))
+    # println( "income at end of wtc calc")
+    # println( inctostr( benefit_unit_result.pers[recipient].income ))
 
 end
 
@@ -680,7 +677,6 @@ function calculateHB_CTR!(
             # FIXME we're doing passpored twice            
             if has_any( bures, lmt_ben_sys.hb.passported_bens )
                 # no need to do anything
-                println("passporting ")
                 passported = true
             else
                 ## FIXME pass this in
