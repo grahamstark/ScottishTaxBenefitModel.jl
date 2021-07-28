@@ -28,21 +28,32 @@ module FRSHouseholdGetter
     #
     struct HHWrapper 
         hhlds  :: Vector{Household{Float64}}
-        weight :: Vector{Float64}
+        weight :: Vector{Float64}   
+        dimensions :: Vector{Int}     
     end
     
-    const MODEL_HOUSEHOLDS = HHWrapper(Vector{Household{Float64}}(undef, 0 ), zeros(Float64,0))
+    const MODEL_HOUSEHOLDS = 
+        HHWrapper(Vector{Household{Float64}}(undef, 0 ), zeros(Float64,0),zeros(Int,3))
     
     """
     return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
+        num_people is just returned as `-1` if the dataset
+        has already been initialised, so we can return straight away without working it out somehow.
     """
     function initialise(
             ;
             household_name :: String = "model_households",
             people_name :: String = "model_people",
-            start_year = -1 ) :: Tuple
+            start_year = -1,
+            reset :: Bool = false ) :: Tuple
     
         global MODEL_HOUSEHOLDS
+        nhh = size( MODEL_HOUSEHOLDS.hhlds )[1]
+        if( nhh > 0 ) && ( ! reset )
+            # weird syntax to make tuple from array; 
+            # see e.g. https://discourse.julialang.org/t/array-to-tuple/9024
+            return (MODEL_HOUSEHOLDS.dimensions...,) 
+        end
         hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab" ) |> DataFrame
         people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab") |> DataFrame
         npeople = size( people_dataset)[1]
@@ -59,7 +70,11 @@ module FRSHouseholdGetter
         for i in eachindex( weight )
             MODEL_HOUSEHOLDS.weight[i] = weight[i]
         end
-        (size(MODEL_HOUSEHOLDS.hhlds)[1],npeople,nhhlds)
+        MODEL_HOUSEHOLDS.dimensions.=
+            size(MODEL_HOUSEHOLDS.hhlds)[1],
+            npeople,
+            nhhlds
+        return (MODEL_HOUSEHOLDS.dimensions...,)
     end
     
     function get_household( pos :: Integer ) :: Household

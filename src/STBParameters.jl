@@ -685,11 +685,33 @@ module STBParameters
         hr. rooms_rent_reduction /= 100.0
     end
 
+    @with_kw mutable struct UniversalCreditSys{RT<:Real}
+        age_18_24 :: RT = 251.77
+        age_25_and_over :: RT = 317.82
+
+        couple_both_under_25 :: RT = 395.20
+        couple_someone_25_plus :: RT = 498.89
+
+        first_child  :: RT = 277.08
+        subsquent_child :: RT = 231.67
+        disabled_child_lower :: RT = 126.11
+        disabled_child_higher :: RT = 392.08
+        limited_capcacity_for_work_activity:: RT = 336.20
+        carer ::  RT = 160.20
+
+        childcare_max_2_plus_children :: RT  = 1_108.04 # pm
+        childcare_max_1_child :: RT  = 646.35
+        childcare_proportion :: RT = 85.0 # pct
+    
+
+    end
+
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: String = "Scotland 2919/20"
         it   = IncomeTaxSys{RT}()
         ni   = NationalInsuranceSys{RT}()
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
+        uc   = UniversalCreditSys{RT}()
         age_limits = AgeLimits()
         # just a copy of standard ft/pt hours; mt benefits may have their own copy
         hours_limits :: HoursLimits = HoursLimits() 

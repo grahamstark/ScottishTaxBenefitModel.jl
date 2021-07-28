@@ -326,7 +326,6 @@ module Runner
         end
     end
 
-    # FIXME use the weights!
     function do_one_run!(
         settings :: RunSettings,
         params   :: Vector{TaxBenefitSystem{T}} ) :: NamedTuple where T # fixme simpler way of declaring this?
@@ -344,10 +343,7 @@ module Runner
                         household_name = settings.household_name,
                         people_name    = settings.people_name,
                         start_year     = settings.start_year )
-            println( "generating weights" )          
         end
-        # num_households=11048, num_people=23140
-        # println( "settings $settings")
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
         frame_starts = FrameStarts(0,0,0)
         println( "starting run " )
