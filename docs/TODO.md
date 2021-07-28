@@ -2,7 +2,7 @@
 
 ## As of 28/July 2021
 
-### Council Tax
+### Council Tax Reductions
 
 * use [Glasgow's calculator](https://glasgow.teamnetsol.com/)
 * You must pay your water and waste water charge of: £6.60 a week;
@@ -11,13 +11,13 @@
 
 ### FRS
 
-Add fields for
-
-* SSP/SMP receipt from `Job` records;
-* usual wages/current wages from job records;
-* usual hourly wage;
+* Add fields for:
+  -  SSP/SMP receipt from `Job` records;
+  -  usual wages/current wages from job records;-  usual hourly wage.
 * more comparisons of HBAI and FRS wage fields; maybe use FRS more;
 * duration of benefit receipts? For LMT->UB transition?
+* `PenCont` check the very big ones for on-off flag;
+* `Accounts` only for < 16k - check the routine here in the questionairre and get something for over 16ks.
 
 ### Incomes module
 
@@ -30,3 +30,20 @@ Add fields for
   - disability
   - > 1 adult
   - MBUs
+
+### LMT->UC Transition
+
+* find out what's on [Stat-XPLORE](https://stat-xplore.dwp.gov.uk/webapi/jsf/login.xhtml)
+* HOC thing? By LA?
+* .. or by length on benefits?
+
+### Model Running
+
+* Loadable config/run settings file;
+* finish `Runner.jl` dataframes;
+
+### Code Style
+
+* batch job to cleanup crazy FRS based variable names;
+* using/import : clean up: check if things are actually used, reformat as needed;
+* check stuff against [BlueStyle](https://github.com/invenia/BlueStyle).

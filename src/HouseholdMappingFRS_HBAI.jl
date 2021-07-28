@@ -449,7 +449,7 @@ const HH_TYPE_HINTS = [
 
 function initialise_household(n::Integer)::DataFrame
         # .. example check
-        # FIXME change all VectorUnioo to fill(0,n)
+        # FIXME change all VectorUnion to fill(0,n)
         # select value,count(value),label from dictionaries.enums where dataset='frs' and tables='househol' and variable_name='hhcomps' group by value,label;
     return DataFrame(
         data_year = Vector{Union{Integer,Missing}}(missing, n),

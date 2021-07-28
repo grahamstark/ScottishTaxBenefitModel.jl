@@ -45,6 +45,14 @@ module Results
         total
 
     
+    @with_kw mutable struct UCResults{RT<:Real}
+        income :: RT = zero(RT)
+        standard_allowance  :: RT = zero(RT)
+        elements ::  RT = zero(RT)
+        childcare_costs :: RT = zero(RT)
+        housing_element :: RT = zero(RT)
+    end
+
                 
     @with_kw mutable struct LMTIncomes{RT<:Real}
         gross_earnings :: RT = zero(RT)
@@ -57,6 +65,8 @@ module Results
         tariff_income :: RT = zero(RT)
         disqualified_on_capital :: Bool = false
     end
+
+
 
     # 
     @with_kw mutable struct LMTCanApplyFor
@@ -192,6 +202,7 @@ module Results
         net_income    :: RT = zero(RT)
         eq_net_income :: RT = zero(RT)
         legacy_mtbens = LMTResults{RT}()
+        uc = UCResults{RT}()
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}()
         adults = Pid_Array()
