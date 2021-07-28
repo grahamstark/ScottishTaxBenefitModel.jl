@@ -231,7 +231,7 @@ end
         intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
         rr = apply_rent_restrictions( hh, intermed.hhint, sys.hr )
         if rr.excess_rooms > 0
-            num_restricted += weights[hhno]
+            num_restricted += hh.weight
             if is_social_renter( hh.tenure )
                 bedroom_tax += hh.weight
             end
@@ -257,11 +257,11 @@ end
         intermed = make_intermediate( hh, sys.hours_limits , sys.age_limits )
         println( "ct band $(hh.ct_band) council $(hh.council)")
         ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
-        by_band[hh.ct_band] += weights[hhno]
-        by_la[hh.council][2] += ct*weights[hhno]*WEEKS_PER_YEAR
-        by_la[hh.council][1] += weights[hhno]
-        value += ct*weights[hhno]*WEEKS_PER_YEAR
-        dwellings +=weights[hhno]
+        by_band[hh.ct_band] += hh.weight
+        by_la[hh.council][2] += ct*hh.weight*WEEKS_PER_YEAR
+        by_la[hh.council][1] += hh.weight
+        value += ct*hh.weight*WEEKS_PER_YEAR
+        dwellings +=hh.weight
     end
     println( "band,num dwellings")
     for c in instances( CT_Band )
