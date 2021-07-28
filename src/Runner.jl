@@ -23,8 +23,7 @@ module Runner
     using .Utils
     using .STBParameters
     using .Incomes
-    # using .Weighting: generate_weights
-
+    
     using .ModelHousehold: 
         Household, 
         Person, 
@@ -345,14 +344,7 @@ module Runner
                         household_name = settings.household_name,
                         people_name    = settings.people_name,
                         start_year     = settings.start_year )
-            println( "generating weights" )
-            #=
-            if settings.weighted 
-                @time weights = generate_weights( nhh2 )
-            else 
-                weights = ones( nhh2 ) 
-            end
-            =#
+            println( "generating weights" )          
         end
         # num_households=11048, num_people=23140
         # println( "settings $settings")

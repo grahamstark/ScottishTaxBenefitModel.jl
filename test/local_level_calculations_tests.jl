@@ -7,7 +7,6 @@ using .ExampleHouseholdGetter
 using .Definitions
 using .Results: HousingResult
 using .FRSHouseholdGetter
-using .Weighting: generate_weights
 using .GeneralTaxComponents: WEEKS_PER_YEAR
 
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
@@ -26,7 +25,6 @@ rc = @timed begin
           people_name    = "model_people_scotland",
           start_year     = 2015 )
 end
-@time weights = generate_weights( num_households )
 
 @testset "LHA and assoc. mappings" begin
     # basic test/retrieve 
@@ -235,7 +233,7 @@ end
         if rr.excess_rooms > 0
             num_restricted += weights[hhno]
             if is_social_renter( hh.tenure )
-                bedroom_tax += weights[hhno]
+                bedroom_tax += hh.weight
             end
         end
     end

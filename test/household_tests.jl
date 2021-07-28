@@ -5,8 +5,6 @@ using StatsBase
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 
-using .Weighting: generate_weights
-
 using .ExampleHouseholdGetter
 
 using .ModelHousehold: 
@@ -247,12 +245,10 @@ end
 
 @testset "aggregate nmt bens" begin
       n = num_households
-      @time weights = generate_weights( num_households )
-      
       cases = DataFrame(
             hid = zeros(BigInt, n ),
             year = zeros(Int,n),
-            weight = weights,
+            weight = zeros(n),
 
             pip_daily_living_enhanced = zeros(n),
             pip_daily_living_standard = zeros(n),
@@ -271,7 +267,7 @@ end
             hh = FRSHouseholdGetter.get_household( hhno )
             r += 1
             row = cases[r,:]
-            # row.weight = hh.weight;
+            row.weight = hh.weight;
             row.hid = hh.hid
             row.year = hh.interview_year
             println( "on hh $(hh.hid)")
