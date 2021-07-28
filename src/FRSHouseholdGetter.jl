@@ -65,6 +65,7 @@ module FRSHouseholdGetter
     function get_household( pos :: Integer ) :: Household
         hh = MODEL_HOUSEHOLDS.hhlds[pos]
         hh.weight = MODEL_HOUSEHOLDS.weight[pos]
+        return hh
     end
     
     function get_num_households()::Integer
