@@ -1,13 +1,21 @@
 module FRSHouseholdGetter
 
     using CSV
-    import DataFrames: DataFrame
+    using DataFrames: DataFrame
     
-    import ScottishTaxBenefitModel: ModelHousehold, Definitions, HouseholdFromFrame
+    using ScottishTaxBenefitModel
+    
     using .Definitions
-    import .ModelHousehold: Household, uprate!
-    import .Weighting: generate_weights
-    import .HouseholdFromFrame: load_hhld_from_frame
+    
+    using .ModelHousehold: 
+        Household, 
+        uprate!
+
+    using .HouseholdFromFrame: 
+        load_hhld_from_frame
+
+    using .Weighting: 
+        generate_weights
     
     export initialise, get_household, num_households
     
@@ -23,7 +31,7 @@ module FRSHouseholdGetter
         weight :: Vector{Float64}
     end
     
-    const MODEL_HOUSEHOLDS = HHWrapper(Vector{Household{Float64}}(undef, 0 ))
+    const MODEL_HOUSEHOLDS = HHWrapper(Vector{Household{Float64}}(undef, 0 ), zeros(Float64,0))
     
     """
     return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))

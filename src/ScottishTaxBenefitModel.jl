@@ -31,6 +31,9 @@ export Uprating
 include("ModelHousehold.jl" )
 export ModelHousehold
 
+include("Weighting.jl" )
+export Weighting
+
 include( "HistoricBenefits.jl")
 export HistoricBenefits
 
@@ -73,17 +76,11 @@ export UniversalCredit
 include("BenefitCap.jl" )
 export BenefitCap
 
-
-
-
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
 
 # pro. tem include("WebModelLibs.jl" )
 # export WebModelLibs
-
-include( "Weighting.jl")
-export Weighting
 
 include( "Runner.jl" )
 export Runner
