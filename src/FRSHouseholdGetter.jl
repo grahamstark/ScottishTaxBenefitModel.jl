@@ -48,17 +48,17 @@ module FRSHouseholdGetter
         npeople = size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )
+        resize!( MODEL_HOUSEHOLDS.weight, nhhlds )
+        MODEL_HOUSEHOLDS.weight .= 0
+        
         for hseq in 1:nhhlds
             MODEL_HOUSEHOLDS.hhlds[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
             uprate!( MODEL_HOUSEHOLDS.hhlds[hseq] )
         end
-        # this `zeros` is needed because `generate_weights` below calls `get_household`
-        # before the weights vector is created,
-        # so we need to fill the weights vector(s) with something just
-        # to prevent a bounds error. The zeros are ignored in `Weights`.
-        MODEL_HOUSEHOLDS.weight = zeros( nhhlds )
-        @time MODEL_HOUSEHOLDS.weight = generate_weights( nhhlds)
-
+        @time weight = generate_weights( nhhlds)
+        for i in eachindex( weight )
+            MODEL_HOUSEHOLDS.weight[i] = weight[i]
+        end
         (size(MODEL_HOUSEHOLDS.hhlds)[1],npeople,nhhlds)
     end
     
