@@ -703,7 +703,33 @@ module STBParameters
         childcare_max_1_child :: RT  = 646.35
         childcare_proportion :: RT = 85.0 # pct
     
+        minimum_income_floor_hours :: Int = 35
 
+        work_allowance_w_housing :: RT = 287.0
+        work_allowance_no_housing :: RT = 503.0
+    end
+
+    function weeklyise!( uc :: UniversalCreditSys )
+    
+        uc.age_18_24  /= WEEKS_PER_MONTH
+        uc.age_25_and_over  /= WEEKS_PER_MONTH
+        
+        uc.couple_both_under_25  /= WEEKS_PER_MONTH
+        uc.couple_someone_25_plus  /= WEEKS_PER_MONTH
+        
+        uc.first_child   /= WEEKS_PER_MONTH
+        uc.subsquent_child  /= WEEKS_PER_MONTH
+        uc.disabled_child_lower  /= WEEKS_PER_MONTH
+        uc.disabled_child_higher  /= WEEKS_PER_MONTH
+        uc.limited_capcacity_for_work_activity /= WEEKS_PER_MONTH
+        uc.carer  /= WEEKS_PER_MONTH
+        
+        uc.childcare_max_2_plus_children  /= WEEKS_PER_MONTH
+        uc.childcare_max_1_child  /= WEEKS_PER_MONTH
+        uc.childcare_proportion  /= 100.0
+        uc.work_allowance_w_housing /= WEEKS_PER_MONTH
+        uc.work_allowance_no_housing :: RT = 287.0
+    
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}

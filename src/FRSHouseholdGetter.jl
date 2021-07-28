@@ -36,14 +36,14 @@ module FRSHouseholdGetter
         HHWrapper(Vector{Household{Float64}}(undef, 0 ), zeros(Float64,0),zeros(Int,3))
     
     """
+    Initialise the dataset. If this has already been done, do nothing unless 
+    `reset` is true.
     return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
-        num_people is just returned as `-1` if the dataset
-        has already been initialised, so we can return straight away without working it out somehow.
     """
     function initialise(
             ;
-            household_name :: String = "model_households",
-            people_name :: String = "model_people",
+            household_name :: String = "model_households_scotland",
+            people_name :: String = "model_people_scotland",
             start_year = -1,
             reset :: Bool = false ) :: Tuple
     

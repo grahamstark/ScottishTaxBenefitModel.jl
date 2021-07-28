@@ -13,7 +13,10 @@ const RateBands = Vector{<:Real}
 
 const IncomesDict = Dict{Any,Number}
 
-const WEEKS_PER_YEAR = 365.25/7.0
+# !! maybe make this 366/365 depending on whether this year is a leap year; see the CPAG guide chapter on WTC amounts, for example
+const DAYS_PER_YEAR = 365.25 
+const WEEKS_PER_YEAR = DAYS_PER_YEAR/7.0
+# needed for e.g. UC - they may use 
 const WEEKS_PER_MONTH = WEEKS_PER_YEAR/12
 
 function weeklyise( annual_amount )
