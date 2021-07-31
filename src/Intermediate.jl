@@ -81,7 +81,7 @@ examples:
  @return number of children allowed
 """
 function apply_2_child_policy(
-    bu      :: BenefitUnit
+    bu      :: BenefitUnit,
     limits  :: ChildLimits
     ; 
     model_run_date :: TimeType = now() ) :: Integer
@@ -311,8 +311,8 @@ function make_intermediate(
     buno :: Int,
     bu   :: BenefitUnit, 
     hrs  :: HoursLimits,
-    child_limits :: ChildLimits,
     age_limits :: AgeLimits,
+    child_limits :: ChildLimits,
     num_benefit_units :: Int ) :: MTIntermediate
     # {RT} where RT
     age_youngest_adult :: Int = 9999

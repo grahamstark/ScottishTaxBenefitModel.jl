@@ -54,6 +54,7 @@ using .LocalLevelCalculations:
     calc_council_tax
     
 using .STBParameters: 
+    ChildLimits,
     HoursLimits,
     IncomeRules, 
     LegacyMeansTestedBenefitSystem
@@ -81,20 +82,23 @@ sys = get_system( scotland=true )
     println( "keys of initial children  $(sparent.children)" )
 
     @test num_children( sparent ) == 2
-    @test apply_2_child_policy( sparent ) == 2
+    @test apply_2_child_policy( sparent, sys.child_limits ) == 2
 
     np = add_child!( sph, 10, Female )
     sparent = get_benefit_units(sph)[1]
     println( "keys of children after 10yo added $(sparent.children) new pid = $np" )
     @test num_children( sparent ) == 3
-    @test apply_2_child_policy( sparent ) == 3
+    @test apply_2_child_policy( sparent, sys.child_limits ) == 3
 
     np = add_child!( sph, 1, Female )
     sparent = get_benefit_units(sph)[1]
     @test num_children( sparent ) == 4  
-    @test apply_2_child_policy( sparent ) == 3
-    @test apply_2_child_policy( sparent, child_limit=5 ) == 4
-    @test apply_2_child_policy( sparent, start_date=Date(2000,4,6) ) == 2
+    @test apply_2_child_policy( sparent, sys.child_limits ) == 3
+    child_limits = ChildLimits(Date( 2017, 4, 6 ),5)
+    @test apply_2_child_policy( sparent, child_limits ) == 4
+
+    child_limits = ChildLimits(Date( 2010, 4, 6 ), 2 )
+    @test apply_2_child_policy( sparent, child_limits ) == 2
 end
     
 @testset "CPAG income and capital chapters 20, 21, 22, 23" begin
@@ -233,6 +237,7 @@ end # test set
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits,
+        sys.child_limits,
         1 )
     eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
     head = get_head( cpl )
@@ -785,6 +790,7 @@ end
             sparbu,  
             sys.lmt.hours_limits,
             sys.age_limits,
+            sys.child_limits,
             1 )
     head.age = 17
     intermed = make_intermediate( 
@@ -826,6 +832,7 @@ end
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits,
+        sys.child_limits,
         1 )
     println( intermed )
     for ben in [hb,ctr,is,jsa,esa]
@@ -849,6 +856,7 @@ end
         cpl,  
         sys.lmt.hours_limits,
         sys.age_limits,
+        sys.child_limits,
         1 )
     println( intermed )
     for ben in [hb,ctr,is,jsa,esa]
@@ -856,7 +864,7 @@ end
             ben, 
             intermed, 
             sys.lmt.allowances, 
-            sys.age_limits,
+            sys.age_limits,            
             0.0 )
         if ben in [hb,ctr]
             @test allow ≈ 114.85 + 2*sys.lmt.allowances.child   
