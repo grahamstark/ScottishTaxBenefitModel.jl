@@ -686,8 +686,8 @@ module STBParameters
     end
 
     @with_kw mutable struct ChildLimits
-        policy_start ::  TimeType = Date( 2017, 4, 6 )
-        child_limit  :: Int = 2
+        policy_start  ::  TimeType = Date( 2017, 4, 6 )
+        max_children  :: Int = 2
     end
 
     @with_kw mutable struct UniversalCreditSys{RT<:Real}

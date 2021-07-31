@@ -81,23 +81,22 @@ examples:
  @return number of children allowed
 """
 function apply_2_child_policy(
-    bu             :: BenefitUnit
-    ;
-    child_limit    :: Integer = 2,
-    start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
+    bu      :: BenefitUnit
+    limits  :: ChildLimits
+    ; 
     model_run_date :: TimeType = now() ) :: Integer
     before_children = 0
     after_children = 0
     for pid in bu.children
         ch = bu.people[pid]
-        if born_before( ch.age, start_date, model_run_date )
+        if born_before( ch.age, limits.policy_start, model_run_date )
             before_children += 1
         else
             after_children += 1
         end          
     end
     # println( "before children $before_children after children $after_children " )
-    allowable = before_children + min( max(child_limit-before_children,0), after_children )
+    allowable = before_children + min( max(limits.max_children-before_children,0), after_children )
 end
 
 function born_before( age :: Integer,
@@ -312,6 +311,7 @@ function make_intermediate(
     buno :: Int,
     bu   :: BenefitUnit, 
     hrs  :: HoursLimits,
+    child_limits :: ChildLimits,
     age_limits :: AgeLimits,
     num_benefit_units :: Int ) :: MTIntermediate
     # {RT} where RT
@@ -430,7 +430,7 @@ function make_intermediate(
     end
     
     ## fixme parameterise this
-    num_allowed_children :: Int = apply_2_child_policy( bu )
+    num_allowed_children :: Int = apply_2_child_policy( bu, child_limits )
     # println( "has_children $has_children age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
     @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
                                     
@@ -476,6 +476,7 @@ function make_intermediate(
     hh   :: Household, 
     hrs  :: HoursLimits,
     age_limits :: AgeLimits,
+    child_limits :: ChildLimits,
     allocator :: Function=default_bu_allocation ) :: HHIntermed
 
     bus = get_benefit_units( hh, allocator )
@@ -487,6 +488,7 @@ function make_intermediate(
             bus[buno], 
             hrs, 
             age_limits, 
+            child_limits,
             n ) 
     end
     hhint = deepcopy( buint[1] )

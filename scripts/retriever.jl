@@ -271,7 +271,11 @@ function get_data( hno, bits )::String
     mhh :: Household = FRSHouseholdGetter.get_household( hno )
     s = ModelHousehold.to_string( mhh )
     sys = get_system(scotland=true)
-    intermed :: HHIntermed = make_intermediate(  mhh, sys.lmt.hours_limits,sys.age_limits )
+    intermed :: HHIntermed = make_intermediate(  
+        mhh, 
+        sys.lmt.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
     s *= Intermediate.to_string( intermed )
     hres :: HouseholdResult = do_one_calc( mhh, sys )
     s *= Results.to_string( hres )

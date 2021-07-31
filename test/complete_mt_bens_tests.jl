@@ -108,7 +108,8 @@ end
         intermed = make_intermediate(
             hh,
             sys.hours_limits,
-            sys.age_limits )
+            sys.age_limits,
+            sys.child_limits )
         calc_legacy_means_tested_benefits!(
             hhres,
             hh,   

@@ -83,7 +83,11 @@ One complete calculation for a single household and tb system.
 function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: HouseholdResult{T} where T
     bus = get_benefit_units( hh )
     hres :: HouseholdResult{T} = init_household_result(hh)
-    intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits )
+    intermed = make_intermediate( 
+        hh, 
+        sys.hours_limits, 
+        sys.age_limits, 
+        sys.child_limits )
     
     hd :: BigInt = get_head( hh ).pid
     calc_pre_tax_non_means_tested!( 
