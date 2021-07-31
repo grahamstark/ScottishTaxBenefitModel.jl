@@ -54,9 +54,11 @@ export
     has_disabled_member,
     has_income,
     interview_date, 
+    is_head,
     is_lone_parent, 
     is_severe_disability, 
     is_single, 
+    is_spouse,
     le_age, 
     make_benefit_unit, 
     make_eq_scales!,    
@@ -451,6 +453,20 @@ end
 function get_head( hh :: Household ) :: Person
     return hh.people[hh.head_of_household]
 end
+
+function is_head( bu :: BenefitUnit, pers :: Person  ) :: bereavement_allowance_or_widowed_parents_allowance_or_bereavement
+    return bu.head = pers.pid
+end
+
+function is_spouse( unit, pers :: Person  ) :: Bool
+    head = get_head(unit)
+    p = partner_of( head )
+    if p === nothing
+        return false
+    end
+    return p == pers.pid
+end
+
 
 function partner_of( pers :: Person ) :: Union{Nothing,BigInt}
     for (pid,rel) in pers.relationships

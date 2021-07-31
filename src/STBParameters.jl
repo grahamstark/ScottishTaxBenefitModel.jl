@@ -23,7 +23,7 @@ module STBParameters
     export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
     export CarersAllowance, PersonalIndependencePayment, ContributoryESA
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
-    export NonMeansTestedSys, MaternityAllowance
+    export NonMeansTestedSys, MaternityAllowance, ChildLimits
     
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -685,6 +685,11 @@ module STBParameters
         hr. rooms_rent_reduction /= 100.0
     end
 
+    @with_kw mutable struct ChildLimits
+        policy_start ::  TimeType = Date( 2017, 4, 6 )
+        child_limit  :: Int = 2
+    end
+
     @with_kw mutable struct UniversalCreditSys{RT<:Real}
         age_18_24 :: RT = 251.77
         age_25_and_over :: RT = 317.82
@@ -707,7 +712,7 @@ module STBParameters
 
         work_allowance_w_housing :: RT = 287.0
         work_allowance_no_housing :: RT = 503.0
-    end
+    end    
 
     function weeklyise!( uc :: UniversalCreditSys )
     
@@ -741,6 +746,7 @@ module STBParameters
         age_limits = AgeLimits()
         # just a copy of standard ft/pt hours; mt benefits may have their own copy
         hours_limits :: HoursLimits = HoursLimits() 
+        child_limits :: ChildLimits = ChildLimits()
         minwage = MinimumWage{RT}()
         hr = HousingRestrictions{RT}() # fixme better name
         loctax = LocalTaxes{RT}() # fixme better name

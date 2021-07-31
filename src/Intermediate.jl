@@ -45,6 +45,7 @@ using .ModelHousehold:
 using .STBParameters: 
     AgeLimits, 
     HoursLimits, 
+    ChildLimits,
     reached_state_pension_age 
   
 using .Utils: 
