@@ -60,6 +60,9 @@ using .Results:
 using .LocalLevelCalculations: 
     apply_rent_restrictions
 
+using .LegacyMeansTestedBenefits:
+    num_qualifying_for_severe_disability
+
 export 
     calc_universal_credit!, 
     qualifiying_16_17_yo,
@@ -205,9 +208,55 @@ function calc_standard_allowance(
     return sa
 end # standard allowance
 
-function calc_elements( benefit_unit, intermed, uc, hours_limits )
+function calc_elements!( 
+    ucr          :: UCResults,
+    benefit_unit :: BenefitUnit, 
+    intermed     :: MTIntermediate,
+    uc           :: UniversalCreditSys 
+    hours_limits :: HoursLimits, 
+    child_limits :: ChildLimits )
+
     # child elements
-    intermed.num_allowed_children
+    
+    if intermed.num_allowed_children > 0
+        if born_before( 
+            intermed.age_oldest_child, 
+            child_limits.policy_start, 
+            now()) # FIXME we need to parameterise model_run_date somehow
+            # this is the abolished 1st child thing see 20/21 p66
+            ucr.child_element = uc.first_child
+        else
+            ucr.child_element = uc.subsequent_child
+        end
+        ucr.child_element += (1-intermed.num_allowed_children)*uc.subsequent_child
+    end
+    # limited capacity for work-related Activity
+    # 1 per BU; see cpag 20/1 p 71-73
+    lcwa = false
+    lcwa_pid :: BigInt = -1
+    for pid in bu.adults 
+        if has_limited_capactity_for_work_activity( bu.people[pid])
+            lcwa = true
+            lcwa_pid = pid
+            break
+        end            
+    end
+    if lcwa 
+        ucr.limited_capcacity_for_work_activity_element = uc.limited_capcacity_for_work_activity
+    end
+    carer = false
+    for pid in bu.adults 
+        if pid != lcwa_pid # can't also give carers to same person, but could give to spouse
+            if pers_is_carer( bu.people[pid] )
+                carer = true
+                break
+            end # is carer
+        end # pid
+    end
+    if carer
+        ucr.carer_element = uc.carer
+    end
+
 end
 
 function calc_universal_credit!(
@@ -216,7 +265,8 @@ function calc_universal_credit!(
     intermed         :: MTIntermediate,
     uc               :: UniversalCreditSys,
     age_limits       :: AgeLimits, 
-    hours            :: HoursLimits,
+    hours_limits     :: HoursLimits,
+    child_limits     :: ChildLimits,
     hr               :: HousingRestrictions,
     minwage          :: MinimumWage )
     ucr = benefit_unit_result.uc # shortcut
@@ -230,13 +280,54 @@ function calc_universal_credit!(
         ucr.basic_conditions_satisfied = false
         return
     end
+    ucr.basic_conditions_satisfied = true
     if disqualified_on_capital( benefit_unit, uc )
         ucr.disqualified_on_capital = true
         return
     end
+    ucr.disqualified_on_capital = false
     ucr.standard_allowance = calc_standard_allowance( benefit_unit, intermed, uc )
-    ucr.elements = calc_elements( benefit_unit, intermed, uc, hours_limits )
+    calc_elements!( ucr, benefit_unit, intermed, uc, hours_limits, child_limits )
 
+end
+
+function calc_uc_housing_element!(
+    household_result :: HouseholdResult,
+    household        :: Household,
+    intermed         :: HHIntermed,
+    uc               :: UniversalCreditSys,
+    hr               :: HousingRestrictions
+)
+    eligible_amount = household_result.housing.allowed_rent
+    bus = get_benefit_units(household)
+    nbus = size(bus)[1]
+    ndds = 0.0
+    if nbus > 1
+        if num_qualifying_for_severe_disability( bus[1], hh,bures[1], 1 ) == 0
+            for buno in 2:nbus
+                # children under 5
+                if (intermed.buint.num_children == 0) || (intermed.buint.age_youngest_child >= 5)
+                    for adno in bus[buno].adults 
+                        pers = bus[buno].people[adno]
+                        pr = household_result.bur[buno].pres[adno]
+                        exempt =  # FIXME parameterise these
+                            pers.age < 21 || 
+                            any_positive( pers.inc,
+                                [ATTENDANCE_ALLOWANCE,
+                                PENSION_CREDIT,
+                                PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+                                DLA_SELF_CARE,
+                                CARERS_ALLOWANCE]
+                        if ! exempt
+                            ndds += uc.ndd
+                        end
+                    end # adult loop
+                end # not responsible for u5 child
+            end # bu loop 
+        end # bu 1 isn't severe disabled
+    end # > 1 bu
+    household_result.bus[1].uc.housing_element = 
+        max(0.0, eligible_amount - ndds )
 end
 
 function calc_universal_credit!(
@@ -245,7 +336,8 @@ function calc_universal_credit!(
     intermed         :: HHIntermed,
     uc               :: UniversalCreditSys,
     age_limits       :: AgeLimits, 
-    hours            :: HoursLimits,
+    hours_limits     :: HoursLimits,
+    child_limits     :: ChildLimits,
     hr               :: HousingRestrictions,
     minwage          :: MinimumWage )
     # fixme duped with LMTBens
@@ -253,6 +345,20 @@ function calc_universal_credit!(
         household, intermed.hhint, hr )
     bus = get_benefit_units(household)
     nbus = size( bus )[1]
+    #
+    # Do housing 1st since it needs a seperate 
+    # loop round the bus, but we can do everything else 
+    # bu by bu. housing element is assigned always
+    # to the first benefit unit; everyone else 
+    # contributes NDDs.
+    #
+    calc_uc_housing_element!( 
+        household_result,
+        household,
+        intermed,
+        uc,
+        hr 
+    )
     for buno in eachindex(bus)
         calc_universal_credit!(
             household_result.bur[buno],
@@ -264,7 +370,6 @@ function calc_universal_credit!(
             hr,
             minwage
         )
-
     end
 
 end

@@ -704,6 +704,8 @@ module STBParameters
         limited_capcacity_for_work_activity:: RT = 336.20
         carer ::  RT = 160.20
 
+        ndd :: RT = 73.89
+
         childcare_max_2_plus_children :: RT  = 1_108.04 # pm
         childcare_max_1_child :: RT  = 646.35
         childcare_proportion :: RT = 85.0 # pct
@@ -728,7 +730,7 @@ module STBParameters
         uc.disabled_child_higher  /= WEEKS_PER_MONTH
         uc.limited_capcacity_for_work_activity /= WEEKS_PER_MONTH
         uc.carer  /= WEEKS_PER_MONTH
-        
+        uc.ndd /= WEEKS_PER_MONTH
         uc.childcare_max_2_plus_children  /= WEEKS_PER_MONTH
         uc.childcare_max_1_child  /= WEEKS_PER_MONTH
         uc.childcare_proportion  /= 100.0

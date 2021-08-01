@@ -84,6 +84,7 @@ export
     calculateHB_CTR!,
     calcWTC_CTC!, 
     make_lmt_benefit_applicability, 
+    num_qualifying_for_severe_disability,
     tariff_income
 
 
@@ -322,9 +323,10 @@ end
 """
 CPAG 2019/20 p347. I *think* this is what it means ...
 Moved to own function since it's convoluted.
+FIXME move this as it's being used in the UC module
 """
 function num_qualifying_for_severe_disability( 
-    bu :: BenefitUnit,
+    bu    :: BenefitUnit,
     bures :: BenefitUnitResult,
     num_bus :: Int ) :: Int
     if num_bus > 1

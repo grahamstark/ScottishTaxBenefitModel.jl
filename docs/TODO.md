@@ -19,6 +19,7 @@
 * `PenCont` check the very big ones for on-off flag;
 * `Accounts` only for < 16k - check the routine here in the questionairre and get something for over 16ks.
 * `BenUnit` add a `total_savings` field somewhere - assign to hoh/ho ben unit? split?
+* **CAPITAL**: add total_capital field to heads of bus for those not in the 1.5-15k band and so don't have `Assets` record. URGENT
 
 ### Incomes module
 
