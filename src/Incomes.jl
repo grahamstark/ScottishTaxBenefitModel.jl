@@ -593,6 +593,58 @@ using StaticArrays
     which are handled in the `calc_incomes` function.   
     poss. have 2nd complete version for WTC/CTC
     """
+    const UC_EARNED_INCOME = IncludedItems(
+        [   
+            WAGES
+            # se treated seperately
+        ],
+        [
+            INCOME_TAX,
+            NATIONAL_INSURANCE,
+            PENSION_CONTRIBUTIONS_EMPLOYEE
+            ## ? student loan repayments?
+        ]
+    )
+    # FIXME check these lists again very carefully indeed.
+    # FIXME the CPAG guide describes a very convoluted way
+    # of calculating, which requires 2 lists of earned and unearned income
+    # I think that's important just for 
+    const UC_OTHER_INCOME = IncludedItems(
+        [   
+            # WAGES,
+            # SELF_EMPLOYMENT_INCOME, # counts, but see minimum level of earnings regs 19/20 p119
+            OTHER_INCOME,
+            CARERS_ALLOWANCE,
+            ALIMONY_AND_CHILD_SUPPORT_RECEIVED, # FIXME THERE IS A 15 DISREGARD SEE PP 438
+            EDUCATION_ALLOWANCES,
+            FOSTER_CARE_PAYMENTS,
+            STATE_PENSION,
+            PRIVATE_PENSIONS,
+            BEREAVEMENT_ALLOWANCE,
+            WAR_WIDOWS_PENSION,
+            CONTRIB_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED Only
+            CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+            INDUSTRIAL_INJURY_BENEFIT,
+            INCAPACITY_BENEFIT,
+            MATERNITY_ALLOWANCE,
+            MATERNITY_GRANT,
+            FUNERAL_GRANT,
+            ANY_OTHER_NI_OR_STATE_BENEFIT,
+            TRADE_UNION_SICK_OR_STRIKE_PAY,
+            FRIENDLY_SOCIETY_BENEFITS,
+            WORKING_TAX_CREDIT ,
+            PRIVATE_SICKNESS_SCHEME_BENEFITS,
+            ACCIDENT_INSURANCE_SCHEME_BENEFITS,
+            HOSPITAL_SAVINGS_SCHEME_BENEFITS,
+            GOVERNMENT_TRAINING_ALLOWANCES,
+            GUARDIANS_ALLOWANCE,
+            WIDOWS_PAYMENT,
+            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE 
+        ],
+        [   
+        ]
+    )
+
     ## FIXME CHECK THIS list
     ## NOTE wages, se are treated seperately
     const LEGACY_MT_INCOME = IncludedItems(
@@ -606,6 +658,7 @@ using StaticArrays
             PRIVATE_PENSIONS,
             BEREAVEMENT_ALLOWANCE,
             WAR_WIDOWS_PENSION,
+            CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
             CONTRIB_JOBSEEKERS_ALLOWANCE, ## CONTRIBUTION BASED Only
             INDUSTRIAL_INJURY_BENEFIT,
             INCAPACITY_BENEFIT,

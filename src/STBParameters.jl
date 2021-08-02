@@ -691,6 +691,7 @@ module STBParameters
     end
 
     @with_kw mutable struct UniversalCreditSys{RT<:Real}
+        threshold :: RT = 2_500.0 ## NOT USED
         age_18_24 :: RT = 251.77
         age_25_and_over :: RT = 317.82
 
@@ -714,10 +715,17 @@ module STBParameters
 
         work_allowance_w_housing :: RT = 287.0
         work_allowance_no_housing :: RT = 503.0
+        other_income :: IncludedItems = UC_OTHER_INCOME
+        earned_income :: IncludedItems = UC_EARNED_INCOME
+        capital_max :: RT = 6_000.0
+        capital_min :: RT = 16_000.0
+        # £1 *per week* ≆ 4.35 pm 
+        capital_tariff :: RT = 250.0
+        taper = 63.0
     end    
 
     function weeklyise!( uc :: UniversalCreditSys )
-    
+        uc.threshold /= WEEKS_PER_MONTH
         uc.age_18_24  /= WEEKS_PER_MONTH
         uc.age_25_and_over  /= WEEKS_PER_MONTH
         
@@ -734,8 +742,9 @@ module STBParameters
         uc.childcare_max_2_plus_children  /= WEEKS_PER_MONTH
         uc.childcare_max_1_child  /= WEEKS_PER_MONTH
         uc.childcare_proportion  /= 100.0
+        uc.taper /= 100.0
         uc.work_allowance_w_housing /= WEEKS_PER_MONTH
-        uc.work_allowance_no_housing :: RT = 287.0
+        uc.work_allowance_no_housing /= WEEKS_PER_MONTH
     
     end
 

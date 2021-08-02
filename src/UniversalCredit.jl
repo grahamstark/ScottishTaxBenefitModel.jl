@@ -61,7 +61,8 @@ using .LocalLevelCalculations:
     apply_rent_restrictions
 
 using .LegacyMeansTestedBenefits:
-    num_qualifying_for_severe_disability
+    num_qualifying_for_severe_disability,
+    tariff_income
 
 export 
     calc_universal_credit!, 
@@ -120,10 +121,12 @@ function basic_conditions_satisfied(
     end
 end
 
+## FIXME we need the quickie capital question here
 function disqualified_on_capital( 
     benefit_unit :: BenefitUnit, 
     uc           :: UniversalCreditSys ) :: Bool
     cap = 0.0
+    # FIXME we're doing this twice
     for pid in bu.adults
         for (at,val) in bu.people[pid].assets
            cap += val
@@ -256,9 +259,95 @@ function calc_elements!(
     if carer
         ucr.carer_element = uc.carer
     end
-
 end
 
+"""
+
+FIXME: Near dup of WTC calculation 
+"""
+function calc_uc_child_costs!( 
+    ucr                 :: UCResults,
+    benefit_unit        :: BenefitUnit,
+    intermed            :: MTIntermediate,
+    uc                  :: UniversalCreditSys )  
+    cost_of_childcare = 0.0
+    for pid in bu.children 
+        cost_of_childcare += bu.people[pid].cost_of_childcare 
+    end    
+    cost_of_childcare *= uc.childcare_proportion    
+    if intermed.num_children > 1 
+        cost_of_childcare = min( uc.childcare_max_2_plus_children, cost_of_childcare )
+    else
+        cost_of_childcare = min( uc.childcare_max_1_child, cost_of_childcare )
+    end    
+    ucr.childcare_costs = cost_of_childcare 
+end
+
+function make_min_se( 
+    seinc    :: T, 
+    age      :: Integer,
+    uc       :: UniversalCreditSys, 
+    minwage  :: MinimumWage ) :: T where T
+    mw :: T = get_minimum_wage( minwage, age )
+    min_se :: T = mw*uc.minimum_income_floor_hours
+    return max( min_se, seinc )
+end
+
+"""
+Implements CPAG 19/20 ch 7
+"""
+function calc_uc_income!( 
+    benefit_unit_result :: BenefitUnitResult,
+    benefit_unit        :: BenefitUnit,
+    intermed            :: MTIntermediate,
+    uc                  :: UniversalCreditSys,
+    minwage             :: MinimumWage ) 
+    inc = 0.0  
+    earn = 0.0
+    bur = benefit_unit_result # alias
+    for pid in bu.adults
+        inc += isum( bur.pers[pid].income, uc.other_income )
+        earn += isum( bur.pers[pid].income, uc.earned_income )
+        seinc = bur.pers[pid].income[SELF_EMPLOYMENT_INCOME] 
+        # FIXME any self employed? what about losses?          
+        if bu.people[pid].employment_status == Full_time_Self_Employed 
+            min_se = make_min_se( seinc, bu.people[pid].age, uc, minwage )            
+        end
+        earn += seinc
+    end
+
+
+    if( intermed.num_children > 0 ) || intermed.limited_capacity_for_work
+        bur.uc.work_allowance = bur.uc.housing_element > 0 ? 
+            work_allowance_w_housing : work_allowance_no_housing
+        earn = max( 0.0, earn-bur.uc.work_allowance)
+    end
+    bur.uc.other_income = inc
+    bur.uc.earnings = earn*uc.taper
+end
+
+## FIXME we need the extra capital var here benunit.Totsav
+function calc_tariff_income!( 
+    benefit_unit_result :: BenefitUnitResult,
+    benefit_unit :: BenefitUnit, 
+    uc           :: UniversalCreditSys )
+    cap = 0.0
+    bur = benefit_unit_result
+    # FIXME we're doing this twice!
+    for pid in bu.adults
+        for (at,val) in bu.people[pid].assets
+            cap += val
+        end
+    end
+    bur.uc.assets = cap    
+    bur.uc.tariff_income = tariff_income( cap, uc.capital_min, uc.)
+    bur.uc.income += bur.uc.tariff_income
+end
+
+#
+# FIXME CPAG 19/20 p 122 shows a earned/unearned 
+# split calculation with earnings 
+#
 function calc_universal_credit!(
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit     :: BenefitUnit,
@@ -288,8 +377,22 @@ function calc_universal_credit!(
     ucr.disqualified_on_capital = false
     ucr.standard_allowance = calc_standard_allowance( benefit_unit, intermed, uc )
     calc_elements!( ucr, benefit_unit, intermed, uc, hours_limits, child_limits )
-
+    calc_uc_child_costs!( ucr, benefit_unit, intermed, uc )
+    calc_uc_income!( ucr, benefit_unit, intermed, uc, minwage )
+    calc_tariff_income!( ucr, bu, uc )
+    ucr.maximum = 
+        ucr.standard_allowance + 
+        ucr.limited_capcacity_for_work_activity_element +
+        ucr.child_element +
+        ucr.housing_element + 
+        ucr.carer_element + 
+        ucr.childcare_costs
+    head = get_head( bu )
+    uce = ucr.maximum - ucr.earned_income - ucr.other_income
+    head.income[UNIVERSAL_CREDIT] = max( 0.0, uce )
 end
+
+
 
 function calc_uc_housing_element!(
     household_result :: HouseholdResult,

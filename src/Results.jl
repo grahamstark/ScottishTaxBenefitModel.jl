@@ -48,14 +48,18 @@ module Results
     @with_kw mutable struct UCResults{RT<:Real}
         basic_conditions_satisfied :: Bool = false
         disqualified_on_capital :: Bool = false
-        income :: RT = zero(RT)
+        work_allowance :: RT = zero(RT)
+        earned_income :: RT = zero(RT)
+        other_income :: RT = zero(RT)
+        tariff_income :: RT = zero(RT)
         standard_allowance  :: RT = zero(RT)
         child_element ::  RT = zero(RT)
         limited_capcacity_for_work_activity_element ::  RT = zero(RT)
         carer_element ::  RT = zero(RT)
-        elements ::  RT = zero(RT)
         childcare_costs :: RT = zero(RT)
         housing_element :: RT = zero(RT)
+        assets :: RT = zero(RT)
+        maximum  :: RT = zero(RT)
     end
 
                 
