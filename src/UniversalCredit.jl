@@ -341,8 +341,7 @@ function calc_tariff_income!(
     end
     bur.uc.assets = cap    
     bur.uc.tariff_income = tariff_income( cap, uc.capital_min, uc.)
-    bur.uc.other_income += bur.uc.tariff_income
-end
+ end
 
 #
 # FIXME CPAG 19/20 p 122 shows a earned/unearned 
@@ -388,7 +387,7 @@ function calc_universal_credit!(
         ucr.carer_element + 
         ucr.childcare_costs
     head = get_head( bu )
-    uce = ucr.maximum - ucr.earned_income - ucr.other_income
+    uce = ucr.maximum - ucr.earned_income - ucr.other_income - ucr.tariff_income
     head.income[UNIVERSAL_CREDIT] = max( 0.0, uce )
 end
 
