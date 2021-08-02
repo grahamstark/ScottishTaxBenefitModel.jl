@@ -65,11 +65,15 @@ using .LegacyMeansTestedBenefits:
     tariff_income
 
 export 
-    calc_universal_credit!, 
-    qualifiying_16_17_yo,
     basic_conditions_satisfied,
+    calc_elements!,
     calc_standard_allowance,
-    disqualified_on_capital
+    calc_tariff_income!,
+    calc_uc_child_costs!,
+    calc_uc_income!,
+    calc_universal_credit!, 
+    disqualified_on_capital,
+    qualifiying_16_17_yo
 
 function pid_of_youngest_adult( bu :: BenefitUnit ) :: BigInt
     y = 99999
@@ -386,11 +390,11 @@ function calc_universal_credit!(
         ucr.housing_element + 
         ucr.carer_element + 
         ucr.childcare_costs
-    head = get_head( bu )
-    uce = ucr.maximum - 
+     uce = ucr.maximum - 
         ucr.earned_income - 
         ucr.other_income - 
         ucr.tariff_income
+    head = get_head( bu )
     benefit_unit_result.people[head.pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
 end
 
