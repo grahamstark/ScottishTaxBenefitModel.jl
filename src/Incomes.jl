@@ -609,8 +609,7 @@ using StaticArrays
     # FIXME the CPAG guide describes a very convoluted way
     # of calculating, which requires 2 lists of earned and unearned income
     # I think that's important just for 
-    const UC_OTHER_INCOME = IncludedItems(
-        [   
+    const UC_OTHER_INCOME = [   
             # WAGES,
             # SELF_EMPLOYMENT_INCOME, # counts, but see minimum level of earnings regs 19/20 p119
             OTHER_INCOME,
@@ -639,12 +638,7 @@ using StaticArrays
             GOVERNMENT_TRAINING_ALLOWANCES,
             GUARDIANS_ALLOWANCE,
             WIDOWS_PAYMENT,
-            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE 
-        ],
-        [   
-        ]
-    )
-
+            UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE ]
     ## FIXME CHECK THIS list
     ## NOTE wages, se are treated seperately
     const LEGACY_MT_INCOME = IncludedItems(

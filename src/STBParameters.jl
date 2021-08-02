@@ -715,7 +715,7 @@ module STBParameters
 
         work_allowance_w_housing :: RT = 287.0
         work_allowance_no_housing :: RT = 503.0
-        other_income :: IncludedItems = UC_OTHER_INCOME
+        other_income = UC_OTHER_INCOME
         earned_income :: IncludedItems = UC_EARNED_INCOME
         capital_max :: RT = 6_000.0
         capital_min :: RT = 16_000.0

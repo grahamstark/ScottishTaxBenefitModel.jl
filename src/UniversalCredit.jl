@@ -49,10 +49,7 @@ using .Results:
     BenefitUnitResult, 
     HouseholdResult, 
     IndividualResult, 
-    LMTIncomes,
-    LMTResults, 
-    LMTCanApplyFor, 
-    aggregate_tax, 
+    UCResults,
     has_any,
     to_string,
     total
@@ -219,7 +216,7 @@ function calc_elements!(
     ucr          :: UCResults,
     benefit_unit :: BenefitUnit, 
     intermed     :: MTIntermediate,
-    uc           :: UniversalCreditSys 
+    uc           :: UniversalCreditSys,
     hours_limits :: HoursLimits, 
     child_limits :: ChildLimits )
 
@@ -344,7 +341,7 @@ function calc_tariff_income!(
         end
     end
     bur.uc.assets = cap    
-    bur.uc.tariff_income = tariff_income( cap, uc.capital_min, uc.)
+    bur.uc.tariff_income = tariff_income( cap, uc.capital_min, uc.capital_tariff )
  end
 
 #
@@ -418,15 +415,15 @@ function calc_uc_housing_element!(
                 if (intermed.buint.num_children == 0) || (intermed.buint.age_youngest_child >= 5)
                     for adno in bus[buno].adults 
                         pers = bus[buno].people[adno]
-                        pr = household_result.bur[buno].pres[adno]
+                        pr = household_result.bur[buno].people[adno]
                         exempt =  # FIXME parameterise these
                             pers.age < 21 || 
-                            any_positive( pers.inc,
+                            any_positive( pr.income,
                                 [ATTENDANCE_ALLOWANCE,
                                 PENSION_CREDIT,
                                 PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
                                 DLA_SELF_CARE,
-                                CARERS_ALLOWANCE]
+                                CARERS_ALLOWANCE] )
                         if ! exempt
                             ndds += uc.ndd
                         end
@@ -475,7 +472,8 @@ function calc_universal_credit!(
             intermed.buint[buno],
             uc,
             age_limits,
-            hours,
+            hours_limits,
+            child_limits,
             hr,
             minwage
         )
