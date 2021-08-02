@@ -387,8 +387,11 @@ function calc_universal_credit!(
         ucr.carer_element + 
         ucr.childcare_costs
     head = get_head( bu )
-    uce = ucr.maximum - ucr.earned_income - ucr.other_income - ucr.tariff_income
-    head.income[UNIVERSAL_CREDIT] = max( 0.0, uce )
+    uce = ucr.maximum - 
+        ucr.earned_income - 
+        ucr.other_income - 
+        ucr.tariff_income
+    benefit_unit_result.people[head.pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
 end
 
 
