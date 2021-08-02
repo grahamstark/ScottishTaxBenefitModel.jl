@@ -341,7 +341,7 @@ function calc_tariff_income!(
     end
     bur.uc.assets = cap    
     bur.uc.tariff_income = tariff_income( cap, uc.capital_min, uc.)
-    bur.uc.income += bur.uc.tariff_income
+    bur.uc.other_income += bur.uc.tariff_income
 end
 
 #
