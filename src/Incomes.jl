@@ -584,7 +584,9 @@ using StaticArrays
     export NON_SAVINGS_INCOME
     export SAVINGS_INCOME
     export DEFAULT_PASSPORTED_BENS
-
+    export UC_OTHER_INCOME
+    export UC_EARNED_INCOME 
+    
     const SAVINGS_INCOME = [BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME]
 
     """ 

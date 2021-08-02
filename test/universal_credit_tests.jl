@@ -91,6 +91,9 @@ sys = get_system( scotland=true )
 
     for (hht,hh) in examples 
         println( "on hhld '$hht'")
+
+        
+
         bus = get_benefit_units( hh )
         bu = bus[1]
         intermed = make_intermediate( 
@@ -100,6 +103,7 @@ sys = get_system( scotland=true )
             sys.age_limits,
             sys.child_limits,
             1 )
+        
     end
 end
 
