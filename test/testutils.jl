@@ -12,6 +12,7 @@ using .ModelHousehold:
    Person,    
    child_pids,
    get_head,
+   is_child,
    num_adults, 
    num_children,
    make_eq_scales!
@@ -19,6 +20,11 @@ using .ModelHousehold:
 using .Definitions
 import .ExampleHouseholdGetter
 using DataFrames,CSV, Dates
+
+#
+# full dataset is available .. 
+# 
+const IS_LOCAL = isdir("/mnt/data/frs/")
 
 # pids for example people
 # see make_pid 
@@ -250,7 +256,16 @@ function age_now( age :: Int ) :: Int
    return age + Int(yd)
 end
 
-
+function set_childrens_ages!( hh :: Household, ages ... )
+   nc = length(ages)[1]
+   nset = 0
+   for (pid, pers) in hh.people
+      if is_child(pers)
+         nset = min( nc, nset+1)
+         pers.age = ages[nset]
+      end
+   end
+end
     
 function init_benefit_unit_result( bu :: BenefitUnit ) :: BenefitUnitResult
    return init_benefit_unit_result( DEFAULT_NUM_TYPE, bu )

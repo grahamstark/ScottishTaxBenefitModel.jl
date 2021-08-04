@@ -4,10 +4,7 @@ using StatsBase: self_avoid_sample!
 using Test
 using ScottishTaxBenefitModel
 
-#
-# full dataset is available .. 
-# 
-is_local = isdir("/mnt/data/frs/")
+
 
 include( "testutils.jl")
 
@@ -36,7 +33,7 @@ include( "minimum_wage_tests.jl")
 include( "local_level_calculations_tests.jl" )
 
 # These will only run if datasets are locally installed
-if is_local
+if IS_LOCAL
 	# These will only run if datasets are locally installed
     include( "household_tests.jl")
     include( "simple_runner_tests.jl")

@@ -54,12 +54,13 @@ module Results
         tariff_income :: RT = zero(RT)
         standard_allowance  :: RT = zero(RT)
         child_element ::  RT = zero(RT)
-        limited_capcacity_for_work_activity_element ::  RT = zero(RT)
+        limited_capacity_for_work_activity_element ::  RT = zero(RT)
         carer_element ::  RT = zero(RT)
         childcare_costs :: RT = zero(RT)
         housing_element :: RT = zero(RT)
         assets :: RT = zero(RT)
         maximum  :: RT = zero(RT)
+        transitional_protection :: RT = zero(RT)
     end
 
                 

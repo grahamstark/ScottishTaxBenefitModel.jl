@@ -140,13 +140,17 @@ function qualifiying_16_17_yo(
     uc :: UniversalCreditSys ) :: Bool
     bu = benefit_unit # shortcut
     if pers_is_carer( pers )
+        println( "is carer")
         return true
     elseif has_limited_capactity_for_work_activity( pers )
+        println( "has_limited_capactity_for_work_activity")
         return true
     elseif (is_head( bu, pers ) || is_spouse( bu, pers )) && ( intermed.num_children > 0)
+        println( "bu has children")
         return true
         ## And some others; see CPAG 2020/1 p 37
     end
+    println( "returning false")
     return false
 end
 
@@ -233,7 +237,8 @@ function calc_elements!(
         else
             ucr.child_element = uc.subsequent_child
         end
-        ucr.child_element += (1-intermed.num_allowed_children)*uc.subsequent_child
+        println( "ucr.child_element = $(ucr.child_element) intermed.num_allowed_children=$(intermed.num_allowed_children) uc.subsequent_child=$(uc.subsequent_child)")
+        ucr.child_element += (intermed.num_allowed_children-1)*uc.subsequent_child
     end
     # limited capacity for work-related Activity
     # 1 per BU; see cpag 20/1 p 71-73
@@ -247,7 +252,7 @@ function calc_elements!(
         end            
     end
     if lcwa 
-        ucr.limited_capcacity_for_work_activity_element = uc.limited_capcacity_for_work_activity
+        ucr.limited_capacity_for_work_activity_element = uc.limited_capcacity_for_work_activity
     end
     carer = false
     for pid in bu.adults 
@@ -389,7 +394,7 @@ function calc_universal_credit!(
     calc_tariff_income!( bur, bu, uc )
     bur.uc.maximum = 
         bur.uc.standard_allowance + 
-        bur.uc.limited_capcacity_for_work_activity_element +
+        bur.uc.limited_capacity_for_work_activity_element +
         bur.uc.child_element +
         bur.uc.housing_element + 
         bur.uc.carer_element + 
@@ -413,7 +418,12 @@ function calc_uc_housing_element!(
 )
     hhr = household_result # shortcut
     hh = household # shortcut
-    eligible_amount = household_result.housing.allowed_rent
+    eligible_amount = 0.0
+    if renter( hh.tenure )
+        eligible_amount = household_result.housing.allowed_rent
+    else
+        # FIXME fill owner allowed costs
+    end
     bus = get_benefit_units(household)
     nbus = size(bus)[1]
     ndds = 0.0
