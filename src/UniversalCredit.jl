@@ -126,8 +126,12 @@ function disqualified_on_capital(
     bu = benefit_unit # shortcut
     # FIXME we're doing this twice
     for pid in bu.adults
-        for (at,val) in bu.people[pid].assets
-           cap += val
+        if bu.people[pid].over_20_k_saving
+            return true
+        else
+            for (at,val) in bu.people[pid].assets
+                cap += val
+            end
         end
     end
     return cap > uc.capital_max

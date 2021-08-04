@@ -197,11 +197,16 @@ function calc_incomes(
     """
     not even remotely right ... cpag 21
     """
+    
     cap = 0.0
     for pid in bu.adults
-        for (at,val) in bu.people[pid].assets
-           cap += val
-        end
+        if bu.people[pid].over_20_k_saving
+            cap = 100_000 # some huge number bigger than any reasonable capmax
+        else
+            for (at,val) in bu.people[pid].assets
+                cap += val
+            end
+    end
     end
     inc.other_income = other
     inc.capital = cap
@@ -222,7 +227,7 @@ function calc_incomes(
     end
     
     inc.tariff_income = tariff_income(cap, capmin, tariff )
-    inc.disqualified_on_capital = cap > capmax 
+    inc.disqualified_on_capital = cap > capmax
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
     return inc

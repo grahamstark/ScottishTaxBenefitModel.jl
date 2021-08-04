@@ -11,6 +11,7 @@ export
    Self_employed,   
    FRS_DIR, 
    HBAI_DIR,
+   MATCHING_DIR,
    MODEL_DATA_DIR, 
    MODEL_DATA_DIR, 
    MODEL_PARAMS_DIR, 
@@ -1315,7 +1316,7 @@ export Missing_Benefit_Type
    Armed_Forces_Compensation_Scheme = 8
    War_Widows_or_Widowers_Pension = 9
    Severe_Disability_Allowance = 10
-   Attendence_Allowance = 12
+   Attendance_Allowance = 12
    Carers_Allowance = 13
    Jobseekers_Allowance = 14
    Industrial_Injury_Disablement_Benefit = 15

@@ -344,7 +344,9 @@ function initialise_person(n::Integer)::DataFrame
         personal_independence_payment_daily_living_type = Vector{Union{Integer,Missing}}(missing, n),
         personal_independence_payment_mobility_type  = Vector{Union{Integer,Missing}}(missing, n),
         
-        over_20_k_saving  = Vector{Union{Integer,Missing}}(missing, n),
+        over_20_k_saving = 
+            Vector{Union{Integer,Missing}}(
+                missing, n),
         asset_current_account = Vector{Union{Real,Missing}}(missing, n),
         asset_nsb_ordinary_account = Vector{Union{Real,Missing}}(missing, n),
         asset_nsb_investment_account = Vector{Union{Real,Missing}}(missing, n),
@@ -882,6 +884,7 @@ function process_benefits!( model_adult::DataFrameRow, a_benefits::DataFrame)
         bno = a_benefits[b, :benefit]
         if !(bno in [46, 47]) # 2015 receipt in last 6 months of tax credits
             btype = Benefit_Type(bno)
+            # println( "bno=$bno BenefitType=$btype")
             if btype <= Personal_Independence_Payment_Mobility
                 ikey = make_sym_for_frame("income", btype)
                 model_adult[ikey] = safe_inc(model_adult[ikey], a_benefits[b, :benamt])
@@ -1053,12 +1056,17 @@ function create_adults(
 
             ## adult only
             a_job = job[((job.sernum.==frs_person.sernum).&(job.benunit.==frs_person.benunit).&(job.person.==frs_person.person)), :]
-            a_benunit = benunit[((frs_person.benunit .== benunit.benunit).&(frs_person.sernum.==benunit.sernum)]
+            a_benunit = benunit[((frs_person.benunit .== benunit.benunit).&(frs_person.sernum.==benunit.sernum)),:]
+            a_benunit = a_benunit[1,:]
+            model_adult.over_20_k_saving = 0
             if hdsp
-                if a_benunit.totsav >= 5
+                ts = safe_assign(a_benunit.totsav)
+                if ts >= 5
                     model_adult.over_20_k_saving = 1
                 end
             end
+            # println( "model_adult.over_20_k_saving=$(model_adult.over_20_k_saving)")
+
             a_pension = pension[((pension.sernum.==frs_person.sernum).&(pension.benunit.==frs_person.benunit).&(pension.person.==frs_person.person)), :]
             a_penprov = penprov[((penprov.sernum.==frs_person.sernum).&(penprov.benunit.==frs_person.benunit).&(penprov.person.==frs_person.person)), :]
             an_asset = assets[((assets.sernum.==frs_person.sernum).&(assets.benunit.==frs_person.benunit).&(assets.person.==frs_person.person)), :]
@@ -1209,11 +1217,9 @@ function create_children(
     childcare::DataFrame,
     hbai_res::DataFrame
 )::DataFrame
-    # I don't care if the child is in HBAI or not - we'll sort that out when we match with the
-    # live benefit units
     num_children = size(frs_children)[1]
     child_model = initialise_person(num_children)
-    adno = 0
+    ccount = 0
     for chno in 1:num_children
         if chno % 1000 == 0
             println("on year $year, chno $chno")
@@ -1225,9 +1231,9 @@ function create_children(
             nchildcares = size(a_childcare)[1]
 
             sernum = frs_person.sernum
-            adno += 1
+            ccount += 1
                 ## also for children
-            model_child = child_model[chno, :]
+            model_child = child_model[ccount, :]
 
             model_child.pno = frs_person.person
             model_child.hid = frs_person.sernum
@@ -1240,11 +1246,11 @@ function create_children(
             model_child.sex = safe_assign(frs_person.sex)
             # model_child.ethnic_group = safe_assign(frs_person.ethgr3)
             ## also for child
-            println( "frs_person.chlimitl='$(frs_person.chlimitl)'")
+            # println( "frs_person.chlimitl='$(frs_person.chlimitl)'")
             model_child.has_long_standing_illness = (frs_person.chealth1 == 1 ? 1 : 0)
             model_child.how_long_adls_reduced = (frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
             model_child.adls_are_reduced = (frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
-
+            model_child.over_20_k_saving = 0
 
             model_child.registered_blind = (frs_person.spcreg1 == 1 ? 1 : 0)
             model_child.registered_partially_sighted = (frs_person.spcreg2 == 1 ? 1 : 0)
@@ -1293,7 +1299,7 @@ function create_children(
             model_child.onerand = mybigrandstr()
         end  # if in HBAI
     end # chno loop
-    child_model # send them all back ...
+    return child_model[1:ccount,:] # send them all back ...
 end
 
 function create_household(
@@ -1415,16 +1421,17 @@ function loadfrs(which::AbstractString, year::Integer)::DataFrame
 end
 
 function create_data()
-    model_households = initialise_household(0)
-    model_people = initialise_person(0)
+    # model_households = initialise_household(0)
+    # model_people = initialise_person(0)
     for year in 2015:2018
-        # we only want this massive thing for a couple of
-        # benefit variables.
+        print("on year $year ")
+        appendb = year > 2015
         y = year - 2000
         ystr = "$(y)$(y+1)"
+        # we only want this massive thing for a couple of
+        # benefit variables.
         frsx = loadfrs( "frs$ystr", year )
         hbai_res = loadtoframe("$(HBAI_DIR)/tab/"*HBAIS[year])
-        print("on year $year ")
         accounts = loadfrs("accounts", year)
         benunit = loadfrs("benunit", year)
         extchild = loadfrs("extchild", year)
@@ -1449,8 +1456,7 @@ function create_data()
         renter = loadfrs("renter", year)
 
         model_children_yr = create_children(year, child, chldcare, hbai_res)
-        append!(model_people, model_children_yr)
-
+        # append!(model_people, model_children_yr)
         model_adults_yr = create_adults(
             year,
             adult,
@@ -1474,8 +1480,7 @@ function create_data()
             job,
             hbai_res,
             frsx )
-        append!(model_people, model_adults_yr)
-
+        # append!(model_people, model_adults_yr)
         model_households_yr = create_household(
             year,
             househol,
@@ -1484,10 +1489,15 @@ function create_data()
             mortcont,
             owner,
             hbai_res )
-        append!(model_households, model_households_yr)
-
-    end
-
-    CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
-    CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
+        # append!(model_households, model_households_yr)
+        println( "on year $year")
+        println( "hhlds")
+        CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households_yr, delim = "\t", append=appendb)
+        println( "adults")
+        CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_adults_yr, delim = "\t", append=appendb)
+        println( "children")
+        CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_children_yr, delim = "\t", append=false)
+    end    
+    # CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
+    # CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
 end
