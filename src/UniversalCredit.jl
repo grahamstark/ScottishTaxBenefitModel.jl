@@ -1,31 +1,26 @@
 module UniversalCredit
 #
-# UC 
-# 
+# This module implements the Universal Credit system,
+# largely as its defined in CPAG 19/20 and 20/21.
 #
 using Base: Bool
+using Dates: TimeType, now
+
 using ScottishTaxBenefitModel
+
+# FIXME prune these imports to things actually used.
 
 using .ModelHousehold: 
     BenefitUnit,
     Household, 
     Person,    
-    between_ages, 
-    count, 
     empl_status_in, 
-    ge_age, 
+    get_head,
     get_benefit_units,
-    has_children, 
     is_head,
-    is_lone_parent, 
-    is_severe_disability,
     is_spouse,
-    is_single, 
-    le_age, 
-    num_adults, 
-    num_carers, 
     pers_is_disabled, 
-    search
+    pers_is_carer
 
 using .STBParameters: 
     UniversalCreditSys,
@@ -33,17 +28,14 @@ using .STBParameters:
     ChildLimits,
     HoursLimits,
     HousingRestrictions,
-    MinimumWage
+    MinimumWage,
+    get_minimum_wage
 
 using .Intermediate: 
     MTIntermediate, 
     HHIntermed,
-    apply_2_child_policy,
     born_before, 
-    has_limited_capactity_for_work_activity,
-    is_working_hours,
-    num_born_before, 
-    working_disabled
+    has_limited_capactity_for_work_activity
  
 using .Results: 
     BenefitUnitResult, 
@@ -60,6 +52,9 @@ using .LocalLevelCalculations:
 using .LegacyMeansTestedBenefits:
     num_qualifying_for_severe_disability,
     tariff_income
+
+using .Incomes
+using .Definitions
 
 export 
     basic_conditions_satisfied,
@@ -90,11 +85,12 @@ The test of basic eligibility from p37- 2020/1 CPAG
 function basic_conditions_satisfied( 
     benefit_unit :: BenefitUnit, 
     intermed     :: MTIntermediate,
-    uc           :: UniversalCreditSys,
+    uc           :: UniversalCreditSys, # FIXME uc->ucsys everywhere
     age_limits   :: AgeLimits ) :: Bool
+    bu = benefit_unit # shortcut
     if intermed.all_pension_age 
         return false
-    elseif intermed.age_age_oldest_adult < 18
+    elseif intermed.age_oldest_adult < 18 # FIXME parameterise this
         q1617 = false
         for pid in benefit_unit.adults
             if qualifiying_16_17_yo( bu, bu.people[pid], intermed, uc )
@@ -102,17 +98,16 @@ function basic_conditions_satisfied(
                 break
             end
         end
-        if ! q1617            
-            return false
-        end
+        println( "16-17 adult q1617=$q1617")
+        return q1617            
     else
         all_in_educ = true
-        for pid in benefit_unit.adults
+        for pid in bu.adults
             # FIXME need a better test than this
             in_educ :: Bool = 
-                (benefit_unit.people[pid].employment_status == Student) &&
+                (bu.people[pid].employment_status == Student) &&
                 (intermed.num_children == 0) && 
-                (! pers_is_disabled( benefit_unit.people[pid]))
+                (! pers_is_disabled( bu.people[pid]))
             if ! in_educ
                 all_in_educ = false
                 break
@@ -120,6 +115,7 @@ function basic_conditions_satisfied(
         end
         return ! all_in_educ 
     end
+    @assert false "should never get to end of basic_conditions_satisfied"
 end
 
 ## FIXME we need the quickie capital question here
@@ -127,6 +123,7 @@ function disqualified_on_capital(
     benefit_unit :: BenefitUnit, 
     uc           :: UniversalCreditSys ) :: Bool
     cap = 0.0
+    bu = benefit_unit # shortcut
     # FIXME we're doing this twice
     for pid in bu.adults
         for (at,val) in bu.people[pid].assets
@@ -137,10 +134,11 @@ function disqualified_on_capital(
 end
 
 function qualifiying_16_17_yo( 
-    bu   :: BenefitUnit,
+    benefit_unit   :: BenefitUnit,
     pers :: Person, 
     intermed :: MTIntermediate, 
     uc :: UniversalCreditSys ) :: Bool
+    bu = benefit_unit # shortcut
     if pers_is_carer( pers )
         return true
     elseif has_limited_capactity_for_work_activity( pers )
@@ -157,10 +155,12 @@ function calc_standard_allowance(
     intermed         :: MTIntermediate,
     uc               :: UniversalCreditSys )
     sa = 0.0
+    bu = benefit_unit # shortcut
+    yp :: BigInt = pid_of_youngest_adult( bu )
     if intermed.num_adults == 1 
         if intermed.age_oldest_adult < 18
             # under 18 single FIXME we should only every need 1 call to this, at the beginning
-            if qualifiying_16_17_yo( bu, bu.people[py], intermed, uc )
+            if qualifiying_16_17_yo( bu, bu.people[yp], intermed, uc )
                 sa = uc.age_18_24    
             end
         elseif intermed.age_oldest_adult < 25
@@ -182,15 +182,15 @@ function calc_standard_allowance(
             if np == 1
                 sa = uc.age_18_24
             elseif np == 2
-                sa = couple_both_under_25
+                sa = uc.couple_both_under_25
             end
         elseif intermed.age_oldest_adult < 25
             # under 25 couple(probably - might be u25 single if 2nd adult under 18)
             if  intermed.age_youngest_adult >= 18
-                sa = couple_both_under_25
+                sa = uc.couple_both_under_25
             else
                 if qualifiying_16_17_yo( bu, bu.people[yp], intermed, uc )
-                    sa = couple_both_under_25
+                    sa = uc.couple_both_under_25
                 else
                     sa = uc.age_18_24 # single person, ...
                 end
@@ -198,11 +198,11 @@ function calc_standard_allowance(
         else 
             # 25+ couple (probably - might be 25+ single if 2nd adult under 18)
             if intermed.age_youngest_adult >= 18
-                sa = couple_oldest_25_plus
+                sa = uc.couple_oldest_25_plus
             else
                 ## kinda TODO
                 if qualifiying_16_17_yo( bu, bu.people[yp], intermed, uc )
-                    sa = couple_oldest_25_plus
+                    sa = uc.couple_oldest_25_plus
                 else
                     sa = uc.age_25_and_over # single person, ...
                 end
@@ -219,6 +219,7 @@ function calc_elements!(
     uc           :: UniversalCreditSys,
     hours_limits :: HoursLimits, 
     child_limits :: ChildLimits )
+    bu = benefit_unit # shortcut
 
     # child elements
     
@@ -271,6 +272,7 @@ function calc_uc_child_costs!(
     benefit_unit        :: BenefitUnit,
     intermed            :: MTIntermediate,
     uc                  :: UniversalCreditSys )  
+    bu = benefit_unit # shortcut
     cost_of_childcare = 0.0
     for pid in bu.children 
         cost_of_childcare += bu.people[pid].cost_of_childcare 
@@ -303,9 +305,10 @@ function calc_uc_income!(
     intermed            :: MTIntermediate,
     uc                  :: UniversalCreditSys,
     minwage             :: MinimumWage ) 
+    bu = benefit_unit # shortcut
+    bur = benefit_unit_result # shortcut
     inc = 0.0  
     earn = 0.0
-    bur = benefit_unit_result # alias
     for pid in bu.adults
         inc += isum( bur.pers[pid].income, uc.other_income )
         earn += isum( bur.pers[pid].income, uc.earned_income )
@@ -314,17 +317,19 @@ function calc_uc_income!(
         if bu.people[pid].employment_status == Full_time_Self_Employed 
             min_se = make_min_se( seinc, bu.people[pid].age, uc, minwage )            
         end
+        # println( "earn=$earn seinc=$seinc inc=$inc incs=$(bur.pers[pid].income)")
         earn += seinc
     end
 
-
     if( intermed.num_children > 0 ) || intermed.limited_capacity_for_work
         bur.uc.work_allowance = bur.uc.housing_element > 0 ? 
-            work_allowance_w_housing : work_allowance_no_housing
+            uc.work_allowance_w_housing : uc.work_allowance_no_housing
         earn = max( 0.0, earn-bur.uc.work_allowance)
     end
     bur.uc.other_income = inc
-    bur.uc.earnings = earn*uc.taper
+    bur.uc.earned_income = earn*uc.taper
+    # println( "earn $earn taper $(uc.taper)")
+    # println("calc_uc_income! at end $(bur.uc)")
 end
 
 ## FIXME we need the extra capital var here benunit.Totsav
@@ -332,16 +337,17 @@ function calc_tariff_income!(
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit :: BenefitUnit, 
     uc           :: UniversalCreditSys )
+    bu = benefit_unit # shortcut
+    ucr = benefit_unit_result.uc # shortcut
     cap = 0.0
-    bur = benefit_unit_result
     # FIXME we're doing this twice!
     for pid in bu.adults
         for (at,val) in bu.people[pid].assets
             cap += val
         end
     end
-    bur.uc.assets = cap    
-    bur.uc.tariff_income = tariff_income( cap, uc.capital_min, uc.capital_tariff )
+    ucr.assets = cap    
+    ucr.tariff_income = tariff_income( cap, uc.capital_min, uc.capital_tariff )
  end
 
 #
@@ -358,41 +364,42 @@ function calc_universal_credit!(
     child_limits     :: ChildLimits,
     hr               :: HousingRestrictions,
     minwage          :: MinimumWage )
-    ucr = benefit_unit_result.uc # shortcut
-    py :: BigInt = pid_of_youngest_adult( bu )
+    bu = benefit_unit # shortcut
+    bur = benefit_unit_result # shortcut
+    
 
     if ! basic_conditions_satisfied( 
-        benefit_unit, 
+        bu, 
         intermed, 
         uc, 
         age_limits )
-        ucr.basic_conditions_satisfied = false
+        bur.uc.basic_conditions_satisfied = false
         return
     end
-    ucr.basic_conditions_satisfied = true
-    if disqualified_on_capital( benefit_unit, uc )
-        ucr.disqualified_on_capital = true
+    bur.uc.basic_conditions_satisfied = true
+    if disqualified_on_capital( bu, uc )
+        bur.uc.disqualified_on_capital = true
         return
     end
-    ucr.disqualified_on_capital = false
-    ucr.standard_allowance = calc_standard_allowance( benefit_unit, intermed, uc )
-    calc_elements!( ucr, benefit_unit, intermed, uc, hours_limits, child_limits )
-    calc_uc_child_costs!( ucr, benefit_unit, intermed, uc )
-    calc_uc_income!( ucr, benefit_unit, intermed, uc, minwage )
-    calc_tariff_income!( ucr, bu, uc )
-    ucr.maximum = 
-        ucr.standard_allowance + 
-        ucr.limited_capcacity_for_work_activity_element +
-        ucr.child_element +
-        ucr.housing_element + 
-        ucr.carer_element + 
-        ucr.childcare_costs
-     uce = ucr.maximum - 
-        ucr.earned_income - 
-        ucr.other_income - 
-        ucr.tariff_income
+    bur.uc.disqualified_on_capital = false
+    bur.uc.standard_allowance = calc_standard_allowance( benefit_unit, intermed, uc )
+    calc_elements!( bur.uc, bu, intermed, uc, hours_limits, child_limits )
+    calc_uc_child_costs!( bur.uc, bu, intermed, uc )
+    calc_uc_income!( bur, bu, intermed, uc, minwage )
+    calc_tariff_income!( bur, bu, uc )
+    bur.uc.maximum = 
+        bur.uc.standard_allowance + 
+        bur.uc.limited_capcacity_for_work_activity_element +
+        bur.uc.child_element +
+        bur.uc.housing_element + 
+        bur.uc.carer_element + 
+        bur.uc.childcare_costs
+     uce = bur.uc.maximum - 
+        bur.uc.earned_income - 
+        bur.uc.other_income - 
+        bur.uc.tariff_income
     head = get_head( bu )
-    benefit_unit_result.people[head.pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
+    bur.pers[head.pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
 end
 
 
@@ -404,18 +411,24 @@ function calc_uc_housing_element!(
     uc               :: UniversalCreditSys,
     hr               :: HousingRestrictions
 )
+    hhr = household_result # shortcut
+    hh = household # shortcut
     eligible_amount = household_result.housing.allowed_rent
     bus = get_benefit_units(household)
     nbus = size(bus)[1]
     ndds = 0.0
     if nbus > 1
-        if num_qualifying_for_severe_disability( bus[1], hh,bures[1], 1 ) == 0
+        if num_qualifying_for_severe_disability( 
+            bus[1], 
+            hhr.bus[1], 
+            1 ) == 0
             for buno in 2:nbus
                 # children under 5
-                if (intermed.buint.num_children == 0) || (intermed.buint.age_youngest_child >= 5)
+                buint = intermed.buint[buno] # shortcut
+                if (buint.num_children == 0) || (buint.age_youngest_child >= 5)
                     for adno in bus[buno].adults 
                         pers = bus[buno].people[adno]
-                        pr = household_result.bur[buno].people[adno]
+                        pr = hhr.bus[buno].pers[adno] # fixme make this `people` to match the bu
                         exempt =  # FIXME parameterise these
                             pers.age < 21 || 
                             any_positive( pr.income,
@@ -432,7 +445,7 @@ function calc_uc_housing_element!(
             end # bu loop 
         end # bu 1 isn't severe disabled
     end # > 1 bu
-    household_result.bus[1].uc.housing_element = 
+    hhr.bus[1].uc.housing_element = 
         max(0.0, eligible_amount - ndds )
 end
 
@@ -467,7 +480,7 @@ function calc_universal_credit!(
     )
     for buno in eachindex(bus)
         calc_universal_credit!(
-            household_result.bur[buno],
+            household_result.bus[buno],
             bus[buno],
             intermed.buint[buno],
             uc,

@@ -454,8 +454,8 @@ function get_head( hh :: Household ) :: Person
     return hh.people[hh.head_of_household]
 end
 
-function is_head( bu :: BenefitUnit, pers :: Person  ) :: bereavement_allowance_or_widowed_parents_allowance_or_bereavement
-    return bu.head = pers.pid
+function is_head( bu :: BenefitUnit, pers :: Person  ) :: Bool
+    return bu.head == pers.pid
 end
 
 function is_spouse( unit, pers :: Person  ) :: Bool

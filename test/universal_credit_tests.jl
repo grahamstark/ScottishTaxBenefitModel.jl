@@ -55,9 +55,21 @@ using .LocalLevelCalculations:
     
 using .STBParameters: 
     HoursLimits,
-    IncomeRules, 
-    LegacyMeansTestedBenefitSystem
-    
+    HousingRestrictions,
+    MinimumWage,
+    UniversalCreditSys
+   
+using .UniversalCredit
+    basic_conditions_satisfied,
+    calc_elements!,
+    calc_standard_allowance,
+    calc_tariff_income!,
+    calc_uc_child_costs!,
+    calc_uc_income!,
+    calc_universal_credit!, 
+    disqualified_on_capital,
+    qualifiying_16_17_yo    
+
 using .Results: 
     BenefitUnitResult,
     LMTResults, 
@@ -70,40 +82,118 @@ using .Utils:
     to_md_table
 
 
+
 ## FIXME don't need both
-lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
 
-@testset "UC Tests 1" begin
-    
-    examples = get_ss_examples()
-    income = [110.0,145.0,325,755.0,1_000.0]
+@testset "UC Example Shakedown Tests" begin
+    #
+    # Just drive the example hhls through the UC routine
+    # & see if anything crashes. Fuller tests to follow.
+    #
+    # Normally we'll do these tests monthly so they correspond better
+    # to the CPAG examples
+    # uc = get_default_uc( weekly = true )
 
-    #  basic check of tariff incomes; cpag ch 21 ?? page
-    caps = Dict(2000=>0,6000=>0,6000.01=>1, 6253=>2,8008=>9)
-    for (c,t) in caps
-        ci = tariff_income(c, 
-            lmt.income_rules.capital_min,
-            lmt.income_rules.capital_tariff)
-        println("ci=$ci t=$t c=$c")
-        @test (ci == t) 
-    end
+    examples = get_ss_examples()
+    
+    incomes = [110.0,145.0,325,755.0,1_000.0]
 
     for (hht,hh) in examples 
-        println( "on hhld '$hht'")
+        for income in incomes
+            println( "on hhld '$hht' income=$income")
 
-        
-
-        bus = get_benefit_units( hh )
-        bu = bus[1]
-        intermed = make_intermediate( 
-            1,
-            bu,  
-            lmt.hours_limits,
-            sys.age_limits,
-            sys.child_limits,
-            1 )
-        
+            bus = get_benefit_units( hh )
+            intermed = make_intermediate( 
+                hh,  
+                sys.hours_limits,
+                sys.age_limits,
+                sys.child_limits )
+            res = init_household_result( hh )
+            hhead = get_head( hh )
+            hhead.income[wages] = income 
+            calc_universal_credit!(
+                res,
+                hh, 
+                intermed,
+                sys.uc,
+                sys.age_limits,
+                sys.hours_limits,
+                sys.child_limits,
+                sys.hr,
+                sys.minwage
+            )
+            for buno in eachindex(res.bus) 
+                head = get_head( bus[buno] )
+                println( res.bus[buno].uc )
+                println( "UC Entitlement for $hht bu $buno earn $income = $(res.bus[buno].pers[head.pid].income[UNIVERSAL_CREDIT])" )
+            end
+        end
     end
 end
+
+
+@testset "Run on actual Data" begin
+    #
+    # 
+    #
+    nhhs,npeople = init_data()
+    for hno in 1:nhhs
+        hh = get_household(hno)
+        intermed = make_intermediate( 
+            hh,  
+            sys.hours_limits,
+            sys.age_limits,
+            sys.child_limits )
+
+        hres = init_household_result( hh )
+        println( "hhno $hno")
+        # tax stuff, which we kinda sorta need
+        bus = get_benefit_units( hh )
+        calc_pre_tax_non_means_tested!( 
+            hres,
+            hh, 
+            sys.nmt_bens,
+            sys.hours_limits,
+            sys.age_limits )
+    
+        for buno in eachindex(bus)
+            # income tax, with some nonsense for
+            # what remains of joint taxation..
+            head = get_head( bus[buno] )
+            spouse = get_spouse( bus[buno] )            
+            calc_income_tax!(
+                hres.bus[buno],
+                head,
+                spouse,
+                sys.it )
+            for chno in bus[buno].children
+                child = bus[buno].people[chno]
+                calc_income_tax!(
+                    hres.bus[buno].pers[child.pid],
+                    child,
+                    sys.it )
+            end  # child loop
+        end # bus loop
+        calc_post_tax_non_means_tested!( 
+            hres,
+            hh, 
+            sys.nmt_bens, 
+            sys.age_limits )
+    
+        calc_universal_credit!(
+            hres,
+            hh, 
+            intermed,
+            sys.uc,
+            sys.age_limits,
+            sys.hours_limits,
+            sys.child_limits,
+            sys.hr,
+            sys.minwage
+        )
+
+    end # hhld loop
+end #
+
 

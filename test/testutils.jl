@@ -52,6 +52,18 @@ function get_default_it_system(
   it
 end
 
+function get_default_uc( ;
+   year :: Integer = 2019,
+   weekly :: Bool = true )
+   uc = UniversalCreditSys{DEFAULT_NUM_TYPE}()
+   if weekly
+      weeklyise!( uc )
+   else
+      uc.taper /= 100 
+   end
+   return uc
+end
+
 function to_nearest_p( x, y :: Real ) :: Bool
     round(x, digits=2) == round(y, digits=2)
 end

@@ -205,7 +205,7 @@ module Results
         return s
     end
     
-    @with_kw mutable struct BenefitUnitResult{RT<:Real}
+    @with_kw mutable struct BenefitUnitResult{RT<:Real} # FIXME make this a dynamic thing to match get_benefit_units
         income = Incomes.make_a( RT )
         eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
@@ -213,7 +213,7 @@ module Results
         legacy_mtbens = LMTResults{RT}()
         uc = UCResults{RT}()
         other_benefits  :: RT = zero(RT)
-        pers = Dict{BigInt,IndividualResult{RT}}()
+        pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` 
         adults = Pid_Array()
     end
 

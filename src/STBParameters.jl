@@ -699,7 +699,7 @@ module STBParameters
         couple_oldest_25_plus :: RT = 498.89
 
         first_child  :: RT = 277.08
-        subsquent_child :: RT = 231.67
+        subsequent_child :: RT = 231.67
         disabled_child_lower :: RT = 126.11
         disabled_child_higher :: RT = 392.08
         limited_capcacity_for_work_activity:: RT = 336.20
@@ -730,10 +730,10 @@ module STBParameters
         uc.age_25_and_over  /= WEEKS_PER_MONTH
         
         uc.couple_both_under_25  /= WEEKS_PER_MONTH
-        uc.couple_someone_25_plus  /= WEEKS_PER_MONTH
+        uc.couple_oldest_25_plus  /= WEEKS_PER_MONTH
         
         uc.first_child   /= WEEKS_PER_MONTH
-        uc.subsquent_child  /= WEEKS_PER_MONTH
+        uc.subsequent_child  /= WEEKS_PER_MONTH
         uc.disabled_child_lower  /= WEEKS_PER_MONTH
         uc.disabled_child_higher  /= WEEKS_PER_MONTH
         uc.limited_capcacity_for_work_activity /= WEEKS_PER_MONTH
@@ -780,6 +780,7 @@ module STBParameters
         weeklyise!( tb.hr )
         weeklyise!( tb.loctax )
         weeklyise!( tb.nmt_bens )
+        weeklyise!( tb.uc )
     end
     
    """
