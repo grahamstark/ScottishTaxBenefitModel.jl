@@ -421,8 +421,8 @@ function calc_uc_housing_element!(
     eligible_amount = 0.0
     if renter( hh.tenure )
         eligible_amount = household_result.housing.allowed_rent
-    else
-        # FIXME fill owner allowed costs
+    elseif ! has_any( hhr.bus[1], WAGES,SELF_EMPLOYMENT_INCOME )
+        eligible_amount = household.other_housing_charges  # FIXME go through the list
     end
     bus = get_benefit_units(household)
     nbus = size(bus)[1]

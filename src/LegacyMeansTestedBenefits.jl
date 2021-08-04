@@ -919,9 +919,14 @@ function calc_legacy_means_tested_benefits!(
             INCOME_SUPPORT ])        
         bures.legacy_mtbens.hb_passported = true
         bures.legacy_mtbens.ctr_passported = true
+ 
     end
 end
 
+"""
+ TODO FIXME housing costs for oo if qualifies for PC,JSA etc.
+    see CPAG ch 18
+"""
 function calc_legacy_means_tested_benefits!(
             household_result :: HouseholdResult,
             household        :: Household,
@@ -960,7 +965,8 @@ function calc_legacy_means_tested_benefits!(
         intermed,
         lmt_ben_sys,
         age_limits )      
-    #   
+    # 
+
 end
 
 end # module LegacyMeansTestedBenefits

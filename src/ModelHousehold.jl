@@ -118,6 +118,7 @@ mutable struct Person{RT<:Real}
     had_children_when_bereaved :: Bool 
 
     assets::Asset_Dict{RT}
+    over_20_k_saving :: Bool
     pay_includes ::Included_In_Pay_Dict{Bool}
     
     # contracted_out_of_serps::Bool

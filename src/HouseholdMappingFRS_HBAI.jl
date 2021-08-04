@@ -204,6 +204,8 @@ function initialise_person(n::Integer)::DataFrame
         usual_hours_worked = Vector{Union{Real,Missing}}(missing, n),
         actual_hours_worked = Vector{Union{Real,Missing}}(missing, n),
         
+
+
         age_started_first_job = Vector{Union{Real,Missing}}(missing, n),
         # for widow's benefits
         type_of_bereavement_allowance = Vector{Union{Real,Missing}}(missing, n),
@@ -342,6 +344,7 @@ function initialise_person(n::Integer)::DataFrame
         personal_independence_payment_daily_living_type = Vector{Union{Integer,Missing}}(missing, n),
         personal_independence_payment_mobility_type  = Vector{Union{Integer,Missing}}(missing, n),
         
+        over_20_k_saving  = Vector{Union{Integer,Missing}}(missing, n),
         asset_current_account = Vector{Union{Real,Missing}}(missing, n),
         asset_nsb_ordinary_account = Vector{Union{Real,Missing}}(missing, n),
         asset_nsb_investment_account = Vector{Union{Real,Missing}}(missing, n),
@@ -1050,7 +1053,12 @@ function create_adults(
 
             ## adult only
             a_job = job[((job.sernum.==frs_person.sernum).&(job.benunit.==frs_person.benunit).&(job.person.==frs_person.person)), :]
-
+            a_benunit = benunit[((frs_person.benunit .== benunit.benunit).&(frs_person.sernum.==benunit.sernum)]
+            if hdsp
+                if a_benunit.totsav >= 5
+                    model_adult.over_20_k_saving = 1
+                end
+            end
             a_pension = pension[((pension.sernum.==frs_person.sernum).&(pension.benunit.==frs_person.benunit).&(pension.person.==frs_person.person)), :]
             a_penprov = penprov[((penprov.sernum.==frs_person.sernum).&(penprov.benunit.==frs_person.benunit).&(penprov.person.==frs_person.person)), :]
             an_asset = assets[((assets.sernum.==frs_person.sernum).&(assets.benunit.==frs_person.benunit).&(assets.person.==frs_person.person)), :]

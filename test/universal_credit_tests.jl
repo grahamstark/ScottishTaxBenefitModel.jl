@@ -21,28 +21,6 @@ using .ModelHousehold:
 using .IncomeTaxCalculations: 
     calc_income_tax!
 
-using .Definitions
-
-using .LegacyMeansTestedBenefits:  
-    LMTResults, 
-    calc_allowances,
-    calc_incomes, 
-    calc_legacy_means_tested_benefits!, 
-    calc_NDDs, 
-    calc_premia,
-    calculateHB_CTR!,
-    calcWTC_CTC!,
-    is_working_hours, 
-    make_lmt_benefit_applicability, 
-    tariff_income,
-    working_disabled
-
-using .LocalLevelCalculations: 
-    apply_rent_restrictions, 
-    calc_council_tax
-
-using .Incomes
-
 using .Intermediate: 
     MTIntermediate, 
     apply_2_child_policy,
@@ -51,9 +29,6 @@ using .Intermediate:
 using .NonMeansTestedBenefits:
     calc_pre_tax_non_means_tested!,
     calc_post_tax_non_means_tested!
-    
-using .LocalLevelCalculations: 
-    calc_council_tax
     
 using .STBParameters: 
     HoursLimits,
@@ -79,6 +54,7 @@ using .Results:
     init_household_result, 
     init_benefit_unit_result, 
     to_string
+
 using .Utils: 
     eq_nearest_p,
     to_md_table
@@ -88,6 +64,8 @@ using .GeneralTaxComponents:
     WEEKS_PER_YEAR
 
 using .Definitions
+
+using .Incomes
 
 ## FIXME don't need both
 sys = get_system( scotland=true )
@@ -314,7 +292,14 @@ end
 
 end
 
-run_full_tests = IS_LOCAL && false
+@testset "income calculations" begin
+    
+    calc_uc_income!
+
+
+end
+
+run_full_tests = IS_LOCAL # && false
 
 @testset "Run on actual Data" begin
     if run_full_tests

@@ -146,6 +146,8 @@ function map_person(
 
     benefit_ratios = Incomes_Dict{Float64}()
     
+    over_20_k_saving
+
     pers = Person{Float64}(
 
         BigInt(model_person.hid),  # BigInt# == sernum
@@ -187,7 +189,10 @@ function map_person(
         PIPType( safe_assign( model_person.personal_independence_payment_mobility_type )),
         BereavementType( safe_assign( bereavement_type )),
         safe_to_bool(model_person.had_children_when_bereaved), 
+        
         assets,
+        safe_to_bool(model_person.over_20_k_saving),
+
         pay_includes,
 
         safe_to_bool(model_person.registered_blind),

@@ -58,6 +58,7 @@ module Results
         carer_element ::  RT = zero(RT)
         childcare_costs :: RT = zero(RT)
         housing_element :: RT = zero(RT)
+        other_housing_costs :: RT = zero(RT)
         assets :: RT = zero(RT)
         maximum  :: RT = zero(RT)
         transitional_protection :: RT = zero(RT)
@@ -123,6 +124,10 @@ module Results
         cost_of_childcare :: RT = zero(RT)
 
         hb_passported :: Bool = false
+
+        # TODO FIXME
+        other_housing_costs :: RT = zero(RT)
+
         hb_premia :: RT = zero(RT)
         hb_allowances :: RT = zero(RT)
         hb_incomes = LMTIncomes{RT}()
