@@ -146,8 +146,6 @@ function map_person(
 
     benefit_ratios = Incomes_Dict{Float64}()
     
-    over_20_k_saving
-
     pers = Person{Float64}(
 
         BigInt(model_person.hid),  # BigInt# == sernum

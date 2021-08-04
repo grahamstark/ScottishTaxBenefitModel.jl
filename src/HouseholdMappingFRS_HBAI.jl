@@ -1496,7 +1496,7 @@ function create_data()
         println( "adults")
         CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_adults_yr, delim = "\t", append=appendb)
         println( "children")
-        CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_children_yr, delim = "\t", append=false)
+        CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_children_yr, delim = "\t", append=true)
     end    
     # CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
     # CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
