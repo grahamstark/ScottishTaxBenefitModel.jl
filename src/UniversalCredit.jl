@@ -65,6 +65,7 @@ export
     calc_uc_income!,
     calc_universal_credit!, 
     disqualified_on_capital,
+    make_min_se,
     qualifiying_16_17_yo
 
 function pid_of_youngest_adult( bu :: BenefitUnit ) :: BigInt
@@ -98,7 +99,7 @@ function basic_conditions_satisfied(
                 break
             end
         end
-        println( "16-17 adult q1617=$q1617")
+        # println( "16-17 adult q1617=$q1617")
         return q1617            
     else
         all_in_educ = true
@@ -118,7 +119,6 @@ function basic_conditions_satisfied(
     @assert false "should never get to end of basic_conditions_satisfied"
 end
 
-## FIXME we need the quickie capital question here
 function disqualified_on_capital( 
     benefit_unit :: BenefitUnit, 
     uc           :: UniversalCreditSys ) :: Bool
@@ -144,13 +144,13 @@ function qualifiying_16_17_yo(
     uc :: UniversalCreditSys ) :: Bool
     bu = benefit_unit # shortcut
     if pers_is_carer( pers )
-        println( "is carer")
+        # println( "is carer")
         return true
     elseif has_limited_capactity_for_work_activity( pers )
-        println( "has_limited_capactity_for_work_activity")
+        # println( "has_limited_capactity_for_work_activity")
         return true
     elseif (is_head( bu, pers ) || is_spouse( bu, pers )) && ( intermed.num_children > 0)
-        println( "bu has children")
+        # println( "bu has children")
         return true
         ## And some others; see CPAG 2020/1 p 37
     end
@@ -302,6 +302,7 @@ function make_min_se(
     minwage  :: MinimumWage ) :: T where T
     mw :: T = get_minimum_wage( minwage, age )
     min_se :: T = mw*uc.minimum_income_floor_hours
+    # println( "min_se $min_se mw=$mw uc.minimum_income_floor_hours $(uc.minimum_income_floor_hours)")
     return max( min_se, seinc )
 end
 
@@ -324,10 +325,10 @@ function calc_uc_income!(
         seinc = bur.pers[pid].income[SELF_EMPLOYMENT_INCOME] 
         # FIXME any self employed? what about losses?          
         if bu.people[pid].employment_status == Full_time_Self_Employed 
-            min_se = make_min_se( seinc, bu.people[pid].age, uc, minwage )            
+            seinc = make_min_se( seinc, bu.people[pid].age, uc, minwage )            
         end
-        # println( "earn=$earn seinc=$seinc inc=$inc incs=$(bur.pers[pid].income)")
         earn += seinc
+        #  println( "earn=$earn seinc=$seinc inc=$inc incs=$(bur.pers[pid].income)")
     end
 
     if( intermed.num_children > 0 ) || intermed.limited_capacity_for_work

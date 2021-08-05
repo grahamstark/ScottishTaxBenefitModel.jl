@@ -21,8 +21,8 @@ using .ModelHousehold:
 using .IncomeTaxCalculations: 
     calc_income_tax!
 
-using .NationalInsurance:
-    calculate_national_insurance
+using .NationalInsuranceCalculations:
+    calculate_national_insurance!
 
 using .Intermediate: 
     MTIntermediate, 
@@ -298,7 +298,7 @@ end
 @testset "capital" begin
     ucs = get_default_uc( weekly=false)
     cpl= deepcopy( EXAMPLES[cpl_w_2_children_hh])
-    hres = init_household_result( g_and_j )
+    hres = init_household_result( cpl )
     head = get_head( cpl )
     spouse = get_spouse( cpl )
     empty!(head.assets)
@@ -317,9 +317,9 @@ end
         hres.bus[1],
         bus[1],
         ucs )
-    @test hres.bus[1].assets == 0 
-    @test hres.bus[1].tariff_income == 0 
-
+    @test hres.bus[1].uc.assets == 0 
+    @test hres.bus[1].uc.tariff_income == 0 
+    spouse.over_20_k_saving = false
     spouse.assets[A_Premium_bonds] = 8000
     @test ! disqualified_on_capital(
         bus[1],
@@ -328,8 +328,8 @@ end
             hres.bus[1],
             bus[1],
             ucs )
-    @test hres.bus[1].assets == 8_000 
-    @test hres.bus[1].tariff_income ≈ ucs.capital_tariff*(8000-uc.capital_min)
+    @test hres.bus[1].uc.assets == 8_000 
+    @test hres.bus[1].uc.tariff_income ≈ ceil((8000-ucs.capital_min)/ucs.capital_tariff)
     head.assets[A_Premium_bonds] = 8_001
     @test disqualified_on_capital(
         bus[1],
@@ -338,16 +338,66 @@ end
         hres.bus[1],
         bus[1],
         ucs )
-    @test hres.bus[1].assets == 16_001 
-    @test hres.bus[1].tariff_income ≈ ucs.capital_tariff*(16001-uc.capital_min)
+    @test hres.bus[1].uc.assets == 16_001 
+    @test hres.bus[1].uc.tariff_income ≈ ceil(ucs.capital_tariff\(16001-ucs.capital_min))
     
 end
 
 @testset "income calculations" begin
-    
-    # calc_uc_income!
+    ucs = get_default_uc( weekly=false)
+    cpl= deepcopy( EXAMPLES[cpl_w_2_children_hh])
+    head = get_head( cpl )
+    head.age = 30
+    spouse = get_spouse( cpl )
+    spouse.age = 30
+    empty!(head.assets)
+    empty!(head.income)
+    head.over_20_k_saving = false
+    empty!(spouse.assets)
+    empty!(spouse.income)
+    spouse.over_20_k_saving = false
+    bus = get_benefit_units( cpl )
+    hres = init_household_result( cpl )
+    intermed = make_intermediate( 
+        cpl, 
+        sys.hours_limits, 
+        sys.age_limits,
+        sys.child_limits )
 
-
+    calc_uc_income!(
+        hres.bus[1],
+        bus[1],
+        intermed.buint[1],
+        ucs,
+        sys.minwage
+    )
+    @test hres.bus[1].uc.other_income == 0
+    @test hres.bus[1].uc.earned_income == 0
+    # CPAG 19/20 p120 example of low se income
+    # I can't test this against the book exactly
+    # because of weekly/monthly units but
+    # this gets close.
+    head.income[self_employment_income] = 300
+    head.employment_status = Full_time_Self_Employed 
+    hres = init_household_result( cpl )
+    @test hres.bus[1].pers[head.pid].income[SELF_EMPLOYMENT_INCOME] == 300
+    hres.bus[1].pers[head.pid].income[INCOME_TAX] = 103.80
+    minse = make_min_se( 
+        head.income[self_employment_income],
+        head.age,
+        ucs,
+        sys.minwage
+    )
+    println( "minse=$minse")
+    calc_uc_income!(
+        hres.bus[1],
+        bus[1],
+        intermed.buint[1],
+        ucs,
+        sys.minwage
+    )
+    println( hres.bus[1].uc )
+    @test hres.bus[1].uc.earned_income ≈ ucs.taper*(1249.9725-103.80-503.0)
 end
 
 run_full_tests = IS_LOCAL # && false

@@ -4,9 +4,24 @@ module GeneralTaxComponents
 Various Standard Tax calculations. Very incomplete.
 "
 
-export WEEKS_PER_YEAR, WEEKS_PER_MONTH, weeklyise, annualise, delete_thresholds_up_to
-export TaxResult, IncomesDict, RateBands
-export calctaxdue, calc_indirect, IndirResult,*,times
+export 
+   DAYS_PER_YEAR, 
+   WEEKS_PER_MONTH, 
+   WEEKS_PER_YEAR, 
+
+   IncomesDict, 
+   IndirResult,
+   RateBands,
+   TaxResult, 
+   
+   *,
+   
+   annualise, 
+   calc_indirect, 
+   calctaxdue, 
+   delete_thresholds_up_to,
+   times,
+   weeklyise
 
 # note: intialise like f::RateBands = zeros(0)
 const RateBands = Vector{<:Real}
@@ -17,7 +32,10 @@ const IncomesDict = Dict{Any,Number}
 const DAYS_PER_YEAR = 365.25 
 const WEEKS_PER_YEAR = DAYS_PER_YEAR/7.0
 # needed for e.g. UC - they may use 
-const WEEKS_PER_MONTH = WEEKS_PER_YEAR/12
+# This is what's used for UC, even though it's
+# not consistent with the above. Possibly
+# switch to WEEKS_PER_YEAR/12
+const WEEKS_PER_MONTH = 4.35 # WEEKS_PER_YEAR/12
 
 function weeklyise( annual_amount )
    round(annual_amount/WEEKS_PER_YEAR, digits=6) # round( x, digits=2) possibly

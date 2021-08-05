@@ -527,8 +527,12 @@ module STBParameters
     
     @with_kw mutable struct MinimumWage{RT<:Real}
         ages = [16,18,21,25]
-        wage_per_hour :: Vector{RT} = [4.55, 6.45, 8.20, 8.72]
-        apprentice_rate :: RT = 4.15;
+        # 19/20
+        wage_per_hour :: Vector{RT} = [4.35, 6.15, 7.70, 8.21]
+        # 20/1 
+        # wage_per_hour :: Vector{RT} = [4.55, 6.45, 8.20, 8.72]
+        # apprentice_rate :: RT = 4.15;
+        apprentice_rate :: RT = 3.90;
     end
     
     function get_minimum_wage( mwsys :: MinimumWage, age :: Int ):: Real
@@ -712,7 +716,7 @@ module STBParameters
         childcare_max_1_child :: RT  = 646.35
         childcare_proportion :: RT = 85.0 # pct
     
-        minimum_income_floor_hours :: Int = 35
+        minimum_income_floor_hours :: RT = 35*WEEKS_PER_MONTH
 
         work_allowance_w_housing :: RT = 287.0
         work_allowance_no_housing :: RT = 503.0
@@ -721,7 +725,7 @@ module STBParameters
         capital_min :: RT = 6_000.0
         capital_max :: RT = 16_000.0
         # £1 *per week* ≆ 4.35 pm FIXME make 4.35 WEEKS_PER_MONTH? 
-        capital_tariff :: RT = 4.35/250.0
+        capital_tariff :: RT = 250.0/4.35
         taper = 63.0
     end    
 
@@ -729,10 +733,10 @@ module STBParameters
         uc.threshold /= WEEKS_PER_MONTH
         uc.age_18_24  /= WEEKS_PER_MONTH
         uc.age_25_and_over  /= WEEKS_PER_MONTH
-        uc.capital_tariff /= 4.35 # !!! WEEKS_PER_MONTH
+        uc.capital_tariff *= 4.35 # !!! WEEKS_PER_MONTH
         uc.couple_both_under_25  /= WEEKS_PER_MONTH
         uc.couple_oldest_25_plus  /= WEEKS_PER_MONTH
-        
+        uc.minimum_income_floor_hours /= WEEKS_PER_MONTH
         uc.first_child   /= WEEKS_PER_MONTH
         uc.subsequent_child  /= WEEKS_PER_MONTH
         uc.disabled_child_lower  /= WEEKS_PER_MONTH
