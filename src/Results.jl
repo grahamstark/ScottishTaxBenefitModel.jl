@@ -44,7 +44,11 @@ module Results
         to_string,
         total
 
-    
+    @with_kw mutable struct BenefitCapResults{RT<:Real}
+        cap :: RT = zero(RT)
+        cap_benefits :: RT = zero(RT)
+        reduction :: RT = zero(RT)
+    end
     @with_kw mutable struct UCResults{RT<:Real}
         basic_conditions_satisfied :: Bool = false
         disqualified_on_capital :: Bool = false
@@ -213,11 +217,11 @@ module Results
     
     @with_kw mutable struct BenefitUnitResult{RT<:Real} # FIXME make this a dynamic thing to match get_benefit_units
         income = Incomes.make_a( RT )
-        eq_scale  :: RT = zero(RT)
         net_income    :: RT = zero(RT)
         eq_net_income :: RT = zero(RT)
         legacy_mtbens = LMTResults{RT}()
         uc = UCResults{RT}()
+        cap = BenefitCapResults{RT}()
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` 
         adults = Pid_Array()

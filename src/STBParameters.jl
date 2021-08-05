@@ -25,7 +25,8 @@ module STBParameters
     export CarersAllowance, PersonalIndependencePayment, ContributoryESA
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
     export NonMeansTestedSys, MaternityAllowance, ChildLimits
-    
+    export BenefitCapSys
+
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
     ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
@@ -140,7 +141,17 @@ module STBParameters
 
     end
 
+    @with_kw mutable struct BenefitCapSys{RT<:Real}
+        outside_london_single :: RT = 257.69
+        outside_london_couple :: RT = 384.62
+        # not really needed, but anyway ..
+        intside_london_single :: RT = 296.35
+        inside_london_couple  :: RT = 442.31
+    end
 
+    function weekyise!( bc :: BenefitCapSys )
+        # ... nothing: weekly already
+    end
     #
     # initial version - will be progressively replaced
     # with actual calculations based on disability, hours caring etc.
@@ -759,6 +770,7 @@ module STBParameters
         ni   = NationalInsuranceSys{RT}()
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         uc   = UniversalCreditSys{RT}()
+        bc   = BenefitCapSys{RT}()
         age_limits = AgeLimits()
         # just a copy of standard ft/pt hours; mt benefits may have their own copy
         hours_limits :: HoursLimits = HoursLimits() 

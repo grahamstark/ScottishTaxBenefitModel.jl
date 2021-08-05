@@ -607,6 +607,29 @@ using StaticArrays
             ## ? student loan repayments?
         ]
     )
+
+    const COMMON_CAP_BENEFITS = [
+        CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+        CONTRIB_JOBSEEKERS_ALLOWANCE,
+        WIDOWS_PAYMENT,
+        MATERNITY_ALLOWANCE,
+        SEVERE_DISABILITY_ALLOWANCE,
+        INCAPACITY_BENEFIT,
+        CHILD_BENEFIT,
+        SEVERE_DISABILITY_ALLOWANCE
+    ]
+
+    const UC_CAP_BENEFITS = union([UNIVERSAL_CREDIT], COMMON_CAP_BENEFITS )
+
+    const LEGACY_CAP_BENEFITS = union(
+        [HOUSING_BENEFIT,
+         CHILD_TAX_CREDIT,
+         NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+         NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
+         INCOME_SUPPORT], 
+         COMMON_CAP_INCOME
+    )
+
     # FIXME check these lists again very carefully indeed.
     # FIXME the CPAG guide describes a very convoluted way
     # of calculating, which requires 2 lists of earned and unearned income

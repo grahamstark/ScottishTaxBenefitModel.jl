@@ -38,6 +38,10 @@ const HBAI_DIR = "$RAW_DATA/hbai/"
 export NUM_REPEATS
 const NUM_REPEATS = 30 # simulates a longer calculation
 
+export LegacyOrUC, legacy_bens, uc_bens
+@enum LegacyOrUC legacy_bens uc_bens
+
+
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin
    missing_style = -1
