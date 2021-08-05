@@ -608,6 +608,10 @@ using StaticArrays
         ]
     )
 
+    export 
+        LEGACY_CAP_BENEFITS,
+        UC_CAP_BENEFITS 
+
     const COMMON_CAP_BENEFITS = [
         CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         CONTRIB_JOBSEEKERS_ALLOWANCE,
@@ -627,7 +631,7 @@ using StaticArrays
          NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
          NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
          INCOME_SUPPORT], 
-         COMMON_CAP_INCOME
+         COMMON_CAP_BENEFITS
     )
 
     # FIXME check these lists again very carefully indeed.

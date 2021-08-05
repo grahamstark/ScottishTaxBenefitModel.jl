@@ -11,14 +11,18 @@ using .ModelHousehold:
 using .STBParameters: 
     BenefitCapSys
 
-using Definitions
+using .Definitions
 
 export cap_benefits!
 
 function cap_benefits!( 
-    
-    route :: LegacyOrUC
-)
+    benefit_unit_result :: BenefitUnitResult,
+    benefit_unit     :: BenefitUnit,
+    intermed         :: MTIntermediate,
+    caps             :: BenefitCapSys
+    route            :: LegacyOrUC )
+
+
 
 end
 
