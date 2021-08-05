@@ -145,7 +145,7 @@ module STBParameters
         outside_london_single :: RT = 257.69
         outside_london_couple :: RT = 384.62
         # not really needed, but anyway ..
-        intside_london_single :: RT = 296.35
+        inside_london_single :: RT = 296.35
         inside_london_couple  :: RT = 442.31
     end
 
