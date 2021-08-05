@@ -14,6 +14,7 @@ module STBParameters
     using .TimeSeriesUtils: fy, fy_array
     using .Incomes
     
+    # FIXME make this ordered list
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
@@ -717,10 +718,10 @@ module STBParameters
         work_allowance_no_housing :: RT = 503.0
         other_income = UC_OTHER_INCOME
         earned_income :: IncludedItems = UC_EARNED_INCOME
-        capital_max :: RT = 6_000.0
-        capital_min :: RT = 16_000.0
-        # £1 *per week* ≆ 4.35 pm 
-        capital_tariff :: RT = 250.0
+        capital_min :: RT = 6_000.0
+        capital_max :: RT = 16_000.0
+        # £1 *per week* ≆ 4.35 pm FIXME make 4.35 WEEKS_PER_MONTH? 
+        capital_tariff :: RT = 4.35/250.0
         taper = 63.0
     end    
 
@@ -728,7 +729,7 @@ module STBParameters
         uc.threshold /= WEEKS_PER_MONTH
         uc.age_18_24  /= WEEKS_PER_MONTH
         uc.age_25_and_over  /= WEEKS_PER_MONTH
-        
+        uc.capital_tariff /= 4.35 # !!! WEEKS_PER_MONTH
         uc.couple_both_under_25  /= WEEKS_PER_MONTH
         uc.couple_oldest_25_plus  /= WEEKS_PER_MONTH
         

@@ -29,7 +29,7 @@ using .Results:
     
 export 
     calc_class1_secondary,
-    calculate_national_insurance
+    calculate_national_insurance!
 
 function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsuranceSys ) :: Real
     rates = copy( sys.secondary_class_1_rates )
@@ -61,12 +61,17 @@ function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: Bu
     return makebc( data, make_one_net, Utils.BC_SETTINGS)
 end
 
-
+"""
+FIXME pass in AgeLimits record 
+"""
 function calculate_national_insurance!( 
     pres :: IndividualResult,
     pers :: Person, 
     sys  :: NationalInsuranceSys )
     # employer's NI on any wages
+    if pers.age < 16 # must be 16+
+        return
+    end
     bc = make_gross_wage_bc( pers, sys )
     wage = isum( 
         pres.income, 
@@ -79,7 +84,7 @@ function calculate_national_insurance!(
     pres.ni.assumed_gross_wage = gross
 
     # class 1 on any wages, se only on main ..
-    if pers.age < sys.state_pension_age
+    if pers.age < sys.state_pension_age # FIXME pass in the age limit thing
         tres = calctaxdue(
             taxable = wage,
             rates = sys.primary_class_1_rates,

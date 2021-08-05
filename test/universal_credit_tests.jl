@@ -21,6 +21,9 @@ using .ModelHousehold:
 using .IncomeTaxCalculations: 
     calc_income_tax!
 
+using .NationalInsurance:
+    calculate_national_insurance
+
 using .Intermediate: 
     MTIntermediate, 
     apply_2_child_policy,
@@ -289,12 +292,60 @@ end
         head,
         intermed.buint[1],
         ucs ) 
+   
+end
 
+@testset "capital" begin
+    ucs = get_default_uc( weekly=false)
+    cpl= deepcopy( EXAMPLES[cpl_w_2_children_hh])
+    hres = init_household_result( g_and_j )
+    head = get_head( cpl )
+    spouse = get_spouse( cpl )
+    empty!(head.assets)
+    head.over_20_k_saving = false
+    empty!(spouse.assets)
+    spouse.over_20_k_saving = false
+    bus = get_benefit_units( cpl )
+    @test ! disqualified_on_capital(
+        bus[1],
+        ucs )
+    spouse.over_20_k_saving = true
+    @test disqualified_on_capital(
+        bus[1],
+        ucs )
+    calc_tariff_income!( 
+        hres.bus[1],
+        bus[1],
+        ucs )
+    @test hres.bus[1].assets == 0 
+    @test hres.bus[1].tariff_income == 0 
+
+    spouse.assets[A_Premium_bonds] = 8000
+    @test ! disqualified_on_capital(
+        bus[1],
+        ucs )
+        calc_tariff_income!( 
+            hres.bus[1],
+            bus[1],
+            ucs )
+    @test hres.bus[1].assets == 8_000 
+    @test hres.bus[1].tariff_income ≈ ucs.capital_tariff*(8000-uc.capital_min)
+    head.assets[A_Premium_bonds] = 8_001
+    @test disqualified_on_capital(
+        bus[1],
+        ucs )
+    calc_tariff_income!( 
+        hres.bus[1],
+        bus[1],
+        ucs )
+    @test hres.bus[1].assets == 16_001 
+    @test hres.bus[1].tariff_income ≈ ucs.capital_tariff*(16001-uc.capital_min)
+    
 end
 
 @testset "income calculations" begin
     
-    calc_uc_income!
+    # calc_uc_income!
 
 
 end

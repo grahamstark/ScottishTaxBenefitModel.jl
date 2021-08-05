@@ -115,10 +115,12 @@ function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: Househ
                 sys.it )
         end
         for (pid,pers) in bu.people
-            calculate_national_insurance!( 
-                hres.bus[buno].pers[pers.pid], 
-                pers, 
-                sys.ni )
+            if pers.age >= 16 # must be 16+
+                calculate_national_insurance!( 
+                    hres.bus[buno].pers[pers.pid], 
+                    pers, 
+                    sys.ni )
+                end
         end
         buno += 1
     end # bus loop
