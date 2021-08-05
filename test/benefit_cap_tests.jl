@@ -43,27 +43,20 @@ using .Incomes
 
 using .Intermediate: 
     MTIntermediate, 
+    make_intermediate
    
-using .NonMeansTestedBenefits:
-    calc_pre_tax_non_means_tested!,
-    calc_post_tax_non_means_tested!
-    
-using .LocalLevelCalculations: 
-    calc_council_tax
-    
 using .STBParameters: 
-    HoursLimits,
-    IncomeRules, 
-    ChildLimits,
+    UniversalCreditSys,
+    BenefitCapSys,
     LegacyMeansTestedBenefitSystem
     
 using .Results: 
     BenefitUnitResult,
-    LMTResults, 
-    LMTCanApplyFor, 
+    HouseholdResult,
     init_household_result, 
     init_benefit_unit_result, 
     to_string
+
 using .Utils: 
     eq_nearest_p,
     to_md_table
@@ -74,5 +67,14 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
 
 @testset "Benefit Cap" begin
+
+    apply_benefit_cap!(
+        hh.region,
+        bur,
+        bu,
+        intermed,
+        sys.bencap,
+        legacy_bens
+    )
   
 end
