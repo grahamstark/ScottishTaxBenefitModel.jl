@@ -1,10 +1,11 @@
 """
-As this progresses, this will be the main entry point for calculations on a household
+This is the main entry point for calculations on a household
 """
 
 module SingleHouseholdCalculations
 
 import ScottishTaxBenefitModel:
+    BenefitCap,
     Definitions,
     Incomes,
     Intermediate,
@@ -75,7 +76,7 @@ using .LocalLevelCalculations:
 using .LegacyMeansTestedBenefits: 
     calc_legacy_means_tested_benefits!
 
-import .BenefitCap:
+using .BenefitCap:
     apply_benefit_cap!
 
 export do_one_calc
@@ -147,7 +148,7 @@ function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: Househ
 
     for buno in eachindex( bus )
         apply_benefit_cap!( 
-            res.bus[buno],
+            hres.bus[buno],
             hh.region,
             bus[buno],
             intermed.buint[buno],

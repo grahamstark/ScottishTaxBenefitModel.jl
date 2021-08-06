@@ -475,6 +475,9 @@ function calc_universal_credit!(
     hr               :: HousingRestrictions,
     minwage          :: MinimumWage )
     # fixme duped with LMTBens
+    if uc.abolished
+        return
+    end
     household_result.housing = apply_rent_restrictions( 
         household, intermed.hhint, hr )
     bus = get_benefit_units(household)
