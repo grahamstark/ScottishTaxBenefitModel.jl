@@ -221,7 +221,7 @@ module Results
         eq_net_income :: RT = zero(RT)
         legacy_mtbens = LMTResults{RT}()
         uc = UCResults{RT}()
-        cap = BenefitCapResults{RT}()
+        bencap = BenefitCapResults{RT}()
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` 
         adults = Pid_Array()

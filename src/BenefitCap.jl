@@ -14,10 +14,15 @@ using .ModelHousehold:
 using .STBParameters: 
     BenefitCapSys
 
+using .Results: 
+    BenefitUnitResult
+
 using .Definitions
 
 using .Intermediate:
     MTIntermediate
+
+using .Incomes
 
 export apply_benefit_cap!
 
@@ -26,27 +31,28 @@ Apply a benefit cap to a benefit unit.
 """
 function apply_benefit_cap!( 
     benefit_unit_result :: BenefitUnitResult,
-    region           :: Standard_Region
+    region           :: Standard_Region,
     benefit_unit     :: BenefitUnit,
     intermed         :: MTIntermediate,
-    caps             :: BenefitCapSys
+    caps             :: BenefitCapSys,
     route            :: LegacyOrUC )
     # FIXME CPAG 19/20 p 1190 does this on some benefit
     # receipts but this is likely near enough.
     if intermed.someone_pension_age || 
         intermed.someone_is_carer ||
         (intermed.num_severely_disabled_adults > 0)
+        println("bailing out")
         return
     end
     bu = benefit_unit # shortcut
     bur = benefit_unit_result # shortcut
     cap = intermed.num_people == 1 ? 
         caps.outside_london_single :
-        outside_london_couple
+        caps.outside_london_couple
     if region == London
         cap = intermed.num_people == 1 ? 
             caps.inside_london_single :
-            inside_london_couple
+            caps.inside_london_couple
     end
     totbens = 0.0
     included = UC_CAP_BENEFITS
@@ -67,6 +73,7 @@ function apply_benefit_cap!(
         end
     end
     if recip_ben == 0.0
+        println("uc/hb0; returning ")
         return
     end
     excess = totbens - cap

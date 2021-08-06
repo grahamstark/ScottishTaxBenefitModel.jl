@@ -149,7 +149,7 @@ module STBParameters
         inside_london_couple  :: RT = 442.31
     end
 
-    function weekyise!( bc :: BenefitCapSys )
+    function weeklyise!( bc :: BenefitCapSys )
         # ... nothing: weekly already
     end
     #
@@ -770,7 +770,6 @@ module STBParameters
         ni   = NationalInsuranceSys{RT}()
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         uc   = UniversalCreditSys{RT}()
-        bc   = BenefitCapSys{RT}()
         age_limits = AgeLimits()
         # just a copy of standard ft/pt hours; mt benefits may have their own copy
         hours_limits :: HoursLimits = HoursLimits() 
@@ -779,6 +778,7 @@ module STBParameters
         hr = HousingRestrictions{RT}() # fixme better name
         loctax = LocalTaxes{RT}() # fixme better name
         nmt_bens = NonMeansTestedSys{RT}()
+        bencap = BenefitCapSys{RT}()
     end
 
     
@@ -798,6 +798,7 @@ module STBParameters
         weeklyise!( tb.loctax )
         weeklyise!( tb.nmt_bens )
         weeklyise!( tb.uc )
+        weeklyise!( tb.bencap )
     end
     
    """

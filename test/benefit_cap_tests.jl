@@ -18,7 +18,7 @@ using .ModelHousehold:
 
 using .Definitions
 
-using BenefitCap:
+using .BenefitCap:
     apply_benefit_cap!
 
 using .Incomes
@@ -64,5 +64,7 @@ sys = get_system( scotland=true )
                 sys.bencap,
                 legacy_bens
         )
-    end
-end
+        println( res.bus[buno].bencap )
+        end #buno
+    end # hhs
+end # testset
