@@ -1,6 +1,6 @@
 module RunSettings
 
-    using Para
+    using Parameters
 
     export Settings
 

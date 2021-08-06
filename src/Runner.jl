@@ -15,7 +15,6 @@ module Runner
         ModelHousehold,
         Results,
         RunSettings,
-        Settings,
         SingleHouseholdCalculations,
         STBParameters,
         Utils,
@@ -26,7 +25,7 @@ module Runner
     using .STBParameters
     using .Incomes
 
-    using RunSettings:
+    using .RunSettings:
         Settings
     
     using .ModelHousehold: 
