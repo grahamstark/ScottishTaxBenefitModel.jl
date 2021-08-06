@@ -25,8 +25,8 @@ export apply_benefit_cap!
 Apply a benefit cap to a benefit unit.
 """
 function apply_benefit_cap!( 
-    region           :: Standard_Region
     benefit_unit_result :: BenefitUnitResult,
+    region           :: Standard_Region
     benefit_unit     :: BenefitUnit,
     intermed         :: MTIntermediate,
     caps             :: BenefitCapSys

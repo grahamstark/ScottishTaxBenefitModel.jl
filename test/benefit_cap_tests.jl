@@ -16,28 +16,10 @@ using .ModelHousehold:
     pers_is_disabled, 
     search
 
-using .IncomeTaxCalculations: 
-    calc_income_tax!
-
 using .Definitions
 
-using .LegacyMeansTestedBenefits:  
-    LMTResults, 
-    calc_allowances,
-    calc_incomes, 
-    calc_legacy_means_tested_benefits!, 
-    calc_NDDs, 
-    calc_premia,
-    calculateHB_CTR!,
-    calcWTC_CTC!,
-    is_working_hours, 
-    make_lmt_benefit_applicability, 
-    tariff_income,
-    working_disabled
-
-using .LocalLevelCalculations: 
-    apply_rent_restrictions, 
-    calc_council_tax
+using BenefitCap:
+    apply_benefit_cap!
 
 using .Incomes
 
@@ -54,7 +36,6 @@ using .Results:
     BenefitUnitResult,
     HouseholdResult,
     init_household_result, 
-    init_benefit_unit_result, 
     to_string
 
 using .Utils: 
@@ -62,19 +43,26 @@ using .Utils:
     to_md_table
 
 
-## FIXME don't need both
-lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
 
-@testset "Benefit Cap" begin
-    
-    apply_benefit_cap!(
-        hh.region,
-        bur,
-        bu,
-        intermed,
-        sys.bencap,
-        legacy_bens
-    )
-  
+@testset "Benefit Cap Shakedown" begin
+    examples = get_ss_examples()
+    for (hht,hh) in examples 
+        bus = get_benefit_units( hh )
+        intermed = make_intermediate( 
+            hh,
+            sys.hours_limits,
+            sys.age_limits,
+            sys.child_limits )
+        res = init_household_result( hh )
+        for buno in eachindex(bus) 
+            apply_benefit_cap!(
+                res.bus[buno],
+                hh.region,
+                bus[buno],
+                intermed.buint[buno],
+                sys.bencap,
+                legacy_bens
+        )
+    end
 end
