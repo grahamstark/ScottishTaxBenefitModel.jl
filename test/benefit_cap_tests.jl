@@ -47,6 +47,7 @@ sys = get_system( scotland=true )
 
 @testset "Benefit Cap Shakedown" begin
     examples = get_ss_examples()
+    hbs = collect(100:100:1000)
     for (hht,hh) in examples 
         bus = get_benefit_units( hh )
         intermed = make_intermediate( 
@@ -54,17 +55,30 @@ sys = get_system( scotland=true )
             sys.hours_limits,
             sys.age_limits,
             sys.child_limits )
-        res = init_household_result( hh )
-        for buno in eachindex(bus) 
-            apply_benefit_cap!(
-                res.bus[buno],
-                hh.region,
-                bus[buno],
-                intermed.buint[buno],
-                sys.bencap,
-                legacy_bens
-        )
-        println( res.bus[buno].bencap )
-        end #buno
+        head = get_head( hh )
+        spouse = get_spouse( hh )
+        spid :: BigInt = spouse === nothing ? head.pid : spouse.pid
+        for hb in 200.0:200:1_000
+            for cb in [20,50,100]
+                res = init_household_result( hh )
+                res.bus[1].pers[head.pid].income[HOUSING_BENEFIT] = hb
+                res.bus[1].pers[spid].income[HOUSING_BENEFIT] = cb
+                for buno in eachindex(bus) 
+                    apply_benefit_cap!(
+                        res.bus[buno],
+                        hh.region,
+                        bus[buno],
+                        intermed.buint[buno],
+                        sys.bencap,
+                        legacy_bens
+                    )
+                    println( "on family $hht bu $buno hb=$hb cb = $cb")
+                    println( res.bus[buno].bencap )
+                    if buno == 1
+                        println( "res.bus[$buno].pers[\$(head.pid)].income[HOUSING_BENEFIT] = $(res.bus[buno].pers[head.pid].income[HOUSING_BENEFIT])\n\n" ) 
+                    end
+                end # bus
+            end # cbs
+        end # hbs
     end # hhs
 end # testset
