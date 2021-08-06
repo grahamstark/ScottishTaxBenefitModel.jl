@@ -42,7 +42,7 @@ function apply_benefit_cap!(
         intermed.someone_is_carer ||
         (intermed.num_severely_disabled_adults > 0) ||
         caps.abolished
-        println("bailing out")
+        # println("bailing out")
         return
     end
     bu = benefit_unit # shortcut
@@ -74,7 +74,7 @@ function apply_benefit_cap!(
         end
     end
     if recip_ben == 0.0
-        println("uc/hb0; returning ")
+        # println("uc/hb0; returning ")
         return
     end
     excess = totbens - cap
