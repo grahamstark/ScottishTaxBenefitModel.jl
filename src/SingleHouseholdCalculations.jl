@@ -16,9 +16,13 @@ import ScottishTaxBenefitModel:
     NationalInsuranceCalculations,
     NonMeansTestedBenefits,
     Results,
+    RunSettings,
     STBParameters
 
 using .Definitions
+
+using .RunSettings:
+    Settings
 
 using .Results: 
     IndividualResult,

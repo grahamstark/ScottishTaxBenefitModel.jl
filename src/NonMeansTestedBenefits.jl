@@ -249,7 +249,7 @@ module NonMeansTestedBenefits
         rp :: RetirementPension{T},
         age_limits :: AgeLimits ) :: T where T
         pen = zero(T)
-        if abolished
+        if rp.abolished
             return pen
         end
         if reached_state_pension_age( 

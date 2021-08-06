@@ -14,6 +14,8 @@ module Runner
         GeneralTaxComponents,
         ModelHousehold,
         Results,
+        RunSettings,
+        Settings,
         SingleHouseholdCalculations,
         STBParameters,
         Utils,
@@ -23,6 +25,9 @@ module Runner
     using .Utils
     using .STBParameters
     using .Incomes
+
+    using RunSettings:
+        Settings
     
     using .ModelHousehold: 
         Household, 
@@ -41,24 +46,8 @@ module Runner
     using .SingleHouseholdCalculations: do_one_calc
     
     export 
-        RunSettings,
         do_one_run!
 
-    @with_kw mutable struct RunSettings
-        run_name :: String = "default_run"
-        start_year :: Int = 2015
-        end_year :: Int = 2018
-        scotland_only :: Bool = true
-        weighted :: Bool = false
-        household_name = "model_households_scotland"
-        people_name    = "model_people_scotland"
-        num_households :: Int = 0
-        num_people :: Int = 0
-        to_y :: Int = 2019
-        to_q :: Int = 4
-        output_dir :: String = joinpath(tempdir(),"output")
-        # ... and so on
-    end
 
     struct FrameStarts
         hh :: Integer
@@ -165,7 +154,7 @@ module Runner
          total_indirect = zeros(RT,n))
     end
 
-    function initialise_frames( T::DataType, settings :: RunSettings, num_systems :: Integer  ) :: NamedTuple
+    function initialise_frames( T::DataType, settings :: Settings, num_systems :: Integer  ) :: NamedTuple
         indiv = []
         bu = []
         hh = []
@@ -311,7 +300,7 @@ module Runner
 
     ## FIXME eventually, move this to DrWatson
     function dump_frames(
-        settings :: RunSettings,
+        settings :: Settings,
         frames :: NamedTuple )
         ns = size( frames.indiv )[1]
         fbase = basiccensor(settings.run_name)
@@ -327,7 +316,7 @@ module Runner
     end
 
     function do_one_run!(
-        settings :: RunSettings,
+        settings :: Settings,
         params   :: Vector{TaxBenefitSystem{T}} ) :: NamedTuple where T # fixme simpler way of declaring this?
         num_systems = size( params )[1]
         println("start of do_one_run; params:")
