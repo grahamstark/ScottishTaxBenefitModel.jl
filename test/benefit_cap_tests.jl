@@ -67,7 +67,7 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
 
 @testset "Benefit Cap" begin
-
+    
     apply_benefit_cap!(
         hh.region,
         bur,
