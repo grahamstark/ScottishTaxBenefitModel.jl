@@ -147,7 +147,9 @@ function calc_income_tax!(
     pers   :: Person,
     sys    :: IncomeTaxSys,
     spouse_transfer :: Real = 0.0 )
-
+    if sys.abolished
+        return;
+    end
     total_income = isum( pres.income, sys.all_taxable )
     non_savings_income = isum( pres.income, sys.non_savings_income )
     savings_income = isum( pres.income, sys.savings_income )

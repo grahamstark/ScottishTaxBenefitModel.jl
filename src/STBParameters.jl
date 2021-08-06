@@ -47,11 +47,13 @@ module STBParameters
     end
 
     @with_kw mutable struct AttendanceAllowance{RT<:Real}
+        abolished :: Boolean = false
         higher :: RT = 87.65
         lower :: RT = 58.70
     end
     
     @with_kw mutable struct ChildBenefit{RT<:Real}
+        abolished :: Boolean = false
         first_child :: RT = 20.70
         other_children :: RT = 13.70
         high_income_thresh :: RT = 50_000.0
@@ -60,6 +62,7 @@ module STBParameters
     end
 
     @with_kw mutable struct DisabilityLivingAllowance{RT<:Real}
+        abolished :: Boolean = false
         care_high :: RT = 87.65
         care_middle  :: RT = 58.70
         care_low  :: RT = 23.20
@@ -68,6 +71,7 @@ module STBParameters
     end
 
     @with_kw mutable struct CarersAllowance{RT<:Real}
+        abolished :: Boolean = false
         allowance :: RT = 66.15
         scottish_supplement :: RT = 231.40 # per 6 months
         hours :: Int = 35
@@ -77,6 +81,7 @@ module STBParameters
     end
 
     @with_kw mutable struct PersonalIndependencePayment{RT<:Real}
+        abolished :: Boolean = false
         dl_standard :: RT = 58.70
         dl_enhanced :: RT = 87.85
         mobility_standard :: RT = 23.20
@@ -85,6 +90,7 @@ module STBParameters
     end
 
     @with_kw mutable struct ContributoryESA{RT<:Real}
+        abolished :: Boolean = false
         assessment_u25 :: RT = 57.90
         assessment_25p :: RT = 73.10
         main           :: RT = 73.10
@@ -93,6 +99,7 @@ module STBParameters
     end
 
     @with_kw mutable struct JobSeekersAllowance{RT}
+        abolished :: Boolean = false
         u25 :: RT = 57.90
         o24 :: RT = 73.10
     end
@@ -110,6 +117,7 @@ module STBParameters
     =#
 
     @with_kw mutable struct RetirementPension{RT}
+        abolished :: Boolean = false
         new_state_pension :: RT = 168.60
         # pension_start_date = Date( 2016, 04, 06 )
         cat_a     :: RT = 129.20
@@ -119,6 +127,7 @@ module STBParameters
     end
 
     @with_kw mutable struct BereavementSupport{RT}
+        abolished :: Boolean = false
         # higher effectively just means 'with children'; 
         lump_sum_higher :: RT = 3_500 # convert to weekly
         lump_sum_lower  :: RT = 1_000
@@ -128,6 +137,7 @@ module STBParameters
     end
 
     @with_kw mutable struct WidowsPensions{RT}
+        abolished :: Boolean = false
         industrial_higher :: RT = 129.20
         industrial_lower :: RT = 38.76
         standard_rate :: RT = 119.90
@@ -137,11 +147,13 @@ module STBParameters
     end
 
     @with_kw mutable struct MaternityAllowance{RT}
+        abolished :: Boolean = false
         rate :: RT = 148.68
 
     end
 
     @with_kw mutable struct BenefitCapSys{RT<:Real}
+        abolished :: Boolean = false
         outside_london_single :: RT = 257.69
         outside_london_couple :: RT = 384.62
         # not really needed, but anyway ..
@@ -188,6 +200,7 @@ module STBParameters
     end
 
     @with_kw mutable struct IncomeTaxSys{RT<:Real}
+        abolished :: Boolean = false
         non_savings_rates :: RateBands{RT} =  [19.0,20.0,21.0,41.0,46.0]
         non_savings_thresholds :: RateBands{RT} =  [2_049.0, 12_444.0, 30_930.0, 150_000.0]
         non_savings_basic_rate :: Int = 2 # above this counts as higher rate
@@ -398,6 +411,7 @@ module STBParameters
     end
     
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}
+        abolished :: Boolean = false
         primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
         primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 9999999999999.9] # the '-1' here is because json can't write inf
         secondary_class_1_rates :: RateBands{RT} = [0.0, 13.8, 13.8 ] # keep 2 so
@@ -456,6 +470,7 @@ module STBParameters
     
     @with_kw mutable struct WorkingTaxCredit{ RT<:Real }
         ## PA
+        abolished :: Boolean = false
         basic :: RT = 1_960.00
         lone_parent :: RT = 2_010.00
         couple  :: RT = 2_010.00
@@ -489,6 +504,7 @@ module STBParameters
     end
      
     @with_kw mutable struct ChildTaxCredit{ RT<:Real }
+        abolished :: Boolean = false
         family :: RT = 545.00
         child  :: RT = 2_780.00
         disability :: RT = 3_355.00
@@ -537,6 +553,7 @@ module STBParameters
     end
     
     @with_kw mutable struct MinimumWage{RT<:Real}
+        abolished :: Boolean = false
         ages = [16,18,21,25]
         # 19/20
         wage_per_hour :: Vector{RT} = [4.35, 6.15, 7.70, 8.21]
@@ -612,6 +629,7 @@ module STBParameters
     end
     
     @with_kw mutable struct CouncilTax{RT<:Real}
+        abolished :: Boolean = false
         band_d :: Dict{Symbol,RT} = default_band_ds(RT)
         relativities :: Dict{CT_Band,RT} = default_ct_ratios(RT)
         single_person_discount :: RT = 25.0
@@ -631,6 +649,7 @@ module STBParameters
     end
 
     @with_kw mutable struct SavingsCredit{RT<:Real}
+        abolished :: Boolean = false
         withdrawal_rate :: RT = 60.0
         threshold_single :: RT = 144.38 
         threshold_couple :: RT =229.67 
@@ -644,6 +663,7 @@ module STBParameters
     end
     
      @with_kw mutable struct HousingBenefits{RT<:Real}
+        abolished :: Boolean = false
         taper :: RT = 65.0
         passported_bens = DEFAULT_PASSPORTED_BENS
         ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
@@ -656,6 +676,8 @@ module STBParameters
  
     @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
         # CPAG 2019/bur.pers[pid].20 p335
+        abolished :: Boolean = false
+        ## FIXME we can't turn off pension credit individually here..
         premia :: Premia = Premia{RT}()
         allowances :: PersonalAllowances = PersonalAllowances{RT}()
         income_rules :: IncomeRules = IncomeRules{RT}()
@@ -689,6 +711,7 @@ module STBParameters
     const DEFAULT_BRMA_2021 = "$(MODEL_DATA_DIR)/local/lha_rates_scotland_2020_21.csv"
     
     @with_kw mutable struct HousingRestrictions{RT<:Real}
+        abolished :: Boolean = false
         # Temp till we figure this stuff out
         maximum_rooms :: Int = 4
         rooms_rent_reduction = SVector{2,RT}(14, 25)
@@ -707,6 +730,7 @@ module STBParameters
     end
 
     @with_kw mutable struct UniversalCreditSys{RT<:Real}
+        abolished :: Boolean = false
         threshold :: RT = 2_500.0 ## NOT USED
         age_18_24 :: RT = 251.77
         age_25_and_over :: RT = 317.82

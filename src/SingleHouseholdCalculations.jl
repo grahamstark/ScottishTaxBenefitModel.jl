@@ -75,6 +75,9 @@ using .LocalLevelCalculations:
 using .LegacyMeansTestedBenefits: 
     calc_legacy_means_tested_benefits!
 
+import .BenefitCap:
+    apply_benefit_cap!
+
 export do_one_calc
 
 """
@@ -141,6 +144,17 @@ function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: Househ
         sys.age_limits,
         sys.hours_limits,
         sys.hr )
+
+    for buno in eachindex( bus )
+        apply_benefit_cap!( 
+            res.bus[buno],
+            hh.region,
+            bus[buno],
+            intermed.buint[buno],
+            sys.bencap,
+            sys.legacy_bens 
+        )
+    end
 
     aggregate!( hh, hres )
     return hres

@@ -40,7 +40,8 @@ function apply_benefit_cap!(
     # receipts but this is likely near enough.
     if intermed.someone_pension_age || 
         intermed.someone_is_carer ||
-        (intermed.num_severely_disabled_adults > 0)
+        (intermed.num_severely_disabled_adults > 0) ||
+        caps.abolished
         println("bailing out")
         return
     end

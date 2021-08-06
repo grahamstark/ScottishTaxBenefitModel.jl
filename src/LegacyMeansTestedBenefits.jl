@@ -529,7 +529,7 @@ function calcWTC_CTC!(
     ctc_elements = 0.0
     threshold = wtc.threshold
     cost_of_childcare = 0.0
-    if can_apply_for.wtc 
+    if can_apply_for.wtc && ( ! wtc.abolished )
         wtc_elements = wtc.basic
         if intermed.is_sparent
             wtc_elements += wtc.lone_parent
@@ -557,7 +557,7 @@ function calcWTC_CTC!(
         end    
         wtc_elements += cost_of_childcare
     end
-    if can_apply_for.ctc 
+    if can_apply_for.ctc && ( ! ctc.abolished )
         ctc_elements = calc_full_ctc( intermed, ctc)
         if ! can_apply_for.wtc
             threshold = ctc.threshold
@@ -656,7 +656,6 @@ function calculateHB_CTR!(
     intermed         :: HHIntermed,
     lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,
     age_limits       :: AgeLimits )
-    
     eligible_amount = which_ben == ctr ? 
         total(household_result, LOCAL_TAXES ) :
         household_result.housing.allowed_rent
@@ -867,7 +866,7 @@ function calc_legacy_means_tested_benefits!(
         # fixme make this a function
         recipient = bures.adults[1]
         
-        if can_apply_for.sc && ( ! incomes.disqualified_on_capital )  
+        if can_apply_for.sc && ( ! incomes.disqualified_on_capital ) && ( ! mt_ben_sys.savings_credit.abolished )
             scsys = mt_ben_sys.savings_credit #  shortcut
             sc_incomes = calc_incomes( 
                 sc,
@@ -941,6 +940,9 @@ function calc_legacy_means_tested_benefits!(
             hours            :: HoursLimits,
             hr               :: HousingRestrictions )
     # fixme not just for renters? fixme do this earlier
+    if lmt_ben_sys.abolished
+        return
+    end
     household_result.housing = apply_rent_restrictions( 
         household, intermed.hhint, hr )
     bus = get_benefit_units(household)
@@ -956,20 +958,26 @@ function calc_legacy_means_tested_benefits!(
             buno == 1 ? household : nothing )
     end
     # hb using the whole hhls but assigned to 1st bu
-    calculateHB_CTR!( 
-        household_result,
-        hb,
-        household,
-        intermed,
-        lmt_ben_sys,
-        age_limits )
-    calculateHB_CTR!( 
-        household_result,            
-        ctr,
-        household,
-        intermed,
-        lmt_ben_sys,
-        age_limits )      
+    if ! lmt_ben_sys.hb.abolished
+    
+        calculateHB_CTR!( 
+            household_result,
+            hb,
+            household,
+            intermed,
+            lmt_ben_sys,
+            age_limits )
+    end
+
+    if ! lmt_ben_sys.ctb.abolished
+        calculateHB_CTR!( 
+            household_result,            
+            ctr,
+            household,
+            intermed,
+            lmt_ben_sys,
+            age_limits )      
+    end
     # 
 
 end

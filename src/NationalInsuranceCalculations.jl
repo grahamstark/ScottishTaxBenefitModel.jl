@@ -69,7 +69,7 @@ function calculate_national_insurance!(
     pers :: Person, 
     sys  :: NationalInsuranceSys )
     # employer's NI on any wages
-    if pers.age < 16 # must be 16+
+    if pers.age < 16 || sys.abolished # must be 16+
         return
     end
     bc = make_gross_wage_bc( pers, sys )

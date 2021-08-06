@@ -72,6 +72,9 @@ module NonMeansTestedBenefits
             #
         end
         =#
+        if cb.abolished 
+            return c
+        end
         nc = num_children(bu)
         if nc == 0
             return 0.0
@@ -128,12 +131,15 @@ module NonMeansTestedBenefits
         has_kids :: Bool, 
         bp :: BereavementSupport{T},
         wp :: WidowsPensions{T}) :: T where T
+        wid = zero(T)
+        if wp.abolished || bp.abolished
+            return wid
+        end
         #
         # We don't know when someone was widowed
         # so we rely on this. FIXME Obviously this gets progressively worse as time goes on and
         # we keep using the old years of FRS.
         #
-        wid = 0.0
         # new-style: payable for 18 months at a flat rate
         # CHECK 2829 2017 why is that bereavment_support?
         if pers.bereavement_type in [bereavement_allowance,bereavement_support]
@@ -177,6 +183,9 @@ module NonMeansTestedBenefits
         pip  :: PersonalIndependencePayment{T}) :: Tuple{T,T} where T
         pl = zero(T)
         pm = zero(T)
+        if pip.abolished
+            return (pl, pm )
+        end
         # fixme consistent names dl->daily living etc.
         if pers.pip_daily_living_type == standard_pip
             pl = pip.dl_standard    
@@ -196,6 +205,9 @@ module NonMeansTestedBenefits
         aa  :: AttendanceAllowance{T},
          ) :: T where T
         a =zero(T)
+        if aa.abolished
+            return a
+        end
         if pers.attendance_allowance_type == missing_lmh
             a = zero(T)
         elseif pers.attendance_allowance_type == high
@@ -211,6 +223,9 @@ module NonMeansTestedBenefits
         dla  :: DisabilityLivingAllowance{T} ) :: Tuple{T,T} where T
         dc = zero(T)
         dm = zero(T)
+        if dla.abolished
+            return (dc,dm)
+        end
         # println( "dla self_care=$(pers.dla_self_care_type)")
         # FIXME make all these names constisent (mid/middle,care->self_care etc.)
         if pers.dla_self_care_type == high 
@@ -234,6 +249,9 @@ module NonMeansTestedBenefits
         rp :: RetirementPension{T},
         age_limits :: AgeLimits ) :: T where T
         pen = zero(T)
+        if abolished
+            return pen
+        end
         if reached_state_pension_age( 
             age_limits, 
             pers.age, 
@@ -270,6 +288,9 @@ module NonMeansTestedBenefits
         pers :: Person{T}, 
         esa  :: ContributoryESA{T}) :: T where T
         e = zero(T)
+        if esa.abolished
+            return e
+        end
         if pers.esa_type == contributory_jsa
             if pers.age < 25
                 # FIXME not quite right since
@@ -290,6 +311,9 @@ module NonMeansTestedBenefits
         pers :: Person{T},
         ma :: MaternityAllowance ) :: T where T
         m = zero(T)
+        if ma.abolished
+            return m
+        end
         # fixme the design means you should never have to check the incomes dict here
         if has_income( pers, maternity_allowance ) 
             m = ma.rate
@@ -302,6 +326,9 @@ module NonMeansTestedBenefits
         pres :: IndividualResult{T},
         carers :: CarersAllowance{T}) :: T where T
         c = zero(T)
+        if carers.abolished
+            return c
+        end
         earnings :: T = isum(
             pres.income, 
             carers.earnings;
@@ -319,6 +346,9 @@ module NonMeansTestedBenefits
         jsa :: JobSeekersAllowance{T},
         hrs  :: HoursLimits ) :: T where T
         j = zero(T)        
+        if jsa.abolished
+            return j
+        end
         if pers.jsa_type == contributory_jsa &&
            pers.usual_hours_worked <= hrs.med &&
            (! has_limited_capactity_for_work( pers ))
