@@ -8,10 +8,10 @@ using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.GeneralTaxComponents
 using ScottishTaxBenefitModel.STBParameters
 using ScottishTaxBenefitModel.Runner: do_one_run!, RunSettings
-
+using ScottishTaxBenefitModel.RunSettings: Settings
 using .Utils
 
-settings = RunSettings()
+settings = Settings()
 
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2

@@ -6,6 +6,7 @@ using ScottishTaxBenefitModel:
     ExampleHouseholdGetter,
     Definitions,
     Incomes,
+    RunSettings,
     STBParameters,
     SingleHouseholdCalculations,
     Results,
@@ -43,8 +44,9 @@ using .GeneralTaxComponents:
     WEEKS_PER_YEAR
 
 using .Runner: 
-    do_one_run!, 
-    RunSettings
+    do_one_run!
+
+using .RunSettings: Settings
 
 function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
     bus = get_benefit_units( hh )

@@ -157,7 +157,7 @@ function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: Househ
             bus[buno],
             intermed.buint[buno],
             sys.bencap,
-            sys.legacy_bens 
+            legacy_bens 
         )
     end
 
