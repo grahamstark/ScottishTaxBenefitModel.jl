@@ -22,7 +22,8 @@ import ScottishTaxBenefitModel:
 using .Definitions
 
 using .RunSettings:
-    Settings
+    Settings,
+    DEFAULT_SETTINGS
 
 using .Results: 
     IndividualResult,
@@ -88,7 +89,10 @@ export do_one_calc
 """
 One complete calculation for a single household and tb system.
 """
-function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: HouseholdResult{T} where T
+function do_one_calc( 
+    hh :: Household{T}, 
+    sys :: TaxBenefitSystem{T},
+    settings :: Settings = DEFAULT_SETTINGS ) :: HouseholdResult{T} where T
     bus = get_benefit_units( hh )
     hres :: HouseholdResult{T} = init_household_result(hh)
     intermed = make_intermediate( 
@@ -140,7 +144,9 @@ function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: Househ
         
     hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
         calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
-    
+        
+    # FIXME UC/LMT routing here
+
     calc_legacy_means_tested_benefits!(
         hres,
         hh,
@@ -149,6 +155,18 @@ function do_one_calc( hh :: Household{T}, sys :: TaxBenefitSystem{T} ) :: Househ
         sys.age_limits,
         sys.hours_limits,
         sys.hr )
+
+    calc_universal_credit!(
+        hres,
+        hh,
+        intermed,
+        sys.uc,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.child_limits,
+        sys.hr,
+        sys.minwage
+    )
 
     for buno in eachindex( bus )
         apply_benefit_cap!( 
