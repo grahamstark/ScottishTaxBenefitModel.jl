@@ -1592,4 +1592,35 @@ function m2z( s )
    s
 end
 
+export 
+   age_range,
+   age_ends,
+   age_str
+
+#
+# FIXME this is a dup of the thing in `weights`
+#
+const age_ends = [4,9,14,19,24,29,34,39,44,49,54,59,64,69,74,79,99999]
+
+function age_str( band )
+   a2 = "$(age_ends[band])"
+   a1 = ""
+   if band==1
+      a1 = "0"
+   elseif band==lastindex(age_ends)
+      return "$(age_ends[band-1]+1) and above"
+   else
+      a1 = "$(age_ends[band-1]+1)"
+   end
+   return "$(a1)-$(a2)"
+end
+
+function age_range( age :: Integer ) :: Integer
+   for a in eachindex(age_ends)
+      if age <= age_ends[a]
+         return a
+      end
+   end
+end
+
 end # module

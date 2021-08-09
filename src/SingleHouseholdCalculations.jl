@@ -17,7 +17,8 @@ import ScottishTaxBenefitModel:
     NonMeansTestedBenefits,
     Results,
     RunSettings,
-    STBParameters
+    STBParameters,
+    UniversalCredit
 
 using .Definitions
 
@@ -80,6 +81,9 @@ using .LocalLevelCalculations:
 
 using .LegacyMeansTestedBenefits: 
     calc_legacy_means_tested_benefits!
+
+using .UniversalCredit:
+    calc_universal_credit!
 
 using .BenefitCap:
     apply_benefit_cap!

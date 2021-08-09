@@ -11,6 +11,8 @@ module Incomes
 
 using Base: String
 using StaticArrays
+using DataFrames
+using ScottishTaxBenefitModel.RunSettings: Settings
      
     # declarations  ----------------
     const WAGES = 1
@@ -841,5 +843,145 @@ using StaticArrays
         end
         return s
     end
- 
+
+    # FIXME move all exports close to the module top
+    export 
+        create_incomes_dataframe,
+        fill_inc_frame_row!
+
+
+    function create_incomes_dataframe( RT :: DataType, n :: Int ) :: DataFrame
+        return DataFrame(
+            pid  = zeros( BigInt, n ),
+            hid = zeros( BigInt, n ),
+            weight = zeros( RT, n ),
+            # buno = zeros( Int, n ),
+
+            wages = zeros( RT,  n ),
+            self_employment_income = zeros( RT,  n ),
+            odd_jobs = zeros( RT,  n ),
+            private_pensions = zeros( RT,  n ),
+            national_savings = zeros( RT,  n ),
+            bank_interest = zeros( RT,  n ),
+            stocks_shares = zeros( RT,  n ),
+            individual_savings_account = zeros( RT,  n ),
+            property = zeros( RT,  n ),
+            royalties = zeros( RT,  n ),
+            bonds_and_gilts = zeros( RT,  n ),
+            other_investment_income = zeros( RT,  n ),
+            other_income = zeros( RT,  n ),
+            alimony_and_child_support_received = zeros( RT,  n ),
+            private_sickness_scheme_benefits = zeros( RT,  n ),
+            accident_insurance_scheme_benefits = zeros( RT,  n ),
+            hospital_savings_scheme_benefits = zeros( RT,  n ),
+            unemployment_or_redundancy_insurance = zeros( RT,  n ),
+            permanent_health_insurance = zeros( RT,  n ),
+            any_other_sickness_insurance = zeros( RT,  n ),
+            critical_illness_cover = zeros( RT,  n ),
+            trade_union_sick_or_strike_pay = zeros( RT,  n ),
+            spare_inc_1 = zeros( RT,  n ),
+            spare_inc_2 = zeros( RT,  n ),
+            spare_inc_3 = zeros( RT,  n ),
+            spare_inc_4 = zeros( RT,  n ),
+            spare_inc_5 = zeros( RT,  n ),
+            
+            
+            health_insurance = zeros( RT,  n ),
+            alimony_and_child_support_paid = zeros( RT,  n ),
+            trade_unions_etc = zeros( RT,  n ),
+            friendly_societies = zeros( RT,  n ),
+            work_expenses = zeros( RT,  n ),
+            avcs = zeros( RT,  n ),
+            other_deductions = zeros( RT,  n ),
+            loan_repayments = zeros( RT,  n ),
+            pension_contributions_employee = zeros( RT,  n ),
+            pension_contributions_employer = zeros( RT,  n ),
+            spare_deduct_1 = zeros( RT,  n ),
+            spare_deduct_2 = zeros( RT,  n ),
+            spare_deduct_3 = zeros( RT,  n ),
+            spare_deduct_4 = zeros( RT,  n ),
+            spare_deduct_5 = zeros( RT,  n ),
+            
+            income_tax = zeros( RT,  n ),
+            national_insurance = zeros( RT,  n ),
+            local_taxes = zeros( RT,  n ),
+            social_fund_loan_repayment = zeros( RT,  n ),
+            student_loan_repayments = zeros( RT,  n ),
+            care_insurance = zeros( RT,  n ),
+            spare_tax_1 = zeros( RT,  n ),
+            spare_tax_2 = zeros( RT,  n ),
+            spare_tax_3 = zeros( RT,  n ),
+            spare_tax_4 = zeros( RT,  n ),
+            spare_tax_5 = zeros( RT,  n ),
+            
+            child_benefit = zeros( RT,  n ),
+            state_pension = zeros( RT,  n ),
+            bereavement_allowance = zeros( RT,  n ),
+            armed_forces_compensation_scheme = zeros( RT,  n ),
+            war_widows_pension = zeros( RT,  n ),
+            severe_disability_allowance = zeros( RT,  n ),
+            attendance_allowance = zeros( RT,  n ),
+            carers_allowance = zeros( RT,  n ),
+            industrial_injury_benefit = zeros( RT,  n ),
+            incapacity_benefit = zeros( RT,  n ),
+            personal_independence_payment_daily_living = zeros( RT,  n ),
+            personal_independence_payment_mobility = zeros( RT,  n ),
+            dla_self_care = zeros( RT,  n ),
+            dla_mobility = zeros( RT,  n ),
+            education_allowances = zeros( RT,  n ),
+            foster_care_payments = zeros( RT,  n ),
+            maternity_allowance = zeros( RT,  n ),
+            maternity_grant = zeros( RT,  n ),
+            funeral_grant = zeros( RT,  n ),
+            any_other_ni_or_state_benefit = zeros( RT,  n ),
+            friendly_society_benefits = zeros( RT,  n ),
+            government_training_allowances = zeros( RT,  n ),
+            contrib_jobseekers_allowance = zeros( RT,  n ),
+            guardians_allowance = zeros( RT,  n ),
+            widows_payment = zeros( RT,  n ),
+            winter_fuel_payments = zeros( RT,  n ),
+            working_tax_credit = zeros( RT,  n ),
+            child_tax_credit = zeros( RT,  n ),
+            contrib_employment_and_support_allowance = zeros( RT,  n ),
+            income_support = zeros( RT,  n ),
+            pension_credit = zeros( RT,  n ),
+            savings_credit = zeros( RT,  n ),
+            non_contrib_jobseekers_allowance = zeros( RT,  n ),
+            housing_benefit = zeros( RT,  n ),
+            free_school_meals = zeros( RT,  n ),
+            universal_credit = zeros( RT,  n ),
+            other_benefits = zeros( RT,  n ),
+            student_grants = zeros( RT,  n ),
+            student_loans = zeros( RT,  n ),
+            council_tax_benefit = zeros( RT,  n ),
+            non_contrib_employment_and_support_allowance = zeros( RT,  n ),
+            scottish_carers_supplement = zeros( RT,  n ),
+            spare_ben_1 = zeros( RT,  n ),
+            spare_ben_2 = zeros( RT,  n ),
+            spare_ben_3 = zeros( RT,  n ),
+            spare_ben_4 = zeros( RT,  n ),
+            spare_ben_5 = zeros( RT,  n ),
+            spare_ben_6 = zeros( RT,  n ),
+            spare_ben_7 = zeros( RT,  n ),
+            spare_ben_8 = zeros( RT,  n ),
+            spare_ben_9 = zeros( RT,  n ))
+    end
+
+    function fill_inc_frame_row!( 
+            incd :: DataFrameRow, 
+            pid :: BigInt,
+            hid :: BigInt,
+            weight :: Real, 
+            income :: AbstractArray )
+        @assert size( income )[1] == INC_ARRAY_SIZE
+        incd.pid = pid
+        incd.hid = hid
+        incd.weight = weight
+        col = 3 # FIXME make sure this is incremented if anything added above
+        for i in 1:INC_ARRAY_SIZE
+            col += 1
+            incd[col] = income[i]
+        end
+    end # add_to_inc_frame
+
 end # module

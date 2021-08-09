@@ -16,11 +16,11 @@ export TimeSeriesUtils
 include("Definitions.jl" )
 export Definitions
 
-include("Incomes.jl")
-export Incomes
-
 include( "RunSettings.jl" )
 export RunSettings
+
+include("Incomes.jl")
+export Incomes
 
 include( "EquivalenceScales.jl")
 export EquivalenceScales

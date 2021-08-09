@@ -15,8 +15,9 @@ using .ModelHousehold:
     Household, 
     Person,    
     empl_status_in, 
-    get_head,
     get_benefit_units,
+    get_head,
+    get_spouse,
     is_head,
     is_spouse,
     pers_is_disabled, 
@@ -35,7 +36,8 @@ using .Intermediate:
     MTIntermediate, 
     HHIntermed,
     born_before, 
-    has_limited_capactity_for_work_activity
+    has_limited_capactity_for_work_activity,
+    reached_state_pension_age
  
 using .Results: 
     BenefitUnitResult, 
@@ -241,7 +243,7 @@ function calc_elements!(
         else
             ucr.child_element = uc.subsequent_child
         end
-        println( "ucr.child_element = $(ucr.child_element) intermed.num_allowed_children=$(intermed.num_allowed_children) uc.subsequent_child=$(uc.subsequent_child)")
+        # println( "ucr.child_element = $(ucr.child_element) intermed.num_allowed_children=$(intermed.num_allowed_children) uc.subsequent_child=$(uc.subsequent_child)")
         ucr.child_element += (intermed.num_allowed_children-1)*uc.subsequent_child
     end
     # limited capacity for work-related Activity
@@ -408,8 +410,15 @@ function calc_universal_credit!(
         bur.uc.earned_income - 
         bur.uc.other_income - 
         bur.uc.tariff_income
+    
+    # Make the recipient the bu head if the head isn't 
+    # retired. 
     head = get_head( bu )
-    bur.pers[head.pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
+    target_pid = head.pid
+    if reached_state_pension_age( age_limits, head.age, head.sex )
+        target_pid = get_spouse( bu ).pid # fail if spouse is nothing - but this must be the case
+    end
+    bur.pers[target_pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
 end
 
 

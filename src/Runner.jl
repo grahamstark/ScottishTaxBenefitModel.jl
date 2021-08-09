@@ -2,7 +2,7 @@ module Runner
 
     
     using Parameters: @with_kw
-    using DataFrames: DataFrame, DataFrameRow
+    using DataFrames: DataFrame, DataFrameRow, Not, select!
     using CSV
 
     using BudgetConstraints: BudgetConstraint
@@ -28,6 +28,9 @@ module Runner
     using .RunSettings:
         Settings
     
+    using .GeneralTaxComponents:
+        WEEKS_PER_YEAR
+
     using .ModelHousehold: 
         Household, 
         Person, 
@@ -45,13 +48,16 @@ module Runner
     using .SingleHouseholdCalculations: do_one_calc
     
     export 
-        do_one_run!
+        do_one_run!,
+        summarise_inc_frame 
 
+    # fixme move the output stuff (mostly) to an Output.jl module
 
     struct FrameStarts
         hh :: Integer
         bu :: Integer
         pers :: Integer
+        income :: Integer
     end
 
     function make_household_results_frame( n :: Int ) :: DataFrame
@@ -75,71 +81,7 @@ module Runner
             income_taxes = zeros(RT,n),
             means_tested_benefits = zeros(RT,n),
             other_benefits = zeros(RT,n),
-            scottish_income_tax = zeros(RT,n),
-
-            INCOME_TAX =  zeros( RT, n ),
-            NATIONAL_INSURANCE =  zeros( RT, n ),
-            LOCAL_TAXES =  zeros( RT, n ),
-            SOCIAL_FUND_LOAN_REPAYMENT =  zeros( RT, n ),
-            STUDENT_LOAN_REPAYMENTS =  zeros( RT, n ),
-            CARE_INSURANCE =  zeros( RT, n ),
-            SPARE_TAX_1 =  zeros( RT, n ),
-            SPARE_TAX_2 =  zeros( RT, n ),
-            SPARE_TAX_3 =  zeros( RT, n ),
-            SPARE_TAX_4 =  zeros( RT, n ),
-            SPARE_TAX_5 =  zeros( RT, n ),
-            
-            CHILD_BENEFIT =  zeros( RT, n ),
-            STATE_PENSION =  zeros( RT, n ),
-            BEREAVEMENT_ALLOWANCE =  zeros( RT, n ),
-            ARMED_FORCES_COMPENSATION_SCHEME =  zeros( RT, n ),
-            WAR_WIDOWS_PENSION =  zeros( RT, n ),
-            SEVERE_DISABILITY_ALLOWANCE =  zeros( RT, n ),
-            ATTENDANCE_ALLOWANCE =  zeros( RT, n ),
-            CARERS_ALLOWANCE =  zeros( RT, n ),
-            INDUSTRIAL_INJURY_BENEFIT =  zeros( RT, n ),
-            INCAPACITY_BENEFIT =  zeros( RT, n ),
-            PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING =  zeros( RT, n ),
-            PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY =  zeros( RT, n ),
-            DLA_SELF_CARE =  zeros( RT, n ),
-            DLA_MOBILITY =  zeros( RT, n ),
-            EDUCATION_ALLOWANCES =  zeros( RT, n ),
-            FOSTER_CARE_PAYMENTS =  zeros( RT, n ),
-            MATERNITY_ALLOWANCE =  zeros( RT, n ),
-            MATERNITY_GRANT =  zeros( RT, n ),
-            FUNERAL_GRANT =  zeros( RT, n ),
-            ANY_OTHER_NI_OR_STATE_BENEFIT =  zeros( RT, n ),
-            FRIENDLY_SOCIETY_BENEFITS =  zeros( RT, n ),
-            GOVERNMENT_TRAINING_ALLOWANCES =  zeros( RT, n ),
-            CONTRIB_JOBSEEKERS_ALLOWANCE =  zeros( RT, n ),
-            GUARDIANS_ALLOWANCE =  zeros( RT, n ),
-            WIDOWS_PAYMENT =  zeros( RT, n ),
-            WINTER_FUEL_PAYMENTS =  zeros( RT, n ),
-            WORKING_TAX_CREDIT =  zeros( RT, n ),
-            CHILD_TAX_CREDIT =  zeros( RT, n ),
-            CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE =  zeros( RT, n ),
-            INCOME_SUPPORT =  zeros( RT, n ),
-            PENSION_CREDIT =  zeros( RT, n ),
-            SAVINGS_CREDIT =  zeros( RT, n ),
-            NON_CONTRIB_JOBSEEKERS_ALLOWANCE =  zeros( RT, n ),
-            HOUSING_BENEFIT =  zeros( RT, n ),
-            FREE_SCHOOL_MEALS =  zeros( RT, n ),
-            UNIVERSAL_CREDIT =  zeros( RT, n ),
-            OTHER_BENEFITS =  zeros( RT, n ),
-            STUDENT_GRANTS =  zeros( RT, n ),
-            STUDENT_LOANS =  zeros( RT, n ),
-            COUNCIL_TAX_BENEFIT =  zeros( RT, n ),
-            NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE =  zeros( RT, n ),
-            SCOTTISH_CARERS_SUPPLEMENT =  zeros( RT, n ),
-            SPARE_BEN_1 =  zeros( RT, n ),
-            SPARE_BEN_2 =  zeros( RT, n ),
-            SPARE_BEN_3 =  zeros( RT, n ),
-            SPARE_BEN_4 =  zeros( RT, n ),
-            SPARE_BEN_5 =  zeros( RT, n ),
-            SPARE_BEN_6 =  zeros( RT, n ),
-            SPARE_BEN_7 =  zeros( RT, n ),
-            SPARE_BEN_8 =  zeros( RT, n ),
-            SPARE_BEN_9 =  zeros( RT, n )
+            scottish_income_tax = zeros(RT,n)
         )
     end
 
@@ -161,77 +103,30 @@ module Runner
             
             income_taxes = zeros(RT,n),
             means_tested_benefits = zeros(RT,n),
-            other_benefits = zeros(RT,n),
-
-            INCOME_TAX =  zeros( RT, n ),
-            NATIONAL_INSURANCE =  zeros( RT, n ),
-            LOCAL_TAXES =  zeros( RT, n ),
-            SOCIAL_FUND_LOAN_REPAYMENT =  zeros( RT, n ),
-            STUDENT_LOAN_REPAYMENTS =  zeros( RT, n ),
-            CARE_INSURANCE =  zeros( RT, n ),
-            SPARE_TAX_1 =  zeros( RT, n ),
-            SPARE_TAX_2 =  zeros( RT, n ),
-            SPARE_TAX_3 =  zeros( RT, n ),
-            SPARE_TAX_4 =  zeros( RT, n ),
-            SPARE_TAX_5 =  zeros( RT, n ),
-            
-            CHILD_BENEFIT =  zeros( RT, n ),
-            STATE_PENSION =  zeros( RT, n ),
-            BEREAVEMENT_ALLOWANCE =  zeros( RT, n ),
-            ARMED_FORCES_COMPENSATION_SCHEME =  zeros( RT, n ),
-            WAR_WIDOWS_PENSION =  zeros( RT, n ),
-            SEVERE_DISABILITY_ALLOWANCE =  zeros( RT, n ),
-            ATTENDANCE_ALLOWANCE =  zeros( RT, n ),
-            CARERS_ALLOWANCE =  zeros( RT, n ),
-            INDUSTRIAL_INJURY_BENEFIT =  zeros( RT, n ),
-            INCAPACITY_BENEFIT =  zeros( RT, n ),
-            PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING =  zeros( RT, n ),
-            PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY =  zeros( RT, n ),
-            DLA_SELF_CARE =  zeros( RT, n ),
-            DLA_MOBILITY =  zeros( RT, n ),
-            EDUCATION_ALLOWANCES =  zeros( RT, n ),
-            FOSTER_CARE_PAYMENTS =  zeros( RT, n ),
-            MATERNITY_ALLOWANCE =  zeros( RT, n ),
-            MATERNITY_GRANT =  zeros( RT, n ),
-            FUNERAL_GRANT =  zeros( RT, n ),
-            ANY_OTHER_NI_OR_STATE_BENEFIT =  zeros( RT, n ),
-            FRIENDLY_SOCIETY_BENEFITS =  zeros( RT, n ),
-            GOVERNMENT_TRAINING_ALLOWANCES =  zeros( RT, n ),
-            CONTRIB_JOBSEEKERS_ALLOWANCE =  zeros( RT, n ),
-            GUARDIANS_ALLOWANCE =  zeros( RT, n ),
-            WIDOWS_PAYMENT =  zeros( RT, n ),
-            WINTER_FUEL_PAYMENTS =  zeros( RT, n ),
-            WORKING_TAX_CREDIT =  zeros( RT, n ),
-            CHILD_TAX_CREDIT =  zeros( RT, n ),
-            CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE =  zeros( RT, n ),
-            INCOME_SUPPORT =  zeros( RT, n ),
-            PENSION_CREDIT =  zeros( RT, n ),
-            SAVINGS_CREDIT =  zeros( RT, n ),
-            NON_CONTRIB_JOBSEEKERS_ALLOWANCE =  zeros( RT, n ),
-            HOUSING_BENEFIT =  zeros( RT, n ),
-            FREE_SCHOOL_MEALS =  zeros( RT, n ),
-            UNIVERSAL_CREDIT =  zeros( RT, n ),
-            OTHER_BENEFITS =  zeros( RT, n ),
-            STUDENT_GRANTS =  zeros( RT, n ),
-            STUDENT_LOANS =  zeros( RT, n ),
-            COUNCIL_TAX_BENEFIT =  zeros( RT, n ),
-            NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE =  zeros( RT, n ),
-            SCOTTISH_CARERS_SUPPLEMENT =  zeros( RT, n ),
-            SPARE_BEN_1 =  zeros( RT, n ),
-            SPARE_BEN_2 =  zeros( RT, n ),
-            SPARE_BEN_3 =  zeros( RT, n ),
-            SPARE_BEN_4 =  zeros( RT, n ),
-            SPARE_BEN_5 =  zeros( RT, n ),
-            SPARE_BEN_6 =  zeros( RT, n ),
-            SPARE_BEN_7 =  zeros( RT, n ),
-            SPARE_BEN_8 =  zeros( RT, n ),
-            SPARE_BEN_9 =  zeros( RT, n )
+            other_benefits = zeros(RT,n)
 
             )
     end
 
     function make_individual_results_frame( n :: Int ) :: DataFrame
         make_individual_results_frame( Float64, n )
+    end
+
+    function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
+        frame :: DataFrame = create_incomes_dataframe( RT, n )
+        # add some crosstab fields ... 
+        frame.id = fill( id, n )
+        frame.sex = fill(Missing_Sex,n)
+        frame.ethnic_group = fill(Missing_Ethnic_Group,n)
+        frame.is_child = fill( false, n )
+        frame.age_band  = zeros(Int,n)
+        frame.employment_status = fill(Missing_ILO_Employment,n)
+        frame.tenure    = fill( Missing_Tenure_Type, n )
+        frame.region    = fill( Missing_Standard_Region, n )
+        frame.gross_decile = zeros( Int, n )
+        frame.council = fill( Symbol( "No_Council"), n)
+        # ... and so on
+        return frame
     end
 
     function make_individual_results_frame( RT :: DataType, n :: Int ) :: DataFrame
@@ -243,7 +138,7 @@ module Runner
          ethnic_group = fill(Missing_Ethnic_Group,n),
          is_child = fill( false, n ),
          age_band  = zeros(Int,n),
-         employment = fill(Missing_ILO_Employment,n),
+         employment_status = fill(Missing_ILO_Employment,n),
          # ... and so on
 
          income_taxes = zeros(RT,n),
@@ -287,12 +182,14 @@ module Runner
         indiv = []
         bu = []
         hh = []
+        income = []
         for s in 1:num_systems
             push!(indiv, make_individual_results_frame( T, settings.num_people ))
             push!(bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
             push!(hh, make_household_results_frame( T, settings.num_households ))
+            push!(income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
         end
-        (hh=hh, bu=bu, indiv=indiv)
+        (hh=hh, bu=bu, indiv=indiv, income=income)
     end
 
     function fill_hh_frame_row!( hr :: DataFrameRow, hh :: Household, hres :: HouseholdResult )
@@ -313,6 +210,7 @@ module Runner
         eq_ahc_net_income = hres.eq_ahc_net_income
     end
 
+
     function fill_bu_frame_row!(
         br :: DataFrameRow,
         hh :: Household,
@@ -320,6 +218,88 @@ module Runner
 
         # ...
 
+    end
+
+
+    function summarise_inc_frame( incd :: DataFrame ) :: DataFrame
+        nrows = 80
+        out = create_incomes_dataframe(Float64, nrows)
+        out.label = fill("",nrows)
+        
+        # labels
+        out[1,:label]="Grant Total £p.a"
+        out[2,:label]="Counts"
+        row = 3
+        for em in instances( ILO_Employment )
+            out[row,:label]="$em - £p.a"
+            row += 1
+            out[row,:label]="$em - counts"
+            row += 1
+        end
+        for em in instances( Tenure_Type )
+            out[row,:label]="$em - £p.a"
+            row += 1
+            out[row,:label]="$em - counts"
+            row += 1
+        end
+        for a in 1:17
+            em = age_str(a)
+            out[row,:label]="$em - £p.a"
+            row += 1
+            out[row,:label]="$em - counts"
+            row += 1
+        end
+
+        col = 3
+        # FIXME is there something subtly wrong with the weighting here?
+        for i in 1:INC_ARRAY_SIZE
+            col += 1
+            out[1,col] = sum( WEEKS_PER_YEAR .* incd[:,col] .* incd[:,:weight] ) # £mn 
+            out[2,col] = sum((incd[:,col] .> 0) .* incd[:,:weight]) # counts
+            row = 3
+            for em in instances( ILO_Employment )
+                selected = incd.employment_status.==em
+                out[row,col] = sum( WEEKS_PER_YEAR .* incd[selected,col] .* incd[selected,:weight] ) # £mn          
+                row += 1
+                out[row,col] = sum((incd[selected,col] .> 0) .* incd[selected,:weight]) # Counts
+                row += 1
+            end
+            for em in instances( Tenure_Type )
+                selected = incd.tenure .== em
+                out[row,col] =sum(  WEEKS_PER_YEAR .* incd[selected,col] .* incd[selected,:weight] ) # £mn          
+                row += 1
+                out[row,col] = sum((incd[selected,col] .> 0) .* incd[selected,:weight]) # Counts
+                row += 1
+            end
+            for a in 1:17
+                selected = incd.age_band .== a
+                out[row,col] = sum( WEEKS_PER_YEAR .* incd[selected,col] .* incd[selected,:weight] ) # £mn          
+                row += 1
+                out[row,col] = sum((incd[selected,col] .> 0) .* incd[selected,:weight]) # Counts
+                row += 1
+            end
+                
+        end
+        select!(out, Not([:pid,:hid,:weight])) # clear out pids 
+        return out
+    end
+ 
+    function fill_inc_frame_row!( 
+        ir :: DataFrameRow, 
+        hh :: Household,
+        pers :: Person,
+        pres :: IndividualResult,
+        from_child_record :: Bool )
+
+        Incomes.fill_inc_frame_row!( 
+            ir, pers.pid, hh.hid, hh.weight, pres.income )
+        ir.tenure = hh.tenure
+        ir.region = hh.region
+        ir.gross_decile = -1
+        ir.council = hh.council
+        ir.employment_status = pers.employment_status
+        ir.age_band = age_range( pers.age )
+        ir.is_child = from_child_record
     end
 
     function fill_pers_frame_row!(
@@ -332,8 +312,8 @@ module Runner
         pr.pid = pers.pid
         pr.weight = hh.weight
         pr.sex = pers.sex
-        pr.age_band  = -1 # TODO
-        pr.employment = pers.employment_status
+        pr.age_band  = age_range( pers.age )
+        pr.employment_status = pers.employment_status
         pr.ethnic_group = pers.ethnic_group
         pr.is_child = from_child_record
 
@@ -409,8 +389,14 @@ module Runner
                     pers,
                     hres.bus[buno].pers[pid],
                     from_child_record )
+                fill_inc_frame_row!(
+                    frames.income[sysno][pfno,:],
+                    hh,
+                    pers,
+                    hres.bus[buno].pers[pid],
+                    from_child_record )
+                    
             end # person loop
-            frames.indiv[sysno][pfno,:]
         end # bu loop
         # println( "num people $np num bus $nbus pfno $pfno")
         # if pfno <= 5
@@ -421,7 +407,7 @@ module Runner
         # send back an incremented set of positions only
         # once we've done the last system
         if sysno == num_systems
-            return FrameStarts( hfno, bfno, pfno )
+            return FrameStarts( hfno, bfno, pfno, pfno )
         else
             return frame_starts
         end
@@ -431,7 +417,7 @@ module Runner
     function dump_frames(
         settings :: Settings,
         frames :: NamedTuple )
-        ns = size( frames.indiv )[1]
+        ns = size( frames.indiv )[1] # num systems
         fbase = basiccensor(settings.run_name)
         mkpath(settings.output_dir)
         for fno in 1:ns
@@ -441,6 +427,12 @@ module Runner
             CSV.write( fname, frames.bu[fno] )
             fname = "$(settings.output_dir)/$(fbase)_$(fno)_pers.csv"
             CSV.write( fname, frames.indiv[fno] )
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_income.csv"
+            CSV.write( fname, frames.income[fno] )
+            income_summary = summarise_inc_frame(frames.income[fno])
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.csv"
+            CSV.write( fname, income_summary )
+
         end
     end
 
@@ -463,7 +455,7 @@ module Runner
                         start_year     = settings.start_year )
         end
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
-        frame_starts = FrameStarts(0,0,0)
+        frame_starts = FrameStarts(0,0,0,0)
         println( "starting run " )
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )

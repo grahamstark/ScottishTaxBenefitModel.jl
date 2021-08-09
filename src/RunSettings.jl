@@ -12,6 +12,7 @@ module RunSettings
 
     @enum MT_Routing uc_full lmt_full modelled_phase_in
     @with_kw mutable struct Settings
+        uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name :: String = "default_run"
         start_year :: Int = 2015
         end_year :: Int = 2018

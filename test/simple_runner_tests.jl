@@ -25,8 +25,10 @@ function basic_run( ; print_test :: Bool )
 end 
 
 @testset "basic run timing" begin
-    t = @benchmark basic_run( print_test=true )
+    t = @time basic_run( print_test=true )
+    # @benchmark frames = 
     print(t)
+
 end
 
 #=

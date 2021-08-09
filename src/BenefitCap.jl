@@ -66,7 +66,7 @@ function apply_benefit_cap!(
     end        
     recip_pers :: BigInt = -1
     recip_ben = 0.0
-    for (pid) in bu.adults
+    for pid in bu.adults
         totbens += isum( bur.pers[pid].income, included )
         if bur.pers[pid].income[target_ben] > 0
             recip_pers = pid
