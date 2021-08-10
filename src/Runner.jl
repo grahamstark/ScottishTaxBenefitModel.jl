@@ -116,6 +116,7 @@ module Runner
         frame :: DataFrame = create_incomes_dataframe( RT, n )
         # add some crosstab fields ... 
         frame.id = fill( id, n )
+        frame.data_year = zeros( Int, n )
         frame.sex = fill(Missing_Sex,n)
         frame.ethnic_group = fill(Missing_Ethnic_Group,n)
         frame.is_child = fill( false, n )
@@ -280,7 +281,7 @@ module Runner
             end
                 
         end
-        select!(out, Not([:pid,:hid,:weight])) # clear out pids 
+        select!(out, Not([:pid,:hid,:weight,:data_year])) # clear out pids 
         return out
     end
  
@@ -294,6 +295,7 @@ module Runner
         Incomes.fill_inc_frame_row!( 
             ir, pers.pid, hh.hid, hh.weight, pres.income )
         ir.tenure = hh.tenure
+        ir.data_year = hh.data_year
         ir.region = hh.region
         ir.gross_decile = -1
         ir.council = hh.council
