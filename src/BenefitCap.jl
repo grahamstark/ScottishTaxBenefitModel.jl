@@ -62,7 +62,7 @@ function apply_benefit_cap!(
     if route == legacy_bens 
         included = LEGACY_CAP_BENEFITS 
         target_ben = HOUSING_BENEFIT
-        min_amounr = 0.5
+        min_amount = 0.5
     end        
     recip_pers :: BigInt = -1
     recip_ben = 0.0

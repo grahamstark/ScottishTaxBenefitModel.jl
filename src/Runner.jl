@@ -104,8 +104,7 @@ module Runner
             income_taxes = zeros(RT,n),
             means_tested_benefits = zeros(RT,n),
             other_benefits = zeros(RT,n)
-
-            )
+        )
     end
 
     function make_individual_results_frame( n :: Int ) :: DataFrame
@@ -281,7 +280,7 @@ module Runner
             end
                 
         end
-        select!(out, Not([:pid,:hid,:weight,:data_year])) # clear out pids 
+        select!(out, Not([:pid,:hid,:weight])) # clear out pids 
         return out
     end
  

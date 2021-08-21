@@ -406,7 +406,7 @@ function calc_universal_credit!(
         bur.uc.housing_element + 
         bur.uc.carer_element + 
         bur.uc.childcare_costs
-     uce = bur.uc.maximum - 
+    uce = bur.uc.maximum - 
         bur.uc.earned_income - 
         bur.uc.other_income - 
         bur.uc.tariff_income
