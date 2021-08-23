@@ -38,6 +38,24 @@ function apply_benefit_cap!(
     route            :: LegacyOrUC )
     # FIXME CPAG 19/20 p 1190 does this on some benefit
     # receipts but this is likely near enough.
+
+    if route == legacy_bens 
+        for pid in bu.adults
+            if bur.pers[pid].income[WORKING_TAX_CREDIT] > 0
+                # cpag 21/2 p 1182
+                return
+            end
+        end
+    else
+        gross_earnings = 0.0
+        for pid in bu.adults
+            gross_earnings += isum( bur.pers[pid].income, [WAGES,SELF_EMPLOYMENT_INCOME] )
+        end
+        if gross_earnings >= caps.uc_incomes_limit
+            return
+        end
+    end
+
     if intermed.someone_pension_age || 
         intermed.someone_is_carer ||
         (intermed.num_severely_disabled_adults > 0) ||
@@ -45,6 +63,7 @@ function apply_benefit_cap!(
         # println("bailing out")
         return
     end
+    
     bu = benefit_unit # shortcut
     bur = benefit_unit_result # shortcut
     cap = intermed.num_people == 1 ? 
@@ -66,6 +85,7 @@ function apply_benefit_cap!(
     end        
     recip_pers :: BigInt = -1
     recip_ben = 0.0
+    
     for pid in bu.adults
         totbens += isum( bur.pers[pid].income, included )
         if bur.pers[pid].income[target_ben] > 0

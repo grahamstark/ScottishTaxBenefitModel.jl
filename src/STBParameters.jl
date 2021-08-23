@@ -130,7 +130,7 @@ module STBParameters
         abolished :: Bool = false
         # higher effectively just means 'with children'; 
         lump_sum_higher :: RT = 3_500 # convert to weekly
-        lump_sum_lower  :: RT = 1_000
+        lump_sum_lower  :: RT = 2_500
         higher :: RT = 350 # monthly
         lower  :: RT = 100 # monthly 
         deaths_after = Date( 2017, 04, 06 ) # noway of using this, but, key
@@ -159,10 +159,11 @@ module STBParameters
         # not really needed, but anyway ..
         inside_london_single :: RT = 296.35
         inside_london_couple  :: RT = 442.31
+        uc_incomes_limit :: RT = 542.88
     end
 
     function weeklyise!( bc :: BenefitCapSys )
-        # ... nothing: weekly already
+        bc.bencap.uc_incomes_limit /= WEEKS_PER_MONTH
     end
     #
     # initial version - will be progressively replaced
@@ -455,16 +456,17 @@ module STBParameters
 
     @with_kw mutable struct Premia{ RT<:Real }
         family :: RT = 17.45
+        family_lone_parent = 22.00 # FIXME this is not used??
         disabled_child :: RT = 64.19
-        severe_disability_single :: RT = 65.85
-        severe_disability_couple :: RT = 131.70
         carer_single :: RT = 36.85
-        carer_couple :: RT = 73.70
+        carer_couple :: RT = 73.70 # FIXME is this used?
+        disability_single :: RT = 34.35
+        disability_couple :: RT = 48.95
         enhanced_disability_child :: RT = 26.04
         enhanced_disability_single :: RT = 16.80
         enhanced_disability_couple :: RT = 24.10
-        disability_single :: RT = 34.35
-        disability_couple :: RT = 48.95
+        severe_disability_single :: RT = 65.85
+        severe_disability_couple :: RT = 131.70
         pensioner_is :: RT = 140.40
     end
     
@@ -721,7 +723,7 @@ module STBParameters
     end
 
     function weeklyise!( hr :: HousingRestrictions )
-        hr. rooms_rent_reduction /= 100.0
+        hr.rooms_rent_reduction /= 100.0
     end
 
     @with_kw mutable struct ChildLimits
