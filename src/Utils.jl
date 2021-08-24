@@ -457,9 +457,6 @@ function haskeys( d :: AbstractDict, keys :: AbstractArray ) :: Bool
    return false
 end
 
-
-
-
 """
 returns the string converted to a form suitable to be used as (e.g.) a Symbol,
 with leading/trailing blanks removed, forced to lowercase, and with various

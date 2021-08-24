@@ -163,7 +163,7 @@ module STBParameters
     end
 
     function weeklyise!( bc :: BenefitCapSys )
-        bc.bencap.uc_incomes_limit /= WEEKS_PER_MONTH
+        bc.uc_incomes_limit /= WEEKS_PER_MONTH
     end
     #
     # initial version - will be progressively replaced
@@ -704,7 +704,7 @@ module STBParameters
         # FIXME infer N from bd
         dict = Dict{ Symbol, BRMA{ N, T }}() 
         for r in eachrow( bd )
-            obd = BRMA( r.bname, Symbol( r.bcode ), SVector{N,T}([r.bed_1,r.bed_2,r.bed_3,r.bed_4]),r.room )
+            obd = BRMA( r.bname, Symbol( r.bcode ), SVector{N,T}([r.bed_1,r.bed_2,r.bed_3,r.bed_4]), T(r.room) )
             dict[ Symbol( r.bcode ) ] = obd
         end
         dict
@@ -835,10 +835,12 @@ module STBParameters
    The file is executed as julia code but doesn't actually need
    a `.jl` extension.
    """
-   function load_file( sysname :: AbstractString, T :: Type = Float64 ) :: TaxBenefitSystem
-        sys = TaxBenefitSystem{T}()
+   function load_file( sysname :: AbstractString, RT :: Type = Float64 ) :: TaxBenefitSystem        
         begin
+            T = RT
+            sys = TaxBenefitSystem{T}()
             global sys
+            global T
             include( sysname )
         end
         return sys
@@ -852,9 +854,14 @@ module STBParameters
    The file is executed as julia code but doesn't actually need
    a `.jl` extension.
    """
-   function load_file!( sys :: TaxBenefitSystem, sysname :: AbstractString )
+   function load_file!( psys :: TaxBenefitSystem{RT}, sysname :: AbstractString ) where RT
             begin
+                # I have no idea why scoping
+                # like this works ..
+                T = RT
+                sys = psys
                 global sys
+                global T
                 include( sysname )
             end
    end
