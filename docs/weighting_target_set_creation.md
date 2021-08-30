@@ -18,7 +18,7 @@ from `nomis_2021_08_26_193230.xlsx`
 
 2018 figures are still the latest. See https://www.gov.scot/publications/housing-statistics-stock-by-tenure/
 
-Scaling different. 
+Scaling different. Use ratio of SG occupied houses to NRS households (`2523096/2498419.5`).
 
 ## Population 8-41
 
@@ -37,11 +37,19 @@ Table 2 - 2021 column
 
 ## 49 Carer's Allowance Receipt
 
+FEB 2021 from Stat-XPLORE
+
 ## 50 AA
 
+FEB 2021 from Stat-XPLORE
+
 ## 51 PIP/DLA
+
+FEB 2021 from Stat-XPLORE
 
 ## 52 - 82 Council Household Counts 
 
 As HH composition, table 6
+
+`national-records-scotland-household-projections-2018-based-full-tables.ods` table 6 for 2021
 
