@@ -36,7 +36,7 @@ using .ModelHousehold
 using .Definitions
 
 export 
-    TARGETS, 
+    DEFAULT_TARGETS, 
     generate_weights, 
     initialise_target_dataframe,
     make_target_dataset
@@ -242,9 +242,9 @@ const DEFAULT_TARGETS_2020 = [
     147434, # S12000029 - South Lanarkshire  
     39654, # S12000030 - Stirling  
     43030, # S12000039 - West Dunbartonshire  
-    78966 # S12000040 - West Lothian  
-    
-    ]
+    78966 ] # S12000040 - West Lothian 
+
+const DEFAULT_TARGETS = DEFAULT_TARGETS_2021
 
 function initialise_target_dataframe( n :: Integer ) :: DataFrame
     df = DataFrame(
@@ -523,7 +523,7 @@ function generate_weights(
     weight_type :: DistanceFunctionType = constrained_chi_square,
     lower_multiple :: Real = 0.20, # these values can be narrowed somewhat, to around 0.25-4.7
     upper_multiple :: Real = 5,
-    targets :: Vector = DEFAULT_TARGETS_2021 ) :: Vector
+    targets :: Vector = DEFAULT_TARGETS ) :: Vector
 
     data :: Matrix = make_target_dataset( nhhlds )
     nrows = size( data )[1]

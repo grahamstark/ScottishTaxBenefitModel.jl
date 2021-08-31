@@ -39,6 +39,8 @@ function apply_benefit_cap!(
     # FIXME CPAG 19/20 p 1190 does this on some benefit
     # receipts but this is likely near enough.
 
+    bu = benefit_unit # shortcut
+    bur = benefit_unit_result # shortcut
     if route == legacy_bens 
         for pid in bu.adults
             if bur.pers[pid].income[WORKING_TAX_CREDIT] > 0
@@ -64,8 +66,6 @@ function apply_benefit_cap!(
         return
     end
     
-    bu = benefit_unit # shortcut
-    bur = benefit_unit_result # shortcut
     cap = intermed.num_people == 1 ? 
         caps.outside_london_single :
         caps.outside_london_couple
