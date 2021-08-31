@@ -1,5 +1,11 @@
 module EquivalenceScales
-    
+    #
+    # This module implements a set of standard-ish Equivalence Scales, mainly taken from 
+    #  https://www.gov.scot/binaries/content/documents/govscot/publications/statistics/2020/01/equivalence-scales/documents/equivalence-scales-rationales-uses-and-assumptions/equivalence-scales-rationales-uses-and-assumptions/govscot%3Adocument/paper%2Bdiscussing%2Bequivalence%2Bscales%2Band%2Bunderlying%2Bassumptions.pdf
+    #
+    # As part of this, it describes a simple interface that can be used by any data structure than 
+    # contains records of people with ages and relationships.
+    #
     export
         EQ_P_Type,
         EQ_Person, 

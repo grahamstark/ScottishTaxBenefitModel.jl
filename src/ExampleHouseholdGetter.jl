@@ -1,5 +1,9 @@
 module ExampleHouseholdGetter
-
+#
+# This module contains code to fetch some test households from CSV files.
+# It differs from the main FRSHouseholdGetter in that it doesn't bother with weighting, and households
+# to be accessed by names rather than indexes.
+#
 using DataFrames
 using CSV
 

@@ -1,4 +1,10 @@
 module FRSHouseholdGetter
+    
+    #
+    # This module retrieves the main dataset. The data is retrieved from CSV files and assembled once, including generating sample weights,
+    # but it can then be accessed multiple times in a session. Retrieval is currently by index (1,2,3...) only but retrieval by sernum/datayear,
+    # or by some sort of query interface might be added later.
+    # 
 
     using CSV
     using DataFrames: DataFrame

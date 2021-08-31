@@ -1,5 +1,10 @@
 module Utils
 
+#
+# This contains general purpose, messy stuff not easily fitting elsewhere. 
+# A fair chunk is no longer used :(
+#
+
 using Base: Integer, String, Bool
 using DataFrames
 using Dates

@@ -1,5 +1,10 @@
 module Results
-
+    #
+    # This module models a complete set of calculation results for all the members of a single household (tax due, benefits entitled to, marginal rate, etc.)
+    # It also contains code to map from the Dictionary to Array representation of incomes.
+    #
+    # FIXME this badly needs rewritten to mirror the structure of the Household in ModelHousehold.jl
+    #
     using Parameters: @with_kw
     using DataFrames
     using StaticArrays

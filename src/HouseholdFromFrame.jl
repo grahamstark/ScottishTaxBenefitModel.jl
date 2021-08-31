@@ -1,5 +1,11 @@
 module HouseholdFromFrame
 
+#
+# This module maps from flat-ish DataFrames containing FRS/SHS/Example data to 
+# our Household/Person structures from ModelHouseholds.jl. It also does some incidental calculations -
+# equivalence scales and ratios of recorded benefits to standard entitlements.
+#
+
 using DataFrames
 using CSVFiles
 

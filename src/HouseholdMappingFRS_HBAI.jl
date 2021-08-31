@@ -1,3 +1,7 @@
+#
+# This contains most of the functions used to create our model dataset from raw FRS/SHS data.
+#
+
 using DataFrames
 using CSV
 

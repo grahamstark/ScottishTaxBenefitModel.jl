@@ -1,5 +1,8 @@
 module TimeSeriesUtils
-
+#
+# This module contains some stuff for modelling financial years, quarters and the like. Used for calculating 
+# pension ages and in the uprating routines.
+#
 using Base: Integer
 using TimeSeries, Dates
 

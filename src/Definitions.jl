@@ -1,5 +1,6 @@
 module Definitions
 #
+# This module contains enumerated types and constants that are used throughout the model.
 #
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils

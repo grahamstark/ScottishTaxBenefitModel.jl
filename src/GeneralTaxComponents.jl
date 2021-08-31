@@ -1,8 +1,10 @@
 module GeneralTaxComponents
 
-"
-Various Standard Tax calculations. Very incomplete.
-"
+#
+# This module implements various standard tax calculations, such as indirect tax components and getting tax due from rates and bands.
+# It also contains some period constants that really need more thought.
+# Currently incomplete but enough to be going on with.
+#
 
 export 
    DAYS_PER_YEAR, 

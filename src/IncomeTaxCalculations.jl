@@ -1,5 +1,11 @@
 module IncomeTaxCalculations
 
+#
+# This module calculates income tax for an individual (and also, at the end a married couple).
+# It's based mainly on the descriptions and examples in the excellent Melville's Taxation:
+# Melville, Alan. 2019. Melville’s Taxation: Finance Act 2019. 25th ed. London. (and 2020 edition).
+#
+
 using Dates
 using Dates: Date, now, TimeType, Year
 using Parameters: @with_kw

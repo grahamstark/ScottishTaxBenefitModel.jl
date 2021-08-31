@@ -1,8 +1,9 @@
-"""
-This is the main entry point for calculations on a household
-"""
 
 module SingleHouseholdCalculations
+
+#
+# This module drives all the calculations for single household and a single set of parameters.
+#
 
 import ScottishTaxBenefitModel:
     BenefitCap,

@@ -1,6 +1,11 @@
 module WebModelLibs
-
-
+#
+# This contains the code to make the interactive parts of https://stb.virtual-worlds.scot, which is an early and very much simplified
+# version of this model.
+#
+# Not currently used and will be updated moved to own repository. Kept around for reference.
+#
+#
 using JSON3
 using DataFrames
 using CSV

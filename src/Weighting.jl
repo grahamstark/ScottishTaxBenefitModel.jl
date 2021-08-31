@@ -1,6 +1,24 @@
 module Weighting
-
-    
+#
+# This module has routines and target constants to re-weight our main dataset so it hits current or future totals for employment, 
+# population by age and so on. See:
+#
+# Creedy, John. 2003. ‘Survey Reweighting for Tax Microsimulation Modelling’. Treasury Working Paper Series 03/17. 
+# New Zealand Treasury. http://ideas.repec.org/p/nzt/nztwps/03-17.html.
+# 
+# for an overview of how this works, and the `SurveyDataWeighting` module for implementation details.
+#
+# The targets we currently weight for are:
+#
+# * Employment and Unemployment (from NOMIS)
+# * Tenure Type (from Scotgov)
+# * Household Type (from NRS)
+# * Receipts of disability/caring benefits (Stat-Explore)
+# * population in 5- year age bands
+# * household totals by local authority.
+#
+# 82 targets in all, presently.
+#
 using DataFrames
 
 using SurveyDataWeighting: 
@@ -28,17 +46,24 @@ export
 const NUM_HOUSEHOLDS = 2_477_000.0 # sum of all hhld types below
 
 #
+# This is our default set of targets for 2021/2. 
+#
 # See `weighting_target_set_creation.md`
 # and `target_generation_worksheet-aug-22-2021.ods`
 #
 const DEFAULT_TARGETS_2021 = [
-    1.02361127107591*1_330_149,  #	1	M- Total in employment- aged 16+
-    1.02361127107591*68_308,	   #	2	M- Total unemployed- aged 16+
+    # Employment totals from NOMIS
+    # We drop 'inactive' because of collinearity with NRS population
+    1.02361127107591*1_330_149,  #	1	M- Total in employment- aged 16+ - the constant here scales the NOMIS over 16 populations to the NRS totals
+    1.02361127107591*68_308,	 #	2	M- Total unemployed- aged 16+
     1.01039881362443*1_304_812,  #	3	F- Total in employment- aged 16+
-    1.01039881362443*50_481,    #	4	F- Total unemployed- aged 16+
-    1.00987684414087*370_845,   #	5	private rented+rent free
+    1.01039881362443*50_481,     #	4	F- Total unemployed- aged 16+
+    # Tenure - the constant scales SGov occupied households counts to NRS total household counts.
+    # OOs dropped for colinearity with NRS household counts.
+    1.00987684414087*370_845,   #	5	private rented+rent free 
     1.00987684414087*280_715,   #	6	housing association
     1.00987684414087*314_433,   #	7	las etc rented
+    # NRS popn by age 2021/2
 	135_959,	#	8	M – 0 - 4
 	152_847,	#	9	5 - 9
 	151_875,	#	10	10 - 14
@@ -73,6 +98,7 @@ const DEFAULT_TARGETS_2021 = [
 	149_920,	#	39	 70 - 74
 	109_004,	#	40	 75 - 79
 	165_451,	#	41	80+
+    # NRS households 
 	468_147,	#	42	 # 42 - 1 adult: male
 	453_675,	#	43	 # 43 - 1 adult: female
 	795_465,	#	44	 # 44 - 2 adults
@@ -80,9 +106,11 @@ const DEFAULT_TARGETS_2021 = [
 	67_324,	#	46	 # 46 - 1 adult 2+ children
 	440_062,	#	47	 # 47 - 2+ adults 1+ children
 	208_147,	#	48	 # 48 - 3+ adults
+    # Disability benefit receipts from Stat-Explore
 	82_031,	#	49	CARERS
 	124_192,	#	50	AA
 	432_744,	#	51	PIP/DLA
+    # Household (not popn) from NRS by LA. Aberdeen city dropped for collinearity.
 	113_217,	#	52	 # S12000034 - 52 Aberdeenshire  
 	54_378,	#	53	 # S12000041 - Angus  
 	41_635,	#	54	 # S12000035 - Argyll and Bute  
@@ -216,7 +244,7 @@ const DEFAULT_TARGETS_2020 = [
     43030, # S12000039 - West Dunbartonshire  
     78966 # S12000040 - West Lothian  
     
-    ] # 51 PIP or DLA
+    ]
 
 function initialise_target_dataframe( n :: Integer ) :: DataFrame
     df = DataFrame(

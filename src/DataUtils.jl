@@ -1,5 +1,6 @@
 module DataUtils
 #
+# THIS IS NOT USED
 # FIXME messing with Generics and Show() in particular
 #
 import DataFrames: DataFrame

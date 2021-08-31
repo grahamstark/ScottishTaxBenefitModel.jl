@@ -1,5 +1,13 @@
 module STBParameters
-
+    
+    #
+    # This module models all the parameters (tax rates, benefit levels, ages, etc.) needed to model
+    # the Scottish/UK Tax and Benefit System. Also functions to convert everything to weekly amounts.
+    # The default values that everything is initialised to are 2019/20 values, which shows how long I've been at this.
+    # At the bottom are functions that can read other sets of parameters from files. The 20/21 and later 
+    # parameters should be loaded that way rather than by changing the defaults, as the 19/20 system is used
+    # heavily in the unit tests.
+    #
     using Dates
     using Dates: Date, now, TimeType, Year
     using TimeSeries

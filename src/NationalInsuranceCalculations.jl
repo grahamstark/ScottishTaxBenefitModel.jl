@@ -1,6 +1,8 @@
 module NationalInsuranceCalculations
 #
-# Does exactly what it says on the tin.
+# This module calculates National Insurance for an individual.
+# It's based mainly on the descriptions and examples in the excellent Melville's Taxation:
+# Melville, Alan. 2019. Melville’s Taxation: Finance Act 2019. 25th ed. London. (and 2020 edition).
 #
 using BudgetConstraints #: BudgetConstraint, get_x_from_y
 using Dates

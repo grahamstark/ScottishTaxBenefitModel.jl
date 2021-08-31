@@ -1,5 +1,10 @@
 module Uprating
 
+#
+# This module uprates the main model data using values from CPI, Nominal GDP, average wages, etc. that 
+# I've hacked together from SFC,OBR and Bank Of England Data. 
+# See the worksheets under `data/prices/`.
+#
 using DataFrames
 using CSV
 

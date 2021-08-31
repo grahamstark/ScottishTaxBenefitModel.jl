@@ -2,10 +2,9 @@ module ScottishTaxBenefitModel
 
 #
 # A microsimulation tax benefit model of Scotland.
-# Work in progress.
 #
-
-# __precompile__(true)
+# This is the `parent module` that just imports (and re-exports) all its child modules.
+#
 
 include("Utils.jl" )
 export Utils
