@@ -2,7 +2,7 @@ module Uprating
 
 #
 # This module uprates the main model data using values from CPI, Nominal GDP, average wages, etc. that 
-# I've hacked together from SFC,OBR and Bank Of England Data. 
+# I've hacked together from SFC,UPRATING and Bank Of England Data. 
 # See the worksheets under `data/prices/`.
 #
 using DataFrames
@@ -15,7 +15,7 @@ using .Utils
 
 
 """
-Semi-complete indexing routine using OBR quarterly data.
+Semi-complete indexing routine using UPRATING quarterly data.
 """
 
 export uprate, UPRATE_MAPPINGS
@@ -31,7 +31,7 @@ Uprate_Map = Dict(
     upr_unearned => :nominal_gdp,
     upr_costs => :cpi,
     upr_cpi => :cpi,
-    upr_gdp_deflator => :gdp_deflator,
+    # not used upr_gdp_deflator => :gdp_deflator,
     upr_nominal_gdp => :nominal_gdp,
     upr_shares => :equity_prices
 )
@@ -109,56 +109,56 @@ const UPRATE_MAPPINGS =  make_uprate_types()
 #
 # FIXME type unstable? use the trick in the 
 #
-OBR_DATA = nothing
+UPRATING_DATA = nothing
 
 """
-Load Quarterly OBR data into a dataframe, and recast everything relative to the target date (Y,Q).
+Load Quarterly UPRATING data into a dataframe, and recast everything relative to the target date (Y,Q).
 See docs/notes.md on the data. Dataframe is a private global.
 """
 function load_prices( settings :: Settings, reload :: Bool = false ) :: DataFrame
 
-    global OBR_DATA
-    if ((OBR_DATA !== nothing) && ( ! reload ))
+    global UPRATING_DATA
+    if ((UPRATING_DATA !== nothing) && ( ! reload ))
         return;
     end
 
-    obr = CSV.File("$(PRICES_DIR)/$(settings.prices_file)"; delim = '\t', comment = "#") |>
+    UPRATING = CSV.File("$(PRICES_DIR)/$(settings.prices_file)"; delim = '\t', comment = "#") |>
           DataFrame
-    nrows = size(obr)[1]
-    ncols = size(obr)[2]
-    lcnames = Symbol.(basiccensor.(string.(names(obr))))
-    rename!(obr, lcnames)
+    nrows = size(UPRATING)[1]
+    ncols = size(UPRATING)[2]
+    lcnames = Symbol.(basiccensor.(string.(names(UPRATING))))
+    rename!(UPRATING, lcnames)
 
-    obr[!,:year] = zeros(Int64, nrows)
-    obr[!,:q] = zeros(Int8, nrows) #zeros(Union{Int64,Missing},np)
-    dp = r"([0-9]{4})Q([1-4])"
+    UPRATING[!,:year] = zeros(Int64, nrows)
+    UPRATING[!,:q] = zeros(Int8, nrows) #zeros(Union{Int64,Missing},np)
+    dp = r"([0-9]{4}) Q([1-4])"
     for i in 1:nrows
-        rc = match(dp, obr[i, :date])
+        rc = match(dp, UPRATING[i, :date])
         if (rc !== nothing)
-            obr[i, :year] = parse(Int64, rc[1])
-            obr[i, :q] = parse(Int8, rc[2])
+            UPRATING[i, :year] = parse(Int64, rc[1])
+            UPRATING[i, :q] = parse(Int8, rc[2])
         end
     end
 
-    pnew = findfirst((obr.year.== settings.to_y ) .& (obr.q.== settings.to_q ))
+    pnew = findfirst((UPRATING.year.== settings.to_y ) .& (UPRATING.q.== settings.to_q ))
     for col in 1:ncols
-        baser = obr[pnew,col]
+        baser = UPRATING[pnew,col]
         # println( "on col $col $(lcnames[col]); baser=$baser")
         if ! (lcnames[col] in [:q, :year, :date ]) # got to be a better way
-            obr[!,col] .= baser./obr[!,col]
+            UPRATING[!,col] .= baser./UPRATING[!,col]
         end
     end
-    # print(obr[1,:nomi])
-    obr
+    # print(UPRATING[1,:nomi])
+    UPRATING
 end
 
 #  = load_prices()
 
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number
     # FIXME this is likely much too slow..
-    global OBR_DATA
-    # if OBR_DATA === nothing
-    #     OBR_DATA = load_prices( settings )
+    global UPRATING_DATA
+    # if UPRATING_DATA === nothing
+    #     UPRATING_DATA = load_prices( settings )
     # end
     if itype == upr_no_uprate
         return item
@@ -166,7 +166,7 @@ function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate
     global Uprate_Map
     # global FROM_Y, FROM_Q
     colsym = Uprate_Map[itype]
-    p = OBR_DATA[((OBR_DATA.year.==from_y).&(OBR_DATA.q.==from_q)), colsym][1]
+    p = UPRATING_DATA[((UPRATING_DATA.year.==from_y).&(UPRATING_DATA.q.==from_q)), colsym][1]
     return item * p
 end
 
