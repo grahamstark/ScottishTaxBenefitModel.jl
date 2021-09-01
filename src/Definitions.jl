@@ -28,7 +28,7 @@ const MODEL_NAME="ScottishTaxBenefitModel"
 const PROJECT_DIR="/home/graham_s/julia/vw/$(MODEL_NAME)/"
 
 const MODEL_DATA_DIR="$(PROJECT_DIR)/data/"
-const PRICES_DIR="$MODEL_DATA_DIR/prices/obr/"
+const PRICES_DIR="$MODEL_DATA_DIR/prices/indexes/"
 const MATCHING_DIR="$MODEL_DATA_DIR/merging/"
 const MODEL_PARAMS_DIR="$PROJECT_DIR/params"
 
