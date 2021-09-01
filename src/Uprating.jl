@@ -9,6 +9,7 @@ using DataFrames
 using CSV
 
 using ScottishTaxBenefitModel
+using .RunSettings
 using .Definitions
 using .Utils
 
@@ -20,8 +21,8 @@ Semi-complete indexing routine using OBR quarterly data.
 export uprate, UPRATE_MAPPINGS
 
 
-const TO_Q = 4
-const TO_Y = 2019
+const TO_Q = 2
+const TO_Y = 2021
 
 Uprate_Map = Dict(
     upr_earnings => :average_earnings,
@@ -105,14 +106,23 @@ function make_uprate_types() :: Dict
 end
 
 const UPRATE_MAPPINGS =  make_uprate_types()
+#
+# FIXME type unstable? use the trick in the 
+#
+OBR_DATA = nothing
 
 """
 Load Quarterly OBR data into a dataframe, and recast everything relative to the target date (Y,Q).
 See docs/notes.md on the data. Dataframe is a private global.
 """
-function load_prices() :: DataFrame
+function load_prices( settings :: Settings, reload :: Bool = false ) :: DataFrame
 
-    obr = CSV.File("$(PRICES_DIR)/merged_quarterly.tab"; delim = '\t', comment = "#") |>
+    global OBR_DATA
+    if ((OBR_DATA !== nothing) && ( ! reload ))
+        return;
+    end
+
+    obr = CSV.File("$(PRICES_DIR)/$(settings.prices_file)"; delim = '\t', comment = "#") |>
           DataFrame
     nrows = size(obr)[1]
     ncols = size(obr)[2]
@@ -130,7 +140,7 @@ function load_prices() :: DataFrame
         end
     end
 
-    pnew = findfirst((obr.year.==TO_Y) .& (obr.q.==TO_Q))
+    pnew = findfirst((obr.year.== settings.to_y ) .& (obr.q.== settings.to_q ))
     for col in 1:ncols
         baser = obr[pnew,col]
         # println( "on col $col $(lcnames[col]); baser=$baser")
@@ -142,15 +152,14 @@ function load_prices() :: DataFrame
     obr
 end
 
-OBR_DATA = nothing
 #  = load_prices()
 
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number
     # FIXME this is likely much too slow..
     global OBR_DATA
-    if OBR_DATA === nothing
-        OBR_DATA = load_prices()
-    end
+    # if OBR_DATA === nothing
+    #     OBR_DATA = load_prices( settings )
+    # end
     if itype == upr_no_uprate
         return item
     end

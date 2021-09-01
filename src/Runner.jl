@@ -46,6 +46,8 @@ module Runner
     using .FRSHouseholdGetter: 
         get_household,
         initialise
+        
+    using .Uprating: load_prices
     
     using .SingleHouseholdCalculations: do_one_calc
     
@@ -444,6 +446,7 @@ module Runner
         params   :: Vector{TaxBenefitSystem{T}} ) :: NamedTuple where T # fixme simpler way of declaring this?
         num_systems = size( params )[1]
         println("start of do_one_run; params:")
+        load_prices( settings, false )
         for p in 1:num_systems
             println("sys $p")
             println(params[p].it)

@@ -1,12 +1,15 @@
 using Test
 using ScottishTaxBenefitModel.Uprating
 using DataFrames
-using ScottishTaxBenefitModel.ModelHousehold
-using ScottishTaxBenefitModel.ExampleHouseholdGetter
-using ScottishTaxBenefitModel.FRSHouseholdGetter
-using ScottishTaxBenefitModel.Definitions
+using ScottishTaxBenefitModel
+using .RunSettings: settings
+using .ModelHousehold
+using .ExampleHouseholdGetter
+using .FRSHouseholdGetter
+using .Definitions
 
-prfr = Uprating.load_prices()
+settings = Settings()
+prfr = Uprating.load_prices( settings )
 
 print( prfr )
 
