@@ -9,6 +9,9 @@ module ScottishTaxBenefitModel
 include("Utils.jl" )
 export Utils
 
+include( "Randoms.jl")
+export Randoms
+
 include( "TimeSeriesUtils.jl" )
 export TimeSeriesUtils
 
@@ -83,6 +86,9 @@ export SingleHouseholdCalculations
 
 # pro. tem include("WebModelLibs.jl" )
 # export WebModelLibs
+
+include( "UCTransition.jl")
+export UCTransition
 
 include( "Runner.jl" )
 export Runner

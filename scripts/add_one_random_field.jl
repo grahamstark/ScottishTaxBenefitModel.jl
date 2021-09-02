@@ -1,7 +1,7 @@
 #
 # add a random field to hhld and person dataframes
 # 
-using CSV,DataFrames,ScottishTaxBenefitModel.Utils
+using CSV,DataFrames,ScottishTaxBenefitModel.Randoms
 
 people=CSV.File( "data/model_people_scotland.tab" )|>DataFrame
 n = size(people)[1]

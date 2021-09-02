@@ -19,6 +19,7 @@ module Runner
         RunSettings,
         SingleHouseholdCalculations,
         STBParameters,
+        Uprating,
         Utils,
         Weighting
 
@@ -453,12 +454,8 @@ module Runner
         end
         if settings.num_households == 0
             println( "getting households" )
-            @time settings.num_households,
-                settings.num_people,
-                nhh2 = initialise(
-                        household_name = settings.household_name,
-                        people_name    = settings.people_name,
-                        start_year     = settings.start_year )
+            @time settings.num_households, settings.num_people, nhh2 = 
+                initialise( settings )
         end
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
         frame_starts = FrameStarts(0,0,0,0)

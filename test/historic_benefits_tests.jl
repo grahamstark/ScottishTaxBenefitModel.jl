@@ -1,7 +1,7 @@
 using Test
 using ScottishTaxBenefitModel.HistoricBenefits
 using ScottishTaxBenefitModel
-using .Definitions, .Utils
+using .Definitions, .Utils, .Randoms
 
 ## NOTE this test has the 2019 OBR data and 2019Q4 as a target jammed on - will need
 ## changing with update versions

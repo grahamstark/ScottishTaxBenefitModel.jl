@@ -2,14 +2,13 @@ using Test
 using ScottishTaxBenefitModel.Uprating
 using DataFrames
 using ScottishTaxBenefitModel
-using .RunSettings: settings
+using .RunSettings: Settings
 using .ModelHousehold
 using .ExampleHouseholdGetter
 using .FRSHouseholdGetter
 using .Definitions
 
-settings = Settings()
-prfr = Uprating.load_prices( settings )
+prfr = Uprating.load_prices( DEFAULT_SETTINGS )
 
 print( prfr )
 
@@ -26,5 +25,6 @@ print( prfr )
     # average index 2008 q1=100; 2019 Q4 = 125.9812039916
     pers.income[wages] = 100.0
     uprate!( hh )
-    @test pers.income[wages] ≈ 125.9812039916 # 2019q4 av wages index
+    # FIXME hardly a test & needs changed every time the index changes
+    @test pers.income[wages] ≈ 100*19.66933/15.1875 # 2021q2 av wages index
 end

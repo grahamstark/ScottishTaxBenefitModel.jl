@@ -19,12 +19,17 @@ using .ModelHousehold:
 
 using .Definitions
 import .ExampleHouseholdGetter
+
+using .RunSettings: Settings
+
 using DataFrames,CSV, Dates
 
 #
 # full dataset is available .. 
 # 
 const IS_LOCAL = isdir("/mnt/data/frs/")
+
+const DEFAULT_SETTINGS = Settings()
 
 # pids for example people
 # see make_pid 
@@ -78,9 +83,7 @@ function init_data(; reset :: Bool = false )
    nhh = get_num_households()
    num_people = -1
    if( nhh == 0 ) || reset 
-      @time nhh, num_people,nhh2 = initialise(
-            household_name = "model_households_scotland",
-            people_name    = "model_people_scotland" )
+      @time nhh, num_people,nhh2 = initialise( DEFAULT_SETTINGS )
    end
    (nhh,num_people)
 end

@@ -19,12 +19,14 @@ using .Utils
 using .MiniTB
 using .GeneralTaxComponents
 using .Definitions
+using .RunSettings: Settings
 
 export do_one_run, local_makebc, load_data
 export print_output_to_csv, create_base_results, summarise_results!
 
 function load_data(; load_examples::Bool, load_main :: Bool, start_year = 2015 )
    example_names = Vector{AbstractString}()
+   settings = Settings()
    num_households = 0
    if load_examples
       example_names = ExampleHouseholdGetter.initialise()
@@ -32,10 +34,7 @@ function load_data(; load_examples::Bool, load_main :: Bool, start_year = 2015 )
    if load_main
       rc = @timed begin
          num_households,num_people,nhh2 =
-            FRSHouseholdGetter.initialise(
-            household_name = "model_households_scotland",
-            people_name    = "model_people_scotland",
-            start_year = start_year )
+            FRSHouseholdGetter.initialise( DEFAULT_SETTINGS )
       end
       mb = trunc(Integer, rc[3] / 1024^2)
       @info "loaded data; load time $(rc[2]); memory used $(mb)mb; loaded $num_households households\nready..."

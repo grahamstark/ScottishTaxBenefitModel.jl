@@ -20,8 +20,12 @@ module FRSHouseholdGetter
     using .HouseholdFromFrame: 
         load_hhld_from_frame
 
+    using .RunSettings: Settings
+
     using .Weighting: 
         generate_weights
+
+    using .Uprating: load_prices
     
     export initialise, get_household, num_households
     
@@ -47,10 +51,8 @@ module FRSHouseholdGetter
     return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
     """
     function initialise(
+            settings :: Settings,
             ;
-            household_name :: String = "model_households_scotland",
-            people_name :: String = "model_people_scotland",
-            start_year = -1,
             reset :: Bool = false ) :: Tuple
     
         global MODEL_HOUSEHOLDS
@@ -60,8 +62,9 @@ module FRSHouseholdGetter
             # see e.g. https://discourse.julialang.org/t/array-to-tuple/9024
             return (MODEL_HOUSEHOLDS.dimensions...,) 
         end
-        hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab" ) |> DataFrame
-        people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab") |> DataFrame
+        load_prices( settings )
+        hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(settings.household_name).tab" ) |> DataFrame
+        people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(settings.people_name).tab") |> DataFrame
         npeople = size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )

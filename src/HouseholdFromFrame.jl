@@ -17,8 +17,8 @@ using .HistoricBenefits:
     make_benefit_ratios!, 
     switch_dla_to_pip!
 using .EquivalenceScales: EQScales
-using .Utils: not_zero_or_missing,strtobi
-
+using .Utils: not_zero_or_missing
+using .Randoms: strtobi
 export 
     create_regression_dataframe,
     load_hhld_from_frame, 

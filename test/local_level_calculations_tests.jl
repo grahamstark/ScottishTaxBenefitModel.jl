@@ -8,7 +8,7 @@ using .Definitions
 using .Results: HousingResult
 using .FRSHouseholdGetter
 using .GeneralTaxComponents: WEEKS_PER_YEAR
-
+using .RunSettings: Settings
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax,
     LA_NAMES, LA_CODES
@@ -19,11 +19,9 @@ using .Intermediate: make_intermediate, MTIntermediate
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
+
 rc = @timed begin
-    num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
-          household_name = "model_households_scotland",
-          people_name    = "model_people_scotland",
-          start_year     = 2015 )
+    num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( DEFAULT_SETTINGS )
 end
 
 @testset "LHA and assoc. mappings" begin

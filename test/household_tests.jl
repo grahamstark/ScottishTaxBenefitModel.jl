@@ -27,6 +27,7 @@ using .ModelHousehold:
       num_people,
       printpids
 
+using .RunSettings: Settings
 using .TimeSeriesUtils: fy_from_bits
 
 using .Definitions
@@ -44,10 +45,7 @@ nhh2 = 0
 # pyplot()
 
 rc = @timed begin
-      num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise(
-            household_name = "model_households_scotland",
-            people_name    = "model_people_scotland",
-            start_year = start_year )
+      num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( DEFAULT_SETTINGS )
 end
 println( "num_households=$num_households, num_people=$(total_num_people)")
 

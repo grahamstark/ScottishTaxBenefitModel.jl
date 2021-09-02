@@ -13,7 +13,8 @@ using CSV, DataFrames, Dates
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
-using .Utils: nearesti, nearest, randchunk
+using .Utils: nearesti, nearest
+using .Randoms: randchunk
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
 export should_switch_dla_to_pip,PIP_RECEIPTS,DLA_RECEIPTS
@@ -134,7 +135,7 @@ function should_switch_dla_to_pip(
     # So, if N=1000, onerand = 9001234 and sw_prop = 0.2
     # then switch if 234 > 200
     #
-    test = randchunk( onerand, 3, 3 ) # last 3 digits
+    test = randchunk( onerand, Randoms.DLA_TO_PIP  ) # last 3 digits
     ia = Int(trunc(sw_prop*1_000))
     switch = test > ia
     # println( "test $test ia=$ia switch=$switch")

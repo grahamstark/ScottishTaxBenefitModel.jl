@@ -115,51 +115,48 @@ UPRATING_DATA = nothing
 Load Quarterly UPRATING data into a dataframe, and recast everything relative to the target date (Y,Q).
 See docs/notes.md on the data. Dataframe is a private global.
 """
-function load_prices( settings :: Settings, reload :: Bool = false ) :: DataFrame
+function load_prices( settings :: Settings, reload :: Bool = false )
 
     global UPRATING_DATA
     if ((UPRATING_DATA !== nothing) && ( ! reload ))
-        return;
+        return
     end
 
-    UPRATING = CSV.File("$(PRICES_DIR)/$(settings.prices_file)"; delim = '\t', comment = "#") |>
-          DataFrame
-    nrows = size(UPRATING)[1]
-    ncols = size(UPRATING)[2]
-    lcnames = Symbol.(basiccensor.(string.(names(UPRATING))))
-    rename!(UPRATING, lcnames)
+    upr = CSV.File("$(PRICES_DIR)/$(settings.prices_file)"; delim = '\t', comment = "#") |> DataFrame
+    nrows = size(upr)[1]
+    ncols = size(upr)[2]
+    println( "read $nrows rows and $ncols cols ")
+    lcnames = Symbol.(basiccensor.(string.(names(upr))))
+    rename!(upr, lcnames)
 
-    UPRATING[!,:year] = zeros(Int64, nrows)
-    UPRATING[!,:q] = zeros(Int8, nrows) #zeros(Union{Int64,Missing},np)
+    upr[!,:year] = zeros(Int64, nrows)
+    upr[!,:q] = zeros(Int8, nrows) #zeros(Union{Int64,Missing},np)
+    
+    # add year, quarter cols parsed from the 'YYYY QQ' field
     dp = r"([0-9]{4}) Q([1-4])"
     for i in 1:nrows
-        rc = match(dp, UPRATING[i, :date])
+        rc = match(dp, upr[i, :date])
         if (rc !== nothing)
-            UPRATING[i, :year] = parse(Int64, rc[1])
-            UPRATING[i, :q] = parse(Int8, rc[2])
+            upr[i, :year] = parse(Int64, rc[1])
+            upr[i, :q] = parse(Int8, rc[2])
         end
     end
 
-    pnew = findfirst((UPRATING.year.== settings.to_y ) .& (UPRATING.q.== settings.to_q ))
+    # Make all relative to the target y,q
+    pnew = findfirst((upr.year.== settings.to_y ) .& (upr.q.== settings.to_q ))
     for col in 1:ncols
-        baser = UPRATING[pnew,col]
-        # println( "on col $col $(lcnames[col]); baser=$baser")
+        baser = upr[pnew,col]
+        println( "on col $col $(lcnames[col]); baser=$baser")
         if ! (lcnames[col] in [:q, :year, :date ]) # got to be a better way
-            UPRATING[!,col] .= baser./UPRATING[!,col]
+            upr[!,col] .= baser./upr[!,col]
         end
     end
-    # print(UPRATING[1,:nomi])
-    UPRATING
+    UPRATING_DATA = upr
 end
-
-#  = load_prices()
 
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number
     # FIXME this is likely much too slow..
     global UPRATING_DATA
-    # if UPRATING_DATA === nothing
-    #     UPRATING_DATA = load_prices( settings )
-    # end
     if itype == upr_no_uprate
         return item
     end

@@ -216,6 +216,8 @@ mutable struct MTIntermediate
     someone_pension_age_2016 :: Bool
     all_pension_age :: Bool
     someone_working_ft  :: Bool 
+    #
+    someone_working_ft_and_25_plus :: Bool
     
     num_not_working :: Int
     num_working_ft :: Int
@@ -233,6 +235,8 @@ mutable struct MTIntermediate
     num_disabled_children :: Int
     num_severely_disabled_adults :: Int
     num_severely_disabled_children :: Int
+
+    num_job_seekers :: Int
     
     num_children :: Int
     num_allowed_children :: Int
@@ -279,6 +283,8 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.someone_pension_age_2016 = sum.someone_pension_age_2016 || add.someone_pension_age_2016
     sum.all_pension_age = sum.all_pension_age && add.all_pension_age 
     sum.someone_working_ft  =  sum.someone_working_ft  || add.someone_working_ft # someone FIXME
+    sum.someone_working_ft_and_25_plus =  sum.someone_working_ft_and_25_plus  || add.someone_working_ft_and_25_plus # someone FIXME
+
     sum.num_working_pt += add.num_working_pt 
     sum.num_working_ft += add.num_working_ft 
     sum.num_not_working += add.num_not_working
@@ -297,6 +303,8 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.num_severely_disabled_adults += add.num_severely_disabled_adults
     sum.num_severely_disabled_children += add.num_severely_disabled_children
     
+    sum.num_job_seekers += add.num_job_seekers
+
     sum.num_children += add.num_children
     sum.num_allowed_children += add.num_allowed_children 
     sum.num_children_born_before += add.num_children_born_before
@@ -365,8 +373,12 @@ function make_intermediate(
        Temporarily_sick_or_injured,
        Other_Inactive
         )
+    
+    num_job_seekers = 0
+
     num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
     someone_working_ft  :: Bool = num_working_ft > 0
+    someone_working_ft_and_25_plus :: Bool = false
 
     total_hours_worked :: Int = 0
     num_carrs :: Int = num_carers( bu )
@@ -390,6 +402,15 @@ function make_intermediate(
     num_severely_disabled_adults = 0
     for pid in bu.adults
         pers = bu.people[pid]
+
+        if( pers.age >= 25 ) && ( pers.usual_hours_worked >= hrs.higher )
+            someone_working_ft_and_25_plus = true
+        end
+
+        if (pers.employment_status == Unemployed) || ( pers.jsa_type != no_jsa )
+            num_job_seekers += 1
+        end
+
         if pers.age > age_oldest_adult
             age_oldest_adult = pers.age
         end
@@ -446,6 +467,9 @@ function make_intermediate(
         someone_pension_age_2016,
         all_pension_age,
         someone_working_ft,
+
+        someone_working_ft_and_25_plus,
+
         num_not_working,
         num_working_ft,
         num_working_pt,
@@ -460,6 +484,9 @@ function make_intermediate(
         num_disabled_children,
         num_severely_disabled_adults,
         num_severely_disabled_children,
+
+        num_job_seekers,
+
         num_children,
         num_allowed_children,
         num_children_born_before,

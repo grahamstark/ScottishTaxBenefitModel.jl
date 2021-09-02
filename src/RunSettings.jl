@@ -25,7 +25,7 @@ module RunSettings
 
         num_households :: Int = 0
         num_people :: Int = 0
-        prices_file = "merged_quarterly.tab"
+        prices_file = "indexes_sep_1_2021.tab"
         to_y :: Int = 2021
         to_q :: Int = 2
         output_dir :: String = joinpath(tempdir(),"output")

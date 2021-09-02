@@ -272,8 +272,7 @@ function make_lmt_benefit_applicability(
     #
     # WTC - not quite so easy
     #
-    # println( "someone_working_ft $(intermed.someone_working_ft) num_working_pt $(intermed.num_working_pt)  has_children $(intermed.has_children) someone_pension_age $(intermed.someone_pension_age) ")
-    if intermed.someone_working_ft
+    if intermed.someone_working_ft_and_25_plus
         whichb.wtc = true
     elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_children 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has children
