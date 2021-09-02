@@ -14,7 +14,7 @@ using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
 using .Utils: nearesti, nearest
-using .Randoms: randchunk
+using .Randoms: testp
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
 export should_switch_dla_to_pip,PIP_RECEIPTS,DLA_RECEIPTS
@@ -114,7 +114,7 @@ of dla/pip in the data for some period is roughly the same as the latest
 dla/pip ratio. This is needed to model the DLA->PIP transition. 
 """
 function should_switch_dla_to_pip( 
-    onerand  :: Integer,
+    onerand  :: String,
     interview_year :: Integer, 
     interview_month :: Integer) :: Bool
     #
@@ -129,16 +129,13 @@ function should_switch_dla_to_pip(
     nearest_pip = PIP_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland]
     nearest_all = nearest_pip + nearest_dla
     latest_all = latest_pip + latest_dla
-    sw_prop = (latest_dla/nearest_dla)*(nearest_all/latest_all)
-    #
-    # Use a bit of `onerand` as a kind of repeatable random thing.             
-    # So, if N=1000, onerand = 9001234 and sw_prop = 0.2
-    # then switch if 234 > 200
-    #
-    test = randchunk( onerand, Randoms.DLA_TO_PIP  ) # last 3 digits
-    ia = Int(trunc(sw_prop*1_000))
-    switch = test > ia
-    # println( "test $test ia=$ia switch=$switch")
+    # sw_prop - 70% of DLA needs to *stay* DLA -> 30% change (1-sw_prop)
+    sw_prop = 1-(latest_dla/nearest_dla)*(nearest_all/latest_all)
+    println( "onerand $(onerand[Randoms.DLA_TO_PIP:Randoms.DLA_TO_PIP+Randoms.DEFAULT_CHUNK_SIZE-1])")
+    println( "sw_prop=$sw_prop latest_dla $latest_dla nearest_dla $nearest_dla latest_all $latest_all nearest_all $nearest_all" )
+    # this should make 30% of DLAs change in that example
+    switch = testp( onerand, sw_prop, Randoms.DLA_TO_PIP )
+    println( "switch=$switch")
     return switch
 end
 
@@ -150,7 +147,7 @@ function switch_dla_to_pip!(
        (pers.dla_mobility_type != missing_lmh)
         if should_switch_dla_to_pip( 
             pers.onerand, interview_year, interview_month )
-            # println("switching person $(pers.pid) year=$interview_year month=$interview_month")
+            println("switching person $(pers.pid) year=$interview_year month=$interview_month")
             pers.pip_daily_living_type = 
                 if pers.dla_self_care_type == missing_lmh
                     no_pip

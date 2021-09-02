@@ -153,7 +153,7 @@ mutable struct Person{RT<:Real}
     company_car_value :: RT
     company_car_contribution :: RT
     fuel_supplied :: RT
-    onerand :: BigInt
+    onerand :: String
 end
 
 People_Dict = Dict{BigInt,Person{T}} where T<:Real
@@ -189,7 +189,7 @@ mutable struct Household{RT<:Real}
     bedrooms :: Int
     head_of_household :: BigInt
     people::People_Dict{RT}
-    onerand :: BigInt
+    onerand :: String
     equivalence_scales :: EQScales{RT}
 end
 

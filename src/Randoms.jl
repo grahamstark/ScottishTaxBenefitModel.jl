@@ -21,39 +21,45 @@ export
 
 const BR_DIGITS = 60
 
-const DEFAULT_CHUNK_SIZE = 5
-const DLA_TO_PIP = 3
-const UC_TRANSITION = 12;
+const DEFAULT_CHUNK_SIZE = 8
+const DLA_TO_PIP = 1
+const UC_TRANSITION = 12
 
 """
-Extract a chunk `len` long from one of our big numbers, starting at 
-`start` (from right, so 1=the last digit, not the first).
+extract the chars from start:len-1 and convert to a probability
 """
-function randchunk( b :: Integer, start::Int, len :: Int = DEFAULT_CHUNK_SIZE ) :: Int
-   return Int((b ÷ BigInt(10)^(start-len)) % (BigInt(10)^len))
+function randchunk( b :: String, start::Int, len :: Int = DEFAULT_CHUNK_SIZE ) :: Float64
+    div = Float64( 10^(len) )
+    s =b[start:start+len-1]
+    p = parse( Float64, s )/div
+   
+    @assert 0 <= p <= 1 "p out of range $p"
+    return p
 end
 
-function testp( b :: Integer, p :: Real, start :: Int ) :: Bool
-    test = randchunk( b, start )
-    ia = Int(trunc(p*10^DEFAULT_CHUNK_SIZE))
-    return test > ia
+#
+# if thresh is 0.2 we want this to return true 20% of the time
+#
+function testp( b :: String, thresh :: Real, start :: Int ) :: Bool
+    p = randchunk( b, start ) 
+    # println( "thresh=|$thresh| p=$p")
+    return thresh > p
 end
-
 
 """
 The random number is mangled by spreadsheets even when
 it's enclosed in quotes, so one crude fix is to prefix it
 with a letter and extract from beyond that.
 """
-function strtobi( s :: String ) :: BigInt
-   return parse( BigInt,s[2:end])
+function strtobi( s :: String ) :: String
+   return s[2:end]
 end
 
 """
 A random number which always has BR_DIGITS decimal digits.
 """
-function mybigrand()::BigInt
-   return rand( BigInt(10)^BR_DIGITS:(BigInt(10)^(BR_DIGITS+1)-1))
+function mybigrand()::String
+   return "X"*String(rand( '0':'9', BR_DIGITS  ))
 end
 
 """
@@ -64,6 +70,6 @@ function mybigrandstr()::String
    return "X"*string(mybigrand())
 end
 
+# print( "randoms is loaded")
 
-
-end
+end # module Randoms
