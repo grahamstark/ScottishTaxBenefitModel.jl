@@ -23,7 +23,7 @@ const BR_DIGITS = 60
 
 const DEFAULT_CHUNK_SIZE = 8
 const DLA_TO_PIP = 1
-const UC_TRANSITION = 12
+const UC_TRANSITION = 9
 
 """
 extract the chars from start:len-1 and convert to a probability
