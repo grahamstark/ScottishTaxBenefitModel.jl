@@ -67,10 +67,10 @@ end # example tests
                 if im.num_job_seekers > 0
                     row = "Job Seekers"
                     n = im.num_adults
-                elseif im.num_children > 0
-                    row = "W/Children"
                 elseif im.limited_capacity_for_work
                     row = "Disabled"
+                elseif im.num_children > 0
+                    row = "W/Children"
                 elseif im.benefit_unit_number == 1
                     row = "W/Housing"
                 else

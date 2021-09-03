@@ -42,10 +42,10 @@ function route_to_uc_or_legacy(
     prob = 0.0
     if intermed.num_job_seekers > 0
         prob = PROPS_ON_UC[trans_jobseekers]
-    elseif intermed.num_children > 0
-        prob = PROPS_ON_UC[trans_w_kids]
     elseif intermed.limited_capacity_for_work
         prob = PROPS_ON_UC[trans_incapacity]
+    elseif intermed.num_children > 0
+        prob = PROPS_ON_UC[trans_w_kids]
     elseif intermed.benefit_unit_number == 1
         prob = PROPS_ON_UC[trans_housing]
     else
