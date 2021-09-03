@@ -83,6 +83,7 @@ end # example tests
                 df[ (df.typ.=="Total"), col ] .+= hh.weight
             end
         end
+        df[:, :sum] = df.uc.+df.legacy
         df[:, :pctuc] .= 100.0 .* df.uc./(df.uc.+df.legacy)
         print( df )
     end
