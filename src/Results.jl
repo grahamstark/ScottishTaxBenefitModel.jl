@@ -332,15 +332,11 @@ module Results
         return t
     end
 
-    function tozero!( bur :: BenefitUnitResult{T}, which :: Int ) ::T where T
-        for (pid,pers) in bur.pers
-            pers.income[which] = zero(T)
-        end
-    end
-
     function tozero!( bur :: BenefitUnitResult{T}, which... ) ::T where T
-        for w in which
-            tozero!( bur, w )
+        for (pid,pers) in bur.pers
+            for w in which
+                pers.income[w] = zero(T)
+            end
         end
     end
 
