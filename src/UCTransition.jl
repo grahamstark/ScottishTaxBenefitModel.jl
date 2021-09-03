@@ -8,12 +8,12 @@ module UCTransition
 #
 
 using ScottishTaxBenefitModel
-using .RunSettings
-using .Intermediate
+using .RunSettings  # : Settings, MT_Routing
+using .Intermediate: MTIntermediate, HHIntermed
 using .ModelHousehold
 using .Definitions
 using .Randoms: testp
-using .Results: tozero!
+using .Results: tozero!, HouseholdResult, BenefitUnitResult
 using .Incomes
 
 export 
@@ -27,8 +27,7 @@ const PROPS_ON_UC = Dict(
     trans_housing => 0.61,
     trans_w_kids => 0.55,
     trans_incapacity => 0.32,
-    trans_jobseekers => 0.95
-)
+    trans_jobseekers => 0.95 )
 
 """
 Allocate a benefit unit to ether UC or Legacy Benefits. Very crudely.
@@ -61,23 +60,22 @@ function route_to_uc_or_legacy!(
     results  :: HouseholdResult,
     settings :: Settings,
     hh       :: Household, 
-    intermed :: MTIntermediate )
+    intermed :: HHIntermed )
     bus = get_benefit_units( hh )
     for bno in eachindex( bus )
         im = intermed.buint[bno]
-        bres = results.bures[buno]
+        bres = results.bus[bno]
         if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
             # save bu age eligibility for UC and use that ... 
             route = route_to_uc_or_legacy( settings, bus[bno], im )
             if route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
-            elseif route == uc
-                tozero!( results.bures[buno], LEGACY_MTBS...)
+            elseif route == uc_bens
+                tozero!( bres, LEGACY_MTBS...)
                 ## FIXME TRANSITIONAL PAYMENTS
             end
         end
     end
 end
-
 
 end # Module UCTransition

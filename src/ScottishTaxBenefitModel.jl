@@ -81,14 +81,14 @@ export UniversalCredit
 include( "BenefitCap.jl" )
 export BenefitCap
 
+include( "UCTransition.jl")
+export UCTransition
+
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
 
 # pro. tem include("WebModelLibs.jl" )
 # export WebModelLibs
-
-include( "UCTransition.jl")
-export UCTransition
 
 include( "Runner.jl" )
 export Runner

@@ -19,6 +19,7 @@ import ScottishTaxBenefitModel:
     Results,
     RunSettings,
     STBParameters,
+    UCTransition,
     UniversalCredit
 
 using .Definitions
@@ -180,7 +181,7 @@ function do_one_calc(
         settings,
         hh,
         intermed )
-        
+
     for buno in eachindex( bus )
         apply_benefit_cap!( 
             hres.bus[buno],
