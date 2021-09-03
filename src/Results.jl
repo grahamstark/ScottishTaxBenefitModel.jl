@@ -339,9 +339,8 @@ module Results
     end
 
     function tozero!( bur :: BenefitUnitResult{T}, which... ) ::T where T
-        t = zero(T)
         for w in which
-            tozero( bur, w )
+            tozero!( bur, w )
         end
     end
 
