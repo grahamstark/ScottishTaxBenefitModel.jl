@@ -56,7 +56,8 @@ end # example tests
                 sys.age_limits, 
                 sys.child_limits )
             im = intermed.hhint
-            if on_mt_benefits( hh ) && ! (im.someone_pension_age) # on actual data
+            if on_mt_benefits( hh ) && ! (im.someone_pension_age) 
+                # on actual data !! FIXME the HoC thing is actually Benefit Units
                 route = route_to_uc_or_legacy( 
                     settings, 
                     bus[1], 
