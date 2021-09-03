@@ -47,7 +47,8 @@ module Results
         init_household_result,
         map_incomes,
         to_string,
-        total
+        total,
+        tozero!
 
     @with_kw mutable struct BenefitCapResults{RT<:Real}
         cap :: RT = zero(RT)
@@ -329,6 +330,19 @@ module Results
             t += pers.income[which]
         end
         return t
+    end
+
+    function tozero!( bur :: BenefitUnitResult{T}, which :: Int ) ::T where T
+        for (pid,pers) in bur.pers
+            pers.income[which] = zero(T)
+        end
+    end
+
+    function tozero!( bur :: BenefitUnitResult{T}, which... ) ::T where T
+        t = zero(T)
+        for w in which
+            tozero( bur, w )
+        end
     end
 
     function total( hhr :: HouseholdResult{T}, which :: Int ) :: T where T

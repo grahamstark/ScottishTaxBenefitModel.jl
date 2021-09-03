@@ -89,6 +89,8 @@ using .UniversalCredit:
 using .BenefitCap:
     apply_benefit_cap!
 
+using .UCTransition: route_to_uc_or_legacy!
+
 export do_one_calc
 
 """
@@ -173,6 +175,12 @@ function do_one_calc(
         sys.minwage
     )
 
+    route_to_uc_or_legacy!( 
+        hres,
+        settings,
+        hh,
+        intermed )
+        
     for buno in eachindex( bus )
         apply_benefit_cap!( 
             hres.bus[buno],

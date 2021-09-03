@@ -8,11 +8,17 @@ module UCTransition
 #
 
 using ScottishTaxBenefitModel
-using .RunSettings: MT_Routing
+using .RunSettings
 using .Intermediate
 using .ModelHousehold
+using .Definitions
+using .Randoms: testp
+using .Results: tozero!
+using .Incomes
 
-export route_to_uc_or_legacy
+export 
+    route_to_uc_or_legacy, 
+    route_to_uc_or_legacy!
 
 @enum ClaimantType trans_all trans_housing trans_w_kids trans_incapacity trans_jobseekers
 
@@ -29,7 +35,7 @@ Allocate a benefit unit to ether UC or Legacy Benefits. Very crudely.
 """
 function route_to_uc_or_legacy( 
     settings :: Settings,
-    bu :: BenefitUnit, 
+    bu       :: BenefitUnit, 
     intermed :: MTIntermediate ) :: LegacyOrUC
     if settings.means_tested_routing != modelled_phase_in
         return settings.means_tested_routing == uc_full ? uc_bens : legacy_bens
@@ -37,10 +43,10 @@ function route_to_uc_or_legacy(
     prob = 0.0
     if intermed.num_job_seekers > 0
         prob = PROPS_ON_UC[trans_jobseekers]
-    elseif intermed.num_disabled_adults > 0
-        prob = PROPS_ON_UC[trans_incapacity]
     elseif intermed.num_children > 0
         prob = PROPS_ON_UC[trans_w_kids]
+    elseif intermed.limited_capacity_for_work
+        prob = PROPS_ON_UC[trans_incapacity]
     elseif intermed.benefit_unit_number == 1
         prob = PROPS_ON_UC[trans_housing]
     else
@@ -50,5 +56,28 @@ function route_to_uc_or_legacy(
     switch = testp( head.onerand, prob, Randoms.UC_TRANSITION )
     return switch ? uc_bens : legacy_bens
 end
+
+function route_to_uc_or_legacy!( 
+    results  :: HouseholdResult,
+    settings :: Settings,
+    hh       :: Household, 
+    intermed :: MTIntermediate )
+    bus = get_benefit_units( hh )
+    for bno in eachindex( bus )
+        im = intermed.buint[bno]
+        bres = results.bures[buno]
+        if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
+            # save bu age eligibility for UC and use that ... 
+            route = route_to_uc_or_legacy( settings, bus[bno], im )
+            if route == legacy_bens 
+                tozero!( bres, UNIVERSAL_CREDIT )
+            elseif route == uc
+                tozero!( results.bures[buno], LEGACY_MTBS...)
+                ## FIXME TRANSITIONAL PAYMENTS
+            end
+        end
+    end
+end
+
 
 end # Module UCTransition

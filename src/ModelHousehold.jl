@@ -68,6 +68,7 @@ export
     num_children, 
     num_people, 
     oldest_person, 
+    on_mt_benefits,
     pers_is_carer, 
     pers_is_disabled, 
     printpids,
@@ -677,6 +678,27 @@ end
 
 function count( hh :: Household, func :: Function, params ... ) :: Integer
     return count( hh.people, func, params... )
+end
+
+function on_mt_benefits( pers :: Person ) :: Bool
+    if has_income( pers, [income_support, working_tax_credit, child_tax_credit, housing_benefit, universal_credit]...)
+        return true
+    end
+    if pers.jsa_type == income_related_jsa
+        return true
+    end
+    if pers.esa_type == income_related_jsa
+        return true
+    end
+    return false
+end
+
+function on_mt_benefits( bu :: BenefitUnit ) :: Bool
+    return search( bu, on_mt_benefits )
+end
+
+function on_mt_benefits( hh :: Household ) :: Bool
+    return search( hh, on_mt_benefits )
 end
 
 
