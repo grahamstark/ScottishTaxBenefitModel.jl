@@ -65,14 +65,26 @@ function route_to_uc_or_legacy!(
     for bno in eachindex( bus )
         im = intermed.buint[bno]
         bres = results.bus[bno]
+        # nuke every
         if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
             # save bu age eligibility for UC and use that ... 
             route = route_to_uc_or_legacy( settings, bus[bno], im )
             if route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
             elseif route == uc_bens
+                # nuke every old thing for everyone who's in scope for UC
                 tozero!( bres, LEGACY_MTBS...)
                 ## FIXME TRANSITIONAL PAYMENTS
+            end
+        end
+        # .. so some futher nuking ..
+        if settings.means_tested_routing == uc_full
+            # these cease to exist, even for pensioners
+            tozero!( bres, CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, CONTRIB_JOBSEEKERS_ALLOWANCE, INCOME_SUPPORT, WORKING_TAX_CREDIT, CHILD_TAX_CREDIT )
+            # this last is entirely arbitrary, but
+            # takes out essentially all ft students, etc.
+            if im.age_oldest_adult < 50
+                tozero!( bres, LEGACY_MTBS...)
             end
         end
     end

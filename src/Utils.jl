@@ -22,6 +22,7 @@ export
    age_then,
    basiccensor, 
    coarse_match,
+   date_string,
    diff_between, 
    eq_nearest_p,  
    get_if_set,
@@ -201,6 +202,8 @@ function coarse_match(
     end # check each row
     return (matches=matches,results_matrix=results,quality=quality) 
 end
+
+date_string() = lowercase(Dates.format( todays_date(), "d-u-Y"))
 
 function todays_date() :: Date
     Date( now())

@@ -7,8 +7,8 @@ using BenchmarkTools
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.GeneralTaxComponents
 using ScottishTaxBenefitModel.STBParameters
-using ScottishTaxBenefitModel.Runner: do_one_run!, RunSettings
-using ScottishTaxBenefitModel.RunSettings: Settings
+using ScottishTaxBenefitModel.Runner: do_one_run!
+using ScottishTaxBenefitModel.RunSettings: Settings, MT_Routing
 using .Utils
 
 settings = Settings()
@@ -17,15 +17,18 @@ BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
 
-function basic_run( ; print_test :: Bool )
-
+function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing  )
+    settings.means_tested_routing = mtrouting
+    settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [get_system(scotland=false), get_system( scotland=true )]
     results = do_one_run!( settings, sys )
-
 end 
 
 @testset "basic run timing" begin
-    @time basic_run( print_test=true )
+    for mt in instances( MT_Routing )
+        println( "starting run using $mt routing")
+        @time basic_run( print_test=true, mtrouting = mt )
+    end
     # @benchmark frames = 
     # print(t)
 end

@@ -446,7 +446,7 @@ module Runner
         settings :: Settings,
         params   :: Vector{TaxBenefitSystem{T}} ) :: NamedTuple where T # fixme simpler way of declaring this?
         num_systems = size( params )[1]
-        println("start of do_one_run; params:")
+        println("start of do_one_run; using $(settings.means_tested_routing) routing")
         load_prices( settings, false )
         for p in 1:num_systems
             println("sys $p")
@@ -466,7 +466,7 @@ module Runner
                 println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year)")
             end
             for sysno in 1:num_systems
-                res = do_one_calc( hh, params[sysno] )
+                res = do_one_calc( hh, params[sysno], settings )
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts, num_systems )
             end
         end #household loop

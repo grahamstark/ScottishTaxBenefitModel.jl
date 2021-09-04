@@ -156,7 +156,7 @@ function qualifiying_16_17_yo(
         return true
         ## And some others; see CPAG 2020/1 p 37
     end
-    println( "returning false")
+    # println( "returning false")
     return false
 end
 

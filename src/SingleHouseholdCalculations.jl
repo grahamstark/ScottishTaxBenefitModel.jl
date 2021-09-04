@@ -175,7 +175,7 @@ function do_one_calc(
         sys.hr,
         sys.minwage
     )
-
+    # println( "routing using $(settings.means_tested_routing)")
     route_to_uc_or_legacy!( 
         hres,
         settings,
