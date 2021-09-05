@@ -2,17 +2,22 @@
 # Regressions for take-up of disability benefits.
 # using just what's in the model datasets
 #
-include("intro.jl")
-using STBRegressions
+# include("intro.jl")
+# using STBRegressions
 
-const STB_MODEL="/home/graham_s/julia/vw/ScottishTaxBenefitModel/"
-const STB_DATA_DIR="$STB_MODEL/data/"
+using ScottishTaxBenefitModel
+using .Definitions
+using .RunSettings: Settings
+using CSV,DataFrames,GLM,RegressionTables
 
-frshh = CSV.File( "$STB_DATA_DIR/model_households.tab" ) |> DataFrame
-frspeople = CSV.File( "$STB_DATA_DIR/model_people.tab" ) |> DataFrame
 
-fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ] )
+const settings = Settings()
 
+frshh = CSV.File("$(MODEL_DATA_DIR)/$(settings.household_name).tab" ) |> DataFrame
+frspeople = CSV.File("$(MODEL_DATA_DIR)/$(settings.people_name).tab") |> DataFrame
+
+fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ], makeunique=true )
+fm.age_sq = fm.age.^2
 fm.deaf_blind=fm.registered_blind .| fm.registered_deaf .| fm.registered_partially_sighted
 fm.yr = fm.data_year .- 2014
 fm.any_dis = (
@@ -50,14 +55,15 @@ fm_pension_age = fm[(fm.age .>= 65),:]
 # regressions
 #
 targets = Dict(
-  :rec_aa=>fm_pension_age,
   :rec_pip=>fm_working_age,
   :rec_pip_mob=>fm_working_age,
   :rec_pip_care=>fm_working_age,
   :rec_esa=>fm_working_age,
   :rec_dla=>fm,
   :rec_dla_mob=>fm,
-  :rec_dla_care=>fm )
+  :rec_dla_care=>fm,
+  :rec_aa=>fm_pension_age )
+
 
 
 main_out = []
@@ -65,6 +71,7 @@ main_out = []
 for( target, dataset ) in targets
     # note: using `Term(..)` like this allows
     #
+    println( "running $target")
     push!(main_out, glm(
       (
         Term( target ) ~
@@ -72,7 +79,7 @@ for( target, dataset ) in targets
           Term( :scotland )+
           Term( :male )+
           Term( :age )+
-          Term( :age )&Term(:age)+
+          Term( :age_sq ) +
           Term( :has_long_standing_illness )+
           Term( :adls_bad )+
           Term( :adls_mid )+
@@ -90,8 +97,7 @@ for( target, dataset ) in targets
       dataset,
       Binomial(),
       ProbitLink(),
-      contrasts=Dict( :data_year=>DummyCoding()
-      )
+      contrasts=Dict( :data_year=>DummyCoding())
     ))
 end
 

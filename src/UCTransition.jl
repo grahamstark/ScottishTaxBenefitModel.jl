@@ -65,7 +65,8 @@ function route_to_uc_or_legacy!(
     for bno in eachindex( bus )
         im = intermed.buint[bno]
         bres = results.bus[bno]
-        # nuke every
+        # This is everyone who will be transferred to UC
+        # i.e excluding pensioners and students.
         if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
             # save bu age eligibility for UC and use that ... 
             route = route_to_uc_or_legacy( settings, bus[bno], im )
@@ -79,8 +80,13 @@ function route_to_uc_or_legacy!(
         end
         # .. so some futher nuking ..
         if settings.means_tested_routing == uc_full
-            # these cease to exist, even for pensioners
-            tozero!( bres, CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, CONTRIB_JOBSEEKERS_ALLOWANCE, INCOME_SUPPORT, WORKING_TAX_CREDIT, CHILD_TAX_CREDIT )
+            # these cease to exist, even for pensioners and students
+            tozero!( bres, 
+                NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, 
+                NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
+                INCOME_SUPPORT, 
+                WORKING_TAX_CREDIT, 
+                CHILD_TAX_CREDIT )
             # this last is entirely arbitrary, but
             # takes out essentially all ft students, etc.
             if im.age_oldest_adult < 50

@@ -4,10 +4,12 @@ using DataFrames
 
 using ScottishTaxBenefitModel
 using .Randoms
-using .UCTransition: route_to_uc_or_legacy
+using .UCTransition: route_to_uc_or_legacy, route_to_uc_or_legacy!
 using .ModelHousehold
 using .RunSettings
+using .Results
 using .Intermediate
+using .Incomes
 
 sys = get_system( scotland=true )
 settings = Settings()
@@ -36,6 +38,7 @@ settings.means_tested_routing = modelled_phase_in
         end
     end
 end # example tests
+
 
 @testset "Live Data Transitions" begin
 
@@ -89,3 +92,39 @@ end # example tests
     end
 
 end 
+
+@testset "Single HH Test - UC Route checks" begin
+    #
+    # chasing a bug when using UC route but contrib benefits
+    # are being set to zero
+    # 
+    examples = get_ss_examples()
+    hh = deepcopy( examples[cpl_w_2_children_hh])
+    hhres = init_household_result( hh )
+    intermed = make_intermediate( 
+        hh, 
+        sys.hours_limits, 
+        sys.age_limits,
+        sys.child_limits
+    )
+    settings.means_tested_routing = uc_full
+    bus = get_benefit_units( hh )
+    bres = hhres.bus[1]
+    tozero!( bres, ALL_INCOMES ...)
+    head = get_head( bus[1])
+    hpid = head.pid
+    for i in BENEFITS
+        bres.pers[hpid].income[i] = 1.0
+    end
+
+    route_to_uc_or_legacy!( hhres, settings, hh, intermed )
+    println( inctostr( bres.pers[hpid].income ))
+    for i in LEGACY_MTBS
+        println( "on $(iname(i))" )
+        @test bres.pers[hpid].income[i] == 0
+    end
+    for i in [CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, CONTRIB_JOBSEEKERS_ALLOWANCE]
+        println( "on $(iname(i)) testing for zero " )
+        @test bres.pers[hpid].income[i] == 1.0 
+    end
+end

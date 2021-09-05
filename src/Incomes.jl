@@ -98,21 +98,23 @@ using ScottishTaxBenefitModel.RunSettings: Settings
     const GUARDIANS_ALLOWANCE = 77
     const WIDOWS_PAYMENT = 78
     const WINTER_FUEL_PAYMENTS = 79
+    # legacy mt benefits
     const WORKING_TAX_CREDIT = 80
     const CHILD_TAX_CREDIT = 81
-    const CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 82
+    const NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 82
     const INCOME_SUPPORT = 83
     const PENSION_CREDIT = 84
     const SAVINGS_CREDIT = 85
     const NON_CONTRIB_JOBSEEKERS_ALLOWANCE = 86 # FIXME JOBSEEKERS->JOB_SEEKERS everwhere
     const HOUSING_BENEFIT = 87
+    
     const FREE_SCHOOL_MEALS = 88
     const UNIVERSAL_CREDIT = 89
     const OTHER_BENEFITS = 90
     const STUDENT_GRANTS = 91
     const STUDENT_LOANS = 92
     const COUNCIL_TAX_BENEFIT = 93
-    const NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 94
+    const CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE = 94
     const SCOTTISH_CARERS_SUPPLEMENT = 95
     const SPARE_BEN_1 = 96
     const SPARE_BEN_2 = 97
@@ -157,7 +159,7 @@ using ScottishTaxBenefitModel.RunSettings: Settings
     const DIRECT_TAXES_AND_DEDUCTIONS = union(INCOME_TAXES,DEDUCTIONS)
  
     # exports ----------------
-    export ALL_INCOME
+    export ALL_INCOMES
     export NET_INCOME
     export DIRECT_TAXES_AND_DEDUCTIONS
     export DIRECT_TAXES
@@ -525,9 +527,9 @@ using ScottishTaxBenefitModel.RunSettings: Settings
         elseif i == CHILD_TAX_CREDIT
             return "Child Tax Credit"
         elseif i == CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
-            return "Employment And Support Allowance"
+            return "Contributory Employment And Support Allowance"
         elseif i == NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
-            return "Employment And Support Allowance"
+            return "Income-Related Employment And Support Allowance"
         elseif i == INCOME_SUPPORT
             return "Income Support"
         elseif i == PENSION_CREDIT
@@ -942,7 +944,7 @@ using ScottishTaxBenefitModel.RunSettings: Settings
             winter_fuel_payments = zeros( RT,  n ),
             working_tax_credit = zeros( RT,  n ),
             child_tax_credit = zeros( RT,  n ),
-            contrib_employment_and_support_allowance = zeros( RT,  n ),
+            non_contrib_employment_and_support_allowance = zeros( RT,  n ),
             income_support = zeros( RT,  n ),
             pension_credit = zeros( RT,  n ),
             savings_credit = zeros( RT,  n ),
@@ -954,7 +956,7 @@ using ScottishTaxBenefitModel.RunSettings: Settings
             student_grants = zeros( RT,  n ),
             student_loans = zeros( RT,  n ),
             council_tax_benefit = zeros( RT,  n ),
-            non_contrib_employment_and_support_allowance = zeros( RT,  n ),
+            contrib_employment_and_support_allowance = zeros( RT,  n ),
             scottish_carers_supplement = zeros( RT,  n ),
             spare_ben_1 = zeros( RT,  n ),
             spare_ben_2 = zeros( RT,  n ),
