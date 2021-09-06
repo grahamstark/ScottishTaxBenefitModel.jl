@@ -40,6 +40,9 @@ fm.adls_bad=fm.adls_are_reduced.==1
 fm.adls_mid=fm.adls_are_reduced.==2
 fm.rec_carers = fm.income_carers_allowance .> 0
 fm.rec_dla = ( fm.income_dlamobility.>0.0) .| ( fm.income_dlaself_care .>0.0 )
+fm.rec_dla_child = ( fm.rec_dla ) .& (fm.age .<= 16 )
+fm.rec_dla_adult = ( fm.rec_dla ) .& (fm.age .> 16 )
+
 fm.rec_dla_care = ( fm.income_dlaself_care .>0.0 )
 fm.rec_dla_mob = ( fm.income_dlamobility.>0.0 )
 fm.rec_pip = ( fm.income_personal_independence_payment_mobility.>0.0) .| ( fm.income_personal_independence_payment_daily_living .>0.0 )
@@ -53,8 +56,10 @@ fm.scotland = fm.region .== 299999999
 fm.male = fm.sex .== 1
 
 # subsets
-fm_working_age = fm[((fm.age .< 65).&(fm.from_child_record.!= 1)),:]
+fm_working_age = fm[((fm.age .< 65).&(fm.age .> 16 )),:]
 fm_pension_age = fm[(fm.age .>= 65),:]
+fm_children = fm[(fm.age .<= 16),:]
+
 
 #
 # TODO attendance allowance
@@ -64,23 +69,25 @@ fm_pension_age = fm[(fm.age .>= 65),:]
 main_out = []
 
 bens = [
+  # :rec_dla_child, # in children - too many regressors
   :rec_carers,
   :rec_pip,
   :rec_pip_mob,
   :rec_pip_care,
   :rec_esa,
-  :rec_dla,
+  :rec_dla_adult, # in adults
   :rec_dla_mob,
   :rec_dla_care,
   :rec_aa ]
 	
   datasets = Dict(
+    :rec_dla_child=>fm_children,
     :rec_carers=>fm,
     :rec_pip=>fm_working_age,
     :rec_pip_mob=>fm_working_age,
     :rec_pip_care=>fm_working_age,
     :rec_esa=>fm_working_age,
-    :rec_dla=>fm_working_age,
+    :rec_dla_adult=>fm_working_age,
     :rec_dla_mob=>fm_working_age,
     :rec_dla_care=>fm_working_age,
     :rec_aa=>fm_pension_age )
@@ -129,11 +136,17 @@ rec_pip_care =  glm( @formula( rec_pip_care ~ scotland+data_year+has_long_standi
 rec_pip_mob =  glm( @formula( rec_pip_mob ~ scotland+data_year+registered_blind+has_long_standing_illness+adls_bad+adls_mid+disability_memory+disability_mental_health+disability_mobility ), fm_working_age, Binomial(), ProbitLink(), contrasts=Dict( :data_year=>DummyCoding()) )
 rec_aa = glm( @formula( rec_aa ~ male+adls_bad+adls_mid+registered_blind+disability_dexterity+disability_mental_health+disability_mobility ), fm_pension_age, Binomial(), ProbitLink())
 
-RegressionTables.regtable( rec_carers, rec_pip, rec_pip_care, rec_pip_mob, rec_aa )
+#
+# v. simple child one that combines mob and care 
+# 
+rec_dla_child = glm( @formula( rec_dla_child ~ male+adls_bad+disability_mental_health ), fm_children, Binomial(), ProbitLink() )
+
+RegressionTables.regtable( rec_carers, rec_pip, rec_pip_care, rec_pip_mob, rec_aa, rec_dla_child )
 
 fm_working_age.pip_care_prob = predict( rec_pip_care )
 fm_working_age.pip_mob_prob = predict( rec_pip_mob )
 fm_pension_age.aa_prob = predict( rec_aa )
+fm_children.dla_prob = predict( rec_dla_child )
 
 #
 # Everybody *Not* receiving pip_care or DLA, ranked by probability of receiving it
@@ -176,3 +189,29 @@ negative_candidates_aa = fm_pension_age[((fm_pension_age.rec_aa .== true) .& (fm
 sort!(negative_candidates_aa, :aa_prob )
 
 CSV.write( "data/disability/negative_candidates_aa.csv", negative_candidates_aa )
+
+#
+# ditto for DLA amongst children
+#
+positive_candidates_aa = fm_pension_age[((fm_pension_age.rec_aa .== false) .& (fm_pension_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :aa_prob,:rec_aa,:scotland]]
+sort!(positive_candidates_aa, :aa_prob, rev=true )
+CSV.write( "data/disability/positive_candidates_aa.csv", positive_candidates_aa )
+#
+# *least* likely people to be on AA who are actually on it. If we want a less generous test, we go down this list.
+#
+negative_candidates_aa = fm_pension_age[((fm_pension_age.rec_aa .== true) .& (fm_pension_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :aa_prob,:rec_aa,:scotland]]
+sort!(negative_candidates_aa, :aa_prob )
+
+CSV.write( "data/disability/negative_candidates_aa.csv", negative_candidates_aa )
+
+
+
+positive_candidates_dla_children = fm_children[((fm_children.rec_dla .== false) .& (fm_children.scotland .== true)), [:data_year,:hid,:pid,:weight, :dla_prob,:rec_dla,:scotland]]
+sort!(positive_candidates_dla_children, :dla_prob, rev=true )
+CSV.write( "data/disability/positive_candidates_dla_children.csv", positive_candidates_dla_children )
+#
+# *least* likely people to be on AA who are actually on it. If we want a less generous test, we go down this list.
+#
+negative_candidates_dla_children = fm_children[((fm_children.rec_dla .== true) .& (fm_children.scotland .== true)), [:data_year,:hid,:pid,:weight, :dla_prob,:rec_dla,:scotland]]
+sort!(negative_candidates_dla_children, :dla_prob )
+CSV.write( "data/disability/negative_candidates_dla_children.csv", negative_candidates_dla_children )

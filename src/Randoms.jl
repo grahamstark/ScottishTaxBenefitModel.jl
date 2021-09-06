@@ -59,7 +59,7 @@ end
 A random number which always has BR_DIGITS decimal digits.
 """
 function mybigrand()::String
-   return "X"*String(rand( '0':'9', BR_DIGITS  ))
+   return String(rand( '0':'9', BR_DIGITS  ))
 end
 
 """

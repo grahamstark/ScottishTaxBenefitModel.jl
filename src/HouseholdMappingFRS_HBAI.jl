@@ -8,6 +8,7 @@ using CSV
 using ScottishTaxBenefitModel
 using .Utils
 using .Definitions
+using .Randoms: mybigrandstr
 using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
 
 export CreateData
@@ -1219,7 +1220,8 @@ function create_children(
     year::Integer,
     frs_children::DataFrame,
     childcare::DataFrame,
-    hbai_res::DataFrame
+    hbai_res::DataFrame,
+    benefits:: DataFrame
 )::DataFrame
     num_children = size(frs_children)[1]
     child_model = initialise_person(num_children)
@@ -1301,6 +1303,18 @@ function create_children(
                 )
             end # child care loop
             model_child.onerand = mybigrandstr()
+
+            #
+            #
+            # this is zero length
+            # a_oddjob = oddjob[((oddjob.sernum.==frs_person.sernum).&(oddjob.benunit.==frs_person.benunit).&(oddjob.person.==frs_person.person)), :]
+            # this isn't 
+            a_benefits = benefits[((benefits.sernum.==frs_person.sernum).&(benefits.benunit.==frs_person.benunit).&(benefits.person.==frs_person.person)), :]
+            sb = size( a_benefits )[1]
+            println( "sb = $sb")
+            # @assert sb in [0,1]
+            process_benefits!( model_child, a_benefits )
+            
         end  # if in HBAI
     end # chno loop
     return child_model[1:ccount,:] # send them all back ...
@@ -1459,7 +1473,7 @@ function create_data()
         owner = loadfrs("owner", year)
         renter = loadfrs("renter", year)
 
-        model_children_yr = create_children(year, child, chldcare, hbai_res)
+        model_children_yr = create_children(year, child, chldcare, hbai_res, benefits )
         # append!(model_people, model_children_yr)
         model_adults_yr = create_adults(
             year,
