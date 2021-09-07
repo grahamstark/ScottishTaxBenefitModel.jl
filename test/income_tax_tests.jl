@@ -28,7 +28,7 @@ using .Results:
     ITResult, 
     NIResult,
     map_incomes
-using .Incomes
+using .STBIncomes
 
 function get_tax(; scotland = false ) :: IncomeTaxSys
     it = get_default_it_system( year=2019, scotland=scotland, weekly=false )

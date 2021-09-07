@@ -13,7 +13,7 @@ using ScottishTaxBenefitModel:
     GeneralTaxComponents,
     Runner
 
-using .Incomes
+using .STBIncomes
 using .ModelHousehold:
     Household,
     Person,

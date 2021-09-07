@@ -4,7 +4,7 @@ using .ModelHousehold: Household, Person, People_Dict, default_bu_allocation
 
 using .ExampleHouseholdGetter
 using .Definitions
-using .Incomes
+using .STBIncomes
 using .NationalInsuranceCalculations: 
     calculate_national_insurance!,
     calc_class1_secondary

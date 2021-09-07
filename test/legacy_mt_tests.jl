@@ -39,7 +39,7 @@ using .LocalLevelCalculations:
     apply_rent_restrictions, 
     calc_council_tax
 
-using .Incomes
+using .STBIncomes
 
 using .Intermediate: 
     MTIntermediate, 

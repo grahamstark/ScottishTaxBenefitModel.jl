@@ -9,7 +9,7 @@ using .ModelHousehold
 using .RunSettings
 using .Results
 using .Intermediate
-using .Incomes
+using .STBIncomes
 
 sys = get_system( scotland=true )
 settings = Settings()

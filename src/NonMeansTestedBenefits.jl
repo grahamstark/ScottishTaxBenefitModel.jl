@@ -9,7 +9,7 @@ module NonMeansTestedBenefits
     using ScottishTaxBenefitModel
 
     using .Definitions
-    using .Incomes
+    using .STBIncomes
 
     using .Utils: nearest
 

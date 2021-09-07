@@ -13,7 +13,7 @@ module STBParameters
     using .Definitions
     using .Utils
     using .TimeSeriesUtils: fy, fy_array
-    using .Incomes
+    using .STBIncomes
     
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances

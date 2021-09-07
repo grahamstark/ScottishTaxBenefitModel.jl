@@ -6,7 +6,7 @@ using Base: Bool
 using ScottishTaxBenefitModel
 using .Definitions
 
-using .Incomes
+using .STBIncomes
 
 using .Utils: to_md_table
 
@@ -115,7 +115,7 @@ function calc_incomes(
     elseif which_ben == sc
         inclist = incrules.sc_incomes
     else
-        inclist = incrules.incomes
+        inclist = incrules.STBIncomes
     end
     # children's income doesn't count see cpag p421, so:
     for pid in bu.adults
@@ -138,7 +138,7 @@ function calc_incomes(
         net_earn += max( 0.0, net )
         other += isum( pres.income, inclist )
         #    data=pers.income, 
-        #    calculated=pres.incomes, 
+        #    calculated=pres.STBIncomes, 
         #    included=inclist )
     end
     # disregards

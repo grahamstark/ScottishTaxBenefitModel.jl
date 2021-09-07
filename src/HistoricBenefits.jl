@@ -171,7 +171,7 @@ function switch_dla_to_pip!(
 end # proc
 
 # 
-# FIXME make all these names the same. Use the integer constants in `.Incomes.jl`.
+# FIXME make all these names the same. Use the integer constants in `.STBIncomes.jl`.
 # FIXME historic bit should be the whole parameter system eventually.
 #
 """

@@ -26,7 +26,7 @@ module Runner
     using .Definitions
     using .Utils
     using .STBParameters
-    using .Incomes
+    using .STBIncomes
 
     using .RunSettings:
         Settings

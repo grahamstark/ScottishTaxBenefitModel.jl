@@ -10,7 +10,7 @@ using Dates: Date, now, TimeType, Year
 using Parameters: @with_kw
 
 using ScottishTaxBenefitModel
-using .Incomes
+using .STBIncomes
 using .Definitions
 using .ModelHousehold: Person
 using .STBParameters: NationalInsuranceSys

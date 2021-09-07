@@ -22,7 +22,7 @@ using .Definitions
 using .Intermediate:
     MTIntermediate
 
-using .Incomes
+using .STBIncomes
 
 export apply_benefit_cap!
 

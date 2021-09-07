@@ -23,7 +23,7 @@ module Results
         Pid_Array,
         get_benefit_units
 
-    using .Incomes
+    using .STBIncomes
     
     using .Utils:
         to_md_table

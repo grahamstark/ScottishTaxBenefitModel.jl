@@ -65,7 +65,7 @@ using .IncomeTaxCalculations:
 using .NationalInsuranceCalculations: 
     calculate_national_insurance!
 
-using .Incomes
+using .STBIncomes
 
 using .Intermediate: 
     MTIntermediate,

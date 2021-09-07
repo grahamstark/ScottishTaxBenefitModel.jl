@@ -60,12 +60,9 @@ fm_working_age = fm[((fm.age .< 65).&(fm.age .> 16 )),:]
 fm_pension_age = fm[(fm.age .>= 65),:]
 fm_children = fm[(fm.age .<= 16),:]
 
-
 #
-# TODO attendance allowance
-# regressions
+# Regress on everything.
 #
-
 main_out = []
 
 bens = [
