@@ -67,7 +67,7 @@ one of our a `BR_DIGITS` random numbers, prefixed with a character so spreadshee
 don't mangle it.
 """
 function mybigrandstr()::String
-   return "X"*string(mybigrand())
+   return "X"*mybigrand()
 end
 
 # print( "randoms is loaded")

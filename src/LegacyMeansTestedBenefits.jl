@@ -115,7 +115,7 @@ function calc_incomes(
     elseif which_ben == sc
         inclist = incrules.sc_incomes
     else
-        inclist = incrules.STBIncomes
+        inclist = incrules.incomes
     end
     # children's income doesn't count see cpag p421, so:
     for pid in bu.adults
@@ -138,7 +138,7 @@ function calc_incomes(
         net_earn += max( 0.0, net )
         other += isum( pres.income, inclist )
         #    data=pers.income, 
-        #    calculated=pres.STBIncomes, 
+        #    calculated=pres.incomes, 
         #    included=inclist )
     end
     # disregards

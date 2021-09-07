@@ -94,20 +94,19 @@ end
   FIXME: check: does the personal_allowance_income_limit get bumped up?
 """
 function calculate_pension_taxation!(
-    itres  ::ITResult,
+    pres   :: IndividualResult,
     sys    :: IncomeTaxSys,
     pers   ::Person,
     total_income::Real,
     earned_income:: Real )
 
-    itres.savings_thresholds = copy( sys.savings_thresholds )
-    itres.dividend_thresholds = copy( sys.dividend_thresholds )
-    itres.non_savings_thresholds = copy( sys.non_savings_thresholds )
+    pres.it.savings_thresholds = copy( sys.savings_thresholds )
+    pres.it.dividend_thresholds = copy( sys.dividend_thresholds )
+    pres.it.non_savings_thresholds = copy( sys.non_savings_thresholds )
     # fixme check avs here
-    # FIXME use the incomes array & constants here
-    avc = get_if_set(pers.income, avcs, 0.0)
-    pen = get_if_set(pers.income, pension_contributions_employee, 0.0)
-    pen += get_if_set(pers.income, pension_contributions_employer, 0.0)
+    avc = pres.income[AVCS]
+    pen = pres.income[PENSION_CONTRIBUTIONS_EMPLOYEE] +
+          pres.income[PENSION_CONTRIBUTIONS_EMPLOYER]
     eligible_contribs = avc + pen
     if eligible_contribs <= 0.0
         return
@@ -122,16 +121,16 @@ function calculate_pension_taxation!(
         max_relief = max( sys.pension_contrib_annual_minimum,
             sys.pension_contrib_annual_allowance - excess*sys.pension_contrib_withdrawal_rate )
     end
+    # println( "total_income $total_income max_relief $max_relief eligible_contribs $eligible_contribs" )
     eligible_contribs = min( eligible_contribs, max_relief );
-    itres.pension_eligible_for_relief = eligible_contribs
+    pres.it.pension_eligible_for_relief = eligible_contribs
     basic_rate = sys.non_savings_rates[ sys.non_savings_basic_rate ]
     # println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate sys.pension_contrib_withdrawal_rate=$(sys.pension_contrib_withdrawal_rate)")
     gross_contribs = eligible_contribs/(1-basic_rate)
-    itres.pension_relief_at_source = gross_contribs - eligible_contribs
-    itres.non_savings_thresholds .+= gross_contribs
-    itres.savings_thresholds .+= gross_contribs
-    itres.dividend_thresholds .+= gross_contribs
-
+    pres.it.pension_relief_at_source = gross_contribs - eligible_contribs
+    pres.it.non_savings_thresholds .+= gross_contribs
+    pres.it.savings_thresholds .+= gross_contribs
+    pres.it.dividend_thresholds .+= gross_contribs
 end
 
 """
@@ -160,13 +159,12 @@ function calc_income_tax!(
     non_savings_income = isum( pres.income, sys.non_savings_income )
     savings_income = isum( pres.income, sys.savings_income )
     dividends_income = isum( pres.income, sys.dividend_income )
-
     allowance = calculate_allowance( pers, sys )
     # allowance reductions goes here
 
     adjusted_net_income = total_income
 
-    calculate_pension_taxation!( pres.it, sys, pers, total_income, non_savings_income )
+    calculate_pension_taxation!( pres, sys, pers, total_income, non_savings_income )
 
     # adjusted_net_income -= pres.it.pension_eligible_for_relief
 

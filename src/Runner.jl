@@ -9,19 +9,7 @@ module Runner
 
     using BudgetConstraints: BudgetConstraint
 
-    using ScottishTaxBenefitModel:
-        Definitions,
-        Incomes,
-        FRSHouseholdGetter,
-        GeneralTaxComponents,
-        ModelHousehold,
-        Results,
-        RunSettings,
-        SingleHouseholdCalculations,
-        STBParameters,
-        Uprating,
-        Utils,
-        Weighting
+    using ScottishTaxBenefitModel
 
     using .Definitions
     using .Utils
@@ -296,7 +284,7 @@ module Runner
         pres :: IndividualResult,
         from_child_record :: Bool )
 
-        Incomes.fill_inc_frame_row!( 
+        STBIncomes.fill_inc_frame_row!( 
             ir, pers.pid, hh.hid, hh.weight, pres.income )
         ir.tenure = hh.tenure
         ir.data_year = hh.data_year

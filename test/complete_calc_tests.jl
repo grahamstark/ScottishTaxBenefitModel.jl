@@ -1,17 +1,7 @@
 using Test
 using Dates: Date
 
-using ScottishTaxBenefitModel:
-    ModelHousehold,
-    ExampleHouseholdGetter,
-    Definitions,
-    Incomes,
-    RunSettings,
-    STBParameters,
-    SingleHouseholdCalculations,
-    Results,
-    GeneralTaxComponents,
-    Runner
+using ScottishTaxBenefitModel
 
 using .STBIncomes
 using .ModelHousehold:

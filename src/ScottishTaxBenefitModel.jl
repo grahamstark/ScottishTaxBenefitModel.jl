@@ -21,8 +21,8 @@ export Definitions
 include( "RunSettings.jl" )
 export RunSettings
 
-include("Incomes.jl")
-export Incomes
+include("STBIncomes.jl")
+export STBIncomes
 
 include( "EquivalenceScales.jl")
 export EquivalenceScales

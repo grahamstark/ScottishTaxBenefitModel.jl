@@ -5,22 +5,7 @@ module SingleHouseholdCalculations
 # This module drives all the calculations for single household and a single set of parameters.
 #
 
-import ScottishTaxBenefitModel:
-    BenefitCap,
-    Definitions,
-    Incomes,
-    Intermediate,
-    IncomeTaxCalculations,
-    LegacyMeansTestedBenefits,
-    LocalLevelCalculations,
-    ModelHousehold,
-    NationalInsuranceCalculations,
-    NonMeansTestedBenefits,
-    Results,
-    RunSettings,
-    STBParameters,
-    UCTransition,
-    UniversalCredit
+using ScottishTaxBenefitModel
 
 using .Definitions
 

@@ -34,6 +34,7 @@ export
    loadtoframe, 
    mult_dict!, 
    mult, 
+   md_format,
    nearest, 
    nearesti, 
    nearz, 
@@ -41,7 +42,6 @@ export
    operate_on_struct!, 
    pretty, 
    qstrtodict, 
-   strtobi, 
    to_md_table,
    todays_date, 
    uprate_struct
@@ -475,7 +475,6 @@ macro exported_enum(name, args...)
          local av = string(a)
          :(export $av)
       end
-              # $([:(export $arg) for arg in args]...)
    end)
 end
 

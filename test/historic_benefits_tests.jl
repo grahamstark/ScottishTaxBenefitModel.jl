@@ -105,6 +105,7 @@ end # testset
             if pers.pip_mobility_type != no_pip
                 dr.orig_pip_mobility += 1
             end
+            println( pers.onerand )
             switch_dla_to_pip!( pers, year, month )
             # ss = should_switch_dla_to_pip( pers.onerand, year, month )
             # println( "should switch $ss ")

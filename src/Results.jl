@@ -211,7 +211,7 @@ module Results
        net_income :: RT = zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
-       income = Incomes.make_a( RT );
+       income = STBIncomes.make_a( RT );
     end
 
     function to_string( ir :: IndividualResult, depth=2 )::String
@@ -222,7 +222,7 @@ module Results
     end
     
     @with_kw mutable struct BenefitUnitResult{RT<:Real} # FIXME make this a dynamic thing to match get_benefit_units
-        income = Incomes.make_a( RT )
+        income = STBIncomes.make_a( RT )
         net_income    :: RT = zero(RT)
         eq_net_income :: RT = zero(RT)
         legacy_mtbens = LMTResults{RT}()
@@ -281,7 +281,7 @@ module Results
      end
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
-        income = Incomes.make_a( RT )
+        income = STBIncomes.make_a( RT )
          
         bhc_net_income :: RT = zero(RT)
         eq_bhc_net_income :: RT = zero(RT)
@@ -324,7 +324,7 @@ module Results
         return false
     end
 
-    function total( bur :: BenefitUnitResult{T}, which :: Int ) ::T where T
+    function total( bur :: BenefitUnitResult{T}, which :: Incomes ) ::T where T
         t = zero(T)
         for (pid,pers) in bur.pers
             t += pers.income[which]
@@ -341,7 +341,7 @@ module Results
         end
     end
 
-    function total( hhr :: HouseholdResult{T}, which :: Int ) :: T where T
+    function total( hhr :: HouseholdResult{T}, which :: Incomes ) :: T where T
         t = zero(T)
         for bu in hhr.bus
             t += total( bu, which )
@@ -471,6 +471,7 @@ module Results
     function map_incomes( pers :: Person{T}; include_calculated :: Bool=false ) :: MVector{INC_ARRAY_SIZE,T} where T
         out = MVector{INC_ARRAY_SIZE,T}( zeros(T,INC_ARRAY_SIZE ))
         incd = pers.income
+        # println( "incd = $(incd)")
         if haskey(incd, Definitions.wages )
             out[WAGES] = incd[Definitions.wages]
         end
