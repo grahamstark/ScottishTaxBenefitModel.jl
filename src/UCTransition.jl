@@ -66,7 +66,6 @@ function route_to_uc_or_legacy!(
         im = intermed.buint[bno]
         bres = results.bus[bno]
         if res.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
-            # perhaps: res.uc.basic_conditions_satisfied 
             route = route_to_uc_or_legacy( settings, bus[bno], im )
             if route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
