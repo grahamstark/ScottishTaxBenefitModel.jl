@@ -54,6 +54,9 @@ export FRSHouseholdGetter
 include("STBParameters.jl" )
 export STBParameters
 
+include( "BenefitGenerosity.jl")
+export BenefitGenerosity
+
 include( "Intermediate.jl")
 export Intermediate
 

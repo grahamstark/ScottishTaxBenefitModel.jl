@@ -36,6 +36,7 @@ export
     BenefitUnit,
     BenefitUnits,
     BUAllocation,
+    OneIndex,
     Person, 
     People_Dict,
 
@@ -192,6 +193,11 @@ mutable struct Household{RT<:Real}
     people::People_Dict{RT}
     onerand :: String
     equivalence_scales :: EQScales{RT}
+end
+
+struct OneIndex 
+    id :: BigInt
+    data_year :: Int  
 end
 
 function to_string( hh :: Household ) :: String

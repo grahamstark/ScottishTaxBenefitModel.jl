@@ -15,6 +15,7 @@ module FRSHouseholdGetter
     
     using .ModelHousehold: 
         Household, 
+        OneIndex,
         uprate!
 
     using .HouseholdFromFrame: 
@@ -27,7 +28,11 @@ module FRSHouseholdGetter
 
     using .Uprating: load_prices
     
-    export initialise, get_household, num_households
+    export 
+        initialise, 
+        get_household, 
+        num_households, 
+        get_household_of_person
     
     ## See scripts/performance/hhld_example.jl for the rationalle behind this wrapper
     # 
@@ -39,11 +44,18 @@ module FRSHouseholdGetter
     struct HHWrapper 
         hhlds  :: Vector{Household{Float64}}
         weight :: Vector{Float64}   
-        dimensions :: Vector{Int}     
+        dimensions :: Vector{Int}  
+        hh_map :: Dict{OneIndex,Int}   
+        pers_map  :: Dict{OneIndex,Int}
     end
     
     const MODEL_HOUSEHOLDS = 
-        HHWrapper(Vector{Household{Float64}}(undef, 0 ), zeros(Float64,0),zeros(Int,3))
+        HHWrapper(
+            Vector{Household{Float64}}(undef, 0 ), 
+            zeros(Float64,0),
+            zeros(Int,3),
+            Dict{OneIndex,Int}(),
+            Dict{OneIndex,Int}())
     
     """
     Initialise the dataset. If this has already been done, do nothing unless 
@@ -72,8 +84,13 @@ module FRSHouseholdGetter
         MODEL_HOUSEHOLDS.weight .= 0
         
         for hseq in 1:nhhlds
-            MODEL_HOUSEHOLDS.hhlds[hseq] = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
-            uprate!( MODEL_HOUSEHOLDS.hhlds[hseq] )
+            hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
+            MODEL_HOUSEHOLDS.hhlds[hseq] = hh
+            uprate!( hh )
+            MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid,hh.data_year)] = hseq
+            for pid in keys(hh.people)
+                MODEL_HOUSEHOLDS.pers_map[OneIndex(pid,hh.data_year)] = hseq
+            end
         end
         @time weight = generate_weights( nhhlds)
         for i in eachindex( weight )
@@ -90,6 +107,16 @@ module FRSHouseholdGetter
         hh = MODEL_HOUSEHOLDS.hhlds[pos]
         hh.weight = MODEL_HOUSEHOLDS.weight[pos]
         return hh
+    end
+
+    function get_household( hid :: BigInt, datayear :: Int ) :: Household
+        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ]
+        return get_household( pos )
+    end
+
+    function get_household_of_person( pid :: BigInt, datayear :: Int ) :: Household
+        pos :: Int = MODEL_HOUSEHOLDS.pers_map[ OneIndex( pid, datayear) ]
+        return get_household( pos )
     end
     
     function get_num_households()::Integer
