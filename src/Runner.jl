@@ -21,6 +21,8 @@ module Runner
     
     using .GeneralTaxComponents:
         WEEKS_PER_YEAR
+    using .BenefitGenerosity:
+        adjust_disability_eligibility!
 
     using .ModelHousehold: 
         Household, 
@@ -445,6 +447,13 @@ module Runner
             @time settings.num_households, settings.num_people, nhh2 = 
                 initialise( settings )
         end
+
+        # vary generosity of disability benefits
+        for sysno in 1:num_systems
+            adjust_disability_eligibility!( params[sysno].nmt_bens )
+        end
+                
+
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
         frame_starts = FrameStarts(0,0,0,0)
         println( "starting run " )

@@ -42,11 +42,11 @@ module FRSHouseholdGetter
     # performance of the getter.
     #
     struct HHWrapper 
-        hhlds  :: Vector{Household{Float64}}
-        weight :: Vector{Float64}   
+        hhlds      :: Vector{Household{Float64}}
+        weight     :: Vector{Float64}   
         dimensions :: Vector{Int}  
-        hh_map :: Dict{OneIndex,Int}   
-        pers_map  :: Dict{OneIndex,Int}
+        hh_map     :: Dict{OneIndex,Int}   
+        pers_map   :: Dict{OneIndex,Int}
     end
     
     const MODEL_HOUSEHOLDS = 
@@ -87,11 +87,12 @@ module FRSHouseholdGetter
             hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
             MODEL_HOUSEHOLDS.hhlds[hseq] = hh
             uprate!( hh )
-            MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid,hh.data_year)] = hseq
+            MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = hseq
             for pid in keys(hh.people)
-                MODEL_HOUSEHOLDS.pers_map[OneIndex(pid,hh.data_year)] = hseq
+                MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = hseq
             end
         end
+        # println( "made pers_map as $(MODEL_HOUSEHOLDS.pers_map)")
         @time weight = generate_weights( nhhlds)
         for i in eachindex( weight )
             MODEL_HOUSEHOLDS.weight[i] = weight[i]
@@ -114,8 +115,11 @@ module FRSHouseholdGetter
         return get_household( pos )
     end
 
-    function get_household_of_person( pid :: BigInt, datayear :: Int ) :: Household
-        pos :: Int = MODEL_HOUSEHOLDS.pers_map[ OneIndex( pid, datayear) ]
+    function get_household_of_person( pid :: BigInt, datayear :: Int ) :: Union{Nothing,Household}
+        pos = get( MODEL_HOUSEHOLDS.pers_map, OneIndex( pid, datayear), nothing )
+        if pos === nothing
+            return nothing
+        end
         return get_household( pos )
     end
     

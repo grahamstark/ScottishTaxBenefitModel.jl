@@ -29,6 +29,9 @@ using .EquivalenceScales:
 import .EquivalenceScales.get_age 
 import .EquivalenceScales.eq_rel_to_hoh
 
+import Base.isequal
+import Base.hash
+
 using .Uprating: uprate, UPRATE_MAPPINGS
 
 export 
@@ -36,7 +39,6 @@ export
     BenefitUnit,
     BenefitUnits,
     BUAllocation,
-    OneIndex,
     Person, 
     People_Dict,
 
@@ -60,6 +62,7 @@ export
     is_severe_disability, 
     is_single, 
     is_spouse,
+    isless,
     le_age, 
     make_benefit_unit, 
     make_eq_scales!,    
@@ -195,10 +198,6 @@ mutable struct Household{RT<:Real}
     equivalence_scales :: EQScales{RT}
 end
 
-struct OneIndex 
-    id :: BigInt
-    data_year :: Int  
-end
 
 function to_string( hh :: Household ) :: String
     s = to_md_table( hh, exclude=[:people,:onerand])

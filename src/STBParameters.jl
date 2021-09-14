@@ -58,6 +58,9 @@ module STBParameters
         abolished :: Bool = false
         higher :: RT = 87.65
         lower :: RT = 58.70
+        extra_people :: RT = 0
+        candidates = Set{OneIndex}()
+        slot :: Incomes = ATTENDANCE_ALLOWANCE
     end
     
     @with_kw mutable struct ChildBenefit{RT<:Real}
@@ -76,6 +79,10 @@ module STBParameters
         care_low  :: RT = 23.20
         mob_high  :: RT = 61.20
         mob_low  :: RT = 23.20
+        extra_people :: RT = 0
+        candidates = Set{OneIndex}()
+        care_slot :: Incomes = DLA_SELF_CARE
+        mob_slot :: Incomes = DLA_MOBILITY
     end
 
     @with_kw mutable struct CarersAllowance{RT<:Real}
@@ -86,6 +93,9 @@ module STBParameters
         gainful_employment_min :: RT = 123.0
         earnings = [SELF_EMPLOYMENT_INCOME,WAGES]
         deductions = [INCOME_TAX,NATIONAL_INSURANCE]
+        extra_people :: RT = 0
+        candidates = Set{OneIndex}()
+        slot :: Incomes = CARERS_ALLOWANCE
     end
 
     @with_kw mutable struct PersonalIndependencePayment{RT<:Real}
@@ -94,7 +104,11 @@ module STBParameters
         dl_enhanced :: RT = 87.85
         mobility_standard :: RT = 23.20
         mobility_enhanced :: RT = 61.20
-        
+        extra_people :: RT = 0 # FIXME this is the same for mob/daily living
+        mobility_candidates = Set{OneIndex}()        
+        dl_candidates = Set{OneIndex}()        
+        care_slot :: Incomes = PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
+        mob_slot :: Incomes = PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
     end
 
     @with_kw mutable struct ContributoryESA{RT<:Real}

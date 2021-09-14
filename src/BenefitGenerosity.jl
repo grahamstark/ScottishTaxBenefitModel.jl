@@ -1,19 +1,22 @@
 module BenefitGenerosity
-
+#
+# This is crazily over/under designed and needs re-doing
+# Je n'ai fait celle-ci plus longue que parce que je n'ai pas eu le loisir de la faire plus courte.
+#
 using ScottishTaxBenefitModel
 using .ModelHousehold: OneIndex,Person,Household
 using .Definitions
 using .STBIncomes
 using .RunSettings: Settings
-
+using .FRSHouseholdGetter: get_household_of_person
 using DataFrames, CSV 
-export 
-    intialise
+
+export initialise, to_set, adjust_disability_eligibility!
 
 struct GenEntry # FIXME make a concrete type {T} ???
     cum_popn :: Real
     pid      :: BigInt
-    datayear :: Int
+    data_year :: Int
 end
 
 const GenVec = Vector{GenEntry}
@@ -24,7 +27,10 @@ struct DisabilityChanges
     people :: Set{OneIndex}
 end
 
-struct EntryWrapper
+#
+# FIXME re-arrange to make this immutable
+#
+mutable struct EntryWrapper
     negative_candidates_aa::GenVec
     negative_candidates_pip_mob::GenVec   
     positive_candidates_pip_care::GenVec
@@ -46,35 +52,80 @@ const ENTRIES = EntryWrapper(
     GenVec()
 )
 
-function load_one!( gv :: GenVec, filename:: String )
+function load_one( filename :: String ) :: GenVec
     d = CSV.File( filename ) |> DataFrame
     n = size(d)[1]
-    gv = GenVec(undef, n)
-    pop = 0.0
+    gv = Vector{GenEntry}(undef, n)
+    popn = 0.0
     for i in 1:n
         r = d[i,:]        
-        hh = get_household_of_person( r.pid, r.datayear )
-        pop += hh.weight
-        gv[i].cum_popn = pop
-        gv[i].pid = r.pid
-        gv[i].data_year = r.data_year
+        hh = get_household_of_person( BigInt(r.pid), r.data_year )
+        if hh !== nothing
+            popn += hh.weight
+            gv[i] = GenEntry( popn, BigInt(r.pid), r.data_year )            
+        else
+            println( "no such hh $(r.pid) $(r.data_year)")
+        end
+    end    
+    return gv
+end
+
+function initialise( dir :: String )
+    ENTRIES.negative_candidates_aa = load_one( "$dir/negative_candidates_aa.csv" )
+    ENTRIES.negative_candidates_pip_mob = load_one( "$dir/negative_candidates_pip_mob.csv" )
+    ENTRIES.positive_candidates_pip_care = load_one( "$dir/positive_candidates_pip_care.csv" )
+    ENTRIES.negative_candidates_dla_children = load_one( "$dir/negative_candidates_dla_children.csv" )
+    ENTRIES.positive_candidates_aa = load_one( "$dir/positive_candidates_aa.csv" )
+    ENTRIES.positive_candidates_pip_mob = load_one( "$dir/positive_candidates_pip_mob.csv" )
+    ENTRIES.negative_candidates_pip_care = load_one( "$dir/negative_candidates_pip_care.csv" )
+    ENTRIES.positive_candidates_dla_children = load_one( "$dir/positive_candidates_dla_children.csv" )
+end
+
+function make_one_set( extra_people::Number, candidates :: GenVec ) :: Set{OneIndex}
+    s = Set{OneIndex}()
+    for c in candidates
+        if c.cum_popn >= extra_people
+            break
+        end
+        push!(s, OneIndex( c.pid, c.data_year ))
     end
+    return s
+end
+#
+# FIXME just merge with the thing below
+#
+function to_set( extra_people :: Real, which :: Incomes ) :: Set{OneIndex}
+    @assert which in SICKNESS_ILLNESS
+    s = Set{OneIndex}()
+    if extra_people > 0
+        if which == ATTENDANCE_ALLOWANCE
+            return make_one_set( extra_people, ENTRIES.positive_candidates_aa )
+        elseif which == PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
+            return make_one_set( extra_people, ENTRIES.positive_candidates_pip_care )
+        elseif which == PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
+            return make_one_set( extra_people, ENTRIES.positive_candidates_pip_mob )
+        elseif which == DLA_SELF_CARE || which == DLA_MOBILITY
+            return make_one_set( extra_people, ENTRIES.positive_candidates_dla_children )
+        end
+    elseif extra_people < 0
+        if which == ATTENDANCE_ALLOWANCE
+            return make_one_set( -1*extra_people, ENTRIES.negative_candidates_aa )
+        elseif which == PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
+            return make_one_set( -1*extra_people, ENTRIES.negative_candidates_pip_care )
+        elseif which == PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
+            return make_one_set( -1*extra_people, ENTRIES.negative_candidates_pip_mob )
+        elseif which == DLA_SELF_CARE || which == DLA_MOBILITY
+            return make_one_set( -1*extra_people, ENTRIES.negative_candidates_dla_children )
+        end
+    end
+    return s
 end
 
-function intialise( data_dir :: String )
-    dir = "$data_dir/disability/"
-    load_one( ENTRIES.negative_candidates_aa, "negative_candidates_aa.csv" )
-    load_one( ENTRIES.negative_candidates_pip_mob, "negative_candidates_pip_mob.csv" )
-    load_one( ENTRIES.positive_candidates_pip_care, "positive_candidates_pip_care.csv" )
-    load_one( ENTRIES.negative_candidates_dla_children, "negative_candidates_dla_children.csv" )
-    load_one( ENTRIES.positive_candidates_aa, "positive_candidates_aa.csv" )
-    load_one( ENTRIES.positive_candidates_pip_mob, "positive_candidates_pip_mob.csv" )
-    load_one( ENTRIES.negative_candidates_pip_care, "negative_candidates_pip_care.csv" )
-    load_one( ENTRIES.positive_candidates_dla_children, "positive_candidates_dla_children.csv" )
-end
-
-function to_sets( extra_people :: Dict{Incomes,Real} ) :: Dict
-
+function adjust_disability_eligibility!( nmt_bens = NonMeansTestedSys )
+    nmt_bens.attendance_allowance.candidates = to_set(  ATTENDANCE_ALLOWANCE, nmt_bens.attendance_allowance.extra_people )
+    nmt_bens.dla.candidates= to_set( DLA_SELF_CARE, nmt_bens.dla.extra_people )
+    nmt_bens.pip.dl_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING, nmt_bens.pip.extra_people )
+    nmt_bens.pip.mobility_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY, nmt_bens.pip.extra_people )
 end
 
 end

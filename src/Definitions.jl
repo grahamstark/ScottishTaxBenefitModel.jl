@@ -1624,4 +1624,31 @@ function age_range( age :: Integer ) :: Integer
    end
 end
 
+
+#
+# This is for quick lookups of hhld/people by hid/pid
+# you need the `isequal`/`hash` to make sure `Dict`s can use these
+# as keys.
+
+export OneIndex
+struct OneIndex 
+   id :: BigInt
+   data_year :: Int  
+end
+
+Base.isequal( a :: OneIndex, b :: OneIndex ) = (a.id==b.id)&&(a.data_year == b.data_year )
+
+Base.hash( a :: OneIndex ) = UInt64(a.id*1000)+UInt64(a.data_year)
+
+function Base.isless( a :: OneIndex, b :: OneIndex )
+   if b.data_year > a.data_year
+       return true
+   elseif b.data_year < a.data_year
+       return false
+   else
+       return b.id > a.id
+   end
+end
+
+
 end # module
