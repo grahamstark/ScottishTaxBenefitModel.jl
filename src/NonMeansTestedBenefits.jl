@@ -173,14 +173,25 @@ module NonMeansTestedBenefits
         return wid
     end
 
-    function qualify( 
+    function change_status(
+        ; 
         candidates::Set{OneIndex}, 
         pid::BigInt, 
-        choices )
-        if ! in_indexes( canditates, pid )
-            return choices[1]
+        change ::Real,
+        choices
+        current_value,
+        disqual_value )
+        if change == 0
+            return current_value
+        elseif ! in_indexes( candidates, pid )
+            return current_value
         else
-            
+            if change < 0
+                return disqual_value
+            else
+                return rand(choices)
+            end
+        end
     end
 
     """
@@ -198,28 +209,30 @@ module NonMeansTestedBenefits
         if pip.abolished
             return (pl, pm )
         end
-        if( pip.extra_people < 0 )
-
-
-        end
-            if in_indexes( pip.mobility_canditates, pers.pid )
-                if pip.extra_people > 0
-                    # disqualify this person
-                    mobility_candidates
-                else
-
-                end
-            end
-        end
+        daily_type = change_status( 
+            candidates=pip.dl_candidates, 
+            pid=pers.pid, 
+            change=pip.extra_people,
+            choices=[standard-pip,enhanced_pip],
+            current_value=daily_type, 
+            disqual_value=no_pip )
+        mob_type = change_status( 
+            candidates=pip.mob_candidates, 
+            pid=pers.pid, 
+            choices=[standard-pip,enhanced_pip],
+            change=pip.extra_people,
+            current_value=mob_type, 
+            disqual_value=no_pip )
+            
         # fixme consistent names dl->daily living etc.
-        if pers.pip_daily_living_type == standard_pip
+        if daily_type == standard_pip
             pl = pip.dl_standard    
-        elseif pers.pip_daily_living_type == enhanced_pip
+        elseif daily_type == enhanced_pip
             pl = pip.dl_enhanced    
         end
-        if pers.pip_mobility_type == standard_pip
+        if mob_type == standard_pip
             pm = pip.mobility_standard    
-        elseif pers.pip_mobility_type == enhanced_pip
+        elseif mob_type == enhanced_pip
             pm = pip.mobility_enhanced             
         end
         return (pl, pm )
