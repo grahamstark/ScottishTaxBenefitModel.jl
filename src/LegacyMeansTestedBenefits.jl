@@ -611,6 +611,7 @@ function calc_NDDs(
             [ATTENDANCE_ALLOWANCE,
              DLA_SELF_CARE,
              PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+             SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
              PENSION_CREDIT] )
             pays_ndd = false
         elseif pers.registered_blind || pers.registered_partially_sighted

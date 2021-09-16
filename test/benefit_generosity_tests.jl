@@ -1,10 +1,12 @@
 using Test
+using DataFrames
+using PrettyTables
 
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .ModelHousehold
 using .BenefitGenerosity: initialise, to_set, change_status, adjust_disability_eligibility!
-using .NonMeansTestedBenefits: calc_pip
+using .NonMeansTestedBenefits: calc_pip, calc_dla, calc_attendance_allowance
 using .Definitions
 using .RunSettings
 using .STBIncomes
@@ -37,7 +39,6 @@ FRSHouseholdGetter.initialise( settings )
             println( "set for $peeps $ben = $(s)")
         end
     end
-
 end
 
 """
@@ -109,39 +110,57 @@ end
     end
     println( "num_households=$num_households, num_people=$(total_num_people)")
     BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" ) 
-    for gen in [-50_000,0,50_000]
-        scosys.nmt_bens.pip.extra_people = gen
-        adjust_disability_eligibility!( ruksys.nmt_bens )
-        adjust_disability_eligibility!( scosys.nmt_bens )
-        pip_m_ruk = 0.0
-        pip_d_ruk = 0.0
-        pip_d_sco = 0.0
-        pip_m_sco = 0.0
+    
+    out = DataFrame(
+        which = ["RUK","-50,000","0","50,000"],
+        pip_d = zeros(4),
+        pip_m = zeros(4),
+        dla_d = zeros(4),
+        dla_m = zeros(4),
+        aa    = zeros(4)
+    )
+    changes = [0,-50_000,0,50_000]
+    for sysno in 1:4
+        outr = out[sysno,:]
+        if sysno == 1
+            sys = ruksys
+        else
+            sys = scosys
+            sys.nmt_bens.pip.extra_people = changes[sysno]
+            sys.nmt_bens.dla.extra_people = changes[sysno]
+            sys.nmt_bens.attendance_allowance.extra_people = changes[sysno]
+            
+            adjust_disability_eligibility!( sys.nmt_bens )
+            adjust_disability_eligibility!( sys.nmt_bens )
+        end
         r = 0      
         @time for hhno in 1:num_households
             hh = FRSHouseholdGetter.get_household( hhno )
             r += 1
             for (pid,pers) in hh.people
-                (pdl_uk,pmob_uk) = calc_pip( pers, ruksys.nmt_bens.pip )
-                if pdl_uk > 0 
-                    pip_d_ruk += hh.weight
+                (pip_d,pip_m) = calc_pip( pers, sys.nmt_bens.pip )
+                if pip_d > 0 
+                    outr.pip_d += hh.weight
                 end
-                if pmob_uk > 0 
-                    pip_m_ruk += hh.weight
+                if pip_m > 0
+                    outr.pip_m += hh.weight
                 end
-                (pdl_sco,pmob_sco) = calc_pip( pers, scosys.nmt_bens.pip )
-                if pdl_sco > 0 
-                    pip_d_sco += hh.weight
+                (dla_d,dla_m) = calc_dla( pers, sys.nmt_bens.dla )
+                if dla_d > 0 
+                    outr.dla_d += hh.weight
                 end
-                if pmob_sco > 0 
-                    pip_m_sco += hh.weight
+                if dla_m > 0
+                    outr.dla_m += hh.weight
+                end
+                aa = calc_attendance_allowance( pers, sys.nmt_bens.attendance_allowance )
+                if aa > 0 
+                    outr.aa += hh.weight
                 end
             end
         end
         # should be ~50k bigger/smaller for scottish system
-        println( "pip_d_ruk (total PIP daily living in Scotland, RUK system )= $pip_d_ruk  ")
-        println( "pip_m_ruk (total PIP mob in Scotland, RUK system )= $pip_m_ruk  ")
-        println( "pip_d_sco (total PIP daily living in Scotland, SCO System $gen extra )= $pip_d_sco  ")
-        println( "pip_m_sco (total PIP mob in Scotland, SCO System $gen extra )= $pip_m_sco  ")
     end
+    pretty_table( out; formatters = ft_printf("%10.0f", [2,3,4,5,6]))
+    dout = 
+    pretty_table( out; formatters = ft_printf("%10.0f", [2,3,4,5,6]))
 end

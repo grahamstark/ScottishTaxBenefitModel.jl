@@ -227,9 +227,17 @@ module NonMeansTestedBenefits
         if aa.abolished
             return a
         end
-        if pers.attendance_allowance_type == missing_lmh
+        at = pers.attendance_allowance_type
+        at = change_status( 
+            candidates=aa.candidates, 
+            pid=pers.pid, 
+            choices=[high,low],
+            change=aa.extra_people,
+            current_value=at, 
+            disqual_value=missing_lmh  )
+        if at == missing_lmh
             a = zero(T)
-        elseif pers.attendance_allowance_type == high
+        elseif at == high
             a = aa.higher
         else
             a = aa.lower;
@@ -245,18 +253,35 @@ module NonMeansTestedBenefits
         if dla.abolished
             return (dc,dm)
         end
-        # println( "dla self_care=$(pers.dla_self_care_type)")
+        dla_s = pers.dla_self_care_type
+        dla_m = pers.dla_mobility_type
+        # FIXME we use the same list for both mob and self
+        # I think because of small sample size (kids only)
+        dla_s = change_status( 
+            candidates=dla.candidates, 
+            pid=pers.pid, 
+            choices=[high,mid,low],
+            change=dla.extra_people,
+            current_value=dla_s, 
+            disqual_value=missing_lmh  )
+        dla_m = change_status( 
+            candidates=dla.candidates, 
+            pid=pers.pid, 
+            choices=[high,mid,low],
+            change=dla.extra_people,
+            current_value=dla_m, 
+            disqual_value=missing_lmh  )
         # FIXME make all these names constisent (mid/middle,care->self_care etc.)
-        if pers.dla_self_care_type == high 
+        if dla_s == high 
             dc = dla.care_high
-        elseif pers.dla_self_care_type == mid
+        elseif dla_s == mid
             dc = dla.care_middle
-        elseif pers.dla_self_care_type == low 
+        elseif dla_s == low 
             dc = dla.care_low
         end
-        if pers.dla_mobility_type == high 
+        if dla_m == high 
             dm = dla.mob_high
-        elseif pers.dla_mobility_type in (low,mid)
+        elseif dla_m in (low,mid)
             dm = dla.mob_low
         end
         # println( "setting DLA as $dc, $dm")
@@ -409,16 +434,17 @@ module NonMeansTestedBenefits
                 # but claims can run on indefinitely and for now we're just using 
                 # receipts, so ignore any upper age limits until we model these fully.
                 #
-                pres.income[DLA_SELF_CARE],pres.income[DLA_MOBILITY] = calc_dla( pers, sys.dla );
-                pres.income[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING],
-                pres.income[PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY] = calc_pip( pers, sys.pip )
+                pres.income[sys.dla.care_slot],
+                pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla );
+                pres.income[sys.pip.care_slot],
+                pres.income[sys.pip.mob_slot] = calc_pip( pers, sys.pip )
                 
                 #
                 # .. conversely, this age limit seems safe: a 62 yo female recieving
                 # in the data should be disallowed now the pension age has increased.
                 #
                 if reached_state_pension_age( age_limits, pers.age, pers.sex )
-                    pres.income[ATTENDANCE_ALLOWANCE] = calc_attendance_allowance( pers, sys.attendance_allowance )
+                    pres.income[sys.attendance_allowance.slot] = calc_attendance_allowance( pers, sys.attendance_allowance )
                 else
                     pres.income[CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = calc_esa( pers, sys.esa )
                     pres.income[CONTRIB_JOBSEEKERS_ALLOWANCE] = calc_jsa( pers, sys.jsa, hours_limits )
@@ -453,10 +479,11 @@ module NonMeansTestedBenefits
             for adno in bu.adults
                 pers = bu.people[adno]
                 pres = bures.pers[adno]
-                pres.income[CARERS_ALLOWANCE] = calc_carers_allowance( pers, pres, sys.carers )
+                pres.income[sys.carers.slot] = 
+                    calc_carers_allowance( pers, pres, sys.carers )
             
                 if hh.region == Scotland
-                    if pres.income[CARERS_ALLOWANCE] > 0
+                    if pres.income[sys.carers.slot] > 0
                         pres.income[SCOTTISH_CARERS_SUPPLEMENT] = sys.carers.scottish_supplement
                     end
                 end
