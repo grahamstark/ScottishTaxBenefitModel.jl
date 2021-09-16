@@ -526,6 +526,22 @@ module STBParameters
         wtc.threshold /= WEEKS_PER_YEAR
         wtc.taper /= 100.0
     end
+
+    @with_kw mutable struct ScottishChildPayment{ RT<:Real }
+        # the guidance is really ambigious about weeks/months
+        # just jam on weeks
+        amount :: RT = 10.0
+        maximum_age :: Int = 5
+        qualifying_benefits = [
+            CHILD_TAX_CREDIT,
+            UNIVERSAL_CREDIT,
+            INCOME_SUPPORT,
+            WORKING_TAX_CREDIT,
+            PENSION_CREDIT,
+            NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
+            NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+        ]
+    end
      
     @with_kw mutable struct ChildTaxCredit{ RT<:Real }
         abolished :: Bool = false
@@ -533,8 +549,7 @@ module STBParameters
         child  :: RT = 2_780.00
         disability :: RT = 3_355.00
         severe_disability :: RT = 1_360.00    
-        threshold :: RT = 16_105.00
-       
+        threshold :: RT = 16_105.00       
     end
 
     function weeklyise!( ctc :: ChildTaxCredit )
@@ -818,6 +833,7 @@ module STBParameters
         ni   = NationalInsuranceSys{RT}()
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
         uc   = UniversalCreditSys{RT}()
+        scottish_child_payment = ScottishChildPayment{RT}()
         age_limits = AgeLimits()
         # just a copy of standard ft/pt hours; mt benefits may have their own copy
         hours_limits :: HoursLimits = HoursLimits() 

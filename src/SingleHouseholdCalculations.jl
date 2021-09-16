@@ -77,6 +77,9 @@ using .BenefitCap:
 
 using .UCTransition: route_to_uc_or_legacy!
 
+using .ScottishBenefits: 
+    calc_scottish_child_payment!
+
 export do_one_calc
 
 """
@@ -168,6 +171,12 @@ function do_one_calc(
         intermed )
 
     for buno in eachindex( bus )
+        calc_scottish_child_payment!( 
+            hres.bus[buno],
+            bus[buno],
+            intermed.buint[buno],
+            sys.scottish_child_payment )
+
         apply_benefit_cap!( 
             hres.bus[buno],
             hh.region,

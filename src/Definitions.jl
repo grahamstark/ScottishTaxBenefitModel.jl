@@ -1522,7 +1522,7 @@ function from_pid( pid :: Integer ) :: NamedTuple
    year = extract_digits(pid, 2:5)
    hid = extract_digits( pid, 6:10)
    pno = extract_digits( pid, 11:12)
-   return (source=source, year=year, hid=hid, pno=pno )
+   return (datasource=source, year=year, hid=hid, pno=pno )
 end
 
 export DEFAULT_MISSING_VALUES, safe_inc

@@ -81,6 +81,9 @@ export LegacyMeansTestedBenefits
 include( "UniversalCredit.jl")
 export UniversalCredit
 
+include( "ScottishBenefits.jl")
+export ScottishBenefits
+
 include( "BenefitCap.jl" )
 export BenefitCap
 
