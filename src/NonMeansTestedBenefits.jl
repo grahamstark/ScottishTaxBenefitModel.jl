@@ -178,7 +178,7 @@ module NonMeansTestedBenefits
         candidates::Set{OneIndex}, 
         pid::BigInt, 
         change ::Real,
-        choices
+        choices,
         current_value,
         disqual_value )
         if change == 0
