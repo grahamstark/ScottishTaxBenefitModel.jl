@@ -21,6 +21,8 @@ module NonMeansTestedBenefits
         has_income,
         num_children
 
+    using .BenefitGenerosity: change_status
+
     using .Intermediate:
         has_limited_capactity_for_work_activity,
         has_limited_capactity_for_work
@@ -56,7 +58,7 @@ module NonMeansTestedBenefits
         calc_pre_tax_non_means_tested!, 
         calc_state_pension, 
         calc_widows_benefits
- 
+       
     """
     Child Benefit - this has to be done *after* income tax, so we have
     income tax `total_income` for each adult in the `BenefitUnitResult` struct.
@@ -173,27 +175,6 @@ module NonMeansTestedBenefits
         return wid
     end
 
-    function change_status(
-        ; 
-        candidates::Set{OneIndex}, 
-        pid::BigInt, 
-        change ::Real,
-        choices,
-        current_value,
-        disqual_value )
-        if change == 0
-            return current_value
-        elseif ! in_indexes( candidates, pid )
-            return current_value
-        else
-            if change < 0
-                return disqual_value
-            else
-                return rand(choices)
-            end
-        end
-    end
-
     """
     PIP and DLA (below) rely on all the types being sorted out earlier
     either in some kind of probit or by being inferred from receipts (see [HistoricBenefits.jl] for
@@ -205,7 +186,7 @@ module NonMeansTestedBenefits
         pl = zero(T)
         pm = zero(T)
         daily_type = pers.pip_daily_living_type
-        mob_type = pers.mobility_type
+        mob_type = pers.pip_mobility_type
         if pip.abolished
             return (pl, pm )
         end
@@ -213,13 +194,13 @@ module NonMeansTestedBenefits
             candidates=pip.dl_candidates, 
             pid=pers.pid, 
             change=pip.extra_people,
-            choices=[standard-pip,enhanced_pip],
+            choices=[standard_pip,enhanced_pip],
             current_value=daily_type, 
             disqual_value=no_pip )
         mob_type = change_status( 
-            candidates=pip.mob_candidates, 
+            candidates=pip.mobility_candidates, 
             pid=pers.pid, 
-            choices=[standard-pip,enhanced_pip],
+            choices=[standard_pip,enhanced_pip],
             change=pip.extra_people,
             current_value=mob_type, 
             disqual_value=no_pip )

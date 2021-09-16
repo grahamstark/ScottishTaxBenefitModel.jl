@@ -12,7 +12,7 @@ using .RunSettings: Settings
 using .FRSHouseholdGetter: get_household_of_person
 using DataFrames, CSV 
 
-export initialise, to_set, adjust_disability_eligibility!
+export initialise, to_set, adjust_disability_eligibility!, change_status
 
 struct GenEntry # FIXME make a concrete type {T} ???
     cum_popn :: Real
@@ -128,5 +128,28 @@ function adjust_disability_eligibility!( nmt_bens :: NonMeansTestedSys )
     nmt_bens.pip.dl_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING, nmt_bens.pip.extra_people )
     nmt_bens.pip.mobility_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY, nmt_bens.pip.extra_people )
 end
+
+
+function change_status(
+    ; 
+    candidates::Set{OneIndex}, 
+    pid::BigInt, 
+    change ::Real,
+    choices,
+    current_value,
+    disqual_value )
+    if change == 0
+        return current_value
+    elseif ! in_indexes( candidates, pid )
+        return current_value
+    else
+        if change < 0
+            return disqual_value
+        else
+            return rand(choices)
+        end
+    end
+end
+
 
 end

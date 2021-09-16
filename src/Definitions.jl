@@ -1645,13 +1645,13 @@ struct OneIndex
    data_year :: Int  
 end
 
-function in_indexes( s :: Set{OneIndex}, id :: BigInt, data_year_int)
+function in_indexes( s :: Set{OneIndex}, id :: BigInt, data_year:: Int)
    return OneIndex( id, data_year ) in s
 end
 
 function in_indexes( s :: Set{OneIndex}, id :: BigInt )
    # this is silly ...
-   bits = from_pid( pid )
+   bits = from_pid( id )
    return in_indexes( s, id, bits.year )
 end
 
