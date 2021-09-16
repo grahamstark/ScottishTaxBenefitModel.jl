@@ -9,6 +9,9 @@ using .RunSettings
 using .STBIncomes
 
 settings = Settings()
+uksys = get_system( scotland = false )
+scsys = get_system( scotland = true )
+
 FRSHouseholdGetter.initialise( settings )
 
 @testset "Loading Tests" begin
@@ -29,7 +32,7 @@ FRSHouseholdGetter.initialise( settings )
     for ben in [ATTENDANCE_ALLOWANCE, PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
         PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY, DLA_SELF_CARE]
         for peeps in [-100_000, -10_000, -1000, 0, 1000, 10_000, 100_000 ]
-            s = to_set( peeps, ben )
+            s = to_set( ben, peeps )
             println( "set for $peeps $ben = $(s)")
         end
     end

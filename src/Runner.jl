@@ -22,7 +22,8 @@ module Runner
     using .GeneralTaxComponents:
         WEEKS_PER_YEAR
     using .BenefitGenerosity:
-        adjust_disability_eligibility!
+        adjust_disability_eligibility!, 
+        initialise
 
     using .ModelHousehold: 
         Household, 
@@ -445,7 +446,8 @@ module Runner
         if settings.num_households == 0
             println( "getting households" )
             @time settings.num_households, settings.num_people, nhh2 = 
-                initialise( settings )
+                FRSHouseholdGetter.initialise( settings )
+            BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" )       
         end
 
         # vary generosity of disability benefits

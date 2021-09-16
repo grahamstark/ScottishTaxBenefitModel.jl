@@ -7,6 +7,7 @@ using ScottishTaxBenefitModel
 using .ModelHousehold: OneIndex,Person,Household
 using .Definitions
 using .STBIncomes
+using .STBParameters: NonMeansTestedSys
 using .RunSettings: Settings
 using .FRSHouseholdGetter: get_household_of_person
 using DataFrames, CSV 
@@ -94,7 +95,7 @@ end
 #
 # FIXME just merge with the thing below
 #
-function to_set( extra_people :: Real, which :: Incomes ) :: Set{OneIndex}
+function to_set( which :: Incomes, extra_people :: Real ) :: Set{OneIndex}
     @assert which in SICKNESS_ILLNESS
     s = Set{OneIndex}()
     if extra_people > 0
@@ -121,7 +122,7 @@ function to_set( extra_people :: Real, which :: Incomes ) :: Set{OneIndex}
     return s
 end
 
-function adjust_disability_eligibility!( nmt_bens = NonMeansTestedSys )
+function adjust_disability_eligibility!( nmt_bens :: NonMeansTestedSys )
     nmt_bens.attendance_allowance.candidates = to_set(  ATTENDANCE_ALLOWANCE, nmt_bens.attendance_allowance.extra_people )
     nmt_bens.dla.candidates= to_set( DLA_SELF_CARE, nmt_bens.dla.extra_people )
     nmt_bens.pip.dl_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING, nmt_bens.pip.extra_people )

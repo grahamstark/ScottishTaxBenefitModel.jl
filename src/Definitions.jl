@@ -1508,12 +1508,21 @@ export DataSource, FRS, OtherSource, ExampleSource
    ExampleSource = 3
 end
 
-export get_pid, safe_assign, safe_inc
+export get_pid, safe_assign, safe_inc, from_pid
 """
   get a unique ID for a person from (say) a certain year of the FRS, given hhld number and number inside the household
 """
 function get_pid(source::DataSource, year::Integer, hid::Integer, pno::Integer)::BigInt
    (Int(source) * 10^11) + (year * 10^7) + (hid * 10^2) + pno
+end
+
+function from_pid( pid :: Integer ) :: NamedTuple
+   ids = extract_digits( pid, 1:1 ) 
+   source = DataSource(ids)
+   year = extract_digits(pid, 2:5)
+   hid = extract_digits( pid, 6:10)
+   pno = extract_digits( pid, 11:12)
+   return (source=source, year=year, hid=hid, pno=pno )
 end
 
 export DEFAULT_MISSING_VALUES, safe_inc
@@ -1630,10 +1639,20 @@ end
 # you need the `isequal`/`hash` to make sure `Dict`s can use these
 # as keys.
 
-export OneIndex
+export OneIndex, in_indexes
 struct OneIndex 
    id :: BigInt
    data_year :: Int  
+end
+
+function in_indexes( s :: Set{OneIndex}, id :: BigInt, data_year_int)
+   return OneIndex( id, data_year ) in s
+end
+
+function in_indexes( s :: Set{OneIndex}, id :: BigInt )
+   # this is silly ...
+   bits = from_pid( pid )
+   return in_indexes( s, id, bits.year )
 end
 
 Base.isequal( a :: OneIndex, b :: OneIndex ) = (a.id==b.id)&&(a.data_year == b.data_year )

@@ -25,6 +25,7 @@ export
    date_string,
    diff_between, 
    eq_nearest_p,  
+   extract_digits,
    get_if_set,
    get_project_path,
    has_non_z, 
@@ -46,7 +47,19 @@ export
    todays_date, 
    uprate_struct
 
+function extract_digits( b :: Integer, r :: UnitRange ) :: Integer
+   parse(Int,string(b)[r])
+end
 
+"""
+get some digits from a Digits, from the left, viewed as decimal.
+e.g extract_digits( 7890, 2,3 ) = 89
+extract_digits( 78901, 1,2 ) = 78
+"""
+function extract_digits( b :: Integer, fd::Int, ld::Int ) :: Integer
+   # crude but effective
+   extract_digits(b, [fd:ld])
+end
 
 """
 The index of the DataFrame row with a date field nearest to Date `d`, assuming dates are

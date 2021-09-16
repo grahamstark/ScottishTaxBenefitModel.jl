@@ -173,6 +173,16 @@ module NonMeansTestedBenefits
         return wid
     end
 
+    function qualify( 
+        candidates::Set{OneIndex}, 
+        pid::BigInt, 
+        choices )
+        if ! in_indexes( canditates, pid )
+            return choices[1]
+        else
+            
+    end
+
     """
     PIP and DLA (below) rely on all the types being sorted out earlier
     either in some kind of probit or by being inferred from receipts (see [HistoricBenefits.jl] for
@@ -183,14 +193,29 @@ module NonMeansTestedBenefits
         pip  :: PersonalIndependencePayment{T}) :: Tuple{T,T} where T
         pl = zero(T)
         pm = zero(T)
+        daily_type = pers.pip_daily_living_type
+        mob_type = pers.mobility_type
         if pip.abolished
             return (pl, pm )
+        end
+        if( pip.extra_people < 0 )
+
+
+        end
+            if in_indexes( pip.mobility_canditates, pers.pid )
+                if pip.extra_people > 0
+                    # disqualify this person
+                    mobility_candidates
+                else
+
+                end
+            end
         end
         # fixme consistent names dl->daily living etc.
         if pers.pip_daily_living_type == standard_pip
             pl = pip.dl_standard    
         elseif pers.pip_daily_living_type == enhanced_pip
-            pl = pip.dl_enhanced             
+            pl = pip.dl_enhanced    
         end
         if pers.pip_mobility_type == standard_pip
             pm = pip.mobility_standard    

@@ -27,7 +27,7 @@ module FRSHouseholdGetter
         generate_weights
 
     using .Uprating: load_prices
-    
+
     export 
         initialise, 
         get_household, 

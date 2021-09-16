@@ -226,6 +226,16 @@ end
             @test by_bu_people_count == hhsize
             @test num_children(hh) == by_bu_child_count
 
+            #
+            # Test splitting up PIDs into source, year, etc.
+            #
+            for (pid,pers) in hh.people
+                  bits = from_pid( pid )
+                  @test pid == pers.pid
+                  @test bits.year == hh.data_year
+                  @test bits.source == FRS
+                  @test bits.hid == hh.hid
+            end
             bua_people_count = 0
             for bua in buallocation
                   bua_people_count += size( bua )[1]
