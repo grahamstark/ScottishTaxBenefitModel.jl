@@ -90,12 +90,22 @@ end
 
 
 function get_system(; scotland::Bool ) :: TaxBenefitSystem
-    tb = TaxBenefitSystem{DEFAULT_NUM_TYPE}()
-    weeklyise!(tb)
-    # overwrite IT to get RuK system as needed
-    # println( itn )
-    tb.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
-    return tb
+   sys = TaxBenefitSystem{DEFAULT_NUM_TYPE}()
+   weeklyise!(sys)
+   # overwrite IT to get RuK system as needed
+   # println( itn )
+   sys.it = get_default_it_system( year=2019, scotland=scotland, weekly=true )
+   #
+   # So, assuming that the default has these things set ... 
+   #
+   @assert sys.scottish_child_payment.amount > 0
+   if ! scotland
+      sys.scottish_child_payment.amount = 0.0
+      sys.scottish_child_payment.maximum_age = 0
+      sys.scottish_child_payment.qualifying_benefits = []
+      sys.nmt.carers.scottish_supplement = 0.0
+   end
+   return sys
 end
 
 @enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh mbu

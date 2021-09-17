@@ -5,11 +5,11 @@ using .ModelHousehold:
     BenefitUnit,
     Household, 
     Person,
+    count,
     get_head,
-    get_spouse
-    search,
-    count
-
+    get_spouse,
+    le_age
+    
 using .STBParameters: 
     ScottishChildPayment
 
@@ -29,8 +29,8 @@ function calc_scottish_child_payment!(
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
-    nkids = search( bu, le_age, scpsys.maximum_age )   
-    if( nkids > 0 ) && has_any( bu, scpsys.qualifying_benefits... )
+    nkids = count( bu, le_age, scpsys.maximum_age )   
+    if( nkids > 0 ) && has_any( bur, scpsys.qualifying_benefits... )
         scp = nkids * scpsys.amount
         spouse = get_spouse( bu )
         target_pid = BigInt(-1)
