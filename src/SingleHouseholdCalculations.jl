@@ -80,7 +80,7 @@ using .UCTransition: route_to_uc_or_legacy!
 using .ScottishBenefits: 
     calc_scottish_child_payment!
 
-using .BasicIncomes: calc_UBI!
+using .UBI: calc_UBI!
 
 export do_one_calc
 
@@ -194,7 +194,7 @@ function do_one_calc(
     end
 
     aggregate!( hh, hres )
-    
+
     return hres
 end
 

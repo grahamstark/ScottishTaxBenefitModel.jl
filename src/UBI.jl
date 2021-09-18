@@ -1,14 +1,11 @@
-module BasicIncomes
-"""
+module UBI
 
 Might as well do this while we're at it.
 A very basic basic income; based roughly on 
 
 Painter, Anthony, Jamie Cooke, and Ahmed Aima. 2019. ‘A Basic Income for Scotland’. Royal Society for the encouragement of Arts, Manufactures and Commerce. https://www.thersa.org/globalassets/pdfs/rsa-a-basic-income-for-scotland.pdf.
+=#
 
-
-
-"""
 using ScottishTaxBenefitModel
 using .ModelHousehold: 
     BenefitUnit,
@@ -46,7 +43,7 @@ function calc_UBI!(
      end
 end
 
-function calc_UBI( 
+function calc_UBI!( 
     household_result :: HouseholdResult,
     hh               :: Household,
     ubisys           :: UBISys )
@@ -57,11 +54,10 @@ function calc_UBI(
     for bn in eachindex( bus )
         calc_UBI!(
             household_result.bus[bn],
-            bu,
+            bus[bn],
             ubisys
         )
     end
 end
-
 
 end

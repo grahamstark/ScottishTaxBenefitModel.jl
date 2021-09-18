@@ -90,8 +90,8 @@ export BenefitCap
 include( "UCTransition.jl")
 export UCTransition
 
-include( "BasicIncomes.jl")
-export BasicIncomes
+include( "UBI.jl")
+export UBI
 
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
