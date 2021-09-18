@@ -1,7 +1,7 @@
 using Test
 using ScottishTaxBenefitModel
-using .ModelHousehold: count,Household
-using .Results: aggregate!
+using .ModelHousehold: count,Household, le_age, ge_age
+using .Results: aggregate!, init_household_result
 using .Intermediate: MTIntermediate, make_intermediate    
 using .UBI: calc_UBI!
 using .STBIncomes

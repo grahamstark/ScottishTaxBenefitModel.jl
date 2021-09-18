@@ -1,5 +1,5 @@
 module UBI
-
+#=
 Might as well do this while we're at it.
 A very basic basic income; based roughly on 
 
@@ -22,7 +22,6 @@ using .Definitions
 using .Results: BenefitUnitResult, HouseholdResult
 
 export calc_UBI!
-
 
 function calc_UBI!( 
     benefit_unit_result :: BenefitUnitResult,
@@ -60,4 +59,4 @@ function calc_UBI!(
     end
 end
 
-end
+end # module
