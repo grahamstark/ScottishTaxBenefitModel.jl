@@ -103,7 +103,7 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
       sys.scottish_child_payment.amount = 0.0
       sys.scottish_child_payment.maximum_age = 0
       sys.scottish_child_payment.qualifying_benefits = []
-      sys.nmt.carers.scottish_supplement = 0.0
+      sys.nmt_bens.carers.scottish_supplement = 0.0
    end
    return sys
 end
