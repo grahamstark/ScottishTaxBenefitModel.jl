@@ -826,6 +826,21 @@ module STBParameters
         uc.work_allowance_no_housing /= WEEKS_PER_MONTH
     
     end
+    @with_kw mutable struct UBISys{RT}
+        # numbers from "horizon 3; 2019 values"
+        abolished :: Bool = true
+        adult_amount :: T = 4_800.0
+        child_amount :: T = 3_000.0
+        universal_pension :: T = 8_780.0
+        adult_age :: Int = 17
+        retirement_age :: Int = 66
+    end
+
+    function weeklyise!( ubi :: UBISys )
+        ubi.adult_amount /= WEEKS_PER_YEAR
+        child_amount /= WEEKS_PER_YEAR
+        universal_pension /= WEEKS_PER_YEAR
+    end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: String = "Scotland 2919/20"
@@ -843,6 +858,7 @@ module STBParameters
         loctax = LocalTaxes{RT}() # fixme better name
         nmt_bens = NonMeansTestedSys{RT}()
         bencap = BenefitCapSys{RT}()
+        ubi = UBISys{RT}()
     end
 
     
@@ -863,6 +879,7 @@ module STBParameters
         weeklyise!( tb.nmt_bens )
         weeklyise!( tb.uc )
         weeklyise!( tb.bencap )
+        weeklyise!( tb.ubi )
     end
     
    """

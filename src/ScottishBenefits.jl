@@ -43,5 +43,4 @@ function calc_scottish_child_payment!(
     end
 end
 
-
 end

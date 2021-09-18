@@ -18,13 +18,13 @@
 * duration of benefit receipts? For LMT->UB transition?
 * `PenCont` check the very big ones for on-off flag;
 * `Accounts` only for < 16k - check the routine here in the questionairre and get something for over 16ks.
-* `BenUnit` add a `total_savings` field somewhere - assign to hoh/ho ben unit? split?
-* **CAPITAL**: add total_capital field to heads of bus for those not in the 1.5-15k band and so don't have `Assets` record. URGENT
+* `BenUnit` add a `total_savings` field somewhere - assign to hoh/ho ben unit? split? X
+* **CAPITAL**: add total_capital field to heads of bus for those not in the 1.5-15k band and so don't have `Assets` record. URGENT X
 
 ### Incomes module
 
 * Usual wage field;
-* utility thing to regenerate constants each time a field is added/removed.
+* utility thing to regenerate constants each time a field is added/removed. X (used enum instead)
 
 ### Testing
 
@@ -37,11 +37,11 @@
 
 * find out what's on [Stat-XPLORE](https://stat-xplore.dwp.gov.uk/webapi/jsf/login.xhtml)
 * HOC thing? By LA?
-* .. or by length on benefits?
+* .. or by length on benefits? X
 
 ### Model Running
 
-* Loadable config/run settings file;
+* Loadable config/run settings file; X
 * finish `Runner.jl` dataframes;
 
 ### Code Style
@@ -49,3 +49,18 @@
 * batch job to cleanup crazy FRS based variable names;
 * using/import : clean up: check if things are actually used, reformat as needed;
 * check stuff against [BlueStyle](https://github.com/invenia/BlueStyle).
+
+## 18/Sep/2021 ..
+
+### LMTBs
+
+mortgage support for IS/JSA etc. - check how that worked and implement
+
+### BASIC INCOME
+
+green party doc;
+RSA doc
+
+### Poverty
+
+Bash at reproducing HBAI 

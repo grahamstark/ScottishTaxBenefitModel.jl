@@ -80,6 +80,8 @@ using .UCTransition: route_to_uc_or_legacy!
 using .ScottishBenefits: 
     calc_scottish_child_payment!
 
+using .BasicIncomes: calc_UBI!
+
 export do_one_calc
 
 """
@@ -141,7 +143,11 @@ function do_one_calc(
     hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
         calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
         
-    # FIXME UC/LMT routing here
+    calc_UBI!(
+        hres,
+        hh,
+        sys.ubi
+    )
 
     calc_legacy_means_tested_benefits!(
         hres,
@@ -163,7 +169,7 @@ function do_one_calc(
         sys.hr,
         sys.minwage
     )
-    # println( "routing using $(settings.means_tested_routing)")
+    
     route_to_uc_or_legacy!( 
         hres,
         settings,
@@ -188,6 +194,7 @@ function do_one_calc(
     end
 
     aggregate!( hh, hres )
+    
     return hres
 end
 

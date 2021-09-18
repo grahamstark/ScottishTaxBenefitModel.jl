@@ -35,7 +35,8 @@ include( "uprating_tests.jl")
 include( "social_security_age_tests.jl")
 include( "minimum_wage_tests.jl")
 include( "local_level_calculations_tests.jl" )
-
+include( "scottish_benefits_tests.jl" )
+include( "ubi_tests.jl")
 
 
 # These will only run if datasets are locally installed
