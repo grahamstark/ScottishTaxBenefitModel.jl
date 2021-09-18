@@ -1,18 +1,25 @@
 module STBOutput
 
+using DataFrames: DataFrame, DataFrameRow, Not, select!
+
+using CSV
+
 using ScottishTaxBenefitModel
 
-using DataFrames: DataFrame, DataFrameRow, Not, select!
-using CSV
 using .Definitions
 using .Utils
 using .GeneralTaxComponents:
     WEEKS_PER_YEAR
+
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
     IndividualResult
-    
+
+using .STBIncomes
+
+using .RunSettings: Settings
+
     struct FrameStarts
         hh :: Integer
         bu :: Integer
