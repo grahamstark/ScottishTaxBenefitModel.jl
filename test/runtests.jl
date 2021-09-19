@@ -38,6 +38,8 @@ include( "local_level_calculations_tests.jl" )
 include( "scottish_benefits_tests.jl" )
 include( "ubi_tests.jl")
 
+include( "vs_policy_in_practice_tests.jl")
+
 
 # These will only run if datasets are locally installed
 if IS_LOCAL

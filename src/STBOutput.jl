@@ -18,7 +18,14 @@ using .Results:
 
 using .STBIncomes
 
+using .ModelHousehold
+
 using .RunSettings: Settings
+
+export FrameStarts, 
+    add_to_frames!,
+    dump_frames,
+    initialise_frames
 
     struct FrameStarts
         hh :: Integer

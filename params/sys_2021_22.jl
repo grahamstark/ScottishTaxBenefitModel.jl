@@ -1,5 +1,5 @@
 #
-# 2021/2 actual system 
+# This is the benefit/tax credit/IT/MinWage/NI rates from April 2021
 #
 sys.it.savings_rates   =  [0.0, 20.0, 40.0, 45.0]
 sys.it.savings_thresholds   =  [5_000.0, 37_700.0, 150_000.0]
@@ -70,7 +70,7 @@ sys.ni.primary_class_1_bands  = [120.0, 184.0, 967.0, 9999999999999.9] # the '-1
 sys.ni.secondary_class_1_rates  = [0.0, 13.8, 13.8 ] # keep 2 so
 sys.ni.secondary_class_1_bands  = [170.0, 967.0, 99999999999999.9 ]
 sys.ni.state_pension_age = 66; # fixme move
-sys.ni.class_2_threshold = 6_365.0;
+sys.ni.class_2_threshold = 6_515.0;
 sys.ni.class_2_rate = 3.05;
 sys.ni.class_4_rates  = [0.0, 9.0, 2.0 ]
 sys.ni.class_4_bands  = [9_569.0, 50_270.0, 99999999999999.9 ]
@@ -113,7 +113,7 @@ sys.lmt.allowances.pc_mig_single = 177.10
 sys.lmt.allowances.pc_mig_couple = 270.30
 
 # sys.lmt.income_rules.
-sys.lmt.income_rules.permitted_work = 143.30
+sys.lmt.income_rules.permitted_work =143.00
 sys.lmt.income_rules.lone_parent_hb = 25.0
 sys.lmt.income_rules.high = 20.0
 sys.lmt.income_rules.low_couple = 10.0
@@ -221,6 +221,7 @@ sys.hours_limits.higher = 30
 
 sys.child_limits.max_children = 2
 
+# THESE ARE TILL APRIL 2022
 sys.minwage.ages = [16,18,21,23]
 sys.minwage.wage_per_hour = [4.62, 6.56, 8.36, 8.91]
 sys.minwage.apprentice_rate = 4.30
@@ -258,7 +259,8 @@ sys.nmt_bens.dla.mob_low  = 23.70
 
 sys.nmt_bens.carers.abolished = false
 sys.nmt_bens.carers.allowance = 67.60
-sys.nmt_bens.carers.scottish_supplement = 231.40
+
+sys.nmt_bens.carers.scottish_supplement = 231.40 # FROM APRIL 2021
 sys.nmt_bens.carers.hours :: Int = 35
 sys.nmt_bens.carers.gainful_employment_min = 128.00
 
@@ -282,7 +284,7 @@ sys.nmt_bens.jsa.u25 = 59.20
 sys.nmt_bens.jsa.o24 = 74.70
 
 sys.nmt_bens.pensions.abolished = false
-sys.nmt_bens.pensions.new_state_pension = 179.70
+sys.nmt_bens.pensions.new_state_pension = 179.60
 # pension_start_date = Date( 2016, 04, 06 )
 sys.nmt_bens.pensions.cat_a     = 137.60
 sys.nmt_bens.pensions.cat_b     = 137.60
