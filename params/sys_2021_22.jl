@@ -155,7 +155,7 @@ sys.lmt.child_tax_credit.disability = 3_435
 sys.lmt.child_tax_credit.severe_disability = 4825
 sys.lmt.child_tax_credit.threshold = 16_480.0
 
-sys.lmt.working_tax_credit.basic = 2_005
+sys.lmt.working_tax_credit.basic = 2_005+1_045  # CAREFUL!! assuming 20 uplift still in place
 sys.lmt.working_tax_credit.lone_parent = 2_060
 sys.lmt.working_tax_credit.couple  = 2_060
 sys.lmt.working_tax_credit.hours_ge_30 = 830
