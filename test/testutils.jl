@@ -163,6 +163,10 @@ end
 
 
 function enable!( pers::Person )
+   pers.dla_mobility_type = missing_lmh
+   pers.dla_self_care_type = missing_lmh
+   pers.pip_mobility_type = no_pip
+   pers.pip_daily_living_type = no_pip
    pers.health_status = Good
    pers.has_long_standing_illness = false
    pers.adls_are_reduced = not_reduced

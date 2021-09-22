@@ -192,9 +192,7 @@ function do_one_calc(
             legacy_bens 
         )
     end
-
     aggregate!( hh, hres )
-
     return hres
 end
 

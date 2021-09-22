@@ -45,7 +45,7 @@ export
    qstrtodict, 
    to_md_table,
    todays_date, 
-   uprate_struct
+   uprate_struct!
 
 function extract_digits( b :: Integer, r :: UnitRange ) :: Integer
    parse(Int,string(b)[r])
@@ -238,7 +238,11 @@ end
 
 
 function eq_nearest_p( a :: Real, b :: Real )
-   round( a, digits=2) == round( b, digits=2 )
+   if round( a, digits=2) != round( b, digits=2 )
+      println( "NOT Equal a = $a b= $b ")
+      return false
+   end
+   return true
 end
 
 @generated function operate_on_struct!( rec::Rec, x::NR, f::Function ) where Rec where NR<:Number

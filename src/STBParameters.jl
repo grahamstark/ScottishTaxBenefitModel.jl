@@ -184,8 +184,8 @@ module STBParameters
         uc_incomes_limit :: RT = 542.88
     end
 
-    function weeklyise!( bc :: BenefitCapSys )
-        bc.uc_incomes_limit /= WEEKS_PER_MONTH
+    function weeklyise!( bc :: BenefitCapSys, wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        bc.uc_incomes_limit /= wpm
     end
     #
     # initial version - will be progressively replaced
@@ -209,17 +209,17 @@ module STBParameters
         # ESA
     end
 
-    function weeklyise!( nmt :: NonMeansTestedSys )
-        nmt.bereavement.lump_sum_higher /= WEEKS_PER_YEAR
-        nmt.bereavement.lump_sum_lower /= WEEKS_PER_YEAR
-        nmt.bereavement.lower /= WEEKS_PER_MONTH
-        nmt.bereavement.higher /= WEEKS_PER_MONTH
-        nmt.carers.scottish_supplement /= (WEEKS_PER_YEAR/2) # kinda sorta
-        nmt.child_benefit.high_income_thresh /= WEEKS_PER_YEAR
+    function weeklyise!( nmt :: NonMeansTestedSys, wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        nmt.bereavement.lump_sum_higher /= wpy
+        nmt.bereavement.lump_sum_lower /= wpy
+        nmt.bereavement.lower /= wpm
+        nmt.bereavement.higher /= wpm
+        nmt.carers.scottish_supplement /= (wpy/2) # kinda sorta
+        nmt.child_benefit.high_income_thresh /= wpy
         # this is unintuitive, but the weekly amount of CB
         # is withdrawn by 1% of the annual excess of income,
         # and the whole model is weekly, so ...
-        nmt.child_benefit.withdrawal *= WEEKS_PER_YEAR
+        nmt.child_benefit.withdrawal *= wpy
     end
 
     @with_kw mutable struct IncomeTaxSys{RT<:Real}
@@ -304,7 +304,7 @@ module STBParameters
         it.pension_contrib_withdrawal_rate *= 100.0
     end
 
-    function weeklyise!( it :: IncomeTaxSys )
+    function weeklyise!( it :: IncomeTaxSys, wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     
         it.non_savings_rates ./= 100.0
         it.savings_rates ./= 100.0

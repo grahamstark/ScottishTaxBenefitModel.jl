@@ -267,9 +267,15 @@ module Results
 
 
     function calc_net_income(incs::AbstractArray{T})::T where T
-        return isum(incs, 
-            ALL_INCOMES, 
+        # HB/CT treated seperately at household level
+        println("incs="*inctostr( incs ))
+        println( ALL_INCOMES_EXCEPT_HOUSING_BENEFITS )
+        println( DIRECT_TAXES_AND_DEDUCTIONS )
+        n :: T = isum(incs, 
+            ALL_INCOMES_EXCEPT_HOUSING_BENEFITS, 
             deducted=DIRECT_TAXES_AND_DEDUCTIONS )
+        println( "n=$n")
+        return n
     end
 
 
@@ -421,9 +427,9 @@ module Results
             aggregate!( bu )
             hres.income .+= bu.income
         end
-        hres.bhc_net_income = calc_net_income( hres.income ) -
-            hres.income[HOUSING_BENEFIT] - 
-            hres.income[COUNCIL_TAX_BENEFIT]
+        hres.bhc_net_income = calc_net_income( hres.income )
+        #    hres.income[HOUSING_BENEFIT] - 
+        #    hres.income[COUNCIL_TAX_BENEFIT]
         if hres.bhc_net_income <= 0 
             println("zero bhc_net_income for seq=$(hh.sequence); hid=$(hh.hid) year=$(hh.interview_year) ")
             println("income")
