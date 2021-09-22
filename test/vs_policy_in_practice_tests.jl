@@ -34,7 +34,7 @@ end
 
 sys21_22 = load_file( "../params/sys_2021_22.jl" )
 load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
-weeklyise!( sys21_22, wpm=52/12, wpy=52 )
+weeklyise!( sys21_22, wpm=PWPM, wpy=52 )
 
 settings = DEFAULT_SETTINGS
 @testset "Single Person, No Housing Costs 19/Sep/2021 values (without £20)" begin
@@ -61,7 +61,7 @@ settings = DEFAULT_SETTINGS
     println( to_string( head ))
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test eq_nearest_p(hres_scot.bhc_net_income*WEEKS_PER_MONTH, 324.84)
+    @test eq_nearest_p(hres_scot.bhc_net_income*52/12, 324.84)
     @test compare(
         hres_scot.bus[1].pers[head.pid].income[UNIVERSAL_CREDIT], 324.84 )
     settings.means_tested_routing = lmt_full 
@@ -75,6 +75,6 @@ settings = DEFAULT_SETTINGS
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test hres_scot.bhc_net_income*PWPM  ≈ 1026.23
     println( inctostr(  hres_scot.bus[1].pers[head.pid].income.*PWPM ))
-    uprate_struct!(hres_scot.bus[1].legacy_mtbens,  WEEKS_PER_MONTH ) # PWPM)
+    uprate_struct!(hres_scot.bus[1].legacy_mtbens, PWPM ) # PWPM)
     println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
 end
