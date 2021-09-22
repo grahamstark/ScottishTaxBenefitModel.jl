@@ -863,23 +863,26 @@ module STBParameters
 
     
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( lmt.working_tax_credit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( lmt.child_tax_credit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( lmt.savings_credit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR)
-        weeklyise!( lmt.hb; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( lmt.ctb; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        println( "weeklyise lmt wpm = $wpm wpy=$wpy")
+        weeklyise!( lmt.working_tax_credit; wpm=wpm, wpy=wpy )
+        weeklyise!( lmt.child_tax_credit; wpm=wpm, wpy=wpy )
+        weeklyise!( lmt.savings_credit; wpm=wpm, wpy=wpy)
+        weeklyise!( lmt.hb; wpm=wpm, wpy=wpy )
+        weeklyise!( lmt.ctb; wpm=wpm, wpy=wpy )
     end
    
     function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.it; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.ni; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.lmt; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.hr; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.loctax; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.nmt_bens; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.uc; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.bencap; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        weeklyise!( tb.ubi; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        println( "weeklyise tb wpm = $wpm wpy=$wpy")
+        
+        weeklyise!( tb.it; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.ni; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.lmt; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.hr; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.loctax; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.nmt_bens; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.uc; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.bencap; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.ubi; wpm=wpm, wpy=wpy )
     end
     
    """
