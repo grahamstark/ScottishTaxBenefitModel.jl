@@ -184,7 +184,7 @@ module STBParameters
         uc_incomes_limit :: RT = 542.88
     end
 
-    function weeklyise!( bc :: BenefitCapSys, wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+    function weeklyise!( bc :: BenefitCapSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         bc.uc_incomes_limit /= wpm
     end
     #
@@ -209,7 +209,7 @@ module STBParameters
         # ESA
     end
 
-    function weeklyise!( nmt :: NonMeansTestedSys, wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+    function weeklyise!( nmt :: NonMeansTestedSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         nmt.bereavement.lump_sum_higher /= wpy
         nmt.bereavement.lump_sum_lower /= wpy
         nmt.bereavement.lower /= wpm
@@ -274,61 +274,61 @@ module STBParameters
     
     end
 
-    function annualise!( it :: IncomeTaxSys )
+    function annualise!( it :: IncomeTaxSys; wpy = WEEKS_PER_YEAR, wpm=WEEKS_PER_MONTH )
         it.non_savings_rates .*= 100.0
         it.savings_rates .*= 100.0
         it.dividend_rates .*= 100.0
         it.personal_allowance_withdrawal_rate *= 100.0
-        it.non_savings_thresholds .*= WEEKS_PER_YEAR
-        it.savings_thresholds .*= WEEKS_PER_YEAR
-        it.dividend_thresholds .*= WEEKS_PER_YEAR
-        it.personal_allowance *= WEEKS_PER_YEAR
-        it.blind_persons_allowance *= WEEKS_PER_YEAR
-        it.married_couples_allowance *= WEEKS_PER_YEAR
-        it.mca_minimum *= WEEKS_PER_YEAR
-        it.marriage_allowance *= WEEKS_PER_YEAR
-        it.personal_savings_allowance *= WEEKS_PER_YEAR
-        it.pension_contrib_basic_amount *= WEEKS_PER_YEAR
+        it.non_savings_thresholds .*= wpy
+        it.savings_thresholds .*= wpy
+        it.dividend_thresholds .*= wpy
+        it.personal_allowance *= wpy
+        it.blind_persons_allowance *= wpy
+        it.married_couples_allowance *= wpy
+        it.mca_minimum *= wpy
+        it.marriage_allowance *= wpy
+        it.personal_savings_allowance *= wpy
+        it.pension_contrib_basic_amount *= wpy
         
         
-        it.mca_income_maximum       *= WEEKS_PER_YEAR
+        it.mca_income_maximum       *= wpy
         it.mca_credit_rate             *= 100.0
         it.mca_withdrawal_rate         *= 100.0
         for k in it.company_car_charge_by_CO2_emissions
-            it.company_car_charge_by_CO2_emissions[k.first] *= WEEKS_PER_YEAR
+            it.company_car_charge_by_CO2_emissions[k.first] *= wpy
         end
-        it.pension_contrib_basic_amount *= WEEKS_PER_YEAR
-        it.pension_contrib_annual_allowance *= WEEKS_PER_YEAR
-        it.pension_contrib_annual_minimum *= WEEKS_PER_YEAR
-        it.pension_contrib_threshold_income *= WEEKS_PER_YEAR
+        it.pension_contrib_basic_amount *= wpy
+        it.pension_contrib_annual_allowance *= wpy
+        it.pension_contrib_annual_minimum *= wpy
+        it.pension_contrib_threshold_income *= wpy
         it.pension_contrib_withdrawal_rate *= 100.0
     end
 
-    function weeklyise!( it :: IncomeTaxSys, wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+    function weeklyise!( it :: IncomeTaxSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     
         it.non_savings_rates ./= 100.0
         it.savings_rates ./= 100.0
         it.dividend_rates ./= 100.0
         it.personal_allowance_withdrawal_rate /= 100.0
-        it.non_savings_thresholds ./= WEEKS_PER_YEAR
-        it.savings_thresholds ./= WEEKS_PER_YEAR
-        it.dividend_thresholds ./= WEEKS_PER_YEAR
-        it.personal_allowance /= WEEKS_PER_YEAR
-        it.blind_persons_allowance /= WEEKS_PER_YEAR
-        it.married_couples_allowance /= WEEKS_PER_YEAR
-        it.mca_minimum /= WEEKS_PER_YEAR
-        it.marriage_allowance /= WEEKS_PER_YEAR
-        it.personal_savings_allowance /= WEEKS_PER_YEAR
-        it.mca_income_maximum       /= WEEKS_PER_YEAR
+        it.non_savings_thresholds ./= wpy
+        it.savings_thresholds ./= wpy
+        it.dividend_thresholds ./= wpy
+        it.personal_allowance /= wpy
+        it.blind_persons_allowance /= wpy
+        it.married_couples_allowance /= wpy
+        it.mca_minimum /= wpy
+        it.marriage_allowance /= wpy
+        it.personal_savings_allowance /= wpy
+        it.mca_income_maximum       /= wpy
         it.mca_credit_rate             /= 100.0
         it.mca_withdrawal_rate         /= 100.0
         for (k,v) in it.company_car_charge_by_CO2_emissions
-            it.company_car_charge_by_CO2_emissions[k] /= WEEKS_PER_YEAR
+            it.company_car_charge_by_CO2_emissions[k] /= wpy
         end
-        it.pension_contrib_basic_amount /= WEEKS_PER_YEAR
-        it.pension_contrib_annual_allowance /= WEEKS_PER_YEAR
-        it.pension_contrib_annual_minimum /= WEEKS_PER_YEAR
-        it.pension_contrib_threshold_income /= WEEKS_PER_YEAR
+        it.pension_contrib_basic_amount /= wpy
+        it.pension_contrib_annual_allowance /= wpy
+        it.pension_contrib_annual_minimum /= wpy
+        it.pension_contrib_threshold_income /= wpy
         it.pension_contrib_withdrawal_rate /= 100.0
     end
 
@@ -450,12 +450,12 @@ module STBParameters
         # gross_to_net_lookup = BudgetConstraint(undef,0)
     end
 
-    function weeklyise!( ni :: NationalInsuranceSys )
+    function weeklyise!( ni :: NationalInsuranceSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         ni.primary_class_1_rates ./= 100.0
         ni.secondary_class_1_rates ./= 100.0
-        ni.class_2_threshold /= WEEKS_PER_YEAR
+        ni.class_2_threshold /= wpy
         ni.class_4_rates ./= 100.0
-        ni.class_4_bands ./= WEEKS_PER_YEAR
+        ni.class_4_bands ./= wpy
     end
 
     @with_kw mutable struct PersonalAllowances{ RT<:Real }
@@ -512,18 +512,18 @@ module STBParameters
         # incomes :: Incomes_Dict = make_all_taxable( RT )  
     end
     
-    function weeklyise!( wtc :: WorkingTaxCredit )
-        wtc.basic /= WEEKS_PER_YEAR
-        wtc.lone_parent /= WEEKS_PER_YEAR
-        wtc.couple /= WEEKS_PER_YEAR
-        wtc.hours_ge_30 /= WEEKS_PER_YEAR
-        wtc.disability /= WEEKS_PER_YEAR
-        wtc.severe_disability /= WEEKS_PER_YEAR
-        wtc.age_50_plus /= WEEKS_PER_YEAR
-        wtc.age_50_plus_30_hrs /= WEEKS_PER_YEAR
+    function weeklyise!( wtc :: WorkingTaxCredit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        wtc.basic /= wpy
+        wtc.lone_parent /= wpy
+        wtc.couple /= wpy
+        wtc.hours_ge_30 /= wpy
+        wtc.disability /= wpy
+        wtc.severe_disability /= wpy
+        wtc.age_50_plus /= wpy
+        wtc.age_50_plus_30_hrs /= wpy
         wtc.childcare_proportion /= 100.0
-        wtc.non_earnings_minima /= WEEKS_PER_YEAR
-        wtc.threshold /= WEEKS_PER_YEAR
+        wtc.non_earnings_minima /= wpy
+        wtc.threshold /= wpy
         wtc.taper /= 100.0
     end
 
@@ -552,12 +552,12 @@ module STBParameters
         threshold :: RT = 16_105.00       
     end
 
-    function weeklyise!( ctc :: ChildTaxCredit )
-        ctc.family /= WEEKS_PER_YEAR
-        ctc.child /= WEEKS_PER_YEAR
-        ctc.disability /= WEEKS_PER_YEAR
-        ctc.severe_disability /= WEEKS_PER_YEAR
-        ctc.threshold/= WEEKS_PER_YEAR
+    function weeklyise!( ctc :: ChildTaxCredit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        ctc.family /= wpy
+        ctc.child /= wpy
+        ctc.disability /= wpy
+        ctc.severe_disability /= wpy
+        ctc.threshold/= wpy
     end
     
     
@@ -680,9 +680,9 @@ module STBParameters
         # other possible local taxes go here
     end
     
-    function weeklyise!( lt :: LocalTaxes )
+    function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         for (c,v) in lt.ct.band_d
-            lt.ct.band_d[c] /= WEEKS_PER_YEAR
+            lt.ct.band_d[c] /= wpy
         end
         lt.ct.single_person_discount /= 100.0
     end
@@ -697,7 +697,7 @@ module STBParameters
         available_till = Date( 2016, 04, 06 )
     end
     
-    function weeklyise!( sc :: SavingsCredit )
+    function weeklyise!( sc :: SavingsCredit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         sc.withdrawal_rate /= 100.0
     end
     
@@ -709,7 +709,7 @@ module STBParameters
         ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,99999999999999.9]
      end
 
-     function weeklyise!( hb :: HousingBenefits )
+     function weeklyise!( hb :: HousingBenefits; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEARs )
         hb.taper /= 100.0
      end
  
@@ -759,7 +759,7 @@ module STBParameters
         single_room_age = 35 # FIXME expand
     end
 
-    function weeklyise!( hr :: HousingRestrictions )
+    function weeklyise!( hr :: HousingRestrictions; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         hr.rooms_rent_reduction /= 100.0
     end
 
@@ -790,7 +790,7 @@ module STBParameters
         childcare_max_1_child :: RT  = 646.35
         childcare_proportion :: RT = 85.0 # pct
     
-        minimum_income_floor_hours :: RT = 35*WEEKS_PER_MONTH
+        minimum_income_floor_hours :: RT = 35*WEEKS_PER_MONTH # FIXME this jams on the DWP 4.35 weeks per month which we may not want in tests
 
         work_allowance_w_housing :: RT = 287.0
         work_allowance_no_housing :: RT = 503.0
@@ -798,32 +798,32 @@ module STBParameters
         earned_income :: IncludedItems = UC_EARNED_INCOME
         capital_min :: RT = 6_000.0
         capital_max :: RT = 16_000.0
-        # £1 *per week* ≆ 4.35 pm FIXME make 4.35 WEEKS_PER_MONTH? 
+        # £1 *per week* ≆ 4.35 pm FIXME make 4.35 wpm? 
         capital_tariff :: RT = 250.0/4.35
         taper = 63.0
     end    
 
-    function weeklyise!( uc :: UniversalCreditSys )
-        uc.threshold /= WEEKS_PER_MONTH
-        uc.age_18_24  /= WEEKS_PER_MONTH
-        uc.age_25_and_over  /= WEEKS_PER_MONTH
-        uc.capital_tariff *= 4.35 # !!! WEEKS_PER_MONTH
-        uc.couple_both_under_25  /= WEEKS_PER_MONTH
-        uc.couple_oldest_25_plus  /= WEEKS_PER_MONTH
-        uc.minimum_income_floor_hours /= WEEKS_PER_MONTH
-        uc.first_child   /= WEEKS_PER_MONTH
-        uc.subsequent_child  /= WEEKS_PER_MONTH
-        uc.disabled_child_lower  /= WEEKS_PER_MONTH
-        uc.disabled_child_higher  /= WEEKS_PER_MONTH
-        uc.limited_capcacity_for_work_activity /= WEEKS_PER_MONTH
-        uc.carer  /= WEEKS_PER_MONTH
-        uc.ndd /= WEEKS_PER_MONTH
-        uc.childcare_max_2_plus_children  /= WEEKS_PER_MONTH
-        uc.childcare_max_1_child  /= WEEKS_PER_MONTH
+    function weeklyise!( uc :: UniversalCreditSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        uc.threshold /= wpm
+        uc.age_18_24  /= wpm
+        uc.age_25_and_over  /= wpm
+        uc.capital_tariff *= 4.35 # !!! wpm
+        uc.couple_both_under_25  /= wpm
+        uc.couple_oldest_25_plus  /= wpm
+        uc.minimum_income_floor_hours /= wpm
+        uc.first_child   /= wpm
+        uc.subsequent_child  /= wpm
+        uc.disabled_child_lower  /= wpm
+        uc.disabled_child_higher  /= wpm
+        uc.limited_capcacity_for_work_activity /= wpm
+        uc.carer  /= wpm
+        uc.ndd /= wpm
+        uc.childcare_max_2_plus_children  /= wpm
+        uc.childcare_max_1_child  /= wpm
         uc.childcare_proportion  /= 100.0
         uc.taper /= 100.0
-        uc.work_allowance_w_housing /= WEEKS_PER_MONTH
-        uc.work_allowance_no_housing /= WEEKS_PER_MONTH
+        uc.work_allowance_w_housing /= wpm
+        uc.work_allowance_no_housing /= wpm
     
     end
     @with_kw mutable struct UBISys{RT}
@@ -836,10 +836,10 @@ module STBParameters
         retirement_age :: Int = 66
     end
 
-    function weeklyise!( ubi :: UBISys )
-        ubi.adult_amount /= WEEKS_PER_YEAR
-        ubi.child_amount /= WEEKS_PER_YEAR
-        ubi.universal_pension /= WEEKS_PER_YEAR
+    function weeklyise!( ubi :: UBISys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        ubi.adult_amount /= wpy
+        ubi.child_amount /= wpy
+        ubi.universal_pension /= wpy
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
@@ -862,24 +862,24 @@ module STBParameters
     end
 
     
-    function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem )
-        weeklyise!( lmt.working_tax_credit )
-        weeklyise!( lmt.child_tax_credit )
-        weeklyise!( lmt.savings_credit )
-        weeklyise!( lmt.hb )
-        weeklyise!( lmt.ctb )
+    function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( lmt.working_tax_credit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( lmt.child_tax_credit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( lmt.savings_credit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR)
+        weeklyise!( lmt.hb; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( lmt.ctb; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     end
    
-    function weeklyise!( tb :: TaxBenefitSystem )
-        weeklyise!( tb.it )
-        weeklyise!( tb.ni )
-        weeklyise!( tb.lmt )
-        weeklyise!( tb.hr )
-        weeklyise!( tb.loctax )
-        weeklyise!( tb.nmt_bens )
-        weeklyise!( tb.uc )
-        weeklyise!( tb.bencap )
-        weeklyise!( tb.ubi )
+    function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.it; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.ni; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.lmt; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.hr; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.loctax; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.nmt_bens; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.uc; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.bencap; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        weeklyise!( tb.ubi; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     end
     
    """
