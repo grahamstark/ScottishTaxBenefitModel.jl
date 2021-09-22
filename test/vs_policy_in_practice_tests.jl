@@ -34,6 +34,8 @@ end
 
 sys21_22 = load_file( "../params/sys_2021_22.jl" )
 load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
+weeklyise!( sys21_22, wpm=52/12, wpy=52 )
+
 settings = DEFAULT_SETTINGS
 @testset "Single Person, No Housing Costs 19/Sep/2021 values (without £20)" begin
     
