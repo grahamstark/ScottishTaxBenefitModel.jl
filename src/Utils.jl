@@ -222,6 +222,14 @@ function todays_date() :: Date
     Date( now())
 end
 
+"""
+Age in years now of someone born on some date.
+Annoyingly difficult to get exactly right...
+"""
+function age_now( born :: Date ) :: Integer
+   ago = todays_date()-born
+   return Int(trunc(Dates.value( todays_date()-born )/365.25))
+end
 
 """
 These are trivial but annoying to get right.

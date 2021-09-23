@@ -3,6 +3,7 @@ module LegacyMeansTestedBenefits
 # This module implements the pre-universal credit means-tested benefit system.
 #
 using Base: Bool
+using Dates
 using ScottishTaxBenefitModel
 using .Definitions
 
@@ -248,13 +249,17 @@ function make_lmt_benefit_applicability(
     if intermed.someone_pension_age_2016
         whichb.sc = true
     end
-    # ESA, JSA, IS, crudely
+    # ESA, JSA, IS, crudely FIXME CLEAN THIS UP!!!
     if ! intermed.all_pension_age 
         if ((intermed.num_adults == 1 && intermed.num_not_working == 1) || 
         (intermed.num_adults == 2 && (intermed.num_not_working>=1 && intermed.num_working_pt<=1))) &&
         intermed.ge_16_u_pension_age
             if intermed.limited_capacity_for_work
                 whichb.esa = true 
+            # CPAGE 21/2 p236/7
+            elseif( intermed.num_adults == 1) && (intermed.num_allowed_children>0) && 
+                ((intermed.age_youngest_child <= 5) || (intermed.age_oldest_adult < 18))
+                    whichb.is = true
             elseif intermed.economically_active 
                 whichb.jsa = true  
             else
@@ -341,8 +346,7 @@ function num_qualifying_for_severe_disability(
         pers = bu.people[pid]
         if (pers.dla_self_care_type in [high,mid] ||
               pers.attendance_allowance_type != missing_lmh ||
-              pers.pip_daily_living_type == enhanced_pip || #?? *any* daily living pip?
-              pers.registered_blind )
+              pers.pip_daily_living_type == enhanced_pip )
               n += 1
         end
         if bures.pers[pid].income[CARERS_ALLOWANCE] > 0
@@ -451,7 +455,11 @@ function calc_allowances(
             if intermed.num_adults == 2
                 pers_allow = pas.couple_both_under_18
             else
-                pers_allow = pas.age_18_24
+                if which_ben != esa
+                    pers_allow = pas.age_18_24
+                else # FIXME rename this allowance !!
+                    pers_allow = pas.age_25_and_over
+                end
             end
             # should be somethinh like ...
             #if which_ben in [is,jsa,esa]
@@ -497,9 +505,14 @@ function calc_allowances(
 end
 
 function calc_full_ctc( 
+    bu :: BenefitUnit,
     intermed :: MTIntermediate, 
     ctc :: ChildTaxCredit )
-    ctc_elements = ctc.family
+    ctc_elements = 0.0
+    # p282
+    if num_born_before( bu, Date( 2017, 4, 6 )) > 0
+        ctc_elements += ctc.family
+    end
     ctc_elements += (intermed.num_allowed_children*ctc.child)
     ctc_elements += intermed.num_disabled_children*ctc.disability
     ctc_elements += intermed.num_severely_disabled_children*ctc.severe_disability 
@@ -557,7 +570,7 @@ function calcWTC_CTC!(
         wtc_elements += cost_of_childcare
     end
     if can_apply_for.ctc && ( ! ctc.abolished )
-        ctc_elements = calc_full_ctc( intermed, ctc)
+        ctc_elements = calc_full_ctc( bu, intermed, ctc)
         if ! can_apply_for.wtc
             threshold = ctc.threshold
         end
@@ -824,7 +837,7 @@ function calc_legacy_means_tested_benefits!(
             end
             if can_apply_for.ctc
                 bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
-                    calc_full_ctc( intermed, mt_ben_sys.child_tax_credit )
+                    calc_full_ctc( bu, intermed, mt_ben_sys.child_tax_credit )
             end
             can_apply_for.wtc = false # no overlapping
         end
@@ -887,17 +900,15 @@ function calc_legacy_means_tested_benefits!(
             income_over_thresh = max(0.0, sc_incomes.total_income - thresh )
             if income_over_thresh > 0
                 sc_maximum = min( maxpay, scsys.withdrawal_rate * income_over_thresh)
-            else
-                sc_maximum = maxpay
+                income_over_mig = incomes.total_income - bures.legacy_mtbens.mig
+                if income_over_mig <= 0.0
+                    scent = sc_maximum
+                else
+                    scent = max( 0.0, sc_maximum - (1-scsys.withdrawal_rate)*income_over_mig)
+                end
+                bures.pers[recipient].income[SAVINGS_CREDIT] = scent
+                bures.legacy_mtbens.sc_incomes = sc_incomes  
             end
-            income_over_mig = incomes.total_income - bures.legacy_mtbens.mig
-            if income_over_mig <= 0.0
-                scent = sc_maximum
-            else
-                scent = max( 0.0, sc_maximum - (1-scsys.withdrawal_rate)*income_over_mig)
-            end
-            bures.pers[recipient].income[SAVINGS_CREDIT] = scent
-            bures.legacy_mtbens.sc_incomes = sc_incomes  
             # println( "SC: maxpay=$maxpay; thresh=$thresh income_over_thresh=$income_over_thresh sc_maximum $sc_maximum income_over_mig $income_over_mig bures.pers[recipient].income[SAVINGS_CREDIT]=$(bures.pers[recipient].income[SAVINGS_CREDIT])") 
         end
         bures.pers[recipient].income[PENSION_CREDIT] = pc_entitlement

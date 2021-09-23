@@ -213,9 +213,13 @@ function retire!( pers :: Person )
 end
 
 # FIXME relationships fixup
+"""
+Add a child to the 1st benefit unit
+"""
 function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
    head = get_head(hh)   
    np = deepcopy( SPARE_CHILD )
+   empty!( np.income )
    np.relationships[head.pid] = Son_or_daughter_incl_adopted
    # TODO fill in other relationships
    np.default_benefit_unit = head.default_benefit_unit
@@ -223,6 +227,12 @@ function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
    np.age = age
    np.sex = sex
    hh.people[ np.pid ] = np
+   head.relationships[np.pid] = Parent
+   spouse = get_spouse( hh )
+   if spouse !== nothing
+      spouse.relationships[np.pid] = Parent
+   end
+   # FIXME other adults in othe BUS
    make_eq_scales!( hh )
    return np.pid
 end

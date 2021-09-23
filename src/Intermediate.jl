@@ -118,6 +118,7 @@ function has_limited_capactity_for_work( pers :: Person ) :: Bool
             Temporarily_sick_or_injured,
             Other_Inactive] &&  # FIXME - retired/temp sick/looking after family ??        
         pers_is_disabled( pers )
+    l = l || (pers.esa_type != no_jsa)
     return l
 end
 
@@ -130,8 +131,7 @@ function has_limited_capactity_for_work_activity( pers :: Person ) :: Bool
     l = false
     if has_limited_capactity_for_work( pers )
         has_high_esa = false
-        if has_non_z( pers.income, employment_and_support_allowance ) &&
-            (pers.esa_type == contributory_jsa)
+        if has_non_z( pers.income, employment_and_support_allowance )
             esa = pers.income[employment_and_support_allowance]
             if( pers.age < 25 ) 
                 if esa > 80 # crudely including support component

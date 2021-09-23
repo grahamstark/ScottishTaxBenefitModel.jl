@@ -37,6 +37,7 @@ using .Intermediate:
     HHIntermed,
     born_before, 
     has_limited_capactity_for_work_activity,
+    has_limited_capactity_for_work,
     reached_state_pension_age
  
 using .Results: 
@@ -148,7 +149,7 @@ function qualifiying_16_17_yo(
     if pers_is_carer( pers )
         # println( "is carer")
         return true
-    elseif has_limited_capactity_for_work_activity( pers )
+    elseif has_limited_capactity_for_work( pers )
         # println( "has_limited_capactity_for_work_activity")
         return true
     elseif (is_head( bu, pers ) || is_spouse( bu, pers )) && ( intermed.num_children > 0)
@@ -397,7 +398,9 @@ function calc_universal_credit!(
     bur.uc.disqualified_on_capital = false
     bur.uc.standard_allowance = calc_standard_allowance( benefit_unit, intermed, uc )
     calc_elements!( bur.uc, bu, intermed, uc, hours_limits, child_limits )
-    calc_uc_child_costs!( bur.uc, bu, intermed, uc )
+    if( intermed.num_working_ft > 0 ) || ( intermed.num_working_pt > 0 )
+        calc_uc_child_costs!( bur.uc, bu, intermed, uc )
+    end
     calc_uc_income!( bur, bu, intermed, uc, minwage )
     calc_tariff_income!( bur, bu, uc )
     bur.uc.maximum = 

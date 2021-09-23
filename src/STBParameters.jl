@@ -460,7 +460,7 @@ module STBParameters
 
     @with_kw mutable struct PersonalAllowances{ RT<:Real }
         age_18_24 :: RT = 57.90
-        age_25_and_over :: RT = 73.10
+        age_25_and_over :: RT = 73.10 # FIXME rename this allowance !! Applies to u25 ESA people too (CPAG21/22 p165)
         age_18_and_in_work_activity :: RT = 73.10
         over_pension_age :: RT = 181.00
         lone_parent :: RT = 73.10

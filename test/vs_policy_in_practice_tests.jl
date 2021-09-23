@@ -33,7 +33,8 @@ weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
 
 settings = DEFAULT_SETTINGS
 @testset "Single Person, No Housing Costs 19/Sep/2021 values (without £20)" begin
-    
+
+    # These from https://policyinpractice.co.uk/benefit-budgeting-calculator/
     dob = Date( 1970, 1, 1 )
     # basic - no tax credits, no ESA/JSA, single person
     # check we've loaded correctly
@@ -96,11 +97,116 @@ settings = DEFAULT_SETTINGS
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare(hres_scot.bhc_net_income,500.0)
 
-
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare(hres_scot.bhc_net_income,509.84)
     
+    head.usual_hours_worked = 0
+    head.income[wages] = 0
+    blind!( head )
+    unemploy!( head )
+    head.jsa_type = income_related_jsa
 
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 475.80 )
+
+    settings.means_tested_routing = uc_full
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 324.84 )
+
+
+    head.jsa_type = no_jsa 
+    head.esa_type = income_related_jsa
+
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 323.70 )
+
+
+    settings.means_tested_routing = uc_full
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 324.84 )
+
+    head.age = 17
+
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 323.70 )
+
+
+    settings.means_tested_routing = uc_full
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 257.33 )
+
+
+
+    ## THESE from https://benefitscheck.ageuk.org.uk/
+    #  ref: AC73A0470
+    head.age = 68
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test hres_scot.bhc_net_income ≈ 179.60
+
+ 
+    head.age = 80
+
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test hres_scot.bhc_net_income ≈  (137.60*1.1) + 25.74
+    
+    head.benefit_ratios[state_pension] = 154.0/137.60 # just qualify for savings credit
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    # pen / pen credit / savings credit
+    @test hres_scot.bhc_net_income ≈ 154 + 23.10 + 0.18
+    
+    # println( to_md_table(hres_scot.bus[1].uc ))
+
+    ## back to main calc .. children
+
+    head.age = 51
+
+    pid1 = add_child!( hh, 3, Female )
+    pid2 = add_child!( hh, 1, Male )
+    # println( keys( hh.people ))
+    # println( "pid1=$pid1 pid2=$pid2 head.default_benefit_unit=$(head.default_benefit_unit)")
+    unemploy!( head )
+    enable!( head )
+    unblind!( head )
+    head.jsa_type = no_jsa
+    head.esa_type = no_jsa
+    bus = get_benefit_units(hh)
+    ccph = 4.69
+    # 40 hrs child care @4.69ph
+    ch1 = hh.people[pid1]
+    ch2 = hh.people[pid2]
+    ch1.hours_of_childcare = 20
+    ch2.hours_of_childcare = 20
+    ch1.cost_of_childcare = 20*ccph
+    ch2.cost_of_childcare = 20*ccph
+
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 1036.85 )
+    println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( to_string( head ))
+    println( hres_scot.bus[1].legacy_mtbens.premia )
+    
+    settings.means_tested_routing = uc_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 1037.98 )
+    println( to_md_table(hres_scot.bus[1].uc ))
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    
+    head.usual_hours_worked = 30
+    head.income[wages] = 1_000/PWPM
+
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 2480.35 )
+
+    settings.means_tested_routing = uc_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income, 2414.72 )
 
 end

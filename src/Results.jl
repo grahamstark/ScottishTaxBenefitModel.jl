@@ -268,7 +268,7 @@ module Results
 
     function calc_net_income(incs::AbstractArray{T})::T where T
         # HB/CT treated seperately at household level
-        # println("incs="*inctostr( incs ))
+        println( "incs="*inctostr( incs ))
         # println( ALL_INCOMES_EXCEPT_HOUSING_BENEFITS )
         # println( DIRECT_TAXES_AND_DEDUCTIONS )
         n :: T = isum(incs, 
