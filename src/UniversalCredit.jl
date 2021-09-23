@@ -330,7 +330,8 @@ function calc_uc_income!(
             seinc = make_min_se( seinc, bu.people[pid].age, uc, minwage )            
         end
         earn += seinc
-        #  println( "earn=$earn seinc=$seinc inc=$inc incs=$(bur.pers[pid].income)")
+        println( "earn=$earn seinc=$seinc inc=$inc")
+        println( inctostr( bur.pers[pid].income))
     end
 
     if( intermed.num_children > 0 ) || intermed.limited_capacity_for_work

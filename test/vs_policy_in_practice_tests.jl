@@ -69,7 +69,38 @@ settings = DEFAULT_SETTINGS
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare(hres_scot.bhc_net_income,1026.23)
 
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    println( to_md_table( sys21_22.lmt.working_tax_credit ))
+    #println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    # println( to_md_table( sys21_22.lmt.working_tax_credit ))
+
+    settings.means_tested_routing = uc_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income,975.68)
     # println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
+
+    head.income[wages] = 500/PWPM
+ 
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income,736.25)
+
+
+    settings.means_tested_routing = uc_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income,509.84)
+    # println( to_md_table(hres_scot.bus[1].uc ))
+    # println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    
+    head.usual_hours_worked = 10
+
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income,500.0)
+
+
+    settings.means_tested_routing = uc_full
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare(hres_scot.bhc_net_income,509.84)
+    
+
+
 end
