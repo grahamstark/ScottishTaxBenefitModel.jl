@@ -325,7 +325,7 @@ function make_hh(
       error("can't do $adults adults yet")
    end
    hh.tenure = tenure
-   hh.ct_band = Band_C
+   hh.ct_band = Band_B
    num_kids = num_children( hh )
    if num_kids < children
       for i in (num_kids+1):children

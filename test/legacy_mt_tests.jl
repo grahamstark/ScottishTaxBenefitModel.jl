@@ -775,7 +775,12 @@ end
             sys.age_limits,
             0.0 # oo h costs
         )
-        @test allow ==  sys.lmt.allowances.age_18_24 # you get the 18 except in odd cases; cpag p336
+        println("on ben $ben")
+        if ben != esa 
+            @test allow == sys.lmt.allowances.age_18_24 # you get the 18 except in odd cases; cpag p336
+        else
+            @test allow == sys.lmt.allowances.age_25_and_over
+        end
     end
     #
     # 17 yo single parent - should be same as single
@@ -813,6 +818,8 @@ end
         println( "on $ben allow=$allow" )
         if ben in [hb,ctr]
             @test allow == sys.lmt.allowances.age_18_24 + 2*sys.lmt.allowances.child        
+        elseif ben in [esa]
+            @test allow == sys.lmt.allowances.age_25_and_over
         else
             @test allow ==  sys.lmt.allowances.age_18_24 # you get the 18 except in odd cases; cpag p336
         end
@@ -1381,10 +1388,10 @@ end
     @test lmt.can_apply_for.sc
     @test lmt.mig ≈ 255.25
     @test lmt.pc_premia ≈ 0
-    @test hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT] ≈ 15.35 
+    @test hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT] ≈ 0 # below cpl threshold 244.12 15.35 
     @test lmt.hb_passported
     @test lmt.ctr_passported
-    @test lmt.sc_incomes.total_income ≈ 193.35+30
+    @test lmt.sc_incomes.total_income ≈ 0 # not calculated 193.35+30
     jres.income[PRIVATE_PENSIONS] = 60
     calc_legacy_means_tested_benefits!(
         hhres,
@@ -1478,7 +1485,7 @@ end
     println( to_md_table(intermed.buint[1]))
     println( to_md_table(bures))
     println( inctostr( bures.pers[tracy.pid].income ))
-    targetctc = sys.lmt.child_tax_credit.family+2*(sys.lmt.child_tax_credit.child)
+    targetctc = 2*(sys.lmt.child_tax_credit.child)
     @test bures.pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
     targetwtc = sys.lmt.working_tax_credit.basic +
         sys.lmt.working_tax_credit.lone_parent + 
@@ -1530,7 +1537,7 @@ end
     println( to_md_table(intermed.buint[1]))
     println( to_md_table(bures))
     println( inctostr( bures.pers[tracy.pid].income ))
-    targetctc = sys.lmt.child_tax_credit.family+2*(sys.lmt.child_tax_credit.child)
+    targetctc = 2*(sys.lmt.child_tax_credit.child)
     @test bures.pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
     targetwtc = sys.lmt.working_tax_credit.basic +
         sys.lmt.working_tax_credit.lone_parent + 

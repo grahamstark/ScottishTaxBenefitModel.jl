@@ -27,6 +27,7 @@ import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
     @show sys_scot.ni
     
     sys2 = load_file( "../params/sys_2021_22.jl" )
+    weeklyise!( sys2 )
     @test sys2.it.personal_allowance ≈ 12_570/WEEKS_PER_YEAR
     @test sys2.lmt.working_tax_credit.age_50_plus_30_hrs == 2_030.00/WEEKS_PER_YEAR
     @test sys2.child_limits.max_children == 2
