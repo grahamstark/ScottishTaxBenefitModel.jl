@@ -175,7 +175,7 @@ settings = DEFAULT_SETTINGS
     head.jsa_type = no_jsa
     head.esa_type = no_jsa
     bus = get_benefit_units(hh)
-    ccph = 4.69
+    ccph = 5.00 # 4.69
     # 40 hrs child care @4.69ph
     ch1 = hh.people[pid1]
     ch2 = hh.people[pid2]
@@ -187,26 +187,26 @@ settings = DEFAULT_SETTINGS
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare(hres_scot.bhc_net_income, 1036.85 )
-    println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    println( to_string( head ))
-    println( hres_scot.bus[1].legacy_mtbens.premia )
     
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare(hres_scot.bhc_net_income, 1037.98 )
-    println( to_md_table(hres_scot.bus[1].uc ))
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     
     head.usual_hours_worked = 30
     head.income[wages] = 1_000/PWPM
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 2480.35 )
+    @test compare(hres_scot.bhc_net_income, 2517.72 )
+    println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    # println( to_string( head ))
+    # println( hres_scot.bus[1].legacy_mtbens.premia )
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 2414.72 )
+    @test compare(hres_scot.bhc_net_income,  2460.10 )
+    println( to_md_table(hres_scot.bus[1].uc ))
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
 
 end
