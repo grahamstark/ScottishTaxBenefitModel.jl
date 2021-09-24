@@ -365,3 +365,23 @@ end
 function makePID( hid::Int, year = 2018, pno=1 )::BigInt
    get_pid( FRS, year, hid, pno )
 end
+
+#
+# Messing around with periods to fit the Policy In Practice 
+# calculator.
+#
+const POLICY_IN_PRACTICE_WEEKS_PER_MONTH = 52/12 
+const PWPM = POLICY_IN_PRACTICE_WEEKS_PER_MONTH
+
+"""
+Compare PIP monthly calculations with our weekly, using their 52/12 weeks per month.
+Throw an AssertionException if different, so we can use this directly
+in a @test macro.
+"""
+function compare_w_2_m( uspw::Real, thempm::Real ) :: Bool
+    uspm = uspw*PWPM
+    @assert to_nearest_p(uspm,thempm) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
+    return true
+end
+
+

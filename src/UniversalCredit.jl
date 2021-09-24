@@ -331,8 +331,8 @@ function calc_uc_income!(
             seinc = make_min_se( seinc, bu.people[pid].age, uc, minwage )            
         end
         earn += seinc
-        println( "earn=$earn seinc=$seinc inc=$inc")
-        println( inctostr( bur.pers[pid].income))
+        # println( "earn=$earn seinc=$seinc inc=$inc")
+        # println( inctostr( bur.pers[pid].income))
     end
 
     if( intermed.num_children > 0 ) || intermed.limited_capacity_for_work
@@ -422,6 +422,7 @@ function calc_universal_credit!(
     if reached_state_pension_age( age_limits, head.age, head.sex )
         target_pid = get_spouse( bu ).pid # fail if spouse is nothing - but this must be the case
     end
+    bur.uc.recipient= target_pid # save a record of who gets for e.g. CT calculation
     bur.pers[target_pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
 end
 
@@ -492,6 +493,8 @@ function calc_universal_credit!(
     hr               :: HousingRestrictions,
     minwage          :: MinimumWage )
     # fixme duped with LMTBens
+    hhr = household_result
+    hh = household # shortcuts
     if uc.abolished
         return
     end
@@ -507,15 +510,15 @@ function calc_universal_credit!(
     # contributes NDDs.
     #
     calc_uc_housing_element!( 
-        household_result,
-        household,
+        hhr,
+        hh,
         intermed,
         uc,
         hr 
     )
     for buno in eachindex(bus)
         calc_universal_credit!(
-            household_result.bus[buno],
+            hhr.bus[buno],
             bus[buno],
             intermed.buint[buno],
             uc,
@@ -527,7 +530,30 @@ function calc_universal_credit!(
         )
     end
 
+    # hack - council tax rebates for UC Retail_trade_except_of_motor_vehicles_and_motorcycles
+    # 20% of any income above Maximum Universal Credit is deducted from maximum CT support 
+    # income seems to *include* universal credit, and full wages
+    # so grossed back up from the tapered calculated wages above, but
+    # otherwise following the same rules. Something like that, anyway.
+    #
+    recipient = hhr.bus[1].uc.recipient
+    ucrec = hhr.bus[1].pers[recipient].income[UNIVERSAL_CREDIT]
+    if (recipient > 0 ) && (ucrec > 0 )
+        println( "CTR calc started")
+        bur = household_result.bus[1] 
+        ct = total(household_result, LOCAL_TAXES ) 
+        ucincome =  
+            bur.uc.earned_income/uc.taper + # gross earned income back up
+            bur.uc.other_income +
+            bur.uc.tariff_income +
+            ucrec
+        excess = max(0.0, ucincome - bur.uc.maximum)
+        if excess > 0
+            ct = max( 0.0, ct - excess*uc.ctr_taper )  
+        end
+        bur.uc.ctr = ct
+        println( "ucrec=$ucrec excess $excess income=$ucincome earned_income=$(bur.uc.earned_income)ct = $ct")
+    end
 end
-
 
 end

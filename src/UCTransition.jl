@@ -13,7 +13,7 @@ using .Intermediate: MTIntermediate, HHIntermed
 using .ModelHousehold
 using .Definitions
 using .Randoms: testp
-using .Results: tozero!, HouseholdResult, BenefitUnitResult
+using .Results: tozero!, HouseholdResult, BenefitUnitResult, LMTResults, UCResults
 using .STBIncomes
 
 export 
@@ -62,6 +62,8 @@ function route_to_uc_or_legacy!(
     hh       :: Household, 
     intermed :: HHIntermed )
     bus = get_benefit_units( hh )
+    RT = eltype( results.income ) # FIXME whole where RT thing
+
     for bno in eachindex( bus )
         im = intermed.buint[bno]
         bres = results.bus[bno]
@@ -69,9 +71,19 @@ function route_to_uc_or_legacy!(
             route = route_to_uc_or_legacy( settings, bus[bno], im )
             if route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
+                bres.uc = UCResults{RT}()
+                bres.route = uc_bens
+                if( bno == 1 ) && ( bres.legacy_mtbens.ctr > 0 )# ctr assignment hack
+                    bres.pers[bres.legacy_mtbens.ctr_recipient].income[COUNCIL_TAX_BENEFIT] = bres.legacy_mtbens.ctr
+                end
             elseif route == uc_bens
                 # nuke every old thing for everyone who's in scope for UC
                 tozero!( bres, LEGACY_MTBS...)
+                bres.route = legacy_bens
+                bres.legacy_mtbens = LMTResults{RT}()
+                if( bno == 1 ) && ( bres.uc.ctr > 0 )# ctr assignment hack
+                    bres.pers[bres.uc.recipient].income[COUNCIL_TAX_BENEFIT] = bres.uc.ctr
+                end
                 ## FIXME TRANSITIONAL PAYMENTS
             end
         end
@@ -84,6 +96,7 @@ function route_to_uc_or_legacy!(
                 INCOME_SUPPORT, 
                 WORKING_TAX_CREDIT, 
                 CHILD_TAX_CREDIT )
+            bres.legacy_mtbens = LMTResults{RT}()
             # this last is entirely arbitrary, but
             # takes out essentially all ft students, etc.
             if im.age_oldest_adult < 50

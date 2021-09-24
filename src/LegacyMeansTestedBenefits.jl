@@ -599,6 +599,8 @@ function calcWTC_CTC!(
     recipient :: BigInt = length(benefit_unit_result.adults)[1] == 2 ? benefit_unit_result.adults[2] : benefit_unit_result.adults[1]
     benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
     benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
+    benefit_unit_result.legacy_mtbens.wtc_recipient = recipient
+
     # println( "income at end of wtc calc")
     # println( inctostr( benefit_unit_result.pers[recipient].income ))
 
@@ -726,6 +728,9 @@ function calculateHB_CTR!(
             end
             # FIXME this needs to be a function
             recipient :: BigInt = bures.adults[1]
+            bures.legacy_mtbens.hb_recipient = recipient
+            bures.legacy_mtbens.ctr_recipient = recipient
+
             if which_ben == hb
                 bures.pers[recipient].income[HOUSING_BENEFIT] = benefit
                 bures.legacy_mtbens.hb_passported = passported
@@ -737,7 +742,7 @@ function calculateHB_CTR!(
                 end
             elseif which_ben == ctr
                 bures.pers[recipient].income[COUNCIL_TAX_BENEFIT] = benefit
-                # bures.legacy_mtbens.ctr = benefit
+                bures.legacy_mtbens.ctr = benefit
                 bures.legacy_mtbens.ctr_passported = passported
                 bures.legacy_mtbens.ctr_eligible_amount = eligible_amount
                 if ! passported
@@ -839,6 +844,8 @@ function calc_legacy_means_tested_benefits!(
                 bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
                     calc_full_ctc( bu, intermed, mt_ben_sys.child_tax_credit )
             end
+            bures.legacy_mtbens.mig_recipient = recipient
+
             can_apply_for.wtc = false # no overlapping
         end
     end

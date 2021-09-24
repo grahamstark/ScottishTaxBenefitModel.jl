@@ -212,6 +212,7 @@ sys.uc.capital_max = 16_000.0
 # £1 *per week* ≆ 4.35 pm FIXME make 4.35 WEEKS_PER_MONTH? 
 sys.uc.capital_tariff = 250.0/4.35
 sys.uc.taper = 63.0
+sys.uc.ctr_taper = 20.0
 
 sys.age_limits.state_pension_ages = pension_ages()
 sys.age_limits.savings_credit_to_new_state_pension = Date( 2016, 04, 06 )

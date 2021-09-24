@@ -72,6 +72,8 @@ module Results
         assets :: RT = zero(RT)
         maximum  :: RT = zero(RT)
         transitional_protection :: RT = zero(RT)
+        ctr :: RT = zero(RT)
+        recipient :: BigInt = -1
     end
 
                 
@@ -115,7 +117,8 @@ module Results
         
         ndds :: RT = zero(RT)
         mig  :: RT = zero(RT)
-        
+        mig_recipient :: BigInt = -1
+
         # total_benefits :: RT = zero(RT) #  hb and ctr
         
         # FIXME better name than MIG here
@@ -131,6 +134,7 @@ module Results
         wtc_elements :: RT = zero(RT)
         wtc_ctc_threshold :: RT = zero(RT)
         wtc_ctc_tapered_excess :: RT = zero(RT)
+        wtc_recipient :: BigInt = -1
         cost_of_childcare :: RT = zero(RT)
 
         hb_passported :: Bool = false
@@ -142,16 +146,20 @@ module Results
         hb_allowances :: RT = zero(RT)
         hb_incomes = LMTIncomes{RT}()
         hb_eligible_rent :: RT = zero(RT)
+        hb_recipient :: BigInt = -1
         
+        ctr :: RT = zero(RT)
         ctr_passported :: Bool = false
         ctr_premia :: RT = zero(RT)
         ctr_allowances :: RT = zero(RT)
         ctr_incomes = LMTIncomes{RT}()
         ctr_eligible_amount :: RT = zero(RT)
+        ctr_recipient :: BigInt = -1
 
         pc_premia :: RT = zero(RT)
         pc_allowances :: RT = zero(RT)
         pc_incomes = LMTIncomes{RT}()
+        pc_recipient :: BigInt = -1
         
         premia = LMTPremiaSet()
         can_apply_for = LMTCanApplyFor()
@@ -231,6 +239,7 @@ module Results
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` 
         adults = Pid_Array()
+        route :: LegacyOrUC = legacy_bens
     end
 
     function to_string( br :: BenefitUnitResult, depth=1 )::String
@@ -272,7 +281,7 @@ module Results
         # println( ALL_INCOMES_EXCEPT_HOUSING_BENEFITS )
         # println( DIRECT_TAXES_AND_DEDUCTIONS )
         n :: T = isum(incs, 
-            ALL_INCOMES_EXCEPT_HOUSING_BENEFITS, 
+            ALL_INCOMES, # _EXCEPT_HOUSING_BENEFITS, 
             deducted=DIRECT_TAXES_AND_DEDUCTIONS )
         # println( "n=$n")
         return n
@@ -427,7 +436,9 @@ module Results
             aggregate!( bu )
             hres.income .+= bu.income
         end
-        hres.bhc_net_income = calc_net_income( hres.income )
+        hres.bhc_net_income = calc_net_income( hres.income ) 
+        # - 
+        #     hres.bus[1].uc.housing_element 
         #    hres.income[HOUSING_BENEFIT] - 
         #    hres.income[COUNCIL_TAX_BENEFIT]
         if hres.bhc_net_income <= 0 
@@ -436,14 +447,23 @@ module Results
             println( inctostr( hres.income ))
             println( "bhc_net_income $(hres.bhc_net_income) HOUSING_BENEFIT=$(hres.income[HOUSING_BENEFIT]) COUNCIL_TAX_BENEFIT=$(hres.income[COUNCIL_TAX_BENEFIT]) hres.income[COUNCIL_TAX_BENEFIT]=$(hres.income[COUNCIL_TAX_BENEFIT])")
         end
+        # FIXME this doesn't work with Universal Credit
         hres.net_housing_costs = hh.gross_rent + 
             hres.income[LOCAL_TAXES] +
             hh.mortgage_payment + 
             hh.other_housing_charges + 
             hh.water_and_sewerage -
             hres.income[HOUSING_BENEFIT] - 
-            hres.income[COUNCIL_TAX_BENEFIT]
-        hres.ahc_net_income = hres.bhc_net_income - hres.net_housing_costs        
+            hres.income[COUNCIL_TAX_BENEFIT] - 
+            hres.bus[1].uc.housing_element
+            
+        hres.ahc_net_income = hres.bhc_net_income - 
+            hres.income[LOCAL_TAXES] -
+            hh.mortgage_payment -
+            hh.other_housing_charges -
+            hh.water_and_sewerage
+    
+        # hres.net_housing_costs        
         hres.eq_bhc_net_income = hres.bhc_net_income/hh.equivalence_scales.oecd_bhc
         hres.eq_ahc_net_income = hres.ahc_net_income/hh.equivalence_scales.oecd_ahc        
     end

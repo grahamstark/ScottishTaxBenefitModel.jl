@@ -14,16 +14,6 @@ using .SingleHouseholdCalculations
 using .RunSettings
 using .Utils
 
-const POLICY_IN_PRACTICE_WEEKS_PER_MONTH = 52/12 
-const PWPM = POLICY_IN_PRACTICE_WEEKS_PER_MONTH
-
-function compare( uspw::Real, thempm::Real )
-    uspm = uspw*PWPM
-    @assert to_nearest_p(uspm,thempm) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
-    return true
-end
-
-
 sys21_22 = load_file( "../params/sys_2021_22.jl" )
 load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
 wpm=PWPM
@@ -55,12 +45,12 @@ settings = DEFAULT_SETTINGS
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
 
-    @test hres_scot.bhc_net_income*PWPM ≈ 324.84
-    @test PWPM*hres_scot.bus[1].pers[head.pid].income[UNIVERSAL_CREDIT] ≈ 324.84
+    @test hres_scot.bhc_net_income*PWPM ≈ 324.84+67.40
+    @test PWPM*hres_scot.bus[1].pers[head.pid].income[UNIVERSAL_CREDIT] ≈ 324.84+67.40
     
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.ahc_net_income*PWPM ≈ 323.70 
+    @test hres_scot.ahc_net_income*PWPM ≈ 323.70+67.40
     @test hres_scot.bus[1].pers[head.pid].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE]*PWPM ≈ 323.70
     # println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     
@@ -68,26 +58,26 @@ settings = DEFAULT_SETTINGS
     head.usual_hours_worked = 30
     head.income[wages] = 1_000/PWPM
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income,1026.23)
+    @test compare_w_2_m(hres_scot.bhc_net_income,1026.23+67.40)
 
     #println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     # println( to_md_table( sys21_22.lmt.working_tax_credit ))
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income,975.68)
+    @test compare_w_2_m(hres_scot.bhc_net_income,975.68+67.40)
     # println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
 
     head.income[wages] = 500/PWPM
  
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income,736.25)
+    @test compare_w_2_m(hres_scot.bhc_net_income,736.25+67.40)
 
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income,509.84)
+    @test compare_w_2_m(hres_scot.bhc_net_income,509.84)
     # println( to_md_table(hres_scot.bus[1].uc ))
     # println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     
@@ -95,11 +85,11 @@ settings = DEFAULT_SETTINGS
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income,500.0)
+    @test compare_w_2_m(hres_scot.bhc_net_income,500.0+67.40)
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income,509.84)
+    @test compare_w_2_m(hres_scot.bhc_net_income,509.84+67.40)
     
     head.usual_hours_worked = 0
     head.income[wages] = 0
@@ -109,11 +99,11 @@ settings = DEFAULT_SETTINGS
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 475.80 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 475.80+67.40 )
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 324.84 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 324.84+67.40 )
 
 
     head.jsa_type = no_jsa 
@@ -121,49 +111,42 @@ settings = DEFAULT_SETTINGS
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 323.70 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 323.70 )
 
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 324.84 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 324.84 )
 
     head.age = 17
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 323.70 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 323.70 )
 
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 257.33 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 257.33 )
+
+end
 
 
+@testset "Lone Parent" begin
 
-    ## THESE from https://benefitscheck.ageuk.org.uk/
-    #  ref: AC73A0470
-    head.age = 68
-    settings.means_tested_routing = lmt_full 
-    hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.bhc_net_income ≈ 179.60
-
- 
-    head.age = 80
-
-    hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.bhc_net_income ≈  (137.60*1.1) + 25.74
+    hh = make_hh(
+        adults = 1,
+        children = 0,
+        earnings = 0,
+        rent = 0,
+        rooms = 0,
+        age = 50,
+        tenure = Private_Rented_Furnished )
     
-    head.benefit_ratios[state_pension] = 154.0/137.60 # just qualify for savings credit
-    hres_scot = do_one_calc( hh, sys21_22, settings )
-    # pen / pen credit / savings credit
-    @test hres_scot.bhc_net_income ≈ 154 + 23.10 + 0.18
-    
-    # println( to_md_table(hres_scot.bus[1].uc ))
-
-    ## back to main calc .. children
-
-    head.age = 51
+    head = get_head( hh )
+    empty!( head.income )
+    unemploy!( head )
+    enable!( head )
 
     pid1 = add_child!( hh, 3, Female )
     pid2 = add_child!( hh, 1, Male )
@@ -186,18 +169,18 @@ settings = DEFAULT_SETTINGS
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 1036.85 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 1036.85 )
     
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 1037.98 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 1037.98 )
     
     head.usual_hours_worked = 30
     head.income[wages] = 1_000/PWPM
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income, 2517.72 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 2517.72 )
     println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
     println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     # println( to_string( head ))
@@ -205,8 +188,60 @@ settings = DEFAULT_SETTINGS
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare(hres_scot.bhc_net_income,  2460.10 )
+    @test compare_w_2_m(hres_scot.bhc_net_income,  2460.10 )
     println( to_md_table(hres_scot.bus[1].uc ))
     println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
 
 end
+
+
+@testset "Single Person with housing costs" begin
+    
+    hh = make_hh(
+        adults = 1,
+        children = 0,
+        earnings = 0,
+        rent = 0,
+        rooms = 0,
+        age = 50,
+        tenure = Private_Rented_Furnished )
+    hh.gross_rent = 400/PWPM
+    #
+    # Glasgow:  They have 493.62 LHA per month 1 bedroom 113.92pw (4.333 = 52/12)
+    #
+    hh.bedrooms = 1
+    head = get_head( hh )
+    empty!( head.income )
+    unemploy!( head )
+    enable!( head )
+
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 323.70 )
+    # since 100% rent rebated this should be the same
+    @test compare_w_2_m(hres_scot.ahc_net_income, 323.70 )
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( "CT Band=$(hh.ct_band)" )
+    settings.means_tested_routing = uc_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 324.84 )
+    @test compare_w_2_m(hres_scot.ahc_net_income, 324.84 )
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+
+    head.income[wages] = 300/PWPM
+
+    settings.means_tested_routing = lmt_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 812.77 )
+    # since 100% rent rebated this should be the same
+    @test compare_w_2_m(hres_scot.ahc_net_income, 345.37 )
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( "CT Band=$(hh.ct_band)" )
+    settings.means_tested_routing = uc_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 881.04 )
+    @test compare_w_2_m(hres_scot.ahc_net_income, 413.64 )
+    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( to_md_table(hres_scot.bus[1].uc ))
+end
+

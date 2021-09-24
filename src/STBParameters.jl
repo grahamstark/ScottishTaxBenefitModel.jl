@@ -800,7 +800,8 @@ module STBParameters
         capital_max :: RT = 16_000.0
         # £1 *per week* ≆ 4.35 pm FIXME make 4.35 wpm? 
         capital_tariff :: RT = 250.0/4.35
-        taper = 63.0
+        taper  :: RT= 63.0
+        ctr_taper  :: RT = 20.0 # not really part of UC, I suppose, but still...
     end    
 
     function weeklyise!( uc :: UniversalCreditSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
@@ -822,6 +823,7 @@ module STBParameters
         uc.childcare_max_1_child  /= wpm
         uc.childcare_proportion  /= 100.0
         uc.taper /= 100.0
+        uc.ctr_taper /= 100.0
         uc.work_allowance_w_housing /= wpm
         uc.work_allowance_no_housing /= wpm
     
