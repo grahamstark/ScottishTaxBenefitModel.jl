@@ -18,8 +18,9 @@ sys21_22 = load_file( "../params/sys_2021_22.jl" )
 load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
 wpm=PWPM
 wpy=52
-println( "weeklyise start wpm=$wpm wpy=$wpy")
 weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
+f = open( "tmp/vs_pinp.txt", "w")
+println( f, "weeklyise start wpm=$wpm wpy=$wpy")
 
 settings = DEFAULT_SETTINGS
 @testset "Single Person, No Housing Costs 19/Sep/2021 values (without £20)" begin
@@ -44,51 +45,58 @@ settings = DEFAULT_SETTINGS
     enable!( head )
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-
-    @test hres_scot.bhc_net_income*PWPM ≈ 324.84+67.40
-    @test PWPM*hres_scot.bus[1].pers[head.pid].income[UNIVERSAL_CREDIT] ≈ 324.84+67.40
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres_scot.bhc_net_income, 324.84+67.3749 )
+    @test PWPM*hres_scot.bus[1].pers[head.pid].income[UNIVERSAL_CREDIT] ≈ 324.84+67.3749
     
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.ahc_net_income*PWPM ≈ 323.70+67.40
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres_scot.ahc_net_income,323.70+67.3749)
     @test hres_scot.bus[1].pers[head.pid].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE]*PWPM ≈ 323.70
-    # println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    # println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     
     employ!(head)
     head.usual_hours_worked = 30
     head.income[wages] = 1_000/PWPM
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres_scot.bhc_net_income,1026.23+67.40)
+    println( f, inctostr( hres_scot.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres_scot.bhc_net_income,1026.23)
 
-    #println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    # println( to_md_table( sys21_22.lmt.working_tax_credit ))
+    #println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    # println( f, to_md_table( sys21_22.lmt.working_tax_credit ))
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres_scot.bhc_net_income,975.68+67.40)
-    # println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres_scot.bhc_net_income,975.68)
+    # println( f, to_md_table(hres_scot.bus[1].legacy_mtbens ))
 
     head.income[wages] = 500/PWPM
  
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     @test compare_w_2_m(hres_scot.bhc_net_income,736.25+67.40)
 
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     @test compare_w_2_m(hres_scot.bhc_net_income,509.84)
-    # println( to_md_table(hres_scot.bus[1].uc ))
-    # println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    # println( f, to_md_table(hres_scot.bus[1].uc ))
+    # println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     
     head.usual_hours_worked = 10
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     @test compare_w_2_m(hres_scot.bhc_net_income,500.0+67.40)
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     @test compare_w_2_m(hres_scot.bhc_net_income,509.84+67.40)
     
     head.usual_hours_worked = 0
@@ -99,6 +107,7 @@ settings = DEFAULT_SETTINGS
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     @test compare_w_2_m(hres_scot.bhc_net_income, 475.80+67.40 )
 
     settings.means_tested_routing = uc_full
@@ -150,8 +159,8 @@ end
 
     pid1 = add_child!( hh, 3, Female )
     pid2 = add_child!( hh, 1, Male )
-    # println( keys( hh.people ))
-    # println( "pid1=$pid1 pid2=$pid2 head.default_benefit_unit=$(head.default_benefit_unit)")
+    # println( f, keys( hh.people ))
+    # println( f, "pid1=$pid1 pid2=$pid2 head.default_benefit_unit=$(head.default_benefit_unit)")
     unemploy!( head )
     enable!( head )
     unblind!( head )
@@ -181,16 +190,16 @@ end
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres_scot.bhc_net_income, 2517.72 )
-    println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    # println( to_string( head ))
-    # println( hres_scot.bus[1].legacy_mtbens.premia )
+    println( f, to_md_table(hres_scot.bus[1].legacy_mtbens ))
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    # println( f, to_string( head ))
+    # println( f, hres_scot.bus[1].legacy_mtbens.premia )
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres_scot.bhc_net_income,  2460.10 )
-    println( to_md_table(hres_scot.bus[1].uc ))
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( f, to_md_table(hres_scot.bus[1].uc ))
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
 
 end
 
@@ -220,13 +229,13 @@ end
     @test compare_w_2_m(hres_scot.bhc_net_income, 323.70 )
     # since 100% rent rebated this should be the same
     @test compare_w_2_m(hres_scot.ahc_net_income, 323.70 )
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    println( "CT Band=$(hh.ct_band)" )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( f, "CT Band=$(hh.ct_band)" )
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres_scot.bhc_net_income, 324.84 )
     @test compare_w_2_m(hres_scot.ahc_net_income, 324.84 )
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
 
     head.income[wages] = 300/PWPM
 
@@ -235,13 +244,14 @@ end
     @test compare_w_2_m(hres_scot.bhc_net_income, 812.77 )
     # since 100% rent rebated this should be the same
     @test compare_w_2_m(hres_scot.ahc_net_income, 345.37 )
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    println( "CT Band=$(hh.ct_band)" )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( f, "CT Band=$(hh.ct_band)" )
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres_scot.bhc_net_income, 881.04 )
     @test compare_w_2_m(hres_scot.ahc_net_income, 413.64 )
-    println( inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    println( to_md_table(hres_scot.bus[1].uc ))
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    println( f, to_md_table(hres_scot.bus[1].uc ))
 end
 
+close( f )
