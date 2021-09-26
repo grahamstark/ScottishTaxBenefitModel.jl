@@ -330,7 +330,7 @@ function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )::Real
 end
 
 """
-CPAG 2019/20 p347. I *think* this is what it means ...
+CPAG 2019/20 p347. I *thik* this is what it means ...
 Moved to own function since it's convoluted.
 FIXME move this as it's being used in the UC module
 """
@@ -346,6 +346,7 @@ function num_qualifying_for_severe_disability(
         pers = bu.people[pid]
         if (pers.dla_self_care_type in [high,mid] ||
               pers.attendance_allowance_type != missing_lmh ||
+              pers.registered_blind || 
               pers.pip_daily_living_type == enhanced_pip )
               n += 1
         end
@@ -720,9 +721,10 @@ function calculateHB_CTR!(
                     0.0  )
                 excess = max( 0.0, incomes.total_income - (premium+allowances))
                 if excess > 0
-                    taper = which_ben == ctc ?  lmt_ben_sys.ctc.taper : lmt_ben_sys.hb.taper
-                    # println( "taper=$taper excess=$excess" )
-                    benefit = max( 0.0, benefit - taper*excess )    
+                    taper = which_ben == ctr ? lmt_ben_sys.ctr.taper : lmt_ben_sys.hb.taper
+                    println( "taper=$taper excess=$excess" )
+                    benefit = max( 0.0, benefit - taper*excess )
+                    println( "benefit $benefit")    
                 end
                 
             end
@@ -987,7 +989,7 @@ function calc_legacy_means_tested_benefits!(
             age_limits )
     end
 
-    if ! lmt_ben_sys.ctb.abolished
+    if ! lmt_ben_sys.ctr.abolished
         calculateHB_CTR!( 
             household_result,            
             ctr,

@@ -174,9 +174,9 @@ sys.lmt.hb.taper = 65.0
 sys.lmt.hb.ndd_deductions = [15.95,36.65,50.30,82.30,93.70,102.85]
 sys.lmt.hb.ndd_incomes = [149.0,217.0,283.0,377.0,469.0,99999999999999.9]
 
-sys.lmt.ctb.taper = 20.0
-sys.lmt.ctb.ndd_deductions = []
-sys.lmt.ctb.ndd_incomes = []
+sys.lmt.ctr.taper = 20.0
+sys.lmt.ctr.ndd_deductions = []
+sys.lmt.ctr.ndd_incomes = []
 
 
 sys.uc.abolished = false

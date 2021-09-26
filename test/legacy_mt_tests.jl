@@ -727,7 +727,7 @@ end
             intermed,
             sys.lmt.income_rules,
             sys.lmt.hours_limits )  
-        ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.ctb )
+        ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.ctr )
         @test ndd ≈ 0.0
     end # loop round various incomes
 end

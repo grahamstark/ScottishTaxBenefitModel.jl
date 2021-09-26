@@ -726,7 +726,7 @@ module STBParameters
         working_tax_credit = WorkingTaxCredit{RT}()
         child_tax_credit = ChildTaxCredit{RT}()
         hb = HousingBenefits{RT}()
-        ctb = HousingBenefits{RT}( false, 20.0, DEFAULT_PASSPORTED_BENS, RateBands{RT}[], RateBands{RT}[])
+        ctr = HousingBenefits{RT}( false, 20.0, DEFAULT_PASSPORTED_BENS, RateBands{RT}[], RateBands{RT}[])
     end
     
     struct BRMA{N,T}
@@ -870,7 +870,7 @@ module STBParameters
         weeklyise!( lmt.child_tax_credit; wpm=wpm, wpy=wpy )
         weeklyise!( lmt.savings_credit; wpm=wpm, wpy=wpy)
         weeklyise!( lmt.hb; wpm=wpm, wpy=wpy )
-        weeklyise!( lmt.ctb; wpm=wpm, wpy=wpy )
+        weeklyise!( lmt.ctr; wpm=wpm, wpy=wpy )
     end
    
     function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )

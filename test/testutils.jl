@@ -76,7 +76,9 @@ function get_default_uc( ;
 end
 
 function to_nearest_p( x, y :: Real ) :: Bool
-    round(x, digits=2) == round(y, digits=2)
+   diff = abs(x-y)
+   return diff <= 0.01
+   # round(x, digits=2) == round(y, digits=2)
 end
 
 function init_data(; reset :: Bool = false )
@@ -380,7 +382,8 @@ in a @test macro.
 """
 function compare_w_2_m( uspw::Real, thempm::Real ) :: Bool
     uspm = uspw*PWPM
-    @assert to_nearest_p(uspm,thempm) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
+    thempw = thempm/PWPM
+    @assert to_nearest_p(uspw,thempw) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
     return true
 end
 

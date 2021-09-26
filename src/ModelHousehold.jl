@@ -583,13 +583,14 @@ const DISABLE_BENEFITS = [
 
 """
 function is_severe_disability( pers :: Person )
-    return pers.dla_self_care_type == high ||
+    return pers_is_disabled( pers ) ||
+           pers.dla_self_care_type in [middle, high] ||
            pers.dla_mobility_type == high ||
            pers.attendance_allowance_type == high ||
            pers.pip_daily_living_type == enhanced_pip ||
            pers.pip_mobility_type == enhanced_pip ||
            pers.adls_are_reduced == reduced_a_lot ||
-           pers.health_status == Very_Bad
+           pers.health_status == Very_Bad 
 
 end    
 
