@@ -40,25 +40,31 @@ settings = DEFAULT_SETTINGS
         tenure = Private_Rented_Furnished )
     
     head = get_head( hh )
+    
+    # ================= unemploy 0 rent band b ct
     empty!( head.income )
     unemploy!( head )
     enable!( head )
-    settings.means_tested_routing = uc_full 
-    hres_scot = do_one_calc( hh, sys21_22, settings )
-    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    @test compare_w_2_m(hres_scot.bhc_net_income, 324.84+67.3749 )
-    @test PWPM*hres_scot.bus[1].pers[head.pid].income[UNIVERSAL_CREDIT] ≈ 324.84+67.3749
-    
+
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    @test compare_w_2_m(hres_scot.ahc_net_income,323.70+67.3749)
-    @test hres_scot.bus[1].pers[head.pid].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE]*PWPM ≈ 323.70
+    @test compare_w_2_m(hres_scot.ahc_net_income,391.10)
+    @test compare_w_2_m(hres_scot.bus[1].pers[head.pid].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE], 323.70)
+
+    settings.means_tested_routing = uc_full 
+    hres_scot = do_one_calc( hh, sys21_22, settings )
+    println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres_scot.bhc_net_income, 392.243 )
+    @test compare_w_2_m(hres_scot.bus[1].pers[head.pid].income[UNIVERSAL_CREDIT], 324.84)
     # println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     
+    # =============== single 1,000 pm no rent
     employ!(head)
     head.usual_hours_worked = 30
     head.income[wages] = 1_000/PWPM
+   
+    settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     println( f, inctostr( hres_scot.bus[1].pers[head.pid].income ))
     @test compare_w_2_m(hres_scot.bhc_net_income,1026.23)
@@ -72,33 +78,38 @@ settings = DEFAULT_SETTINGS
     @test compare_w_2_m(hres_scot.bhc_net_income,975.68)
     # println( f, to_md_table(hres_scot.bus[1].legacy_mtbens ))
 
+    # =============== single 1,000 pm 30 hrs pw no rent Q:: why doesn't min wage kick in??
     head.income[wages] = 500/PWPM
  
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    @test compare_w_2_m(hres_scot.bhc_net_income,736.25+67.40)
+    @test compare_w_2_m(hres_scot.bhc_net_income,740.29)
 
 
     settings.means_tested_routing = uc_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    @test compare_w_2_m(hres_scot.bhc_net_income,509.84)
+    @test compare_w_2_m(hres_scot.bhc_net_income, 540.24)
     # println( f, to_md_table(hres_scot.bus[1].uc ))
     # println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
     
+    # 10 hrs worked 500pm 
     head.usual_hours_worked = 10
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    @test compare_w_2_m(hres_scot.bhc_net_income,500.0+67.40)
+    @test compare_w_2_m(hres_scot.bhc_net_income,536.47)
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
     println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    @test compare_w_2_m(hres_scot.bhc_net_income,509.84+67.40)
+    @test compare_w_2_m(hres_scot.bhc_net_income,540.24)
+
+    # todo add working with pension 
     
+    # ================ unemployed + blind (but no pip/dla)
     head.usual_hours_worked = 0
     head.income[wages] = 0
     blind!( head )
@@ -108,35 +119,40 @@ settings = DEFAULT_SETTINGS
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
     println( f, inctostr(  hres_scot.bus[1].pers[head.pid].income ))
-    @test compare_w_2_m(hres_scot.bhc_net_income, 475.80+67.40 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 834.83 ) # inc severse disabled premium!
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres_scot.bhc_net_income, 324.84+67.40 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 392.24 )
 
-
+    # =================== unemployed but on on esa, blind; limited capacity to work
+    # unblind!( head )
     head.jsa_type = no_jsa 
     head.esa_type = income_related_jsa
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres_scot.bhc_net_income, 323.70 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 682.73 )
 
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres_scot.bhc_net_income, 324.84 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 392.24 )
 
+    # 17yo head no blind - jammed on 'parents dead' in calculator
+    unblind!( head )
     head.age = 17
+    head.jsa_type = no_jsa
+    head.esa_type = no_jsa
 
     settings.means_tested_routing = lmt_full 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres_scot.bhc_net_income, 323.70 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 323.93 )
 
 
     settings.means_tested_routing = uc_full
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres_scot.bhc_net_income, 257.33 )
+    @test compare_w_2_m(hres_scot.bhc_net_income, 324.73 )
 
 end
 
