@@ -490,6 +490,27 @@ module STBParameters
         severe_disability_single :: RT = 65.85
         severe_disability_couple :: RT = 131.70
         pensioner_is :: RT = 140.40
+        disability_premium_qualifying_benefits = [
+            DLA_SELF_CARE,
+            DLA_MOBILITY,
+            PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+            PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY,
+            ATTENDANCE_ALLOWANCE,
+            SEVERE_DISABILITY_ALLOWANCE,
+            INCAPACITY_BENEFIT,
+            SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
+            SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_MOBILITY,
+            SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE,
+            SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
+            SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_MOBILITY ]
+        enhanced_disability_premium_qualifying_benefits = [
+            PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+            DLA_SELF_CARE,
+            ATTENDANCE_ALLOWANCE,
+            SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
+            SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
+            SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE
+        ]
     end
     
     @with_kw mutable struct WorkingTaxCredit{ RT<:Real }

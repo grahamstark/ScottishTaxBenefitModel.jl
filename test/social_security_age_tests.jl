@@ -7,7 +7,7 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
 using .ExampleHouseholdGetter
 using .Definitions
 using .LegacyMeansTestedBenefits:  
-    calc_legacy_means_tested_benefits!, tariff_income,
+    tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability,
     working_disabled, calc_allowances,
     apply_2_child_policy, calc_incomes

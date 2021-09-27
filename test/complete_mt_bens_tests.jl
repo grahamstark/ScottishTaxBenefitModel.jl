@@ -9,7 +9,7 @@ using .LegacyMeansTestedBenefits:
     calc_legacy_means_tested_benefits!, tariff_income,
     LMTResults, is_working_hours, make_lmt_benefit_applicability, calc_premia,
     working_disabled, calc_allowances,
-    apply_2_child_policy, calc_incomes, calc_NDDs, calculateHB_CTR!
+    apply_2_child_policy, calc_incomes, calc_NDDs
 
 using .Intermediate: MTIntermediate, make_intermediate    
     
@@ -117,6 +117,7 @@ end
             sys.lmt,
             sys.age_limits,
             sys.hours_limits,
+            sys.nmt_bens,
             sys.hr )
     end
 end

@@ -40,6 +40,7 @@ using .STBParameters:
     IncomeRules,  
     LegacyMeansTestedBenefitSystem, 
     MinimumWage, 
+    NonMeansTestedSys,
     PersonalAllowances, 
     Premia, 
     SavingsCredit, 
@@ -330,6 +331,7 @@ function tariff_income( cap :: Real, capital_min::Real, tariff :: Real )::Real
 end
 
 """
+WRONG AND NOT USED!
 CPAG 2019/20 p347. I *thik* this is what it means ...
 Moved to own function since it's convoluted.
 FIXME move this as it's being used in the UC module
@@ -357,45 +359,180 @@ function num_qualifying_for_severe_disability(
     return max( 0, n )
 end
 
+"""
+See: https://www.gov.uk/disability-premiums/eligibility
+"""
+function qualifies_for_disability_premium( 
+    pers :: Person, 
+    pres :: IndividualResult,
+    prem_sys :: Premia ) :: Bool
+    if pers.registered_blind
+        return true
+    end
+    if any_positive( pres.income, prem_sys.disability_premium_qualifying_benefits)
+        return true
+    end
+    return false
+end
+
+function qualifies_for_enhanced_disability(
+    pers     :: Person, 
+    pres     :: IndividualResult,
+    prem_sys :: Premia,
+    nmt      :: NonMeansTestedSys,
+    age_limits :: AgeLimits ) :: Bool
+    if reached_state_pension_age(
+        age_limits,
+        pers.age,
+        pers.sex )
+        return false
+    end
+    println( inctostr( pres.income ))
+    println( prem_sys.enhanced_disability_premium_qualifying_benefits )
+    if any_positive( pres.income, [NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE])
+        return true
+    end
+    for p1 in [
+        PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+        SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING]
+        if p1 in prem_sys.enhanced_disability_premium_qualifying_benefits
+            println( "income[$p1]=$(pres.income[p1]) nmt.pip.dl_enhanced=$(nmt.pip.dl_enhanced)")
+            if pres.income[p1] >= nmt.pip.dl_enhanced
+                return true
+            end
+        end
+    end
+    for p1 in [DLA_SELF_CARE, SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING]
+        if p1 in prem_sys.enhanced_disability_premium_qualifying_benefits
+            if pres.income[p1] >= nmt.dla.care_high
+                return true
+            end
+        end
+    end
+    ## FIXME support group for ESA
+    return false
+end
+
+"""
+FIXME this should be over the HOUSEHOLD not the benefit unit,
+I think
+"""
+function num_adults_qualifiying_for_disability_premium(
+    bu    :: BenefitUnit,
+    bures :: BenefitUnitResult,
+    prem_sys :: Premia ) :: Integer
+    n = 0
+    for pid in bu.adults
+        if qualifies_for_disability_premium( bu.people[pid], bures.pers[pid], prem_sys )
+            n += 1
+        end            
+    end
+    return n
+end
+
+function qualifies_for_severe_disability_premium(
+    pers     :: Person, 
+    pres     :: IndividualResult,
+    prem_sys :: Premia,
+    nmt      :: NonMeansTestedSys ) :: Bool
+    return qualifies_for_disability_premium( pers, pres, prem_sys ) &&
+        any_positive( pres.income, 
+            [PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+            SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
+            DLA_SELF_CARE, 
+            SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
+            ATTENDANCE_ALLOWANCE, 
+            SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE] )
+end 
+
 function calc_premia(     
     which_ben :: LMTBenefitType,
-    bu :: BenefitUnit,
-    bures :: BenefitUnitResult,
-    intermed :: MTIntermediate, 
-    prem_sys :: Premia,
-    ages :: AgeLimits  ) :: Tuple
+    bu        :: BenefitUnit,
+    bures     :: BenefitUnitResult,
+    intermed  :: MTIntermediate, 
+    prem_sys  :: Premia,
+    nmt       :: NonMeansTestedSys,
+    age_limits:: AgeLimits ) :: Tuple
     premium = 0.0
     premset = LMTPremiaSet()
+    # disabled child premium
+    num_ads = num_adults( bu )
     if which_ben in [hb,ctr]
-        # disabled child premium
         if intermed.num_disabled_children > 0
             premium += intermed.num_disabled_children*prem_sys.disabled_child   
             union!( premset, [disabled_child])
         end
     end
-    if ! (which_ben in [esa, pc, sc]) # FIXME not quite right but perhaps near enough - should be reached pension age? CPAG19 p344
-        if intermed.num_disabled_adults == 1
+    # carer's premium - all benefits, I think.
+    if intermed.num_carers == 1
+        premium += prem_sys.carer_single
+        union!( premset,[carer_single] )
+    elseif intermed.num_carers == 2
+        # FIXME what if 1 is a child?
+        premium += prem_sys.carer_couple
+        union!( premset, [carer_couple] )
+    end
+    # disability premiums 
+    ndis = num_adults_qualifiying_for_disability_premium(
+        bu, bures, prem_sys )
+    if which_ben in [is, jsa, hb, ctr] # FIXME not quite right but perhaps near enough - should be reached pension age? CPAG19 p344
+        if ndis == 1
             premium += prem_sys.disability_single
-            union!( premset,[disability_single])
-        elseif intermed.num_disabled_adults == 2
+            union!( premset,[disability_single])         
+        elseif ndis == 2
             premium += prem_sys.disability_couple
             union!( premset,[disability_couple])
-        end        
+        end
     end
-    if which_ben in [hb,ctr,is,jsa,esa] # FIXME check ESA here
+    # enhanced disability - also for ESA
+    if which_ben in [is, jsa, hb, ctr, esa]
+        nenh = 0
+        for pid in bu.adults
+            nenh += qualifies_for_enhanced_disability(
+                    bu.people[pid],
+                    bures.pers[pid],
+                    prem_sys,
+                    nmt,
+                    age_limits )
+        end
+        println( "nenh=$nenh")
+        if nenh == 1
+            premium += prem_sys.enhanced_disability_single
+            union!( premset, [enhanced_disability_single] )
+        elseif nenh == 2
+            premium += prem_sys.enhanced_disability_couple
+            union!( premset,[enhanced_disability_couple]) 
+        end
+    end
+    # severe disability premium
+    println( "ndis=$ndis num_ads=$num_ads")
+    if ndis == num_ads # all adults disabled - check for severe dis
+        nsev = 0
+        for pid in bu.adults
+            nsev += qualifies_for_severe_disability_premium(
+                bu.people[pid],
+                bures.pers[pid],
+                prem_sys,
+                nmt
+            )
+        end
+        println( "nsev=$nsev")
+        if nsev == 1
+            premium += prem_sys.severe_disability_single
+            union!( premset, [severe_disability_single])
+        elseif nsev == 2
+            premium += prem_sys.severe_disability_couple
+            union!( premset, [severe_disability_couple])
+        end
+    end
+    # FIXME this is not the right test for sev disabled child
+    if which_ben in [hb,ctr,is,jsa,esa,pc] 
         premium += intermed.num_severely_disabled_children*prem_sys.enhanced_disability_child
         if intermed.num_severely_disabled_children > 0
             union!( premset,[enhanced_disability_child] )
         end
-        if intermed.num_severely_disabled_adults == 1
-            premium += prem_sys.enhanced_disability_single
-            # println( "intermed.num_severely_disabled_adults; premium now $premium added $(prem_sys.enhanced_disability_single)")
-            union!( premset, [enhanced_disability_single] )
-        elseif intermed.num_severely_disabled_adults == 2
-            premium += prem_sys.enhanced_disability_couple
-            union!( premset,[enhanced_disability_couple]) 
-        end                
     end
+    #=
     if which_ben in [ hb, ctr, is, jsa, esa, pc, sc ] 
         # CPAG 19/20 - I *think* this is what it means..
         nsd = num_qualifying_for_severe_disability( bu, bures, intermed.num_benefit_units ) > 0
@@ -407,21 +544,12 @@ function calc_premia(
             union!( premset, [severe_disability_couple])
         end
     end
+    =#
     if which_ben in [ is, jsa, esa ] # this should almost never happen given our routing; cpag p345
         if intermed.someone_pension_age
             premium += prem_sys.pensioner_is  
             union!( premset, [pensioner_is] )
         end
-    end
-    # all benefits, I think, incl. 
-    # if which_ben != ctr
-    if intermed.num_carers == 1
-        premium += prem_sys.carer_single
-        union!( premset,[carer_single] )
-    elseif intermed.num_carers == 2
-        # FIXME what if 1 is a child?
-        premium += prem_sys.carer_couple
-        union!( premset, [carer_couple] )
     end
     # end
     #
@@ -670,8 +798,10 @@ function calculateHB_CTR!(
     which_ben        :: LMTBenefitType,
     hh               :: Household,
     intermed         :: HHIntermed,
-    lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,
-    age_limits       :: AgeLimits )
+    lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,    
+    age_limits       :: AgeLimits,
+    nmt_bens         :: NonMeansTestedSys )
+
     eligible_amount = which_ben == ctr ? 
         total(household_result, LOCAL_TAXES ) :
         household_result.housing.allowed_rent
@@ -709,6 +839,7 @@ function calculateHB_CTR!(
                     bures,
                     intermed.buint[bn],        
                     lmt_ben_sys.premia,
+                    nmt_bens,
                     age_limits )            
                 # println( "bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")
                 # println( "premset $(premset))")
@@ -773,6 +904,7 @@ function calc_legacy_means_tested_benefits!(
     mt_ben_sys   :: LegacyMeansTestedBenefitSystem,
     age_limits   :: AgeLimits, 
     hours        :: HoursLimits,
+    nmt_bens     :: NonMeansTestedSys,
     hh :: Union{Nothing,Household} ) # passed on 1st BU only
     # aliases
     bures = benefit_unit_result
@@ -807,6 +939,7 @@ function calc_legacy_means_tested_benefits!(
             bures,
             intermed,        
             mt_ben_sys.premia,
+            nmt_bens,
             age_limits )            
         union!(bures.legacy_mtbens.premia, premset)
         incomes = calc_incomes( 
@@ -859,8 +992,9 @@ function calc_legacy_means_tested_benefits!(
             bures,            
             intermed,        
             mt_ben_sys.premia,
+            nmt_bens,            
             age_limits )            
-        union!(bures.legacy_mtbens.premia, premset )
+        union!( bures.legacy_mtbens.premia, premset )
         incomes = calc_incomes( 
             pc,
             bu,
@@ -958,6 +1092,7 @@ function calc_legacy_means_tested_benefits!(
             lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,
             age_limits       :: AgeLimits, 
             hours            :: HoursLimits,
+            nmt_bens         :: NonMeansTestedSys,
             hr               :: HousingRestrictions )
     # fixme not just for renters? fixme do this earlier
     if lmt_ben_sys.abolished
@@ -975,18 +1110,19 @@ function calc_legacy_means_tested_benefits!(
             lmt_ben_sys,
             age_limits,
             hours,
+            nmt_bens,
             buno == 1 ? household : nothing )
     end
     # hb using the whole hhls but assigned to 1st bu
     if ! lmt_ben_sys.hb.abolished
-    
         calculateHB_CTR!( 
             household_result,
             hb,
             household,
             intermed,
             lmt_ben_sys,
-            age_limits )
+            age_limits,
+            nmt_bens )
     end
 
     if ! lmt_ben_sys.ctr.abolished
@@ -996,10 +1132,10 @@ function calc_legacy_means_tested_benefits!(
             household,
             intermed,
             lmt_ben_sys,
-            age_limits )      
+            age_limits,
+            nmt_bens )      
     end
     # 
-
 end
 
 end # module LegacyMeansTestedBenefits

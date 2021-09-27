@@ -1043,7 +1043,8 @@ end
         joplings,
         intermed,
         sys.lmt, 
-        sys.age_limits )
+        sys.age_limits,
+        sys.nmt_bens )
     println( "Jopling: council $(joplings.council)")
     println( "MTBens for Joblings:\n$(hhres.bus[1].legacy_mtbens)\n" )
     println( "housing $(hhres.housing)")
@@ -1085,7 +1086,8 @@ end
         mr_h,
         intermed,
         sys.lmt, 
-        sys.age_limits )
+        sys.age_limits,
+        sys.nmt_bens )
     println("Head's incomes:")
     println( inctostr( hhres.bus[1].pers[head.pid].income))
     println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
@@ -1194,6 +1196,7 @@ end
             sys.lmt,
             sys.age_limits,
             sys.hours_limits,
+            sys.nmt_bens,
             sys.hr )
 
         # head is unemployed
@@ -1211,6 +1214,7 @@ end
             sys.lmt,
             sys.age_limits,
             sys.hours_limits,
+            sys.nmt_bens,
             sys.hr )
 
         # head is seriously disabled
@@ -1228,6 +1232,7 @@ end
             sys.lmt,
             sys.age_limits,
             sys.hours_limits,
+            sys.nmt_bens,
             sys.hr )
         # head is an informal carer    
         enable!( head )
@@ -1245,6 +1250,7 @@ end
             sys.lmt,
             sys.age_limits,
             sys.hours_limits,
+            sys.nmt_bens,
             sys.hr )
 
     end
@@ -1279,6 +1285,7 @@ end
         sys.lmt,
         sys.age_limits,
         sys.hours_limits,
+        sys.nmt_bens,
         sys.hr )
     lmt = hhres.bus[1].legacy_mtbens
 
@@ -1340,6 +1347,7 @@ end
         sys.lmt,
         sys.age_limits,
         sys.hours_limits,
+        sys.nmt_bens,
         sys.hr )
     lmt = hhres.bus[1].legacy_mtbens
     @test lmt.mig ≈ 255.25
@@ -1382,6 +1390,7 @@ end
         sys.lmt,
         sys.age_limits,
         sys.hours_limits,
+        sys.nmt_bens,
         sys.hr )
     lmt = hhres.bus[1].legacy_mtbens
     @test lmt.can_apply_for.pc
@@ -1400,6 +1409,7 @@ end
         sys.lmt,
         sys.age_limits,
         sys.hours_limits,
+        sys.nmt_bens,
         sys.hr )
     lmt = hhres.bus[1].legacy_mtbens
     @test eq_nearest_p(hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT], 14.21 )
@@ -1411,6 +1421,7 @@ end
         sys.lmt,
         sys.age_limits,
         sys.hours_limits,
+        sys.nmt_bens,
         sys.hr )
     lmt = hhres.bus[1].legacy_mtbens
     @test eq_nearest_p(hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT], 0.11 )
@@ -1465,6 +1476,7 @@ end
             sys.lmt,
             sys.age_limits,
             sys.hours_limits,
+            sys.nmt_bens,
             tracyh )
 
     #
@@ -1516,6 +1528,7 @@ end
             intermed.buint[1],
             sys.lmt,
             sys.age_limits,
+            sys.nmt_bens,
             sys.hours_limits,
             tracyh )
 
@@ -1568,6 +1581,7 @@ end
         intermed.buint[1],
         sys.lmt,
         sys.age_limits,
+        sys.nmt_bens,
         sys.hours_limits,
         tracyh )
     @test bures.pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
@@ -1594,6 +1608,7 @@ end
         sys.lmt,
         sys.age_limits,
         sys.hours_limits,
+        sys.nmt_bens,            
         sys.hr
     )
     println( to_string(hhres))

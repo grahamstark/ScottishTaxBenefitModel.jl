@@ -51,8 +51,10 @@ settings = DEFAULT_SETTINGS
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     
     println(  "CTC", hres.bus[1].pers[head.pid].income[LOCAL_TAXES])
-
+    println(  to_md_table(hres.bus[1].legacy_mtbens ))
     @test compare_w_2_m(hres.bhc_net_income,391.10)
+
+ 
     @test compare_w_2_m(hres.bus[1].pers[head.pid].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE], 323.70)
 
     settings.means_tested_routing = uc_full 
@@ -88,8 +90,7 @@ settings = DEFAULT_SETTINGS
     hres = do_one_calc( hh, sys21_22, settings )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     @test compare_w_2_m(hres.bhc_net_income,740.29)
-    println(  to_md_table(hres.bus[1].legacy_mtbens ))
- 
+    
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
@@ -111,57 +112,48 @@ settings = DEFAULT_SETTINGS
     @test compare_w_2_m(hres.bhc_net_income,540.24)
 
     # todo add working with pension 
-    
-    # ================ unemployed + blind (but no pip/dla)
+   
+    # ================ unemployed + blind 
     head.usual_hours_worked = 0
     head.income[wages] = 0
     blind!( head )
     unemploy!( head )
     disable_slightly!( head )
+    head.pip_daily_living_type = enhanced_pip
     # we have limited capacity to work switched on in calculator
-    head.esa_type = income_related_jsa
+    head.jsa_type = income_related_jsa
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    println(  inctostr(  hres.bus[1].pers[head.pid].income ))
-    println(  to_md_table(hres.bus[1].legacy_mtbens ))
-    
-    @test compare_w_2_m(hres.bhc_net_income, 682.73 ) # inc severse disabled premium!
-  #=
+   
+    @test compare_w_2_m(hres.bhc_net_income,  1145.54 ) # inc severse disabled premium!
+
  
     settings.means_tested_routing = uc_full
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 392.24 )
-
-    # =================== unemployed but on on esa, blind; limited capacity to work
-    # unblind!( head )
-    head.jsa_type = no_jsa 
-    head.esa_type = income_related_jsa
-
-    settings.means_tested_routing = lmt_full 
-    hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 682.73 )
-
-
-    settings.means_tested_routing = uc_full
-    hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 392.24 )
-
+    @test compare_w_2_m(hres.bhc_net_income,  1124.14 )
+ 
+ 
     # ================= 17yo head no blind - jammed on 'parents dead' in calculator
     unblind!( head )
     head.age = 17
-    head.jsa_type = no_jsa
-    head.esa_type = no_jsa
+    # head.jsa_type = no_jsa
+    # head.esa_type = no_jsa
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 323.93 )
+    println(  to_md_table(hres.bus[1].legacy_mtbens ))
+    println( inctostr(  hres.bus[1].pers[head.pid].income ))
+    
+    @test compare_w_2_m(hres.bhc_net_income,  1145.54  )
 
 
     settings.means_tested_routing = uc_full
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 324.73 )
-    =# 
+    println( to_md_table(hres.bus[1].uc ))
+    println( inctostr(  hres.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres.bhc_net_income,  1056.63 )
+
 end
 
 #=

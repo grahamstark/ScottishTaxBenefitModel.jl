@@ -381,10 +381,10 @@ Throw an AssertionException if different, so we can use this directly
 in a @test macro.
 """
 function compare_w_2_m( uspw::Real, thempm::Real ) :: Bool
-    uspm = uspw*PWPM
-    thempw = thempm/PWPM
-    @assert to_nearest_p(uspw,thempw) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
-    return true
+   uspm = uspw*PWPM
+   thempw = thempm/PWPM
+   @assert to_nearest_p(uspw,thempw) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
+   return true
 end
 
 
