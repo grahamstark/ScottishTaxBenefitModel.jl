@@ -16,6 +16,7 @@ using .Utils
 
 sys21_22 = load_file( "../params/sys_2021_22.jl" )
 load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
+sys21_22.minwage.abolished = true # so we can experiment with low wages
 wpm=PWPM
 wpy=52
 weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
@@ -241,7 +242,8 @@ end
     empty!( head.income )
     unemploy!( head )
     enable!( head )
-
+    
+    # ============== 400 pm single person - under lha 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
     # @test compare_w_2_m(hres.bhc_net_income, 323.70 )
@@ -255,21 +257,44 @@ end
     @test compare_w_2_m(hres.ahc_net_income, 324.84 )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
 
+
+    # ============== 300 earnings 400 pm rent single person - under lha 
+    employ!( head )
+    head.usual_hours_worked = 30
     head.income[wages] = 300/PWPM
 
-    settings.means_tested_routing = lmt_full 
+    settings.means_tested_routing = lmt_full     
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 812.77 )
+    @test compare_w_2_m(hres.bhc_net_income, 904.38 )
     # since 100% rent rebated this should be the same
-    @test compare_w_2_m(hres.ahc_net_income, 345.37 )
+    @test compare_w_2_m(hres.ahc_net_income, 436.98 )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
-    println(  "CT Band=$(hh.ct_band)" )
+    
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres.bhc_net_income, 881.04 )
-    @test compare_w_2_m(hres.ahc_net_income, 413.64 )
+    @test compare_w_2_m(hres.ahc_net_income,  413.64 )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     println(  to_md_table(hres.bus[1].uc ))
+
+    # ============== 500 earnings 400 pm rent single person - under lha 
+    head.income[wages] = 500/PWPM
+    settings.means_tested_routing = lmt_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 934.38 )
+    # since 100% rent rebated this should be the same
+    @test compare_w_2_m(hres.ahc_net_income,  466.98 )
+    println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    println(  "CT Band=$(hh.ct_band)" )
+
+    settings.means_tested_routing = uc_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 940.24 )
+    @test compare_w_2_m(hres.ahc_net_income,  472.84  )
+    println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    println(  to_md_table(hres.bus[1].uc ))
+
+
 end
 
 flush( f )
