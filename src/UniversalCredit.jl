@@ -537,29 +537,31 @@ function calc_universal_credit!(
     # otherwise following the same rules. Something like that, anyway.
     #
     recipient = hhr.bus[1].uc.recipient
-    ucrec = hhr.bus[1].pers[recipient].income[UNIVERSAL_CREDIT]
-    if (recipient > 0 ) && (ucrec > 0 )
-        println( "CTR calc started")
-        bur = household_result.bus[1] 
-        ct = total(household_result, LOCAL_TAXES ) 
-        grossed_up_earn = (bur.uc.earned_income/uc.taper)
-        ucincome =  
-            bur.uc.earnings_before_allowances + # gross earned income back up
-            bur.uc.other_income +
-            bur.uc.tariff_income +
-            ucrec
-        excess = max(0.0, ucincome - bur.uc.maximum)
-        if excess > 0
-            ct = max( 0.0, ct - excess*uc.ctr_taper )  
+    if recipient > 0 # some *something* done with UC
+        ucrec = hhr.bus[1].pers[recipient].income[UNIVERSAL_CREDIT]
+        if (recipient > 0 ) && (ucrec > 0 )
+            println( "CTR calc started")
+            bur = household_result.bus[1] 
+            ct = total(household_result, LOCAL_TAXES ) 
+            grossed_up_earn = (bur.uc.earned_income/uc.taper)
+            ucincome =  
+                bur.uc.earnings_before_allowances + # gross earned income back up
+                bur.uc.other_income +
+                bur.uc.tariff_income +
+                ucrec
+            excess = max(0.0, ucincome - bur.uc.maximum)
+            if excess > 0
+                ct = max( 0.0, ct - excess*uc.ctr_taper )  
+            end
+            bur.uc.ctr = ct
+            println( "ucrec=$ucrec 
+                excess=$excess 
+                income=$ucincome 
+                bur.uc.earnings_before_allowances=$(bur.uc.earnings_before_allowances)
+                earned_income=$(bur.uc.earned_income)
+                grossed_up_earn=$grossed_up_earn 
+                ct = $ct")
         end
-        bur.uc.ctr = ct
-        println( "ucrec=$ucrec 
-            excess=$excess 
-            income=$ucincome 
-            bur.uc.earnings_before_allowances=$(bur.uc.earnings_before_allowances)
-            earned_income=$(bur.uc.earned_income)
-            grossed_up_earn=$grossed_up_earn 
-            ct = $ct")
     end
 end
 

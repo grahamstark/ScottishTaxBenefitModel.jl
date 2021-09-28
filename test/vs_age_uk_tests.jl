@@ -43,20 +43,20 @@ settings = DEFAULT_SETTINGS
     enable!( head )
 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.bhc_net_income ≈ 179.60
+    @test hres_scot.ahc_net_income ≈ 179.60
     println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
     println( "Age 68; \n"*inctostr(  hres_scot.bus[1].pers[head.pid].income ))
 
     head.age = 80
 
     hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.bhc_net_income ≈  (137.60*1.1) + 25.74
+    @test hres_scot.ahc_net_income ≈  (137.60*1.1) + 25.74
     println( "Age 80; old pension x 1.1 \n"*inctostr(  hres_scot.bus[1].pers[head.pid].income ))
 
     head.benefit_ratios[state_pension] = 154.0/137.60 # just qualify for savings credit
     hres_scot = do_one_calc( hh, sys21_22, settings )
     # pen / pen credit / savings credit
-    @test hres_scot.bhc_net_income ≈ 154 + 23.10 + 0.18
+    @test hres_scot.ahc_net_income ≈ 154 + 23.10 + 0.18
     println( "Age 80; old pension x 1.119 so qualify for savings credit \n"*inctostr(  hres_scot.bus[1].pers[head.pid].income ))
       
     
