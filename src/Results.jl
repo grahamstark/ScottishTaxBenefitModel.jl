@@ -55,10 +55,12 @@ module Results
         cap_benefits :: RT = zero(RT)
         reduction :: RT = zero(RT)
     end
+
     @with_kw mutable struct UCResults{RT<:Real}
         basic_conditions_satisfied :: Bool = false
         disqualified_on_capital :: Bool = false
         work_allowance :: RT = zero(RT)
+        earnings_before_allowances :: RT = zero(RT)
         earned_income :: RT = zero(RT)
         other_income :: RT = zero(RT)
         tariff_income :: RT = zero(RT)
@@ -458,6 +460,7 @@ module Results
             hres.bus[1].uc.housing_element
             
         hres.ahc_net_income = hres.bhc_net_income - 
+            hh.gross_rent -
             hres.income[LOCAL_TAXES] -
             hh.mortgage_payment -
             hh.other_housing_charges -

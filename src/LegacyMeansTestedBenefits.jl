@@ -124,9 +124,9 @@ function calc_incomes(
         pers = bu.people[pid]
         pres = bur.pers[pid]
         gross = 
-            get( pers.income, wages, 0.0 ) +
-            get( pers.income, self_employment_income, 0.0 ) # this includes losses
-        if which_ben in [pc,is,jsa,esa,hb]
+            pres.income[WAGES] +
+            pres.income[SELF_EMPLOYMENT_INCOME] # this includes losses
+        if which_ben in [pc,is,jsa,esa,hb,ctr]
             net = 
                 gross - ## FIXME parameterise this so we can use gross/net
                 pres.it.non_savings_tax -
@@ -153,7 +153,7 @@ function calc_incomes(
             disreg = incrules.high
             # and some others ... see CPAG 
         end
-    elseif which_ben in [hb,jsa,is,pc]
+    elseif which_ben in [hb,ctr,jsa,is,pc]
         if intermed.is_sparent            
             disreg = which_ben == hb ? incrules.lone_parent_hb : incrules.high 
         elseif ! isdisjoint( mntr.premia, [
@@ -208,12 +208,13 @@ function calc_incomes(
             for (at,val) in bu.people[pid].assets
                 cap += val
             end
-    end
+        end
     end
     inc.other_income = other
     inc.capital = cap
     inc.gross_earnings = gross_earn
-    inc.net_earnings = max(0.0, gross_earn - disreg - inc.childcare )
+    inc.net_earnings = max(0.0, net_earn - disreg ) - inc.childcare
+ 
     capmin = incrules.capital_min
     capmax = incrules.capital_max
     tariff = incrules.capital_tariff
@@ -387,8 +388,8 @@ function qualifies_for_enhanced_disability(
         pers.sex )
         return false
     end
-    println( inctostr( pres.income ))
-    println( prem_sys.enhanced_disability_premium_qualifying_benefits )
+    # println( inctostr( pres.income ))
+    # println( prem_sys.enhanced_disability_premium_qualifying_benefits )
     if any_positive( pres.income, [NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE])
         return true
     end
@@ -396,7 +397,7 @@ function qualifies_for_enhanced_disability(
         PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
         SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING]
         if p1 in prem_sys.enhanced_disability_premium_qualifying_benefits
-            println( "income[$p1]=$(pres.income[p1]) nmt.pip.dl_enhanced=$(nmt.pip.dl_enhanced)")
+            # println( "income[$p1]=$(pres.income[p1]) nmt.pip.dl_enhanced=$(nmt.pip.dl_enhanced)")
             if pres.income[p1] >= nmt.pip.dl_enhanced
                 return true
             end
@@ -495,7 +496,7 @@ function calc_premia(
                     nmt,
                     age_limits )
         end
-        println( "nenh=$nenh")
+        # println( "nenh=$nenh")
         if nenh == 1
             premium += prem_sys.enhanced_disability_single
             union!( premset, [enhanced_disability_single] )
@@ -505,7 +506,7 @@ function calc_premia(
         end
     end
     # severe disability premium
-    println( "ndis=$ndis num_ads=$num_ads")
+    # println( "ndis=$ndis num_ads=$num_ads")
     if ndis == num_ads # all adults disabled - check for severe dis
         nsev = 0
         for pid in bu.adults
@@ -516,7 +517,7 @@ function calc_premia(
                 nmt
             )
         end
-        println( "nsev=$nsev")
+        # println( "nsev=$nsev")
         if nsev == 1
             premium += prem_sys.severe_disability_single
             union!( premset, [severe_disability_single])

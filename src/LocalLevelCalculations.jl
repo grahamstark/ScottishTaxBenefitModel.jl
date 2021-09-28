@@ -331,9 +331,12 @@ export
         ctres = zero(RT)
         @assert hh.ct_band != Band_I # We're not Welsh
         ctres = ctsys.band_d[hh.council]* ctsys.relativities[hh.ct_band]
-        if intermed.is_sing
+        println( "ctres = $ctres council=$(hh.council) ctband=$(hh.ct_band)")
+        if intermed.num_adults == 1
+            println( "single person discount applies")
             ctres *= (1-ctsys.single_person_discount)
         end
+        println( "final ctres $ctres")
         ## TODO disabled discounts. See CT note.
         return ctres
     end

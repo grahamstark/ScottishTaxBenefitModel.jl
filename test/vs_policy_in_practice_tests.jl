@@ -156,7 +156,7 @@ settings = DEFAULT_SETTINGS
 
 end
 
-#=
+
 @testset "Lone Parent" begin
 
     hh = make_hh(
@@ -194,28 +194,30 @@ end
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 1036.85 )
+    @test compare_w_2_m(hres.ahc_net_income, 1036.85 )
     
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 1037.98 )
+    @test compare_w_2_m(hres.ahc_net_income, 1037.98 )
     
     head.usual_hours_worked = 30
     head.income[wages] = 1_000/PWPM
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 2517.72 )
+    println(  "CT Band=$(hh.ct_band)" )
     println(  to_md_table(hres.bus[1].legacy_mtbens ))
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres.bhc_net_income,  2522.84 )
     # println(  to_string( head ))
     # println(  hres.bus[1].legacy_mtbens.premia )
 
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income,  2460.10 )
+    println(  "CT Band=$(hh.ct_band)" )
     println(  to_md_table(hres.bus[1].uc ))
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    @test compare_w_2_m(hres.bhc_net_income,  2460.10 )
 
 end
 
@@ -242,14 +244,14 @@ end
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 323.70 )
+    # @test compare_w_2_m(hres.bhc_net_income, 323.70 )
     # since 100% rent rebated this should be the same
     @test compare_w_2_m(hres.ahc_net_income, 323.70 )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     println(  "CT Band=$(hh.ct_band)" )
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 324.84 )
+    # @test compare_w_2_m(hres.bhc_net_income, 324.84 )
     @test compare_w_2_m(hres.ahc_net_income, 324.84 )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
 
@@ -269,6 +271,6 @@ end
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     println(  to_md_table(hres.bus[1].uc ))
 end
-=#
+
 flush( f )
 close( f )

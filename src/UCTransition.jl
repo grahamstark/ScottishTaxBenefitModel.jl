@@ -73,7 +73,7 @@ function route_to_uc_or_legacy!(
                 tozero!( bres, UNIVERSAL_CREDIT )
                 bres.uc = UCResults{RT}()
                 bres.route = uc_bens
-                if( bno == 1 ) && ( bres.legacy_mtbens.ctr > 0 )# ctr assignment hack
+                if( bno == 1 ) # && ( bres.legacy_mtbens.ctr > 0 )# ctr assignment hack
                     bres.pers[bres.legacy_mtbens.ctr_recipient].income[COUNCIL_TAX_BENEFIT] = bres.legacy_mtbens.ctr
                 end
             elseif route == uc_bens
@@ -81,7 +81,7 @@ function route_to_uc_or_legacy!(
                 tozero!( bres, LEGACY_MTBS...)
                 bres.route = legacy_bens
                 bres.legacy_mtbens = LMTResults{RT}()
-                if( bno == 1 ) && ( bres.uc.ctr > 0 )# ctr assignment hack
+                if( bno == 1 ) # && ( bres.uc.ctr > 0 )# ctr assignment hack
                     bres.pers[bres.uc.recipient].income[COUNCIL_TAX_BENEFIT] = bres.uc.ctr
                 end
                 ## FIXME TRANSITIONAL PAYMENTS

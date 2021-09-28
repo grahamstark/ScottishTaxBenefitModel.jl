@@ -334,7 +334,7 @@ function calc_uc_income!(
         # println( "earn=$earn seinc=$seinc inc=$inc")
         # println( inctostr( bur.pers[pid].income))
     end
-
+    bur.uc.earnings_before_allowances = earn # the PiP calculator uses this for CTR for UC recipients
     if( intermed.num_children > 0 ) || intermed.limited_capacity_for_work
         bur.uc.work_allowance = bur.uc.housing_element > 0 ? 
             uc.work_allowance_w_housing : uc.work_allowance_no_housing
@@ -542,8 +542,9 @@ function calc_universal_credit!(
         println( "CTR calc started")
         bur = household_result.bus[1] 
         ct = total(household_result, LOCAL_TAXES ) 
+        grossed_up_earn = (bur.uc.earned_income/uc.taper)
         ucincome =  
-            bur.uc.earned_income/uc.taper + # gross earned income back up
+            bur.uc.earnings_before_allowances + # gross earned income back up
             bur.uc.other_income +
             bur.uc.tariff_income +
             ucrec
@@ -552,7 +553,13 @@ function calc_universal_credit!(
             ct = max( 0.0, ct - excess*uc.ctr_taper )  
         end
         bur.uc.ctr = ct
-        println( "ucrec=$ucrec excess $excess income=$ucincome earned_income=$(bur.uc.earned_income)ct = $ct")
+        println( "ucrec=$ucrec 
+            excess=$excess 
+            income=$ucincome 
+            bur.uc.earnings_before_allowances=$(bur.uc.earnings_before_allowances)
+            earned_income=$(bur.uc.earned_income)
+            grossed_up_earn=$grossed_up_earn 
+            ct = $ct")
     end
 end
 
