@@ -88,9 +88,11 @@ export do_one_calc
 One complete calculation for a single household and tb system.
 """
 function do_one_calc( 
-    hh :: Household{T}, 
+    mhh :: Household{T}, 
     sys :: TaxBenefitSystem{T},
     settings :: Settings = DEFAULT_SETTINGS ) :: HouseholdResult{T} where T
+    hh = deepcopy( mhh ) # for minwage and so on
+
     bus = get_benefit_units( hh )
     hres :: HouseholdResult{T} = init_household_result(hh)
     intermed = make_intermediate( 

@@ -249,7 +249,7 @@ end
     # @test compare_w_2_m(hres.bhc_net_income, 323.70 )
     # since 100% rent rebated this should be the same
     @test compare_w_2_m(hres.ahc_net_income, 323.70 )
-    println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    println( inctostr(  hres.bus[1].pers[head.pid].income ))
     println(  "CT Band=$(hh.ct_band)" )
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )

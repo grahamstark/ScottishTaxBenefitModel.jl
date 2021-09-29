@@ -566,7 +566,7 @@ end
     println( "FT Employed")
     println( head )
     for i in 1:nt
-        head.income[wages] = wage[i]
+        bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
             1,
             spers,  
@@ -581,6 +581,8 @@ end
             intermed,
             sys.lmt.income_rules,
             sys.lmt.hours_limits )  
+        println( "incomes $(wage[i])" )
+        println(  to_md_table( incomes ))
         ndd = calc_NDDs( spers, bur, intermed, incomes, sys.lmt.hb )
         @test ndd ≈ ndds[i]
     end # loop round various incomes
@@ -610,7 +612,8 @@ end
     bur = init_benefit_unit_result(  spers )
     println( "Disabled")
     for i in 1:nt
-        head.income[wages] = wage[i]
+        # head.income[wages] = wage[i]
+        bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
             1,
             spers,  
@@ -634,7 +637,8 @@ end
     bur = init_benefit_unit_result(  spers )
     println( "Blind")
     for i in 1:nt
-        head.income[wages] = wage[i]
+        # head.income[wages] = wage[i]
+        bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
             1,
             spers,  
@@ -664,7 +668,8 @@ end
     println( "FT Employed")
     println( spouse )
     for i in 1:nt
-        spouse.income[wages] = wage[i]
+        # spouse.income[wages] = wage[i]
+        bur.pers[spouse.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
             1,
             cpl,  
@@ -684,8 +689,10 @@ end
     end # loop round various incomes
     employ!( head )
     for i in 1:nt
-        spouse.income[wages] = wage[i] / 3.0
-        head.income[wages] = wage[i] * 2 / 3.0
+        # spouse.income[wages] = wage[i] / 3.0
+        # head.income[wages] = wage[i] * 2 / 3.0
+        bur.pers[spouse.pid].income[WAGES] = wage[i] / 3.0
+        bur.pers[head.pid].income[WAGES] = wage[i]* 2 / 3.0
         intermed = make_intermediate( 
             1,
             cpl,  
@@ -712,7 +719,8 @@ end
     println( "FT Employed - CTB")
     println( head )
     for i in 1:nt
-        head.income[wages] = wage[i]
+        # head.income[wages] = wage[i]
+        bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
             1,   
             spers,  
@@ -950,11 +958,14 @@ end
             bures,          
             intermed, 
             sys.lmt.premia,
+            sys.nmt_bens,
             sys.age_limits )
         @test premia ≈ 0.0
         @test length(premset)==0 
     end
     disable_slightly!( head )
+    bures.pers[head.pid].income[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING] = 
+        sys.nmt_bens.pip.dl_standard
     intermed = make_intermediate( 
         1,
         cpl,  
@@ -972,6 +983,7 @@ end
             bures,           
             intermed, 
             sys.lmt.premia,
+            sys.nmt_bens,
             sys.age_limits )
         println( "ben=$ben premia=$premia" )
         if ben == esa
@@ -1000,14 +1012,15 @@ end
             bures,        
             intermed, 
             sys.lmt.premia,
+            sys.nmt_bens,
             sys.age_limits )
         println( "ben=$ben premia=$premia" )
         if ben == esa
-            @test premia ≈ sys.lmt.premia.enhanced_disability_single
-            @test length(premset)==1 ## FIXME check this ESA allowed enhanced_disability_single
+            @test premia ≈ 0.0 # sys.lmt.premia.enhanced_disability_single
+            @test length(premset)==0 ## FIXME check this ESA allowed enhanced_disability_single
         else
-            @test premia == sys.lmt.premia.disability_single+sys.lmt.premia.enhanced_disability_single
-            @test (enhanced_disability_single ∈ premset) && length(premset)==2  
+            @test premia == sys.lmt.premia.disability_single # +sys.lmt.premia.enhanced_disability_single - no since 2 people but 1 disabled
+            @test (disability_single ∈ premset) && length(premset)==1
         end
     end
 end
@@ -1528,8 +1541,8 @@ end
             intermed.buint[1],
             sys.lmt,
             sys.age_limits,
-            sys.nmt_bens,
             sys.hours_limits,
+            sys.nmt_bens,
             tracyh )
 
     #
@@ -1581,8 +1594,8 @@ end
         intermed.buint[1],
         sys.lmt,
         sys.age_limits,
-        sys.nmt_bens,
         sys.hours_limits,
+        sys.nmt_bens,
         tracyh )
     @test bures.pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
     @test bures.pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ 0
