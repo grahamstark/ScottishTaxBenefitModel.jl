@@ -293,9 +293,27 @@ end
     @test compare_w_2_m(hres.ahc_net_income,  472.84  )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     println(  to_md_table(hres.bus[1].uc ))
-
-
 end
 
-flush( f )
+
+
+@testset "Couple with 2 children and housing costs" begin
+    
+    hh = make_hh(
+        adults = 2,
+        children = 2,
+        earnings = 0,
+        rent = 0,
+        rooms = 0,
+        age = 50,
+        tenure = Private_Rented_Furnished )
+    hh.gross_rent = 800/PWPM
+    #
+    head = get_head( hh )
+    spouse = get_spouse( hh )
+
+
+    
+end 
+
 close( f )
