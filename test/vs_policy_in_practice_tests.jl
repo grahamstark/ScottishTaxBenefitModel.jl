@@ -328,9 +328,11 @@ end
         ch.cost_of_childcare = 20*ccph
     end
 
+    # println( to_md_table( hh ))
+
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 1753.35 )
+    @test compare_w_2_m(hres.bhc_net_income, 1843.22 )
     # since 100% rent rebated this should be the same
     @test compare_w_2_m(hres.ahc_net_income, 20.02+(200*PWPM) )
     println(  to_md_table(hres.bus[1].legacy_mtbens ))
@@ -338,9 +340,10 @@ end
     
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 1753.35 )
+    @test compare_w_2_m(hres.bhc_net_income, 1843.22 )
     @test compare_w_2_m(hres.ahc_net_income, 20.02+(200*PWPM))
     println(  to_md_table(hres.bus[1].uc ))    
+    println(  to_md_table(hres.bus[1].bencap ))    
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
 
 end 

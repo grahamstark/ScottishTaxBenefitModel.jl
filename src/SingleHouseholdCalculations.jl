@@ -192,8 +192,7 @@ function do_one_calc(
             bus[buno],
             intermed.buint[buno],
             sys.bencap,
-            legacy_bens 
-        )
+            hres.bu[buno].route )
     end
     aggregate!( hh, hres )
     return hres

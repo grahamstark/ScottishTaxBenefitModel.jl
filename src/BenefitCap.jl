@@ -38,13 +38,15 @@ function apply_benefit_cap!(
     route            :: LegacyOrUC )
     # FIXME CPAG 19/20 p 1190 does this on some benefit
     # receipts but this is likely near enough.
-
+    println( "apply_benefit_cap entered; route = $route")
+    println( "")
     bu = benefit_unit # shortcut
     bur = benefit_unit_result # shortcut
     if route == legacy_bens 
         for pid in bu.adults
             if bur.pers[pid].income[WORKING_TAX_CREDIT] > 0
                 # cpag 21/2 p 1182
+                println("wtc bailing out")
                 return
             end
         end
@@ -54,6 +56,7 @@ function apply_benefit_cap!(
             gross_earnings += isum( bur.pers[pid].income, [WAGES,SELF_EMPLOYMENT_INCOME] )
         end
         if gross_earnings >= caps.uc_incomes_limit
+            println("gross earn; bailing out ")
             return
         end
     end
@@ -62,7 +65,7 @@ function apply_benefit_cap!(
         intermed.someone_is_carer ||
         (intermed.num_severely_disabled_adults > 0) ||
         caps.abolished
-        # println("bailing out")
+        println("pension age bailing out")
         return
     end
     
@@ -74,6 +77,7 @@ function apply_benefit_cap!(
             caps.inside_london_single :
             caps.inside_london_couple
     end
+    println("got cap as $cap")
     totbens = 0.0
     included = UC_CAP_BENEFITS
     target_ben = UNIVERSAL_CREDIT
@@ -94,10 +98,11 @@ function apply_benefit_cap!(
         end
     end
     if recip_ben == 0.0
-        # println("uc/hb0; returning ")
+        println("uc/hb0; returning ")
         return
     end
     excess = totbens - cap
+    println("totbens=$totbens cap=$cap excess=$excess")
     if excess > min_amount
         rd = max( min_amount, recip_ben - excess )
         bur.bencap.reduction = recip_ben - rd        
