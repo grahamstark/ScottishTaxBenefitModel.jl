@@ -23,7 +23,7 @@ weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
 println(  "weeklyise start wpm=$wpm wpy=$wpy")
 
 settings = DEFAULT_SETTINGS
-#=
+
 @testset "Single Person, No Housing Costs 19/Sep/2021 values (without £20)" begin
 
     # These from https://policyinpractice.co.uk/benefit-budgeting-calculator/
@@ -295,7 +295,6 @@ end
     println(  to_md_table(hres.bus[1].uc ))
 end
 
-=#
 
 @testset "Couple with 2 children and housing costs" begin
     

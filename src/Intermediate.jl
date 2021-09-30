@@ -54,6 +54,8 @@ using .Utils:
     mult,
     to_md_table
 
+using .STBIncomes
+
 export 
     MTIntermediate,     
     apply_2_child_policy,
@@ -62,6 +64,7 @@ export
     has_limited_capactity_for_work, 
     is_working_hours, 
     make_intermediate, 
+    make_recipient,
     num_born_before, 
     to_string,
     working_disabled,
@@ -269,7 +272,25 @@ function to_string( hh :: HHIntermed ) :: String
     end
     return s
 end
-    
+
+"""
+Assign CB, etc. to 1st adult female in a benefit unit, everything else to head of bu
+"""
+function make_recipient( bu :: BenefitUnit, which :: Incomes ) :: BigInt
+    ## FIXME assert check here for non bu level benefits e.g. PIPs
+    if which in [CHILD_TAX_CREDIT, CHILD_BENEFIT, SCOTTISH_CHILD_PAYMENT ]
+        # first_adult_female
+        for pid in bu.adults
+            if bu.people[pid].sex == Female
+                return pid
+            end
+        end
+    end
+    ## FIXME expand this to check for if head is retired for WTC/UC 
+    # see the thing in .UniversalCredit 
+    return get_head( bu ).pid
+end
+
 
 function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     # benefit_unit_number :: Int

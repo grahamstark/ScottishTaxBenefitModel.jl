@@ -25,7 +25,8 @@ module NonMeansTestedBenefits
 
     using .Intermediate:
         has_limited_capactity_for_work_activity,
-        has_limited_capactity_for_work
+        has_limited_capactity_for_work,
+        make_recipient
         
     using .STBParameters: 
         AgeLimits, 
@@ -85,7 +86,7 @@ module NonMeansTestedBenefits
         if nc > 1
             c += (nc-1)*cb.other_children
         end
-        recipient :: BigInt = bu.spouse > 0 ? bu.spouse : bu.head
+        recipient = make_recipient( bu, CHILD_BENEFIT )
         # guardian's allowance
         bures.pers[recipient].income[GUARDIANS_ALLOWANCE] = 0.0
 

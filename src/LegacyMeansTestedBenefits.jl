@@ -71,6 +71,7 @@ using .Intermediate:
     apply_2_child_policy,
     born_before, 
     is_working_hours,
+    make_recipient,
     num_born_before, 
     working_disabled
 
@@ -723,10 +724,12 @@ function calcWTC_CTC!(
     bu_lmt.wtc_ctc_threshold = threshold
 
     # to spouse if has one
-    recipient :: BigInt = length(benefit_unit_result.adults)[1] == 2 ? benefit_unit_result.adults[2] : benefit_unit_result.adults[1]
-    benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
-    benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
+    recipient = make_recipient( bu, WORKING_TAX_CREDIT )
     benefit_unit_result.legacy_mtbens.wtc_recipient = recipient
+    benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
+
+    recipient = make_recipient( bu, CHILD_TAX_CREDIT )
+    benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
 
 end
 
@@ -846,8 +849,8 @@ function calculateHB_CTR!(
                 end
                 
             end
-            # FIXME this needs to be a function
-            recipient :: BigInt = bures.adults[1]
+            
+            recipient = make_recipient( bu, HOUSING_BENEFIT )
             bures.legacy_mtbens.hb_recipient = recipient
             bures.legacy_mtbens.ctr_recipient = recipient
 
@@ -951,20 +954,23 @@ function calc_legacy_means_tested_benefits!(
             # FIXME we just allocate payment to the head of
             # the BU - make this a function or make can_apply_for
             # specify the payee as well as whether the BU qualifies
-            recipient :: BigInt = bures.adults[1]
+            if can_apply_for.ctc
+                recipient = make_recipient( bu, CHILD_TAX_CREDIT )
+                bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
+                    calc_full_ctc( bu, intermed, mt_ben_sys.child_tax_credit )
+            end
             if can_apply_for.esa 
+                recipient = make_recipient( bu, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE )
                 bures.pers[recipient].income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = entitlement
                 # bures.legacy_mtbens.esa = entitlement
             elseif can_apply_for.jsa
+                recipient = make_recipient( bu, NON_CONTRIB_JOBSEEKERS_ALLOWANCE )
                 bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = entitlement
                 # bures.legacy_mtbens.jsa = entitlement
             elseif can_apply_for.is
+                recipient = make_recipient( bu, INCOME_SUPPORT )
                 bures.pers[recipient].income[INCOME_SUPPORT] = entitlement
                 # bures.legacy_mtbens.is = entitlement
-            end
-            if can_apply_for.ctc
-                bures.pers[recipient].income[CHILD_TAX_CREDIT] = 
-                    calc_full_ctc( bu, intermed, mt_ben_sys.child_tax_credit )
             end
             bures.legacy_mtbens.mig_recipient = recipient
 
@@ -1006,8 +1012,8 @@ function calc_legacy_means_tested_benefits!(
             bures.legacy_mtbens.mig - 
             bures.legacy_mtbens.pc_incomes.total_income )
  
-        # fixme make this a function
-        recipient = bures.adults[1]
+        
+        recipient = make_recipient( bu, SAVINGS_CREDIT )
         
         if can_apply_for.sc && ( ! incomes.disqualified_on_capital ) && ( ! mt_ben_sys.savings_credit.abolished )
             scsys = mt_ben_sys.savings_credit #  shortcut
@@ -1048,7 +1054,6 @@ function calc_legacy_means_tested_benefits!(
     # but not the automatic full amount
     #
     if can_apply_for.wtc || (can_apply_for.ctc && (which_mig === nothing ))
-        recipient = bures.adults[1] # CHECK SPOUSE
         calcWTC_CTC!( 
                 bures,
                 bu,

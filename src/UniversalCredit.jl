@@ -38,6 +38,7 @@ using .Intermediate:
     born_before, 
     has_limited_capactity_for_work_activity,
     has_limited_capactity_for_work,
+    make_recipient,
     reached_state_pension_age
  
 using .Results: 
