@@ -278,6 +278,8 @@ Assign CB, etc. to 1st adult female in a benefit unit, everything else to head o
 """
 function make_recipient( bu :: BenefitUnit, which :: Incomes ) :: BigInt
     ## FIXME assert check here for non bu level benefits e.g. PIPs
+    #
+    # FIXME maybe also check relationships to children?
     if which in [CHILD_TAX_CREDIT, CHILD_BENEFIT, SCOTTISH_CHILD_PAYMENT ]
         # first_adult_female
         for pid in bu.adults
@@ -287,7 +289,7 @@ function make_recipient( bu :: BenefitUnit, which :: Incomes ) :: BigInt
         end
     end
     ## FIXME expand this to check for if head is retired for WTC/UC 
-    # see the thing in .UniversalCredit 
+    # see the thing in .UniversalCredit.jl
     return get_head( bu ).pid
 end
 
