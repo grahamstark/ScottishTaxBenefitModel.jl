@@ -308,15 +308,21 @@ end
         age = 50,
         tenure = Private_Rented_Furnished )
     hh.gross_rent = 200 # 800/PWPM
+    hh.water_and_sewerage = 0
+    hh.other_housing_charges = 0
     # === 2 ch family unemployed & hit by benefit cap & rent reduction
     head = get_head( hh )
     spouse = get_spouse( hh )
+    spouse.age = 51
+    println( "spouse.age=$(spouse.age)")
     unemploy!( head )
     enable!( head )
     unemploy!( spouse )
     enable!( spouse )
     empty!( head.income )
+    empty!( head.assets )
     empty!( spouse.income )
+    empty!( spouse.assets )
     
     bus = get_benefit_units(hh)
     bu = bus[1]
@@ -324,6 +330,8 @@ end
     # 40 hrs child care @4.69ph
     for pid in bu.children
         ch = bu.people[pid]
+        empty!( ch.income )
+        empty!( ch.assets )
         ch.age = 2
         ch.hours_of_childcare = 20
         ch.cost_of_childcare = 20*ccph
@@ -338,22 +346,32 @@ end
     @test nc == 2
     @test np == 4
     @test nh == np
-    # println( to_md_table( hh ))
-
+    println( to_md_table( hh ))
+    println(  to_md_table( head ))
+    println(  to_md_table( spouse ))
+    
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres.bhc_net_income, 1843.22 )
     # since 100% rent rebated this should be the same
-    @test compare_w_2_m(hres.ahc_net_income, 20.02+(200*PWPM) )
+    # the 200 is child care, to match the calculator
+    @test compare_w_2_m(hres.ahc_net_income-200,  20.02)
     println(  to_md_table(hres.bus[1].legacy_mtbens ))
+    println(  to_md_table(hres.bus[1].bencap ))    
+    print( "## BU Income ")
+    println(  inctostr(  hres.bus[1].income ))
+    print( "## Head Income ")
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    print( "## Spouse Income ")
+    println(  inctostr(  hres.bus[1].pers[spouse.pid].income ))
     
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres.bhc_net_income, 1843.22 )
-    @test compare_w_2_m(hres.ahc_net_income, 20.02+(200*PWPM))
+    # the 200 is child care, to match the calculator
+    @test compare_w_2_m(hres.ahc_net_income-200, 20.02)
     println(  to_md_table(hres.bus[1].uc ))    
     println(  to_md_table(hres.bus[1].bencap ))    
-    println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    println(  inctostr(  hres.bus[1].income ))
 
 end 

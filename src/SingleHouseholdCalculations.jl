@@ -148,8 +148,7 @@ function do_one_calc(
     calc_UBI!(
         hres,
         hh,
-        sys.ubi
-    )
+        sys.ubi )
 
     calc_legacy_means_tested_benefits!(
         hres,

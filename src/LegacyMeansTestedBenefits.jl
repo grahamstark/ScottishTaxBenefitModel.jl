@@ -598,23 +598,30 @@ function calc_allowances(
             if intermed.num_adults == 1 
                 if intermed.num_children > 0 # single parent
                     if intermed.someone_pension_age
+                        println( "pas.lone_parent_over_pension_age")
                         pers_allow = pas.lone_parent_over_pension_age     
                     else
+                        println( "pas.lone_parent")
                         pers_allow = pas.lone_parent                 
                     end            
                 else
                     if intermed.someone_pension_age
+                        println( "pas.over_pension_age")
                         pers_allow = pas.over_pension_age
                     elseif intermed.age_oldest_adult < 25
+                        println( "pas.age_18_24")
                         pers_allow = pas.age_18_24        
                     else
+                        println( "pas.age_25_and_over")
                         pers_allow = pas.age_25_and_over
                     end
                 end
             else # 2 adults, both at least 18
                 if intermed.someone_pension_age
+                    println( "pas.couple_over_pension_age")
                     pers_allow = pas.couple_over_pension_age
                 else
+                    println( "pas.couple_both_over_18")
                     pers_allow = pas.couple_both_over_18
                 end
             end # 2 adults
@@ -1036,7 +1043,11 @@ function calc_legacy_means_tested_benefits!(
         bures.pers[recipient].income[PENSION_CREDIT] = pc_entitlement
     end
     
-    if can_apply_for.wtc || can_apply_for.ctc
+    #
+    # Do WTC iff you can apply for it or if you qualify for CTC
+    # but not the automatic full amount
+    #
+    if can_apply_for.wtc || (can_apply_for.ctc && (which_mig === nothing ))
         recipient = bures.adults[1] # CHECK SPOUSE
         calcWTC_CTC!( 
                 bures,
