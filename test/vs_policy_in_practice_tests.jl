@@ -20,7 +20,6 @@ sys21_22.minwage.abolished = true # so we can experiment with low wages
 wpm=PWPM
 wpy=52
 weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
-f = open( "tmp/vs_pinp.txt", "w")
 println(  "weeklyise start wpm=$wpm wpy=$wpy")
 
 settings = DEFAULT_SETTINGS
@@ -345,5 +344,3 @@ end
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
 
 end 
-
-close( f )
