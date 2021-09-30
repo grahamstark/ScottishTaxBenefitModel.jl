@@ -355,6 +355,21 @@ end
     # since 100% rent rebated this should be the same
     # the 200 is child care, to match the calculator
     @test compare_w_2_m(hres.ahc_net_income-200,  20.02)
+    
+    settings.means_tested_routing = uc_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 1843.22 )
+    # the 200 is child care, to match the calculator
+    @test compare_w_2_m(hres.ahc_net_income-200, 20.02)
+
+    # 500 pw split between partners
+    head.income[wages] = 250
+    head.usual_hours_worked = 30
+    spouse.income[wages] = 250
+    spouse.usual_hours_worked = 30
+    settings.means_tested_routing = lmt_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 3262.14 )
     println(  to_md_table(hres.bus[1].legacy_mtbens ))
     println(  to_md_table(hres.bus[1].bencap ))    
     print( "## BU Income ")
@@ -363,14 +378,33 @@ end
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     print( "## Spouse Income ")
     println(  inctostr(  hres.bus[1].pers[spouse.pid].income ))
-    
+
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 1843.22 )
-    # the 200 is child care, to match the calculator
-    @test compare_w_2_m(hres.ahc_net_income-200, 20.02)
+    @test compare_w_2_m(hres.bhc_net_income, 3563.71 )
     println(  to_md_table(hres.bus[1].uc ))    
     println(  to_md_table(hres.bus[1].bencap ))    
     println(  inctostr(  hres.bus[1].income ))
 
+    head.income[wages] = 500
+    spouse.income[wages] = 250
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 3441.42 )
+    println(  to_md_table(hres.bus[1].legacy_mtbens ))
+    println(  to_md_table(hres.bus[1].bencap ))    
+    print( "## BU Income ")
+    println(  inctostr(  hres.bus[1].income ))
+    print( "## Head Income ")
+    println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    print( "## Spouse Income ")
+    println(  inctostr(  hres.bus[1].pers[spouse.pid].income ))
+
+    settings.means_tested_routing = uc_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 3836.58 )
+    println(  to_md_table(hres.bus[1].uc ))    
+    println(  to_md_table(hres.bus[1].bencap ))    
+    println(  inctostr(  hres.bus[1].income ))
+
+   
 end 
