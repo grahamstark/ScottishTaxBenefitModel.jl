@@ -388,6 +388,7 @@ end
 
     head.income[wages] = 500
     spouse.income[wages] = 250
+    settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres.bhc_net_income, 3441.42 )
     println(  to_md_table(hres.bus[1].legacy_mtbens ))

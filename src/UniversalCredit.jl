@@ -547,4 +547,4 @@ function calc_universal_credit!(
     end
 end
 
-end
+end # module
