@@ -369,7 +369,7 @@ end
     spouse.usual_hours_worked = 30
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 3262.14 )
+    @test compare_w_2_m(hres.bhc_net_income, 3262.14, 2 )
     println(  to_md_table(hres.bus[1].legacy_mtbens ))
     println(  to_md_table(hres.bus[1].bencap ))    
     print( "## BU Income ")
@@ -381,7 +381,7 @@ end
 
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 3563.71 )
+    @test compare_w_2_m(hres.bhc_net_income, 3563.71, 2 )
     println(  to_md_table(hres.bus[1].uc ))    
     println(  to_md_table(hres.bus[1].bencap ))    
     println(  inctostr(  hres.bus[1].income ))
@@ -390,7 +390,7 @@ end
     spouse.income[wages] = 250
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 3441.42 )
+    @test compare_w_2_m(hres.bhc_net_income, 3441.42, 2 ) # 5p per month because of weird roun
     println(  to_md_table(hres.bus[1].legacy_mtbens ))
     println(  to_md_table(hres.bus[1].bencap ))    
     print( "## BU Income ")
@@ -402,10 +402,39 @@ end
 
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test compare_w_2_m(hres.bhc_net_income, 3836.58 )
+    @test compare_w_2_m(hres.bhc_net_income, 3836.58, 2 )
     println(  to_md_table(hres.bus[1].uc ))    
     println(  to_md_table(hres.bus[1].bencap ))    
     println(  inctostr(  hres.bus[1].income ))
 
+    # == 4 children under 5
+    hh.bedrooms = 4
+    head.income[wages] = 250
+    spouse.income[wages] = 250
+    pid1 = add_child!( hh, 3, Female )
+    pid2 = add_child!( hh, 1, Male )
+
+    settings.means_tested_routing = lmt_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 3569.85, 2 )
+    println(  to_md_table(hres.bus[1].legacy_mtbens ))
+    println(  to_md_table(hres.bus[1].bencap ))    
+    print( "## BU Income ")
+    println(  inctostr(  hres.bus[1].income ))
+    print( "## Head Income ")
+    println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    print( "## Spouse Income ")
+    println(  inctostr(  hres.bus[1].pers[spouse.pid].income ))
+
+    settings.means_tested_routing = uc_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 3871.42, 2 )
+    println(  to_md_table(hres.bus[1].uc ))    
+    println(  to_md_table(hres.bus[1].bencap ))    
+    println(  inctostr(  hres.bus[1].income ))
+    
+    for pid in bu.children
+        println( bu.people[pid].age )
+    end
    
 end 

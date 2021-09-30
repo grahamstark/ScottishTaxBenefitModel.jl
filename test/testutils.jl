@@ -75,9 +75,9 @@ function get_default_uc( ;
    return uc
 end
 
-function to_nearest_p( x, y :: Real ) :: Bool
+function to_nearest_p( x, y :: Real, ps :: Real = 1 ) :: Bool
    diff = abs(x-y)
-   return diff <= 0.01
+   return diff <= 0.01*ps
    # round(x, digits=2) == round(y, digits=2)
 end
 
@@ -380,10 +380,10 @@ Compare PIP monthly calculations with our weekly, using their 52/12 weeks per mo
 Throw an AssertionException if different, so we can use this directly
 in a @test macro.
 """
-function compare_w_2_m( uspw::Real, thempm::Real ) :: Bool
+function compare_w_2_m( uspw::Real, thempm::Real, ps :: Real = 1 ) :: Bool
    uspm = uspw*PWPM
    thempw = thempm/PWPM
-   @assert to_nearest_p(uspw,thempw) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
+   @assert to_nearest_p(uspw,thempw,ps) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
    return true
 end
 

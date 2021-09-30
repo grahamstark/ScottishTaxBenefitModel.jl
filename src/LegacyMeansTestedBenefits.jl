@@ -645,6 +645,7 @@ function calc_full_ctc(
     if num_born_before( bu, Date( 2017, 4, 6 )) > 0
         ctc_elements += ctc.family
     end
+    println( "num_allowed_children=$(intermed.num_allowed_children)")
     ctc_elements += (intermed.num_allowed_children*ctc.child)
     ctc_elements += intermed.num_disabled_children*ctc.disability
     ctc_elements += intermed.num_severely_disabled_children*ctc.severe_disability 

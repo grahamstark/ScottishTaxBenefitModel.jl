@@ -98,7 +98,6 @@ function apply_2_child_policy(
             after_children += 1
         end          
     end
-    # println( "before children $before_children after children $after_children " )
     allowable = before_children + min( max(limits.max_children-before_children,0), after_children )
 end
 
@@ -106,7 +105,6 @@ function born_before( age :: Integer,
     start_date     :: TimeType = Date( 2017, 4, 6 ), # 6th April 2017
     model_run_date :: TimeType = now() )
     bdate = model_run_date - Year(age)
-    # println( "age = $(age) => birthdate $bdate" )
     return bdate < start_date   
 end
 
@@ -170,14 +168,12 @@ end
 
 
 function is_working_hours( pers :: Person, hours... ) :: Bool
-    # println( "pers.hours=$(pers.usual_hours_worked) hours=$hours employment=$(pers.employment_status)")
     if length(hours) == 1 
         return (pers.usual_hours_worked >= hours[1])
     elseif length(hours) == 2
         return (pers.usual_hours_worked >= hours[1]) &&
                (pers.usual_hours_worked <= hours[2])
     end
-    #(pers.employment_status in [Full_time_Employee,Full_time_Self_Employed])
 end
 
 """
@@ -382,7 +378,6 @@ function make_intermediate(
         end
         
     end
-    # println( "num_adults=$num_adults; num_pens_age=$num_pens_age")
     someone_pension_age  :: Bool = num_pens_age > 0
     all_pension_age :: Bool = num_adlts == num_pens_age
     num_working_ft :: Int = count( bu, is_working_hours, hrs.higher )
@@ -446,7 +441,6 @@ function make_intermediate(
         end 
         if pers_is_disabled( pers )
             num_disabled_adults += 1
-            # println( "adding a disabled adult $num_disabled_adults ")
             if is_severe_disability( pers )
                 num_severely_disabled_adults += 1
             end
@@ -475,7 +469,6 @@ function make_intermediate(
     
     ## fixme parameterise this
     num_allowed_children :: Int = apply_2_child_policy( bu, child_limits )
-    # println( "has_children $has_children age_oldest_child $age_oldest_child age_youngest_child $age_youngest_child" )
     @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
                                     
     return MTIntermediate(
