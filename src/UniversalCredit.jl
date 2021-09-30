@@ -102,7 +102,6 @@ function basic_conditions_satisfied(
                 break
             end
         end
-        # println( "16-17 adult q1617=$q1617")
         return q1617            
     else
         all_in_educ = true
@@ -147,17 +146,13 @@ function qualifiying_16_17_yo(
     uc :: UniversalCreditSys ) :: Bool
     bu = benefit_unit # shortcut
     if pers_is_carer( pers )
-        # println( "is carer")
         return true
     elseif has_limited_capactity_for_work( pers )
-        # println( "has_limited_capactity_for_work_activity")
         return true
     elseif (is_head( bu, pers ) || is_spouse( bu, pers )) && ( intermed.num_children > 0)
-        # println( "bu has children")
         return true
         ## And some others; see CPAG 2020/1 p 37
     end
-    # println( "returning false")
     return false
 end
 
@@ -244,7 +239,6 @@ function calc_elements!(
         else
             ucr.child_element = uc.subsequent_child
         end
-        # println( "ucr.child_element = $(ucr.child_element) intermed.num_allowed_children=$(intermed.num_allowed_children) uc.subsequent_child=$(uc.subsequent_child)")
         ucr.child_element += (intermed.num_allowed_children-1)*uc.subsequent_child
     end
     # limited capacity for work-related Activity
@@ -305,7 +299,6 @@ function make_min_se(
     minwage  :: MinimumWage ) :: T where T
     mw :: T = get_minimum_wage( minwage, age )
     min_se :: T = mw*uc.minimum_income_floor_hours
-    # println( "min_se $min_se mw=$mw uc.minimum_income_floor_hours $(uc.minimum_income_floor_hours)")
     return max( min_se, seinc )
 end
 
@@ -331,8 +324,6 @@ function calc_uc_income!(
             seinc = make_min_se( seinc, bu.people[pid].age, uc, minwage )            
         end
         earn += seinc
-        # println( "earn=$earn seinc=$seinc inc=$inc")
-        # println( inctostr( bur.pers[pid].income))
     end
     bur.uc.earnings_before_allowances = earn # the PiP calculator uses this for CTR for UC recipients
     if( intermed.num_children > 0 ) || intermed.limited_capacity_for_work
@@ -342,8 +333,6 @@ function calc_uc_income!(
     end
     bur.uc.other_income = inc
     bur.uc.earned_income = earn*uc.taper
-    # println( "earn $earn taper $(uc.taper)")
-    # println("calc_uc_income! at end $(bur.uc)")
 end
 
 ## FIXME we need the extra capital var here benunit.Totsav
@@ -540,7 +529,6 @@ function calc_universal_credit!(
     if recipient > 0 # some *something* done with UC
         ucrec = hhr.bus[1].pers[recipient].income[UNIVERSAL_CREDIT]
         if (recipient > 0 ) && (ucrec > 0 )
-            println( "CTR calc started")
             bur = household_result.bus[1] 
             ct = total(household_result, LOCAL_TAXES ) 
             grossed_up_earn = (bur.uc.earned_income/uc.taper)
@@ -554,13 +542,6 @@ function calc_universal_credit!(
                 ct = max( 0.0, ct - excess*uc.ctr_taper )  
             end
             bur.uc.ctr = ct
-            println( "ucrec=$ucrec 
-                excess=$excess 
-                income=$ucincome 
-                bur.uc.earnings_before_allowances=$(bur.uc.earnings_before_allowances)
-                earned_income=$(bur.uc.earned_income)
-                grossed_up_earn=$grossed_up_earn 
-                ct = $ct")
         end
     end
 end

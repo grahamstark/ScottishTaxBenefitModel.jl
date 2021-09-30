@@ -388,8 +388,6 @@ function qualifies_for_enhanced_disability(
         pers.sex )
         return false
     end
-    # println( inctostr( pres.income ))
-    # println( prem_sys.enhanced_disability_premium_qualifying_benefits )
     if any_positive( pres.income, [NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE])
         return true
     end
@@ -397,7 +395,6 @@ function qualifies_for_enhanced_disability(
         PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
         SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING]
         if p1 in prem_sys.enhanced_disability_premium_qualifying_benefits
-            # println( "income[$p1]=$(pres.income[p1]) nmt.pip.dl_enhanced=$(nmt.pip.dl_enhanced)")
             if pres.income[p1] >= nmt.pip.dl_enhanced
                 return true
             end
@@ -496,7 +493,6 @@ function calc_premia(
                     nmt,
                     age_limits )
         end
-        # println( "nenh=$nenh")
         if nenh == 1
             premium += prem_sys.enhanced_disability_single
             union!( premset, [enhanced_disability_single] )
@@ -506,7 +502,6 @@ function calc_premia(
         end
     end
     # severe disability premium
-    # println( "ndis=$ndis num_ads=$num_ads")
     if ndis == num_ads # all adults disabled - check for severe dis
         nsev = 0
         for pid in bu.adults
@@ -517,7 +512,6 @@ function calc_premia(
                 nmt
             )
         end
-        # println( "nsev=$nsev")
         if nsev == 1
             premium += prem_sys.severe_disability_single
             union!( premset, [severe_disability_single])
@@ -709,13 +703,9 @@ function calcWTC_CTC!(
     elements = ctc_elements + wtc_elements
     excess = wtc.taper * max( 0.0, income - threshold )
     wtc_ctc = max( 0.0, elements - excess )
-    # println( "excess = $excess wtc.taper=$(wtc.taper) threshold=$threshold" )
-    # println( "elements = $elements ctc_elements=$ctc_elements  wtc_elements=$wtc_elements")
     # allocate
     ctc_amt = min( wtc_ctc, ctc_elements )
     wtc_amt = wtc_ctc - ctc_amt
-    # println( "ctc_amt = $ctc_amt wtc_amt = $wtc_amt")
-    
     ## assign to an individual
     
     bu_lmt.wtc_ctc_tapered_excess = excess
@@ -730,9 +720,6 @@ function calcWTC_CTC!(
     benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
     benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
     benefit_unit_result.legacy_mtbens.wtc_recipient = recipient
-
-    # println( "income at end of wtc calc")
-    # println( inctostr( benefit_unit_result.pers[recipient].income ))
 
 end
 
@@ -774,8 +761,6 @@ function calc_NDDs(
         end
         any_pay_ndds = any_pay_ndds || pays_ndd
     end # pids loop
-    # println( "any pay ndds $any_pay_ndds incomes.gross_earnings=$(incomes.gross_earnings)")
-    # println( "someone full time $(intermed.someone_working_ft)")
     if any_pay_ndds
         if intermed.someone_working_ft
             n = size(hb.ndd_incomes)[1]
@@ -821,7 +806,6 @@ function calculateHB_CTR!(
             intermed.buint[bn],
             lmt_ben_sys.income_rules,
             lmt_ben_sys.hours_limits )
-        # println( "loop start; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
         if bn == 1
             benefit = max(0.0, eligible_amount - ndds ) # ndds deducted from eligible rent
             premium = 0.0
@@ -833,7 +817,6 @@ function calculateHB_CTR!(
                 passported = true
             else
                 ## FIXME pass this in
-                # println( "else; bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")    
                 premium, premset = calc_premia(
                     hb,
                     bu,
@@ -842,8 +825,6 @@ function calculateHB_CTR!(
                     lmt_ben_sys.premia,
                     nmt_bens,
                     age_limits )            
-                # println( "bures.legacy_mtbens.premia $(bures.legacy_mtbens.premia)")
-                # println( "premset $(premset))")
                 union!(bures.legacy_mtbens.premia, premset)
                 allowances = calc_allowances(
                     hb,
@@ -854,9 +835,7 @@ function calculateHB_CTR!(
                 excess = max( 0.0, incomes.total_income - (premium+allowances))
                 if excess > 0
                     taper = which_ben == ctr ? lmt_ben_sys.ctr.taper : lmt_ben_sys.hb.taper
-                    println( "taper=$taper excess=$excess" )
                     benefit = max( 0.0, benefit - taper*excess )
-                    println( "benefit $benefit")    
                 end
                 
             end
@@ -1053,10 +1032,8 @@ function calc_legacy_means_tested_benefits!(
                 bures.pers[recipient].income[SAVINGS_CREDIT] = scent
                 bures.legacy_mtbens.sc_incomes = sc_incomes  
             end
-            # println( "SC: maxpay=$maxpay; thresh=$thresh income_over_thresh=$income_over_thresh sc_maximum $sc_maximum income_over_mig $income_over_mig bures.pers[recipient].income[SAVINGS_CREDIT]=$(bures.pers[recipient].income[SAVINGS_CREDIT])") 
         end
         bures.pers[recipient].income[PENSION_CREDIT] = pc_entitlement
-        #  + bures.legacy_mtbens.sc
     end
     
     if can_apply_for.wtc || can_apply_for.ctc
