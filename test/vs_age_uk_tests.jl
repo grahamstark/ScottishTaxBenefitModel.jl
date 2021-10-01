@@ -65,8 +65,13 @@ settings = DEFAULT_SETTINGS
 
     # £98.76 = 52.10PC + 10.00 SCP + 15.51 CTR + 21.15 CB + 179.60PENS
     hres = do_one_calc( hh, sys21_22, settings )
-    @test hres.ahc_net_income ≈ 179.60 + 98.76
+    @test hres.bhc_net_income ≈ (179.60 + 98.76) atol=0.04 # FIXME check weird rounding 
+
+    hh.gross_rent = 100
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test hres.bhc_net_income ≈ (179.60 + 198.76) atol=0.04 # FIXME check weird rounding 
     println( to_md_table(hres.bus[1].legacy_mtbens ))
     println( "Age 68; + 1 chld no rent \n"*inctostr(  hres.bus[1].income ))
+
 
 end

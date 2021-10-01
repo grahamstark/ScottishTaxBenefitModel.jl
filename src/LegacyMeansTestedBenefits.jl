@@ -573,7 +573,9 @@ function calc_allowances(
         # children - cpag p 272 says there's an allowance for children
         # if not claiming CTC, but so far as I can see there's no
         # upper limit on CTC
-        # pers_allow += intermed.num_children_born_before*
+        # .. anyway, the AC calculator suggests this:
+        pers_allow += pas.pc_child * intermed.num_allowed_children
+        ## FIXME also an allowance for 1st child born before 6th april 2018
     else
         if intermed.age_oldest_adult < 18
             # argh .. not there's a conditional on ESA that we don't cover here
@@ -622,7 +624,7 @@ function calc_allowances(
                 end
             end # 2 adults
         end # no 16-17 yos 
-        if which_ben in [hb,ctr]
+        if which_ben in [hb,ctr] #
             pers_allow += pas.child * intermed.num_allowed_children
         end
     end

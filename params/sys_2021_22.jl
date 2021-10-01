@@ -111,6 +111,7 @@ sys.lmt.allowances.pa_couple_one_over_18_low = 59.20
 sys.lmt.allowances.child = 68.60
 sys.lmt.allowances.pc_mig_single = 177.10
 sys.lmt.allowances.pc_mig_couple = 270.30
+sys.lmt.allowances.pc_child = 54.60
 
 # sys.lmt.income_rules.
 sys.lmt.income_rules.permitted_work =143.00
