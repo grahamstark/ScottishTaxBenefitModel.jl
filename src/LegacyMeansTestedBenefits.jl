@@ -272,9 +272,11 @@ function make_lmt_benefit_applicability(
     end # all pens age
     
     #
-    # tax credits
-    # CTC - easy
-    if intermed.has_children
+    # Tax credits
+    # CTC - easy - but route pensioners to pension credit even 
+    # if they have children - this is how Age Concern do it, anyway.
+    #
+    if intermed.has_children && ( ! whichb.pc )
         whichb.ctc = true
     end
     #
