@@ -42,22 +42,31 @@ settings = DEFAULT_SETTINGS
     unemploy!( head )
     enable!( head )
 
-    hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.ahc_net_income ≈ 179.60
-    println( to_md_table(hres_scot.bus[1].legacy_mtbens ))
-    println( "Age 68; \n"*inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test hres.ahc_net_income ≈ 179.60
+    println( to_md_table(hres.bus[1].legacy_mtbens ))
+    println( "Age 68; \n"*inctostr(  hres.bus[1].pers[head.pid].income ))
 
     head.age = 80
 
-    hres_scot = do_one_calc( hh, sys21_22, settings )
-    @test hres_scot.ahc_net_income ≈  (137.60*1.1) + 25.74
-    println( "Age 80; old pension x 1.1 \n"*inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test hres.ahc_net_income ≈  (137.60*1.1) + 25.74
+    println( "Age 80; old pension x 1.1 \n"*inctostr(  hres.bus[1].pers[head.pid].income ))
 
     head.benefit_ratios[state_pension] = 154.0/137.60 # just qualify for savings credit
-    hres_scot = do_one_calc( hh, sys21_22, settings )
+    hres = do_one_calc( hh, sys21_22, settings )
     # pen / pen credit / savings credit
-    @test hres_scot.ahc_net_income ≈ 154 + 23.10 + 0.18
-    println( "Age 80; old pension x 1.119 so qualify for savings credit \n"*inctostr(  hres_scot.bus[1].pers[head.pid].income ))
+    @test hres.ahc_net_income ≈ 154 + 23.10 + 0.18
+    println( "Age 80; old pension x 1.119 so qualify for savings credit \n"*inctostr(  hres.bus[1].pers[head.pid].income ))
       
-    
+    head.benefit_ratios[state_pension] = 1
+    pid1 = add_child!( hh, 3, Female ) # 01/01/2018
+    head.age=68 # 01/01/1953
+
+    # £98.76 = 52.10PC + 10.00 SCP + 15.51 CTR + 21.15 CB + 179.60PENS
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test hres.ahc_net_income ≈ 179.60 + 98.76
+    println( to_md_table(hres.bus[1].legacy_mtbens ))
+    println( "Age 68; + 1 chld no rent \n"*inctostr(  hres.bus[1].income ))
+
 end
