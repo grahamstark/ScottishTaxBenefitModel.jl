@@ -10,6 +10,7 @@ using .STBParameters
 using .STBIncomes
 using .Definitions
 using .GeneralTaxComponents
+using .IncomeTaxCalculations
 using .SingleHouseholdCalculations
 using .RunSettings
 using .Utils
@@ -143,7 +144,7 @@ settings = DEFAULT_SETTINGS
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
-    println(  to_md_table(hres.bus[1].legacy_mtbens ))
+    println( to_md_table(hres.bus[1].legacy_mtbens ))
     println( inctostr(  hres.bus[1].pers[head.pid].income ))
     
     @test compare_w_2_m(hres.bhc_net_income,  1145.54  )
@@ -429,12 +430,119 @@ end
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
     @test compare_w_2_m(hres.bhc_net_income, 3871.42, 2 )
-    println(  to_md_table(hres.bus[1].uc ))    
-    println(  to_md_table(hres.bus[1].bencap ))    
-    println(  inctostr(  hres.bus[1].income ))
     
     for pid in bu.children
         println( bu.people[pid].age )
     end
    
 end 
+
+@testset "Couple pension contributions and savings" begin
+    # https://betteroffcalculator.co.uk/calculator/McOuzi
+    hh = make_hh(
+        adults = 2,
+        children = 2,
+        earnings = 0,
+        rent = 200,
+        rooms = 3,
+        age = 50,
+        tenure = Private_Rented_Furnished )
+    hh.gross_rent = 200 # 800/PWPM
+    hh.water_and_sewerage = 0
+    hh.other_housing_charges = 0    # === 2 ch family unemployed & hit by benefit cap & rent reduction
+    hh.bedrooms = 2
+    head = get_head( hh )
+    spouse = get_spouse( hh )
+    spouse.age = 51
+    bus = get_benefit_units(hh)
+    bu = bus[1]
+    for pid in bu.children
+        ch = bu.people[pid]
+        empty!( ch.income )
+        empty!( ch.assets )
+        ch.age = 2
+        ch.hours_of_childcare = 0
+        ch.cost_of_childcare = 0 #*ccph
+    end
+
+    println( "spouse.age=$(spouse.age)")
+    employ!( head )
+    enable!( head )
+    unemploy!( spouse )
+    enable!( spouse )
+    empty!( head.income )
+    empty!( head.assets )
+    empty!( spouse.income )
+    empty!( spouse.assets )
+    
+    head.income[wages] = 500.0
+    head.usual_hours_worked = 30
+
+    settings.means_tested_routing = lmt_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 2379.81, 2 )
+
+    settings.means_tested_routing = uc_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    @test compare_w_2_m(hres.bhc_net_income, 2714.29, 2 )
+
+    head.income[pension_contributions_employee] = 200
+    
+    settings.means_tested_routing = lmt_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    # these don't quite work because of differences 
+    # in how PiP treats pension contributions for income tax
+    # we add a tax credit to pension contributions, they
+    # deduct pension contribs from income. I think I'm right.
+    # @test compare_w_2_m(hres.bhc_net_income, 2460.97, 2 )
+    # @test compare_w_2_m(hres.bhc_net_income, 2002.99, 2 )
+    # there's about £10pm in it.
+    println( to_md_table(hres.bus[1].pers[head.pid].it ))
+    println(  to_md_table(hres.bus[1].legacy_mtbens ))    
+    println(  to_md_table(hres.bus[1].bencap ))    
+    println(  inctostr(  hres.bus[1].income ))
+
+    settings.means_tested_routing = uc_full 
+    hres = do_one_calc( hh, sys21_22, settings )
+    # these don't quite work because of differences 
+    # in how PiP treats pension contributions for income tax
+    # we add a tax credit to pension contributions, they
+    # deduct pension contribs from income. I think I'm right.
+    # @test compare_w_2_m(hres.bhc_net_income, 2460.97, 2 )
+    println(  to_md_table(hres.bus[1].uc ))    
+    println(  to_md_table(hres.bus[1].bencap ))    
+    println(  inctostr(  hres.bus[1].income ))
+
+
+
+## MEMO INCOME TAX
+bures = init_benefit_unit_result( bu )
+bures.pers[head.pid].income[WAGES] = 500
+bures.pers[head.pid].income[PENSION_CONTRIBUTIONS_EMPLOYEE] = 200
+calc_income_tax!(
+    bures,
+    head,
+    spouse,
+    sys21_22.it
+    )
+println( "HEAD")
+println( to_md_table( bures.pers[head.pid].it ))
+println( bures.pers[head.pid].income[INCOME_TAX] )
+println( "SPOUSE")
+println( to_md_table( bures.pers[spouse.pid].it ))
+println( bures.pers[spouse.pid].income[INCOME_TAX] )
+
+bures = init_benefit_unit_result( bu )
+bures.pers[head.pid].income[WAGES] = 300
+bures.pers[head.pid].income[PENSION_CONTRIBUTIONS_EMPLOYEE] = 0
+calc_income_tax!(
+    bures,
+    head,
+    spouse,
+    sys21_22.it
+    )
+println( bures.pers[head.pid].income[INCOME_TAX] )
+println( to_md_table( bures.pers[head.pid].it ))
+
+
+end

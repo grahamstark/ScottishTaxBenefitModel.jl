@@ -61,6 +61,7 @@ using .Results:
     LMTResults, 
     LMTCanApplyFor, 
     aggregate_tax, 
+    gross_pension_contributions,
     has_any,
     to_string,
     total
@@ -124,18 +125,21 @@ function calc_incomes(
     for pid in bu.adults
         pers = bu.people[pid]
         pres = bur.pers[pid]
+        gpc = gross_pension_contributions(pres)
         gross = 
             pres.income[WAGES] +
             pres.income[SELF_EMPLOYMENT_INCOME] # this includes losses
         if which_ben in [pc,is,jsa,esa,hb,ctr]
             net = 
                 gross - ## FIXME parameterise this so we can use gross/net
-                pres.it.non_savings_tax -
+                pres.it.non_savings_tax - ## FIXME?? income[INCOME_TAX] ??
                 pres.income[NATIONAL_INSURANCE] - 
-                0.5 * get(pers.income, pension_contributions_employee, 0.0 )
+                0.5*gpc # .income[PENSION_CONTRIBUTIONS_EMPLOYEE]
+            println( "net=$net; gross=$gross pres.it.non_savings_tax = $(pres.it.non_savings_tax) gpc=$gpc ni=$(pres.income[NATIONAL_INSURANCE])")
         else
             # wtc,ctr all pension contributions but not IT/NI
-            net = gross - get(pers.income, pension_contributions_employee, 0.0 )
+            gross = max( 0.0, gross - gross_pension_contributions(pres)) # .income[PENSION_CONTRIBUTIONS_EMPLOYEE])
+            net = gross
         end
         gross_earn += gross
         net_earn += max( 0.0, net )
@@ -178,8 +182,10 @@ function calc_incomes(
         # HB disregard CPAG p432 this, too, is very approximate
         # work 30+ hours - should really check premia if haskeys( mtr.premia )
         extra = 0.0
+        println( "hours.higher $(hours.higher)")
         if search( bu, is_working_hours, hours.higher )
             extra = incrules.hb_additional 
+            println( "extra=$extra")
         elseif search(  bu, is_working_hours, hours.lower )
             if intermed.is_sparent || (intermed.num_children > 0) || intermed.is_disabled
                 extra = incrules.hb_additional
@@ -656,16 +662,18 @@ function calcWTC_CTC!(
     ctc :: ChildTaxCredit )
     
     bu = benefit_unit # aliases
-    bu_lmt = benefit_unit_result.legacy_mtbens
+    bures = benefit_unit_result
+    bu_lmt = bures.legacy_mtbens
     can_apply_for = bu_lmt.can_apply_for
-    it, ni = aggregate_tax( benefit_unit_result )
+    it, ni = aggregate_tax( bures )
 
     other_income = it.savings_income + it.dividends_income
     # FIXME does this tread pensions correctly - they're disgregarded
     if other_income < wtc.non_earnings_minima
         other_income = 0.0
     end
-    income = other_income + it.non_savings_income
+    nsi = it.non_savings_income - (total( bures, PENSION_CONTRIBUTIONS_EMPLOYEE )+it.pension_relief_at_source )
+    income = other_income + nsi
     wtc_elements = 0.0
     ctc_elements = 0.0
     threshold = wtc.threshold
@@ -722,12 +730,11 @@ function calcWTC_CTC!(
 
     # to spouse if has one
     recipient = make_recipient( bu, WORKING_TAX_CREDIT )
-    benefit_unit_result.legacy_mtbens.wtc_recipient = recipient
-    benefit_unit_result.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
+    bures.legacy_mtbens.wtc_recipient = recipient
+    bures.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
 
     recipient = make_recipient( bu, CHILD_TAX_CREDIT )
-    benefit_unit_result.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
-
+    bures.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt
 end
 
 

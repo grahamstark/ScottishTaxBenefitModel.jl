@@ -474,7 +474,7 @@ module STBParameters
         child :: RT = 66.90
         pc_mig_single :: RT = 167.25
         pc_mig_couple :: RT = 255.25
-        pc_child :: RT = 53.34
+        pc_child :: RT = 53.34 # FIXME also something messy for older 1st children
     end
 
     @with_kw mutable struct Premia{ RT<:Real }

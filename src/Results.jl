@@ -42,6 +42,7 @@ module Results
 
         aggregate_tax,
         aggregate!,
+        gross_pension_contributions,
         has_any,
         init_benefit_unit_result,
         init_household_result,
@@ -356,6 +357,20 @@ module Results
                 pers.income[w] = 0
             end
         end
+    end
+
+    function gross_pension_contributions( pres :: IndividualResult ) :: Real
+        p = pres.income[PENSION_CONTRIBUTIONS_EMPLOYEE] +
+            pres.it.pension_relief_at_source
+        return max(0.0, p )
+    end
+
+    function gross_pension_contributions( bures :: BenefitUnitResult ) :: Real
+        p = 0.0
+        for pid in bures.adults
+            p += gross_pension_contributions( bu.pers[pid])
+        end
+        return p;
     end
 
     function total( hhr :: HouseholdResult{T}, which :: Incomes ) :: T where T

@@ -393,7 +393,7 @@ const UC_EARNED_INCOME = IncludedItems(
     [
         INCOME_TAX,
         NATIONAL_INSURANCE,
-        PENSION_CONTRIBUTIONS_EMPLOYEE
+        PENSION_CONTRIBUTIONS_EMPLOYEE # !! NOTE THIS IS NOT GROSSED UP, see: CPAG 118
         ## ? student loan repayments?
     ]
 )
