@@ -513,36 +513,32 @@ end
     println(  to_md_table(hres.bus[1].bencap ))    
     println(  inctostr(  hres.bus[1].income ))
 
+    ## MEMO INCOME TAX to check against PiP
+    bures = init_benefit_unit_result( bu )
+    bures.pers[head.pid].income[WAGES] = 500
+    bures.pers[head.pid].income[PENSION_CONTRIBUTIONS_EMPLOYEE] = 200
+    calc_income_tax!(
+        bures,
+        head,
+        spouse,
+        sys21_22.it
+        )
+    println( "HEAD")
+    println( to_md_table( bures.pers[head.pid].it ))
+    println( bures.pers[head.pid].income[INCOME_TAX] )
+    println( "SPOUSE")
+    println( to_md_table( bures.pers[spouse.pid].it ))
+    println( bures.pers[spouse.pid].income[INCOME_TAX] )
 
-
-## MEMO INCOME TAX
-bures = init_benefit_unit_result( bu )
-bures.pers[head.pid].income[WAGES] = 500
-bures.pers[head.pid].income[PENSION_CONTRIBUTIONS_EMPLOYEE] = 200
-calc_income_tax!(
-    bures,
-    head,
-    spouse,
-    sys21_22.it
-    )
-println( "HEAD")
-println( to_md_table( bures.pers[head.pid].it ))
-println( bures.pers[head.pid].income[INCOME_TAX] )
-println( "SPOUSE")
-println( to_md_table( bures.pers[spouse.pid].it ))
-println( bures.pers[spouse.pid].income[INCOME_TAX] )
-
-bures = init_benefit_unit_result( bu )
-bures.pers[head.pid].income[WAGES] = 300
-bures.pers[head.pid].income[PENSION_CONTRIBUTIONS_EMPLOYEE] = 0
-calc_income_tax!(
-    bures,
-    head,
-    spouse,
-    sys21_22.it
-    )
-println( bures.pers[head.pid].income[INCOME_TAX] )
-println( to_md_table( bures.pers[head.pid].it ))
-
-
+    bures = init_benefit_unit_result( bu )
+    bures.pers[head.pid].income[WAGES] = 300
+    bures.pers[head.pid].income[PENSION_CONTRIBUTIONS_EMPLOYEE] = 0
+    calc_income_tax!(
+        bures,
+        head,
+        spouse,
+        sys21_22.it
+        )
+    println( bures.pers[head.pid].income[INCOME_TAX] )
+    println( to_md_table( bures.pers[head.pid].it ))
 end
