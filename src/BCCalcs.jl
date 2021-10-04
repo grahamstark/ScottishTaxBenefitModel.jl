@@ -24,7 +24,7 @@ function local_getnet( data::Dict, gross::Real ) :: Real
     # FIXME generalise to all hh members
     head = get_head( hh )
     head.income[wages] = gross
-    h = Int(trunc(gross/wage))
+    h = gross/wage
     head.usual_hours_worked = h     
     head.employment_status = if h < 5 
         Unemployed
@@ -44,9 +44,17 @@ function makebc(
     sys        :: TaxBenefitSystem,
     settings   :: Settings,
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: NamedTuple
-   
+    
+    lbcset = BCSettings(
+        bcsettings.mingross,
+        1_200.0,
+        bcsettings.increment,
+        bcsettings.tolerance,
+        false,
+        bcsettings.maxdepth
+    )
     data = Dict( :hh=>hh, :sys=>sys, :settings=>settings, :wage => 10.0 )
-    bc = BudgetConstraints.makebc( data, local_getnet, bcsettings )
+    bc = BudgetConstraints.makebc( data, local_getnet, lbcset )
     annotations = annotate_bc( bc )
     ( points = pointstoarray( bc ), annotations = annotations )
 end

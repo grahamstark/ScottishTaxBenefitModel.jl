@@ -176,6 +176,10 @@ function is_working_hours( pers :: Person, hours... ) :: Bool
     end
 end
 
+function is_working_lt_hours( pers :: Person, hours :: Real ) :: Bool
+    return pers.usual_hours_worked < hours
+end
+
 """
 See CPAG ch 61 p 1426 and appendix 5
 """
@@ -222,6 +226,7 @@ mutable struct MTIntermediate
     num_working_ft :: Int
     num_working_pt :: Int 
     num_working_24_plus :: Int 
+    num_working_16_or_less :: Int
     total_hours_worked :: Int
     someone_is_carer :: Bool 
     num_carers :: Int
@@ -309,6 +314,7 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.num_not_working += add.num_not_working
     
     sum.num_working_24_plus += add.num_working_24_plus 
+    sum.num_working_16_or_less += add.num_working_16_or_less
     sum.total_hours_worked += add.total_hours_worked 
     sum.someone_is_carer = sum.someone_is_carer || add.someone_is_carer # rename someone FIXME
     sum.num_carers += add.num_carers
@@ -356,10 +362,16 @@ function make_intermediate(
     ge_16_u_pension_age  :: Bool = false
     someone_pension_age_2016 :: Bool = false
     limited_capacity_for_work = false
+    num_working_16_or_less  = 0
+    # :: Int = count( bu, is_working_lt_hours, hrs.lower )
+    
     for pid in bu.adults
         pers = bu.people[pid]
         if has_limited_capactity_for_work( pers )
             limited_capacity_for_work = true
+        end
+        if pers.usual_hours_worked < hrs.lower
+            num_working_16_or_less += 1
         end
         if reached_state_pension_age( 
             age_limits, 
@@ -381,7 +393,7 @@ function make_intermediate(
     someone_pension_age  :: Bool = num_pens_age > 0
     all_pension_age :: Bool = num_adlts == num_pens_age
     num_working_ft :: Int = count( bu, is_working_hours, hrs.higher )
-    num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-1 )
+    num_working_pt :: Int = count( bu, is_working_hours, hrs.lower, hrs.higher-0.000001 ) # eps(FloatType)
     num_not_working :: Int = count( bu, empl_status_in, 
        Unemployed,
        Retired,
@@ -393,7 +405,6 @@ function make_intermediate(
         )
     
     num_job_seekers = 0
-
     num_working_24_plus :: Int = count( bu, is_working_hours, hrs.med )
     someone_working_ft  :: Bool = num_working_ft > 0
     someone_working_ft_and_25_plus :: Bool = false
@@ -490,6 +501,7 @@ function make_intermediate(
         num_working_ft,
         num_working_pt,
         num_working_24_plus,
+        num_working_16_or_less,
         total_hours_worked,
         someone_is_carer,     
         num_carrs,

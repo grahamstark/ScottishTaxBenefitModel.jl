@@ -41,7 +41,6 @@ settings = DEFAULT_SETTINGS
     
     enable!( head )
     employ!( head )
-    empty!( head.income )
     settings.means_tested_routing = lmt_full 
     bc = BCCalcs.makebc(hh, sys21_22, settings )
     println( to_md_table( bc ))
@@ -55,15 +54,15 @@ settings = DEFAULT_SETTINGS
         end
         println()
     end
-    println(eltype(bc.points))
 
+    println("LEGACY CASE")
     for i in 1:np
         for inc in [0,0.01]
             w = bc.points[i,1]+inc
-            h = Int(trunc(w/10))
+            h = w/10
             head.income[wages] = w
             head.usual_hours_worked = h
-            head.employment_status = if h < 5 
+            head.employment_status = if h < 16
                 Unemployed
             elseif h < 30 
                 Part_time_Employee
@@ -71,9 +70,58 @@ settings = DEFAULT_SETTINGS
                 Full_time_Employee
             end
             hres = do_one_calc( hh, sys21_22, settings )        
-            println( inctostr(  hres.income ))
             println( "hours=$(head.usual_hours_worked)")
+            println( inctostr(  hres.income ))
+        end
+    end
+
+    settings.means_tested_routing = uc_full 
+    bcu = BCCalcs.makebc(hh, sys21_22, settings )
+    println( "UC CASE ")
+    # println( [ bcu.points[:,1] bcu.points[:,2]] )
+    npu = size(bcu.points)[1]
+
+    for i in 1:npu
+        p = bcu.points[i,:]
+        print("$(p[1]) : $(p[2])")
+        if i < npu
+            print( " : $(bcu.annotations[i]) ")
+        end
+        println()
+    end
+    settings.means_tested_routing = uc_full 
+    for i in 1:npu
+        for inc in [0,0.01]
+            w = bcu.points[i,1]+inc
+            h = w/10
+            head.income[wages] = w
+            head.usual_hours_worked = h
+            head.employment_status = if h < 16
+                Unemployed
+            elseif h < 30 
+                Part_time_Employee
+            else
+                Full_time_Employee
+            end
+            hres = do_one_calc( hh, sys21_22, settings )        
+            println( "hours=$(head.usual_hours_worked)")
+            println( inctostr(  hres.income ))
         end
     end
  
 end
+
+#=
+using Plots
+pyplot()
+default(fontfamily="Gill Sans", 
+		titlefont = (12,:grey), 
+		legendfont = (11), 
+		guidefont = (10), 
+		tickfont = (9), 
+		annotationfontsize=(8),
+		annotationcolor=:blue		
+	  )
+p1 = plot( bc.points[:,1], bc.points[:,2] )
+plot!( p1, bcu.points[:,1], bcu.points[:,2] )
+=#

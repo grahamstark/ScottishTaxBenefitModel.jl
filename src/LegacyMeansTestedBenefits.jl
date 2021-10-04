@@ -258,15 +258,13 @@ function make_lmt_benefit_applicability(
     if intermed.someone_pension_age_2016
         whichb.sc = true
     end
-    # ESA, JSA, IS, crudely FIXME CLEAN THIS UP!!!
-    # fixme use hours of work here
-    if ! intermed.all_pension_age 
-        if ((intermed.num_adults == 1 && intermed.num_not_working == 1) || 
-        (intermed.num_adults == 2 && (intermed.num_not_working>=1 && intermed.num_working_pt<=1))) &&
-        intermed.ge_16_u_pension_age
+    # println( "intermed: intermed.num_working_16_or_less=$(intermed.num_working_16_or_less)")
+    if (! intermed.all_pension_age ) && (intermed.num_working_16_or_less >= 1)
+        if ((intermed.num_adults == 1) ||
+           ((intermed.num_adults == 2) && (intermed.num_working_24_plus == 0)))
             if intermed.limited_capacity_for_work
                 whichb.esa = true 
-            # CPAGE 21/2 p236/7
+            # CPAG 21/2 p236/7
             elseif( intermed.num_adults == 1) && (intermed.num_allowed_children>0) && 
                 ((intermed.age_youngest_child <= 5) || (intermed.age_oldest_adult < 18))
                     whichb.is = true
@@ -927,6 +925,7 @@ function calc_legacy_means_tested_benefits!(
     elseif can_apply_for.is
         which_mig = is
     end
+    mig_entitlement = 0.0 # we need to record this for wtc/ctc routing below
     if which_mig !== nothing 
         premium,premset = calc_premia(
             which_mig,
@@ -954,8 +953,8 @@ function calc_legacy_means_tested_benefits!(
         bures.legacy_mtbens.mig_incomes = incomes
         bures.legacy_mtbens.mig_allowances = allowances
         bures.legacy_mtbens.mig_premia = premium
-        entitlement = max( 0.0, bures.legacy_mtbens.mig - incomes.total_income );
-        if (! incomes.disqualified_on_capital) && (entitlement > 0)
+        mig_entitlement = max( 0.0, bures.legacy_mtbens.mig - incomes.total_income );
+        if (! incomes.disqualified_on_capital) && (mig_entitlement > 0)
             # FIXME we just allocate payment to the head of
             # the BU - make this a function or make can_apply_for
             # specify the payee as well as whether the BU qualifies
@@ -966,19 +965,18 @@ function calc_legacy_means_tested_benefits!(
             end
             if can_apply_for.esa 
                 recipient = make_recipient( bu, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE )
-                bures.pers[recipient].income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = entitlement
+                bures.pers[recipient].income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = mig_entitlement
                 # bures.legacy_mtbens.esa = entitlement
             elseif can_apply_for.jsa
                 recipient = make_recipient( bu, NON_CONTRIB_JOBSEEKERS_ALLOWANCE )
-                bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = entitlement
+                bures.pers[recipient].income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = mig_entitlement
                 # bures.legacy_mtbens.jsa = entitlement
             elseif can_apply_for.is
                 recipient = make_recipient( bu, INCOME_SUPPORT )
-                bures.pers[recipient].income[INCOME_SUPPORT] = entitlement
+                bures.pers[recipient].income[INCOME_SUPPORT] = mig_entitlement
                 # bures.legacy_mtbens.is = entitlement
             end
             bures.legacy_mtbens.mig_recipient = recipient
-
             can_apply_for.wtc = false # no overlapping
         end
     end
@@ -1058,7 +1056,7 @@ function calc_legacy_means_tested_benefits!(
     # Do WTC iff you can apply for it or if you qualify for CTC
     # but not the automatic full amount
     #
-    if can_apply_for.wtc || (can_apply_for.ctc && (which_mig === nothing ))
+    if can_apply_for.wtc || (can_apply_for.ctc && ( mig_entitlement == 0.0 ))
         calcWTC_CTC!( 
                 bures,
                 bu,
