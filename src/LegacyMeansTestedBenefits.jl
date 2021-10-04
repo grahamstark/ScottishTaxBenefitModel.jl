@@ -135,7 +135,7 @@ function calc_incomes(
                 pres.it.non_savings_tax - ## FIXME?? income[INCOME_TAX] ??
                 pres.income[NATIONAL_INSURANCE] - 
                 0.5*gpc # .income[PENSION_CONTRIBUTIONS_EMPLOYEE]
-            println( "net=$net; gross=$gross pres.it.non_savings_tax = $(pres.it.non_savings_tax) gpc=$gpc ni=$(pres.income[NATIONAL_INSURANCE])")
+            # println( "net=$net; gross=$gross pres.it.non_savings_tax = $(pres.it.non_savings_tax) gpc=$gpc ni=$(pres.income[NATIONAL_INSURANCE])")
         else
             # wtc,ctr all pension contributions but not IT/NI
             gross = max( 0.0, gross - gross_pension_contributions(pres)) # .income[PENSION_CONTRIBUTIONS_EMPLOYEE])
@@ -182,10 +182,10 @@ function calc_incomes(
         # HB disregard CPAG p432 this, too, is very approximate
         # work 30+ hours - should really check premia if haskeys( mtr.premia )
         extra = 0.0
-        println( "hours.higher $(hours.higher)")
+        # println( "hours.higher $(hours.higher)")
         if search( bu, is_working_hours, hours.higher )
             extra = incrules.hb_additional 
-            println( "extra=$extra")
+            # println( "extra=$extra")
         elseif search(  bu, is_working_hours, hours.lower )
             if intermed.is_sparent || (intermed.num_children > 0) || intermed.is_disabled
                 extra = incrules.hb_additional
@@ -259,6 +259,7 @@ function make_lmt_benefit_applicability(
         whichb.sc = true
     end
     # ESA, JSA, IS, crudely FIXME CLEAN THIS UP!!!
+    # fixme use hours of work here
     if ! intermed.all_pension_age 
         if ((intermed.num_adults == 1 && intermed.num_not_working == 1) || 
         (intermed.num_adults == 2 && (intermed.num_not_working>=1 && intermed.num_working_pt<=1))) &&
@@ -269,7 +270,7 @@ function make_lmt_benefit_applicability(
             elseif( intermed.num_adults == 1) && (intermed.num_allowed_children>0) && 
                 ((intermed.age_youngest_child <= 5) || (intermed.age_oldest_adult < 18))
                     whichb.is = true
-            elseif intermed.economically_active 
+            elseif intermed.economically_active
                 whichb.jsa = true  
             else
                 whichb.is = true

@@ -436,8 +436,8 @@ module STBParameters
     @with_kw mutable struct NationalInsuranceSys{RT<:Real}
         abolished :: Bool = false
         primary_class_1_rates :: RateBands{RT} = [0.0, 0.0, 12.0, 2.0 ]
-        primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 9999999999999.9] # the '-1' here is because json can't write inf
-        secondary_class_1_rates :: RateBands{RT} = [0.0, 13.8, 13.8 ] # keep 2 so
+        primary_class_1_bands :: RateBands{RT} = [118.0, 166.0, 962.0, 9999999999999.9]
+        secondary_class_1_rates :: RateBands{RT} = [0.0, 13.8, 13.8 ]
         secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, 99999999999999.9 ]
         state_pension_age :: Int = 66; # fixme move
         class_2_threshold ::RT = 6_365.0;

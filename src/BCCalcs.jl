@@ -15,25 +15,37 @@ using .STBIncomes
 
 export makebc
 
-function local_getnet( data::Dict, gross : Real ) :: Real
-    settings = Data[:settings]
-    hh = Data[:hh]
-    sys = Data[:sys]
+function local_getnet( data::Dict, gross::Real ) :: Real
+    settings = data[:settings]
+    hh = data[:hh]
+    sys = data[:sys]
+    wage = data[:wage]
+    
     # FIXME generalise to all hh members
     head = get_head( hh )
-    head.income[wage] = gross
+    head.income[wages] = gross
+    h = Int(trunc(gross/wage))
+    head.usual_hours_worked = h     
+    head.employment_status = if h < 5 
+        Unemployed
+    elseif h < 30 
+        Part_time_Employee
+    else
+        Full_time_Employee
+    end
+
     # fixme adust penconts etc.
     hres = do_one_calc( hh, sys, settings )
     return hres.ahc_net_income
 end
 
 function makebc(
-    hh :: Household;
-    sys :: TaxBenefitSystem,
-    settings :: Settings,
+    hh         :: Household,
+    sys        :: TaxBenefitSystem,
+    settings   :: Settings,
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: NamedTuple
    
-    data = Dict( :hh=>household, :params=>sys, :settings=>settings )
+    data = Dict( :hh=>hh, :sys=>sys, :settings=>settings, :wage => 10.0 )
     bc = BudgetConstraints.makebc( data, local_getnet, bcsettings )
     annotations = annotate_bc( bc )
     ( points = pointstoarray( bc ), annotations = annotations )
