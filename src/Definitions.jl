@@ -17,21 +17,23 @@ export
    MODEL_DATA_DIR, 
    MODEL_PARAMS_DIR, 
    PRICES_DIR, 
-   PROJECT_DIR
+   PROJECT_DIR,
+   TEST_DIR,
+   DOCS_DIR,
+   SCRIPTS_DIR 
 
-#
-# FIXME move this to some config file
-#
-const MODEL_NAME="ScottishTaxBenefitModel"
-# const PROJECT_DIR=Utils.() #"//vw/$MODEL_NAME/"
-# FIXME TEMP TEMP TEMP TEMP TEMP
-const PROJECT_DIR="/home/graham_s/julia/vw/$(MODEL_NAME)/"
+const MODEL_NAME       = "Scottish Tax Benefit Model" 
+# FIXME these might be better at the top of ScottishTaxBenefitModel.jl itself
+const PROJECT_DIR      = joinpath(dirname(pathof(ScottishTaxBenefitModel)),".." )
+const MODEL_DATA_DIR   = joinpath( PROJECT_DIR, "data" )
+const PRICES_DIR       = joinpath( MODEL_DATA_DIR, "prices", "indexes" )
+const MATCHING_DIR     = joinpath( MODEL_DATA_DIR, "merging" )
+const MODEL_PARAMS_DIR = joinpath( PROJECT_DIR, "params" )
+const SCRIPTS_DIR      = joinpath( PROJECT_DIR, "scripts" )
+const TEST_DIR         = joinpath( PROJECT_DIR, "test" )
+const DOCS_DIR         = joinpath( PROJECT_DIR, "docs" )
 
-const MODEL_DATA_DIR="$(PROJECT_DIR)/data/"
-const PRICES_DIR="$MODEL_DATA_DIR/prices/indexes/"
-const MATCHING_DIR="$MODEL_DATA_DIR/merging/"
-const MODEL_PARAMS_DIR="$PROJECT_DIR/params"
-
+# FIXME these should be in some config file probably.
 const RAW_DATA = "/mnt/data/"
 const FRS_DIR = "$RAW_DATA/frs/"
 const HBAI_DIR = "$RAW_DATA/hbai/"
