@@ -50,10 +50,10 @@ function makebc(
         1_200.0,
         bcsettings.increment,
         bcsettings.tolerance,
-        false,
+        false, # don't round numbers, since that causes charting problems
         bcsettings.maxdepth
     )
-    data = Dict( :hh=>hh, :sys=>sys, :settings=>settings, :wage => 10.0 )
+    data = Dict( :hh=>deepcopy(hh), :sys=>sys, :settings=>settings, :wage => 10.0 )
     bc = BudgetConstraints.makebc( data, local_getnet, lbcset )
     annotations = annotate_bc( bc )
     ( points = pointstoarray( bc ), annotations = annotations )
