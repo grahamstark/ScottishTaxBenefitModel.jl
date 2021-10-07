@@ -765,7 +765,7 @@ module STBParameters
         dict = Dict{ Symbol, BRMA{ N, T }}() 
         for r in eachrow( bd )
             println( r.bname )
-            obd = BRMA( r.bname, Symbol( r.bcode ), SVector{N,T}([r.bed_1,r.bed_2,r.bed_3,r.bed_4]), T(r.room) )
+            obd = BRMA( String(r.bname), Symbol( r.bcode ), SVector{N,T}([r.bed_1,r.bed_2,r.bed_3,r.bed_4]), T(r.room) )
             dict[ Symbol( r.bcode ) ] = obd
         end
         dict
