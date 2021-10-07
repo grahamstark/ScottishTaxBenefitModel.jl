@@ -769,7 +769,7 @@ module STBParameters
         dict
     end
 
-    const DEFAULT_BRMA_2021 = "$(MODEL_DATA_DIR)/local/lha_rates_scotland_2020_21.csv"
+    const DEFAULT_BRMA_2021 = joinpath(MODEL_DATA_DIR,"local", "lha_rates_scotland_2020_21.csv")
     
     @with_kw mutable struct HousingRestrictions{RT<:Real}
         abolished :: Bool = false
