@@ -4,7 +4,9 @@
 #
 
 using Test
-using Dates
+using DataFrames
+using PrettyTables
+
 using ScottishTaxBenefitModel
 using .ModelHousehold
 using .STBParameters
@@ -43,6 +45,8 @@ settings = DEFAULT_SETTINGS
     employ!( head )
     settings.means_tested_routing = lmt_full 
     bc = BCCalcs.makebc(hh, sys21_22, settings )
+    pretty_table( bc )
+    #=
     println( to_md_table( bc ))
     np = size(bc.points)[1]
     println(np)
@@ -74,11 +78,13 @@ settings = DEFAULT_SETTINGS
             println( inctostr(  hres.income ))
         end
     end
+    =#
 
     settings.means_tested_routing = uc_full 
     bcu = BCCalcs.makebc(hh, sys21_22, settings )
     println( "UC CASE ")
     # println( [ bcu.points[:,1] bcu.points[:,2]] )
+    #=
     npu = size(bcu.points)[1]
 
     for i in 1:npu
@@ -108,7 +114,9 @@ settings = DEFAULT_SETTINGS
             println( inctostr(  hres.income ))
         end
     end
- 
+    =#
+    pretty_table( bcu )
+
 end
 
 #=
