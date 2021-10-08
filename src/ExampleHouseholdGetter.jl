@@ -27,9 +27,9 @@ function initialise(
     household_name :: AbstractString = "example_households",
     people_name :: AbstractString = "example_people" ) :: Vector{AbstractString}
 
-    global KEYMAP
+    global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
-
+    KEYMAP = Vector{AbstractString}()
     hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab", delim='\t' ) |> DataFrame
     people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab", delim='\t' ) |> DataFrame
     npeople = size( people_dataset)[1]
@@ -44,19 +44,16 @@ function initialise(
 end
 
 function example_names()
-    global KEYMAP
     return KEYMAP
 end
 
 function get_household( pos :: Integer ) :: Household
-    global EXAMPLE_HOUSEHOLDS
-    global KEYMAP
     key = KEYMAP[pos]
     return EXAMPLE_HOUSEHOLDS[key]
 end
 
 function get_household( name :: AbstractString ) :: Household
-    global EXAMPLE_HOUSEHOLDS
+    # global EXAMPLE_HOUSEHOLDS
     return EXAMPLE_HOUSEHOLDS[name]
 end
 
