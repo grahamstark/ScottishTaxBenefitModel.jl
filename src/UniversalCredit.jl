@@ -529,10 +529,10 @@ function calc_universal_credit!(
     recipient = hhr.bus[1].uc.recipient
     if recipient > 0 # some *something* done with UC
         ucrec = hhr.bus[1].pers[recipient].income[UNIVERSAL_CREDIT]
-        if (recipient > 0 ) && (ucrec > 0 )
+        if ucrec > 0
             bur = household_result.bus[1] 
             ct = total(household_result, LOCAL_TAXES ) 
-            grossed_up_earn = (bur.uc.earned_income/uc.taper)
+            # grossed_up_earn = (bur.uc.earned_income/uc.taper)
             ucincome =  
                 bur.uc.earnings_before_allowances + # gross earned income back up
                 bur.uc.other_income +
