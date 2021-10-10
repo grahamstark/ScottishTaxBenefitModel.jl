@@ -616,10 +616,13 @@ function inctostr( incs :: AbstractVector ) :: String
     for i in instances(Incomes)
         if incs[i] != 0
             m = md_format(incs[i])
-            s *= "|**$(iname(i))**|$m|\n"
+            s *= "|**$(iname(i))**|$m|
+            "
         end
     end
-    s *= "\n\n"
+    s *= "
+    
+    "
     return s
 end
 
