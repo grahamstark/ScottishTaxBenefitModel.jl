@@ -81,7 +81,7 @@ function makebc(
     N = size( a )[1]
 
     out = DataFrame( gross = zeros(N), net=zeros(N), mr = zeros(N), credit=zeros(N), 
-        label=Array{String}(undef,N),listlabel=Array{String}(undef,N))
+        label=Array{String}(undef,N),simplelabel=Array{String}(undef,N))
     # fill the data frame
     for i in 1:N
         r = out[i,:]
