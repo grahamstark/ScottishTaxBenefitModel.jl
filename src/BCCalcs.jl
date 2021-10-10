@@ -67,7 +67,7 @@ function tosimplelabel(
     if abs(r.mr) < 99990
         m = md_format(r.mr*100)
         s *= "<b>Marginal Tax Rate(%)</b> = $m<br>"
-        m = md_format(r.credit*100)
+        m = md_format(r.credit)
         s *= "<b>Tax Credit</b> = $m<br>"
     else
         s *= "<b>Discontinuity</b><br>"
