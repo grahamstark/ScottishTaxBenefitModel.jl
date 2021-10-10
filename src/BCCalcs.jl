@@ -50,12 +50,12 @@ end
 for plotly labels in graph points, which only like br,b,i and a few others
 """
 function tosimplelabel( incs :: AbstractVector) :: String
-    s = ""
+    s = "<br>"
     for i in instances(Incomes)
         if incs[i] != 0
             m = md_format(incs[i])
             n = iname(i)
-            s *= "<b>$n</b> = $m<br/>"
+            s *= "<b>$n</b> = $m<br>"
         end
     end
     return s
