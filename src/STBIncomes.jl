@@ -630,7 +630,7 @@ function non_zeros( incs :: AbstractVector ) :: Vector{Tuple}
     v = []
     for i in instances(Incomes)
         if incs[i] != 0
-            push!(v ( iname(i), incs[i]))
+            push!(v, (iname(i), incs[i]))
         end
     end
     return v
