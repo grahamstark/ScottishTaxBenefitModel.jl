@@ -49,8 +49,13 @@ end
 """
 for plotly labels in graph points, which only like br,b,i and a few others
 """
-function tosimplelabel( incs :: AbstractVector) :: String
+function tosimplelabel( 
+    r :: DataFrameRow,
+    incs :: AbstractVector) :: String
+    
     s = "<br>"
+    m = md_format(r.net)
+    s *= s *= "<b>Net Income</b> = <b>$m</b><br><br>"
     for i in instances(Incomes)
         if incs[i] != 0
             m = md_format(incs[i])
@@ -58,6 +63,16 @@ function tosimplelabel( incs :: AbstractVector) :: String
             s *= "<b>$n</b> = $m<br>"
         end
     end
+    s *= "<br>"
+    if abs(r.mr) < 99990
+        m = md_format(r.mr*100)
+        s *= "<b>Marginal Tax Rate(%)</b> = $m<br>"
+        m = md_format(r.credit*100)
+        s *= "<b>Tax Credit</b> = $m<br>"
+    else
+        s *= "<b>Discontinuity</b><br>"
+    end
+
     return s
 end
 
@@ -97,7 +112,7 @@ function makebc(
         hres = local_getnet( data, a[i,1] ) 
         # FIXME add a really nice labelling thing here with changes between gross and gross+1
         r.label = inctostr(  hres.income )
-        r.simplelabel = tosimplelabel( hres.income )
+        r.simplelabel = tosimplelabel( r, hres.income )
     end
     return out
 end
