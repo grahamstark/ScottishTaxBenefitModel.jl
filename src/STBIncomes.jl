@@ -603,7 +603,7 @@ const DEFAULT_PASSPORTED_BENS = [
         NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
         PENSION_CREDIT ]  
 
-export inctostr, isettostr
+export inctostr, isettostr, non_zeros
 
 function inctostr( incs :: AbstractVector ) :: String
     s = 
@@ -624,6 +624,16 @@ function inctostr( incs :: AbstractVector ) :: String
     
     "
     return s
+end
+
+function non_zeros( incs :: AbstractVector ) :: Vector{Tuple}
+    v = []
+    for i in instances(Incomes)
+        if incs[i] != 0
+            push!(v ( iname(i), incs[i]))
+        end
+    end
+    return v
 end
 
 function isettostr( iset )

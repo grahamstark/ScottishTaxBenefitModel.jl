@@ -45,6 +45,21 @@ function getnet( data::Dict, gross::Real ) :: Real
     return local_getnet( data, gross ).ahc_net_income
 end
 
+"""
+for plotly labels in graph points, which only like br,b,i and a few others
+"""
+function tosimplelabel( incs :: AbstractVector) :: String
+    s = ""
+    for i in instances(Incomes)
+        if incs[i] != 0
+            m = md_format(incs[i])
+            n = iname(i)
+            s *= "<b>$n</b> = $m<br/>"
+        end
+    end
+    return s
+end
+
 function makebc(
     hh         :: Household,
     sys        :: TaxBenefitSystem,
@@ -64,7 +79,8 @@ function makebc(
     annotations = annotate_bc( bc )
     N = size( a )[1]
 
-    out = DataFrame( gross = zeros(N), net=zeros(N), mr = zeros(N), credit=zeros(N), label=Array{String}(undef,N))
+    out = DataFrame( gross = zeros(N), net=zeros(N), mr = zeros(N), credit=zeros(N), 
+        label=Array{String}(undef,N),listlabel=Array{String}(undef,N))
     # fill the data frame
     for i in 1:N
         r = out[i,:]
@@ -80,6 +96,7 @@ function makebc(
         hres = local_getnet( data, a[i,1] ) 
         # FIXME add a really nice labelling thing here with changes between gross and gross+1
         r.label = inctostr(  hres.income )
+        r.simplelabel = tosimplelabel( hres.income )
     end
     return out
 end
