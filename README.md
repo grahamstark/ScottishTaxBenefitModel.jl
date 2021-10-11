@@ -12,6 +12,8 @@ This is a Tax Benefit Model for Scotland. To my knowledge, this is the first mod
 the first fully Open Source one anywhere. It is designed to use data from the [Family Resources Survey](https://www.ons.gov.uk/surveys/informationforhouseholdsandindividuals/householdandindividualsurveys/familyresourcessurvey), possibly
 augmented by other datasets later on.
 
+![BC Demo](docs/bc1.gif")
+
 For more information, try the following:
 
 * I've started a [blog about the model](https://stb-blog.virtual-worlds.scot/). Pretty much stream of consciousness stuff as I write the model;
