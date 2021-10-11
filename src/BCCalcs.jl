@@ -46,7 +46,7 @@ function tosimplelabel(
     
     s = "<br>"
     m = md_format(r.net)
-    s *= s *= "<b>Net Income</b> = <b>$m</b><br><br>"
+    s *= s *= "<b>Net Income (after housing costs)</b> = <b>$m</b><br><br>"
     for i in instances(Incomes)
         if incs[i] != 0
             m = md_format(incs[i])
