@@ -258,7 +258,7 @@ function make_lmt_benefit_applicability(
     if intermed.someone_pension_age_2016
         whichb.sc = true
     end
-    # println( "intermed: intermed.num_working_16_or_less=$(intermed.num_working_16_or_less)")
+    # println( "intermed: intermed.num_working_16_or_less=$(intermed.num_working_16_or_less) intermed.economically_active=$(intermed.economically_active) intermed.num_working_16_or_less=$(intermed.num_working_16_or_less)")
     if (! intermed.all_pension_age ) && (intermed.num_working_16_or_less >= 1)
         if ((intermed.num_adults == 1) ||
            ((intermed.num_adults == 2) && (intermed.num_working_24_plus == 0)))

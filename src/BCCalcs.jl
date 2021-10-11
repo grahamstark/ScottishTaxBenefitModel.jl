@@ -26,17 +26,7 @@ function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     
     # FIXME generalise to all hh members
     head = get_head( hh )
-    head.income[wages] = gross
-    h = gross/wage
-    head.usual_hours_worked = h     
-    head.employment_status = if h < 5 
-        Unemployed
-    elseif h < 30 
-        Part_time_Employee
-    else
-        Full_time_Employee
-    end
-
+    set_wage!( head, gross, wage )
     # fixme adust penconts etc.
     hres = do_one_calc( hh, sys, settings )
     return hres
@@ -112,7 +102,7 @@ function makebc(
         end
         hres = local_getnet( data, a[i,1] ) 
         # FIXME add a really nice labelling thing here with changes between gross and gross+1
-        r.label = inctostr(  hres.income )
+        r.label = inctostr( hres.income )
         r.simplelabel = tosimplelabel( r, hres.income )
     end
     return out

@@ -16,6 +16,7 @@ using .GeneralTaxComponents
 using .SingleHouseholdCalculations
 using .RunSettings
 using .Utils
+using .ExampleHouseholdGetter
 using .BCCalcs
 
 
@@ -25,9 +26,22 @@ println( "weeklyise start wpm=$PWPM wpy=52")
 weeklyise!( sys21_22; wpy=52, wpm=PWPM  )
 settings = DEFAULT_SETTINGS
 
-@testset "Single Pers bc" begin
+# @testset "Single Pers bc" begin
 
-    hh = make_hh(
+    hh = ExampleHouseholdGetter.get_household( "example_hh1" )
+    head = get_head(hh)
+    empty!( head.income )
+    spouse = get_spouse( hh )
+    for (pid,pers) in hh.people
+        println( "age=$(pers.age) empstat=$(pers.employment_status) " )
+        empty!( pers.income )
+    end
+    if spouse !== nothing
+        set_wage!( spouse, 0, 10 )
+    end
+
+    #=
+    make_hh(
         adults = 1,
         children = 3,
         earnings = 0,
@@ -43,6 +57,7 @@ settings = DEFAULT_SETTINGS
     
     enable!( head )
     employ!( head )
+    =#
     settings.means_tested_routing = lmt_full 
     bc = BCCalcs.makebc(hh, sys21_22, settings )
     pretty_table( bc )
@@ -116,8 +131,16 @@ settings = DEFAULT_SETTINGS
     end
     =#
     pretty_table( bcu )
-
-end
+    set_wage!( head, 0, 10 )
+    if spouse !== nothing 
+        set_wage!( spouse, 0, 10 )
+    end
+    head.employment_status = Unemployed
+    settings.means_tested_routing = lmt_full
+    hres = do_one_calc( hh, sys21_22, settings ) 
+    println( inctostr(  hres.income ))
+    println( println( to_md_table( hres.bus[1] )))
+# end
 
 #=
 using Plots

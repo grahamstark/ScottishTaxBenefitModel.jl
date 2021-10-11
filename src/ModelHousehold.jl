@@ -77,6 +77,7 @@ export
     pers_is_disabled, 
     printpids,
     search,
+    set_wage!,
     to_string, 
     uprate!
 
@@ -309,6 +310,25 @@ end
 function num_children( hh :: Household ) :: Integer
     count( hh, is_child )
 end
+
+"""
+For Budget constraints: set the wage and make all the needed
+corrections to employment status, hours worked, pensions(? pensions not done yet)
+"""
+function set_wage!( pers :: Person, gross :: Real, wage :: Real )
+    pers.income[wages] = gross
+    h = gross/wage
+    pers.usual_hours_worked = h     
+    pers.employment_status = if h < 5 
+        Unemployed
+    elseif h < 30 
+        Part_time_Employee
+    else
+        Full_time_Employee
+    end
+    # println( "made usual_hours_worked = $h gross=$gross wage=$wage pers.employment_status=$(pers.employment_status)")
+end
+
 
 #
 # This creates a array of references to each person in the houshold, broken into
