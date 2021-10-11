@@ -47,7 +47,8 @@ function getnet( data::Dict, gross::Real ) :: Real
 end
 
 """
-for plotly labels in graph points, which only like br,b,i and a few others
+Non-table html version of the point labelling thing for plotlyjs labels, since pjs only 
+accepts br,b,i and a few others html tags.
 """
 function tosimplelabel( 
     r :: DataFrameRow,
@@ -64,7 +65,7 @@ function tosimplelabel(
         end
     end
     s *= "<br>"
-    if abs(r.mr) < 99990
+    if abs(r.mr) < 9999
         m = md_format(r.mr*100)
         s *= "<b>Marginal Tax Rate</b> = $(m)%<br>"
         m = md_format(r.credit)
