@@ -471,8 +471,8 @@ module Results
             hh.other_housing_charges + 
             hh.water_and_sewerage -
             hres.income[HOUSING_BENEFIT] - 
-            hres.income[COUNCIL_TAX_BENEFIT] - 
-            hres.bus[1].uc.housing_element
+            hres.income[COUNCIL_TAX_BENEFIT] - 0
+            # hres.bus[1].uc.housing_element
             
         hres.ahc_net_income = hres.bhc_net_income - 
             hh.gross_rent -

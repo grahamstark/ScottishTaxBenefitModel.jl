@@ -42,18 +42,20 @@ accepts br,b,i and a few others html tags.
 """
 function tosimplelabel( 
     r :: DataFrameRow,
-    incs :: AbstractVector) :: String
+    hres :: HouseholdResult ) :: String
     
     s = "<br>"
     m = md_format(r.net)
     s *= s *= "<b>Net Income (after housing costs)</b> = <b>$m</b><br><br>"
     for i in instances(Incomes)
-        if incs[i] != 0
-            m = md_format(incs[i])
+        if hres.incomes[i] != 0
+            m = md_format(hres.incomes[i])
             n = iname(i)
             s *= "<b>$n</b> = $m<br>"
         end
     end
+    m = md_format(hres.net_housing_costs)
+    s *= "<b>Net Housing Costs</b> = $m<br>"
     s *= "<br>"
     if abs(r.mr) < 9999
         m = md_format(r.mr*100)
@@ -103,7 +105,7 @@ function makebc(
         hres = local_getnet( data, a[i,1] ) 
         # FIXME add a really nice labelling thing here with changes between gross and gross+1
         r.label = inctostr( hres.income )
-        r.simplelabel = tosimplelabel( r, hres.income )
+        r.simplelabel = tosimplelabel( r, hres )
     end
     return out
 end
