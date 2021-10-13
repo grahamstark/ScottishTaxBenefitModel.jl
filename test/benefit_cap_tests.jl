@@ -48,7 +48,7 @@ using .ExampleHelpers
 sys = get_system( scotland=true )
 
 @testset "Benefit Cap Shakedown" begin
-    examples = get_ss_examples()
+    examples = get_all_examples()
     hbs = collect(100:100:1000)
     for (hht,hh) in examples 
         bus = get_benefit_units( hh )

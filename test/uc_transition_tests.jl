@@ -17,7 +17,7 @@ settings = Settings()
 settings.means_tested_routing = modelled_phase_in
 
 @testset "Transition Tests on Example HHlds" begin
-    examples = get_ss_examples()
+    examples = get_all_examples()
     for (hht,hh) in examples 
         println( "on hhld '$hht'")
         lhh = deepcopy( hh )
@@ -99,7 +99,7 @@ end
     # chasing a bug when using UC route but contrib benefits
     # are being set to zero
     # 
-    examples = get_ss_examples()
+    examples = get_all_examples()
     hh = deepcopy( examples[cpl_w_2_children_hh])
     hhres = init_household_result( hh )
     intermed = make_intermediate( 

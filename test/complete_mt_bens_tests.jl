@@ -1,3 +1,7 @@
+#
+# FIXME this is obsolete and superseded by
+# `vs_[xx]_tests.jl` direct tests against online calculators.
+# 
 using Test
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
@@ -35,7 +39,7 @@ function spreadsheet_ss_example( key :: AbstractString ) :: NamedTuple
     m = match( re, key )
     fam = m[1]
     n = m[2]
-    examples = get_ss_examples()
+    examples = get_all_examples()
     name = ""
     subtype = ""
     m2 = match( r"(.*)-(.*)", fam )

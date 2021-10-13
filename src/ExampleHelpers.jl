@@ -6,6 +6,7 @@ module ExampleHelpers
 # shouldn't be used in a proper model simulation run.
 ##
 
+using Dates 
 
 using ScottishTaxBenefitModel
 using .ModelHousehold
@@ -13,8 +14,6 @@ using .EquivalenceScales
 using .Definitions
 
 export
-
-    EXAMPLES,
 
     add_child!,
     add_non_dependent!,
@@ -28,6 +27,8 @@ export
     disable_slightly!,
     employ!,
     enable!,
+    get_example,
+    get_all_examples,
     make_hh,
     makePID,
     retire!,
@@ -42,6 +43,9 @@ export SS_Examples, cpl_w_2_children_hh, single_parent_hh, single_hh, childless_
 
 @enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh mbu
 
+"""
+
+"""
 function get_ss_examples()::Dict{SS_Examples, Household}
     d = Dict{SS_Examples, Household}()
     @time names = ExampleHouseholdGetter.initialise()
@@ -54,8 +58,17 @@ function get_ss_examples()::Dict{SS_Examples, Household}
 end
 
 const EXAMPLES = get_ss_examples()
-const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
-const SPARE_ADULT = get_head( EXAMPLES[single_hh])
+
+function get_example( which :: SS_Examples ) :: Household
+   return deepcopy(EXAMPLES[ which ])
+end
+
+function get_all_examples()
+   return deepcopy( EXAMPLES )
+end
+
+const SPARE_CHILD = get_example(cpl_w_2_children_hh).people[320190000104]
+const SPARE_ADULT = get_head( get_example(single_hh))
     
 function unemploy!( pers::Person )
     pers.usual_hours_worked = 0
@@ -205,15 +218,6 @@ function unemploy!( pers::Person )
     make_eq_scales!( hh )
  end
  
- """
-  if the test was written at TEST_BASE_DATE, what age would we have to make somebody
-  to be sure the test will still work in some later year?
- """
- function age_now( age :: Int ) :: Int
-    yd = (Date(now()) - TEST_BASE_DATE).value ÷ 365 # leap years; no function for this
-    return age + Int(yd)
- end
- 
  function set_childrens_ages!( hh :: Household, ages ... )
     nc = length(ages)[1]
     nset = 0
@@ -241,15 +245,15 @@ function make_hh(
     hh = nothing
     if adults == 2
        if children > 0
-          hh = deepcopy( EXAMPLES[cpl_w_2_children_hh])
+          hh = get_example( cpl_w_2_children_hh )
        else
-          hh = deepcopy( EXAMPLES[childless_couple_hh])
+          hh = get_example( childless_couple_hh )
        end   
     elseif adults == 1
        if children > 0 
-          hh = deepcopy( EXAMPLES[single_parent_hh])
+          hh = get_example( single_parent_hh )
        else
-          hh = deepcopy( EXAMPLES[single_hh])
+          hh = get_example( single_hh )
        end
     else
        error("can't do $adults adults yet")

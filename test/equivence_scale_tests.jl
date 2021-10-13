@@ -18,7 +18,7 @@ using .ExampleHelpers
 # https://www2.gov.scot/Topics/Statistics/Browse/Social-Welfare/IncomePoverty/equivalence-scales-paper
 #
 @testset "Eq Scales" begin
-    for (key,hh) in EXAMPLES
+    for (key,hh) in get_all_examples()
         eqs :: EQScales = get_equivalence_scales( 
             Float64,
             collect(values(hh.people)))

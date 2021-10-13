@@ -8,12 +8,11 @@ using .STBIncomes
 using .ExampleHelpers
 
 sys = get_system( scotland=true )
-examples = get_ss_examples()
 sys.ubi.abolished = false
 
 @testset "Basic UBI Tests" begin
     
-    for (hht,hh) in examples 
+    for (hht,hh) in get_all_examples()
         hres = init_household_result( hh )
 
         calc_UBI!(

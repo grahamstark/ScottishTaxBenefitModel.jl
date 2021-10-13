@@ -77,8 +77,7 @@ lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( scotland=true )
 
 @testset "2 child policy" begin
-    examples = get_ss_examples()
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example(single_parent_hh)
     sparent = get_benefit_units(sph)[1]
     println( "keys of initial children  $(sparent.children)" )
 
@@ -104,7 +103,6 @@ end
     
 @testset "CPAG income and capital chapters 20, 21, 22, 23" begin
     
-    examples = get_ss_examples()
     income = [110.0,145.0,325,755.0,1_000.0]
 
     #  basic check of tariff incomes; cpag ch 21 ?? page
@@ -120,7 +118,7 @@ end
     ntests = size(income)[1]
 
     
-    for (hht,hh) in examples 
+    for (hht,hh) in get_all_examples()
         println( "on hhld '$hht'")
         bus = get_benefit_units( hh )
         bu = bus[1]
@@ -197,7 +195,7 @@ end
     end # households loop
 
     # Evan and Mia example p 433
-    e_and_m = get_benefit_units( examples[cpl_w_2_children_hh] )[1]
+    e_and_m = get_benefit_units( get_example( cpl_w_2_children_hh ) )[1]
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
     intermed = make_intermediate( 
@@ -229,10 +227,8 @@ end
 end # test set
 
 @testset "Applicability Tests" begin
-    # reset the examples
-    examples = get_ss_examples()
-    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
-    sparent = get_benefit_units(examples[single_parent_hh])[1]
+    cpl = get_benefit_units(get_example(cpl_w_2_children_hh))[1]
+    sparent = get_benefit_units(get_example(single_parent_hh))[1]
     intermed = make_intermediate( 
         1,
         cpl,  
@@ -410,9 +406,8 @@ end # test set
 end
 
 @testset "Intermediates" begin
-    examples = get_ss_examples()
     sys = get_system( scotland=true )
-    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
+    cpl = get_benefit_units(get_example(cpl_w_2_children_hh))[1]
     spouse = get_spouse( cpl )
     head = get_head( cpl )
     println( "sp=$spouse" )
@@ -518,7 +513,7 @@ end
     @test intermed.has_children
     @test ! intermed.economically_active # not_working is active
 
-    sparent = get_benefit_units(examples[single_parent_hh])[1]
+    sparent = get_benefit_units(get_example(single_parent_hh))[1]
     intermed = make_intermediate( 
         1,
         sparent,  
@@ -547,15 +542,13 @@ end
 end
 
 @testset "Allowances" begin
-    examples = get_ss_examples()
     sys = get_system( scotland=true )
-
+    # TODO
 end
 
 @testset "NDDS" begin
     sys = get_system( scotland=true )
-    examples = get_ss_examples()
-    spers = get_benefit_units(examples[single_hh])[1]
+    spers = get_benefit_units(get_example(single_hh))[1]
     head = get_head( spers ) # the only person, obvs..
     head.age = 30
     empty!(head.income)
@@ -658,7 +651,7 @@ end
         @test ndd ≈ 0.0
     end # loop ro
     # couples 
-    cpl = get_benefit_units(examples[cpl_w_2_children_hh])[1]
+    cpl = get_benefit_units(get_example( cpl_w_2_children_hh ))[1]
     spouse = get_spouse( cpl )
     head = get_head( cpl )
     employ!( spouse )
@@ -744,8 +737,7 @@ end
 
 @testset "Allowances" begin
     sys = get_system( scotland=true )
-    examples = get_ss_examples()
-    sing = examples[single_hh]
+    sing = get_example(single_hh)
     singbu = get_benefit_units(sing)[1]
     head = get_head( singbu )
     head.age = 25
@@ -795,7 +787,7 @@ end
     # 17 yo single parent - should be same as single
     #
     
-    spar = examples[single_parent_hh]
+    spar = get_example(single_parent_hh)
     sparbu = get_benefit_units(spar)[1]
     head = get_head(sparbu) 
     
@@ -836,7 +828,7 @@ end
     #
     # funny age combinations
     # a) 2 < 18
-    cplhh = examples[cpl_w_2_children_hh]
+    cplhh = get_example(cpl_w_2_children_hh)
     cpl = get_benefit_units(cplhh)[1]
     spouse = get_spouse( cpl )
     head = get_head( cpl )
@@ -937,8 +929,7 @@ end
 
 @testset "Premia" begin
     sys = get_system( scotland=true )
-    examples = get_ss_examples()
-    cplhh = examples[cpl_w_2_children_hh]
+    cplhh = get_example(cpl_w_2_children_hh)
     cpl = get_benefit_units(cplhh)[1]
     bures = init_benefit_unit_result(cpl)
     spouse = get_spouse( cpl )
@@ -1029,8 +1020,7 @@ end
 @testset "HB/CTB" begin
     # CPAG 19/20 p190
     sys = get_system( scotland=true )
-    examples = get_ss_examples()
-    joplings = examples[childless_couple_hh]
+    joplings = get_example(childless_couple_hh)
     jbu = get_benefit_units(joplings)[1]
     spouse = get_spouse( jbu )
     head = get_head( jbu )
@@ -1065,7 +1055,7 @@ end
     println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
     @test hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT] ≈ 22.50
     
-    mr_h = examples[single_hh]
+    mr_h = get_example(single_hh)
     mrhbu = get_benefit_units(mr_h)[1]
     head = get_head( mrhbu )
     println( "mr h:: initial: head.dla_self_care_type $(head.dla_self_care_type)" )
@@ -1118,7 +1108,7 @@ end
 
 @testset "NDDs" begin
     sys = get_system( scotland=true )
-    bu3 = deepcopy( EXAMPLES[mbu])
+    bu3 = get_example(mbu)
     bus = get_benefit_units( bu3 )
     @assert size(bus)[1] == 3
     head = get_head( bu3 )
@@ -1187,14 +1177,13 @@ end
 end
 
 @testset "CTC/WTC" begin
-
+    # TODO
 end
 
 @testset "Full Legacy Benefits" begin
 #TODO
-    for (key,hh) in EXAMPLES
+    for (key,hhc) in get_all_examples()
         println( "on $key")
-        hhc = deepcopy( hh )
         head = get_head( hhc )
         intermed = make_intermediate( 
             hhc, 
@@ -1216,14 +1205,14 @@ end
         # head is unemployed
         unemploy!( head )
         intermed = make_intermediate( 
-            hh, 
+            hhc, 
             sys.hours_limits, 
             sys.age_limits,
             sys.child_limits )
-        hhres = init_household_result( hh )        
+        hhres = init_household_result( hhc )        
         calc_legacy_means_tested_benefits!(
             hhres,
-            hh,
+            hhc,
             intermed,
             sys.lmt,
             sys.age_limits,
@@ -1234,14 +1223,14 @@ end
         # head is seriously disabled
         disable_seriously!( head )
         intermed = make_intermediate( 
-            hh, 
+            hhc, 
             sys.hours_limits, 
             sys.age_limits,
             sys.child_limits )
-        hhres = init_household_result( hh )        
+        hhres = init_household_result( hhc )        
         calc_legacy_means_tested_benefits!(
             hhres,
-            hh,
+            hhc,
             intermed,
             sys.lmt,
             sys.age_limits,
@@ -1252,14 +1241,14 @@ end
         enable!( head )
         carer!( head )
         intermed = make_intermediate( 
-            hh, 
+            hhc, 
             sys.hours_limits, 
             sys.age_limits,
             sys.child_limits )
-        hhres = init_household_result( hh )        
+        hhres = init_household_result( hhc )        
         calc_legacy_means_tested_benefits!(
             hhres,
-            hh,
+            hhc,
             intermed,
             sys.lmt,
             sys.age_limits,
@@ -1272,9 +1261,9 @@ end
 
 
 @testset "PC/SC" begin
-    # cpag19/20 examples on p274
+    # cpag19/20 EXAMPLES on p274
     sys = get_system( scotland=true )
-    bhh= deepcopy( EXAMPLES[single_hh])
+    bhh= get_example(single_hh)
     barbara = get_head(bhh)
     retire!( barbara )
     disable_seriously!( barbara )
@@ -1317,7 +1306,7 @@ end
     @test lmt.hb_passported
     @test lmt.ctr_passported
 
-    m_and_j= deepcopy( EXAMPLES[childless_couple_hh])
+    m_and_j= get_example(childless_couple_hh)
     maria = get_head( m_and_j )
     maria.age = 66
     retire!( maria )
@@ -1376,7 +1365,7 @@ end
 
     # from CPAG 2011/12 updated by me.
 
-    t_and_j= deepcopy( EXAMPLES[childless_couple_hh])
+    t_and_j= get_example(childless_couple_hh)
     june = get_head( t_and_j )
     retire!( june )
     june.age = 75
@@ -1450,7 +1439,7 @@ end
     mt_ben_sys = sys.lmt
 
     
-    tracyh = deepcopy( EXAMPLES[single_parent_hh])
+    tracyh = get_example(single_parent_hh)
     @test num_children( tracyh ) == 2
     for pid in child_pids( tracyh )
         tracyh.people[pid].hours_of_childcare = 40
