@@ -12,35 +12,57 @@ using .ModelHousehold
 using .EquivalenceScales
 using .Definitions
 
-export 
+export
 
-    unemploy!,
-    employ!,
-    disable_slightly!,
-    disable_seriously!,
-    enable!,
-    blind!,
-    unblind!,
-    deafen!,
-    undefen!,
-    carer!,
-    uncarer!,
-    retire!,
+    EXAMPLES,
+
     add_child!,
-    set_childrens_ages!,
     add_non_dependent!,
     age_now,
+    blind!,
+    carer!,
+    deafen!,
     delete_child!,
     delete_person!,
+    disable_seriously!,
+    disable_slightly!,
+    employ!,
+    enable!,
     make_hh,
+    makePID,
+    retire!,
+    set_childrens_ages!,
+    unblind!,
+    uncarer!,
+    undefen!,
+    unemploy!
 
+
+export SS_Examples, cpl_w_2_children_hh, single_parent_hh, single_hh, childless_couple_hh, mbu
+
+@enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh mbu
+
+function get_ss_examples()::Dict{SS_Examples, Household}
+    d = Dict{SS_Examples, Household}()
+    @time names = ExampleHouseholdGetter.initialise()
+    d[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
+    d[single_parent_hh] = ExampleHouseholdGetter.get_household( "single_parent_1" )
+    d[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )
+    d[childless_couple_hh] = ExampleHouseholdGetter.get_household("mel_c2_scot")
+    d[mbu] =  ExampleHouseholdGetter.get_household("mbu_example")
+    return d
+end
+
+const EXAMPLES = get_ss_examples()
+const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
+const SPARE_ADULT = get_head( EXAMPLES[single_hh])
+    
 function unemploy!( pers::Person )
     pers.usual_hours_worked = 0
     pers.actual_hours_worked = 0
     pers.employment_status = Unemployed 
     delete!( pers.income, wages )  
-    delete!( pers.income, self_employment_income )  
-     
+    delete!( pers.income, self_employment_income ) 
  end
  
  function employ!( pers::Person, wage=600.00 )

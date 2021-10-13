@@ -110,23 +110,6 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
    return sys
 end
 
-@enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh mbu
-
-function get_ss_examples()::Dict{SS_Examples, Household}
-    d = Dict{SS_Examples, Household}()
-    @time names = ExampleHouseholdGetter.initialise()
-    d[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
-    d[single_parent_hh] = ExampleHouseholdGetter.get_household( "single_parent_1" )
-    d[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )
-    d[childless_couple_hh] = ExampleHouseholdGetter.get_household("mel_c2_scot")
-    d[mbu] =  ExampleHouseholdGetter.get_household("mbu_example")
-    return d
-end
-
-const EXAMPLES = get_ss_examples()
-const SPARE_CHILD = EXAMPLES[cpl_w_2_children_hh].people[320190000104]
-const SPARE_ADULT = get_head( EXAMPLES[single_hh])
-
     
 function init_benefit_unit_result( bu :: BenefitUnit ) :: BenefitUnitResult
    return init_benefit_unit_result( DEFAULT_NUM_TYPE, bu )
