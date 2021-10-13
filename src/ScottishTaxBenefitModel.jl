@@ -96,6 +96,9 @@ export UBI
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
 
+include( "ExampleHelpers.jl")
+export ExampleHelpers
+
 include( "BCCalcs.jl")
 export BCCalcs
 
