@@ -5,6 +5,7 @@ using .Results: aggregate!, init_household_result
 using .Intermediate: MTIntermediate, make_intermediate    
 using .UBI: calc_UBI!
 using .STBIncomes
+using .ExampleHelpers
 
 sys = get_system( scotland=true )
 examples = get_ss_examples()

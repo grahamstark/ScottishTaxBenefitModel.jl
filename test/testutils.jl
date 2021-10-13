@@ -22,6 +22,8 @@ import .ExampleHouseholdGetter
 
 using .RunSettings: Settings
 
+using .ExampleHelpers
+
 using DataFrames,CSV, Dates
 
 #

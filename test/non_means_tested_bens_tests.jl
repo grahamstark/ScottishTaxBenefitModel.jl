@@ -68,6 +68,8 @@ using .Results:
     BenefitUnitResult,
     init_household_result
 
+using .ExampleHelpers
+
 using Dates
 
 ## FIXME don't need both

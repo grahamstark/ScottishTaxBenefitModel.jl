@@ -15,6 +15,7 @@ using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
 
 using .STBParameters
 using .Intermediate: make_intermediate, MTIntermediate
+using .ExampleHelpers
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()

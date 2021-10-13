@@ -5,6 +5,7 @@ using .Results
 using .Intermediate: MTIntermediate, make_intermediate    
 using .ScottishBenefits
 using .STBIncomes
+using .ExampleHelpers
 
 sys = get_system( scotland=true )
 examples = get_ss_examples()

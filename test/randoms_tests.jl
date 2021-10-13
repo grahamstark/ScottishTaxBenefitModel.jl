@@ -1,7 +1,7 @@
 using Test
 using ScottishTaxBenefitModel
 using .Randoms
-
+using .ExampleHelpers
 
 @testset "Randoms" begin
     rm  = "123456789"

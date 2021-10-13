@@ -43,6 +43,8 @@ using .Utils:
     to_md_table
 
 
+using .ExampleHelpers
+
 sys = get_system( scotland=true )
 
 @testset "Benefit Cap Shakedown" begin

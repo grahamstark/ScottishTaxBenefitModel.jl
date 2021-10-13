@@ -1,6 +1,7 @@
 using Test
 using ScottishTaxBenefitModel
 using .STBParameters: MinimumWage, get_minimum_wage 
+using .ExampleHelpers
 
 
 ## FIXME don't need both

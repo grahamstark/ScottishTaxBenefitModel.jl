@@ -15,6 +15,9 @@ using .Intermediate: MTIntermediate, make_intermediate
     
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: LMTResults, LMTCanApplyFor, init_household_result
+
+using .ExampleHelpers
+
 using Dates
 using DataFrames
 using CSV

@@ -69,6 +69,7 @@ using .GeneralTaxComponents:
 using .Definitions
 
 using .STBIncomes
+using .ExampleHelpers
 
 ## FIXME don't need both
 sys = get_system( scotland=true )

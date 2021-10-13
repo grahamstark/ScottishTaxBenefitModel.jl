@@ -10,6 +10,7 @@ using ScottishTaxBenefitModel.STBParameters
 using ScottishTaxBenefitModel.Runner: do_one_run!
 using ScottishTaxBenefitModel.RunSettings: Settings, MT_Routing
 using .Utils
+using .ExampleHelpers
 
 settings = Settings()
 

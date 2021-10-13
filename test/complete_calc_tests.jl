@@ -38,6 +38,8 @@ using .Runner:
 
 using .RunSettings: Settings
 
+using .ExampleHelpers
+
 function hh_to_hhr_mismatch( hh :: Household, hhr :: HouseholdResult ) :: Bool
     bus = get_benefit_units( hh )
     if length(hhr.bus) != size( bus )[1]

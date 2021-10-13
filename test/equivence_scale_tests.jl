@@ -9,6 +9,8 @@ using .EquivalenceScales:
     eq_other_adult,
     eq_head
 
+using .ExampleHelpers
+
 #
 # Replicates cases based on tables 1,2 of:
 # Chanfreau, Jenny, and Tania Burchard. 2008. 

@@ -68,7 +68,8 @@ using .Results:
     to_string
 using .Utils: 
     eq_nearest_p,
-    to_md_table
+    to_md_table    
+using .ExampleHelpers
 
 
 ## FIXME don't need both

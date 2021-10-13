@@ -7,6 +7,7 @@ using .ModelHousehold
 using .ExampleHouseholdGetter
 using .FRSHouseholdGetter
 using .Definitions
+using .ExampleHelpers
 
 prfr = Uprating.load_prices( DEFAULT_SETTINGS )
 

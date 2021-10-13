@@ -3,10 +3,11 @@ using JSON3
 
 
 using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.STBParameters:
+using .STBParameters:
     IncomeTaxSys,weeklyise!,annualise!,load_file,load_file!,TaxBenefitSystem
-using ScottishTaxBenefitModel.Utils
-import ScottishTaxBenefitModel.GeneralTaxComponents: WEEKS_PER_YEAR
+using .Utils
+using .GeneralTaxComponents: WEEKS_PER_YEAR
+using .ExampleHelpers
 
 @testset "IT Parameter Tests" begin
     itsysdir :: IncomeTaxSys = get_default_it_system( year=2019, scotland=true)

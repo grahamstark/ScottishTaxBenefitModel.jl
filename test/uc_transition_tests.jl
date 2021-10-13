@@ -10,6 +10,7 @@ using .RunSettings
 using .Results
 using .Intermediate
 using .STBIncomes
+using .ExampleHelpers
 
 sys = get_system( scotland=true )
 settings = Settings()
