@@ -17,6 +17,7 @@ export
 
     add_child!,
     add_non_dependent!,
+    add_spouse!,
     age_now,
     blind!,
     carer!,
@@ -175,6 +176,7 @@ function unemploy!( pers::Person )
     spouse = get_spouse( hh )
     if spouse !== nothing
        spouse.relationships[np.pid] = Parent
+       np.relationships[spouse.pid] = Son_or_daughter_incl_adopted
     end
     # FIXME other adults in othe BUS
     make_eq_scales!( hh )
@@ -204,6 +206,42 @@ function unemploy!( pers::Person )
     make_eq_scales!( hh )   
     return np.pid
  end
+
+ function add_spouse!( 
+   hh  :: Household, 
+   age :: Integer, 
+   sex :: Sex;
+   buno :: Int = 1 ) :: BigInt
+   
+   np = deepcopy( SPARE_ADULT )
+   bus = get_benefit_units( hh )
+   bu = bus[buno]
+   nbus = size(bus)[1]
+   head = get_head(bu)
+   @assert get_spouse( bu ) === nothing "Spouse already exists for bu $buno"
+   
+   np.pid = maximum( keys( hh.people ))+1
+   np.relationships[head.pid] = Spouse
+   head.relationships[np.pid] = Spouse
+   for pid in bu.children
+      ch = bu.people[pid]
+      np.relationships[pid] = Parent
+      ch.relationships[np.pid] = Son_or_daughter_incl_adopted
+   end
+
+   # TODO fill in other relationships
+
+   np.age = age
+   np.sex = sex
+   np.default_benefit_unit = buno
+   hh.people[ np.pid ] = np
+   bus = get_benefit_units( hh )
+   nnbus = size(bus)[1]
+   @assert nnbus == nbus
+   make_eq_scales!( hh )   
+   return np.pid
+end
+
  
  function delete_person!( hh :: Household, pid :: BigInt )
     delete!( hh.people, pid )
