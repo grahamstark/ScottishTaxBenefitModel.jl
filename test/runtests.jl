@@ -8,6 +8,8 @@ using ScottishTaxBenefitModel
 
 include( "testutils.jl")
 
+include( "test_utils_tests.jl")
+
 include( "randoms_tests.jl")
 
 include( "general_tests.jl")

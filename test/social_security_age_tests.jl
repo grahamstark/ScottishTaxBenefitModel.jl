@@ -17,6 +17,7 @@ using .Intermediate: MTIntermediate, make_intermediate
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits, 
     reached_state_pension_age, state_pension_age, AgeLimits
 using .Results: LMTResults, LMTCanApplyFor
+using .ExampleHelpers
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()

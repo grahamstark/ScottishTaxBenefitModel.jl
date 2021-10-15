@@ -69,6 +69,7 @@ using .GeneralTaxComponents:
 using .Definitions
 
 using .STBIncomes
+using .ExampleHelpers
 
 ## FIXME don't need both
 sys = get_system( scotland=true )
@@ -82,7 +83,7 @@ sys = get_system( scotland=true )
     # to the CPAG examples
     # uc = get_default_uc( weekly = true )
 
-    examples = get_ss_examples()
+    examples = get_all_examples()
     
     incomes = [110.0,145.0,325,755.0,1_000.0]
 
@@ -124,7 +125,7 @@ end
 @testset "Gail and Joe; CPAG 19/20 ch 3" begin
     # p41 example
     ucs = get_default_uc( weekly=false)
-    g_and_j = deepcopy( EXAMPLES[cpl_w_2_children_hh])
+    g_and_j = get_example( cpl_w_2_children_hh )
     @test num_children( g_and_j ) == 2
     g_and_j.gross_rent = 0.0
     g_and_j.water_and_sewerage = 0.0
@@ -236,7 +237,7 @@ end
 
 @testset "16-17yo adult tests; cpag ch3 sec2" begin
     ucs = get_default_uc( weekly=false)
-    yph = deepcopy( EXAMPLES[mbu])
+    yph = get_example( mbu )
     head = get_head( yph )
     enable!( head )
     head.age = 17
@@ -297,7 +298,7 @@ end
 
 @testset "capital" begin
     ucs = get_default_uc( weekly=false)
-    cpl= deepcopy( EXAMPLES[cpl_w_2_children_hh])
+    cpl= get_example( cpl_w_2_children_hh )
     hres = init_household_result( cpl )
     head = get_head( cpl )
     spouse = get_spouse( cpl )
@@ -345,7 +346,7 @@ end
 
 @testset "income calculations" begin
     ucs = get_default_uc( weekly=false)
-    cpl= deepcopy( EXAMPLES[cpl_w_2_children_hh])
+    cpl= get_example( cpl_w_2_children_hh )
     head = get_head( cpl )
     head.age = 30
     spouse = get_spouse( cpl )

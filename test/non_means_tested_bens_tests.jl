@@ -68,6 +68,8 @@ using .Results:
     BenefitUnitResult,
     init_household_result
 
+using .ExampleHelpers
+
 using Dates
 
 ## FIXME don't need both
@@ -77,7 +79,7 @@ itsys_scot = get_default_it_system( year=2019, scotland=true )
 
 @testset "CB" begin
     cb = sys.nmt_bens.child_benefit
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     hhres = init_household_result( sph )
     bu = get_benefit_units( sph )[1]
     head = get_head( bu )
@@ -112,7 +114,7 @@ end
 
 @testset "PIP" begin
     pip = sys.nmt_bens.pip
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     head = get_head( sph )
     disable_seriously!( head )
     head.pip_daily_living_type = standard_pip
@@ -123,7 +125,7 @@ end
 
 @testset "AA" begin
     aa = sys.nmt_bens.attendance_allowance
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     head = get_head( sph )
     disable_seriously!( head )
     head.attendance_allowance_type = high 
@@ -133,7 +135,7 @@ end
 
 @testset "DLA" begin
     dla = sys.nmt_bens.dla
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     head = get_head( sph )
     disable_seriously!( head )
     head.dla_self_care_type = mid
@@ -148,7 +150,7 @@ end
 
 @testset "ESA" begin
     esa = sys.nmt_bens.esa
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     head = get_head( sph )
     head.esa_type = contributory_jsa
     e = calc_esa( head, esa )
@@ -165,7 +167,7 @@ end
 
 @testset "Maternity" begin
     mat = sys.nmt_bens.maternity
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     head = get_head( sph )
     head.income[maternity_allowance] = 123
     m = calc_maternity_allowance( head, mat )
@@ -175,7 +177,7 @@ end
 
 @testset "Carers" begin
     care = sys.nmt_bens.carers
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     head = get_head( sph )
     hp = head.pid
     unemploy!( head )
@@ -205,7 +207,7 @@ end
 end
 
 @testset "JSA" begin
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     head = get_head( sph )
     hp = head.pid
     unemploy!( head )
@@ -224,7 +226,7 @@ end
 @testset "Widows" begin
     bp = sys.nmt_bens.bereavement
     wp = sys.nmt_bens.widows_pension
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     fy = fy_from_bits( sph.interview_year, sph.interview_month )
     @test fy == 2019
 
@@ -245,7 +247,7 @@ end
 
 @testset "State Pension" begin
     rp = sys.nmt_bens.pensions
-    hh = deepcopy( EXAMPLES[single_hh])
+    hh = get_example( single_hh )
     fy = fy_from_bits( hh.interview_year, hh.interview_month )    
     bu = get_benefit_units( hh )[1]
     head = get_head( bu )
@@ -276,7 +278,7 @@ end
 
 @testset "Pre-Tax NMT" begin
     for exn in instances( SS_Examples )
-        hh = deepcopy( EXAMPLES[exn])
+        hh = get_example( exn )
         println( "on $exn")
         hhres = init_household_result( hh )
         calc_pre_tax_non_means_tested!( 
@@ -290,7 +292,7 @@ end
 
 @testset "Post-Tax NMT" begin
     for exn in instances( SS_Examples )
-        hh = deepcopy( EXAMPLES[exn])
+        hh = get_example( exn )
         println( "on $exn")
         hhres = init_household_result( hh )
         calc_post_tax_non_means_tested!( 

@@ -27,13 +27,13 @@ using .Results:
     map_incomes,
     to_string,
     total
-
+using .ExampleHelpers
 #
 #
 #
 
 @testset "Results record creation and summation" begin
-    sph = deepcopy(EXAMPLES[single_parent_hh])
+    sph = get_example( single_parent_hh )
     sph.gross_rent = 200.0
     sph.water_and_sewerage = 0
     sph.mortgage_payment = 0
@@ -67,7 +67,7 @@ using .Results:
     @test hrs.ahc_net_income ≈ 700.0+others
 
     # multiple benefit units example
-    mbhh = deepcopy(EXAMPLES[mbu])
+    mbhh = get_example( mbu )
     bus = get_benefit_units(mbhh)
     mhead =  get_head(bus[3])
     mhp = mhead.pid

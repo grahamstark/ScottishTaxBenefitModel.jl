@@ -1,20 +1,23 @@
 import Test: @testset, @test
-import ScottishTaxBenefitModel.FRSHouseholdGetter: 
+
+using ScottishTaxBenefitModel
+
+using .FRSHouseholdGetter: 
     get_household, 
     get_num_households,
     initialise
 
-import ScottishTaxBenefitModel.ModelHousehold: 
+using .ModelHousehold: 
     Household, 
     Person
 
-import ScottishTaxBenefitModel.Weighting: 
+using .Weighting: 
     DEFAULT_TARGETS, 
     generate_weights, 
     initialise_target_dataframe,
     make_target_dataset
+using .ExampleHelpers
     
-using ScottishTaxBenefitModel
 using CSV
 using Tables
 

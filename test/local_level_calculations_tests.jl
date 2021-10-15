@@ -15,6 +15,7 @@ using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
 
 using .STBParameters
 using .Intermediate: make_intermediate, MTIntermediate
+using .ExampleHelpers
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
@@ -34,7 +35,7 @@ end
 
 @testset "Rooms Restrictions" begin
 
-    hh = deepcopy(EXAMPLES[cpl_w_2_children_hh]) 
+    hh = get_example( cpl_w_2_children_hh ) 
     hh.bedrooms = 12 # set to a big number 
     delete_child!( hh ) # start with 1
 
@@ -120,7 +121,7 @@ end
         sys.child_limits )
     nbeds = apply_size_criteria( hh, intermed.hhint, sys.hr )
     @test nbeds == 5 # same as above - max should kick in 
-    hh = deepcopy(EXAMPLES[cpl_w_2_children_hh]) 
+    hh = get_example( cpl_w_2_children_hh ) 
     
     for i in 1:0
         age += 1
@@ -162,7 +163,7 @@ end
 @testset "Local Housing Allowance" begin
     @test sys.hr.rooms_rent_reduction ≈ [0.14, 0.25]
     sys.hr.maximum_rooms = 4 # set this back to actual
-    for (name,hh) in EXAMPLES
+    for (name,hh) in get_all_examples()
         println( "on hhld $name")
         hh.tenure = Private_Rented_Furnished
         hh.gross_rent = 300.0

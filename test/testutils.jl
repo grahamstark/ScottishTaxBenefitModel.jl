@@ -22,6 +22,8 @@ import .ExampleHouseholdGetter
 
 using .RunSettings: Settings
 
+using .ExampleHelpers
+
 using DataFrames,CSV, Dates
 
 #
@@ -135,4 +137,11 @@ function compare_w_2_m( uspw::Real, thempm::Real, ps :: Real = 1 ) :: Bool
    return true
 end
 
-
+"""
+if the test was written at TEST_BASE_DATE, what age would we have to make somebody
+to be sure the test will still work in some later year?
+"""
+function age_now( age :: Int ) :: Int
+  yd = (Date(now()) - TEST_BASE_DATE).value ÷ 365 # leap years; no function for this
+  return age + Int(yd)
+end

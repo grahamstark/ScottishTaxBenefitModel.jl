@@ -35,8 +35,10 @@ using .Definitions
 using .HistoricBenefits: 
       RATIO_BENS,
       make_benefit_ratios!
-# using Plots
+      using .ExampleHelpers
+
 using DataFrames
+
 
 start_year=2015
 num_households = 0

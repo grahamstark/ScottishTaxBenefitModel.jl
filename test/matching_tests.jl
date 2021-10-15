@@ -3,6 +3,7 @@ using ScottishTaxBenefitModel
 using .Utils:coarse_match
 
 using DataFrames, CSV
+using .ExampleHelpers
 
 #
 # Donor and Recipient each have 2 fields `a` and `b` filled with random

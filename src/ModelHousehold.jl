@@ -57,6 +57,7 @@ export
     has_disabled_member,
     has_income,
     interview_date, 
+    is_child,
     is_head,
     is_lone_parent, 
     is_severe_disability, 

@@ -14,6 +14,7 @@ using .IncomeTaxCalculations
 using .SingleHouseholdCalculations
 using .RunSettings
 using .Utils
+using .ExampleHelpers
 
 sys21_22 = load_file( "../params/sys_2021_22.jl" )
 load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")

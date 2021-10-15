@@ -13,6 +13,7 @@ using .STBParameters: NationalInsuranceSys,weeklyise!
 using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .FRSHouseholdGetter: get_household
 using .Results: IndividualResult, map_incomes
+using .ExampleHelpers
 
 
 @testset "Run on actual Data" begin
