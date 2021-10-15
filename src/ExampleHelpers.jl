@@ -9,8 +9,10 @@ module ExampleHelpers
 
 using ScottishTaxBenefitModel
 using .ModelHousehold
+using .ExampleHouseholdGetter
 using .EquivalenceScales
 using .Definitions
+using .Utils
 
 export
 
@@ -287,7 +289,6 @@ function make_hh(
     make_eq_scales!( hh )
     return hh
  end
- 
  
  #
  # quickie for making a default-ish pid
