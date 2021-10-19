@@ -119,8 +119,8 @@ function makebc(
         # FIXME add a really nice labelling thing here with changes between gross and gross+1
         r.label = inctostr( hres.income )
         # FIXME aggregate this to HH Level
-        r.cap = hres.bures[1].bencap.cap
-        r.reduction = hres.bures[1].bencap.reduction
+        r.cap = hres.bus[1].bencap.cap
+        r.reduction = hres.bus[1].bencap.reduction
         r.simplelabel = tosimplelabel( r, hres )
     end
     return out
