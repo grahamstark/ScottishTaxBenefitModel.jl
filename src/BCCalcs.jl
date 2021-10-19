@@ -54,9 +54,15 @@ function tosimplelabel(
             s *= "<b>$n</b> = $m<br>"
         end
     end
+    s *= "<br>"
+    if r.reduction > 0
+        m = md_format(r.cap)
+        s *= "<b>Benefit Cap</b> = $m<br>"    
+        m = md_format(r.reduction)
+        s *= "<b>Benefits Reduced By:</b> = $m<br>"    
+    end
     m = md_format(hres.net_housing_costs)
     s *= "<b>Net Housing Costs</b> = $m<br>"
-    s *= "<br>"
     if abs(r.mr) < 9999
         m = md_format(r.mr*100)
         s *= "<b>Marginal Tax Rate</b> = $(m)%<br>"
@@ -88,8 +94,15 @@ function makebc(
     annotations = annotate_bc( bc )
     N = size( a )[1]
 
-    out = DataFrame( gross = zeros(N), net=zeros(N), mr = zeros(N), credit=zeros(N), 
-        label=Array{String}(undef,N),simplelabel=Array{String}(undef,N))
+    out = DataFrame( 
+        gross = zeros(N), 
+        net=zeros(N), 
+        mr = zeros(N), 
+        credit=zeros(N), 
+        cap = zeros(N),
+        reduction = zeros(N), 
+        label=Array{String}(undef,N),
+        simplelabel=Array{String}(undef,N))
     # fill the data frame
     for i in 1:N
         r = out[i,:]
@@ -105,6 +118,9 @@ function makebc(
         hres = local_getnet( data, a[i,1] ) 
         # FIXME add a really nice labelling thing here with changes between gross and gross+1
         r.label = inctostr( hres.income )
+        # FIXME aggregate this to HH Level
+        r.cap = hres.bures[1].bencap.cap
+        r.reduction = hres.bures[1].bencap.reduction
         r.simplelabel = tosimplelabel( r, hres )
     end
     return out
