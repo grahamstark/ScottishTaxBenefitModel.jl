@@ -85,7 +85,7 @@ function makebc(
     sys        :: TaxBenefitSystem,
     settings   :: Settings,
     wage       :: Real = 10.0,
-    pid        :: BigInt = -1,
+    pid        :: BigInt = BigInt(-1),
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: DataFrame
     max_gross = wage*120
     lbcset = BCSettings(
