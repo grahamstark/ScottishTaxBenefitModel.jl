@@ -281,7 +281,7 @@ export
         # println( "hh.bedrooms = $(hh.bedrooms)" )
         # println( "needed rooms = $rooms" )
         # println( "hr.maximum_rooms = $(hr.maximum_rooms)")    
-        return min( rooms, hr.maximum_rooms )#, hh.bedrooms )
+        return min( rooms, hr.maximum_rooms ) #, hh.bedrooms )
     end
 
     """

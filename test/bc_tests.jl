@@ -59,7 +59,7 @@ settings = DEFAULT_SETTINGS
     employ!( head )
     =#
     settings.means_tested_routing = lmt_full 
-    bc = BCCalcs.makebc(hh, sys21_22, settings )
+    bc = BCCalcs.makebc(hh, sys21_22, 10.0, settings )
     pretty_table( bc )
     #=
     println( to_md_table( bc ))
@@ -96,7 +96,7 @@ settings = DEFAULT_SETTINGS
     =#
 
     settings.means_tested_routing = uc_full 
-    bcu = BCCalcs.makebc(hh, sys21_22, settings )
+    bcu = BCCalcs.makebc(hh, sys21_22, 10.0, settings )
     println( "UC CASE ")
     # println( [ bcu.points[:,1] bcu.points[:,2]] )
     #=

@@ -73,6 +73,7 @@ function makebc(
     hh         :: Household,
     sys        :: TaxBenefitSystem,
     settings   :: Settings,
+    wage       :: Real = 10.0,
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: DataFrame
     lbcset = BCSettings(
         bcsettings.mingross,
@@ -82,7 +83,7 @@ function makebc(
         false, # don't round numbers, since that causes charting problems
         bcsettings.maxdepth
     )
-    data = Dict( :hh=>deepcopy(hh), :sys=>sys, :settings=>settings, :wage => 10.0 )
+    data = Dict( :hh=>deepcopy(hh), :sys=>sys, :settings=>settings, :wage => wage )
     bc = BudgetConstraints.makebc( data, getnet, lbcset )
     a = pointstoarray( bc )
     annotations = annotate_bc( bc )

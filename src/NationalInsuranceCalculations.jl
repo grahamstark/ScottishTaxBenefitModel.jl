@@ -60,7 +60,8 @@ function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: Bu
         :pers=>pers,
         :sys=>sys
     )
-    return makebc( data, make_one_net, Utils.BC_SETTINGS)
+    # hourly wage is irrelevant 
+    return makebc( data, make_one_net, 10.0, Utils.BC_SETTINGS)
 end
 
 """
