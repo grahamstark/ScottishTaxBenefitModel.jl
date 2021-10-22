@@ -40,13 +40,13 @@ function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
 end
 
 function getnet( data::Dict, gross::Real ) :: Real
-    rc = local_getnet( data, gross )
+    hres = local_getnet( data, gross )
     target = data[:target_income]
     if target == ahc_hh
-        return rc.ahc_net_income
+        return hres.ahc_net_income
     elseif target == bhc_hh
-        return rc.bhc_net_income
-    elseif target == total_taxes
+        return hres.bhc_net_income
+    elseif target == total_bens
         return isum(hres.income, BENEFITS )
     elseif target == total_taxes
         return isum(hres.income, INCOME_TAXES)
