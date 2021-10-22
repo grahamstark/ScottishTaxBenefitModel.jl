@@ -17,7 +17,7 @@ using .Results
 using .Utils
 
 export makebc
-export TargetIncomes ahc_hh, bhc_hh, total_bens, total_taxes
+export TargetIncomes, ahc_hh, bhc_hh, total_bens, total_taxes
 @enum TargetIncomes ahc_hh bhc_hh total_bens total_taxes
 
 function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
@@ -96,8 +96,8 @@ function makebc(
     sys        :: TaxBenefitSystem,
     settings   :: Settings,
     wage       :: Real = 10.0,
-    pid        :: BigInt = BigInt(-1),
     target_income :: TargetIncomes = ahc_hh,
+    pid        :: BigInt = BigInt(-1),
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: DataFrame
     max_gross = wage*120
     lbcset = BCSettings(
