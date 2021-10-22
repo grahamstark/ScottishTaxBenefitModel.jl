@@ -17,6 +17,8 @@ using .Results
 using .Utils
 
 export makebc
+export TargetIncomes ahc_hh, bhc_hh, total_bens, total_taxes
+@enum TargetIncomes ahc_hh bhc_hh total_bens total_taxes
 
 function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     settings = data[:settings]
@@ -38,7 +40,16 @@ function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
 end
 
 function getnet( data::Dict, gross::Real ) :: Real
-    return local_getnet( data, gross ).ahc_net_income
+    rc = local_getnet( data, gross )
+    if rc[:target_income] == ahc_hh
+        return rc.ahc_net_income
+    elseif rc[:target_income] == bhc_hh
+        return rc.bhc_net_income
+    elseif rc[:target_income] == total_taxes
+        return isum(hres.income, BENEFITS )
+    elseif rc[:target_income] == total_taxes
+        return isum(hres.income, INCOME_TAXES)
+    end
 end
 
 """
@@ -86,6 +97,7 @@ function makebc(
     settings   :: Settings,
     wage       :: Real = 10.0,
     pid        :: BigInt = BigInt(-1),
+    target_income :: TargetIncomes = ahc_hh,
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: DataFrame
     max_gross = wage*120
     lbcset = BCSettings(
@@ -96,7 +108,12 @@ function makebc(
         false, # don't round numbers, since that causes charting problems
         bcsettings.maxdepth
     )
-    data = Dict( :hh=>deepcopy(hh), :sys=>sys, :settings=>settings, :wage => wage, :pid=>pid )
+    data = Dict( :hh=>deepcopy(hh), 
+        :sys=>sys, 
+        :settings=>settings, 
+        :wage => wage, 
+        :pid=>pid,
+        :target_income => target_income )
     bc = BudgetConstraints.makebc( data, getnet, lbcset )
     a = pointstoarray( bc )
     annotations = annotate_bc( bc )
