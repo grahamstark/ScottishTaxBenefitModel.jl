@@ -23,10 +23,15 @@ function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     hh = data[:hh]
     sys = data[:sys]
     wage = data[:wage]
-    
+    pid = data[:pid]
     # FIXME generalise to all hh members
-    head = get_head( hh )
-    set_wage!( head, gross, wage )
+    person = nothing
+    if pid == -1
+        person = get_head( hh )
+    else
+        person = hh.people[pid]
+    end
+    set_wage!( person, gross, wage )
     # fixme adust penconts etc.
     hres = do_one_calc( hh, sys, settings )
     return hres
@@ -80,16 +85,18 @@ function makebc(
     sys        :: TaxBenefitSystem,
     settings   :: Settings,
     wage       :: Real = 10.0,
+    pid        :: BigInt = -1,
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: DataFrame
+    max_gross = wage*120
     lbcset = BCSettings(
         bcsettings.mingross,
-        1_200.0,
+        max_gross,
         bcsettings.increment,
         bcsettings.tolerance,
         false, # don't round numbers, since that causes charting problems
         bcsettings.maxdepth
     )
-    data = Dict( :hh=>deepcopy(hh), :sys=>sys, :settings=>settings, :wage => wage )
+    data = Dict( :hh=>deepcopy(hh), :sys=>sys, :settings=>settings, :wage => wage, :pid=>pid )
     bc = BudgetConstraints.makebc( data, getnet, lbcset )
     a = pointstoarray( bc )
     annotations = annotate_bc( bc )
