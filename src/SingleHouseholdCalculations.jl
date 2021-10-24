@@ -78,7 +78,8 @@ using .BenefitCap:
 using .UCTransition: route_to_uc_or_legacy!
 
 using .ScottishBenefits: 
-    calc_scottish_child_payment!
+    calc_scottish_child_payment!,
+    calc_bedroom_tax_mitigation!
 
 using .UBI: calc_UBI!
 
@@ -181,7 +182,7 @@ function do_one_calc(
     # do this in front of the benefit cap
     # just in case we want to include
     # DISCRESIONARY_HOUSING_PAYMENT in the cap
-    
+
     calc_bedroom_tax_mitigation!( hres, hh )
     
     for buno in eachindex( bus )
@@ -199,7 +200,6 @@ function do_one_calc(
             sys.bencap,
             hres.bus[buno].route )
     end
-
     aggregate!( hh, hres )
     return hres
 end
