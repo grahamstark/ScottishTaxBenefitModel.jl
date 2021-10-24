@@ -72,17 +72,19 @@ function calc_bedroom_tax_mitigation!(
     end
     hrep = hr.bus[1].legacy_mtbens.hb_recipient
     urep = hr.bus[1].uc.recipient
-    if hr.housing.rooms_rent_reduction > 0 
+    rrd = hr.housing.rooms_rent_reduction 
+    if rrd > 0 
         # the > housing tests here are kinda redundant, but still ..
         if urep > 0 && hr.bus[1].uc.housing_element > 0
             # can't exceed uc housing element
             hr.bus[1].pers[urep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
-                min( hr.bus[1].uc.housing_element, hr.rooms_rent_reduction )
+                min( hr.bus[1].uc.housing_element, 
+                rrd )
         elseif hrep > 0 && hr.bus[1].pers[hrep].income[HOUSING_BENEFIT] > 0 
             # can't exceed housing benefit
-                hr.bus[1].pers[hrep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
-                    min( hr.bus[1].pers[hrep].income[HOUSING_BENEFIT], 
-                    hr.rooms_rent_reduction )    
+            hr.bus[1].pers[hrep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
+                min( hr.bus[1].pers[hrep].income[HOUSING_BENEFIT], 
+                rrd )    
         end
     end
 end # calc_ ..
