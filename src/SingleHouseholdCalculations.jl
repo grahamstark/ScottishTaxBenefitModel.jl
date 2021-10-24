@@ -177,7 +177,13 @@ function do_one_calc(
         settings,
         hh,
         intermed )
-
+    
+    # do this in front of the benefit cap
+    # just in case we want to include
+    # DISCRESIONARY_HOUSING_PAYMENT in the cap
+    
+    calc_bedroom_tax_mitigation!( hres, hh )
+    
     for buno in eachindex( bus )
         calc_scottish_child_payment!( 
             hres.bus[buno],
@@ -193,6 +199,7 @@ function do_one_calc(
             sys.bencap,
             hres.bus[buno].route )
     end
+
     aggregate!( hh, hres )
     return hres
 end

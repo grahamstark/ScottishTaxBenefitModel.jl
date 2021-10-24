@@ -1,5 +1,9 @@
 module ScottishBenefits
-
+#=
+# This module is a holder for all the Scotland-specific 
+# benefits - currently SCP and bedroom tax 
+# mitigation,
+=#
 using ScottishTaxBenefitModel
 using .ModelHousehold: 
     BenefitUnit,
@@ -19,7 +23,8 @@ using .Definitions
 using .Intermediate 
 using .Results: BenefitUnitResult, has_any
 
-export calc_scottish_child_payment!
+export calc_scottish_child_payment!, 
+    calc_bedroom_tax_mitigation!
 
 function calc_scottish_child_payment!( 
     benefit_unit_result :: BenefitUnitResult,
@@ -43,4 +48,43 @@ function calc_scottish_child_payment!(
     end
 end
 
-end
+"""
+
+This is the Scottish Government's bedroom tax
+removal for social renters. 
+DISCRESIONARY_HOUSING_PAYMENT can be used for other things, too, but not so far
+in this model.
+
+Assigns a DISCRESIONARY_HOUSING_PAYMENT of the 
+minimum of hb/uc hosts and the amount of
+rooms reduction to whoever recieves uc/hb in the 1st benefit unit. 
+'But for weekly or monthly payments, the amount of a discretionary housing payment cannot be more than the amount of universal credit or housing benefit that you get to help with your rent.'
+
+See: https://cpag.org.uk/scotland/welfare-rights/scottish-benefits/discretionary-housing-payments-scotland
+TODO parameterise this somehow - mitigate fully or whatever.
+"""
+function calc_bedroom_tax_mitigation!( 
+    hr    :: HouseholdResult, 
+    hh    :: Household )
+    # DISCRESIONARY_HOUSING_PAYMENT
+    if ! is_social_renter( hh.tenure )
+        return
+    end
+    hrep = hr.bures[1].hb_recipient
+    urep = hr.bures[1].uc.recipient
+    if hr.rooms_rent_reduction > 0 
+        # the > housing tests here are kinda redundant, but still ..
+        if urep > 0 && hr.bures[1].uc.housing_element > 0
+            # can't exceed uc housing element
+            hr.bures[1].pers[urep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
+                min( hr.bures[1].uc.housing_element, hr.rooms_rent_reduction )
+        elseif hrep > 0 && hr.bures[1].pers[hrep].income[HOUSING_BENEFIT] > 0 
+            # can't exceed housing benefit
+                hr.bures[1].pers[hrep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
+                    min( hr.bures[1].pers[hrep].income[HOUSING_BENEFIT], 
+                    hr.rooms_rent_reduction )    
+        end
+    end
+end # calc_ ..
+ 
+end # module 

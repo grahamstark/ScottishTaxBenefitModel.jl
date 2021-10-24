@@ -309,11 +309,13 @@ export
             hr = lookup( hsys.brmas, hh.council, hres.allowed_rooms )
             hres.allowed_rent = min( hh.gross_rent, hr )
         elseif is_social_renter( hh.tenure )
-            if hres.excess_rooms  > 0 
+            if hres.excess_rooms > 0 
                 # we've fixed it above so this never applies to hhlds with anyone over pension age
                 l = size(hsys.rooms_rent_reduction)[1]
                 m = min( hres.excess_rooms, l )
                 hres.allowed_rent = hh.gross_rent * (1-hsys.rooms_rent_reduction[m])
+                hres.rooms_rent_reduction = hh.gross_rent -
+                    hres.allowed_rent
             end
         end
         return hres

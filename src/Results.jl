@@ -296,6 +296,8 @@ module Results
         excess_rooms :: Int = 0
         allowed_rent :: RT = zero(RT) # FIXME this name
         gross_rent :: RT = zero(RT)
+        # might not just be gross-allowed if we model other deductions
+        rooms_rent_reduction :: RT = zero(RT) # 
      end
 
     @with_kw mutable struct HouseholdResult{RT<:Real}
