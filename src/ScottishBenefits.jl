@@ -70,18 +70,18 @@ function calc_bedroom_tax_mitigation!(
     if ! is_social_renter( hh.tenure )
         return
     end
-    hrep = hr.bures[1].hb_recipient
-    urep = hr.bures[1].uc.recipient
-    if hr.rooms_rent_reduction > 0 
+    hrep = hr.bus[1].legacy_mtbens.hb_recipient
+    urep = hr.bus[1].uc.recipient
+    if hr.housing.rooms_rent_reduction > 0 
         # the > housing tests here are kinda redundant, but still ..
-        if urep > 0 && hr.bures[1].uc.housing_element > 0
+        if urep > 0 && hr.bus[1].uc.housing_element > 0
             # can't exceed uc housing element
-            hr.bures[1].pers[urep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
-                min( hr.bures[1].uc.housing_element, hr.rooms_rent_reduction )
-        elseif hrep > 0 && hr.bures[1].pers[hrep].income[HOUSING_BENEFIT] > 0 
+            hr.bus[1].pers[urep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
+                min( hr.bus[1].uc.housing_element, hr.rooms_rent_reduction )
+        elseif hrep > 0 && hr.bus[1].pers[hrep].income[HOUSING_BENEFIT] > 0 
             # can't exceed housing benefit
-                hr.bures[1].pers[hrep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
-                    min( hr.bures[1].pers[hrep].income[HOUSING_BENEFIT], 
+                hr.bus[1].pers[hrep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
+                    min( hr.bus[1].pers[hrep].income[HOUSING_BENEFIT], 
                     hr.rooms_rent_reduction )    
         end
     end
