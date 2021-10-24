@@ -21,7 +21,7 @@ using .STBIncomes
 using .Definitions
 
 using .Intermediate 
-using .Results: BenefitUnitResult, has_any
+using .Results: BenefitUnitResult, HouseholdResult, has_any
 
 export calc_scottish_child_payment!, 
     calc_bedroom_tax_mitigation!
