@@ -74,6 +74,7 @@ module Results
         other_housing_costs :: RT = zero(RT)
         assets :: RT = zero(RT)
         maximum  :: RT = zero(RT)
+        total_income :: RT = zero(RT)
         transitional_protection :: RT = zero(RT)
         ctr :: RT = zero(RT)
         recipient :: BigInt = -1

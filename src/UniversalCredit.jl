@@ -400,10 +400,11 @@ function calc_universal_credit!(
         bur.uc.housing_element + 
         bur.uc.carer_element + 
         bur.uc.childcare_costs
-    uce = bur.uc.maximum - 
+    bur.total_income = 
         bur.uc.earned_income - 
         bur.uc.other_income - 
         bur.uc.tariff_income
+    uce = max( 0.0, bur.uc.maximum - bur.total_income )
     
     # Make the recipient the bu head if the head isn't 
     # retired. 
@@ -413,7 +414,7 @@ function calc_universal_credit!(
         target_pid = get_spouse( bu ).pid # fail if spouse is nothing - but this must be the case
     end
     bur.uc.recipient= target_pid # save a record of who gets for e.g. CT calculation
-    bur.pers[target_pid].income[UNIVERSAL_CREDIT] = max( 0.0, uce )
+    bur.pers[target_pid].income[UNIVERSAL_CREDIT] = uce
 end
 
 

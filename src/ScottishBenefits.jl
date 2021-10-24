@@ -55,6 +55,11 @@ removal for social renters.
 DISCRESIONARY_HOUSING_PAYMENT can be used for other things, too, but not so far
 in this model.
 
+I'm basically taking a wild guess at how this works for UC
+since I can't find any documentation on what 'housing element'
+means in this context - it can't mean all of it
+regardless of total UC entitlement.
+
 Assigns a DISCRESIONARY_HOUSING_PAYMENT of the 
 minimum of hb/uc hosts and the amount of
 rooms reduction to whoever recieves uc/hb in the 1st benefit unit. 
@@ -72,19 +77,31 @@ function calc_bedroom_tax_mitigation!(
     end
     hrep = hr.bus[1].legacy_mtbens.hb_recipient
     urep = hr.bus[1].uc.recipient
+    hb = 0.0
+    if hrep > 0
+        hb = hr.bus[1].pers[hrep].income[HOUSING_BENEFIT]
+    end
+    uc = 0.0
+    if urep > 0
+        uc = hr.bus[1].pers[urep].income[UNIVERSAL_CREDIT]
+    end
     rrd = hr.housing.rooms_rent_reduction 
     if rrd > 0 
         # the > housing tests here are kinda redundant, but still ..
-        if urep > 0 && hr.bus[1].uc.housing_element > 0
+        if uc > 0
+            # !!! FIXME!! Assume uc housing element is the 1st part to be withdrawn
+            # with income so eligibiliity for DHP ceases
+            # when income > housing element.
+            # FIXME I think that's how it must work but I don't know from
+            # any documentation I have that this is right
+            uchousing = max(0.0, hr.bus[1].uc.housing_element - bur.total_income ) 
             # can't exceed uc housing element
             hr.bus[1].pers[urep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
-                min( hr.bus[1].uc.housing_element, 
-                rrd )
-        elseif hrep > 0 && hr.bus[1].pers[hrep].income[HOUSING_BENEFIT] > 0 
+                min( uchousing, rrd )
+        elseif hrep > 0 && hb > 0 
             # can't exceed housing benefit
             hr.bus[1].pers[hrep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
-                min( hr.bus[1].pers[hrep].income[HOUSING_BENEFIT], 
-                rrd )    
+                min( hb , rrd )    
         end
     end
 end # calc_ ..
