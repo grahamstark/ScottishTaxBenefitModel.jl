@@ -94,7 +94,7 @@ function calc_bedroom_tax_mitigation!(
             # when income > housing element.
             # FIXME I think that's how it must work but I don't know from
             # any documentation I have that this is right
-            uchousing = max(0.0, hr.bus[1].uc.housing_element - bur.total_income ) 
+            uchousing = max(0.0, hr.bus[1].uc.housing_element - hr.bus[1].uc.total_income ) 
             # can't exceed uc housing element
             hr.bus[1].pers[urep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
                 min( uchousing, rrd )
