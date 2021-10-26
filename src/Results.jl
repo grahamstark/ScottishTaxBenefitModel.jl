@@ -79,8 +79,7 @@ module Results
         ctr :: RT = zero(RT)
         recipient :: BigInt = -1
     end
-
-                
+               
     @with_kw mutable struct LMTIncomes{RT<:Real}
         gross_earnings :: RT = zero(RT)
         net_earnings   :: RT = zero(RT)
@@ -92,8 +91,6 @@ module Results
         tariff_income :: RT = zero(RT)
         disqualified_on_capital :: Bool = false
     end
-
-
 
     # 
     @with_kw mutable struct LMTCanApplyFor

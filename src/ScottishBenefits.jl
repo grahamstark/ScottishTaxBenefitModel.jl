@@ -77,6 +77,8 @@ function calc_bedroom_tax_mitigation!(
     end
     hrep = hr.bus[1].legacy_mtbens.hb_recipient
     urep = hr.bus[1].uc.recipient
+    uche = hr.bus[1].uc.housing_element
+    benred = hr.bus[1].bencap.reduction
     hb = 0.0
     if hrep > 0
         hb = hr.bus[1].pers[hrep].income[HOUSING_BENEFIT]
@@ -94,8 +96,11 @@ function calc_bedroom_tax_mitigation!(
             # when income > housing element.
             # FIXME I think that's how it must work but I don't know from
             # any documentation I have that this is right
-            uchousing = max(0.0, hr.bus[1].uc.housing_element - hr.bus[1].uc.total_income ) 
-            # can't exceed uc housing element
+            # uc itself is here in case this hhls is caught
+            # by the benefit cap. 
+            uchousing = max(
+                0.0, 
+                uche - hr.bus[1].uc.total_income - benred ) 
             hr.bus[1].pers[urep].income[DISCRESIONARY_HOUSING_PAYMENT] = 
                 min( uchousing, rrd )
         elseif hrep > 0 && hb > 0 
