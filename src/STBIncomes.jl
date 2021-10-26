@@ -607,7 +607,7 @@ const DEFAULT_PASSPORTED_BENS = [
 
 export inctostr, isettostr, non_zeros
 
-function inctostr( incs :: AbstractVector ) :: String
+function inctostr( incs :: AbstractVector; round_inc :: Boolean = true) :: String
     s = 
     """
     
@@ -617,7 +617,7 @@ function inctostr( incs :: AbstractVector ) :: String
     """        
     for i in instances(Incomes)
         if incs[i] != 0
-            m = md_format(incs[i])
+            m = round_inc ? md_format(incs[i]) : "$(incs[i])"
             s *= "|**$(iname(i))**|$m|
             "
         end
