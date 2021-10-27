@@ -20,8 +20,8 @@ using .ExampleHouseholdGetter
 using .BCCalcs
 using .ExampleHelpers
 
-COLS = [:gross,:mr,:label_pch]
-# COLS = [:gross,:net,:mr,:reduction,:label_pch]
+# COLS = [:gross,:mr,:label_pch]
+COLS = [:gross,:net,:mr,:reduction,:label_pch]
 
 
 
@@ -47,7 +47,6 @@ function printbcs(
         settings, 
         wage )
     println( "UC CASE ")
-    # println(HTML,pretty_table( HTML, bcu[!,COLS] ))
     pretty_table( bcu[!,COLS] )
 end
 
@@ -75,6 +74,7 @@ weeklyise!( sys21_22; wpy=52, wpm=PWPM  )
         2, 
         4 )
     printbcs( hh, sys21_22, 20, DEFAULT_SETTINGS)
+
 
 
 
