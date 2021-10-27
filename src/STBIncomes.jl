@@ -607,7 +607,7 @@ const DEFAULT_PASSPORTED_BENS = [
 
 export inctostr, isettostr, non_zeros
 
-function inctostr( incs :: AbstractVector; round_inc :: Boolean = true) :: String
+function inctostr( incs :: AbstractVector; round_inc :: Bool = true) :: String
     s = 
     """
     

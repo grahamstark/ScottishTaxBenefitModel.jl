@@ -92,6 +92,8 @@ function tosimplelabel(
     return s
 end
 
+
+
 function makebc(
     hh         :: Household,
     sys        :: TaxBenefitSystem,
@@ -129,7 +131,8 @@ function makebc(
         reduction = zeros(N), 
         label=Array{String}(undef,N),
         simplelabel=Array{String}(undef,N),
-        label_p1 = Array{String}(undef,N))
+        label_p1 = Array{String}(undef,N),
+        label_pch = Array{Any}(undef,N))
     # fill the data frame
     for i in 1:N
         r = out[i,:]
@@ -149,8 +152,10 @@ function makebc(
         r.cap = hres.bus[1].bencap.cap
         r.reduction = hres.bus[1].bencap.reduction
         r.simplelabel = tosimplelabel( r, hres )
-        hres2 = local_getnet( data, a[i,1]+0.01 ) 
-        r.label_p1 = inctostr( hres.income; round_inc=false )
+        hres2 = local_getnet( data, a[i,1]+bcsettings.increment ) 
+        r.label_p1 = inctostr( hres2.income; round_inc=false )
+        diffpct =  100*(hres2.income - hres.income)./bcsettings.increment
+        r.label_pch = non_zeros(diffpct) # ; round_inc=false )      
     end
     return out
 end

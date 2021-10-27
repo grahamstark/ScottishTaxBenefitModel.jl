@@ -23,6 +23,7 @@ export
     age_now,
     blind!,
     carer!,
+    crude_construct_hh,
     deafen!,
     delete_child!,
     delete_person!,
@@ -339,6 +340,71 @@ function make_hh(
     get_pid( FRS, year, hid, pno )
  end
  
+ """
+ Really, really really crude, suitable for interactive use only.
 
+ Retrieve one of the model's example households & overwrite a few fields
+ to make things simpler.
+ """
+ function crude_construct_hh( 
+    tenure    :: AbstractString, # 'private|council|owner
+    bedrooms  :: Integer, 
+    hcost     :: Real, 
+    marrstat  :: AbstractString, # 'couple'|'single'
+    chu5      :: Integer, 
+    ch5p      :: Integer ) :: Household
+    hh = get_example( single_hh )
+    head = get_head(hh)
+    head.age = 30
+    sp = get_spouse(hh)
+    enable!(head) # clear dla stuff from example
+    hh.tenure = if tenure == "private"
+       Private_Rented_Unfurnished
+    elseif tenure == "council"
+       Council_Rented
+    elseif tenure == "owner"
+       Mortgaged_Or_Shared
+    else
+       @assert false "$tenure not recognised"
+    end
+    hh.bedrooms = bedrooms
+    hh.other_housing_charges = hh.water_and_sewerage = 0
+    if hh.tenure == Mortgaged_Or_Shared
+       hh.mortgage_payment = hcost
+       hh.mortgage_interest = hcost
+       hh.gross_rent = 0
+    else
+       hh.mortgage_payment = 0
+       hh.mortgage_interest = 0
+       hh.gross_rent = hcost
+    end
+    if marrstat == "couple"
+       sex = head.sex == Male ? Female : Male # hetero ..
+       add_spouse!( hh, 30, sex )
+       sp = get_spouse(hh)
+       enable!(sp)
+       set_wage!( sp, 0, 10 )
+    end
+    age = 0
+    for ch in 1:chu5
+       sex = ch % 1 == 0 ? Male : Female
+       age += 1
+       add_child!( hh, age, sex )
+    end
+    age = 7
+    for ch in 1:ch5p
+       sex = ch % 1 == 0 ? Male : Female
+       age += 1
+       add_child!( hh, age, sex )
+    end
+    set_wage!( head, 0, 10 )
+    for (pid,pers) in hh.people
+       # println( "age=$(pers.age) empstat=$(pers.employment_status) " )
+       empty!( pers.income )
+       empty!( pers.assets )
+    end
+    return hh
+ end
+ 
 
-end
+end # module
