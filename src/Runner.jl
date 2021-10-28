@@ -43,12 +43,12 @@ module Runner
     using .SingleHouseholdCalculations: do_one_calc
     
     export 
-        do_one_run!,
+        do_one_run,
         summarise_inc_frame 
 
     # fixme move the output stuff (mostly) to an Output.jl module
 
-    function do_one_run!(
+    function do_one_run(
         settings :: Settings,
         params   :: Vector{TaxBenefitSystem{T}} ) :: NamedTuple where T # fixme simpler way of declaring this?
         num_systems = size( params )[1]
@@ -85,7 +85,7 @@ module Runner
             end
         end #household loop
         println( "dumping frames" )
-        dump_frames( settings, frames )
+        # dump_frames( settings, frames )
         return frames
     end # do one run
 
