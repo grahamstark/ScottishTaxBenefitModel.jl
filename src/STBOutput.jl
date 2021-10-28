@@ -25,7 +25,8 @@ using .RunSettings: Settings
 export FrameStarts, 
     add_to_frames!,
     dump_frames,
-    initialise_frames
+    initialise_frames,
+    summarise_frames
 
     struct FrameStarts
         hh :: Integer
@@ -386,6 +387,18 @@ export FrameStarts,
         else
             return frame_starts
         end
+    end
+
+    function summarise_frames( frames :: NamedTuple ) :: NamedTuple
+        ns = size( frames.indiv )[1] # num systems
+        income_summary = []
+        gain_lose = []
+        poverty = []
+        inequality = []
+        for fno in 1:ns
+            push!(income_summary, summarise_inc_frame(frames.income[fno]))
+        end        
+        return ( income_summary = income_summary, poverty=poverty, inequality=inequality, gain_lose = gain_lose )
     end
 
     ## FIXME eventually, move this to DrWatson
