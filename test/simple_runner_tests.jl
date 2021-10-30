@@ -3,6 +3,7 @@ using CSV
 using DataFrames
 using StatsBase
 using BenchmarkTools
+using PrettyTables
 
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.GeneralTaxComponents
@@ -11,6 +12,7 @@ using ScottishTaxBenefitModel.Runner: do_one_run
 using ScottishTaxBenefitModel.RunSettings: Settings, MT_Routing
 using .Utils
 using .ExampleHelpers
+using .STBOutput: make_poverty_line, summarise_inc_frame
 
 settings = Settings()
 
@@ -23,6 +25,12 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing  )
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [get_system(scotland=false), get_system( scotland=true )]
     results = do_one_run( settings, sys )
+    h1 = results.hh[1]
+    pretty_table( h1[:,[:weighted_people,:bhc_net_income,:eq_bhc_net_income,:ahc_net_income,:eq_ahc_net_income]] )
+    settings.poverty_line = make_poverty_line( results.hh[1], settings )
+    
+    outf = summarise_frames( results, povline, settings )
+
 end 
 
 @testset "basic run timing" begin

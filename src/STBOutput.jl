@@ -2,10 +2,11 @@ module STBOutput
 
 using DataFrames: DataFrame, DataFrameRow, Not, select!
 
+using PovertyAndInequalityMeasures
+
 using CSV
 
 using ScottishTaxBenefitModel
-
 using .Definitions
 using .Utils
 using .GeneralTaxComponents:
@@ -20,13 +21,15 @@ using .STBIncomes
 
 using .ModelHousehold
 
-using .RunSettings: Settings
+using .RunSettings
 
 export FrameStarts, 
     add_to_frames!,
     dump_frames,
     initialise_frames,
-    summarise_frames
+    summarise_frames,
+    make_poverty_line,
+    add_gain_lose!
 
     struct FrameStarts
         hh :: Integer
@@ -44,7 +47,9 @@ export FrameStarts,
             hid       = zeros( BigInt, n ),
             sequence  = zeros( Int, n ),
             weight    = zeros(RT,n),
+            weighted_people = zeros(RT,n),
             hh_type   = zeros( Int, n ),
+            num_people = zeros( Int, n ),
             tenure    = fill( Missing_Tenure_Type, n ),
             region    = fill( Missing_Standard_Region, n ),
             gross_decile = zeros( Int, n ),
@@ -168,9 +173,12 @@ export FrameStarts,
     end
 
     function fill_hh_frame_row!( hr :: DataFrameRow, hh :: Household, hres :: HouseholdResult )
+        nps =  num_people(hh)
         hr.hid = hh.hid
         hr.sequence = hh.sequence
         hr.weight = hh.weight
+        hr.weighted_people = hh.weight*nps
+        hr.num_people = nps
         hr.hh_type = -1
         hr.tenure = hh.tenure
         hr.region = hh.region
@@ -181,8 +189,8 @@ export FrameStarts,
         hr.bhc_net_income = hres.bhc_net_income
         hr.ahc_net_income = hres.ahc_net_income
         # hr.eq_scale = hres.eq_scale
-        eq_bhc_net_income = hres.eq_bhc_net_income
-        eq_ahc_net_income = hres.eq_ahc_net_income
+        hr.eq_bhc_net_income = hres.eq_bhc_net_income
+        hr.eq_ahc_net_income = hres.eq_ahc_net_income
     end
 
 
@@ -389,16 +397,83 @@ export FrameStarts,
         end
     end
 
-    function summarise_frames( frames :: NamedTuple ) :: NamedTuple
+    """
+    got to be a better way...
+    """
+    function income_measure_as_sym( i :: IneqIncomeMeasure)::Symbol
+        return if i == bhc_net_income
+            :bhc_net_income
+        elseif i == ahc_net_income
+            :ahc_net_income
+        elseif i == eq_ahc_net_income
+            :eq_ahc_net_income
+        elseif i == eq_bhc_net_income
+            :eq_bhc_net_income
+        end   
+    end
+
+    function make_poverty_line( hhs :: DataFrame, settings :: Settings ) :: Real
+        income = income_measure_as_sym( settings.ineq_income_measure )
+        PovertyAndInequalityMeasures.binify( hhs, 10, :weighted_people, income )
+        return deciles[1][5,3]*(2.0/3.0)
+    end
+
+    function add_gain_lose!( post_hh :: DataFrame, pre_hh :: DataFrame, settings :: Settings )::NamedTuple
+        income = income_measure_as_sym( settings.ineq_income_measure )
+        pre_inc = pre_hh[:,income]
+        post_inc = post_inc[:,income]
+        n = size(post_hh)[1]
+        post_hh[:,:pct_inc_diff] = zeros(n)
+        # so check for 0 pre income
+        for r in 1:n 
+            if pre_inc[i] == 0
+                post_hh[i,:pct_inc_diff] = 0.0
+            else
+                post_hh[i,:pct_inc_diff] = (pre_inc[i]-post_inc[i]/pre_inc[i])
+            end
+        end
+        popn = sum(post_hh[:,:weighted_people])
+        gainers = (post_hh[:,:pct_inc_diff].>=0.01).*post_hh[:,:weighted_people]
+        losers = (post_hh[:,:pct_inc_diff].<= -0.01).*post_hh[:,:weighted_people]
+        nc = abs.((post_hh[:,:pct_inc_diff]).< 0.01).*post_hh[:,:weighted_people]
+        @assert gainers+losers+nc ≈ popn
+        return ( gainers=gainers, losers=losers,nc=nc, popn = popn )
+    end
+
+    function summarise_frames( 
+        frames :: NamedTuple,
+        settings :: Settings ) :: NamedTuple
         ns = size( frames.indiv )[1] # num systems
         income_summary = []
         gain_lose = []
         poverty = []
         inequality = []
+        deciles = []
+        income_measure = income_measure_as_sym( settings.ineq_income_measure )
+        
         for fno in 1:ns
-            push!(income_summary, summarise_inc_frame(frames.income[fno]))
+            push!(income_summary, 
+                summarise_inc_frame(frames.income[fno]))
+            push!( deciles, 
+                PovertyAndInequalityMeasures.binify( 
+                    frames.hh[sysno], 
+                    10, 
+                    :weighted_people, 
+                    income_measure ))
+            ineq = make_inequality(
+                frames.hh[sysno], 
+                :weighted_people, 
+                income_measure )
+            push!( inequality, ineq )
+            push!(  
+                PovertyAndInequalityMeasures.make_poverty( 
+                    frames.hh[sysno], 
+                    settings.poverty_line, 
+                    settings.growth, 
+                    :weighted_people, 
+                    income_measure ))
         end        
-        return ( income_summary = income_summary, poverty=poverty, inequality=inequality, gain_lose = gain_lose )
+        return ( deciles = deciles, income_summary = income_summary, poverty=poverty, inequality=inequality )
     end
 
     ## FIXME eventually, move this to DrWatson

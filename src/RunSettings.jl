@@ -10,9 +10,16 @@ module RunSettings
         MT_Routing,
         uc_full,
         lmt_full,
-        modelled_phase_in
+        modelled_phase_in,
+
+        IneqIncomeMeasure, 
+        bhc_net_income,
+        eq_bhc_net_income,
+        ahc_net_income,
+        eq_ahc_net_income
 
     @enum MT_Routing uc_full lmt_full modelled_phase_in
+    @enum IneqIncomeMeasure bhc_net_income eq_bhc_net_income ahc_net_income eq_ahc_net_income
     @with_kw mutable struct Settings
         uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name :: String = "default_run"
@@ -31,6 +38,9 @@ module RunSettings
         output_dir :: String = joinpath(tempdir(),"output")
         # ... and so on
         means_tested_routing :: MT_Routing = uc_full
+        poverty_line :: Real = -1.0
+        ineq_income_measure  :: IneqIncomeMeasure = eq_ahc_net_income
+        growth :: Real = 0.02 # for time to exit poverty
     end
 
     const DEFAULT_SETTINGS = Settings()

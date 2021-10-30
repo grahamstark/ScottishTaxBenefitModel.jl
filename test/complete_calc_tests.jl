@@ -34,7 +34,7 @@ using .GeneralTaxComponents:
     WEEKS_PER_YEAR
 
 using .Runner: 
-    do_one_run!
+    do_one_run
 
 using .RunSettings: Settings
 
