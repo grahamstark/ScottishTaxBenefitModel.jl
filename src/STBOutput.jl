@@ -414,14 +414,14 @@ export FrameStarts,
 
     function make_poverty_line( hhs :: DataFrame, settings :: Settings ) :: Real
         income = income_measure_as_sym( settings.ineq_income_measure )
-        PovertyAndInequalityMeasures.binify( hhs, 10, :weighted_people, income )
-        return deciles[1][5,3]*(2.0/3.0)
+        deciles = PovertyAndInequalityMeasures.binify( hhs, 10, :weighted_people, income )
+        return deciles[5,3]*(2.0/3.0)
     end
 
     function add_gain_lose!( post_hh :: DataFrame, pre_hh :: DataFrame, settings :: Settings )::NamedTuple
         income = income_measure_as_sym( settings.ineq_income_measure )
         pre_inc = pre_hh[:,income]
-        post_inc = post_inc[:,income]
+        post_inc = post_hh[:,income]
         n = size(post_hh)[1]
         post_hh[:,:pct_inc_diff] = zeros(n)
         # so check for 0 pre income
@@ -451,9 +451,9 @@ export FrameStarts,
         deciles = []
         income_measure = income_measure_as_sym( settings.ineq_income_measure )
         
-        for fno in 1:ns
+        for sysno in 1:ns
             push!(income_summary, 
-                summarise_inc_frame(frames.income[fno]))
+                summarise_inc_frame(frames.income[sysno]))
             push!( deciles, 
                 PovertyAndInequalityMeasures.binify( 
                     frames.hh[sysno], 
@@ -466,6 +466,7 @@ export FrameStarts,
                 income_measure )
             push!( inequality, ineq )
             push!(  
+                poverty,
                 PovertyAndInequalityMeasures.make_poverty( 
                     frames.hh[sysno], 
                     settings.poverty_line, 

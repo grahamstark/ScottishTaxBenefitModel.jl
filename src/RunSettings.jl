@@ -39,7 +39,7 @@ module RunSettings
         # ... and so on
         means_tested_routing :: MT_Routing = uc_full
         poverty_line :: Real = -1.0
-        ineq_income_measure  :: IneqIncomeMeasure = eq_ahc_net_income
+        ineq_income_measure  :: IneqIncomeMeasure = eq_bhc_net_income
         growth :: Real = 0.02 # for time to exit poverty
     end
 

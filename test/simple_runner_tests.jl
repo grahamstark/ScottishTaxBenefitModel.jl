@@ -12,7 +12,8 @@ using ScottishTaxBenefitModel.Runner: do_one_run
 using ScottishTaxBenefitModel.RunSettings: Settings, MT_Routing
 using .Utils
 using .ExampleHelpers
-using .STBOutput: make_poverty_line, summarise_inc_frame
+using .STBOutput: make_poverty_line, summarise_inc_frame, 
+    dump_frames, summarise_frames, add_gain_lose!
 
 settings = Settings()
 
@@ -28,9 +29,12 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing  )
     h1 = results.hh[1]
     pretty_table( h1[:,[:weighted_people,:bhc_net_income,:eq_bhc_net_income,:ahc_net_income,:eq_ahc_net_income]] )
     settings.poverty_line = make_poverty_line( results.hh[1], settings )
-    
-    outf = summarise_frames( results, povline, settings )
-
+    dump_frames( settings, results )
+    println( "poverty line = $(settings.poverty_line)")
+    outf = summarise_frames( results, settings )
+    println( outf )
+    gl = add_gain_lose!( results.hh[1], results.hh[2], settings )
+    println(gl)
 end 
 
 @testset "basic run timing" begin
