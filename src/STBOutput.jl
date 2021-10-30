@@ -425,7 +425,7 @@ export FrameStarts,
         n = size(post_hh)[1]
         post_hh[:,:pct_inc_diff] = zeros(n)
         # so check for 0 pre income
-        for r in 1:n 
+        for i in 1:n 
             if pre_inc[i] == 0
                 post_hh[i,:pct_inc_diff] = 0.0
             else
