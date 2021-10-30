@@ -436,7 +436,7 @@ export FrameStarts,
         gainers = (post_hh[:,:pct_inc_diff].>=0.01).*post_hh[:,:weighted_people]
         losers = (post_hh[:,:pct_inc_diff].<= -0.01).*post_hh[:,:weighted_people]
         nc = abs.((post_hh[:,:pct_inc_diff]).< 0.01).*post_hh[:,:weighted_people]
-        @assert gainers+losers+nc ≈ popn
+        @assert sum(gainers)+sum(losers)+sum(nc) ≈ popn
         return ( gainers=gainers, losers=losers,nc=nc, popn = popn )
     end
 
