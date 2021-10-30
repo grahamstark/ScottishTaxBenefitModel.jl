@@ -34,7 +34,7 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing  )
     outf = summarise_frames( results, settings )
     println( outf )
     gl = add_gain_lose!( results.hh[1], results.hh[2], settings )
-    println(gl)
+    println(sum(gl.gainers))
 end 
 
 @testset "basic run timing" begin
