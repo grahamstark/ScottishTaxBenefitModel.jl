@@ -452,6 +452,7 @@ export FrameStarts,
         poverty = []
         inequality = []
         deciles = []
+        quantiles = []
         income_measure = income_measure_as_sym( settings.ineq_income_measure )
         
         for sysno in 1:ns
@@ -463,6 +464,13 @@ export FrameStarts,
                     10, 
                     :weighted_people, 
                     income_measure ))
+            push!( quantiles, 
+                PovertyAndInequalityMeasures.binify( 
+                    frames.hh[sysno], 
+                    50, 
+                    :weighted_people, 
+                    income_measure ))
+                
             ineq = make_inequality(
                 frames.hh[sysno], 
                 :weighted_people, 
@@ -477,7 +485,7 @@ export FrameStarts,
                     :weighted_people, 
                     income_measure ))
         end        
-        return ( deciles = deciles, income_summary = income_summary, poverty=poverty, inequality=inequality )
+        return ( quantiles=quantiles, deciles = deciles, income_summary = income_summary, poverty=poverty, inequality=inequality )
     end
 
     ## FIXME eventually, move this to DrWatson
