@@ -33,8 +33,8 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing  )
     println( "poverty line = $(settings.poverty_line)")
     outf = summarise_frames( results, settings )
     println( outf )
-    gl = add_gain_lose!( results.hh[1], results.hh[2], settings )
-    println(sum(gl.gainers))
+    gl = make_gain_lose( results.hh[1], results.hh[2], settings )
+    println(gl)
 end 
 
 @testset "basic run timing" begin

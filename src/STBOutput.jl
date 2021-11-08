@@ -29,7 +29,7 @@ export FrameStarts,
     initialise_frames,
     summarise_frames,
     make_poverty_line,
-    add_gain_lose!
+    make_gain_lose
 
     struct FrameStarts
         hh :: Integer
@@ -418,29 +418,31 @@ export FrameStarts,
         return deciles[5,3]*(2.0/3.0)
     end
 
-    function add_gain_lose!( post_hh :: DataFrame, pre_hh :: DataFrame, settings :: Settings )::NamedTuple
-        income = income_measure_as_sym( settings.ineq_income_measure )
-        pre_inc = pre_hh[:,income]
-        post_inc = post_hh[:,income]
-        n = size(post_hh)[1]
-        post_hh[:,:pct_inc_diff] = zeros(n)
+    function make_gain_lose( post :: DataFrame, pre :: DataFrame, measure :: Symbol )::NamedTuple
+        pre_inc = pre[:,measure]
+        post_inc = post[:,measure]
+        n = size(post_inc)[1]
+        diff = zeros(n)
         # so check for 0 pre income
         for i in 1:n 
-            if pre_inc[i] == 0
-                post_hh[i,:pct_inc_diff] = 0.0
-            else
-                post_hh[i,:pct_inc_diff] = (pre_inc[i]-post_inc[i]/pre_inc[i])
+            if pre_inc[i] != 0
+                diff = (pre_inc[i]-post_inc[i])/pre_inc[i]
             end
         end
-        popn = sum(post_hh[:,:weighted_people])
-        gainers = (post_hh[:,:pct_inc_diff].>=0.01).*post_hh[:,:weighted_people]
+        popn = sum(post[:,:weighted_people])
+        gainers = (diff.>=0.01).*post[:,:weighted_people]
         sg = sum(gainers)
-        losers = (post_hh[:,:pct_inc_diff].<= -0.01).*post_hh[:,:weighted_people]
+        losers = (diff.<= -0.01).*post[:,:weighted_people]
         sl = sum(losers)
-        nc = (abs.(post_hh[:,:pct_inc_diff]).< 0.01).*post_hh[:,:weighted_people]
+        nc = (abs.(diff).< 0.01).*post[:,:weighted_people]
         sn = sum(nc)
-        @assert sg+sl+sn ≈ popn "sg=$sg + sl=$sl + sn=$sn ≈ popn=$popn"
-        return ( gainers=gainers, losers=losers,nc=nc, popn = popn )
+        @assert sg+sl+sn ≈ popn "sg=$sg + sl=$sl + sn=$sn !≈ popn=$popn"
+        return ( gainers=sg, losers=sl,nc=sn, popn = popn )
+    end
+
+    function make_gain_lose( post :: DataFrame, pre :: DataFrame, settings :: Settings )::NamedTuple
+        income = income_measure_as_sym( settings.ineq_income_measure )
+        return make_gain_lose( post, pre, income )
     end
 
     function summarise_frames( 
