@@ -426,9 +426,10 @@ export FrameStarts,
         # so check for 0 pre income
         for i in 1:n 
             if pre_inc[i] != 0
-                diff = (pre_inc[i]-post_inc[i])/pre_inc[i]
+                diff[i] = (pre_inc[i]-post_inc[i])/pre_inc[i]
             end
         end
+        # println( "diff=$diff n=$n")
         popn = sum(post[:,:weighted_people])
         gainers = (diff.>=0.01).*post[:,:weighted_people]
         sg = sum(gainers)

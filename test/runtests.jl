@@ -39,6 +39,7 @@ include( "minimum_wage_tests.jl")
 include( "local_level_calculations_tests.jl" )
 include( "scottish_benefits_tests.jl" )
 include( "ubi_tests.jl")
+include( "output_tests.jl")
 
 include( "vs_policy_in_practice_tests.jl")
 include( "vs_age_uk_tests.jl")

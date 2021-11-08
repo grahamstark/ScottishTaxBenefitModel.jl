@@ -13,7 +13,7 @@ using ScottishTaxBenefitModel.RunSettings: Settings, MT_Routing
 using .Utils
 using .ExampleHelpers
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
-    dump_frames, summarise_frames, add_gain_lose!
+    dump_frames, summarise_frames, make_gain_lose
 
 settings = Settings()
 
