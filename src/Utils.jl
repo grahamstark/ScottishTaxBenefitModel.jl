@@ -544,6 +544,14 @@ function age_in_years(
    age
 end
 
+
+"""
+1234.456 => 1,234.45 
+"""
+function format_delimited( n :: Number; groupsize :: Int = 3, delim :: Char = ',', decimal_delim :: Char = '.', prec :: Int = 2 ) :: String
+
+end
+
 # FIXME!! THIS TS TERRIBLE..
 function get_project_path()
    path = splitpath(pwd())

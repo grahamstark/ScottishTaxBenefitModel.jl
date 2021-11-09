@@ -90,6 +90,7 @@ using .ExampleHelpers
     mheadr.income[LOCAL_TAXES] = 100
     aggregate!( mbhh, mhrs )
 
+    @test t_wages ≈ 500
     @test mhrs.bhc_net_income ≈ t_wages
     @test mhrs.ahc_net_income ≈ t_wages - 100 - mbhh.gross_rent
 
