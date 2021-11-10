@@ -3,6 +3,7 @@ using ScottishTaxBenefitModel.HistoricBenefits
 using ScottishTaxBenefitModel
 using .Definitions, .Utils, .Randoms
 using .ExampleHelpers
+using .RunSettings: Settings, DEFAULT_SETTINGS
 
 ## NOTE this test has the 2019 OBR data and 2019Q4 as a target jammed on - will need
 ## changing with update versions
@@ -39,7 +40,7 @@ using .ExampleHelpers
 
 
 
-    names = ExampleHouseholdGetter.initialise()
+    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     head = scot.people[SCOT_HEAD]
     spouse = scot.people[SCOT_SPOUSE]

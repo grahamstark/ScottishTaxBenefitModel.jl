@@ -7,10 +7,11 @@ module ExampleHouseholdGetter
 using DataFrames
 using CSV
 
-import ScottishTaxBenefitModel: ModelHousehold, Definitions, HouseholdFromFrame
+using ScottishTaxBenefitModel
 using .Definitions
-import .ModelHousehold: Household
-import .HouseholdFromFrame: load_hhld_from_frame
+using .ModelHousehold: Household
+using .HouseholdFromFrame: load_hhld_from_frame
+using .RunSettings: Settings
 
 export  initialise, get_household
 
@@ -25,7 +26,8 @@ return number of households available
 function initialise(
     ;
     household_name :: AbstractString = "example_households",
-    people_name :: AbstractString = "example_people" ) :: Vector{AbstractString}
+    people_name    :: AbstractString = "example_people",
+    settings       :: Settings ) :: Vector{AbstractString}
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
@@ -38,7 +40,8 @@ function initialise(
         hhf = hh_dataset[hseq,:]
         push!( KEYMAP, hhf.name )
         println( "loading $(hhf.name)")
-        EXAMPLE_HOUSEHOLDS[hhf.name] = load_hhld_from_frame( hseq, hhf, people_dataset, ExampleSource )
+        EXAMPLE_HOUSEHOLDS[hhf.name] = load_hhld_from_frame( 
+            hseq, hhf, people_dataset, ExampleSource, settings )
     end
     return KEYMAP
 end

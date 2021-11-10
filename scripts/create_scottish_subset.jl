@@ -24,5 +24,5 @@ scottish_hhlds.council = shs_matches.council
 scottish_hhlds.nhs_board = shs_matches.nhs_board
 scottish_hhlds.bedrooms = shs_matches.bedrooms
 
-CSV.write("$(MODEL_DATA_DIR)model_households_scotland.tab", scottish_hhlds, delim = "\t")
-CSV.write("$(MODEL_DATA_DIR)model_people_scotland.tab", scottish_people, delim = "\t")
+CSV.write("$(MODEL_DATA_DIR)/model_households_scotland.tab", scottish_hhlds, delim = "\t")
+CSV.write("$(MODEL_DATA_DIR)/model_people_scotland.tab", scottish_people, delim = "\t")

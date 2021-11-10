@@ -14,6 +14,7 @@ using .ExampleHouseholdGetter
 using .EquivalenceScales
 using .Definitions
 using .Utils
+using .RunSettings: Settings, DEFAULT_SETTINGS
 
 export
 
@@ -52,7 +53,7 @@ export SS_Examples, cpl_w_2_children_hh, single_parent_hh, single_hh, childless_
 """
 function get_ss_examples()::Dict{SS_Examples, Household}
     d = Dict{SS_Examples, Household}()
-    @time names = ExampleHouseholdGetter.initialise()
+    @time names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
     d[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
     d[single_parent_hh] = ExampleHouseholdGetter.get_household( "single_parent_1" )
     d[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )

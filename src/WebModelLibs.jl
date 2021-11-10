@@ -28,11 +28,13 @@ using .Definitions
 export do_one_run, local_makebc, load_data
 export print_output_to_csv, create_base_results, summarise_results!
 
+
+
 function load_data(; load_examples::Bool, load_main :: Bool, start_year = 2015 )
    example_names = Vector{AbstractString}()
    num_households = 0
    if load_examples
-      example_names = ExampleHouseholdGetter.initialise()
+      example_names = ExampleHouseholdGetter.initialise(DEFAULT_SETTINGS)
    end
    if load_main
       rc = @timed begin

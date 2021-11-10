@@ -27,7 +27,7 @@ using .ModelHousehold:
       num_people,
       printpids
 
-using .RunSettings: Settings
+using .RunSettings: Settings, DEFAULT_SETTINGS
 using .TimeSeriesUtils: fy_from_bits
 
 using .Definitions
@@ -152,7 +152,7 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
 end
 
 @testset "people search functions" begin
-      @time names = ExampleHouseholdGetter.initialise()
+      @time names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
       hh = ExampleHouseholdGetter.get_household( "single_parent_1" )  
       printpids( hh.people ) 
       @test num_people( hh ) == 3

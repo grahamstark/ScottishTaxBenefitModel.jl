@@ -19,6 +19,8 @@ using .HistoricBenefits:
 using .EquivalenceScales: EQScales
 using .Utils: not_zero_or_missing
 using .Randoms: strtobi
+using .RunSettings: Settings
+
 export 
     create_regression_dataframe,
     load_hhld_from_frame, 
@@ -71,8 +73,10 @@ end
 
 
 function map_person( 
-    hh :: Household, 
-    model_person :: DataFrameRow, source::DataSource )
+    hh           :: Household, 
+    model_person :: DataFrameRow, 
+    source       :: DataSource, 
+    settings     :: Settings  )
     income = Dict{Incomes_Type,Float64}()
     for i in instances(Incomes_Type)
         ikey = make_sym_for_frame("income", i)
@@ -234,7 +238,7 @@ function map_person(
     return pers;
 end
 
-function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
+function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
 
     people = People_Dict{Float64}()
     head_of_household = BigInt(-1) # this is set when we scan the actual people below
@@ -273,14 +277,19 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow )
     return hh
 end
 
-function load_hhld_from_frame( hseq::Integer, hhld_fr :: DataFrameRow, pers_fr :: DataFrame, source::DataSource ) :: Household
-    hh = map_hhld( hseq, hhld_fr )
+function load_hhld_from_frame( 
+    hseq     :: Integer, 
+    hhld_fr  :: DataFrameRow, 
+    pers_fr  :: DataFrame, 
+    source   :: DataSource, 
+    settings :: Settings ) :: Household
+    hh = map_hhld( hseq, hhld_fr, settings )
     pers_fr_in_this_hh = pers_fr[((pers_fr.data_year .== hhld_fr.data_year).&(pers_fr.hid .== hh.hid)),:]
     npers = size( pers_fr_in_this_hh )[1]
     @assert npers in 1:19
     head_of_household = -1
     for p in 1:npers
-        pers = map_person( hh, pers_fr_in_this_hh[p,:], source )
+        pers = map_person( hh, pers_fr_in_this_hh[p,:], source, settings )
         hh.people[pers.pid] = pers
         if pers.relationship_to_hoh == This_Person
             hh.head_of_household = pers.pid

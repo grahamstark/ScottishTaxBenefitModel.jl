@@ -63,8 +63,7 @@ module FRSHouseholdGetter
     return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
     """
     function initialise(
-            settings :: Settings,
-            ;
+            settings :: Settings;            
             reset :: Bool = false ) :: Tuple
     
         global MODEL_HOUSEHOLDS
@@ -84,7 +83,7 @@ module FRSHouseholdGetter
         MODEL_HOUSEHOLDS.weight .= 0
         
         for hseq in 1:nhhlds
-            hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS )
+            hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS, settings )
             MODEL_HOUSEHOLDS.hhlds[hseq] = hh
             uprate!( hh )
             MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = hseq

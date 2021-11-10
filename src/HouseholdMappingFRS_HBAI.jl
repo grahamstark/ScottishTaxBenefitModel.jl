@@ -341,6 +341,11 @@ function initialise_person(n::Integer)::DataFrame
         income_social_fund_loan_uc = Vector{Union{Real,Missing}}(missing, n),
         income_other_benefits = Vector{Union{Real,Missing}}(missing, n),
         
+        wages_frs = Vector{Union{Real,Missing}}(missing, n),
+        self_emp_frs = Vector{Union{Real,Missing}}(missing, n),
+        wages_hbai = Vector{Union{Real,Missing}}(missing, n),
+        self_emp_hbai = Vector{Union{Real,Missing}}(missing, n),
+
         jsa_type = Vector{Union{Integer,Missing}}(missing, n),
         esa_type = Vector{Union{Integer,Missing}}(missing, n),
         dlaself_care_type = Vector{Union{Integer,Missing}}(missing, n),
@@ -1095,20 +1100,30 @@ function create_adults(
             model_adult.occupational_classification = safe_assign(frs_person.soc2010)
 
             process_job_rec!(model_adult, a_job)
-
+            # FIXME some duplication here
+            hbaidata = get_incs_from_hbai(
+                hbai_res,
+                frs_person.sernum,
+                frs_person.benunit,
+                frs_person.person ) # fixme probably only need to check sernum
+            @assert model_adult.sex == hbaidata.sex
+            @assert model_adult.age == hbaidata.age
             if( override_se_and_wage_with_hbai )
-                data = get_incs_from_hbai(
-                    hbai_res,
-                    frs_person.sernum,
-                    frs_person.benunit,
-                    frs_person.person ) # fixme probably only need to check sernum
-                @assert model_adult.sex == data.sex
-                @assert model_adult.age == data.age
-                model_adult.income_wages = data.wages
-                model_adult.income_self_employment_income = data.selfemp
+                model_adult.income_wages = hbaidata.wages
+                model_adult.income_self_employment_income = hbaidata.selfemp
                 model_adult.income_self_employment_losses = 0.0
                 model_adult.income_self_employment_expenses = 0.0
             end
+            #
+            # new - assign a total earnings/se figure from both hbai and frs
+            # so we can compare the two. This is in reaction to the 
+            # oddly low Gini/Palma when using HBAI/SPI'd earnings
+            #
+            model_adult.wages_hbai = hbaidata.wages
+            model_adult.self_emp_hbai = hbaidata.selfemp
+            model_adult.wages_frs = safe_inc( 0.0, frs_person.inearns )
+            model_adult.self_emp_frs = safe_inc( 0.0, frs_person.incseo2 )
+            
             penstuff = process_pensions(a_pension)
             model_adult.income_private_pensions = penstuff.pension
             model_adult.income_income_tax += penstuff.tax
@@ -1510,11 +1525,11 @@ function create_data()
         # append!(model_households, model_households_yr)
         println( "on year $year")
         println( "hhlds")
-        CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households_yr, delim = "\t", append=appendb)
+        CSV.write("$(MODEL_DATA_DIR)/model_households.tab", model_households_yr, delim = "\t", append=appendb)
         println( "adults")
-        CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_adults_yr, delim = "\t", append=appendb)
+        CSV.write("$(MODEL_DATA_DIR)/model_people.tab", model_adults_yr, delim = "\t", append=appendb)
         println( "children")
-        CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_children_yr, delim = "\t", append=true)
+        CSV.write("$(MODEL_DATA_DIR)/model_people.tab", model_children_yr, delim = "\t", append=true)
     end    
     # CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
     # CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")

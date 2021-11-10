@@ -8,7 +8,7 @@ using .Definitions
 using .Results: HousingResult
 using .FRSHouseholdGetter
 using .GeneralTaxComponents: WEEKS_PER_YEAR
-using .RunSettings: Settings
+using .RunSettings: Settings, DEFAULT_SETTINGS
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax,
     LA_NAMES, LA_CODES
