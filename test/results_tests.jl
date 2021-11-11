@@ -82,15 +82,17 @@ using .ExampleHelpers
     mheadr.ni.class_1_primary = 123.12
     mheadr.it.non_savings_tax = 321.21
 
+
     mheadr2 = mhrs.bus[2].pers[mhp2]
     mheadr2.ni.class_1_primary = 100
     mheadr2.it.non_savings_tax = 200
+    mheadr2.income[WAGES] = 300.0
 
     t_wages = total( mhrs, WAGES )
     mheadr.income[LOCAL_TAXES] = 100
     aggregate!( mbhh, mhrs )
 
-    @test t_wages ≈ 500
+    @test t_wages ≈ 800 + 400 # bu 1 has 400 in data
     @test mhrs.bhc_net_income ≈ t_wages
     @test mhrs.ahc_net_income ≈ t_wages - 100 - mbhh.gross_rent
 

@@ -19,7 +19,7 @@ using .HistoricBenefits:
 using .EquivalenceScales: EQScales
 using .Utils: not_zero_or_missing
 using .Randoms: strtobi
-using .RunSettings: Settings
+using .RunSettings
 
 export 
     create_regression_dataframe,
@@ -78,6 +78,7 @@ function map_person(
     source       :: DataSource, 
     settings     :: Settings  )
     income = Dict{Incomes_Type,Float64}()
+
     for i in instances(Incomes_Type)
         ikey = make_sym_for_frame("income", i)
         if ! ismissing(model_person[ikey])
@@ -92,7 +93,16 @@ function map_person(
             end
         end
     end
-    
+    #
+    # override wages and se
+    #
+    if settings.income_data_source == ds_frs
+        income[wages] = m2z(model_person.wages_frs)
+        income[self_employment_income] = m2z(model_person.self_emp_frs)
+    else # not really needed since hbai is the default
+        income[wages] = m2z(model_person.wages_hbai)
+        income[self_employment_income] = m2z(model_person.self_emp_hbai)
+    end
     pay_includes  = Included_In_Pay_Dict{Bool}()
     for i in instances(Included_In_Pay_Type)
         s = String(Symbol(i))

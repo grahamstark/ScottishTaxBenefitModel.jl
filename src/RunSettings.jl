@@ -16,11 +16,14 @@ module RunSettings
         bhc_net_income,
         eq_bhc_net_income,
         ahc_net_income,
-        eq_ahc_net_income
+        eq_ahc_net_income,
+        DataIncomeSource,
+        ds_hbai,
+        ds_frs
 
     @enum MT_Routing uc_full lmt_full modelled_phase_in
     @enum IneqIncomeMeasure bhc_net_income eq_bhc_net_income ahc_net_income eq_ahc_net_income
-    @enum DataIncomeSource ds_hbai ds_frs default
+    @enum DataIncomeSource ds_hbai ds_frs 
     @with_kw mutable struct Settings
         uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name :: String = "default_run"
@@ -42,7 +45,7 @@ module RunSettings
         poverty_line :: Real = -1.0
         ineq_income_measure  :: IneqIncomeMeasure = eq_bhc_net_income
         growth :: Real = 0.02 # for time to exit poverty
-        income_data_source :: DataIncomeSource = ds_frs
+        income_data_source :: DataIncomeSource = ds_hbai
     end
 
     const DEFAULT_SETTINGS = Settings()

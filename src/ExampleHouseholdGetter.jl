@@ -24,10 +24,12 @@ KEYMAP = Vector{AbstractString}()
 return number of households available
 """
 function initialise(
+    settings       :: Settings
     ;
+    # fixme move these to settings
     household_name :: AbstractString = "example_households",
     people_name    :: AbstractString = "example_people",
-    settings       :: Settings ) :: Vector{AbstractString}
+     ) :: Vector{AbstractString}
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS

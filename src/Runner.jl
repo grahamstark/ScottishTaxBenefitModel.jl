@@ -34,9 +34,7 @@ module Runner
         HouseholdResult,
         IndividualResult
         
-    using .FRSHouseholdGetter: 
-        get_household,
-        initialise
+    import .FRSHouseholdGetter
         
     using .Uprating: load_prices
     

@@ -52,7 +52,7 @@ md"## Personal Independence Payment"
 # ╔═╡ a01723f5-e22a-4d36-9afa-6675d591bfeb
 begin
 	pip=CSV.File( "data/receipts/pip_2002-2020_from_stat_explore.csv",
-		missingstrings=[".."],
+		missingstring=[".."],
 		types=Dict([:Date=>String]))|>DataFrame
 	pip.Date = Date.( pip.Date, dateformat"yyyymm" )
 	pip

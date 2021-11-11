@@ -8,7 +8,6 @@ using .ExampleHouseholdGetter
 using .FRSHouseholdGetter
 using .Definitions
 using .ExampleHelpers
-using .RunSettings: Settings, 
 
 prfr = Uprating.load_prices( DEFAULT_SETTINGS )
 
