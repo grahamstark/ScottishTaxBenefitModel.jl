@@ -32,7 +32,9 @@ module Runner
     using .Results: 
         BenefitUnitResult,
         HouseholdResult,
-        IndividualResult
+        IndividualResult,
+        get_net_income,
+        get_indiv_result
         
     import .FRSHouseholdGetter
         
@@ -67,7 +69,6 @@ module Runner
         for sysno in 1:num_systems
             adjust_disability_eligibility!( params[sysno].nmt_bens )
         end
-                
 
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
         frame_starts = FrameStarts(0,0,0,0)
@@ -79,11 +80,42 @@ module Runner
             end
             for sysno in 1:num_systems
                 res = do_one_calc( hh, params[sysno], settings )
+                if settings.do_marginal_rates
+                    for (pid,pers) in hh.people
+                        #
+                        # `from_child_record` sorts out 17+ in education.
+                        #
+                        if ( ! pers.is_standard_child) && ( pers.age <= settings.mr_rr_upper_age )
+                            # FIXME choose between SE and Wage depending on which is
+                            # bigger, or empoyment status
+                            # println( "wage was $(pers.income[wages])")
+                            pers.income[wages] += settings.mr_incr
+
+                            subres = do_one_calc( hh, params[sysno], settings )            
+                            subhhinc = get_net_income( subres; target=settings.target_mr_rr_income )
+                            hhinc = get_net_income( res; target=settings.target_mr_rr_income )
+                            pres = get_indiv_result( res, pid )
+                            pres.metr = 100.0 * (1-((subhhinc-hhinc)/settings.mr_incr))                            
+                            pers.income[wages] -= settings.mr_incr                        
+                            # println( "wage set back to $(pers.income[wages]) metr is $(pres.metr)")
+                        end # working age
+                    end # people
+                end
+                if settings.do_replacement_rates
+                    for (pid,pers) in hh.people
+
+                        if ( ! pers.is_standard_child ) && ( pers.age <= settings.mr_rr_upper_age )
+                            # FIXME TODO need to be careful with hours and so on
+                        end # working age
+                    end # people
+                end
                 frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts, num_systems )
             end
         end #household loop
-        println( "dumping frames" )
-        # dump_frames( settings, frames )
+        if settings.dump_frames 
+            println( "dumping frames" )
+            dump_frames( settings, frames )
+        end
         return frames
     end # do one run
 

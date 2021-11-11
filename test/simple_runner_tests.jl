@@ -9,7 +9,7 @@ using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.GeneralTaxComponents
 using ScottishTaxBenefitModel.STBParameters
 using ScottishTaxBenefitModel.Runner: do_one_run
-using ScottishTaxBenefitModel.RunSettings: Settings, MT_Routing
+using ScottishTaxBenefitModel.RunSettings
 using .Utils
 using .ExampleHelpers
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
@@ -37,15 +37,31 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing  )
     println(gl)
 end 
 
+
+
+@testset "MR test" begin
+    @time begin
+        settings.means_tested_routing = modelled_phase_in
+        settings.do_marginal_rates = true
+        settings.dump_frames = true
+        sys = [get_system(scotland=false), get_system( scotland=true )]
+        results = do_one_run( settings, sys )
+        settings.poverty_line = make_poverty_line( results.hh[1], settings )
+        outf = summarise_frames( results, settings )
+        println( outf.metrs[1] )
+    end
+end
+
+
 @testset "basic run timing" begin
     for mt in instances( MT_Routing )
         println( "starting run using $mt routing")
         @time basic_run( print_test=true, mtrouting = mt )
     end
+
     # @benchmark frames = 
     # print(t)
 end
-
 #=
 if print_test
     summary_output = summarise_results!( results=results, base_results=base_results )

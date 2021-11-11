@@ -8,7 +8,7 @@ using DataFrames
 
 using ScottishTaxBenefitModel
 using .Definitions
-using .RunSettings: Settings
+using .RunSettings
 using .SingleHouseholdCalculations
 using .ModelHousehold
 using .STBParameters
@@ -17,8 +17,6 @@ using .Results
 using .Utils
 
 export makebc
-export TargetIncomes, ahc_hh, bhc_hh, total_bens, total_taxes
-@enum TargetIncomes ahc_hh bhc_hh total_bens total_taxes
 
 function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     settings = data[:settings]
@@ -41,16 +39,7 @@ end
 
 function getnet( data::Dict, gross::Real ) :: Real
     hres = local_getnet( data, gross )
-    target = data[:target_income]
-    if target == ahc_hh
-        return hres.ahc_net_income
-    elseif target == bhc_hh
-        return hres.bhc_net_income
-    elseif target == total_bens
-        return isum(hres.income, BENEFITS )
-    elseif target == total_taxes
-        return isum(hres.income, INCOME_TAXES)
-    end
+    return get_net_income( hres; target = data[:settings].target_bc_income )    
 end
 
 """
@@ -98,8 +87,7 @@ function makebc(
     hh         :: Household,
     sys        :: TaxBenefitSystem,
     settings   :: Settings,
-    wage       :: Real = 10.0,
-    target_income :: TargetIncomes = ahc_hh,
+    wage       :: Real = 10.0,  
     pid        :: BigInt = BigInt(-1),
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: DataFrame
     max_gross = wage*120
@@ -115,8 +103,7 @@ function makebc(
         :sys=>sys, 
         :settings=>settings, 
         :wage => wage, 
-        :pid=>pid,
-        :target_income => target_income )
+        :pid=>pid )
     bc = BudgetConstraints.makebc( data, getnet, lbcset )
     a = pointstoarray( bc )
     annotations = annotate_bc( bc )

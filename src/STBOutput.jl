@@ -6,6 +6,7 @@ using PovertyAndInequalityMeasures
 
 using CSV
 
+using StatsBase
 using ScottishTaxBenefitModel
 using .Definitions
 using .Utils
@@ -105,6 +106,11 @@ export FrameStarts,
         frame.region    = fill( Missing_Standard_Region, n )
         frame.gross_decile = zeros( Int, n )
         frame.council = fill( Symbol( "No_Council"), n)
+
+        # extra calculated fields
+        frame.employers_ni = zeros( n )
+        frame.scottish_income_tax = zeros( n ) # i.e. excluding savings & dividends
+
         # ... and so on
         return frame
     end
@@ -137,22 +143,10 @@ export FrameStarts,
          ni_class_2  = zeros(RT,n),
          ni_class_3  = zeros(RT,n),
          ni_class_4  = zeros(RT,n),
-         assumed_gross_wage = zeros(RT,n),
-
-         benefit1 = zeros(RT,n),
-         benefit2 = zeros(RT,n),
-         basic_income = zeros(RT,n),
-         gross_income = zeros(RT,n),
-         net_income = zeros(RT,n),
-
-         bhc_net_income = zeros(RT,n),
-         ahc_net_income = zeros(RT,n),
-         # eq_scale = zeros(RT,n),
-         eq_bhc_net_income = zeros(RT,n),
-         eq_ahc_net_income = zeros(RT,n), # etc.
-
+         assumed_gross_wage = zeros(RT,n),         
          metr = zeros(RT,n),
          tax_credit = zeros(RT,n),
+         replacement_rate = zeros(RT,n),
          vat = zeros(RT,n),
          other_indirect = zeros(RT,n),
          total_indirect = zeros(RT,n))
@@ -284,6 +278,8 @@ export FrameStarts,
         ir.employment_status = pers.employment_status
         ir.age_band = age_range( pers.age )
         ir.is_child = from_child_record
+        ir.employers_ni = pres.ni.class_1_secondary
+        ir.scottish_income_tax = pres.it.non_savings_tax
     end
 
     function fill_pers_frame_row!(
@@ -319,24 +315,11 @@ export FrameStarts,
         pr.ni_class_3  = pres.ni.class_3
         pr.ni_class_4  = pres.ni.class_4
         pr.assumed_gross_wage = pres.ni.assumed_gross_wage
-
-        # benefit1 = zeros(RT,n),
-        # benefit2 = zeros(RT,n),
-        # basic_income = zeros(RT,n),
-        # gross_income = zeros(RT,n),
-        # net_income = zeros(RT,n),
-        #
-        # bhc_net_income = zeros(RT,n),
-        # ahc_net_income = zeros(RT,n),
-        # eq_scale = -1.0
-        # eq_bhc_net_income = zeros(RT,n),
-        # eq_ahc_net_income = zeros(RT,n), # etc.
-        #
-        # metr = zeros(RT,n),
-        # tax_credit = zeros(RT,n),
-        # vat = zeros(RT,n),
-        # other_indirect hres.bus[buno]= zeros(RT,n),
-        # total_indirect = zeros(RT,n))
+        if pres.metr != -12345.0 # missing indicator
+            pr.metr = pres.metr
+        end
+        pr.replacement_rate = pres.replacement_rate
+        
     end
 
     #
@@ -446,6 +429,11 @@ export FrameStarts,
         return make_gain_lose( post, pre, income )
     end
 
+    function metrs_to_hist( indiv :: DataFrame ) :: Histogram
+        return fit( Histogram, indiv.metr, Weights( indiv.weight ), nbins=30, closed=:left )
+        # fit( Histogram, indiv.metr, Weights( indiv.weight ), -50:5:200, closed=:left )
+    end
+
     function summarise_frames( 
         frames :: NamedTuple,
         settings :: Settings ) :: NamedTuple
@@ -456,9 +444,11 @@ export FrameStarts,
         inequality = []
         deciles = []
         quantiles = []
+        metrs = []
         income_measure = income_measure_as_sym( settings.ineq_income_measure )
         
         for sysno in 1:ns
+            push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
             push!(income_summary, 
                 summarise_inc_frame(frames.income[sysno]))
             push!( deciles, 
@@ -488,7 +478,7 @@ export FrameStarts,
                     :weighted_people, 
                     income_measure ))
         end        
-        return ( quantiles=quantiles, deciles = deciles, income_summary = income_summary, poverty=poverty, inequality=inequality )
+        return ( quantiles=quantiles, deciles = deciles, income_summary = income_summary, poverty=poverty, inequality=inequality, metrs = metrs )
     end
 
     ## FIXME eventually, move this to DrWatson

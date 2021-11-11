@@ -24,7 +24,7 @@ module Results
         get_benefit_units
 
     using .STBIncomes
-    
+    using .RunSettings
     using .Utils:
         to_md_table
 
@@ -42,6 +42,8 @@ module Results
 
         aggregate_tax,
         aggregate!,
+        get_indiv_result,
+        get_net_income,
         gross_pension_contributions,
         has_any,
         init_benefit_unit_result,
@@ -220,6 +222,8 @@ module Results
        net_income :: RT = zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
+       metr :: RT = -12345.0
+       replacement_rate :: RT = zero(RT)
        income = STBIncomes.make_a( RT );
     end
 
@@ -315,6 +319,18 @@ module Results
         # and adapt the get_benefit_units function 
         #
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
+    end
+
+    function get_net_income( hres :: HouseholdResult; target :: TargetBCIncomes ) :: Real
+        if target == ahc_hh
+            return hres.ahc_net_income
+        elseif target == bhc_hh
+            return hres.bhc_net_income
+        elseif target == total_bens
+            return isum(hres.income, BENEFITS )
+        elseif target == total_taxes
+            return isum(hres.income, INCOME_TAXES)
+        end
     end
 
     function to_string( hr :: HouseholdResult, depth=0 )::String
@@ -509,6 +525,16 @@ module Results
             push!( hr.bus, init_benefit_unit_result( T, bu ))
         end
         return hr
+    end
+
+    function get_indiv_result( hres :: HouseholdResult, pid :: BigInt  ) :: IndividualResult
+        for bu in hres.bus
+            if haskey( bu.pers, pid )
+                return bu.pers[pid]
+            end
+        end
+        @assert false "no pid $pid in household result"
+        ## deliberate fail here
     end
     
 
