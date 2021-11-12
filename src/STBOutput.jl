@@ -143,13 +143,10 @@ export FrameStarts,
          ni_class_2  = zeros(RT,n),
          ni_class_3  = zeros(RT,n),
          ni_class_4  = zeros(RT,n),
-         assumed_gross_wage = zeros(RT,n),         
-         metr = zeros(RT,n),
+         assumed_gross_wage = Vector{Union{Real,Missing}}(missing, n),         
+         metr = Vector{Union{Real,Missing}}(missing, n),
          tax_credit = zeros(RT,n),
-         replacement_rate = zeros(RT,n),
-         vat = zeros(RT,n),
-         other_indirect = zeros(RT,n),
-         total_indirect = zeros(RT,n))
+         replacement_rate = Vector{Union{Real,Missing}}(missing, n),
     end
 
     function initialise_frames( T::DataType, settings :: Settings, num_systems :: Integer  ) :: NamedTuple
@@ -430,8 +427,7 @@ export FrameStarts,
     end
 
     function metrs_to_hist( indiv :: DataFrame ) :: Histogram
-        return fit( Histogram, indiv.metr, Weights( indiv.weight ), nbins=30, closed=:left )
-        # fit( Histogram, indiv.metr, Weights( indiv.weight ), -50:5:200, closed=:left )
+        return fit( Histogram, indiv.metr, Weights( indiv.weight ), 0:5:200, closed=:left )
     end
 
     function summarise_frames( 
