@@ -21,7 +21,7 @@ This was originally just a testing exercise. The [Budget Constraint generator](h
 
 Like this one:
 
-![Weird Budget Constraint](weird_bc.png)
+![Weird Budget Constraint](/assets/weird_bc.png)
 
 This shows the gross/net income relationship for a family with 7 children and £270pw in housing costs, living in a council house. So a pretty unusual family, but still.. Both the legacy system (red) and UC (greeen) are shown.
 
