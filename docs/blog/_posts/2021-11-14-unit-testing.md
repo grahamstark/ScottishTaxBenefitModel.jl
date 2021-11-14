@@ -13,6 +13,8 @@ nav_exclude: true
 
 The model now has a [huge test suite](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/tree/master/test), all of which passes, but I worry about test coverage still. 
 
+<!--more-->
+
 The lack of worked examples of benefit calculations in either the [CPAG Guides](https://cpag.org.uk/shop/cpag-titles/welfare-benefits-tax-credits-handbook-202122) or the online guides from [the Government], [Shelter](https://scotland.shelter.org.uk/), [Age UK](https://www.ageuk.org.uk/information-advice/money-legal/benefits-entitlements/) and the rest is a real problem. I'n guessing the incentive here is to upsell training courses with this stuff.
 
 Instead, I've been testing against an [online calculator](cbenefit-budgeting-calculator/) from [Policy in Practice](https://policyinpractice.co.uk/benefit-budgeting-calculator/). As someone who [used to write this sort of thing](https://www.virtual-worlds.scot/demonstrations/), I have to say the PiP calculator is really very well designed and easy to use. 

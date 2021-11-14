@@ -13,6 +13,8 @@ nav_exclude: true
 
 Here's a nice thing I discovered today - kind of rediscovered, as I'd [asked about this a while back](https://discourse.julialang.org/t/array-indexed-by-enum/56510) but it's only just clicked.
 
+<!--more-->
+
 You can make a Pascal-style enumerated-type indexed array in Julia in 2 lines of code. All you have to do is overload the array indexing in the Base library:
 
 If I have an enum `Incomes`, then:

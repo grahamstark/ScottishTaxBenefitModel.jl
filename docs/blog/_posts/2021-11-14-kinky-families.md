@@ -15,6 +15,8 @@ nav_exclude: true
 
 I've finally put [some of this model out into the world](https://stb.virtual-worlds.scot/bcd/) - to almost zero response so far, but that's OK.
 
+<!--more-->
+
 This was originally just a testing exercise. The [Budget Constraint generator](https://github.com/grahamstark/BudgetConstraints.jl) has always been a great way of ferreting out all the weirdness in a model: it finds all the discontinuities, marginal effective tax rates (METRs) that go the 'wrong' way.
 
 Like this one:
