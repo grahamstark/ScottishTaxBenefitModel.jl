@@ -121,7 +121,6 @@ const EXTRA_INC_COLS = 9
         frame.gross_decile = zeros( Int, n )
         frame.council = fill( Symbol( "No_Council"), n)
 
-
         # ... and so on
         return frame
     end
@@ -157,7 +156,7 @@ const EXTRA_INC_COLS = 9
          assumed_gross_wage = Vector{Union{Real,Missing}}(missing, n),         
          metr = Vector{Union{Real,Missing}}(missing, n),
          tax_credit = zeros(RT,n),
-         replacement_rate = Vector{Union{Real,Missing}}(missing, n),
+         replacement_rate = Vector{Union{Real,Missing}}(missing, n))
     end
 
     function initialise_frames( T::DataType, settings :: Settings, num_systems :: Integer  ) :: NamedTuple
@@ -281,7 +280,7 @@ const EXTRA_INC_COLS = 9
         # some aggregate income fields        
         ir.employers_ni = pres.ni.class_1_secondary
         ir.scottish_income_tax = pres.it.non_savings_tax
-        it.total_benefits = isum( pres.income, TOTAL_BENEFITS ) 
+        ir.total_benefits = isum( pres.income, BENEFITS ) 
         ir.legacy_mtbs  = isum( pres.income, LEGACY_MTBS )
         ir.means_tested_bens = isum( pres.income, MEANS_TESTED_BENS )
         ir.non_means_tested_bens  = isum( pres.income, NON_MEANS_TESTED_BENS )
