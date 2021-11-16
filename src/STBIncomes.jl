@@ -257,6 +257,9 @@ const SCOTTISH_SICKNESS_BENEFITS = [
 const UK_SICKNESS_ILLNESS = fill(SEVERE_DISABILITY_ALLOWANCE,DLA_MOBILITY)
 const SICKNESS_ILLNESS = union(UK_SICKNESS_ILLNESS, SCOTTISH_SICKNESS_BENEFITS )
 const DEDUCTIONS = fill(HEALTH_INSURANCE,PENSION_CONTRIBUTIONS_EMPLOYEE) # not employer since wages are net of this
+const SCOTTISH_BENEFITS = union( 
+    SCOTTISH_SICKNESS_BENEFITS,
+    SCOTTISH_CHILD_PAYMENT ) # FIXME plus ...
 
 
 const PASSED_THROUGH_BENEFITS = [
@@ -295,6 +298,8 @@ export INC_ARRAY_SIZE
 export ALL_INCOMES
 export ALL_INCOMES_EXCEPT_HOUSING_BENEFITS
 export PASSED_THROUGH_BENEFITS
+export SCOTTISH_BENEFITS
+export SCOTTISH_SICKNESS_BENEFITS
 
 export iname
 export make_static_incs
@@ -302,6 +307,7 @@ export make_mutable_incs
 export IncludedItems
 export isum
 export any_positive
+export set2syms
 
 struct IncludedItems
     included :: IncomesSet
@@ -331,10 +337,20 @@ function i2sym( i :: Incomes ) :: Symbol
     return Symbol(lowercase( string(i)))
 end
 
+function set2syms(s :: IncomesSet ) :: Set{Symbol}
+    ss = Set{Symbol}()
+    for i in s 
+        push!(ss,i2sym(i))
+    end
+    return ss
+end
+
 function isum( a :: AbstractArray, 
     which :: IncludedItems )
     return isum( a, which.included, deducted=which.deducted)
 end
+
+
 
 function any_positive( a :: AbstractArray, 
     which ) :: Bool
@@ -680,6 +696,9 @@ function fill_inc_frame_row!(
         lab = i2sym(i)
         incd[lab] = income[i]
     end
+
+    
+
 end # add_to_inc_frame
 
 end # module

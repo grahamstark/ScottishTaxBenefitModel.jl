@@ -32,6 +32,9 @@ export FrameStarts,
     make_poverty_line,
     make_gain_lose
 
+# count of the aggregates added to the income_frame - total benefits and so on
+const EXTRA_INC_COLS = 9
+
     struct FrameStarts
         hh :: Integer
         bu :: Integer
@@ -94,6 +97,17 @@ export FrameStarts,
 
     function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
         frame :: DataFrame = create_incomes_dataframe( RT, n )
+        # extra calculated fields
+        frame.employers_ni = zeros( n )
+        frame.scottish_income_tax = zeros( n ) # i.e. excluding savings & dividends
+        frame.total_benefits = zeros( n ) 
+        frame.legacy_mtbs  = zeros( n )
+        frame.means_tested_bens = zeros( n )
+        frame.non_means_tested_bens = zeros( n )
+        frame.sickness_illness = zeros( n )    
+        frame.scottish_benefits = zeros( n )    
+        frame.pension_relief_at_source = zeros( n )
+
         # add some crosstab fields ... 
         frame.id = fill( id, n )
         frame.data_year = zeros( Int, n )
@@ -107,9 +121,6 @@ export FrameStarts,
         frame.gross_decile = zeros( Int, n )
         frame.council = fill( Symbol( "No_Council"), n)
 
-        # extra calculated fields
-        frame.employers_ni = zeros( n )
-        frame.scottish_income_tax = zeros( n ) # i.e. excluding savings & dividends
 
         # ... and so on
         return frame
@@ -226,7 +237,7 @@ export FrameStarts,
 
         col = 3
         # FIXME is there something subtly wrong with the weighting here?
-        for i in 1:INC_ARRAY_SIZE
+        for i in 1:(INC_ARRAY_SIZE+EXTRA_INC_COLS)
             col += 1
             out[1,col] = sum( WEEKS_PER_YEAR .* incd[:,col] .* incd[:,:weight] ) # £mn 
             out[2,col] = sum((incd[:,col] .> 0) .* incd[:,:weight]) # counts
@@ -267,6 +278,17 @@ export FrameStarts,
 
         STBIncomes.fill_inc_frame_row!( 
             ir, pers.pid, hh.hid, hh.weight, pres.income )
+        # some aggregate income fields        
+        ir.employers_ni = pres.ni.class_1_secondary
+        ir.scottish_income_tax = pres.it.non_savings_tax
+        it.total_benefits = isum( pres.income, TOTAL_BENEFITS ) 
+        ir.legacy_mtbs  = isum( pres.income, LEGACY_MTBS )
+        ir.means_tested_bens = isum( pres.income, MEANS_TESTED_BENS )
+        ir.non_means_tested_bens  = isum( pres.income, NON_MEANS_TESTED_BENS )
+        ir.sickness_illness = isum( pres.income, SICKNESS_ILLNESS )
+        ir.scottish_benefits = isum( pres.income, SCOTTISH_BENEFITS )
+        ir.pension_relief_at_source = pres.it.pension_relief_at_source
+                
         ir.tenure = hh.tenure
         ir.data_year = hh.data_year
         ir.region = hh.region
