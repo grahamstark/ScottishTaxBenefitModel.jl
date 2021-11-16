@@ -238,6 +238,7 @@ const EXTRA_INC_COLS = 9
         # FIXME is there something subtly wrong with the weighting here?
         for i in 1:(INC_ARRAY_SIZE+EXTRA_INC_COLS)
             col += 1
+            println( "on column $col")
             out[1,col] = sum( WEEKS_PER_YEAR .* incd[:,col] .* incd[:,:weight] ) # £mn 
             out[2,col] = sum((incd[:,col] .> 0) .* incd[:,:weight]) # counts
             row = 3

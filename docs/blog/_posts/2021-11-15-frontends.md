@@ -35,9 +35,9 @@ function do_one_run(
 
 (From [Runner.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/Runner.jl))
 
-It's easy to embed these calls in something ambitious. This could be a web application (as here), but could also be some fancier simulation, for example of [incentives to work](https://stb.virtual-worlds.scot/bcd/) ) or forward projections of [health and social care](https://www.virtual-worlds.scot/demonstrations/wsc/) or [child poverty](https://www.virtual-worlds.scot/). Sounds obvious until you see how the rest of the world gets the structure of these models [horribly](https://euromod-web.jrc.ec.europa.eu/) [wrong](https://awesomeopensource.com/project/openfisca/openfisca-core).
+It's easy to embed these calls in something ambitious. This could be a web application (as here), but could also be some fancier simulation, for example of [incentives to work](https://stb.virtual-worlds.scot/bcd/) or forward projections of [health and social care](https://www.virtual-worlds.scot/demonstrations/wsc/) or [child poverty](https://www.virtual-worlds.scot/). Sounds obvious until you see how the rest of the world gets the structure of these models [horribly](https://euromod-web.jrc.ec.europa.eu/) [wrong](https://awesomeopensource.com/project/openfisca/openfisca-core).
 
-So, for frontends: one thing I'm *not* going to do is build a frontend with every possible parameter. I've [done a fair few](https://www.virtual-worlds.scot/demonstrations/) and I think they're a waste of time: if you really want to mess with the 3rd housing benefit non-dependent deduction or whatever, you want something more precise and reproducable than a thrown-together web interface.
+So, for frontends: one thing I'm *not* going to do is build a frontend with every possible parameter. I've [done a fair few](https://www.virtual-worlds.scot/demonstrations/) and I've come to think they're a waste of time: if you really want to mess with the 3rd housing benefit non-dependent deduction or whatever, you want something more precise and reproducable than a thrown-together web interface.
 
 So, small, easy to use things for learning and experimentation, and some riff on old-school command-line running for more complex cases.
 

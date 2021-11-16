@@ -63,7 +63,7 @@ module RunSettings
         mr_rr_upper_age :: Int = 68
         target_bc_income :: TargetBCIncomes = ahc_hh 
         target_mr_rr_income :: TargetBCIncomes = ahc_hh 
-        mr_incr = 0.01
+        mr_incr = 0.001
     end
 
     const DEFAULT_SETTINGS = Settings()
