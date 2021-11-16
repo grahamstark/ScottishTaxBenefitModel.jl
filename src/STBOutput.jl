@@ -207,7 +207,7 @@ const EXTRA_INC_COLS = 9
 
     function summarise_inc_frame( incd :: DataFrame ) :: DataFrame
         nrows = 80
-        out = create_incomes_dataframe(Float64, nrows)
+        out = make_incomes_frame(Float64, nrows)
         out.label = fill("",nrows)
         
         # labels
@@ -238,7 +238,7 @@ const EXTRA_INC_COLS = 9
         # FIXME is there something subtly wrong with the weighting here?
         for i in 1:(INC_ARRAY_SIZE+EXTRA_INC_COLS)
             col += 1
-            println( "on column $col")
+            # println( "on column $col")
             out[1,col] = sum( WEEKS_PER_YEAR .* incd[:,col] .* incd[:,:weight] ) # £mn 
             out[2,col] = sum((incd[:,col] .> 0) .* incd[:,:weight]) # counts
             row = 3
@@ -449,7 +449,12 @@ const EXTRA_INC_COLS = 9
     end
 
     function metrs_to_hist( indiv :: DataFrame ) :: Histogram
-        return fit( Histogram, indiv.metr, Weights( indiv.weight ), 0:5:200, closed=:left )
+        # these 2 convoluted lines make this draw only
+        # over the non-missing (children, retired)
+        p = collect(keys(skipmissing( indiv.metr )))
+        indp = indiv[p,[:metr, :weight]] # just non missing
+        # so .. <=0, >0 <=10, >10<=20 and so on
+        return fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.00001, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:right )
     end
 
     function summarise_frames( 
