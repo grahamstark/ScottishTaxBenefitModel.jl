@@ -275,10 +275,20 @@ function calc_income_tax!(
     # tax reducers
     #
     total_tax = non_savings_tax.due+savings_tax.due+dividend_tax.due
+    nst = non_savings_tax.due
     if spouse_transfer > 0
         sp_reduction =
             sys.non_savings_rates[sys.non_savings_basic_rate]*spouse_transfer
         total_tax = max( 0.0, total_tax - sp_reduction )
+        # assign it to non-savings - needed for Scottish income tax
+        nst = max(0.0, nst - sp_reduction )
+        # FIXME there might be cases where the reduction
+        # is > non savings tax, but I can't be bothered
+        if nst < 0.0
+            # assign any leftover to savings tax
+            savings_tax.due = max( savings_tax.due+non_savings_tax.due, 0.0 ) # subtract, really
+            non_savings_tax.due = 0.0
+        end
     end
     pres.income[INCOME_TAX] = total_tax
     pres.it.taxable_income = taxable_income
@@ -286,7 +296,8 @@ function calc_income_tax!(
     pres.it.total_income = total_income
     pres.it.adjusted_net_income = adjusted_net_income
     
-    pres.it.non_savings_tax = non_savings_tax.due
+    # memo items, but we need nst for Scottish Income Tax
+    pres.it.non_savings_tax = nst # non_savings_tax.due, less transferrable allowances
     pres.it.non_savings_income = non_savings_income
     pres.it.non_savings_band = non_savings_tax.end_band
     pres.it.non_savings_taxable = non_savings_taxable
