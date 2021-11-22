@@ -53,6 +53,7 @@ end
 
 sys21_22 = load_file( "../params/sys_2021_22.jl" )
 load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
+load_file!( sys21_22, "../params/budget_2021_uc_changes.jl")
 println( "weeklyise start wpm=$PWPM wpy=52")
 weeklyise!( sys21_22; wpy=52, wpm=PWPM  )
 
