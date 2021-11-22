@@ -401,9 +401,10 @@ function calc_universal_credit!(
         bur.uc.carer_element + 
         bur.uc.childcare_costs
     bur.uc.total_income = 
-        bur.uc.earned_income - 
-        bur.uc.other_income - 
+        bur.uc.earned_income + 
+        bur.uc.other_income +
         bur.uc.tariff_income
+        # fixme what if tax is on other income, not wages?
     uce = max( 0.0, bur.uc.maximum - bur.uc.total_income )
     
     # Make the recipient the bu head if the head isn't 
