@@ -276,18 +276,25 @@ function calc_income_tax!(
     #
     total_tax = non_savings_tax.due+savings_tax.due+dividend_tax.due
     nst = non_savings_tax.due
+    st = savings_tax.due
+    dt = dividend_tax.due
     if spouse_transfer > 0
+        # note that if scotland sets a high basic rate the sp_reduction here
+        # can wipe out all savings taxes which should be remitted to uk gov 
         sp_reduction =
             sys.non_savings_rates[sys.non_savings_basic_rate]*spouse_transfer
         total_tax = max( 0.0, total_tax - sp_reduction )
-        # assign it to non-savings - needed for Scottish income tax
-        nst = max(0.0, nst - sp_reduction )
-        # FIXME there might be cases where the reduction
-        # is > non savings tax, but I can't be bothered
+        # assign spouse reduction to non-savings - needed for Scottish income tax
+        nst -= sp_reduction
         if nst < 0.0
             # assign any leftover to savings tax
-            savings_tax.due = max( savings_tax.due+non_savings_tax.due, 0.0 ) # subtract, really
-            non_savings_tax.due = 0.0
+            st += nst # subtract, really
+            nst = 0.0
+        end
+        if st < 0.0
+            # assign any leftover to savings tax
+            dt = max(0.0, dt+st) # subtract, really
+            st = 0.0
         end
     end
     pres.income[INCOME_TAX] = total_tax
@@ -302,12 +309,12 @@ function calc_income_tax!(
     pres.it.non_savings_band = non_savings_tax.end_band
     pres.it.non_savings_taxable = non_savings_taxable
     
-    pres.it.savings_tax = savings_tax.due
+    pres.it.savings_tax = st
     pres.it.savings_band = savings_tax.end_band
     pres.it.savings_income = savings_income
     pres.it.savings_taxable = savings_taxable
     
-    pres.it.dividends_tax = dividend_tax.due
+    pres.it.dividends_tax = dt
     pres.it.dividend_band = dividend_tax.end_band
     pres.it.dividends_income = dividends_income
     pres.it.dividends_taxable = dividends_taxable
