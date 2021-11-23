@@ -503,9 +503,14 @@ end
 @testset "Run on actual Data" begin
     nhhs,npeople = init_data()
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
+    it2 = deepcopy(itsys_scot)
+    it2.non_savings_rates[1:3] .+= 0.5
+    println( it2 )
     for hno in 1:nhhs
         hh = get_household(hno)
-        println( "hhno $hno")
+        if hno % 100 == 0
+            println( "hhno $hno")
+        end
         bus = get_benefit_units( hh )
         for bu in bus
             # income tax, with some nonsense for
@@ -518,7 +523,12 @@ end
                 head,
                 spouse,
                 itsys_scot )
-            for chno in bu.children
+            calc_income_tax!(
+                bures,
+                head,
+                spouse,
+                it2 )
+                for chno in bu.children
                 child = bu.people[chno]
                 calc_income_tax!(
                     bures.pers[child.pid],

@@ -157,6 +157,7 @@ function calc_income_tax!(
     end
     total_income = isum( pres.income, sys.all_taxable )
     non_savings_income = isum( pres.income, sys.non_savings_income )
+    
     savings_income = isum( pres.income, sys.savings_income )
     dividends_income = isum( pres.income, sys.dividend_income )
     allowance = calculate_allowance( pers, sys )
@@ -274,6 +275,9 @@ function calc_income_tax!(
     #
     # tax reducers
     #
+    @assert non_savings_tax.due >= 0
+    @assert savings_tax.due >= 0
+    @assert dividend_tax.due >= 0
     total_tax = non_savings_tax.due+savings_tax.due+dividend_tax.due
     nst = non_savings_tax.due
     st = savings_tax.due
@@ -286,6 +290,7 @@ function calc_income_tax!(
         total_tax = max( 0.0, total_tax - sp_reduction )
         # assign spouse reduction to non-savings - needed for Scottish income tax
         nst -= sp_reduction
+        println( "nst $nst sp_reduction=$sp_reduction total_tax=$total_tax")
         if nst < 0.0
             # assign any leftover to savings tax
             st += nst # subtract, really
@@ -340,7 +345,7 @@ function allowed_to_transfer_allowance(
         can_transfer = false
     end
     ## TODO disallow if mca claimed
-    can_transfer
+    return can_transfer
 end # can_transfer
 
 
@@ -383,11 +388,19 @@ function calc_income_tax!(
             # with greater income if married after 2005 and you can elect to do this if
             # married before, so:
             if hdres.it.adjusted_net_income > spres.it.adjusted_net_income
+                println("head mca!!")
                 hdres.it.mca = calculate_mca( head, hdres.it, sys )
-                hdres.income[INCOME_TAX]= max( 0.0, hdres.income[INCOME_TAX]- hdres.it.mca )
+                hdres.income[INCOME_TAX] = max( 0.0, hdres.income[INCOME_TAX]- hdres.it.mca )
+                # FIXME not quite right - trickle down to savings/divs
+                if hdres.it.mca > 0
+                    hdres.it.non_savings_tax = max( 0.0, hdres.it.non_savings_tax - hdres.it.mca )
+                end
             else
                 spres.it.mca = calculate_mca( spouse, spres.it, sys )
                 spres.income[INCOME_TAX] = max( 0.0, spres.income[INCOME_TAX] - spres.it.mca )
+                if spres.it.mca > 0
+                    spres.it.non_savings_tax = max( 0.0, spres.it.non_savings_tax - spres.it.mca )
+                end
             end
         end
         if spres.it.mca == 0.0 == hdres.it.mca
@@ -401,6 +414,30 @@ function calc_income_tax!(
                 spres.it.transferred_allowance = transferable_allow
             end
         end
+        if spres.income[INCOME_TAX] < 0.0 
+            println( spouse.income )
+            println( spres.it )
+            println( spres.income )
+            @assert false "income tax can't be negative; spouse; pid=$(spouse.pid)"
+        end
+        if spres.it.non_savings_tax > spres.income[INCOME_TAX]
+            println( spouse.income )
+            println( spres.it )
+            println( spres.income )
+            @assert false "non savings part can't be greater than total income tax; spouse ; pid=$(spouse.pid)"
+        end
+    end
+    if hdres.income[INCOME_TAX] < 0.0 
+        println( head.income )
+        println( hdres.it )
+        println( hdres.income )
+        @assert false "income tax can't be negative; head; pid=$(head.pid)"
+    end
+    if hdres.it.non_savings_tax > hdres.income[INCOME_TAX]
+        println( head.income )
+        println( hdres.it )
+        println( hdres.income )
+        @assert false "non savings part can't be greater than total income tax; head ; pid=($head.pid)"
     end
 end # calc_income_tax
 

@@ -1545,11 +1545,19 @@ end
 map missing values or (-9 to -2) to -1, else a
 used for mapping values to enums, where we add a missing enum with value -1
 """
-function safe_assign(a::Union{Number,Missing,String},deflt=-1)
-   if ismissing(a) || typeof(a) == String || a < -1
+function safe_assign(a::Union{Number,Missing,AbstractString},deflt=-1)   
+   if ismissing(a)
       return deflt
+   elseif typeof(a) <: AbstractString
+      a = tryparse( typeof( deflt ), a )
+      if a === nothing
+         return deflt
+      end
+      if a < -1
+         return deflt
+      end
    end
-   a
+   return a
 end
 
 export make_sym_for_frame, make_sym_for_asset, make_sym_from_frame
