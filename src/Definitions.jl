@@ -1553,9 +1553,9 @@ function safe_assign(a::Union{Number,Missing,AbstractString},deflt=-1)
       if a === nothing
          return deflt
       end
-      if a < -1
-         return deflt
-      end
+   end
+   if a < -1
+      return deflt
    end
    return a
 end
