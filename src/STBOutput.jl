@@ -299,7 +299,7 @@ const EXTRA_INC_COLS = 9
         ir.age_band = age_range( pers.age )
         ir.is_child = from_child_record
         ir.employers_ni = pres.ni.class_1_secondary
-        ir.scottish_income_tax = pres.it.non_savings_tax
+        
     end
 
     function fill_pers_frame_row!(
