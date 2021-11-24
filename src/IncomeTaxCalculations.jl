@@ -290,7 +290,7 @@ function calc_income_tax!(
         total_tax = max( 0.0, total_tax - sp_reduction )
         # assign spouse reduction to non-savings - needed for Scottish income tax
         nst -= sp_reduction
-        println( "nst $nst sp_reduction=$sp_reduction total_tax=$total_tax")
+        # println( "nst $nst sp_reduction=$sp_reduction total_tax=$total_tax")
         if nst < 0.0
             # assign any leftover to savings tax
             st += nst # subtract, really
@@ -388,7 +388,6 @@ function calc_income_tax!(
             # with greater income if married after 2005 and you can elect to do this if
             # married before, so:
             if hdres.it.adjusted_net_income > spres.it.adjusted_net_income
-                println("head mca!!")
                 hdres.it.mca = calculate_mca( head, hdres.it, sys )
                 hdres.income[INCOME_TAX] = max( 0.0, hdres.income[INCOME_TAX]- hdres.it.mca )
                 # FIXME not quite right - trickle down to savings/divs
