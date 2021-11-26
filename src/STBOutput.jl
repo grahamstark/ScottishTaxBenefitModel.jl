@@ -22,9 +22,13 @@ using .STBIncomes
 
 using .ModelHousehold
 
+using .FRSHouseholdGetter: 
+    get_slot_for_household,
+    get_slot_for_person
+    
 using .RunSettings
 
-export FrameStarts, 
+export 
     add_to_frames!,
     dump_frames,
     initialise_frames,
@@ -35,12 +39,15 @@ export FrameStarts,
 # count of the aggregates added to the income_frame - total benefits and so on
 const EXTRA_INC_COLS = 9
 
+
+    #=
     struct FrameStarts
         hh :: Integer
         bu :: Integer
         pers :: Integer
         income :: Integer
     end
+    =#
 
     function make_household_results_frame( n :: Int ) :: DataFrame
         make_household_results_frame( Float64, n )
@@ -338,37 +345,34 @@ const EXTRA_INC_COLS = 9
         if pres.metr != -12345.0 # missing indicator
             pr.metr = pres.metr
         end
-        pr.replacement_rate = pres.replacement_rate
-        
+        pr.replacement_rate = pres.replacement_rate        
     end
 
     #
     # fill the rows in the output dataframes for this hhld
-    # frame_starts holds 1 minus the start positions for his hhld
-    # in the frames
     #
     function add_to_frames!(
         frames :: NamedTuple,
         hh     :: Household,
         hres   :: HouseholdResult,
         sysno  :: Integer,
-        frame_starts :: FrameStarts,
         num_systems :: Integer  )
 
-        hfno = frame_starts.hh+1
-        fill_hh_frame_row!( frames.hh[sysno][hfno, :], hh, hres)
-        bfno = frame_starts.bu
-        pfno = frame_starts.pers
+        
+        hfno = get_slot_for_household( hh.hid, hh.datayear )
+        fill_hh_frame_row!( 
+            frames.hh[sysno][hfno, :], hh, hres)
         nbus = length(hres.bus)
         np = length( hh.people )
         bus = get_benefit_units( hh )
         pfbu = 0
         for buno in 1:nbus
             bfno += 1
-            fill_bu_frame_row!( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
+            # this won't work at the moment & isn't used
+            # fill_bu_frame_row!( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
             for( pid, pers ) in bus[buno].people
-                pfno += 1
-                pfbu += 1
+                pfno = get_slot_for_person( pid, hh.datayear )
+                # pfbu += 1
                 from_child_record = pid in bus[buno].children
                 fill_pers_frame_row!(
                     frames.indiv[sysno][pfno,:],
@@ -385,19 +389,6 @@ const EXTRA_INC_COLS = 9
                     
             end # person loop
         end # bu loop
-        # println( "num people $np num bus $nbus pfno $pfno")
-        # if pfno <= 5
-        #    println( frames.indiv[sysno][1:5,:] )
-        # end
-        @assert (pfno - frame_starts.pers) == np "mismatch (pfno $pfno - frame_starts.pers $(frame_starts.pers) != $np"
-        @assert pfbu == np "mismatch (pfbu $pfbu != np $np"
-        # send back an incremented set of positions only
-        # once we've done the last system
-        if sysno == num_systems
-            return FrameStarts( hfno, bfno, pfno, pfno )
-        else
-            return frame_starts
-        end
     end
 
     """

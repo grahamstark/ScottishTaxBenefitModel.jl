@@ -3,6 +3,9 @@ module Runner
     # This model actually runs all the calculations over a collection of households and stores the results in dataframes.
     # Presently it also contains code to summarise the output dataframes. FIXME output needs to be in own module.
     #
+
+    using Base.Threads
+
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow, Not, select!
     using CSV
@@ -16,7 +19,7 @@ module Runner
     using .STBParameters
     using .STBIncomes
     using .STBOutput
-
+    
     using .RunSettings:
         Settings
     
@@ -71,7 +74,6 @@ module Runner
         end
 
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
-        frame_starts = FrameStarts(0,0,0,0)
         println( "starting run " )
         @time for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household( hno )
@@ -109,7 +111,7 @@ module Runner
                         end # working age
                     end # people
                 end
-                frame_starts = add_to_frames!( frames, hh, res,  sysno, frame_starts, num_systems )
+                add_to_frames!( frames, hh, res,  sysno, num_systems )
             end
         end #household loop
         if settings.dump_frames 

@@ -32,7 +32,9 @@ module FRSHouseholdGetter
         initialise, 
         get_household, 
         num_households, 
-        get_household_of_person
+        get_household_of_person,
+        get_slot_for_person,
+        get_slot_for_household
     
     ## See scripts/performance/hhld_example.jl for the rationalle behind this wrapper
     # 
@@ -41,12 +43,18 @@ module FRSHouseholdGetter
     # array a type and declare a constant. This aviods type instability which can murder 
     # performance of the getter.
     #
+
+    struct OnePos
+        hseq :: Int
+        pseq :: Int
+    end
+
     struct HHWrapper 
         hhlds      :: Vector{Household{Float64}}
         weight     :: Vector{Float64}   
         dimensions :: Vector{Int}  
         hh_map     :: Dict{OneIndex,Int}   
-        pers_map   :: Dict{OneIndex,Int}
+        pers_map   :: Dict{OneIndex,OnePos}
     end
     
     const MODEL_HOUSEHOLDS = 
@@ -82,13 +90,15 @@ module FRSHouseholdGetter
         resize!( MODEL_HOUSEHOLDS.weight, nhhlds )
         MODEL_HOUSEHOLDS.weight .= 0
         
+        pseq = 0
         for hseq in 1:nhhlds
             hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS, settings )
             MODEL_HOUSEHOLDS.hhlds[hseq] = hh
             uprate!( hh )
             MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = hseq
             for pid in keys(hh.people)
-                MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = hseq
+                pseq += 1
+                MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = OnePos(hseq,pseq)
             end
         end
         # println( "made pers_map as $(MODEL_HOUSEHOLDS.pers_map)")
@@ -119,7 +129,15 @@ module FRSHouseholdGetter
         if pos === nothing
             return nothing
         end
-        return get_household( pos )
+        return get_household( pos.hseq )
+    end
+
+    function get_slot_for_household( hid :: BigInt, datayear :: Int  )
+        return MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ]
+    end
+
+    function get_slot_for_person( hid :: BigInt, datayear :: Int  )
+        return MODEL_HOUSEHOLDS.pers_map[ OneIndex( hid, datayear) ].pseq
     end
     
     function get_num_households()::Integer
