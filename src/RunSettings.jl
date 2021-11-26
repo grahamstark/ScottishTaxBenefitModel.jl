@@ -3,7 +3,9 @@ module RunSettings
     # This module contains things needed to control one run e.g. the output destination, number of households to use andd so on.
     #
     using Parameters
-    using Definitions
+    
+    using ScottishTaxBenefitModel
+    using .Definitions
 
     export 
         Settings,
