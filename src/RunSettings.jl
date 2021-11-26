@@ -64,6 +64,7 @@ module RunSettings
         target_bc_income :: TargetBCIncomes = ahc_hh 
         target_mr_rr_income :: TargetBCIncomes = ahc_hh 
         mr_incr = 0.001
+        requested_threads = 1
     end
 
     const DEFAULT_SETTINGS = Settings()

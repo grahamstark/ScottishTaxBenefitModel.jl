@@ -33,6 +33,7 @@ export
    is_zero_or_missing,
    isapprox, 
    loadtoframe, 
+   make_start_stops,
    mult_dict!, 
    mult, 
    md_format,
@@ -46,6 +47,28 @@ export
    to_md_table,
    todays_date, 
    uprate_struct!
+
+"""
+For threading households
+Dup of function in SurveyDataWeighting
+"""
+function make_start_stops( nrows::Int, num_threads::Int )::Tuple
+   start = zeros(Int, num_threads)
+   stop = zeros(Int, num_threads)
+   chunk_size = Int(trunc(nrows/num_threads))-1;
+   p = 1;
+   for i in 1:num_threads
+         start[i] = p
+         p = p + chunk_size;
+         if i < num_threads;
+            stop[i] = p;
+         else;
+            stop[i] = nrows; # possibly different number on last thread
+         end;
+         p = p + 1;
+   end;
+   return (start, stop)
+end
 
 function extract_digits( b :: Integer, r :: UnitRange ) :: Integer
    parse(Int,string(b)[r])

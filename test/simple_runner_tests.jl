@@ -21,10 +21,11 @@ BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
 
-function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing  )
+function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [get_system(scotland=false), get_system( scotland=true )]
+    
     results = do_one_run( settings, sys )
     h1 = results.hh[1]
     pretty_table( h1[:,[:weighted_people,:bhc_net_income,:eq_bhc_net_income,:ahc_net_income,:eq_ahc_net_income]] )
@@ -58,10 +59,19 @@ end
         println( "starting run using $mt routing")
         @time basic_run( print_test=true, mtrouting = mt )
     end
-
     # @benchmark frames = 
     # print(t)
 end
+
+@testset "thread test" begin
+    # 42.531500 53 secs
+    settings.requested_threads = 4
+    @time basic_run( print_test=true, mtrouting = modelled_phase_in )
+
+    settings.do_marginal_rates = false
+    @time basic_run( print_test=true, mtrouting = modelled_phase_in )
+end
+
 #=
 if print_test
     summary_output = summarise_results!( results=results, base_results=base_results )

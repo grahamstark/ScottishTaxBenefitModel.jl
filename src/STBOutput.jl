@@ -359,7 +359,7 @@ const EXTRA_INC_COLS = 9
         num_systems :: Integer  )
 
         
-        hfno = get_slot_for_household( hh.hid, hh.datayear )
+        hfno = get_slot_for_household( hh.hid, hh.data_year )
         fill_hh_frame_row!( 
             frames.hh[sysno][hfno, :], hh, hres)
         nbus = length(hres.bus)
@@ -367,11 +367,10 @@ const EXTRA_INC_COLS = 9
         bus = get_benefit_units( hh )
         pfbu = 0
         for buno in 1:nbus
-            bfno += 1
             # this won't work at the moment & isn't used
             # fill_bu_frame_row!( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
             for( pid, pers ) in bus[buno].people
-                pfno = get_slot_for_person( pid, hh.datayear )
+                pfno = get_slot_for_person( pid, hh.data_year )
                 # pfbu += 1
                 from_child_record = pid in bus[buno].children
                 fill_pers_frame_row!(
