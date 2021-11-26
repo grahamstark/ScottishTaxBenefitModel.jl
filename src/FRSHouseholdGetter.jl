@@ -82,8 +82,8 @@ module FRSHouseholdGetter
             return (MODEL_HOUSEHOLDS.dimensions...,) 
         end
         load_prices( settings )
-        hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(settings.household_name).tab" ) |> DataFrame
-        people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(settings.people_name).tab") |> DataFrame
+        hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+        people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
         npeople = size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )

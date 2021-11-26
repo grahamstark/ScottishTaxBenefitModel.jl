@@ -3,6 +3,7 @@ module RunSettings
     # This module contains things needed to control one run e.g. the output destination, number of households to use andd so on.
     #
     using Parameters
+    using Definitions
 
     export 
         Settings,
@@ -40,6 +41,7 @@ module RunSettings
         end_year :: Int = 2018
         scotland_full :: Bool = true
         weighted :: Bool = false
+        data_dir :: String = MODEL_DATA_DIR
         household_name = "model_households_scotland"
         people_name    = "model_people_scotland"
         dump_frames :: Bool = false
