@@ -446,7 +446,8 @@ const EXTRA_INC_COLS = 10
         p = collect(keys(skipmissing( indiv.metr )))
         indp = indiv[p,[:metr, :weight]] # just non missing
         # so .. <=0, >0 <=10, >10<=20 and so on
-        mmtr = mean( indp.metr, Weights(indp.weight))
+        # skip near-infinite mrs mwhen averaging
+        mmtr = mean( indp[(indp.metr.<150),:].metr, Weights(indp[(indp.metr.<150),:].weight))
         hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.00001, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:right )
         return ( mean=mmtr, hist=hist)
     end
