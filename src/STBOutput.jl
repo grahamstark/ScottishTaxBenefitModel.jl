@@ -445,7 +445,8 @@ const EXTRA_INC_COLS = 9
         p = collect(keys(skipmissing( indiv.metr )))
         indp = indiv[p,[:metr, :weight]] # just non missing
         # so .. <=0, >0 <=10, >10<=20 and so on
-        return fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.00001, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:right )
+        hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.00001, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:right )
+        return (mean=mean( indp.metr ), hist=hist)
     end
 
     function summarise_frames( 
