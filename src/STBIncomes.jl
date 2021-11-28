@@ -283,6 +283,7 @@ const ALL_INCOMES_EXCEPT_HOUSING_BENEFITS = setdiff(ALL_INCOMES,[COUNCIL_TAX_BEN
 
 const DIRECT_TAXES_AND_DEDUCTIONS = union(INCOME_TAXES,DEDUCTIONS)
 
+
 # exports ----------------
 export GROSS_INCOME
 export BENEFITS
@@ -300,6 +301,7 @@ export ALL_INCOMES_EXCEPT_HOUSING_BENEFITS
 export PASSED_THROUGH_BENEFITS
 export SCOTTISH_BENEFITS
 export SCOTTISH_SICKNESS_BENEFITS
+export NET_COST
 
 export iname
 export make_static_incs
@@ -313,6 +315,9 @@ struct IncludedItems
     included :: IncomesSet
     deducted :: Union{Nothing,IncomesSet}
 end
+
+const NET_COST = IncludedItems(    
+    BENEFITS, [INCOME_TAX,NATIONAL_INSURANCE,LOCAL_TAXES] )
 
 function make_a( T :: Type ) :: IncomesArray
     return IncomesArray{T}( zeros(T, INC_ARRAY_SIZE))

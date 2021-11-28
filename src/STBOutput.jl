@@ -37,7 +37,7 @@ export
     make_gain_lose
 
 # count of the aggregates added to the income_frame - total benefits and so on
-const EXTRA_INC_COLS = 9
+const EXTRA_INC_COLS = 10
 
 
     #=
@@ -114,7 +114,7 @@ const EXTRA_INC_COLS = 9
         frame.sickness_illness = zeros( n )    
         frame.scottish_benefits = zeros( n )    
         frame.pension_relief_at_source = zeros( n )
-
+        frame.net_cost = zeros( n )
         # add some crosstab fields ... 
         frame.id = fill( id, n )
         frame.data_year = zeros( Int, n )
@@ -306,6 +306,7 @@ const EXTRA_INC_COLS = 9
         ir.age_band = age_range( pers.age )
         ir.is_child = from_child_record
         ir.employers_ni = pres.ni.class_1_secondary
+        ir.net_cost = isum( pres.income, NET_COST ) - ir.pension_relief_at_source
         
     end
 
@@ -439,14 +440,15 @@ const EXTRA_INC_COLS = 9
         return make_gain_lose( post, pre, income )
     end
 
-    function metrs_to_hist( indiv :: DataFrame ) :: Histogram
+    function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
         # these 2 convoluted lines make this draw only
         # over the non-missing (children, retired)
         p = collect(keys(skipmissing( indiv.metr )))
         indp = indiv[p,[:metr, :weight]] # just non missing
         # so .. <=0, >0 <=10, >10<=20 and so on
+        mmtr = mean( indp.metr, Weights(indp.weight))
         hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.00001, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:right )
-        return (mean=mean( indp.metr ), hist=hist)
+        return ( mean=mmtr, hist=hist)
     end
 
     function summarise_frames( 
