@@ -204,7 +204,7 @@ const EXTRA_INC_COLS = 10
         # hr.eq_scale = hres.eq_scale
         hr.eq_bhc_net_income = hres.eq_bhc_net_income
         hr.eq_ahc_net_income = hres.eq_ahc_net_income
-        hr.num_children = get_children( hh )
+        hr.num_children = num_children( hh )
     end
 
 
@@ -476,7 +476,6 @@ const EXTRA_INC_COLS = 10
         poverty_line = []
         child_poverty = []
         income_measure = income_measure_as_sym( settings.ineq_income_measure )
-        eq_inc_sym = income_measure_as_sym( eq_income_measure( income_measure ))
 
         for sysno in 1:ns
             push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
@@ -507,11 +506,12 @@ const EXTRA_INC_COLS = 10
                     settings.poverty_line, 
                     settings.growth, 
                     :weighted_people, 
-                    eq_inc_sym ))
+                    income_measure ))
             push!( poverty_line, settings.poverty_line )
             cp = calc_child_poverty( 
+                settings.poverty_line, 
                 frames.hh[sysno],
-                eq_inc_sym
+                income_measure
             )
             push!( child_poverty, cp )
         end        
