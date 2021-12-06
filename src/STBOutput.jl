@@ -72,7 +72,8 @@ const EXTRA_INC_COLS = 10
             income_taxes = zeros(RT,n),
             means_tested_benefits = zeros(RT,n),
             other_benefits = zeros(RT,n),
-            scottish_income_tax = zeros(RT,n)
+            scottish_income_tax = zeros(RT,n),
+            num_children = zeros(RT,n)
         )
     end
 
@@ -199,6 +200,7 @@ const EXTRA_INC_COLS = 10
         # hr.eq_scale = hres.eq_scale
         hr.eq_bhc_net_income = hres.eq_bhc_net_income
         hr.eq_ahc_net_income = hres.eq_ahc_net_income
+        hr.num_children = get_children( hh )
     end
 
 
@@ -434,7 +436,7 @@ const EXTRA_INC_COLS = 10
         @assert sg+sl+sn ≈ popn "sg=$sg + sl=$sl + sn=$sn !≈ popn=$popn"
         return ( gainers=sg, losers=sl,nc=sn, popn = popn )
     end
-
+ 
     function make_gain_lose( post :: DataFrame, pre :: DataFrame, settings :: Settings )::NamedTuple
         income = income_measure_as_sym( settings.ineq_income_measure )
         return make_gain_lose( post, pre, income )

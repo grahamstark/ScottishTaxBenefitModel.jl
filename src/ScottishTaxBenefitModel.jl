@@ -102,6 +102,9 @@ export ExampleHelpers
 include( "BCCalcs.jl")
 export BCCalcs
 
+include( "SimplePovertyCounts.jl")
+export SimplePovertyCounts
+
 # pro. tem include("WebModelLibs.jl" )
 # export WebModelLibs
 
