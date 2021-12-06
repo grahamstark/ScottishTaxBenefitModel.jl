@@ -28,6 +28,10 @@ using .FRSHouseholdGetter:
     
 using .RunSettings
 
+using .SimplePovertyCounts: 
+    GroupPoverty,
+    calc_child_poverty
+
 export 
     add_to_frames!,
     dump_frames,
@@ -408,6 +412,10 @@ const EXTRA_INC_COLS = 10
         end   
     end
 
+    function eq_income_measure( i :: IneqIncomeMeasure )
+        return i in [bhc_net_income, eq_bhc_net_income ] ? eq_bhc_net_income : eq_ahc_net_income
+    end
+
     function make_poverty_line( hhs :: DataFrame, settings :: Settings ) :: Real
         income = income_measure_as_sym( settings.ineq_income_measure )
         deciles = PovertyAndInequalityMeasures.binify( hhs, 10, :weighted_people, income )
@@ -465,8 +473,11 @@ const EXTRA_INC_COLS = 10
         deciles = []
         quantiles = []
         metrs = []
+        poverty_line = []
+        child_poverty = []
         income_measure = income_measure_as_sym( settings.ineq_income_measure )
-        
+        eq_inc_sym = income_measure_as_sym( eq_income_measure( income_measure ))
+
         for sysno in 1:ns
             push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
             push!(income_summary, 
@@ -482,12 +493,12 @@ const EXTRA_INC_COLS = 10
                     frames.hh[sysno], 
                     50, 
                     :weighted_people, 
-                    income_measure ))
+                    income_measure  ))
                 
             ineq = make_inequality(
                 frames.hh[sysno], 
                 :weighted_people, 
-                income_measure )
+                eq_inc_sym  )
             push!( inequality, ineq )
             push!(  
                 poverty,
@@ -496,9 +507,23 @@ const EXTRA_INC_COLS = 10
                     settings.poverty_line, 
                     settings.growth, 
                     :weighted_people, 
-                    income_measure ))
+                    eq_inc_sym ))
+            push!( poverty_line, settings.poverty_line )
+            cp = calc_child_poverty( 
+                frames.hh[sysno],
+                eq_inc_sym
+            )
+            push!( child_poverty, cp )
         end        
-        return ( quantiles=quantiles, deciles = deciles, income_summary = income_summary, poverty=poverty, inequality=inequality, metrs = metrs )
+        return ( 
+            quantiles=quantiles, 
+            deciles = deciles, 
+            income_summary = income_summary, 
+            poverty=poverty, 
+            inequality=inequality, 
+            metrs = metrs, 
+            child_poverty=child_poverty,
+            poverty_line = settings.poverty_line )
     end
 
     ## FIXME eventually, move this to DrWatson

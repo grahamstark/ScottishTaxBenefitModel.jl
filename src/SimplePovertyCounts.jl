@@ -1,4 +1,3 @@
-
 module SimplePovertyCounts
 
 using DataFrames
