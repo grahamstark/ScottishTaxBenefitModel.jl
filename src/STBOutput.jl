@@ -511,7 +511,7 @@ const EXTRA_INC_COLS = 10
             cp = calc_child_poverty( 
                 settings.poverty_line, 
                 frames.hh[sysno],
-                income_measure
+                measure=income_measure
             )
             push!( child_poverty, cp )
         end        
