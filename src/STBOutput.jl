@@ -497,7 +497,7 @@ const EXTRA_INC_COLS = 10
             ineq = make_inequality(
                 frames.hh[sysno], 
                 :weighted_people, 
-                eq_inc_sym  )
+                income_measure  )
             push!( inequality, ineq )
             push!(  
                 poverty,
