@@ -7,7 +7,7 @@ export GroupPoverty, line_count, calc_child_poverty
    struct GroupPoverty{T<:Real}
         total :: T
         affected :: T
-        pct :: T
+        prop :: T
     end
 
     function line_count( 
@@ -28,7 +28,7 @@ export GroupPoverty, line_count, calc_child_poverty
                 aff += wm
             end
         end
-        return GroupPoverty{T}(tot, aff, 100*aff/tot )
+        return GroupPoverty{T}(tot, aff, aff/tot )
     end
     
     function calc_child_poverty( 

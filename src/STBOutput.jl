@@ -514,7 +514,7 @@ const EXTRA_INC_COLS = 10
                 measure=income_measure
             )
             push!( child_poverty, cp )
-        end        
+        end   
         return ( 
             quantiles=quantiles, 
             deciles = deciles, 
