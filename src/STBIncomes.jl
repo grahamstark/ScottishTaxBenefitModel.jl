@@ -118,6 +118,8 @@ using .Utils
 
 end
 
+const IncomesSet = Set{Incomes}
+
 const FIRST_INCOME = instances(Incomes)[1]
 const LAST_INCOME = instances(Incomes)[end]
 const NUM_INCOMES = length(instances(Incomes))[1]
@@ -230,8 +232,6 @@ const IncomesArray = MVector{INC_ARRAY_SIZE,T} where T
 Base.getindex( X::IncomesArray, s::Incomes ) = getindex(X,Int(s)+1) # enums without explicit numbers start at 0...
 Base.setindex!( X::IncomesArray, x, s::Incomes) = setindex!(X,x,Int(s)+1)
 
-const IncomesSet = Vector{Incomes}
-
 function fill( starti::Incomes, stopi :: Incomes) :: IncomesSet
     is = IncomesSet()
     for i in Int(starti):Int(stopi)
@@ -313,7 +313,12 @@ export set2syms
 
 struct IncludedItems
     included :: IncomesSet
-    deducted :: Union{Nothing,IncomesSet}
+    deducted :: Union{Nothing,IncomesSet}  
+end
+
+function IncludedItems( included :: Vector, deducted :: Vector )
+    println( "matched here")
+    IncludedItems( IncomesSet( included), IncomesSet( deducted ))
 end
 
 const NET_COST = IncludedItems(    
