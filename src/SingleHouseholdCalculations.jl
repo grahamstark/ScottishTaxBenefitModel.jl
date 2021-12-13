@@ -81,7 +81,7 @@ using .ScottishBenefits:
     calc_scottish_child_payment!,
     calc_bedroom_tax_mitigation!
 
-using .UBI: calc_UBI!
+using .UBI: calc_UBI!, make_ubi_post_adjustments!
 
 export do_one_calc
 
@@ -198,7 +198,9 @@ function do_one_calc(
     # do this after the benefit cap
     # since the DISCRESIONARY_HOUSING_PAYMENT must be <= hb/uc housing costs
     calc_bedroom_tax_mitigation!( hres, hh )
-
+    if ! sys.ubi.abolished
+        make_ubi_post_adjustments!( hres, sys.ubi )
+    end
     aggregate!( hh, hres )
     return hres
 end

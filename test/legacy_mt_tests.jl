@@ -236,7 +236,8 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_cpl = make_lmt_benefit_applicability( 
+        sys.lmt, intermed, sys.lmt.hours_limits )
     head = get_head( cpl )
     println( "head=$head")
     spouse = get_spouse( cpl )
@@ -260,7 +261,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_cpl = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "not_working: sp=$spouse" )
     println( "not_working couple $eligs_cpl" )
     @test ! eligs_cpl.esa
@@ -280,7 +281,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_cpl = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "not_working: sp=$spouse" )
     println( "not_working couple $eligs_cpl" )
     @test eligs_cpl.esa
@@ -299,7 +300,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_cpl = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_cpl = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( eligs_cpl )
     @test ! eligs_cpl.esa
     @test eligs_cpl.is
@@ -313,7 +314,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_sp = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
@@ -330,7 +331,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_sp = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
     @test eligs_sp.jsa
@@ -346,7 +347,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_sp = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test eligs_sp.is
     @test ! eligs_sp.jsa
@@ -362,7 +363,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_sp = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
@@ -379,6 +380,7 @@ end # test set
         sys.child_limits,
         1 )
     eligs_sp = make_lmt_benefit_applicability( 
+        sys.lmt, 
         intermed, 
         sys.lmt.hours_limits )
     @test ! eligs_sp.is
@@ -395,7 +397,7 @@ end # test set
         sys.age_limits,
         sys.child_limits,
         1 )
-    eligs_sp = make_lmt_benefit_applicability( intermed, sys.lmt.hours_limits )
+    eligs_sp = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     @test ! eligs_sp.is
     @test ! eligs_sp.jsa
     @test eligs_sp.pc 

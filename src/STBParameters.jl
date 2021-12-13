@@ -33,7 +33,7 @@ module STBParameters
     export CarersAllowance, PersonalIndependencePayment, ContributoryESA
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
     export NonMeansTestedSys, MaternityAllowance, ChildLimits
-    export BenefitCapSys
+    export BenefitCapSys, make_ubi_pre_adjustments!
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -737,7 +737,7 @@ module STBParameters
  
     @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
         # CPAG 2019/bur.pers[pid].20 p335
-        abolished :: Bool = false
+        isa_jsa_esa_abolished :: Bool = false
         ## FIXME we can't turn off pension credit individually here..
         premia :: Premia = Premia{RT}()
         allowances :: PersonalAllowances = PersonalAllowances{RT}()
@@ -860,7 +860,14 @@ module STBParameters
         universal_pension :: RT = 8_780.0
         adult_age :: Int = 17
         retirement_age :: Int = 66
+        mt_bens_treatment :: UBIMTBenTreatment = ub_abolish
+        abolish_sickness_bens :: Bool = false
+        abolish_pensions :: Bool = false
+        abolish_jsa :: Bool = false
+        abolish_others  :: Bool = false
     end
+
+
 
     function weeklyise!( ubi :: UBISys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         ubi.adult_amount /= wpy
@@ -887,6 +894,56 @@ module STBParameters
         ubi = UBISys{RT}()
     end
 
+
+    function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
+
+        if sys.ubi.mt_bens_treatment == ub_as_is
+
+        elseif sys.ubi.mt_bens_treatment == ub_as_income
+            push!(sys.uc.other_income,BASIC_INCOME)
+            push!( sys.lmt.income_rules.incomes, BASIC_INCOME )
+            push!( sys.lmt.income_rules.hb_incomes, BASIC_INCOME )
+            push!( sys.lmt.income_rules.pc_incomes, BASIC_INCOME )
+            push!( sys.lmt.income_rules.sc_incomes, BASIC_INCOME )
+        elseif sys.ubi.mt_bens_treatment == ub_abolish 
+            sys.uc.abolished = true
+            sys.lmt.savings_credit.abolished = true
+            sys.lmt.ctr.abolished = true
+            sys.lmt.hb.abolished = true
+            sys.lmt.working_tax_credit.abolished = true
+            sys.lmt.child_tax_credit.abolished = true
+            sys.lmt.isa_jsa_esa_abolished = true # rename - just is,jsa,esa
+        elseif sys.ubi.mt_bens_treatment == ub_keep_housing
+            sys.lmt.working_tax_credit.abolished = true
+            sys.lmt.child_tax_credit.abolished = true
+            sys.lmt.savings_credit.abolished = true
+            sys.lmt.ctr.abolished = true
+            sys.lmt.hb.abolished = false
+            sys.lmt.isa_jsa_esa_abolished = false
+        end
+
+        if sys.ubi.abolish_sickness_bens 
+            sys.nmt_bens.attendance_allowance.abolished = true
+            sys.nmt_bens.dla.abolished = true
+            sys.nmt_bens.carers.abolished = true
+            sys.nmt_bens.pip.abolished = true
+            sys.nmt_bens.smp = 0.0
+        end
+
+        if sys.ubi.abolish_pensions
+            sys.nmt_bens.pensions.abolished = true
+        end
+        if sys.ubi.abolish_jsa_esa 
+            sys.nmt_bens.jsa.abolished = true
+            sys.nmt_bens.esa.abolished = true
+        end
+        if sys.ubi.abolish_others 
+            sys.nmt_bens.child_benefit.abolished = true
+            sys.nmt_bens.maternity.abolished = true
+            sys.nmt_bens.bereavement.abolished = true
+            sys.nmt_bens.widows_pension.abolished = true
+        end
+    end
     
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         println( "weeklyise lmt wpm = $wpm wpy=$wpy")
@@ -927,6 +984,9 @@ module STBParameters
             global T
             include( sysname )
         end
+        if ! sys.ubi.abolished
+            UBI.make_ubi_pre_adjustments!( sys )
+        end
         return sys
    end
    
@@ -947,6 +1007,9 @@ module STBParameters
                 global sys
                 global T
                 include( sysname )
+                if ! sys.ubi.abolished
+                    UBI.make_ubi_pre_adjustments!( sys )
+                end
             end
    end
 

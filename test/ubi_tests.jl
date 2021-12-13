@@ -32,4 +32,25 @@ sys.ubi.abolished = false
         println( "$hht : adults=$numads pens=$numpens child=$numkids => ubi=$ubit")
     end
 
+    # todo make_ubi_pre_adjustments
+    # toto make_ubi_post_adjustments
+
+end
+
+@testset "UBI Pre Adjustments" begin
+    sys = get_system( scotland = true )
+    sys.ubi.abolished = false
+    UBI.make_ubi_pre_adjustments!( sys )
+    
+    @assert sys.uc.abolished == false
+    @assert sys.lmt.savings_credit.abolished == false
+    @assert sys.lmt.ctr.abolished == false
+    @assert sys.lmt.hb.abolished == false
+    @assert sys.lmt.working_tax_credit.abolished == false
+    @assert sys.lmt.child_tax_credit.abolished == false
+
+    sys.ubi..mt_bens_treatment =  ub_keep_housing
+
+
+
 end

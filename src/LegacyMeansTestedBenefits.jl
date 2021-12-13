@@ -249,6 +249,7 @@ and then decide later on which ones to route to. Source: CPAG chs 9-15
 'Who can get XX' sections.
 """
 function make_lmt_benefit_applicability( 
+    mt_ben_sys   :: LegacyMeansTestedBenefitSystem,
     intermed :: MTIntermediate,
     hrs      :: HoursLimits ) :: LMTCanApplyFor
     whichb = LMTCanApplyFor()
@@ -309,7 +310,20 @@ function make_lmt_benefit_applicability(
         whichb.pc = false
         whichb.sc = false
     end
-    # hb,ctr are assumed true, worked out on benefit unit number
+    # FIXME we have abolished code twice!
+    # override these if something abolished
+    if mt_ben_sys.isa_jsa_esa_abolished 
+        whichb.jsa = false
+        whichb.is = false
+        whichb.esa = false
+        # FIXME problem with pension credit here
+        whichb.pc = false
+    end
+    whichb.ctc &= (! mt_ben_sys.child_tax_credit.abolished)
+    whichb.wtc &= (! mt_ben_sys.working_tax_credit.abolished)
+    whichb.hb &= (! mt_ben_sys.hb.abolished)
+    whichb.ctr &= (! mt_ben_sys.ctr.abolished)
+    whichb.sc &= (! mt_ben_sys.savings_credit.abolished)
     return whichb
 end # make_lmt_benefit_applicability
 
@@ -904,6 +918,7 @@ function calc_legacy_means_tested_benefits!(
     bu = benefit_unit
     premium = 0.0
     bures.legacy_mtbens.can_apply_for = make_lmt_benefit_applicability(
+        mt_ben_sys,
         intermed,
         mt_ben_sys.hours_limits
     )
@@ -1092,9 +1107,6 @@ function calc_legacy_means_tested_benefits!(
             nmt_bens         :: NonMeansTestedSys,
             hr               :: HousingRestrictions )
     # fixme not just for renters? fixme do this earlier
-    if lmt_ben_sys.abolished
-        return
-    end
     household_result.housing = apply_rent_restrictions( 
         household, intermed.hhint, hr )
     bus = get_benefit_units(household)

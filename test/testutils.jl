@@ -109,6 +109,9 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
       sys.scottish_child_payment.qualifying_benefits = []
       sys.nmt_bens.carers.scottish_supplement = 0.0
    end
+   if ! sys.ubi.abolished
+      UBI.make_ubi_pre_adjustments!( sys )
+   end
    return sys
 end
 

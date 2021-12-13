@@ -14,14 +14,38 @@ using .ModelHousehold:
     get_benefit_units
     
 using .STBParameters: 
-    UBISys
+    UBISys,
+    TaxBenefitSystem
 
 using .STBIncomes
 using .Definitions
 
 using .Results: BenefitUnitResult, HouseholdResult
 
-export calc_UBI!
+export 
+    calc_UBI!, 
+    make_ubi_post_adjustments!
+
+function make_ubi_post_adjustments!( 
+    hres :: HouseholdResult,
+    ubisys           :: UBISys )
+    for bn in eachindex( bus )
+        bres = household_result.bus[bn]
+        if ubisys.mt_bens_treatment == ub_keep_housing
+            # TODO add assertions that things are correctly turned off
+            if bres.uc.recipient > 0
+                uc = bres.pers[bres.uc.recipient].income[UNIVERSAL_CREDIT]
+                uc = min(uc, bres.uc.housing_element )
+                bres.pers[bres.uc.recipient].income[UNIVERSAL_CREDIT] = uc
+            end
+            for (pid,pers) in bres.pers
+                pers.income[INCOME_SUPPORT] = 0.0
+                pers.income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = 0.0
+                pers.income[NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE] = 0.0
+            end
+        end
+    end
+end
 
 function calc_UBI!( 
     benefit_unit_result :: BenefitUnitResult,
