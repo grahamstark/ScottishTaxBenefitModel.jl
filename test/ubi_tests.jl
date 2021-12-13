@@ -40,6 +40,7 @@ end
 
 @testset "UBI Pre Adjustments" begin
     sys = get_system( scotland = true )
+    println( typeof(sys.it.non_savings_income))
     sys.ubi.abolished = false
     sys.ubi.mt_bens_treatment = ub_as_is
     make_ubi_pre_adjustments!( sys )
