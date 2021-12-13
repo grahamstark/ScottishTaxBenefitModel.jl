@@ -4,7 +4,8 @@ using .STBParameters:
     TaxBenefitSystem,
     NationalInsuranceSys,
     IncomeTaxSys,
-    weeklyise!
+    weeklyise!,
+    make_ubi_pre_adjustments!
 import .Results: init_benefit_unit_result, BenefitUnitResult
 using .ModelHousehold: 
    BenefitUnit, 
@@ -110,7 +111,7 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
       sys.nmt_bens.carers.scottish_supplement = 0.0
    end
    if ! sys.ubi.abolished
-      UBI.make_ubi_pre_adjustments!( sys )
+      make_ubi_pre_adjustments!( sys )
    end
    return sys
 end

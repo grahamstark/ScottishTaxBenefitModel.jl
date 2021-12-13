@@ -863,8 +863,10 @@ module STBParameters
         mt_bens_treatment :: UBIMTBenTreatment = ub_abolish
         abolish_sickness_bens :: Bool = false
         abolish_pensions :: Bool = false
-        abolish_jsa :: Bool = false
+        abolish_jsa_esa :: Bool = false
         abolish_others  :: Bool = false
+        ub_as_mt_income :: Bool = true
+        ub_taxable :: Bool = false
     end
 
 
@@ -897,14 +899,29 @@ module STBParameters
 
     function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
 
-        if sys.ubi.mt_bens_treatment == ub_as_is
-
-        elseif sys.ubi.mt_bens_treatment == ub_as_income
+        
+        if sys.ubi.ub_as_mt_income
             push!(sys.uc.other_income,BASIC_INCOME)
-            push!( sys.lmt.income_rules.incomes, BASIC_INCOME )
+            push!( sys.lmt.income_rules.incomes.included, BASIC_INCOME )
             push!( sys.lmt.income_rules.hb_incomes, BASIC_INCOME )
             push!( sys.lmt.income_rules.pc_incomes, BASIC_INCOME )
             push!( sys.lmt.income_rules.sc_incomes, BASIC_INCOME )
+        else
+            delete!(sys.uc.other_income,BASIC_INCOME)
+            delete!( sys.lmt.income_rules.incomes.included, BASIC_INCOME )
+            delete!( sys.lmt.income_rules.hb_incomes, BASIC_INCOME )
+            delete!( sys.lmt.income_rules.pc_incomes, BASIC_INCOME )
+            delete!( sys.lmt.income_rules.sc_incomes, BASIC_INCOME )   
+        end
+
+        if sys.ubi.ub_taxable
+            push!(sys.it.non_savings_income, BASIC_INCOME )
+        else
+            delete!(sys.it.non_savings_income, BASIC_INCOME )
+        end
+
+        if sys.ubi.mt_bens_treatment == ub_as_is
+            ;
         elseif sys.ubi.mt_bens_treatment == ub_abolish 
             sys.uc.abolished = true
             sys.lmt.savings_credit.abolished = true
@@ -914,12 +931,14 @@ module STBParameters
             sys.lmt.child_tax_credit.abolished = true
             sys.lmt.isa_jsa_esa_abolished = true # rename - just is,jsa,esa
         elseif sys.ubi.mt_bens_treatment == ub_keep_housing
+            sys.uc.abolished = false
+            sys.lmt.ctr.abolished = false
+            sys.lmt.hb.abolished = false
             sys.lmt.working_tax_credit.abolished = true
             sys.lmt.child_tax_credit.abolished = true
             sys.lmt.savings_credit.abolished = true
-            sys.lmt.ctr.abolished = true
-            sys.lmt.hb.abolished = false
-            sys.lmt.isa_jsa_esa_abolished = false
+            sys.lmt.isa_jsa_esa_abolished = true
+            sys.lmt.isa_jsa_esa_abolished = true
         end
 
         if sys.ubi.abolish_sickness_bens 
@@ -985,7 +1004,7 @@ module STBParameters
             include( sysname )
         end
         if ! sys.ubi.abolished
-            UBI.make_ubi_pre_adjustments!( sys )
+            make_ubi_pre_adjustments!( sys )
         end
         return sys
    end
@@ -1008,7 +1027,7 @@ module STBParameters
                 global T
                 include( sysname )
                 if ! sys.ubi.abolished
-                    UBI.make_ubi_pre_adjustments!( sys )
+                    make_ubi_pre_adjustments!( sys )
                 end
             end
    end

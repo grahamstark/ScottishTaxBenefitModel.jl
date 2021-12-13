@@ -1685,7 +1685,7 @@ export UBIMTBenTreatment,
    ub_abolish, 
    ub_keep_housing
 
-@enum UBIMTBenTreatment ub_as_is ub_as_income ub_abolish ub_keep_housing
+@enum UBIMTBenTreatment ub_as_is ub_abolish ub_keep_housing
 
 
 

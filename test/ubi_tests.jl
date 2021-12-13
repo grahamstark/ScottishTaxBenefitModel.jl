@@ -3,7 +3,8 @@ using ScottishTaxBenefitModel
 using .ModelHousehold: count,Household, le_age, ge_age
 using .Results: aggregate!, init_household_result
 using .Intermediate: MTIntermediate, make_intermediate    
-using .UBI: calc_UBI!
+using .UBI: calc_UBI!,make_ubi_post_adjustments! 
+using .STBParameters
 using .STBIncomes
 using .ExampleHelpers
 
@@ -40,17 +41,35 @@ end
 @testset "UBI Pre Adjustments" begin
     sys = get_system( scotland = true )
     sys.ubi.abolished = false
-    UBI.make_ubi_pre_adjustments!( sys )
-    
-    @assert sys.uc.abolished == false
-    @assert sys.lmt.savings_credit.abolished == false
-    @assert sys.lmt.ctr.abolished == false
-    @assert sys.lmt.hb.abolished == false
-    @assert sys.lmt.working_tax_credit.abolished == false
-    @assert sys.lmt.child_tax_credit.abolished == false
+    sys.ubi.mt_bens_treatment = ub_as_is
+    make_ubi_pre_adjustments!( sys )
+    @test sys.uc.abolished == false
+    @test sys.lmt.isa_jsa_esa_abolished == false
+    @test sys.lmt.savings_credit.abolished == false
+    @test sys.lmt.ctr.abolished == false
+    @test sys.lmt.hb.abolished == false
+    @test sys.lmt.working_tax_credit.abolished == false
+    @test sys.lmt.child_tax_credit.abolished == false
 
-    sys.ubi..mt_bens_treatment =  ub_keep_housing
+    sys.ubi.mt_bens_treatment = ub_keep_housing
+    make_ubi_pre_adjustments!( sys )
+    @test sys.lmt.isa_jsa_esa_abolished == true
+    @test sys.lmt.savings_credit.abolished == true
+    @test sys.lmt.ctr.abolished == false
+    @test sys.lmt.hb.abolished == false
+    @test sys.lmt.working_tax_credit.abolished == true
+    @test sys.lmt.child_tax_credit.abolished == true
+    # Worried about inadvertently doing this twice .. should
+    # make no difference.
+    make_ubi_pre_adjustments!( sys )
+    @test sys.lmt.isa_jsa_esa_abolished == true
+    @test sys.lmt.savings_credit.abolished == true
+    @test sys.lmt.ctr.abolished == false
+    @test sys.lmt.hb.abolished == false
+    @test sys.lmt.working_tax_credit.abolished == true
+    @test sys.lmt.child_tax_credit.abolished == true
 
-
+    @test BASIC_INCOME in sys.lmt.lmt.income_rules.sc_incomes 
+    @test ! (BASIC_INCOME in sys.it.non_savings_income)
 
 end

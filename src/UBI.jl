@@ -38,6 +38,9 @@ function make_ubi_post_adjustments!(
                 uc = min(uc, bres.uc.housing_element )
                 bres.pers[bres.uc.recipient].income[UNIVERSAL_CREDIT] = uc
             end
+            #
+            # I think these have to be left on so we can do hb passporting
+            # so we set them to zero ex post
             for (pid,pers) in bres.pers
                 pers.income[INCOME_SUPPORT] = 0.0
                 pers.income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = 0.0
