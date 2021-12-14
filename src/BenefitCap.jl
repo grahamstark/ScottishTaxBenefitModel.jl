@@ -51,7 +51,7 @@ function apply_benefit_cap!(
     else
         gross_earnings = 0.0
         for pid in bu.adults
-            gross_earnings += isum( bur.pers[pid].income, [WAGES,SELF_EMPLOYMENT_INCOME] )
+            gross_earnings += isum( bur.pers[pid].income, IncomesSet([WAGES,SELF_EMPLOYMENT_INCOME]))
         end
         if gross_earnings >= caps.uc_incomes_limit
             # println("gross earn; bailing out ")

@@ -839,7 +839,7 @@ function calculateHB_CTR!(
             allowances = 0.0
             passported = false
             # FIXME we're doing passpored twice            
-            if has_any( bures, lmt_ben_sys.hb.passported_bens )
+            if has_any( bures, lmt_ben_sys.hb.passported_bens... )
                 # no need to do anything
                 passported = true
             else
@@ -1082,11 +1082,10 @@ function calc_legacy_means_tested_benefits!(
     end
     
     if has_any( bures, 
-        [
             PENSION_CREDIT, 
             NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
             NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
-            INCOME_SUPPORT ])        
+            INCOME_SUPPORT )        
         bures.legacy_mtbens.hb_passported = true
         bures.legacy_mtbens.ctr_passported = true
  

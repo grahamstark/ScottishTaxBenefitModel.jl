@@ -103,10 +103,8 @@ using .ExampleHelpers
     @test total( mhrs, LOCAL_TAXES ) == 100
     @test has_any( mhrs, LOCAL_TAXES )
     @test has_any( mhrs, LOCAL_TAXES, CHILD_BENEFIT )
-    @test has_any( mhrs, [LOCAL_TAXES, CHILD_BENEFIT] )
     @test ! has_any( mhrs, CHILD_BENEFIT,INCOME_SUPPORT )
-    @test ! has_any( mhrs, [CHILD_BENEFIT,INCOME_SUPPORT] )
-
+  
     it, ni = aggregate_tax( mhrs.bus[2] )
     @test ni.class_1_primary == 100
     @test it.non_savings_tax == 200
