@@ -124,6 +124,7 @@ const FIRST_INCOME = instances(Incomes)[1]
 const LAST_INCOME = instances(Incomes)[end]
 const NUM_INCOMES = length(instances(Incomes))[1]
 
+export IncomesSet
 # FIXME the export_enum macro should take care of these ..
 export WAGES 
 export SELF_EMPLOYMENT_INCOME 
@@ -317,9 +318,15 @@ struct IncludedItems
 end
 
 function IncludedItems( included :: Vector, deducted :: Vector )
-    println( "matched here")
+    # println( "matched here")
     IncludedItems( IncomesSet( included), IncomesSet( deducted ))
 end
+
+function IncludedItems( included :: Set, deducted :: Vector )
+    # println( "matched here 2")
+    IncludedItems( IncomesSet( included), IncomesSet( deducted ))
+end
+
 
 const NET_COST = IncludedItems(    
     BENEFITS, [INCOME_TAX,NATIONAL_INSURANCE,LOCAL_TAXES] )
@@ -359,8 +366,6 @@ function isum( a :: AbstractArray,
     which :: IncludedItems )
     return isum( a, which.included, deducted=which.deducted)
 end
-
-
 
 function any_positive( a :: AbstractArray, 
     which ) :: Bool

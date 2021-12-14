@@ -91,8 +91,8 @@ module STBParameters
         scottish_supplement :: RT = 231.40 # per 6 months
         hours :: Int = 35
         gainful_employment_min :: RT = 123.0
-        earnings = [SELF_EMPLOYMENT_INCOME,WAGES]
-        deductions = [INCOME_TAX,NATIONAL_INSURANCE]
+        earnings = IncomesSet([SELF_EMPLOYMENT_INCOME,WAGES])
+        deductions = IncomesSet([INCOME_TAX,NATIONAL_INSURANCE])
         extra_people :: RT = 0
         candidates = Set{OneIndex}()
         slot :: Incomes = CARERS_ALLOWANCE
@@ -445,7 +445,7 @@ module STBParameters
         class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
         class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, 99999999999999.9 ]
         class_1_income = IncludedItems([WAGES],[PENSION_CONTRIBUTIONS_EMPLOYER])
-        class_4_income = [SELF_EMPLOYMENT_INCOME]
+        class_4_income = IncomesSet([SELF_EMPLOYMENT_INCOME])
             ## some modelling of u21s and u25s in apprentiships here..
         # gross_to_net_lookup = BudgetConstraint(undef,0)
     end

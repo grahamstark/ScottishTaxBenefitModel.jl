@@ -258,7 +258,7 @@ module Results
         return s
     end
 
-    function has_any( bur :: BenefitUnitResult, things :: AbstractArray ) :: Bool
+    function has_any( bur :: BenefitUnitResult, things :: AbstractSet ) :: Bool
         for (pid,pers) in bur.pers
             if any_positive( pers.income, things )
                 return true
@@ -268,7 +268,7 @@ module Results
     end
 
     function has_any( bur :: BenefitUnitResult, things ... ) :: Bool
-        return has_any( bur, collect( things ))
+        return has_any( bur, Set(collect( things )))
     end
 
     @with_kw mutable struct LocalTaxes{RT<:Real}

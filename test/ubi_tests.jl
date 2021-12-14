@@ -70,7 +70,7 @@ end
     @test sys.lmt.working_tax_credit.abolished == true
     @test sys.lmt.child_tax_credit.abolished == true
 
-    @test BASIC_INCOME in sys.lmt.lmt.income_rules.sc_incomes 
+    @test BASIC_INCOME in sys.lmt.income_rules.sc_incomes 
     @test ! (BASIC_INCOME in sys.it.non_savings_income)
 
 end
