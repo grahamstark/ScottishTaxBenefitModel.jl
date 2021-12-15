@@ -84,7 +84,7 @@ module Runner
 
         start,stop = make_start_stops( settings.num_households, num_threads )
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
-        observer[] =Progress( settings.uuid, "starting",0, 0, 0 )
+        observer[] =Progress( settings.uuid, "starting",0, 0, 0, settings.num_households )
         @time @threads for thread in 1:num_threads
             for hno in start[thread]:stop[thread]
                 hh = FRSHouseholdGetter.get_household( hno )
