@@ -6,6 +6,8 @@ module Monitor
 
     using Observables
 
+    export Progress
+
     struct Progress
         phase  :: String
         thread :: Int
