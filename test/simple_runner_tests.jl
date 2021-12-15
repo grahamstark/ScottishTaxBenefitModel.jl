@@ -4,13 +4,14 @@ using DataFrames
 using StatsBase
 using BenchmarkTools
 using PrettyTables
-
+using Observables
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.GeneralTaxComponents
 using ScottishTaxBenefitModel.STBParameters
 using ScottishTaxBenefitModel.Runner: do_one_run
 using ScottishTaxBenefitModel.RunSettings
 using .Utils
+using .Monitor: Progress
 using .ExampleHelpers
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
     dump_frames, summarise_frames, make_gain_lose
@@ -25,8 +26,14 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [get_system(scotland=false), get_system( scotland=true )]
-    
-    results = do_one_run( settings, sys )
+    observer = Observer(Monitor("",0,0,0))
+    tot = 0
+    of = on(observer) p do
+        println(p)
+        tot += p.step
+        println(t)
+    end
+    results = do_one_run( settings, sys, observer )
     h1 = results.hh[1]
     pretty_table( h1[:,[:weighted_people,:bhc_net_income,:eq_bhc_net_income,:ahc_net_income,:eq_ahc_net_income]] )
     settings.poverty_line = make_poverty_line( results.hh[1], settings )
@@ -42,11 +49,19 @@ end
 
 @testset "MR test" begin
     @time begin
+        observer = Observer(Monitor("",0,0,0))
+        tot = 0
+        of = on(observer) p do
+            println(p)
+            tot += p.step
+            println(t)
+        end
+    
         settings.means_tested_routing = modelled_phase_in
         settings.do_marginal_rates = true
         settings.dump_frames = true
         sys = [get_system(scotland=false), get_system( scotland=true )]
-        results = do_one_run( settings, sys )
+        results = do_one_run( settings, sys, observer )
         settings.poverty_line = make_poverty_line( results.hh[1], settings )
         outf = summarise_frames( results, settings )
         println( outf.metrs[1] )

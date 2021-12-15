@@ -9,6 +9,7 @@ module Runner
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow, Not, select!
     using CSV
+    using Observables
 
     using BudgetConstraints: BudgetConstraint
   
@@ -19,6 +20,7 @@ module Runner
     using .STBParameters
     using .STBIncomes
     using .STBOutput
+    using .Monitor: Progress
     
     using .RunSettings:
         Settings
@@ -53,37 +55,40 @@ module Runner
 
     function do_one_run(
         settings :: Settings,
-        params   :: Vector{TaxBenefitSystem{T}} ) :: NamedTuple where T # fixme simpler way of declaring this?
+        params   :: Vector{TaxBenefitSystem{T}},
+        observer :: Observable ) :: NamedTuple where T # fixme simpler way of declaring this?
         
         num_threads = min( nthreads(), settings.requested_threads )
         println( "starting $num_threads threads")
 
         num_systems = size( params )[1]
-        println("start of do_one_run; using $(settings.means_tested_routing) routing")
+        observer[]=Progress("start of do_one_run; using $(settings.means_tested_routing) routing", 0, 0, 0)
         load_prices( settings, false )
         for p in 1:num_systems
             println("sys $p")
             println(params[p].it)
         end
         if settings.num_households == 0
-            println( "getting households" )
+            observer[]= Progress("getting households", 0, 0, 0  )
             @time settings.num_households, settings.num_people, nhh2 = 
                 FRSHouseholdGetter.initialise( settings )
             BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" )       
         end
 
         # vary generosity of disability benefits
+        observer[]= Progress("disability eligibility", 0, 0, 0  )
         for sysno in 1:num_systems
             adjust_disability_eligibility!( params[sysno].nmt_bens )
         end
 
         start,stop = make_start_stops( settings.num_households, num_threads )
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
-        println( "starting run " )
+        observer[] =Progress( "starting run",0, 0, 0 )
         @time @threads for thread in 1:num_threads
             for hno in start[thread]:stop[thread]
                 hh = FRSHouseholdGetter.get_household( hno )
                 if hno % 100 == 0
+                    observer[] =Progress( "run ",thread, hno, 100 )
                     println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year) thread $thread")
                 end
                 for sysno in 1:num_systems
@@ -122,7 +127,7 @@ module Runner
             end #household loop
         end # threads
         if settings.dump_frames 
-            println( "dumping frames" )
+            observer[] =Progress( "dumping frames", 0,0,0 )
             dump_frames( settings, frames )
         end
         return frames

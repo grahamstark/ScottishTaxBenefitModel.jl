@@ -33,9 +33,6 @@ using .GeneralTaxComponents:
     RateBands, 
     WEEKS_PER_YEAR
 
-using .Runner: 
-    do_one_run
-
 using .RunSettings: Settings
 
 using .ExampleHelpers

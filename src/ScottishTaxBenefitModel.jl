@@ -12,6 +12,9 @@ export Utils
 include( "Randoms.jl")
 export Randoms
 
+include( "Monitor.jl")
+export Monitor
+
 include( "TimeSeriesUtils.jl" )
 export TimeSeriesUtils
 
