@@ -89,7 +89,7 @@ module Runner
                 hh = FRSHouseholdGetter.get_household( hno )
                 if hno % 100 == 0
                     observer[] =Progress( "run ",thread, hno, 100 )
-                    println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year) thread $thread")
+                    # println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year) thread $thread")
                 end
                 for sysno in 1:num_systems
                     res = do_one_calc( hh, params[sysno], settings )

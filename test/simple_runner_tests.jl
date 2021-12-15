@@ -21,19 +21,25 @@ settings = Settings()
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
+tot = 0
+
+# observer = Observer(Progress("",0,0,0))
+obs = Observable( Progress("",0,0,0))
+of = on(obs) do p
+    global tot
+    println(p)
+
+    tot += p.step
+    println(tot)
+end
+
 
 function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [get_system(scotland=false), get_system( scotland=true )]
-    observer = Observer(Monitor("",0,0,0))
     tot = 0
-    of = on(observer) p do
-        println(p)
-        tot += p.step
-        println(t)
-    end
-    results = do_one_run( settings, sys, observer )
+    results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
     pretty_table( h1[:,[:weighted_people,:bhc_net_income,:eq_bhc_net_income,:ahc_net_income,:eq_ahc_net_income]] )
     settings.poverty_line = make_poverty_line( results.hh[1], settings )
@@ -49,19 +55,11 @@ end
 
 @testset "MR test" begin
     @time begin
-        observer = Observer(Monitor("",0,0,0))
-        tot = 0
-        of = on(observer) p do
-            println(p)
-            tot += p.step
-            println(t)
-        end
-    
         settings.means_tested_routing = modelled_phase_in
         settings.do_marginal_rates = true
         settings.dump_frames = true
         sys = [get_system(scotland=false), get_system( scotland=true )]
-        results = do_one_run( settings, sys, observer )
+        results = do_one_run( settings, sys, obs )
         settings.poverty_line = make_poverty_line( results.hh[1], settings )
         outf = summarise_frames( results, settings )
         println( outf.metrs[1] )
