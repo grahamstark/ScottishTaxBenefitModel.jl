@@ -39,6 +39,7 @@ sys.ubi.abolished = false
 end
 
 @testset "UBI Pre Adjustments" begin
+
     sys = get_system( scotland = true )
     println( typeof(sys.it.non_savings_income))
     sys.ubi.abolished = false
@@ -72,5 +73,14 @@ end
 
     @test BASIC_INCOME in sys.lmt.income_rules.sc_incomes 
     @test ! (BASIC_INCOME in sys.it.non_savings_income)
+
+end
+
+
+@testset "UBI Post Adjustments" begin
+    
+    sys = get_system( scotland = true )
+    sys.ubi.abolished = false
+    
 
 end

@@ -62,33 +62,34 @@ module Runner
         println( "starting $num_threads threads")
 
         num_systems = size( params )[1]
-        observer[]=Progress("start of do_one_run; using $(settings.means_tested_routing) routing", 0, 0, 0)
+        observer[]=Progress( settings.uuid, "start", 0, 0, 0)
         load_prices( settings, false )
         for p in 1:num_systems
             println("sys $p")
             println(params[p].it)
         end
         if settings.num_households == 0
-            observer[]= Progress("weights", 0, 0, 0  )
+            observer[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
             @time settings.num_households, settings.num_people, nhh2 = 
                 FRSHouseholdGetter.initialise( settings )
             BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" )       
         end
 
         # vary generosity of disability benefits
-        observer[]= Progress("disability_eligibility", 0, 0, 0  )
+        observer[]= Progress( 
+            settings.uuid, "disability_eligibility", 0, 0, 0, settings.num_households )
         for sysno in 1:num_systems
             adjust_disability_eligibility!( params[sysno].nmt_bens )
         end
 
         start,stop = make_start_stops( settings.num_households, num_threads )
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
-        observer[] =Progress( "starting",0, 0, 0 )
+        observer[] =Progress( settings.uuid, "starting",0, 0, 0 )
         @time @threads for thread in 1:num_threads
             for hno in start[thread]:stop[thread]
                 hh = FRSHouseholdGetter.get_household( hno )
                 if hno % 100 == 0
-                    observer[] =Progress( "run",thread, hno, 100 )
+                    observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
                     # println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year) thread $thread")
                 end
                 for sysno in 1:num_systems
@@ -127,9 +128,11 @@ module Runner
             end #household loop
         end # threads
         if settings.dump_frames 
-            observer[] =Progress( "dumping_frames", 0,0,0 )
+            observer[]= Progress( settings.uuid, "dumping_frames", 0, 0, 0, 0 )
             dump_frames( settings, frames )
         end
+        observer[]= Progress( settings.uuid, "end", -99, -99, -99, -99 )
+
         return frames
     end # do one run
 

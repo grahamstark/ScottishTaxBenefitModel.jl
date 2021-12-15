@@ -6,6 +6,7 @@ module RunSettings
     
     using ScottishTaxBenefitModel
     using .Definitions
+    using UUIDs
 
     export 
         Settings,
@@ -37,6 +38,7 @@ module RunSettings
     @enum IneqIncomeMeasure bhc_net_income eq_bhc_net_income ahc_net_income eq_ahc_net_income
     @enum DataIncomeSource ds_hbai ds_frs 
     @with_kw mutable struct Settings
+        uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name :: String = "default_run"
         start_year :: Int = 2015

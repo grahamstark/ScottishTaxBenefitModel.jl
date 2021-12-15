@@ -5,14 +5,17 @@ module Monitor
 
 
     using Observables
+    using UUIDs
 
     export Progress
 
     struct Progress
+        uuid   :: UUID
         phase  :: String
         thread :: Int
         count  :: Int
         step   :: Int
+        size   :: Int
     end
 
     # run_obs = Observable( Progress("", 0, 0 ))
