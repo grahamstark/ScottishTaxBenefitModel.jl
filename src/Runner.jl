@@ -62,7 +62,7 @@ module Runner
         println( "starting $num_threads threads")
 
         num_systems = size( params )[1]
-        observer[]=Progress( settings.uuid, "start", 0, 0, 0)
+        observer[]=Progress( settings.uuid, "start", 0, 0, 0, 0 )
         load_prices( settings, false )
         for p in 1:num_systems
             println("sys $p")
