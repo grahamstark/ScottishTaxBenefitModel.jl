@@ -862,9 +862,9 @@ module STBParameters
         retirement_age :: Int = 66
         mt_bens_treatment :: UBIMTBenTreatment = ub_abolish
         abolish_sickness_bens :: Bool = false
-        abolish_pensions :: Bool = false
-        abolish_jsa_esa :: Bool = false
-        abolish_others  :: Bool = false
+        abolish_pensions :: Bool = true
+        abolish_jsa_esa :: Bool = true
+        abolish_others  :: Bool = true
         ub_as_mt_income :: Bool = true
         ub_taxable :: Bool = false
     end
