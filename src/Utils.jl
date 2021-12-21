@@ -435,6 +435,11 @@ function qstrtodict(query_string::AbstractString)::Dict{AbstractString,Any}
             catch
             end
          end
+         if v in ["false","False","FALSE"]
+            v = false
+         elseif v in ["true","True","TRUE"]
+            v = true
+         end
          d[k] = v
       catch
 
