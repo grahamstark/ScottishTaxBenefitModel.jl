@@ -27,15 +27,15 @@ export
     make_ubi_post_adjustments!
 
 function make_ubi_post_adjustments!( 
-    hres :: HouseholdResult,
-    ubisys           :: UBISys )
-    for bn in eachindex( bus )
+    hres   :: HouseholdResult,
+    ubisys :: UBISys )
+    for bn in eachindex( hres.bus )
         bres = household_result.bus[bn]
         if ubisys.mt_bens_treatment == ub_keep_housing
             # TODO add assertions that things are correctly turned off
             if bres.uc.recipient > 0
                 uc = bres.pers[bres.uc.recipient].income[UNIVERSAL_CREDIT]
-                uc = min(uc, bres.uc.housing_element )
+                uc = min( uc, bres.uc.housing_element )
                 bres.pers[bres.uc.recipient].income[UNIVERSAL_CREDIT] = uc
             end
             #
