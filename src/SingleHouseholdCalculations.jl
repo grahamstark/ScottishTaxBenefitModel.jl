@@ -109,8 +109,13 @@ function do_one_calc(
         sys.nmt_bens,
         sys.hours_limits,
         sys.age_limits )
+    calc_UBI!(
+        hres,
+        hh,
+        sys.ubi )    
     buno = 1
     for bu in bus
+
         # income tax, with some nonsense for
         # what remains of joint taxation..
         head = get_head( bu )
@@ -146,11 +151,7 @@ function do_one_calc(
     hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
         calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
         
-    calc_UBI!(
-        hres,
-        hh,
-        sys.ubi )
-
+ 
     calc_legacy_means_tested_benefits!(
         hres,
         hh,
