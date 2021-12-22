@@ -1,15 +1,30 @@
 using Test
 using ScottishTaxBenefitModel
+using Observables
 using .ModelHousehold: count,Household, le_age, ge_age
 using .Results: aggregate!, init_household_result
+using ScottishTaxBenefitModel.Runner: do_one_run
 using .Intermediate: MTIntermediate, make_intermediate    
 using .UBI: calc_UBI!,make_ubi_post_adjustments! 
 using .STBParameters
 using .STBIncomes
 using .ExampleHelpers
-
+using .Monitor: Progress
 sys = get_system( scotland=true )
 sys.ubi.abolished = false
+
+settings = Settings()
+
+# observer = Observer(Progress("",0,0,0))
+tot = 0
+obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+of = on(obs) do p
+    global tot
+    println(p)
+
+    tot += p.step
+    println(tot)
+end
 
 @testset "Basic UBI Tests" begin
     
@@ -81,6 +96,14 @@ end
     
     sys = get_system( scotland = true )
     sys.ubi.abolished = false
-    
+    res1 = do_one_run(
+        settings,
+        [sys],
+        obs )
+    sys.ubi.mt_bens_treatment = ub_keep_housing
+    res2 = do_one_run(
+        settings,
+        [sys],
+        obs )
 
 end

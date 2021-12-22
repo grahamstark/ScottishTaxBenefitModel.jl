@@ -30,7 +30,7 @@ function make_ubi_post_adjustments!(
     hres   :: HouseholdResult,
     ubisys :: UBISys )
     for bn in eachindex( hres.bus )
-        bres = household_result.bus[bn]
+        bres = hres.bus[bn]
         if ubisys.mt_bens_treatment == ub_keep_housing
             # TODO add assertions that things are correctly turned off
             if bres.uc.recipient > 0
