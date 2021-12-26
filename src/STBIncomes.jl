@@ -644,18 +644,17 @@ For printing: return a df with anything non-zero in either frame.
 function two_incs_to_frame(
     pre  :: AbstractVector,
     post :: AbstractVector ) :: DataFrame
-    anyset = Set()
-    labels = []
+    incs = []
     pres = []
     posts = []
     for i in instances(Incomes)
         if pre[i] != 0 || post[i] != 0
-            push!(labels, i)
+            push!(incs, i)
             push!(pres, pre[i])
             push!(posts, post[i])
         end
     end
-    df = DataFrame( Labels=>labels, Before = pres, After = posts)
+    df = DataFrame( Inc=>incs, Before = pres, After = posts)
     return df
 end
 
