@@ -641,7 +641,7 @@ export inctostr, isettostr, non_zeros, two_incs_to_frame
 """
 For printing: return a df with anything non-zero in either frame.
 """
-function (two_incs_to_frame
+function two_incs_to_frame(
     pre  :: AbstractVector,
     post :: AbstractVector ) :: DataFrame
     incs = []
@@ -654,7 +654,7 @@ function (two_incs_to_frame
             push!(posts, post[i])
         end
     end
-    df = DataFrame( :Inc=>incs, :Before = pres, :After = posts)
+    df = DataFrame( :Inc=>incs, :Before => pres, :After => posts)
     return df
 end
 
