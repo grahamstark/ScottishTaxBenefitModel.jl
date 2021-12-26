@@ -636,8 +636,32 @@ const DEFAULT_PASSPORTED_BENS = IncomesSet([
         NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
         PENSION_CREDIT ])
 
-export inctostr, isettostr, non_zeros
+export inctostr, isettostr, non_zeros, two_incs_to_frame
 
+"""
+For printing: return a df with anything non-zero in either frame.
+"""
+function two_incs_to_frame(
+    pre  :: AbstractVector,
+    post :: AbstractVector ) :: DataFrame
+    anyset = Set()
+    labels = []
+    pres = []
+    posts = []
+    for i in instances(Incomes)
+        if pre[i] != 0 || post[i] != 0
+            push!(labels, i)
+            push!(pres, pre[i])
+            push!(posts, post[i])
+        end
+    end
+    df = DataFrame( Labels=>labels, Before = pres, After = posts)
+    return df
+end
+
+"""
+Make a markdown table with non-zero incomes.
+"""
 function inctostr( incs :: AbstractVector; round_inc :: Bool = true) :: String
     s = 
     """
