@@ -327,7 +327,6 @@ function IncludedItems( included :: Set, deducted :: Vector )
     IncludedItems( IncomesSet( included), IncomesSet( deducted ))
 end
 
-
 const NET_COST = IncludedItems(    
     BENEFITS, [INCOME_TAX,NATIONAL_INSURANCE,LOCAL_TAXES] )
 

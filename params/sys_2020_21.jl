@@ -80,7 +80,7 @@ sys.ni.class_4_bands  = [9_500.0, 50_270.0, 99999999999999.9 ]
 # sys.uc.
 
 sys.lmt.isa_jsa_esa_abolished = false
-
+sys.lmt.pen_credit_abolished = false
 ## FIXME we can't turn off pension credit individually here..
 
 sys.lmt.premia.family = 17.60

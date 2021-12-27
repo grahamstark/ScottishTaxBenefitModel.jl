@@ -996,7 +996,7 @@ function calc_legacy_means_tested_benefits!(
         end
     end
     
-    if can_apply_for.pc
+    if can_apply_for.pc && ( ! mt_ben_sys.pen_credit_abolished)
         premium, premset = calc_premia(
             pc,
             bu,
@@ -1064,6 +1064,7 @@ function calc_legacy_means_tested_benefits!(
                 bures.legacy_mtbens.sc_incomes = sc_incomes  
             end
         end
+        
         bures.pers[recipient].income[PENSION_CREDIT] = pc_entitlement
     end
     

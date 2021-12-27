@@ -738,12 +738,14 @@ module STBParameters
     @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
         # CPAG 2019/bur.pers[pid].20 p335
         isa_jsa_esa_abolished :: Bool = false
+        pen_credit_abolished :: Bool = false
         ## FIXME we can't turn off pension credit individually here..
         premia :: Premia = Premia{RT}()
         allowances :: PersonalAllowances = PersonalAllowances{RT}()
         income_rules :: IncomeRules = IncomeRules{RT}()
         # FIXME why do we need a seperate copy of HoursLimits here?
         hours_limits :: HoursLimits = HoursLimits()
+        
         savings_credit :: SavingsCredit = SavingsCredit{RT}()
         working_tax_credit = WorkingTaxCredit{RT}()
         child_tax_credit = ChildTaxCredit{RT}()
