@@ -931,6 +931,7 @@ module STBParameters
             sys.lmt.ctr.abolished = true
             sys.lmt.hb.abolished = true
             sys.lmt.working_tax_credit.abolished = true
+            sys.lmt.pen_credit_abolished = true
             sys.lmt.child_tax_credit.abolished = true
             sys.lmt.isa_jsa_esa_abolished = true # rename - just is,jsa,esa
         elseif sys.ubi.mt_bens_treatment == ub_keep_housing
@@ -940,6 +941,7 @@ module STBParameters
             sys.lmt.working_tax_credit.abolished = true
             sys.lmt.child_tax_credit.abolished = true
             sys.lmt.savings_credit.abolished = true
+            sys.lmt.pen_credit_abolished = true
             sys.lmt.isa_jsa_esa_abolished = true
             sys.lmt.isa_jsa_esa_abolished = true
         end
