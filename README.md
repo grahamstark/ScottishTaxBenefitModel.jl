@@ -1,7 +1,5 @@
 # A  Microsimulation Model of the Scottish Fiscal System
 
-## This is in development and not ready for use
-
 A Tax Benefit Model is a computer program that calculates the effects of possible changes to the fiscal system, for example tax increases or cash benefit reforms. 
 
 We take a dataset with information on incomes, demographics, spending, etc. for a representative
@@ -12,13 +10,19 @@ This is a Tax Benefit Model for Scotland. To my knowledge, this is the first mod
 the first fully Open Source one anywhere. It is designed to use data from the [Family Resources Survey](https://www.ons.gov.uk/surveys/informationforhouseholdsandindividuals/householdandindividualsurveys/familyresourcessurvey), possibly
 augmented by other datasets later on.
 
+Here's some initial output from the model:
+
+* A simple [Scottish Budget Simulator](https://stb.virtual-worlds.scot/scotbudg/) - you, too, can be Kate Forbes;
+* [Exploring Basic Incomes](https://ubi.virtual-worlds.scot/) - designing a workable UBI is harder than you might think;
+* [Budget Constraints](https://stb.virtual-worlds.scot/bcd/) - the often weird relationship between how much you earn and how much you end up with.
+
 ![BC Demo](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/docs/bc1.gif)
 
 For more information, try the following:
 
 * I've started a [blog about the model](https://stb-blog.virtual-worlds.scot/). Pretty much stream of consciousness stuff as I write the model;
 * A [short course on the ideas behind the model](https://stb.virtual-worlds.scot/intro.html), originally written for the UK's Open University;
-* .. the course includes an [interactive section](https://stb.virtual-worlds.scot/tax-benefit-tour.html), using a very preliminary demo version of the model - **DONT USE FOR ANYTHING OTHER THAN PLAYING WITH**;
+* .. the course includes an [interactive section](https://stb.virtual-worlds.scot/tax-benefit-tour.html), using a very preliminary demo version of the model - 
 * .. also a section on [Budget Constraints](https://stb.virtual-worlds.scot/bc-intro.html);
 * some Julia registered packages I've written containing model components:
   - A generator for [budget constraints](https://github.com/grahamstark/BudgetConstraints.jl);
