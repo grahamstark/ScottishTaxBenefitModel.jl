@@ -522,14 +522,14 @@ function calc_universal_credit!(
         )
     end
 
-    # hack - council tax rebates for UC Retail_trade_except_of_motor_vehicles_and_motorcycles
+    # hack - council tax rebates for UC 
     # 20% of any income above Maximum Universal Credit is deducted from maximum CT support 
     # income seems to *include* universal credit, and full wages
     # so grossed back up from the tapered calculated wages above, but
     # otherwise following the same rules. Something like that, anyway.
     #
     recipient = hhr.bus[1].uc.recipient
-    if recipient > 0 # some *something* done with UC
+    if recipient > 0 #  *something* done with UC
         ucrec = hhr.bus[1].pers[recipient].income[UNIVERSAL_CREDIT]
         if ucrec > 0
             bur = household_result.bus[1] 
