@@ -24,12 +24,14 @@ export
    coarse_match,
    date_string,
    diff_between, 
+   df_diff,
    eq_nearest_p,  
    extract_digits,
    get_if_set,
    get_project_path,
    has_non_z, 
-   haskeys, 
+   haskeys,
+   index_of_field, 
    is_zero_or_missing,
    isapprox, 
    loadtoframe, 
@@ -47,6 +49,27 @@ export
    to_md_table,
    todays_date, 
    uprate_struct!
+
+"""
+Make a new dataframe with the difference between the fields between
+start_col and end_col and other fields just copied 
+diff is difference df2 - df1, Frames should have identical other cols.
+"""
+function df_diff( df1, df2 :: DataFrame, start_col::Int, end_col :: Int  ) :: DataFrame
+   @assert size( df1 ) == size( df2 )
+   ## maybe check that the non diffed fields are all the same too.. 
+   d = copy(df1)
+   d[:,start_col:end_col] = df2[:,start_col:end_col] .- df1[:,start_col:end_col]
+   return d
+end
+
+"""
+col number of given field name in a dataframe
+"""
+function index_of_field( d :: DataFrame, name :: String ) :: Int
+   n = names(d)
+   return findfirst( n .== name)
+end
 
 """
 For threading households

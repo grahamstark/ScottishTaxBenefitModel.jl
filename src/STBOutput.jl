@@ -38,7 +38,10 @@ export
     initialise_frames,
     summarise_frames,
     make_poverty_line,
-    make_gain_lose
+    make_gain_lose,
+    hdiff,
+    idiff,
+    irdiff
 
 # count of the aggregates added to the income_frame - total benefits and so on
 const EXTRA_INC_COLS = 10
@@ -61,6 +64,8 @@ const EXTRA_INC_COLS = 10
         DataFrame(
             hid       = zeros( BigInt, n ),
             sequence  = zeros( Int, n ),
+            data_year  = zeros( Int, n ),
+            
             weight    = zeros(RT,n),
             weighted_people = zeros(RT,n),
             hh_type   = zeros( Int, n ),
@@ -79,6 +84,12 @@ const EXTRA_INC_COLS = 10
             scottish_income_tax = zeros(RT,n),
             num_children = zeros(RT,n)
         )
+    end
+
+    function hdiff( df1 :: DataFrame, df2 :: DataFrame )
+        p1 = index_of_field( df1, "bhc_net_income")
+        p2 = index_of_field( df1, "num_children")-1
+        return df_diff( df1, df2, p1, p2 )
     end
 
     function make_bu_results_frame( n :: Int ) :: DataFrame
@@ -137,10 +148,22 @@ const EXTRA_INC_COLS = 10
         return frame
     end
 
+    """
+    Change in the numeric fields of incomes 
+    """
+    function idiff( d1 :: DataFrame, d2 :: DataFrame )
+        # the numeric fields are between "income_tax" and "id"
+        p1 = index_of_field( d1, "income_tax" )
+        p2 = index_of_field( d1, "id")-1
+        return df_diff( d1, d2, p1, p2 )        
+    end
+
+
     function make_individual_results_frame( RT :: DataType, n :: Int ) :: DataFrame
        DataFrame(
          hid = zeros(BigInt,n),
          pid = zeros(BigInt,n),
+         data_year = zeros(Int,n),
          weight = zeros(RT,n),
          sex = fill(Missing_Sex,n),
          ethnic_group = fill(Missing_Ethnic_Group,n),
@@ -171,6 +194,13 @@ const EXTRA_INC_COLS = 10
          replacement_rate = Vector{Union{Real,Missing}}(missing, n))
     end
 
+    function irdiff( d1 :: DataFrame, d2 :: DataFrame )
+        # the numeric fields are between "income_tax" and "id"
+        p1 = index_of_field( d1, "income_taxes" )
+        p2 = size(d1)[2]
+        return df_diff( d1, d2, p1, p2 )        
+    end
+
     function initialise_frames( T::DataType, settings :: Settings, num_systems :: Integer  ) :: NamedTuple
         indiv = []
         bu = []
@@ -190,6 +220,7 @@ const EXTRA_INC_COLS = 10
         hr.hid = hh.hid
         hr.sequence = hh.sequence
         hr.weight = hh.weight
+        hr.data_year = hh.data_year
         hr.weighted_people = hh.weight*nps
         hr.num_people = nps
         hr.hh_type = -1
@@ -324,6 +355,7 @@ const EXTRA_INC_COLS = 10
         from_child_record :: Bool )
         pr.hid = hh.hid
         pr.pid = pers.pid
+        pr.data_year = hh.data_year
         pr.weight = hh.weight
         pr.sex = pers.sex
         pr.age_band  = age_range( pers.age )

@@ -6,6 +6,7 @@ using Test
 
 using UUIDs
 using Observables
+using CSV
 
 using ScottishTaxBenefitModel
 using .BCCalcs
@@ -15,6 +16,7 @@ using .FRSHouseholdGetter
 using .GeneralTaxComponents
 using .ModelHousehold
 using .Monitor
+using .Results
 using .Runner
 using .RunSettings
 using .SimplePovertyCounts: GroupPoverty
@@ -38,6 +40,8 @@ function load_system()::TaxBenefitSystem
 	return sys
 end
 
+f = open("weird_results.md", "w");
+
 function initialise_settings()::Settings
     settings = Settings()
 	settings.uuid = BASE_UUID
@@ -53,8 +57,57 @@ end
 
 const BASE_SETTINGS = initialise_settings()
 
+function get_and_print(
+	f :: IOStream,
+	hid :: BigInt, 
+	datayear :: Int, 
+	settings :: Settings,
+	params   :: Vector{TaxBenefitSystem{T}} ) where T
+	num_systems = size(params)[1]
+	hh = get_household( hid, datayear )
+	println( f, to_string(hh) )
+	for sysno in 1:num_systems
+		res = do_one_calc( hh, params[sysno], settings )
+		println( f, "### RESULTS FOR SYSTEM $sysno")
+		println( f, Results.to_string( res ))
+	end
+end
+
+
 #
-# a) 1p on income tax - total raised  £412m. > total income tax +405
+# a) increasing scottish child payment - some METRs go 20-30 -> 10-20
+#
+@testset "scottish child payment metrs" begin
+	settings = initialise_settings()
+	settings.run_name = "scottish_child_payment"
+	sys = load_system()
+    chsys = deepcopy( sys )
+    obs = Observable( 
+		Progress(settings.uuid, "",0,0,0,0))
+	chsys.scottish_child_payment.amount = 20.0
+	params = [sys, chsys]
+    results = do_one_run( settings, params, obs )
+	p = collect(keys(skipmissing( results.indiv[1].metr )))
+	ip1 = results.indiv[1][p,:]
+	ip2 = results.indiv[2][p,:]
+	d = irdiff( ip1, ip2 )
+	targets = d[(abs.(d.metr) .> 0.00001),[:hid,:pid,:data_year,:metr,:means_tested_benefits]]
+	println( f, "# scottish child payment metrs\n")
+	CSV.write( "scottish_child_payment_metrs.csv", targets )
+	for t in eachrow( targets )
+		get_and_print( 
+			f,
+			t.hid, 
+			t.data_year, 
+			settings,
+			params )		
+
+	end
+end
+
+
+#
+# b) 1p on income tax - total raised  £412m. > total income tax +405
 #
 @testset "1p income tax" begin
     sys = load_system()
@@ -64,36 +117,55 @@ const BASE_SETTINGS = initialise_settings()
     obs = Observable( 
 		Progress(settings.uuid, "",0,0,0,0))
 	chsys.it.non_savings_rates[1:3] .+= 0.01
-    results = do_one_run( settings, [sys, chsys], obs )
+	params = [sys, chsys]
+    results = do_one_run( settings, params, obs )
+	d = idiff( results.income[1], results.income[2] )
+	targets = d[(d.income_tax.>0),[:hid,:pid,:data_year,:income_tax]]
+	println( f, "# +1p income tax\n")
+	CSV.write( "1p_income_tax.csv", targets )
+	i = 0
+	for t in eachrow( targets )
+		i += 1
+		if i < 10
+			get_and_print( 
+				f,
+				t.hid, 
+				t.data_year, 
+				settings,
+				params )		
+		end
+	end
 end
 
 #
-# b) increasing scottish child payment - some METRs go 20-30 -> 10-20
-#
-@testset "scottish child payment" begin
-	settings = initialise_settings()
-	settings.run_name = "scottish_child_payment"
-	sys = load_system()
-    chsys = deepcopy( sys )
-    obs = Observable( 
-		Progress(settings.uuid, "",0,0,0,0))
-	chsys.scottish_child_payment.amount = 20.0
-    results = do_one_run( settings, [sys, chsys], obs )
-end
-
-#
-# b) cutting basic 20-19 : a few losers
+# c) cutting basic 20-19 : a few losers
 #
 # Gainers	4,158	0.08
-# Losers	718	0.01
+# Losers	718	0.01 <- pension contributions, no tax payable
 # Unchanged	5,461,124	99.91
-@testset "scottish child payment" begin
+@testset "-1p income tax" begin
 	settings = initialise_settings()
-	settings.run_name = "scottish_child_payment"
+	settings.run_name = "minus_1p_income_tax"
 	sys = load_system()
     chsys = deepcopy( sys )
     obs = Observable( 
 		Progress(settings.uuid, "",0,0,0,0))
 		chsys.it.non_savings_rates[1:3] .-= 0.01
-    results = do_one_run( settings, [sys, chsys], obs )
+	params = [sys, chsys]
+    results = do_one_run( settings, params, obs )
+	d = hdiff( results.hh[1], results.hh[2] )
+	targets = d[(d.bhc_net_income.<0),[:hid,:data_year,:bhc_net_income]]
+	println( f, "# -1p income tax\n")
+	CSV.write( "m1p_income_tax.csv", targets )
+	for t in eachrow( targets )
+		get_and_print( 
+			f,
+			t.hid, 
+			t.data_year, 
+			settings,
+			params )		
+
+	end
 end
+
+close( f )
