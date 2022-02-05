@@ -28,15 +28,15 @@ sys = get_system( scotland=true )
     # FIXME we need to jam a 'current' date on here or some of these will fail 
     # next financial year
     #
-    @test state_pension_age(sys.age_limits,Male) == 65
+    @test state_pension_age(sys.age_limits,Male) == 66
     
     @test state_pension_age(sys.age_limits,Female,2015) == 62
     @test state_pension_age(sys.age_limits,Female,2045) == 67
     @test state_pension_age(sys.age_limits,Female,2046) == 68
     @test state_pension_age(sys.age_limits,Male,2046) == 68
     
-    @test reached_state_pension_age(sys.age_limits,65,Male)
-    @test reached_state_pension_age(sys.age_limits,65,Female)
+    @test reached_state_pension_age(sys.age_limits,66,Male)
+    @test reached_state_pension_age(sys.age_limits,66,Female)
     @test ! reached_state_pension_age(sys.age_limits,62,Female, Date( 2022, 01, 01))
     # A person who's 67 now will have reached pension age 
     # by then.
@@ -53,7 +53,7 @@ sys = get_system( scotland=true )
     # old style pension switch
     @test reached_state_pension_age(
         sys.age_limits, 
-        age_now(70), 
+        age_now(71), 
         Male,
         sys.age_limits.savings_credit_to_new_state_pension )
     @test ! reached_state_pension_age(
@@ -69,7 +69,7 @@ sys = get_system( scotland=true )
     # 68 yo woman would have been 63 in 2016, so at state pension age (63 for women)
     @test reached_state_pension_age(
         sys.age_limits, 
-        age_now(68), 
+        age_now(69), 
         Female,
         sys.age_limits.savings_credit_to_new_state_pension )
     # ..but a 67 yo would have been 62 so too young in '16 ...

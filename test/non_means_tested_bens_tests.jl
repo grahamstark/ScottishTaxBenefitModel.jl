@@ -267,7 +267,7 @@ end
         rp,
         sys.age_limits )
     @test p == 0 # under pension age
-    head.age = age_now(70)
+    head.age = age_now(71)
     p = calc_state_pension( 
         head, 
         rp,
