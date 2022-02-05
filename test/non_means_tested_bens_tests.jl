@@ -253,7 +253,7 @@ end
     head = get_head( bu )
     head.income[state_pension] = 100.0
     make_benefit_ratios!( head, hh.interview_year, hh.interview_month )
-    head.age = age_now(65)
+    head.age = age_now(66)
     # female over pension age but too young to have been on old pension
     p = calc_state_pension( 
         head, 
