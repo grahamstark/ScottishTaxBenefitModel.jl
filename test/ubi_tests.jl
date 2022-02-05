@@ -108,7 +108,7 @@ end
     # dodo finish
 end
 
-@testset "example tests"
+@testset "example tests" begin
     # TODO FINISH
 
 end
