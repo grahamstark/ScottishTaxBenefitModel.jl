@@ -65,7 +65,7 @@ function get_and_print(
 	params   :: Vector{TaxBenefitSystem{T}} ) where T
 	num_systems = size(params)[1]
 	hh = get_household( hid, datayear )
-	println( f, to_string(hh) )
+	println( f, ModelHousehold.to_string(hh) )
 	for sysno in 1:num_systems
 		res = do_one_calc( hh, params[sysno], settings )
 		println( f, "### RESULTS FOR SYSTEM $sysno")
@@ -103,6 +103,24 @@ end
 			params )		
 
 	end
+	n = size( results.indiv[1] )[1]
+	for i in 1:n
+		r1 = results.indiv[1][i,:]
+		r2 = results.indiv[2][i,:]
+		println( r1.hid )
+		if r1.metr === missing 
+			@assert r2.metr === missing
+		else 
+			@assert r1.metr ≈ r2.metr "r1.metr ≈ r2.metr r1=$(r1.metr) ≈ r2=$(r2.metr) " 
+		end
+	end
+	m1 = STBOutput.metrs_to_hist( results.indiv[1] )
+	m2 = STBOutput.metrs_to_hist( results.indiv[2] )
+	println(m1.hist.weights)
+	println(m2.hist.weights)
+	@assert m1.mean ≈ m2.mean
+	@assert m1.hist.weights ≈ m2.hist.weights
+
 end
 
 

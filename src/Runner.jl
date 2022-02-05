@@ -104,12 +104,13 @@ module Runner
                                 # bigger, or empoyment status
                                 # println( "wage was $(pers.income[wages])")
                                 pers.income[wages] += settings.mr_incr
-
                                 subres = do_one_calc( hh, params[sysno], settings )            
                                 subhhinc = get_net_income( subres; target=settings.target_mr_rr_income )
                                 hhinc = get_net_income( res; target=settings.target_mr_rr_income )
                                 pres = get_indiv_result( res, pid )
-                                pres.metr = 100.0 * (1-((subhhinc-hhinc)/settings.mr_incr))                            
+                                pres.metr = round( 
+                                    100.0 * (1-((subhhinc-hhinc)/settings.mr_incr)),
+                                    digits=7 )                           
                                 pers.income[wages] -= settings.mr_incr                        
                                 # println( "wage set back to $(pers.income[wages]) metr is $(pres.metr)")
                             end # working age
