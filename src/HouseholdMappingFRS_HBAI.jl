@@ -1031,6 +1031,7 @@ function create_adults(
             frs_person.benunit,
             frs_person.person ) # fixme probably only need to check sernum
             adno += 1
+            model_adult.onerand = mybigrandstr()
                 ## also for children
             model_adult = adult_model[adno, :]
             model_adult.pno = frs_person.person
@@ -1221,7 +1222,6 @@ function create_adults(
             model_adult.attendance_allowance_type = map123( model_adult.income_attendance_allowance, [65] )
             model_adult.personal_independence_payment_daily_living_type = map12( model_adult.income_personal_independence_payment_daily_living, 65 )
             model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )            
-            model_adult.onerand = mybigrandstr()
         end # if in HBAI
     end # adult loop
     println("final adno $adno")
