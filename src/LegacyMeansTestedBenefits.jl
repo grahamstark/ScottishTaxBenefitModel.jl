@@ -2,6 +2,7 @@ module LegacyMeansTestedBenefits
 #
 # This module implements the pre-universal credit means-tested benefit system.
 #
+using ArgCheck
 using Base: Bool
 using Dates
 using ScottishTaxBenefitModel
@@ -814,12 +815,12 @@ function calculateHB_CTR!(
     lmt_ben_sys      :: LegacyMeansTestedBenefitSystem,    
     age_limits       :: AgeLimits,
     nmt_bens         :: NonMeansTestedSys )
+    @argcheck which_ben in [ctr, hb]
 
     eligible_amount = which_ben == ctr ? 
         total(household_result, LOCAL_TAXES ) :
         household_result.housing.allowed_rent
        
-    @assert which_ben in [ctr, hb]
     bus = get_benefit_units( hh )
     nbus = size(bus)[1]
     ndds = 0.0

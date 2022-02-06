@@ -11,6 +11,7 @@ using .STBParameters: NonMeansTestedSys
 using .RunSettings: Settings
 using .FRSHouseholdGetter: get_household_of_person
 using DataFrames, CSV 
+using ArgCheck
 
 export initialise, to_set, adjust_disability_eligibility!, change_status
 
@@ -96,7 +97,7 @@ end
 # FIXME just merge with the thing below
 #
 function to_set( which :: Incomes, extra_people :: Real ) :: Set{OneIndex}
-    @assert which in SICKNESS_ILLNESS
+    @argcheck which in SICKNESS_ILLNESS
     s = Set{OneIndex}()
     if extra_people > 0
         if which == ATTENDANCE_ALLOWANCE

@@ -118,7 +118,7 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
                               tot += 1
                               push!(num_rats[target], pts )
                               if target == bereavement_allowance_or_widowed_parents_allowance_or_bereavement
-                                    @assert pers.bereavement_type in [
+                                    @test pers.bereavement_type in [
                                           bereavement_allowance,
                                           widowed_parents,
                                           bereavement_support]                              
@@ -293,14 +293,14 @@ end
                   if pers.dla_mobility_type == low
                         row.dla_mobility_low += 1
                   elseif pers.dla_mobility_type == mid
-                        @assert 1==2 "mobility mid should never happen"
+                        @test 1==2 "mobility mid should never happen"
                   elseif pers.dla_mobility_type == high
                         row.dla_mobility_high += 1
                   end
                   if pers.attendance_allowance_type == low
                         row.attendance_allowance_low += 1
                   elseif pers.attendance_allowance_type == mid
-                        @assert 3==4 "attendance mid should never happen"
+                        @test 3==4 "attendance mid should never happen"
                   elseif pers.attendance_allowance_type == high
                         row.attendance_allowance_high += 1
                   end

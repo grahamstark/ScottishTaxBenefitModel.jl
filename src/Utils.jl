@@ -4,7 +4,7 @@ module Utils
 # This contains general purpose, messy stuff not easily fitting elsewhere. 
 # A fair chunk is no longer used :(
 #
-
+using ArgCheck
 using Base: Integer, String, Bool
 using DataFrames
 using Dates
@@ -56,7 +56,7 @@ start_col and end_col and other fields just copied
 diff is difference df2 - df1, Frames should have identical other cols.
 """
 function df_diff( df1, df2 :: DataFrame, start_col::Int, end_col :: Int  ) :: DataFrame
-   @assert size( df1 ) == size( df2 )
+   @argcheck size( df1 ) == size( df2 )
    ## maybe check that the non diffed fields are all the same too.. 
    d = copy(df1)
    d[:,start_col:end_col] = df2[:,start_col:end_col] .- df1[:,start_col:end_col]
@@ -579,7 +579,7 @@ And so on.
 function age_in_years(
    dob :: Dates.TimeType,
    to_date :: Dates.TimeType = Dates.now() ) :: Integer
-   @assert dob <= to_date
+   @argcheck dob <= to_date
    y_to = year(to_date)
    m_to = month(to_date)
    d_to = day(to_date)

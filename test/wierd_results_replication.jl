@@ -109,17 +109,17 @@ end
 		r2 = results.indiv[2][i,:]
 		println( r1.hid )
 		if r1.metr === missing 
-			@assert r2.metr === missing
+			@test r2.metr === missing
 		else 
-			@assert r1.metr ≈ r2.metr "r1.metr ≈ r2.metr r1=$(r1.metr) ≈ r2=$(r2.metr) " 
+			@test r1.metr ≈ r2.metr "r1.metr ≈ r2.metr r1=$(r1.metr) ≈ r2=$(r2.metr) " 
 		end
 	end
 	m1 = STBOutput.metrs_to_hist( results.indiv[1] )
 	m2 = STBOutput.metrs_to_hist( results.indiv[2] )
 	println(m1.hist.weights)
 	println(m2.hist.weights)
-	@assert m1.mean ≈ m2.mean
-	@assert m1.hist.weights ≈ m2.hist.weights
+	@test m1.mean ≈ m2.mean
+	@test m1.hist.weights ≈ m2.hist.weights
 
 end
 

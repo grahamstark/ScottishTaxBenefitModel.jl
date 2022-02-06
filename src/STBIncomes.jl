@@ -10,6 +10,7 @@ module STBIncomes
 #
 
 # using Base: String
+using ArgCheck
 using StaticArrays
 using DataFrames
 using ScottishTaxBenefitModel
@@ -724,7 +725,7 @@ function fill_inc_frame_row!(
         hid :: BigInt,
         weight :: Real, 
         income :: IncomesArray )
-    @assert size( income )[1] == INC_ARRAY_SIZE
+    @argcheck size( income )[1] == INC_ARRAY_SIZE
     incd.pid = pid
     incd.hid = hid
     incd.weight = weight
