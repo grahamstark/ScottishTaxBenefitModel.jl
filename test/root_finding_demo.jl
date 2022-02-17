@@ -35,6 +35,7 @@ function initialise_settings()::Settings
 	settings.income_data_source = ds_frs
 	settings.dump_frames = false
 	settings.do_marginal_rates = false
+	settings.poverty_line = 100.0 # doesn't matter so long as +ive
 	settings.requested_threads = 4
 	settings.dump_frames = true
 	return settings
@@ -71,6 +72,7 @@ end
 mutable struct RunParameters{T<:AbstractFloat}
     params :: TaxBenefitSystem{T}
     settings :: Settings
+	base_cost :: T
 end
 
 function run( x :: Number, things :: RunParameters )
@@ -80,11 +82,26 @@ function run( x :: Number, things :: RunParameters )
     things.params.it.non_savings_rates .+= x
     results = do_one_run(things.settings, [things.params], obs )
     things.params.it.non_savings_rates = nsr
-    x^2 + things.params.it.non_savings_rates[1] 
+	summary = summarise_frames(results,settings)
+	nc = summary.income_summary[1][1,:net_cost]
+	return round( nc - things.base_cost, digits=0 )
+    # x^2 + things.params.it.non_savings_rates[1] 
 end
 
-things = RunParameters( chsys, settings )
+function baserun_cost()
+    obs = Observable( 
+		Progress(settings.uuid, "",0,0,0,0))
+	results = do_one_run(settings, [sys], obs )
+	summary = summarise_frames(results,settings)
+	return summary.income_summary[1][1,:net_cost]
+end
+
+nc = baserun_cost()
+
+things = RunParameters( chsys, settings, nc )
 
 zerorun = ZeroProblem( run, 0.0 )
 
-solve( zerorun, things )
+incch = solve( zerorun, things )
+
+println( "incch=$incch")
