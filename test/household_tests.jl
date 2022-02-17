@@ -6,7 +6,6 @@ using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 
 using .ExampleHouseholdGetter
-
 using .ModelHousehold: 
       BenefitUnit, 
       BenefitUnits, 
