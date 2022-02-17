@@ -4,6 +4,7 @@ authors = ["Graham Stark"]
 version = "0.1.1"
 
 [deps]
+ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 BudgetConstraints = "51aacf4b-43e8-45f9-b960-ce5126c2a956"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
