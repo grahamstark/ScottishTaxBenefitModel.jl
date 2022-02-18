@@ -12,9 +12,21 @@ using .ExampleHelpers
 using .Monitor: Progress
 using .TheEqualiser
 using .STBOutput
+using PrettyTables
+using CSV
 
-sys = get_system( scotland=true )
-sys.ubi.abolished = false
+function load_system()::TaxBenefitSystem
+	sys = load_file( joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021_22.jl" ))
+	#
+	# Note that as of Budget21 removing these doesn't actually happen till May 2022.
+	#
+	load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021-uplift-removed.jl"))
+	# uc taper to 55
+	load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "budget_2021_uc_changes.jl"))
+	weeklyise!( sys )
+	return sys
+end
+
 
 settings = Settings()
 settings.do_marginal_rates = false
@@ -32,9 +44,11 @@ of = on(obs) do p
 end
 
 @testset "Eq UBI Tests" begin
-    base = get_system( scotland = true )
-    sys = get_system( scotland = true )
+    base = load_system()
+    sys = load_system()
     sys.ubi.abolished = false
+    sys.it.personal_allowance = 0.0
+    make_ubi_pre_adjustments!( sys )
     base_res = do_one_run(
         settings,
         [base],
@@ -48,7 +62,6 @@ end
         settings, 
         base_cost, 
         obs )
-    println( "needs tax rise of $eq")
     sys.it.non_savings_rates .+= eq
     ubi_res = do_one_run(
         settings,
@@ -57,7 +70,12 @@ end
     ubi_summary = summarise_frames(ubi_res,settings)
     ubi_cost = ubi_summary.income_summary[1][1,:net_cost]
    
+    println( "needs tax rise of $eq")
     net_cost = ubi_cost - base_cost
     println( "net_cost=$net_cost" )
-  
+    println( "taxrates $(sys.it.non_savings_rates)")
+    println("ubi summary")
+    CSV.write( "ubi_summary.income_summary.csv", ubi_summary.income_summary[1] )
+    # pretty_table( ubi_summary.income_summary[1][1,:] )
+
 end

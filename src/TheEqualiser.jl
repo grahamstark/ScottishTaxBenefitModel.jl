@@ -57,7 +57,7 @@ function run( x :: Number, things :: RunParameters )
     # restore
     things.params.it = nsr
 	things.params.ni = nsi
-	summary = summarise_frames(results,settings)
+	summary = summarise_frames(results, things.settings)
 	nc = summary.income_summary[1][1,:net_cost]
 	return round( nc - things.base_cost, digits=0 )
 end
