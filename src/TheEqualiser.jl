@@ -40,11 +40,11 @@ end
 
 # TODO another possible approach is to pass in editing
 # functions such as:
-function op_tax!( sys :: TaxBenefitSystem{T}, r :: T ) where T <: Number
+function op_tax!( sys :: TaxBenefitSystem{T}, r :: T ) where T <: AbstractFloat
     sys.it.non_savings_rates .+= r
 end
 
-function run( x :: Number, rparams :: RunParameters )
+function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     nsr = deepcopy( rparams.params.it )
     nsi = deepcopy( rparams.params.ni )
     if rparams.target in [eq_it, eq_it_ni]
@@ -74,7 +74,7 @@ function equalise(
     sys :: TaxBenefitSystem{T}, 
     settings :: Settings,
     base_cost :: T,
-    observer :: Observable ) :: T where T<:Number  
+    observer :: Observable ) :: T where T<:AbstractFloat  
     zerorun = ZeroProblem( run, 0.0 ) # fixme guess at 0.0 ?
     rparams = RunParameters( sys, settings, base_cost, target, observer )
     incch = solve( zerorun, rparams )
