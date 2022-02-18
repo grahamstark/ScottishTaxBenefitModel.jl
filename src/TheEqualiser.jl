@@ -1,11 +1,14 @@
 module TheEqualiser
 #
-# this module automatically adjusts taxes
+# This module automatically adjusts taxes (it and ni, optionally)
 # so the net cost of benefit or other changes
-# is zero
+# is close to zero.
+# 
 # TODO needs a lot of work:
-# - more options
-# - check results are in bounds
+# 
+# - more options - so basic rate only etc;
+# - use passed-in functions to equalise (like op_tax! below);
+# - check results are in sensible bounds (e.g. >= 0 < 100 tax rates).
 # 
 using Roots
 using UUIDs
@@ -47,12 +50,13 @@ function run( x :: Number, things :: RunParameters )
     if things.target in [eq_it, eq_it_ni]
         things.params.it.non_savings_rates .+= x
     end
+    # TODO check sensible it rates
     if things.target in [eq_ni, eq_it_ni]
         things.params.ni.primary_class_1_rates .+= x
         things.params.ni.class_4_rates .+= x
     end
-
-    # check sensible it rates
+    # TODO check sensible ni rates
+    
     results = do_one_run(things.settings, [things.params], things.obs )
     # restore
     things.params.it = nsr
@@ -62,6 +66,10 @@ function run( x :: Number, things :: RunParameters )
 	return round( nc - things.base_cost, digits=0 )
 end
 
+"""
+Adjust the thing in `target` so that the net cost of the changes in `sys`
+is close to `base_cost`
+"""
 function equalise( 
     target :: EqTargets,
     sys :: TaxBenefitSystem{T}, 
@@ -75,7 +83,7 @@ function equalise(
 
     incch = solve( zerorun, things )
     #
-    # test incch in sensible 
+    # TODO test incch in sensible 
     return incch
 end
 
