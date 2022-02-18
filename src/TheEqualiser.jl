@@ -38,32 +38,31 @@ mutable struct RunParameters{T<:AbstractFloat}
     obs    :: Observable
 end
 
-# todo another poss approach ... 
+# TODO another possible approach is to pass in editing
+# functions such as:
 function op_tax!( sys :: TaxBenefitSystem{T}, r :: T ) where T <: Number
-    things.params.it.non_savings_rates .+= x
+    sys.it.non_savings_rates .+= r
 end
 
-function run( x :: Number, things :: RunParameters )
-    nsr = deepcopy( things.params.it )
-    nsi = deepcopy( things.params.ni )
-  
-    if things.target in [eq_it, eq_it_ni]
-        things.params.it.non_savings_rates .+= x
+function run( x :: Number, rparams :: RunParameters )
+    nsr = deepcopy( rparams.params.it )
+    nsi = deepcopy( rparams.params.ni )
+    if rparams.target in [eq_it, eq_it_ni]
+        rparams.params.it.non_savings_rates .+= x
     end
     # TODO check sensible it rates
-    if things.target in [eq_ni, eq_it_ni]
-        things.params.ni.primary_class_1_rates .+= x
-        things.params.ni.class_4_rates .+= x
+    if rparams.target in [eq_ni, eq_it_ni]
+        rparams.params.ni.primary_class_1_rates .+= x
+        rparams.params.ni.class_4_rates .+= x
     end
-    # TODO check sensible ni rates
-    
-    results = do_one_run(things.settings, [things.params], things.obs )
+    # TODO check sensible ni rates    
+    results = do_one_run(rparams.settings, [rparams.params], rparams.obs )
     # restore
-    things.params.it = nsr
-	things.params.ni = nsi
-	summary = summarise_frames(results, things.settings)
-	nc = summary.income_summary[1][1,:net_cost]
-	return round( nc - things.base_cost, digits=0 )
+    rparams.params.it = nsr
+    rparams.params.ni = nsi
+    summary = summarise_frames(results, rparams.settings)
+    nc = summary.income_summary[1][1,:net_cost]
+    return round( nc - rparams.base_cost, digits=0 )
 end
 
 """
@@ -75,15 +74,12 @@ function equalise(
     sys :: TaxBenefitSystem{T}, 
     settings :: Settings,
     base_cost :: T,
-    observer :: Observable ) :: T where T<:Number
-    
+    observer :: Observable ) :: T where T<:Number  
     zerorun = ZeroProblem( run, 0.0 ) # fixme guess at 0.0 ?
-
-    things = RunParameters( sys, settings, base_cost, target, observer )
-
-    incch = solve( zerorun, things )
+    rparams = RunParameters( sys, settings, base_cost, target, observer )
+    incch = solve( zerorun, rparams )
     #
-    # TODO test incch in sensible 
+    # TODO test incch is sensible 
     return incch
 end
 
