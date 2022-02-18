@@ -117,4 +117,7 @@ export STBOutput
 include( "Runner.jl" )
 export Runner
 
+include( "TheEqualiser.jl" )
+export TheEqualiser
+
 end
