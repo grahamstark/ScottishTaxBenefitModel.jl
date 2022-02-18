@@ -3,7 +3,10 @@ module TheEqualiser
 # this module automatically adjusts taxes
 # so the net cost of benefit or other changes
 # is zero
-
+# TODO needs a lot of work:
+# - more options
+# - check results are in bounds
+# 
 using Roots
 using UUIDs
 using Observables
@@ -62,6 +65,7 @@ end
 function equalise( 
     target :: EqTargets,
     sys :: TaxBenefitSystem{T}, 
+    settings :: Settings,
     base_cost :: T,
     observer :: Observable ) :: T where T<:Number
     

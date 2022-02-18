@@ -52,4 +52,5 @@ if IS_LOCAL
 	include( "weighting_tests.jl")
     include( "uc_transition_tests.jl")
     include( "simple_runner_tests.jl")
+    include( "equaliser_tests.jl")
 end
