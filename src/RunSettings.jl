@@ -51,8 +51,8 @@ module RunSettings
         dump_frames :: Bool = false
         num_households :: Int = 0
         num_people :: Int = 0
-        prices_file = "indexes_sep_1_2021.tab"
-        to_y :: Int = 2021
+        prices_file = "indexes.tab"
+        to_y :: Int = 2022
         to_q :: Int = 2
         output_dir :: String = joinpath(tempdir(),"output")
         means_tested_routing :: MT_Routing = uc_full

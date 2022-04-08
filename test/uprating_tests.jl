@@ -27,5 +27,5 @@ print( prfr )
     pers.income[wages] = 100.0
     uprate!( hh )
     # FIXME hardly a test & needs changed every time the index changes
-    @test pers.income[wages] ≈ 100*19.66933/15.1875 # 2021q2 av wages index
+    @test pers.income[wages] ≈ 100*20.17/14.87 # 2022q2 av wages index
 end

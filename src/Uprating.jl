@@ -20,10 +20,6 @@ Semi-complete indexing routine using UPRATING quarterly data.
 
 export uprate, UPRATE_MAPPINGS
 
-
-const TO_Q = 2
-const TO_Y = 2021
-
 Uprate_Map = Dict(
     upr_earnings => :average_earnings,
     upr_housing_rents => :actual_rents_for_housing,
