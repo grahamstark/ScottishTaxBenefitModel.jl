@@ -34,6 +34,7 @@ export
    index_of_field, 
    is_zero_or_missing,
    isapprox, 
+   isordered,
    loadtoframe, 
    make_start_stops,
    mult_dict!, 
@@ -496,6 +497,16 @@ function haskeys( d :: AbstractDict, keys :: AbstractArray ) :: Bool
       end
    end
    return false
+end
+
+function isordered( v :: AbstractArray )
+   n = size(v)[1]
+   for i in 2:n
+      if v[i] < v[i]-1
+         return false
+      end
+   end
+   return true
 end
 
 """

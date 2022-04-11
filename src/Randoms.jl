@@ -1,5 +1,8 @@
 module Randoms
 
+using ScottishTaxBenefitModel
+using .Utils:isordered
+
 #=
 Some functions to make a huge, 60 digit random number, and extract 
 groups of digits from it.
@@ -12,9 +15,11 @@ repeatable but kinda-sort random numbers.
 export 
     DLA_TO_PIP,
     UC_TRANSITION,
+    R_EMPLOYERS_PENSION,
     mybigrand, 
     mybigrandstr, 
     randchunk, 
+    pickfirst,
     strtobi, 
     testp
     
@@ -23,6 +28,7 @@ const BR_DIGITS = 60
 
 const DEFAULT_CHUNK_SIZE = 8
 const DLA_TO_PIP = 1
+const R_EMPLOYERS_PENSION = 7
 const UC_TRANSITION = 9
 
 """
@@ -44,6 +50,23 @@ function testp( b :: String, thresh :: Real, start :: Int ) :: Bool
     p = randchunk( b, start ) 
     # println( "thresh=|$thresh| p=$p")
     return thresh > p
+end
+
+"""
+given a set of thresholds e.g 0.1, 0.2 .. 1 pick the first less 
+than or equal to the random from b,start
+"""
+function pickfirst( b :: String, start :: Int, thresholds :: Vector ) :: Int
+    @assert thresholds[end] ≈ 1.0
+    @assert( isordered(thresholds))
+    r = randchunk( b, start)
+    n = size( thresholds )[1]
+    for i in 1:n
+        if r <= thresholds[i]
+            return i
+        end
+    end
+    # FAIL here on purpose
 end
 
 """

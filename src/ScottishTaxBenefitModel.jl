@@ -45,6 +45,9 @@ export Weighting
 include( "HistoricBenefits.jl")
 export HistoricBenefits
 
+include( "Pensions.jl")
+export Pensions
+
 include("HouseholdFromFrame.jl" )
 export HouseholdFromFrame
 

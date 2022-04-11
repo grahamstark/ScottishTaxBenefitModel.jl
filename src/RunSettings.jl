@@ -71,6 +71,7 @@ module RunSettings
         target_mr_rr_income :: TargetBCIncomes = ahc_hh 
         mr_incr = 0.001
         requested_threads = 1
+        impute_employer_pension = true
     end
 
     const DEFAULT_SETTINGS = Settings()

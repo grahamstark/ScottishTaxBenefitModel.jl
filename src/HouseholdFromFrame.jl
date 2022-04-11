@@ -20,6 +20,7 @@ using .EquivalenceScales: EQScales
 using .Utils: not_zero_or_missing
 using .Randoms: strtobi
 using .RunSettings
+using .Pensions: impute_employer_pension!
 
 export 
     create_regression_dataframe,
@@ -245,6 +246,9 @@ function map_person(
     make_benefit_ratios!( 
         pers, hh.interview_year, hh.interview_month )
     switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
+    if settings.impute_employer_pension
+        impute_employer_pension!( pers )
+    end
     return pers;
 end
 
