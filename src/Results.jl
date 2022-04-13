@@ -465,11 +465,23 @@ module Results
             aggregate!( bu )
             hres.income .+= bu.income
         end
+        #
+        # FIXME it's possible we need BU net incomes as well
+        #
         hres.bhc_net_income = calc_net_income( hres.income ) 
         # - 
         #     hres.bus[1].uc.housing_element 
         #    hres.income[HOUSING_BENEFIT] - 
         #    hres.income[COUNCIL_TAX_BENEFIT]
+
+        #
+        # count pension relief at source as net income (but not as negative income tax)
+        #
+        for bu in hres.bus
+            for (pid,pers) in bu.pers
+                hres.bhc_net_income += pers.it.pension_relief_at_source
+            end
+        end
         if hres.bhc_net_income <= 0 
             println("zero bhc_net_income for seq=$(hh.sequence); hid=$(hh.hid) year=$(hh.interview_year) ")
             println("income")

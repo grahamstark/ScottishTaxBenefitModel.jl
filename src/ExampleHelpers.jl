@@ -81,7 +81,9 @@ function unemploy!( pers::Person )
     pers.employment_status = Unemployed 
     delete!( pers.income, wages )  
     delete!( pers.income, self_employment_income ) 
- end
+    delete!( pers.income, pension_contributions_employee ) 
+    delete!( pers.income, pension_contributions_employer )  
+end
  
  function employ!( pers::Person, wage=600.00 )
     pers.usual_hours_worked = 40

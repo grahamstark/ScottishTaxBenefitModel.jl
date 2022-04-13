@@ -302,7 +302,10 @@ function calc_income_tax!(
             st = 0.0
         end
     end
+    
+    # total_tax -= pres.it.pension_relief_at_source 
     pres.income[INCOME_TAX] = total_tax
+    
     pres.it.taxable_income = taxable_income
     pres.it.allowance = allowance
     pres.it.total_income = total_income
@@ -430,6 +433,7 @@ function calc_income_tax!(
         println( head.income )
         println( hdres.it )
         println( hdres.income )
+    
         @assert false "income tax can't be negative; head; pid=$(head.pid)"
     end
     if hdres.it.non_savings_tax > hdres.income[INCOME_TAX]

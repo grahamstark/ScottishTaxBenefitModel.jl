@@ -325,7 +325,10 @@ const EXTRA_INC_COLS = 10
         # some aggregate income fields    
         ir.income_tax -=  pres.it.pension_relief_at_source   
         ir.employers_ni = pres.ni.class_1_secondary
+        
+        ## FIXME the pension_relief thing might not be quite right
         ir.scottish_income_tax = pres.it.non_savings_tax - pres.it.pension_relief_at_source
+
         ir.total_benefits = isum( pres.income, BENEFITS ) 
         ir.legacy_mtbs  = isum( pres.income, LEGACY_MTBS )
         ir.means_tested_bens = isum( pres.income, MEANS_TESTED_BENS )
