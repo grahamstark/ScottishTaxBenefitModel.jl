@@ -343,7 +343,7 @@ const EXTRA_INC_COLS = 10
         ir.age_band = age_range( pers.age )
         ir.is_child = from_child_record
         ir.employers_ni = pres.ni.class_1_secondary
-        ir.net_cost = isum( pres.income, NET_COST ) - ir.pension_relief_at_source
+        ir.net_cost = isum( pres.income, NET_COST ) + ir.pension_relief_at_source
         
     end
 
