@@ -441,7 +441,7 @@ module STBParameters
         secondary_class_1_bands :: RateBands{RT} = [166.0, 962.0, 99999999999999.9 ]
         state_pension_age :: Int = 66; # fixme move
         class_2_threshold ::RT = 6_365.0;
-        class_2_rate ::RT = 3.00;
+        class_2_rate :: RT = 3.00;
         class_4_rates :: RateBands{RT} = [0.0, 9.0, 2.0 ]
         class_4_bands :: RateBands{RT} = [8_632.0, 50_000.0, 99999999999999.9 ]
         class_1_income = IncludedItems([WAGES],[PENSION_CONTRIBUTIONS_EMPLOYER])
