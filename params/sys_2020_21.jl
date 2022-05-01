@@ -332,5 +332,3 @@ sys.ubi.child_amount= 3_000.0
 sys.ubi.universal_pension = 8_780.0
 sys.ubi.adult_age = 17
 sys.ubi.retirement_age = 66
-
-weeklyise!( sys )
