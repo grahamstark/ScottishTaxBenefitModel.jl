@@ -212,8 +212,8 @@ function calc_income_tax!(
             # println( "taxable income $taxable_income sys.savings_thresholds[2] $(sys.savings_thresholds[2])")
             if taxable_income > sys.savings_thresholds[toprate]
                 psa = 0.0
-            elseif taxable_income > sys.savings_thresholds[2] # above the basic rate
-                psa *= 0.5 # FIXME parameterise this
+            elseif taxable_income > sys.savings_thresholds[2] # above the basic rate FIXME parameterise '2' here
+                psa *= 0.5 # FIXME parameterise 0.5 here
             end
             if psa > 0.0 ## if we haven't deleted the zero band already, just widen it
                 if savings_rates[1] == 0.0

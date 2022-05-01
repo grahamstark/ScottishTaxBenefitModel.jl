@@ -1,12 +1,13 @@
 using CSV,DataFrames,Statistics,StatsBase
 
-frs_all_years_scot_he = create_frs( 2015:2018 )
-shs_all_years = create_shs( 2016:2018 ) 
+include( "matching/matching_funcs.jl")
+
+frs_all_years_scot_he = create_frs( 2015:2019 )
+shs_all_years = create_shs( 2016:2019 ) 
     
 donor,recip = create_donor_and_recip_datasets( frs_all_years_scot_he, shs_all_years )
 
 
-include( "matching_funcs.jl")
 #
 # save everything
 #
@@ -17,8 +18,8 @@ CSV.write( "data/merging/frs_all_years_scot_he.tab", frs_all_years_scot_he )
 
 make_initial_match!( recip, donor )
 
-# CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
-# CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
+CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
+CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
 
 # donor = CSV.File( "data/merging/shs_donor_data.tab"; types=Dict(:uniqidnew => String))|>DataFrame
 # recip = CSV.File( "data/merging/frs_recip_data.tab" ) |> DataFrame

@@ -11,3 +11,5 @@ sys.uc.couple_oldest_25_plus = 509.91
 sys.lmt.working_tax_credit.basic = 2_005
 
 ## FIXME JSA/ESA/IS/HB no uplift ??? Think so.
+
+Income fall disregard CTC

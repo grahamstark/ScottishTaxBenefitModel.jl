@@ -186,9 +186,10 @@ function loadshs( year::Int )::DataFrame
 	ystr = "$(year)$(year+1)"
 	fname = "$(DIR)/shs/$(ystr)/tab/shs20$(year)_social_public.tab"
 	println( "loading '$fname'" )
+
 	shs = CSV.File( fname; 
-	    missingstring=["NA",""],
-	    types=Dict(:uniqidnew => String,:UNIQIDNEW=>String)) |> DataFrame
+	    missingstring=["NA",""],normalizenames=true,
+	    types=Dict(:UNIQIDNEW=>String)) |> DataFrame
 	lcnames = Symbol.(lowercase.(string.(names(shs))))
     rename!(shs,lcnames)
     shs[!,:datayear] .= year

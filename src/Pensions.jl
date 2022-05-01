@@ -25,7 +25,7 @@ export impute_employer_pension!
 #
 # const FREQS = ProbabilityWeights([1.1,34.5,20.1,4.8,3.6,10.9,13.4,11.6]./100.0)
 const FREQS = cumsum( [1.1,34.5,20.1,4.8,3.6,10.9,13.4,11.6]./100.0 )
-const CONTRIBS = [0:0,0.01:0.01:4,4.01:0.01:8,8.01:0.01:10,10.01:0.01:12,12.01:0.01:15,15.01:0.01:20,20.01:30]./100.0
+const CONTRIBS = [0:0,0.01:0.01:4,4.01:0.01:8,8.01:0.01:10,10.01:0.01:12,12.01:0.01:15,15.01:0.01:20,20.01:25]./100.0
 
 function impute_employer_pension!( pers :: Person )
     if pers.employment_status in [Full_time_Employee,Part_time_Employee]
