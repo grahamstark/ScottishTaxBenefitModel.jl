@@ -104,9 +104,10 @@ function calculate_pension_taxation!(
     pres.it.dividend_thresholds = copy( sys.dividend_thresholds )
     pres.it.non_savings_thresholds = copy( sys.non_savings_thresholds )
     # fixme check avs here
+    # FIXME not right?
     avc = pres.income[AVCS]
     pen = pres.income[PENSION_CONTRIBUTIONS_EMPLOYEE] +
-          pres.income[PENSION_CONTRIBUTIONS_EMPLOYER]
+        pres.income[PENSION_CONTRIBUTIONS_EMPLOYER]
     eligible_contribs = avc + pen
     if eligible_contribs <= 0.0
         return

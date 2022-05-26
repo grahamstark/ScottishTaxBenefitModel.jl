@@ -32,8 +32,6 @@ using DataFrames,CSV, Dates
 # 
 const IS_LOCAL = isdir("/mnt/data/frs/")
 
-const DEFAULT_SETTINGS = Settings()
-
 # pids for example people
 # see make_pid 
 const RUK_PERSON = 320190010101
@@ -84,7 +82,7 @@ function to_nearest_p( x, y :: Real, ps :: Real = 1 ) :: Bool
    # round(x, digits=2) == round(y, digits=2)
 end
 
-function init_data(; reset :: Bool = false, settings = DEFAULT_SETTINGS )
+function init_data(; reset :: Bool = false, settings = Settings() )
    nhh = get_num_households()
    num_people = -1
    if( nhh == 0 ) || reset 

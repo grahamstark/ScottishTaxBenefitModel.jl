@@ -108,7 +108,7 @@ end
     
 
     rc = @timed begin
-        num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( DEFAULT_SETTINGS )
+        num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )
     end
     println( "num_households=$num_households, num_people=$(total_num_people)")
     BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" ) 

@@ -21,7 +21,7 @@ One big advantage is that SB has a nice modular structure. Running accross a sin
 function do_one_calc( 
     hh :: Household{T}, 
     sys :: TaxBenefitSystem{T},
-    settings :: Settings = DEFAULT_SETTINGS ) :: HouseholdResult{T} where T
+    settings :: Settings = Settings() ) :: HouseholdResult{T} where T
 ```
 (From [SingleHouseholdCalculations.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/SingleHouseholdCalculations.jl))
 

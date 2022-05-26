@@ -45,7 +45,7 @@ end # example tests
 
     if IS_LOCAL
         rc = @timed begin
-            num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( DEFAULT_SETTINGS )
+            num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )
         end
         r = 0
         df = DataFrame( typ=["Job Seekers", "Disabled", "W/Children", "W/Housing", "Other", "Total"], legacy=zeros(6), uc=zeros(6))

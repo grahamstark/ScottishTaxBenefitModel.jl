@@ -66,7 +66,7 @@ weeklyise!( sys21_22; wpy=52, wpm=PWPM  )
         "couple", 
         0, 
         0 )
-    printbcs( hh, sys21_22, 20, DEFAULT_SETTINGS)
+    printbcs( hh, sys21_22, 20, Settings())
     println("6 bedrooms; 6 kids; 300 hcost")
     hh = crude_construct_hh( 
         "council", 
@@ -75,7 +75,7 @@ weeklyise!( sys21_22; wpy=52, wpm=PWPM  )
         "couple", 
         2, 
         4 )
-    printbcs( hh, sys21_22, 20, DEFAULT_SETTINGS)
+    printbcs( hh, sys21_22, 20, Settings())
 
 
 

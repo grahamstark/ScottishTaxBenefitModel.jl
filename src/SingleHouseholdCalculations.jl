@@ -10,8 +10,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 
 using .RunSettings:
-    Settings,
-    DEFAULT_SETTINGS
+    Settings
 
 using .Results: 
     IndividualResult,
@@ -91,7 +90,7 @@ One complete calculation for a single household and tb system.
 function do_one_calc( 
     hh :: Household{T}, 
     sys :: TaxBenefitSystem{T},
-    settings :: Settings = DEFAULT_SETTINGS ) :: HouseholdResult{T} where T
+    settings :: Settings = Settings() ) :: HouseholdResult{T} where T
     # hh = deepcopy( mhh ) # for minwage and so on
 
     bus = get_benefit_units( hh )

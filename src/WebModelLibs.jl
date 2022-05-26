@@ -23,6 +23,7 @@ using .ModelHousehold
 using .Utils
 using .MiniTB
 using .GeneralTaxComponents
+using .RunSettings
 using .Definitions
 
 export do_one_run, local_makebc, load_data
@@ -34,7 +35,7 @@ function load_data(; load_examples::Bool, load_main :: Bool, start_year = 2015 )
    example_names = Vector{AbstractString}()
    num_households = 0
    if load_examples
-      example_names = ExampleHouseholdGetter.initialise(DEFAULT_SETTINGS)
+      example_names = ExampleHouseholdGetter.initialise(Settings())
    end
    if load_main
       rc = @timed begin
@@ -289,7 +290,7 @@ end
 function local_makebc(
     person :: MiniTB.Person,
     tbparams :: MiniTB.TBParameters,
-    settings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: NamedTuple
+    settings :: BCSettings = BudgetConstraints.Settings() ) :: NamedTuple
    data = Dict( :person=>person, :params=>tbparams )
    bc = BudgetConstraints.makebc( data, local_getnet, settings )
    annotations = annotate_bc( bc )

@@ -29,7 +29,7 @@ wpy=52
 weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
 println(  "weeklyise start wpm=$wpm wpy=$wpy")
 
-settings = DEFAULT_SETTINGS
+settings = Settings()
 
 @testset "Single Person, No Housing Costs 19/Sep/2021 values (without £20)" begin
 

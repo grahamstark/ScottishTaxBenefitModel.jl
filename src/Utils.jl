@@ -47,6 +47,7 @@ export
    operate_on_struct!, 
    pretty, 
    qstrtodict, 
+   riskyhash,
    to_md_table,
    todays_date, 
    uprate_struct!
@@ -208,7 +209,8 @@ end
 #
 # this has a higher top income than the BC default
 #
-const BC_SETTINGS = BCSettings(0.0,20_000.0,DEFAULT_SETTINGS.increment,DEFAULT_SETTINGS.tolerance,true,DEFAULT_SETTINGS.maxdepth)
+const DSETT = BudgetConstraints.DEFAULT_SETTINGS
+const BC_SETTINGS = BCSettings(0.0,20_000.0,DSETT.increment,DSETT.tolerance,true,DSETT.maxdepth)
 
 """
 finds the matches for a single recipient tuple `recip` in a data set `donor`.
@@ -711,5 +713,47 @@ function to_md_table( f; exclude=[], depth=0 ) :: String
     return s;
 end
 
+"""
+Hash of all (??) the elements of the things in the struct `things`
+"""
+function riskyhash( f, h :: UInt = UInt(0) ) :: UInt
+      F = typeof(f)
+      @assert isstructtype( F )
+      names = fieldnames(F)
+      prinames = []
+      structnames = []
+
+      for n in names
+         v = getfield(f,n)
+         T = typeof(v)
+         if is_a_struct( T )
+            push!(structnames, n )
+         else
+            push!(prinames, n )
+         end
+      end
+      for n in prinames
+         v = getfield(f,n)
+         h = hash( v, h )
+      end
+      for n in structnames
+         v = getfield(f,n)
+         h = riskyhash( v, h )
+      end
+   return h
+end # riskyhash
+
+"""
+Hash value of a collection of things, each of which should be
+a struct of some sort. I'm sure a Proper Developer would decide that 
+this is A Bad Thing, but it's useful for caching in some visualisation apps.
+"""
+function riskyhash( things :: AbstractVector )
+   h = UInt(0)
+   for f in things
+      h = riskyhash( f, h )
+   end
+   h
+end
 
 end # module

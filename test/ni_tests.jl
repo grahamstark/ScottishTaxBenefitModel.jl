@@ -14,7 +14,7 @@ using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .FRSHouseholdGetter: get_household
 using .Results: IndividualResult, map_incomes
 using .ExampleHelpers
-using .RunSettings: Settings, DEFAULT_SETTINGS
+using .RunSettings: Settings
 
 
 @testset "Run on actual Data" begin
@@ -55,7 +55,7 @@ end #
     # BASIC IT Calcaulation on
     nisys = NationalInsuranceSys{Float64}()
     weeklyise!( nisys )
-    @time names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    @time names = ExampleHouseholdGetter.initialise( Settings() )
     income = [110.0,145.0,325,755.0,1_000.0]
     nidue = [(0.0,false),(0.0,true),(19.08,true),(70.68,true),(96.28,true)]
     niclass1sec = [0.0,0.0,21.94,81.28,115.09]

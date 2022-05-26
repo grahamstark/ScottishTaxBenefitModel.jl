@@ -50,7 +50,7 @@ end
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
 
-    @time names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS)
+    @time names = ExampleHouseholdGetter.initialise( Settings())
     income = [11_730,14_493,30_000,33_150.0,58_600,231_400]
     ntests = size(income)[1]
     for i in 1:ntests-1
@@ -86,7 +86,7 @@ end # example 1
 @testset "Melville 2019 ch2 example 2; personal savings allowance" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     scottish = ExampleHouseholdGetter.get_household( "mel_c2_scot" )
     income = [20_000,37_501,64_000,375_000.0]
@@ -106,7 +106,7 @@ end # example 2
 @testset "ch2 example 3; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     tax_due_scotland = 5680.07
@@ -133,7 +133,7 @@ end # example 3
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
 
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     tax_due_ruk = 840.00
@@ -154,7 +154,7 @@ end # example 4
 @testset "ch2 example 5; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     tax_due_ruk = 11_232.00
@@ -175,7 +175,7 @@ end # example 5
 @testset "ch2 example 6; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
 
@@ -196,7 +196,7 @@ end # example 6
 @testset "ch2 example 7; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.income[self_employment_income] = 10_000.00
@@ -224,7 +224,7 @@ end # example 7
 @testset "ch2 example 8; simple stocks_shares" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.income[property] = 28_590.00
@@ -248,7 +248,7 @@ end # example 8
 @testset "ch2 example 9; simple stocks_shares" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.income[private_pensions] = 17_750.00
@@ -272,7 +272,7 @@ end # example 9
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
 
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.income[self_employment_income] = 110_520.00
@@ -298,7 +298,7 @@ end # example1 ch3
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
 
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     head = scot.people[SCOT_HEAD]
     spouse = scot.people[SCOT_SPOUSE]
@@ -321,7 +321,7 @@ end # example 2 ch3
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
 
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
     pers = ruk.people[RUK_PERSON]
     pers.registered_blind = true
@@ -340,7 +340,7 @@ end
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
 
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     head = scot.people[SCOT_HEAD]
     spouse = scot.people[SCOT_SPOUSE]
@@ -388,7 +388,7 @@ end
 @testset "pension contributions tax relief standard case:  - Melville ch14 example 2(b)" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     alana = scot.people[SCOT_HEAD]
     alana.income = Incomes_Dict{Float64}() # clear
@@ -413,7 +413,7 @@ end
 @testset "pension: Tax Relief Minima - Melville ch14 ex1(a)"  begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
     gordon.income = Incomes_Dict{Float64}() # clear
@@ -443,7 +443,7 @@ end
 @testset "pension: Tax Relief Annual Allowance Charge"  begin
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
-    names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+    names = ExampleHouseholdGetter.initialise( Settings() )
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
     gordon = scot.people[SCOT_HEAD]
     gordon.income = Incomes_Dict{Float64}() # clear

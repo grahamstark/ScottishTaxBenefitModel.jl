@@ -26,7 +26,7 @@ start_year=2015
 println( "num_households=$(get_num_households())")
 
 #if get_num_households() == 0
-@time nhh,total_num_people,nhh2 = initialise( DEFAULT_SETTINGS )
+@time nhh,total_num_people,nhh2 = initialise( Settings() )
 
 #end
 

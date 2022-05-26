@@ -34,8 +34,6 @@ begin
 # 
 const IS_LOCAL = isdir("/mnt/data/frs/")
 
-const DEFAULT_SETTINGS = RunSettings.Settings()
-
 # pids for example people
 # see make_pid 
 const RUK_PERSON = 320190010101
@@ -90,7 +88,7 @@ function init_data(; reset :: Bool = false )
    nhh = get_num_households()
    num_people = -1
    if( nhh == 0 ) || reset 
-      @time nhh, num_people,nhh2 = initialise( DEFAULT_SETTINGS )
+      @time nhh, num_people,nhh2 = initialise( Settings() )
    end
    (nhh,num_people)
 end

@@ -24,7 +24,7 @@ load_file!( sys21_22, "../params/budget_2021_uc_changes.jl")
 
 println( "weeklyise start wpm=$PWPM wpy=52")
 weeklyise!( sys21_22; wpy=52, wpm=PWPM  )
-settings = DEFAULT_SETTINGS
+settings = Settings()
 
 @testset "Single Pensioner from AGEUK" begin
 

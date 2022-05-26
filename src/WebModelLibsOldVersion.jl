@@ -34,7 +34,7 @@ function load_data(; load_examples::Bool, load_main :: Bool, start_year = 2015 )
    if load_main
       rc = @timed begin
          num_households,num_people,nhh2 =
-            FRSHouseholdGetter.initialise( DEFAULT_SETTINGS )
+            FRSHouseholdGetter.initialise( Settings() )
       end
       mb = trunc(Integer, rc[3] / 1024^2)
       @info "loaded data; load time $(rc[2]); memory used $(mb)mb; loaded $num_households households\nready..."
@@ -281,7 +281,7 @@ end
 function local_makebc(
     person :: MiniTB.Person,
     tbparams :: MiniTB.TBParameters,
-    settings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: NamedTuple
+    settings :: BCSettings = BudgetConstraints.Settings() ) :: NamedTuple
    data = Dict( :person=>person, :params=>tbparams )
    bc = BudgetConstraints.makebc( data, local_getnet, settings )
    annotations = annotate_bc( bc )

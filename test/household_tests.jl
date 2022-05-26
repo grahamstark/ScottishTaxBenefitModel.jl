@@ -26,7 +26,7 @@ using .ModelHousehold:
       num_people,
       printpids
 
-using .RunSettings: Settings, DEFAULT_SETTINGS
+using .RunSettings: Settings
 using .TimeSeriesUtils: fy_from_bits
 
 using .Definitions
@@ -46,7 +46,7 @@ nhh2 = 0
 # pyplot()
 
 rc = @timed begin
-      num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( DEFAULT_SETTINGS )
+      num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )
 end
 println( "num_households=$num_households, num_people=$(total_num_people)")
 
@@ -151,7 +151,7 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
 end
 
 @testset "people search functions" begin
-      @time names = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+      @time names = ExampleHouseholdGetter.initialise( Settings() )
       hh = ExampleHouseholdGetter.get_household( "single_parent_1" )  
       printpids( hh.people ) 
       @test num_people( hh ) == 3

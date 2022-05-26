@@ -2,18 +2,18 @@ using Test
 using ScottishTaxBenefitModel.Uprating
 using DataFrames
 using ScottishTaxBenefitModel
-using .RunSettings: Settings, DEFAULT_SETTINGS
+using .RunSettings: Settings
 using .ModelHousehold
 using .ExampleHouseholdGetter
 using .FRSHouseholdGetter
 using .Definitions
 using .ExampleHelpers
 
-prfr = Uprating.load_prices( DEFAULT_SETTINGS )
+prfr = Uprating.load_prices( Settings() )
 
 print( prfr )
 
-@time thesenames = ExampleHouseholdGetter.initialise( DEFAULT_SETTINGS )
+@time thesenames = ExampleHouseholdGetter.initialise( Settings() )
 
 ## NOTE this test has the 2019 OBR data and 2019Q4 as a target jammed on - will need
 ## changing with update versions

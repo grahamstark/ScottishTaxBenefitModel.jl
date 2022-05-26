@@ -21,8 +21,7 @@ using .Definitions
 end
 
 @testset "Pension correction test on full dataset" begin
-    settings = DEFAULT_SETTINGS
-    nhhs,npeople = init_data( reset = true, settings )
+    nhhs,npeople = init_data( reset = true, Settings() )
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
 
     for hno in 1:nhhs

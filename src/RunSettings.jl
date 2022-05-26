@@ -10,7 +10,6 @@ module RunSettings
 
     export 
         Settings,
-        DEFAULT_SETTINGS,
         MT_Routing,
         uc_full,
         lmt_full,
@@ -73,7 +72,5 @@ module RunSettings
         requested_threads = 1
         impute_employer_pension = true
     end
-
-    const DEFAULT_SETTINGS = Settings()
 
 end
