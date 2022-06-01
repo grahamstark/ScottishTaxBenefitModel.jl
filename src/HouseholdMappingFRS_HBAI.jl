@@ -1,7 +1,10 @@
 #
-# This contains most of the functions used to create our model dataset from raw FRS/SHS data.
+# This contains most of the functions used to create our model dataset from raw FRS/SHS/HBAI data.
 #
-
+# This is for 2015-2019 FRS/HBAI; you likely need to alter this by hand
+# as years are added. 
+# 
+#
 using DataFrames
 using CSV
 
@@ -36,8 +39,7 @@ function is_in_hbai(
   ad_hbai = hbai_res[((hbai_res.sernum.==sernum ).&
                       ((hbai_res.personhd.==person).|(hbai_res.personsp.==person)) .&
                       (hbai_res.benunit.==benunit)), :]
-  size( ad_hbai )[1]>0
-
+  return size( ad_hbai )[1]>0
 end
 
 """
@@ -84,8 +86,7 @@ function is_in_hbai(
   sernum::Integer   ) :: Bool
 
   ad_hbai = hbai_res[(hbai_res.sernum.==sernum ), :]
-  size( ad_hbai )[1]>0
-
+  return size( ad_hbai )[1]>0
 end
 
 #
@@ -1428,6 +1429,7 @@ function create_household(
 end
 
 const HBAIS = Dict(
+    
     2018 => "h1819.tab",
     2017 => "h1718.tab",
     2016 => "hbai1617_g4.tab",
@@ -1454,9 +1456,23 @@ function loadfrs(which::AbstractString, year::Integer)::DataFrame
 end
 
 function create_data()
+    #
+    # every time I do this the HBAI has been re-arranged
+    # now, there's one file for the years 2015-2019; despite the name
+    # the variables we use aren't uprated. See:
+    # `5828_hbai_1920_harmonised_dataset_variables_guide.xlsx`
+    # in the doc bundle 
+    #
+    hbai_res = loadtoframe("$(HBAI_DIR)/tab/i1518e_1920prices.tab")
+    hbai_res = vcat( hbai_res, loadtoframe("$(HBAI_DIR)/tab/i1820e_1920prices.tab"))
+
     # model_households = initialise_household(0)
     # model_people = initialise_person(0)
-    for year in 2015:2018
+
+    hbai_year = 21 # hbai year counter; 1994/5 == 1 => 2015 == 22
+
+    for year in 2015:2019
+        hbai_year += 1
         print("on year $year ")
         appendb = year > 2015
         y = year - 2000
@@ -1464,7 +1480,7 @@ function create_data()
         # we only want this massive thing for a couple of
         # benefit variables.
         frsx = loadfrs( "frs$ystr", year )
-        hbai_res = loadtoframe("$(HBAI_DIR)/tab/"*HBAIS[year])
+        
         accounts = loadfrs("accounts", year)
         benunit = loadfrs("benunit", year)
         extchild = loadfrs("extchild", year)
@@ -1488,7 +1504,12 @@ function create_data()
         owner = loadfrs("owner", year)
         renter = loadfrs("renter", year)
 
-        model_children_yr = create_children(year, child, chldcare, hbai_res, benefits )
+        model_children_yr = create_children(
+            year, 
+            child, 
+            chldcare, 
+            hbai_res[(hbai_res.year .== hbai_year),:], benefits )
+
         # append!(model_people, model_children_yr)
         model_adults_yr = create_adults(
             year,
@@ -1511,7 +1532,7 @@ function create_data()
             benefits,
             endowmnt,
             job,
-            hbai_res,
+            hbai_res[(hbai_res.year .== hbai_year),:],
             frsx )
         # append!(model_people, model_adults_yr)
         model_households_yr = create_household(
@@ -1521,7 +1542,7 @@ function create_data()
             mortgage,
             mortcont,
             owner,
-            hbai_res )
+            hbai_res[(hbai_res.year .== hbai_year),:] )
         # append!(model_households, model_households_yr)
         println( "on year $year")
         println( "hhlds")
