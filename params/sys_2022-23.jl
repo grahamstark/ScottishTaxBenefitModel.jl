@@ -333,7 +333,7 @@ sys.bencap.inside_london_single = 296.35
 sys.bencap.inside_london_couple = 442.31
 sys.bencap.uc_incomes_limit = 617
 
-sys.scottish_child_payment.amount = 10.0
+sys.scottish_child_payment.amount = 20.0
 sys.scottish_child_payment.maximum_age = 5
 
 sys.ubi.abolished = true
