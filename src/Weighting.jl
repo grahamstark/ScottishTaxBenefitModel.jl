@@ -23,7 +23,6 @@ using DataFrames
 
 using SurveyDataWeighting: 
     DistanceFunctionType, 
-    ITERATIONS_EXCEEDED,
     chi_square,
     constrained_chi_square,
     d_and_s_constrained,
@@ -533,18 +532,17 @@ function generate_weights(
     println( "initial_weights $(initial_weights[1])")
 
      # any smaller min and d_and_s_constrained fails on this dataset
-    rw = do_reweighting(
+    weights = do_reweighting(
          data               = data,
          initial_weights    = initial_weights,
          target_populations = targets,
          functiontype       = weight_type,
          lower_multiple     = lower_multiple,
          upper_multiple     = upper_multiple,
-         tolx               = 0.000001,
-         tolf               = 0.000001 )
+         tol                = 0.000001 )
     # println( "results for method $weight_type = $(rw.rc)" )
-    @assert rw.rc[:error] == 0 "non zero return code from weights gen $(rw.rc)"
-    weights = rw.weights
+    # @assert rw.rc[:error] == 0 "non zero return code from weights gen $(rw.rc)"
+    # weights = rw.weights
     weighted_popn = (weights' * data)'
     # println( "weighted_popn = $weighted_popn" )
     @assert weighted_popn ≈ targets
