@@ -13,32 +13,31 @@ Notes (rough) on updating weighting targets. It's finnicky and boring, with noth
 
 <!--more-->
 
-This time I'm trying to include only hhld population. 
+It's tedious. Trawling through a [collection of spreasheets](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/tree/master/data/targets/aug-2022-updates) (sources for which below). 
+
+The main working spreadsheet is [target_generation.ods](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/data/targets/aug-2022-updates/target-generation.ods). (Open office file).
+
+This time I'm trying to include only hhld population. I found an [NRS table of estimates of the non household population by LA](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/data/targets/aug-2022-updates/2018-house-proj-source-data-alltabs.xlsx).
 
 Problems: 
 
-1. underpredict pensions, UBI if only using hhld popn
-2. disablement benefit stuff should exclude care homes
+1. using just households will underpredict pension costs and receipts, and also e.g. UBI;
+2. we target to disablement benefits but some of this will be received by those in care homes and I need to disaggregate that bit out and don't currently.
 
 Scaling popns: why is NOMIS 16+ popn lower? 
 
 Care Homes CPAGP 914
 "You cannot get AA,DLA care, PIP daily living" .. in a care home...
 
-AA in payment Nov 2021 123,909
-*
-*
-*
+There is a HUGE institutional popn in 16-19 age group esp Glasgow, Aberdeen, Dundee - students. Removing this is a big change.
 
-1st time doing this.
 
-HUGE institutional popn 16-19 esp Glasgow, Aberdeen, Dundee - students.
 
-Possible problem with benefit receipt adjustment for elderly
+Fiddly bits: 
 
-Fiddly: re-adjust popn groups 15-16 
+* re-adjust popn groups so there's a break at 15 (so all 16+ are in a group). This is needed to make employment stuff add up correctly (I think) since employment is for all 16+s. 
 
-Add Social-Economic group - maybe this will help proportion of higher earners.
+I'm also adding Social-Economic group - maybe this will help proportion of higher earners and so slightly fix income tax
 
 
 Sources:
