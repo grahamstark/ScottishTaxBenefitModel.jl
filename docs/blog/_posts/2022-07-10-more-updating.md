@@ -11,6 +11,10 @@ nav_exclude: true
 
 Notes (rough) on updating weighting targets. It's finnicky and boring, with nothing quite adding up without some hacks. One difference this time is that I'm trying to gross to the household populations (excluding students in student residences and those in care homes). Though this produces problems of its own.
 
+I'm writing this before I've actually integrated these targets into the model. It'll be interesting to see if there are many changes.
+
+Updating the model is wholly manual and takes several (unpaid!) days. Next, I've got a new year of FRS (and I think another Scottish Household Survey) to do, then uprating. Uprating is especially problematic given how inflation is going. Then more checks on updated parametes, then the new fuel costs payment, then some more thought on how to do fuel consumption and maybe all consumption. Finding time for this is hard, especially when the sun shines and I'd much rather be on the beach or people watching in a Shawlands cafe. Or even earning money with the day-jobs.
+
 <!--more-->
 
 It's tedious. Trawling through a [collection of spreasheets](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/tree/master/data/targets/aug-2022-updates) (sources for which below). 
