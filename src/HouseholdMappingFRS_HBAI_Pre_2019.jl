@@ -153,7 +153,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
     elseif jsa in [5,6]
         jtype = 3
     else
-        @assert false "$jsa not mapped"
+        @assert false "JSA: value |$jsa| not mapped"
     end 
     etype = -1
     esa = head ? af.esatyphd : af.esatypsp
@@ -166,7 +166,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
     elseif esa in [5,6]
         etype = 3
     else
-        @assert false "$esa not mapped"
+        @assert false "ESA: value |$esa| not mapped"
     end 
     return( jtype, etype )
 
@@ -1011,8 +1011,7 @@ function create_adults(
     job::DataFrame,
     hbai_res::DataFrame,
     frsx :: DataFrame,
-    override_se_and_wage_with_hbai :: Bool = true
-)::DataFrame
+    override_se_and_wage_with_hbai :: Bool = true )::DataFrame
 
     num_adults = size(frs_adults)[1]
     adult_model = initialise_person(num_adults)
@@ -1032,6 +1031,7 @@ function create_adults(
             frs_person.benunit,
             frs_person.person ) # fixme probably only need to check sernum
             adno += 1
+            model_adult = adult_model[adno, :]
             model_adult.onerand = mybigrandstr()
                 ## also for children
             model_adult = adult_model[adno, :]
@@ -1039,7 +1039,7 @@ function create_adults(
             model_adult.hid = frs_person.sernum
             model_adult.is_hrp = (frs_person.hrpid == 1) ? 1 : 0
 
-            model_adult.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
+            model_adult.pid = get_pid( FRS, year, frs_person.sernum, frs_person.person )
             model_adult.from_child_record = 0
             model_adult.data_year = year
             model_adult.default_benefit_unit = frs_person.benunit
@@ -1047,8 +1047,6 @@ function create_adults(
             model_adult.sex = safe_assign(frs_person.sex)
             model_adult.ethnic_group = safe_assign(frs_person.ethgr3)
             
-            
-
             hdsp = is_bu_head( 
                 hbai_res,
                 frs_person.sernum,
@@ -1479,8 +1477,13 @@ function create_data()
         ystr = "$(y)$(y+1)"
         # we only want this massive thing for a couple of
         # benefit variables.
+        #frsx = ""
+        # if year < 2019
         frsx = loadfrs( "frs$ystr", year )
-        
+        # else
+        #    frsx=CSV.File( "$(FRS_DIR)/$(year)/tab/frs1920.tab", missingstring=["", " "]) |> DataFrame
+        #  
+        # end
         accounts = loadfrs("accounts", year)
         benunit = loadfrs("benunit", year)
         extchild = loadfrs("extchild", year)
