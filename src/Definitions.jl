@@ -689,7 +689,9 @@ export Missing_SIC_2007
    Activities_of_extraterritorial_organisations_and_bodies = 99
 end
 
-
+#
+# FIXME simplfy names
+#
 export Standard_Occupational_Classification  # mapped from soc2010
 export Undefined_SOC,
        Managers_Directors_and_Senior_Officials,

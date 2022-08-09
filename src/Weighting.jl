@@ -42,7 +42,18 @@ export
 
 # FIXME rewrite this to load from a file.
 
-const DEFAULT_TARGETS_22 = [
+
+
+#
+# See `weighting_target_set_creation.md`
+# and `data/targets/aug-2022-updates/aug-22target_generation_worksheet.ods`
+# and the blog notes.
+# 
+# NOTE!! only 2022 targets will work now without reversion of the data creation - 
+# 1. 15-16 yo band change
+# 2. adding SOCXXXX targets
+
+const DEFAULT_TARGETS_2022 = [
     1_347_880.73,	#	1	M- Total in employment- aged 16+ July 2022 – see LFS\ headline indicators.xls m/f scottish tabs
     63_487.44,	#	2	M- Total unemployed- aged 16+
     1_352_983.44,	#	3	F- Total in employment- aged 16+
@@ -134,14 +145,12 @@ const DEFAULT_TARGETS_22 = [
     272_503.22 ]	#	90	% all in employment who are - 9: elementary occupations (SOC2010)
 
 
-const NUM_HOUSEHOLDS = sum( DEFAULT_TARGETS_22[42:48]) # 2_537_971
+const NUM_HOUSEHOLDS = sum( DEFAULT_TARGETS_2022[42:48]) # 2_537_971
 # 2_477_000.0 # sum of all hhld types below
 
 #
 # This is our default set of targets for 2021/2. 
-#
-# See `weighting_target_set_creation.md`
-# and `target_generation_worksheet-aug-22-2021.ods`
+# DON'T USE WITHOUT REVERTING the data creation.
 #
 const DEFAULT_TARGETS_2021 = [
     # Employment totals from NOMIS
@@ -389,8 +398,7 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
         v_1_adult_male = zeros(n),
         v_1_adult_female = zeros(n),
         v_2_adults = zeros(n),
-        v_1_adult_1_child = zeros(n),
-        v_1_adult_2_plus_children = zeros(n),
+        v_1_adult_1_plus_children = zeros(n),
         v_2_plus_adults_1_plus_children = zeros(n),
         v_3_plus_adults = zeros(n),
         ca = zeros(n),
@@ -429,14 +437,15 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
         S12000030 = zeros(n), #  Stirling  
         S12000039 = zeros(n), #  West Dunbartonshire  
         S12000040 = zeros(n), #  West Lothian
-        soc_2000 = zeros(n),	#	83	% all in employment who are - 2: professional occupations (SOC2010)
-        soc_3000 = zeros(n),	#	84	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
-        soc_4000 = zeros(n),	#	85	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
-        soc_5000 = zeros(n),	#	86	% all in employment who are - 5: skilled trades occupations (SOC2010)
-        soc_6000 = zeros(n),	#	87	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
-        soc_7000 = zeros(n),	#	88	% all in employment who are - 7: sales and customer service occupations (SOC2010)
-        soc_8000 = zeros(n),  	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
-        soc_9000 = zeros(n)     #   90  % all in employment who are - 9: elementary occupations (SOC2010) 
+        # omit  Managers_Directors_and_Senior_Officials
+        Soc_Professional_Occupations = zeros(n),	#	83	% all in employment who are - 2: professional occupations (SOC2010)
+        Soc_Associate_Prof_and_Technical_Occupations = zeros(n),	#	84	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
+        Soc_Admin_and_Secretarial_Occupations = zeros(n),	#	85	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
+        Soc_Skilled_Trades_Occupations = zeros(n),	#	86	% all in employment who are - 5: skilled trades occupations (SOC2010)
+        Soc_Caring_leisure_and_other_service_occupations = zeros(n),	#	87	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
+        Soc_Sales_and_Customer_Service = zeros(n),	#	88	% all in employment who are - 7: sales and customer service occupations (SOC2010)
+        Soc_Process_Plant_and_Machine_Operatives = zeros(n),  	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
+        Soc_Elementary_Occupations = zeros(n)     #   90  % all in employment who are - 9: elementary occupations (SOC2010) 
     )
     return df
 end
@@ -568,19 +577,37 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
            row.pip_or_dla += 1
        end
        if pers.employment_status in [
-        Full_time_Employee,
-        Part_time_Employee,
-        Full_time_Self_Employed,
-        Part_time_Self_Employed
-        ]
-            p = pers.occupational_classification
-            @assert p in 1000:1000:9000
-            psoc = Symbol( "soc_$p")
-            row[psoc] += 1
+            Full_time_Employee,
+            Part_time_Employee,
+            Full_time_Self_Employed,
+            Part_time_Self_Employed
+            ]      
+            p = pers.occupational_classification      
+            @assert p in [
+                Undefined_SOC, ## THIS SHOULD NEVER HAPPEN, but does
+                Managers_Directors_and_Senior_Officials,
+                Professional_Occupations,
+                Associate_Prof_and_Technical_Occupations,
+                Admin_and_Secretarial_Occupations,
+                Skilled_Trades_Occupations,
+                Caring_leisure_and_other_service_occupations,
+                Sales_and_Customer_Service,
+                Process_Plant_and_Machine_Operatives,
+                Elementary_Occupations
+            
+            ] "$p not recognised hhld $(hh.hid) $(hh.data_year) pid $(pers.pid)"
+            # FIXME HACK
+            if p == Undefined_SOC
+                println( "undefined soc for working person pid $(pers.pid)")
+                p = Elementary_Occupations
+            end
+            if p != Managers_Directors_and_Senior_Officials
+                psoc = Symbol( "Soc_$(p)")            
+                row[psoc] += 1
+            end
        end
     end
 
-    end # people
     if is_owner_occupier(hh.tenure)
         # row.owner_occupied = 1
     elseif hh.tenure == Council_Rented
@@ -599,11 +626,8 @@ function make_target_row!( row :: DataFrameRow, hh :: Household )
             row.v_1_adult_female = 1
         end
     elseif num_adults == 1
-        if num_u_16s == 1
-            row.v_1_adult_1_child = 1
-        else
-            row.v_1_adult_2_plus_children = 1
-        end
+        @assert num_u_16s > 0
+        row.v_1_adult_1_plus_children = 1
     elseif num_adults == 2 && num_u_16s == 0
         row.v_2_adults = 1
     elseif num_adults > 2 && num_u_16s == 0
