@@ -215,9 +215,9 @@ const TARGETS_22 = [
     63487.44,	#	2	M- Total unemployed- aged 16+
     1352983.44,	#	3	F- Total in employment- aged 16+
     35890.28,	#	4	F- Total unemployed- aged 16+
-    39629.21,	#	5	private rented+rent free
-    29210.02,	#	6	housing association
-    31765.65,	#	7	las etc rented
+    396292.1,	#	5	private rented+rent free
+    292100.2,	#	6	housing association
+    317656.5,	#	7	las etc rented
     125921.40,	#	8	M – 0 - 4
     147410.39,	#	9	5 - 9
     186088.58,	#	10	10 – 15
@@ -258,8 +258,8 @@ const TARGETS_22 = [
     157469.00,	#	45	 # 45 - 1 adult 1+ child
     439658.00,	#	47	 # 47 - 2+ adults 1+ children
     208126.00,	#	48	 # 48 - 3+ adults
-    123909.00,	#	49	CARERS
-    80383.00,	#	50	AA
+    80383.00,	#	49	CARERS
+    123909.00,	#	50	AA
     428125.00,	#	51	PIP/DLA
     114078.76,	#	52	 # S12000034 - 52 Aberdeenshire  
     54620.52,	#	53	 # S12000041 - Angus  
