@@ -1,5 +1,25 @@
 # matching in SHS
 
+## REMEMBER
+
+run `scripts/create_scottish_subset.jl` first!. With MATCH constant off.
+
+## NOTE Health boards in 2019
+
+code changes from `hlthbd2014` to `hlthbd2019`. This is because Glasgow and Lanarkshire boundaries have changed, See [here](https://www.data.gov.uk/dataset/72bee810-7959-4e0e-a0b1-5e8eb96f2e3d/health-boards-april-2019-names-and-codes-in-scotland).
+Codes go from 
+    
+    ??
+    
+
+to 
+    S08000031
+    S08000032
+
+For now I've not assigned `shs_nhs_board_xx` in the merged data file - needs some thought. Proc `add_in_las_to_recip!` in `matching_funcs.jl`.
+
+## Council Characters
+
 `council` 4 missing 1 character
 Value = K	Label = East Lothian
 	Value = S	Label = Midlothian

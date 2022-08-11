@@ -143,7 +143,10 @@ function add_in_las_to_recip!(
                 shsrow=shs_all_years[((shs_all_years.uniqidnew.==id).&(shs_all_years.datayear.==y)),:][1,:]
                 cc = shs_councils[(shs_councils.SHS_ID .== shsrow.council),:Code][1]
                 r[ckey] = cc
-                r[nkey] = shsrow.hlthbd2014
+                # FIXME COMMENTED out since
+                # Glasgow/lanarkshire changed codes;
+                # see `notes.md` 
+                # r[nkey] = shsrow.hlthbd2014
             end
         end    
     end
