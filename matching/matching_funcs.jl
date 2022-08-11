@@ -201,7 +201,7 @@ function loadfrs( year::Int, fname :: String ) :: DataFrame
 	ystr = "$(year)$(year+1)"
 	fname = "$(DIR)/frs/$(year)/tab/$(fname).tab"
 	println( "loading '$fname'" )
-	frs = CSV.File( fname; missingstrings=["-1"] ) |> DataFrame
+	frs = CSV.File( fname; missingstring=["-1"] ) |> DataFrame
 	lcnames = Symbol.(lowercase.(string.(names(frs))))
     rename!(frs,lcnames)
     frs[!,:datayear] .= year-2000

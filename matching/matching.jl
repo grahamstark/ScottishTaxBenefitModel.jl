@@ -98,7 +98,7 @@ CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true,
 
 mhh = CSV.File( "data/model_households_scotland.tab"; delim='\t') |> DataFrame
 shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
-target_pops = CSV.File( "data/merging/hhlds_and_people_2019_nrs_estimates.csv" ) |> DataFrame
+target_pops = CSV.File( "data/merging/hhlds_and_people_2022_nrs_estimates.csv" ) |> DataFrame
 shs_hhn = count_councils(shs_all_years, shs_councils )
 #
 # actual sampling frequencies by council, pooled over all shs years
@@ -107,11 +107,11 @@ shs_hhn = count_councils(shs_all_years, shs_councils )
 inv_freqs = Dict()
 
 for p in eachrow( target_pops )
-    inv_freqs[p.code] = p.hhlds_2019/shs_hhn[p.code]
+    inv_freqs[p.code] = p.hhlds_2022/shs_hhn[p.code]
 end
 #
 # idiot check that we sum back up
-#
+# FIXME really idiotic and hard wired in ..
 s = 0.0
 for p in eachrow( target_pops )
     global s
@@ -120,7 +120,8 @@ end
 
 add_in_las_to_recip!( recip, shs_all_years, shs_councils )
 
-@assert s  ≈ 2495622
+@assert s  ≈ 2537971.91652663
+# 2495622
 
 tot_hhlds_19 = 2_495_622
 

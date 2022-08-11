@@ -802,8 +802,12 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         # self employment
         if jb.prbefore > 0.0
             self_employment_income += jb.prbefore
-        elseif jb.profit1 > 0.0
-            @assert jb.profit2 in [1, 2]
+        elseif jb.profit1 > 0.0 
+            if jb.profit2 == -1
+                println( "jb.profit2 is |$(jb.profit2)| should be 1,2 pid=$(model_adult.pid)")
+                jb.profit2 = 1# jb.profit2 catch 1 weird -1 profit2 pid=120191636601 just treat as profit not loss
+            end
+            @assert jb.profit2 in [1, 2] 
             if jb.profit2 == 1
                 self_employment_income += jb.profit1
             else
@@ -1466,11 +1470,12 @@ function create_data()
 
     # model_households = initialise_household(0)
     # model_people = initialise_person(0)
-
+    start_year = 2015
+    end_year = 2019
     hbai_year = 21 # hbai year counter; 1994/5 == 1 => 2015 == 22
 
-    for year in 2015:2019
-        hbai_year += 1
+    for year in start_year:end_year
+        hbai_year = year - 1993
         print("on year $year ")
         appendb = year > 2015
         y = year - 2000

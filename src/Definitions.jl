@@ -1312,6 +1312,7 @@ export DLAself_care,
        Future_Employment_and_Support_Allowance,
        DWP_third_party_payments_UC,
        Social_Fund_Loan_UC,
+       DWP_Third_Party_Payments_V2, # 2019 -
        Repayment_UC_Advance, # 2019- 
        Advance_of_UC # 2019 -
     
@@ -1377,6 +1378,7 @@ export Missing_Benefit_Type
    Future_Employment_and_Support_Allowance = 109
    DWP_third_party_payments_UC = 110
    Social_Fund_Loan_UC = 111
+   DWP_Third_Party_Payments_V2 = 112 # 2019- no idea what this is
    Repayment_UC_Advance = 113 # 2019- 
    Advance_of_UC = 114 # 2019 -
 
