@@ -15,7 +15,6 @@ module FRSHouseholdGetter
     
     using .ModelHousehold: 
         Household, 
-        OneIndex,
         uprate!
 
     using .HouseholdFromFrame: 

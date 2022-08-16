@@ -3,7 +3,7 @@ using DataFrames
 using ScottishTaxBenefitModel
 using .Definitions
 
-ADD_IN_MATCHING = false
+ADD_IN_MATCHING = true
 
 household_name = "model_households"
 people_name = "model_people"
