@@ -113,6 +113,12 @@ To update these, randomly press buttons on STat Explore until something comes ou
 
 ### 5.3 Benefit Generosity
 
+Main script is `regressions/disability_regressions.jl`
+
+Creates `candidates` files in `data/disability/`
+
+If the data has been created correctly, just running the script should create these files automatically.
+
 ## 6. Adding new default parameters
 
 ### 6.1 Direct Taxes

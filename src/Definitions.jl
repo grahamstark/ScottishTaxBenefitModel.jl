@@ -4,6 +4,7 @@ module Definitions
 #
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
+using Parameters
 
 export 
    Employment_Status,  # mapped from empstat
@@ -53,6 +54,8 @@ export LegacyOrUC, legacy_bens, uc_bens
    target_set = Date( 2022, 08, 12 )
    uprating = Date( 2022, 04, 08 )
    uc_transition = Date(2022, 02, 01 ) # feb 2022
+   pip_dla_historic = Date(2022, 08, 12 )
+   benefit_generosity = Date(2022, 08, 12 )
 end
 
 export old_style, new_style, OldOrNew
