@@ -41,7 +41,7 @@ function load_historic( file ) :: Dict
 end
 
 function load_pip()
-    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip_2002-2020_from_stat_explore.csv",
+    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip_2002-2022_from_stat_explore.csv",
         missingstring="..",
         types=Dict([:Date=>String]))|>DataFrame
     pip.Date = Date.( pip.Date, dateformat"yyyymm" )
@@ -49,7 +49,7 @@ function load_pip()
 end
 
 function load_dla()
-    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla_2002-2020_from_stat_explore.csv" )|> DataFrame
+    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla_2002-2022_from_stat_explore.csv" )|> DataFrame
     dla.Date = Date.( dla.Date, dateformat"u-yy" ) .+Year(2000)
     return dla
 end

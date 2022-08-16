@@ -3,7 +3,7 @@ date	cpi	actual_rents_for_housing	rpix	nom_gdp_uk_index	average_earnings_uk	mort
 # Date	D7BT	D7CE	DQAD	YBEU	Obr 1.6 1.18	DOBQ	EQUITY	NGDP	
 #	CPI INDEX 00: ALL ITEMS 2015=100	CPI INDEX 04.1 : ACTUAL RENTS FOR HOUSING 2015=100	RPI:all items ex. mortgage interest payments & council tax (Jan 87=100)	Gross Domestic Product index: Current price: Seasonally adjusted	Average earnings index (2008Q1=100)	RPI: housing: mortgage interest payments (Jan 1987=100)	Equity prices		Nominal average hourly wage (£/hour)
 #	UPDATED 8th April 2022		Source: OBR Supp Mar 2022 table 1.7		£	MM23			Scotland_s-Economic-and-Fiscal-Forecasts-August-2021-Annex-B-Charts-and-Tables.xls
-#	Index, base year = 100	Index, base year = 100	Index, base year = 100			Index, base year = 100	OBR: able 1.9 Economy_supplementary_tables_EFO_March_2021.xlsx		SFC https://www.fiscalcommission.scot/publication-categories/analytical/
+#	Index, base year = 100	Index, base year = 100	Index, base year = 100			Index, base year = 100	OBR: able 1.9 Economy_supplementary_tables_EFO_March_2021.xlsx		 https://www.fiscalcommission.scot/publication-categories/analytical/
 2008 Q1	82.9243333333334	83.364	204.1	71.282406686877	100	404.533333333333	2927.05	406.595	14.87
 2008 Q2	84.5973333333333	84.729	208.766666666667	71.1612688961873	99.1999586508267	393.666666666667	2855.69	397.158	14.85
 2008 Q3	85.6533333333333	85.0446666666667	210.8	70.8750077041329	99.1175097908091	395.7	2483.67	397.67	14.83

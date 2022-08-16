@@ -82,16 +82,34 @@ Output is (for 2022) at 90 piece target set. Sources:
 * [NRS - Housing Stock by Tenure](https://www.gov.scot/publications/housing-statistics-stock-by-tenure/) - scaled up to 2022 hhld projections
 * [NRS Population forecasts](https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/population/population-projections/population-projections-scotland/2020-based). NOte we scale by NRS estimates of Scotland-level proportion of populations in households. TODO: Glasgow,Edinburgh have huge student 16-21 population in halls but we only have hhld counts by LA so are ignoring this.
 
-All this has to be merged together manually on any update, I'm afraid. Note how we change the standard age ranges 10-14 and 15-19 to 10-15 16-19 to better mesh with employment data.
-
+All this has to be merged together manually on any update, I'm afraid. Note how we change the standard age ranges 10-14 and 15-19 to 10-15 16-19 to better mesh with employment data. Note how everything needs to be scaled to match 2022 hhld/population numbers (popn is all or hhld depending on the question - see the spreadsheet).
 
 ## 4. Uprating
 
+Main uprating file is `data/prices/indexes/indexes.tab`. Uprating code is `Uprating.jl`; filenames and uprating targets in `Settings.jl`. Sources are as in `indexes.tab` header rows. Indexes are quarterly. Sources:
+
+* [OBR Economic and fiscal outlook – March 2022: Supplementary Data]https://obr.uk/data/);
+* [Scottish Fiscal Commission Forecast](https://www.fiscalcommission.scot/publications/scotlands-economic-and-fiscal-forecasts-december-2021/)
+
+FIXME this needs updating urgently.
+
 ## 5. Benefits
+
+There are 3 things here: numbers for the transition to UC, estimates of how many on legacy disability benefits we should move to new benefits and some probits we use to model generosity of disability tests.
 
 ### 5.1 The Legacy/UC transition
 
+This is done very, very crudely using [House of Commons Data](https://commonslibrary.parliament.uk/constituency-data-universal-credit-roll-out/#caseload). We use Scotland-wide approximations, which are then hard-wired into `UCTransition.jl`. We could use LA level if someone still produced this (HoC is constituency). Can't be bothered trying myself.
+
 ### 5.2 Model Transitions to new disable/carer benefits
+
+Code is `HistoricBenefits.jl`. It re-assigns DLA recipients to PIP according to proportions on each in the interview month for Scotland as a whole. 
+
+Data files are: 
+
+* `data/receipts/[pip|dla]_2002-2020_from_stat_explore.csv`
+
+To update these, randomly press buttons on STat Explore until something comes out - DLA/PIP in receipt, including devolved to Scotland, current tables. Note I have a saved table format for PIP. Export as `.xlsx`. Transpose in open office to same format as `data/receipts/pip_2002-2020_from_stat_explore.csv`. Change filename in `HistoricBenefits.jl`.
 
 ### 5.3 Benefit Generosity
 

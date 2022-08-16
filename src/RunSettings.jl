@@ -41,7 +41,7 @@ module RunSettings
         uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name :: String = "default_run"
         start_year :: Int = 2015
-        end_year :: Int = 2018
+        end_year :: Int = 2019
         scotland_full :: Bool = true
         weighted :: Bool = false
         data_dir :: String = MODEL_DATA_DIR
@@ -52,7 +52,7 @@ module RunSettings
         num_people :: Int = 0
         prices_file = "indexes.tab"
         to_y :: Int = 2022
-        to_q :: Int = 2
+        to_q :: Int = 3
         output_dir :: String = joinpath(tempdir(),"output")
         means_tested_routing :: MT_Routing = uc_full
         poverty_line :: Real = -1.0

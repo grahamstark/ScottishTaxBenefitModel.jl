@@ -47,14 +47,12 @@ export LegacyOrUC, legacy_bens, uc_bens
 #
 # update this every time you add data, update prices, etc.
 #
-@with_kw struct UpdatingInfo
-   latest_frs_year = 2020
-   latest_shs_year = 2020
-   data_creation_date = Date( 2022, 08, 16 )
-   target_set_target_date = Date( 2022, 06, 01 ) # roughly 
-   target_set_creation_date = Date( 2022, 08, 12 )
-
-
+@with_kw struct CreationDates
+   data = Date( 2022, 08, 16 )
+   # target_set_target_date = Date( 2022, 06, 01 ) # roughly 
+   target_set = Date( 2022, 08, 12 )
+   uprating = Date( 2022, 04, 08 )
+   uc_transition = Date(2022, 02, 01 ) # feb 2022
 end
 
 export old_style, new_style, OldOrNew
