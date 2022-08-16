@@ -2,11 +2,11 @@
 
 This tries to bring together everything in the convoluted steps needed to add a year's worth of data to the model (FRS/SHS), uprate the variables and create a new weighting target dataset. 
 
-This is *convoluted*. I don't remember Taxben being this hard.Ideally I'd automate much of this - I had a brief go using some of the APIs for grabbing ONS data, but didn't get far. 
+This is *convoluted*. I don't remember Taxben being this hard. Ideally I'd automate much of this - I had a brief go using some of the APIs for grabbing ONS data, but didn't get far. 
 
 Always keep running the test suite while you're doing this. 
 
-## 1. ADDING an new FRS
+## 1. ADDING a new FRS
 
 ## 2. Matching in a new SHS
 
