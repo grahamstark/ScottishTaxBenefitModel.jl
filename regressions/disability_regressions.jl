@@ -2,8 +2,6 @@
 # Regressions for take-up of disability benefits.
 # using just what's in the model datasets
 #
-# include("intro.jl")
-# using STBRegressions
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -21,7 +19,6 @@ frspeople = CSV.File("$(MODEL_DATA_DIR)/model_people.tab") |> DataFrame
 
 fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ], makeunique=true )
 
-fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ], makeunique=true )
 fm.age_sq = fm.age.^2
 fm.deaf_blind=fm.registered_blind .| fm.registered_deaf .| fm.registered_partially_sighted
 fm.yr = fm.data_year .- 2014

@@ -4,7 +4,7 @@ This tries to bring together everything in the convoluted steps needed to add a 
 
 This is *convoluted*. I don't remember Taxben being this hard. Ideally I'd automate much of this - I had a brief go using some of the APIs for grabbing ONS data, but didn't get far. 
 
-Also, paths are often hard-wired in: add a paths config file.
+Also, paths and filenames are often hard-wired in: add a paths config file.
 
 Always keep running the test suite while you're doing any of this. 
 
@@ -111,7 +111,7 @@ Data files are:
 
 To update these, randomly press buttons on STat Explore until something comes out - DLA/PIP in receipt, including devolved to Scotland, current tables. Note I have a saved table format for PIP. Export as `.xlsx`. Transpose in open office to same format as `data/receipts/pip_2002-2020_from_stat_explore.csv`. Change filename in `HistoricBenefits.jl`.
 
-You also need to update `params/historic_benefits.csv`. See section on updating parameters below.
+You also need to update `params/historic_benefits.csv`; see section on updating parameters below.
 
 ### 5.3 Benefit Generosity
 
@@ -119,9 +119,12 @@ Main script is `regressions/disability_regressions.jl`
 
 Creates `candidates` files in `data/disability/`
 
-If the data has been created correctly, just running the script should create these files automatically.
+If the data has been created correctly, just running the script should create these files automatically. A data year dummy for the new year's data should be automatically added.
 
 ## 6. Adding new default parameters
+
+Most of the individual level tests are based on the system when I started, using the values hard-wired into 
+
 
 ### 6.1 Direct Taxes
 
@@ -132,6 +135,8 @@ If the data has been created correctly, just running the script should create th
 ## 7. Updating Tests
 
 ### 7.1 Individual Level Unit Tests
+
+* there are places (e.g. `uprating_tests.jl`, `historic_tests.jl`) where I've hard wired in test values that will change on each updating. I'm trying to mark all of these with "CHANGEME".
 
 ### 7.2 Tests in Aggregate - sources
 
