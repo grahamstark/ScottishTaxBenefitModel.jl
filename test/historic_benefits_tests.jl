@@ -33,7 +33,7 @@ using .RunSettings: Settings
  
     d = Date( 2019, 1, 1)
     @test DLA_RECEIPTS[nearest( d, DLA_RECEIPTS ),:Scotland] ≈ 182_154  
-    @test PIP_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland] ≈ 220_043
+    @test PIP_RECEIPTS[nearest( d, PIP_RECEIPTS ),:Scotland] ≈ 220_045
 
     @test should_switch_dla_to_pip( "000000000000", 2016, 1 )
     @test ! should_switch_dla_to_pip("99999999999", 2016, 1 )

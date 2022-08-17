@@ -111,7 +111,7 @@ Data files are:
 
 To update these, randomly press buttons on STat Explore until something comes out - DLA/PIP in receipt, including devolved to Scotland, current tables. Note I have a saved table format for PIP. Export as `.xlsx`. Transpose in open office to same format as `data/receipts/pip_2002-2020_from_stat_explore.csv`. Change filename in `HistoricBenefits.jl`.
 
-You also need to update `params/historic_benefits.csv`.
+You also need to update `params/historic_benefits.csv`. See section on updating parameters below.
 
 ### 5.3 Benefit Generosity
 
