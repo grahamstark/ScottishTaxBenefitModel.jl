@@ -123,14 +123,36 @@ If the data has been created correctly, just running the script should create th
 
 ## 6. Adding new default parameters
 
-Most of the individual level tests are based on the system when I started, using the values hard-wired into 
+Most of the individual level tests are based on the system when I started, using the 2020/21 values hard-wired into the parameter definitions using the [@with_kw Macro](https://github.com/mauro3/Parameters.jl). So, don't alter the defaults there. Instead, copy 
 
+`sys_2022-23.jl` and update that. This can be loaded using `load_file` in STBParameters. If thing are changing rapidly you can add or remove some parameters in a separate file and and layer that on top of the main parameters using the mutating `load_file!` function.
 
 ### 6.1 Direct Taxes
 
+Note that it's best to get an updated version of [Melville's Taxation](https://www.amazon.co.uk/Taxation-Finance-2022-Alan-Melville/dp/129243953X/ref=sr_1_1?crid=RFHJT70PAC2L&keywords=melville+taxation&qid=1661165205&sprefix=melville+%2Caps%2C89&sr=8-1) for a consolidated set of parameters and test examples.
+
+
+* [(r) UK Income Tax](https://www.gov.uk/government/publications/autumn-budget-2021-overview-of-tax-legislation-and-rates-ootlar/annex-a-rates-and-allowances)
+* [Scottish Income Tax](http://www.gov.scot/publications/scottish-income-tax-2022-2023/)
+
+But use Mellvile.
+
 ### 6.2 UK Benefits
 
+Only place I know with everything in one place is the [CPAG Guide](https://cpag.org.uk/shop/cpag-titles/welfare-benefits-tax-credits-handbook-202223).
+
+But:
+
+* [UK Wide Benefits (NOT legacy tax-credits)](https://www.gov.uk/government/publications/benefit-and-pension-rates-2022-to-2023);
+* [Scottish Benefits]()
+
+
 ### 6.3 Scottish Benefits
+
+See [here](https://www.gov.scot/publications/social-security-assistance-effects-inflation-report-2021-2022/pages/12/). Notes:
+
+* some implementations are incomplete (TODO);
+* link may not be permanent.
 
 ### 6.4 Local Housing Allowances
 
@@ -146,9 +168,9 @@ So I'll skip changing this for now.
 
 This needs parameterised better.
 
-Values are hard-wired into 
+Default alues are hard-wired into `default_band_ds` function in STBParameters.
 
-`default_band_ds` function in 
+Example loading new values in `sys_2022-23.jl`, at the bottom. Values from [ScotGov CT Datasets](http://www.gov.scot/publications/council-tax-datasets/). We just need the band Ds here so long as the relativities don't change.
 
 ## 7. Updating Tests
 
