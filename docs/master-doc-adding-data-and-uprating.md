@@ -132,6 +132,24 @@ Most of the individual level tests are based on the system when I started, using
 
 ### 6.3 Scottish Benefits
 
+### 6.4 Local Housing Allowances
+
+2022/3 values are [here](https://www.data.gov.uk/dataset/81a61cf3-ccad-4ba2-8945-74a2e6cbe4f9/broad-rental-market-areas-brma). 
+
+Note the BRMA definitions are treated as constants.
+
+> " for this year (2022-23) all rates have been frozen at the rate last determined on 31st March 2020. This was the 30th percentile at that time."
+
+So I'll skip changing this for now.
+
+### 6.5 Council Tax
+
+This needs parameterised better.
+
+Values are hard-wired into 
+
+`default_band_ds` function in 
+
 ## 7. Updating Tests
 
 ### 7.1 Individual Level Unit Tests
