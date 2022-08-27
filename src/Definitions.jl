@@ -82,6 +82,18 @@ export Illness_Length  # mapped from limitl
 export Less_than_six_months, Between_six_months_and_12_months, v_12_months_or_more
 export Missing_Illness_Length, RT
 
+export DwellingType,  dwellNA, detatched, semi_detached, bungalow,
+   flat_or_maisonette, converted_flat, other_dwelling
+
+@enum DwellingType begin
+   dwell_na = -1
+   detatched = 1
+   semi_detached = 2
+   bungalow = 3
+   flat_or_maisonette = 4
+   converted_flat = 5
+   other_dwelling = 6
+end
 
 @enum Illness_Length begin  # mapped from limitl
    Missing_Illness_Length = -1

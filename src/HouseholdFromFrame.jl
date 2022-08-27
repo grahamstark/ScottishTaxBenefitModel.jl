@@ -266,6 +266,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         Tenure_Type(frs_hh.tenure),
         Standard_Region(frs_hh.region),
         CT_Band(frs_hh.ct_band),
+        DwellingType( frs_hh.dwelling ),
         m2z(frs_hh.council_tax),
         m2z(frs_hh.water_and_sewerage ),
         m2z(frs_hh.mortgage_payment),

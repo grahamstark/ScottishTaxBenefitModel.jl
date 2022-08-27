@@ -176,6 +176,7 @@ mutable struct Household{RT<:Real}
     tenure::Tenure_Type
     region::Standard_Region
     ct_band::CT_Band
+    dwelling :: DwellingType
     council_tax::RT
     water_and_sewerage ::RT
     mortgage_payment::RT

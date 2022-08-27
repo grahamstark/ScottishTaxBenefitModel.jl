@@ -476,6 +476,7 @@ function initialise_household(n::Integer)::DataFrame
         tenure = Vector{Union{Integer,Missing}}(missing, n),
         region = Vector{Union{Integer,Missing}}(missing, n),
         ct_band = Vector{Union{Integer,Missing}}(missing, n),
+        dwelling = Vector{Union{Integer,Missing}}(missing, n),
         council_tax = Vector{Union{Real,Missing}}(missing, n),
         water_and_sewerage = Vector{Union{Real,Missing}}(missing, n),
         mortgage_payment = Vector{Union{Real,Missing}}(missing, n),
@@ -1370,6 +1371,7 @@ function create_household(
             hh_model[hhno, :hid] = sernum
             hh_model[hhno, :data_year] = year
             hh_model[hhno, :tenure] = hh.tentyp2 > 0 ? hh.tentyp2 : -1
+            hh_model[hhno, :dwelling] = hh.typeacc > 0 ? hh.typeacc : -1
             hh_model[hhno, :region] = hh.gvtregn > 0 ? hh.gvtregn : -1
             hh_model[hhno, :ct_band] = hh.ctband > 0 ? hh.ctband : -1
             hh_model[hhno, :weight] = hh.gross4
