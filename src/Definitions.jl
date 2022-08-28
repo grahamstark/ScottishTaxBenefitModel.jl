@@ -92,7 +92,8 @@ export DwellingType,  dwellNA, detatched, semi_detached, bungalow,
    bungalow = 3
    flat_or_maisonette = 4
    converted_flat = 5
-   other_dwelling = 6
+   caravan = 6
+   other_dwelling = 7
 end
 
 @enum Illness_Length begin  # mapped from limitl
