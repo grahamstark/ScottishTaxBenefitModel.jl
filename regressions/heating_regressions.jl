@@ -14,7 +14,7 @@ using Statistics
 
 CairoMakie.activate!(type = "svg")
 
-lcfraw = CSV.File( "/home/graham_s/data/lcf1920/tab/lcfs_2019_dvhh_ukanon.tab")|>DataFrame
+lcfraw = CSV.File( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab")|>DataFrame
 lcnames = Symbol.(lowercase.(string.(names(lcfraw))))
 rename!( lcfraw, lcnames ) # jam lowercase names
 
@@ -51,6 +51,9 @@ lcf.equiv_scale =  lcfraw.oecdsc
 lcf.weekly_net_inc =  lcfraw.p389p
 lcf.fuel = lcfraw.p537t
 
+lcf.sh_fuel = lcf.fuel ./ lcf.total_consumpt
+lcf.sh_fuel_inc = lcf.fuel ./ lcf.weekly_net_inc
+
 delete!( lcf, lcf.fuel .<= 0.0 )
 
 delete!( lcf, (lcf.total_consumpt .<= 0.0) )
@@ -60,7 +63,9 @@ delete!( lcf, (lcf.total_expend .<= 0))
 delete!( lcf, (lcf.housing .<= 0))
 
 delete!( lcf, (lcf.weekly_net_inc .<= 0.0) )
-
+delete!( lcf, lcf.weekly_net_inc .>= 1850 ) # tructation
+delete!( lcf, lcf.sh_fuel_inc .> 0.5 ) # some weired outliers
+delete!( lcf, lcf.sh_fuel_inc .< 0.01 )
 #
 # CSV.write( "/home/graham_s/lcf017_8.tab", lcf, delim='\t' )
 
@@ -68,8 +73,6 @@ lcf.l_total_cons = log.(lcf.total_consumpt )
 lcf.l_total_exp = log.(lcf.total_expend )
 lcf.l_net_inc = log.(lcf.weekly_net_inc )
 lcf.l_fuel = log.(lcf.fuel )
-lcf.sh_fuel = lcf.fuel ./ lcf.total_consumpt
-lcf.sh_fuel_inc = lcf.fuel ./ lcf.weekly_net_inc
 
 lcf.scotland = lcf.region .== 11
 lcf.owner = lcf.tenure .== 7
@@ -139,3 +142,40 @@ hist( lcf.weekly_net_inc )
 hist( lcf.total_expend )
 hist( lcf.total_consumpt )
 scatter( lcf.weekly_net_inc, lcf.total_expend )
+
+
+predfuel=lcf.weekly_net_inc.*predict( r15 )
+scatter( lcf.weekly_net_inc,  predfuel)
+
+inc = collect(1:2000)
+pred15 = zeros(2000)
+c15 = coef(r15)
+v15 = zeros(14)
+v15[1] = 1 # const
+v15[3] = 1 # scotland
+v15[5] = 1 # mortgaged
+v15[8] = 1 # detatched
+v15[12] = 2 # 2 child
+v15[13] = 2 # 2 non pens adult
+
+
+for i in 1:2000
+	v15[2] = log(inc[i])
+	pred15[i] = inc[i] * (c15'v15)
+	# println("$i = $pred")
+end
+
+c12 = coef(r12)
+v12 = ones(3)
+pred12 = zeros(2000)
+for i in 1:2000
+	v12[2] = log(inc[i])
+	pred12[i] = inc[i]*(v12'*c12)
+	# println("$i = $pred")
+end
+
+pp1 = plot( inc, pred15 )
+pp2 = plot( lcf.l_net_inc, lcf.sh_fuel_inc)
+
+p15 = lcf.weekly_net_inc.*GLM.predict(r15)
+plot( lcf.weekly_net_inc, p15)
