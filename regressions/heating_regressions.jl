@@ -132,9 +132,16 @@ r13 = lm( @formula( sh_fuel_inc ~ l_net_inc + scotland + owner + mortgaged + pri
 r14 = lm( @formula( sh_fuel_inc ~ l_net_inc + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom ), lcf )
 r15 = lm( @formula( sh_fuel_inc ~ l_net_inc + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus ), lcf )
 
+r21 = lm( @formula( l_fuel ~ weekly_net_inc + weekly_net_inc^2 ), lcf )
+r22 = lm( @formula( l_fuel ~ weekly_net_inc + weekly_net_inc^2 + scotland ), lcf )
+r23 = lm( @formula( l_fuel ~ weekly_net_inc + weekly_net_inc^2 + scotland + owner + mortgaged + privrent + larent ), lcf )
+r24 = lm( @formula( l_fuel ~ weekly_net_inc + weekly_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom ), lcf )
+r25 = lm( @formula( l_fuel ~ weekly_net_inc/1000 + (weekly_net_inc^2)/1000000 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus ), lcf )
+
+
 RegressionTables.regtable( r1, r2, r3, r4, r5 )
 RegressionTables.regtable( r11, r12, r13, r14, r15 )
-
+RegressionTables.regtable( r21, r22, r23, r24, r25 )
 
 CSV.write( "lcf_fuel_2020.csv", lcf )
 
@@ -175,7 +182,7 @@ for i in 1:2000
 end
 
 pp1 = plot( inc, pred15 )
-pp2 = plot( lcf.l_net_inc, lcf.sh_fuel_inc)
+pp2 = plot( lcf.l_net_inc, lcf.sh_fuel_inc,color = :grey, markersize = 1 )
 
 p15 = lcf.weekly_net_inc.*GLM.predict(r15)
-plot( lcf.weekly_net_inc, p15)
+plot!( pp2, lcf.weekly_net_inc, p15,color = :red, markersize = 1)
