@@ -12,6 +12,9 @@ using RegressionTables
 using StatsBase
 using Statistics
 
+using ScottishTaxBenefitModel
+using .TimeSeriesUtils: parse_ons_date
+
 """
 must be a standard way of broadcasting but ..
 """
@@ -26,6 +29,9 @@ function isin( x, y... )
 end
 
 CairoMakie.activate!(type = "svg")
+mm23 = CSV.File( "/mnt/data/prices/mm23/latest/mm23_edited.csv")|>DataFrame
+lcnames = Symbol.(lowercase.(string.(names(mm23))))
+rename!( mm23, lcnames ) # jam lowercase names
 
 lcfraw = CSV.File( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab")|>DataFrame
 lcnames = Symbol.(lowercase.(string.(names(lcfraw))))

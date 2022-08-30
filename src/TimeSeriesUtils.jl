@@ -6,7 +6,20 @@ module TimeSeriesUtils
 using Base: Integer
 using TimeSeries, Dates
 
-export fy, fy_array, get_birthdate, fyear, fy_from_date, fy_from_bits
+export fy, fy_array, get_birthdate, fyear, fy_from_date, fy_from_bits, parse_ons_date, ONS_MONTH_STRS
+
+const ONS_MONTH_STRS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
+
+"""
+"1991 SEP" => Date( 1991, 9, 1 )
+FIXME, can't we do this with Dates.dateformat string?
+"""
+function parse_ons_date( s :: AbstractString ) :: Date
+    ss = split( s )
+    m = indexin( [ss[2]], ONS_MONTH_STRS )[1]
+    y = parse( Int, ss[1])
+    return Date( y, m, 1 )
+end
 
 """
 For Unit testing. A date age_in_years + 1 month before today.
