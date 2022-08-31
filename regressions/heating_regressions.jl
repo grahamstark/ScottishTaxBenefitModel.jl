@@ -291,7 +291,7 @@ function predict35( r :: StatsModels.TableRegressionModel, incomes :: AbstractAr
 	for (k,v) in dummies
 		println( "setting $k to $v")
 		vals[k] = v
-	endi
+	end
 	println( vals )
 	pred = zeros( size(incomes)[1] )
 	i = 0
@@ -342,5 +342,5 @@ p3 = plot!( 100:2000, predFam2, color="seagreen", markersize= 3 )
 
 Legend( f[1,2], [[s1,p1], [s2,p2], [s3,p3]], ["Pensioners", "Childless", "W/Children"])
 
-save( "f.pdf", f )
+save( "docs/energy_model_sketch.pdf", f )
 
