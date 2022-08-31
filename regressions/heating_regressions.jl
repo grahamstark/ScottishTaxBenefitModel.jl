@@ -11,6 +11,8 @@ using DataFrames
 using RegressionTables
 using StatsBase
 using Statistics
+using StatsModels
+using Colors
 
 using ScottishTaxBenefitModel
 using .TimeSeriesUtils: parse_ons_date
@@ -28,7 +30,6 @@ function isin( x, y... )
 	return 0
 end
 
-CairoMakie.activate!(type = "svg")
 mm23 = CSV.File( "/mnt/data/prices/mm23/latest/mm23_edited.csv")|>DataFrame
 lcnames = Symbol.(lowercase.(string.(names(mm23))))
 rename!( mm23, lcnames ) # jam lowercase names
@@ -165,14 +166,20 @@ r25 = lm( @formula( l_fuel ~ weekly_net_inc/1000 + (weekly_net_inc^2)/1000000 + 
 r26 = lm( @formula( l_fuel ~ weekly_net_inc/1000 + (weekly_net_inc^2)/1000000 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + winter + spring + summer ), lcf )
 
 
-
+#
+# Quaids-ish
+#
 r31 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 ), lcf )
 r32 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + scotland ), lcf )
 r33 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent ), lcf )
 r34 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom ), lcf )
 r35 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus ), lcf )
 r36 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + winter + spring + summer ), lcf )
+#                                     2 	       3         4        5           6          7         8             9      10          11          12         13          14           15   
 
+#
+# Cubic
+#
 r41 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + l_net_inc^3 ), lcf )
 r42 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + l_net_inc^3 + scotland ), lcf )
 r43 = lm( @formula( sh_fuel_inc ~ l_net_inc + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent ), lcf )
@@ -276,3 +283,64 @@ end
 summarystats(predict(r45).*lcf.weekly_net_inc)
 plot45 = plot( inc[100:2000], pred45[100:2000] )
 save( "plot45.svg", plot45 )
+
+function predict35( r :: StatsModels.TableRegressionModel, incomes :: AbstractArray, dummies :: Dict{Int,Int} ) :: Vector
+	c = coef( r ) ## extract coefs
+	vals = zeros( size(c)[1])
+	vals[1] = 1 # intercept
+	for (k,v) in dummies
+		println( "setting $k to $v")
+		vals[k] = v
+	endi
+	println( vals )
+	pred = zeros( size(incomes)[1] )
+	i = 0
+ 	for inc in incomes
+		i += 1
+		vals[2] = log(inc)
+		vals[3] = vals[2]^2		
+		pred[i] = inc * (c'vals)
+		# println("$i = $pred")
+	end
+	pred
+end
+
+CairoMakie.activate!(type = "pdf")
+f = Figure(resolution = (1200, 800))
+incs = 100:2000
+Axis( f[1,1], 
+	title="Fuel Expenditure: Actual vs Modelled 2019/20",
+	xlabel = "Net Income £pw",
+	ylabel = "Fuel Spending £pw")
+# scotland, morgaged, detatched 2kids, 2 adults
+# scotland, LA, Flat, 1 pensioner
+
+#
+# pensioners
+#
+ps = lcf[((lcf.age_70_plus .> 0).&& (lcf.age_u_18 .== 0)), : ]
+predPens = predict35( r35, 100:1000, Dict([4=>1, 5=>1, 10=>1, 15=>2 ]))
+s1 = plot!( ps.weekly_net_inc, ps.fuel,color = "slategray3", markersize = 2 )
+p1 = plot!( 100:1000, predPens, color="navyblue", markersize= 3 )
+
+#
+# childless
+# see: https://juliagraphics.github.io/Colors.jl/stable/namedcolors/ for a colo[u]r name list
+pn = lcf[((lcf.age_70_plus .== 0) .&& (lcf.age_u_18 .== 0)), : ]
+predFamNC = predict35( r35, 100:2000, Dict([4=>1, 6=>1, 9=>1, 13=>0, 14=>2 ]))
+s2 = plot!( pn.weekly_net_inc, pn.fuel, color = "indianred1", markersize = 2 )
+p2 = plot!( 100:2000, predFamNC, color="red4", markersize= 3 )
+
+#
+# w/children
+#
+pc = lcf[(lcf.age_u_18 .> 0), : ]
+predFam2 = predict35( r35, 100:2000, Dict([4=>1, 6=>1, 9=>1, 13=>2, 14=>2 ]))
+
+s3 = plot!( pc.weekly_net_inc, pc.fuel,color = "darkgreen", markersize = 2 )
+p3 = plot!( 100:2000, predFam2, color="seagreen", markersize= 3 )
+
+Legend( f[1,2], [[s1,p1], [s2,p2], [s3,p3]], ["Pensioners", "Childless", "W/Children"])
+
+save( "f.pdf", f )
+
