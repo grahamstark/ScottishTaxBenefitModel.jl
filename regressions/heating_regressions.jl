@@ -263,8 +263,8 @@ RegressionTables.regtable( r31, r32, r33, r34, r35, r36 )
 RegressionTables.regtable( r41, r42, r43, r44, r45, r46 )
 
 RegressionTables.regtable( r41, r42, r43, r44, r45, r46; renderSettings = latexOutput("docs/fuel/reg4.tex"))
-
 RegressionTables.regtable( r41, r42, r43, r44, r45, r46; renderSettings = htmlOutput("docs/fuel/reg4.html"))
+RegressionTables.regtable( r41, r42, r43, r44, r45, r46; renderSettings = asciiOutput("docs/fuel/reg4.txt"))
 
 CSV.write( "data/lcf_fuel_2010-2020.csv", lcf )
 
@@ -272,7 +272,6 @@ hist( lcf.weekly_net_inc )
 hist( lcf.total_expend )
 hist( lcf.total_consumpt )
 scatter( lcf.weekly_net_inc, lcf.total_expend )
-
 
 #=
 positions in full regression with cubic term
