@@ -13,6 +13,7 @@ using StatsBase
 using Statistics
 using StatsModels
 using Colors
+using Dates
 
 using ScottishTaxBenefitModel
 using .TimeSeriesUtils: parse_ons_date
@@ -133,7 +134,7 @@ lcf.equiv_scale =  lcfraw.oecdsc
 lcf.weekly_net_inc =  lcfraw.p389p
 lcf.fuel = lcfraw.p537t
 
-lcf.lfp = log.( lcf.cpi_fuel ./ lcf.cpi_ex_fuel )
+lcf.l_fuel_price = log.( lcf.cpi_fuel ./ lcf.cpi_ex_fuel )
 
 # shares should be of undeflated expend and income
 lcf.sh_fuel = lcf.fuel ./ lcf.total_consumpt
@@ -152,11 +153,9 @@ delete!( lcf, (lcf.total_expend .<= 0))
 delete!( lcf, (lcf.housing .<= 0))
 
 delete!( lcf, (lcf.weekly_net_inc .<= 0.0) )
-delete!( lcf, lcf.weekly_net_inc .>= 1850 ) # tructation
+delete!( lcf, lcf.weekly_net_inc .>= 1600 ) # tructation FIXME truncation varies by year
 delete!( lcf, lcf.sh_fuel_inc .> 0.5 ) # some weired outliers
 delete!( lcf, lcf.sh_fuel_inc .< 0.01 )
-#
-# CSV.write( "/home/graham_s/lcf017_8.tab", lcf, delim='\t' )
 
 lcf.l_total_cons = log.(lcf.total_consumpt )
 lcf.l_total_exp = log.(lcf.total_expend )
@@ -201,7 +200,6 @@ lcf.terraced = lcf.dwelling .== 3
 lcf.flat = lcf.dwelling .== 4 .|| lcf.dwelling .== 5
 lcf.other_accom = lcf.dwelling .== 6 .|| lcf.dwelling .== 7
 
-
 for n in names(lcf)
 	println( n )
 	if n != "date"
@@ -211,19 +209,19 @@ for n in names(lcf)
 end
 
 
-r1 = lm( @formula( sh_fuel ~ lfp + l_total_exp ), lcf )
+r1 = lm( @formula( sh_fuel ~ l_fuel_price + l_total_exp ), lcf )
 r2 = lm( @formula( sh_fuel ~ l_total_exp + scotland ), lcf )
 r3 = lm( @formula( sh_fuel ~ l_total_exp + scotland + owner + mortgaged + privrent + larent ), lcf )
 r4 = lm( @formula( sh_fuel ~ l_total_exp + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom ), lcf )
 r5 = lm( @formula( sh_fuel ~ l_total_exp + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus ), lcf )
 
 
-r11 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  ), lcf )
-r12 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + scotland ), lcf )
-r13 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + scotland + owner + mortgaged + privrent + larent ), lcf )
-r14 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom ), lcf )
-r15 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus ), lcf )
-r16 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus  + winter + spring + summer), lcf )
+r11 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  ), lcf )
+r12 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + scotland ), lcf )
+r13 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + scotland + owner + mortgaged + privrent + larent ), lcf )
+r14 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom ), lcf )
+r15 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus ), lcf )
+r16 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus  + winter + spring + summer), lcf )
 
 r21 = lm( @formula( l_fuel ~ weekly_net_inc + weekly_net_inc^2 ), lcf )
 r22 = lm( @formula( l_fuel ~ weekly_net_inc + weekly_net_inc^2 + scotland ), lcf )
@@ -236,23 +234,23 @@ r26 = lm( @formula( l_fuel ~ weekly_net_inc/1000 + (weekly_net_inc^2)/1000000 + 
 #
 # Quaids-ish
 #
-r31 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 ), lcf )
-r32 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + scotland ), lcf )
-r33 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + t_trend ), lcf )
-r34 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + t_trend ), lcf )
-r35 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + t_trend ), lcf )
-r36 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + winter + spring + summer + t_trend ), lcf )
+r31 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 ), lcf )
+r32 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + scotland ), lcf )
+r33 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + t_trend ), lcf )
+r34 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + t_trend ), lcf )
+r35 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + t_trend ), lcf )
+r36 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + winter + spring + summer + t_trend ), lcf )
 #                                     2 	       3         4        5           6          7         8             9      10          11          12         13          14           15   
 
 #
 # Cubic
 #
-r41 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + l_net_inc^3 ), lcf )
-r42 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland ), lcf )
-r43 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + t_trend  ), lcf )
-r44 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + t_trend  ), lcf )
-r45 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + t_trend  ), lcf )
-r46 = lm( @formula( sh_fuel_inc ~ lfp + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus  + winter + spring + summer + t_trend ), lcf )
+r41 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 ), lcf )
+r42 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland ), lcf )
+r43 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + t_trend  ), lcf )
+r44 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + t_trend  ), lcf )
+r45 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + t_trend  ), lcf )
+r46 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus  + winter + spring + summer + t_trend ), lcf )
 #                                  1       2             3            4               5       6        7            8         9       10           11        12     13            14         15          16             17        18       19       20  
 
 RegressionTables.regtable( r1, r2, r3, r4, r5 )
@@ -275,7 +273,7 @@ scatter( lcf.weekly_net_inc, lcf.total_expend )
 
 #=
 positions in full regression with cubic term
-lfp + 2
+l_fuel_price + 2
 l_net_inc  + 3
 l_net_inc^2 + 4
 l_net_inc^3 + 5
