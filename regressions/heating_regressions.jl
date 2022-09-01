@@ -6,7 +6,6 @@ using CSV
 using GLM
 using Makie
 using CairoMakie
-# using Plots
 using DataFrames
 using RegressionTables
 using StatsBase
@@ -56,11 +55,9 @@ function loadtab( filename )
 	rename!( lcfraw, lcnames ) # jam lowercase names
 end
 
-fm = names( mm23 )
-for n in fm
-	println( n )
-end
-
+#
+# Stack 2009/10-19/20 LCFs
+#
 lcfv = []
 for fn in LCF_HH_FILES	
 	push!(lcfv, loadtab( fn ))
@@ -89,6 +86,7 @@ for i in eachrow(lcf)
 	  i.month -= 20
   	end
 end
+
 lcf.date = Date.(lcf.year,lcf.month)
 
 for i in eachrow(lcf)
@@ -96,7 +94,7 @@ for i in eachrow(lcf)
 	@assert size(prow)[1] == 1
 	prow = prow[1,:]
 	i.cpi = prow.d7bt
-	i.cpi_ex_fuel = prow.d7bt ## FIXME TODO
+	i.cpi_ex_fuel = prow.d7bt ## FIXME TODO non-fuel share use whole cpi for now.
 	i.cpi_fuel = prow.d7ch
 end
 
@@ -154,7 +152,7 @@ delete!( lcf, (lcf.housing .<= 0))
 
 delete!( lcf, (lcf.weekly_net_inc .<= 0.0) )
 delete!( lcf, lcf.weekly_net_inc .>= 1600 ) # tructation FIXME truncation varies by year
-delete!( lcf, lcf.sh_fuel_inc .> 0.5 ) # some weired outliers
+delete!( lcf, lcf.sh_fuel_inc .> 0.5 ) # some wierd outliers
 delete!( lcf, lcf.sh_fuel_inc .< 0.01 )
 
 lcf.l_total_cons = log.(lcf.total_consumpt )
@@ -295,11 +293,14 @@ summer + 20
 t_trend + 21
 =#
 
-function predict45( r :: StatsModels.TableRegressionModel, incomes :: AbstractArray, dummies :: Dict{Int,Int} ) :: Vector
+function predict45( 
+	r :: StatsModels.TableRegressionModel, 
+	incomes :: AbstractArray, 
+	nonzeros :: Dict{Int,Int} ) :: Vector
 	c = coef( r ) ## extract coefs
 	vals = zeros( size(c)[1])
 	vals[1] = 1 # intercept
-	for (k,v) in dummies
+	for (k,v) in nonzeros
 		println( "setting $k to $v")
 		vals[k] = v
 	end
@@ -318,41 +319,37 @@ function predict45( r :: StatsModels.TableRegressionModel, incomes :: AbstractAr
 	pred
 end
 
+const INCS = 100:1500
 CairoMakie.activate!(type = "pdf")
-f = Figure(resolution = (1200, 800))
-incs = 100:2000
-Axis( f[1,1], 
+fig1 = Figure(resolution = (1200, 800))
+Axis( fig1[1,1], 
 	title="Fuel Expenditure: Actual vs Modelled 2010-2020",
 	xlabel = "Net Income £pw (constant 2015 prices)",
 	ylabel = "Fuel Spending £pw (constant 2015 prices)")
-# scotland, morgaged, detatched 2kids, 2 adults
-# scotland, LA, Flat, 1 pensioner
-
 #
 # pensioner couple
 #
 ps = lcf[((lcf.age_70_plus .> 0).&& (lcf.age_u_18 .== 0)), : ]
-predPens = predict45( r45, 100:1000, Dict([6=>1, 7=>1, 12=>1, 17=>2 ]))
+predPens = predict45( r45, INCS, Dict([6=>1, 7=>1, 12=>1, 17=>2 ]))
 s1 = plot!( ps.weekly_net_inc, ps.fuel,color = "cornflowerblue", markersize = 1 )
-p1 = plot!( 100:1000, predPens, color="navyblue", markersize= 2 )
+p1 = plot!( INCS, predPens, color="navyblue", markersize= 2 )
 
 #
 # 2ad childless
 # see: https://juliagraphics.github.io/Colors.jl/stable/namedcolors/ for a colo[u]r name list
 pn = lcf[((lcf.age_70_plus .== 0) .&& (lcf.age_u_18 .== 0)), : ]
-predFamNC = predict45( r45, 100:2000, Dict([6=>1, 7=>1, 11=>1, 15=>0, 16=>2 ]))
+predFamNC = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>0, 16=>2 ]))
 s2 = plot!( pn.weekly_net_inc, pn.fuel, color = "indianred1", markersize = 1 )
-p2 = plot!( 100:2000, predFamNC, color="red4", markersize= 2 )
+p2 = plot!( INCS, predFamNC, color="red4", markersize= 2 )
 
 #
 # 2 ad w/children
 #
 pc = lcf[(lcf.age_u_18 .> 0), : ]
-predFam2 = predict45( r45, 100:2000, Dict([6=>1, 7=>1, 11=>1, 15=>2, 16=>2 ]))
-
+predFam2 = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>2, 16=>2 ]))
 s3 = plot!( pc.weekly_net_inc, pc.fuel,color = "darkgreen", markersize = 1 )
-p3 = plot!( 100:2000, predFam2, color="seagreen", markersize= 2 )
+p3 = plot!( INCS, predFam2, color="seagreen", markersize= 2 )
 
-Legend( f[1,2], [[s1,p1], [s2,p2], [s3,p3]], ["Pensioners", "Childless", "W/Children"])
+Legend( fig1[1,2], [[s1,p1], [s2,p2], [s3,p3]], ["Pensioners", "Childless", "W/Children"])
 
-save( "docs/fuel/energy_model_sketch.pdf", f )
+save( "docs/fuel/energy_model_sketch.pdf", fig1 )
