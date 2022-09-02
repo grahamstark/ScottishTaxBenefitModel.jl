@@ -38,7 +38,7 @@ mm23.date = parse_ons_date.( mm23.cdid )
 const LCF_HH_FILES = [
 	"/mnt/data/lcf/0910/tab/2009_dvhh_ukanon.tab",
 	"/mnt/data/lcf/1011/tab/2010_dvhh_ukanon.tab",
-	"/mnt/data/lcf//1112/tab/2011_dvhh_ukanon.tab",
+	"/mnt/data/lcf/1112/tab/2011_dvhh_ukanon.tab",
 	"/mnt/data/lcf/1213/tab/2012_dvhh_ukanon.tab",
 	"/mnt/data/lcf/1314/tab/2013_dvhh_ukanon.tab",
 	"/mnt/data/lcf/1415/tab/2014_dvhh_ukanon.tab",
@@ -249,7 +249,7 @@ r43 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_ne
 r44 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + t_trend  ), lcf )
 r45 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus + t_trend  ), lcf )
 r46 = lm( @formula( sh_fuel_inc ~ l_fuel_price + l_net_inc  + l_net_inc^2 + l_net_inc^3 + scotland + owner + mortgaged + privrent + larent + detatched + terraced + flat + other_accom + age_u_18 + age_18_69 + age_70_plus  + winter + spring + summer + t_trend ), lcf )
-#                                  1       2             3            4               5       6        7            8         9       10           11        12     13            14         15          16             17        18       19       20  
+#                                  1       2             3            4               5       6        7            8         9       10           11        12     13            14         15          16             17        18       19       20       21
 
 RegressionTables.regtable( r1, r2, r3, r4, r5 )
 RegressionTables.regtable( r11, r12, r13, r14, r15, r16 )
@@ -330,7 +330,7 @@ Axis( fig1[1,1],
 # pensioner couple
 #
 ps = lcf[((lcf.age_70_plus .> 0).&& (lcf.age_u_18 .== 0)), : ]
-predPens = predict45( r45, INCS, Dict([6=>1, 7=>1, 12=>1, 17=>2 ]))
+predPens = predict45( r45, INCS, Dict([6=>1, 7=>1, 12=>1, 17=>2, 21=>11 ]))
 s1 = plot!( ps.weekly_net_inc, ps.fuel,color = "cornflowerblue", markersize = 1 )
 p1 = plot!( INCS, predPens, color="navyblue", markersize= 2 )
 
@@ -338,7 +338,7 @@ p1 = plot!( INCS, predPens, color="navyblue", markersize= 2 )
 # 2ad childless
 # see: https://juliagraphics.github.io/Colors.jl/stable/namedcolors/ for a colo[u]r name list
 pn = lcf[((lcf.age_70_plus .== 0) .&& (lcf.age_u_18 .== 0)), : ]
-predFamNC = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>0, 16=>2 ]))
+predFamNC = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>0, 16=>2, 21=>11 ]))
 s2 = plot!( pn.weekly_net_inc, pn.fuel, color = "indianred1", markersize = 1 )
 p2 = plot!( INCS, predFamNC, color="red4", markersize= 2 )
 
@@ -346,7 +346,7 @@ p2 = plot!( INCS, predFamNC, color="red4", markersize= 2 )
 # 2 ad w/children
 #
 pc = lcf[(lcf.age_u_18 .> 0), : ]
-predFam2 = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>2, 16=>2 ]))
+predFam2 = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>2, 16=>2, 21=>11 ]))
 s3 = plot!( pc.weekly_net_inc, pc.fuel,color = "darkgreen", markersize = 1 )
 p3 = plot!( INCS, predFam2, color="seagreen", markersize= 2 )
 
