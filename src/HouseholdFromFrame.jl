@@ -66,13 +66,9 @@ function create_regression_dataframe(
     fm.rec_carers = ( fm.income_carers_allowance.>0.0)
     fm_rec_aa = ( fm.income_attendance_allowance.>0.0)
     fm.scotland = fm.region .== 299999999
-    fm.male = fm.sex .== 1
-
+    fm.male = fm.sex .== 1 
     return fm
 end
-
-
-
 function map_person( 
     hh           :: Household, 
     model_person :: DataFrameRow, 
