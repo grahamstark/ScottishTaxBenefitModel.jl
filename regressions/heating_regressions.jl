@@ -293,7 +293,7 @@ summer + 20
 t_trend + 21
 =#
 
-function predict45( 
+function predict46( 
 	r :: StatsModels.TableRegressionModel, 
 	incomes :: AbstractArray, 
 	nonzeros :: Dict{Int,Int} ) :: Vector
@@ -330,7 +330,7 @@ Axis( fig1[1,1],
 # pensioner couple
 #
 ps = lcf[((lcf.age_70_plus .> 0).&& (lcf.age_u_18 .== 0)), : ]
-predPens = predict45( r45, INCS, Dict([6=>1, 7=>1, 12=>1, 17=>2, 21=>11 ]))
+predPens = predict46( r46, INCS, Dict([6=>1, 7=>1, 12=>1, 17=>2, 21=>11 ]))
 s1 = plot!( ps.weekly_net_inc, ps.fuel,color = "cornflowerblue", markersize = 1 )
 p1 = plot!( INCS, predPens, color="navyblue", markersize= 2 )
 
@@ -338,7 +338,7 @@ p1 = plot!( INCS, predPens, color="navyblue", markersize= 2 )
 # 2ad childless
 # see: https://juliagraphics.github.io/Colors.jl/stable/namedcolors/ for a colo[u]r name list
 pn = lcf[((lcf.age_70_plus .== 0) .&& (lcf.age_u_18 .== 0)), : ]
-predFamNC = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>0, 16=>2, 21=>11 ]))
+predFamNC = predict46( r46, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>0, 16=>2, 21=>11 ]))
 s2 = plot!( pn.weekly_net_inc, pn.fuel, color = "indianred1", markersize = 1 )
 p2 = plot!( INCS, predFamNC, color="red4", markersize= 2 )
 
@@ -346,10 +346,12 @@ p2 = plot!( INCS, predFamNC, color="red4", markersize= 2 )
 # 2 ad w/children
 #
 pc = lcf[(lcf.age_u_18 .> 0), : ]
-predFam2 = predict45( r45, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>2, 16=>2, 21=>11 ]))
+predFam2 = predict46( r46, INCS, Dict([6=>1, 7=>1, 11=>1, 15=>2, 16=>2, 21=>11 ]))
 s3 = plot!( pc.weekly_net_inc, pc.fuel,color = "darkgreen", markersize = 1 )
 p3 = plot!( INCS, predFam2, color="seagreen", markersize= 2 )
 
 Legend( fig1[1,2], [[s1,p1], [s2,p2], [s3,p3]], ["Pensioners", "Childless", "W/Children"])
 
 save( "docs/fuel/energy_model_sketch.pdf", fig1 )
+
+println( coef( r46 ))
