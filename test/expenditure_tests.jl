@@ -59,7 +59,7 @@ end
             fres = impute_fuel( res, hh, intermed, 1.04, 1.0, 1.0, 2023 )
             share[hno,1] = fres.pred_share
             # 20% increase
-            fres = impute_fuel( res, hh, intermed, 2.08, 1.0, 1.0, 2023 )
+            fres = impute_fuel( res, hh, intermed, 2.08, 1.1, 1.1, 2023 )
             share[hno,2] = fres.pred_share
             
             println( fres )
@@ -67,8 +67,8 @@ end
             @test fres.pred_share < 1
         end
         # println( share )
-        println( summarystats( share[:,1] ))
-        println( summarystats( share[:,2] ))
+        println( summarystats( share[share[:,1] .> 0,1] ))
+        println( summarystats( share[share[:,2] .> 0,2] ))
     end
 end
 
