@@ -58,6 +58,10 @@ export LegacyOrUC, legacy_bens, uc_bens
    benefit_generosity = Date(2022, 08, 12 )
 end
 
+#
+# FIXME TODO shorten enum names; capitalise consistently
+#
+
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin
    missing_style = -1
@@ -83,7 +87,7 @@ export Less_than_six_months, Between_six_months_and_12_months, v_12_months_or_mo
 export Missing_Illness_Length, RT
 
 export DwellingType,  dwell_na, detatched, semi_detached, terraced,
-   flat_or_maisonette, converted_flat, other_dwelling
+   flat_or_maisonette, converted_flat, caravan, other_dwelling
 
 @enum DwellingType begin
    dwell_na = -1

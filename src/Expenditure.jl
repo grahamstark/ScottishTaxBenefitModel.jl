@@ -8,6 +8,9 @@ using ScottishTaxBenefitModel
 using .Intermediate
 using .ModelHousehold
 using .Results
+using .Definitions
+
+export impute_fuel
 
 const COEFS = [1.6828173937157354, 0.0435596075343851, -0.5871109496468505, 
     0.06857117295491019, -0.0026985222962243797, 0.006247381738514693, 
@@ -50,21 +53,31 @@ const COEFS = [1.6828173937157354, 0.0435596075343851, -0.5871109496468505,
     
     =#
 
+# INFLATION 2015->now
+
+const GUESS_INF_2015_NOW = 1.207 # annual D7BT to 2022 Q2
+
 """
 fuel price should be e.g. 1.2 if 20% above uprated to value
 """
 function impute_fuel(
     household_result :: HouseholdResult{T},
     household        :: Household{T},
-    intermed         :: HHIntermed,
+    intermed         :: HHIntermed, 
     fuel_price       :: T, # these should all be point differences from base forecast data
     cpi              :: T,
     rem_cpi          :: T,
     modelled_year    :: Int ) :: NamedTuple where T
+    hh = household
+    hres = household_result
+    if hres.bhc_net_income < 10
+        println( "out of range income for $(hh.hid) $(hh.data_year)")
+        return (pred_share=0.0, pred_spend=0.0,consumption=0.0)
+    end
     v = zeros(T,21)
     v[1] = 1.0 # intercept
-    v[2] = log( fuel_price / rem_cpi ) # rel pr fuel``
-    v[3] = household_result.bhc_net_income / cpi ## FIXME make a price index with fuel
+    v[2] = log( fuel_price / rem_cpi ) # rel pr fuel
+    v[3] = log(hres.bhc_net_income / (cpi*GUESS_INF_2015_NOW)) ## FIXME make a price index with fuel; get in 2015 levels properly
     v[4] = v[3]^2
     v[5] = v[3]^3
     v[6] = hh.region == Scotland ? 1 : 0
@@ -74,20 +87,26 @@ function impute_fuel(
     v[10] = hh.tenure == Council_Rented ? 1 : 0
     v[11] = hh.dwelling == detatched ? 1 : 0 
     v[12] = hh.dwelling == terraced ? 1 : 0 
-    v[13] = hh.dwelling == flat ? 1 : 0 
+    v[13] = hh.dwelling in [flat_or_maisonette,converted_flat] ? 1 : 0 
     v[14] = hh.dwelling in [caravan, other_dwelling] ? 1 : 0
-    v[15] = count( hh, le_age, 17 ) 
-    v[16] = count( hh, between_ages, 18, 69 ) 
-    v[17] = count( hh, ge_age, 70 ) 
-    @assert sum(v[15:17]) == intermed.num_people
+    v[15] = ModelHousehold.count( hh, le_age, 17 ) 
+    v[16] = ModelHousehold.count( hh, between_ages, 18, 69 ) 
+    v[17] = ModelHousehold.count( hh, ge_age, 70 ) 
+    # @assert sum(v[15:17]) > 0 # == intermed.num_people
     v[18] = hh.interview_month in [12,1,2] ? 1 : 0 # winter dec-feb
     v[19] = hh.interview_month in [3,4,5] ? 1 : 0  # spring mar-may
     v[20] = hh.interview_month in [6,7,8] ? 1 : 0  # summer june-aug
     v[21] = modelled_year - 2008
-    pred_share : T = v'COEFS
+    pred_share :: T = COEFS'v
+    println( "v = $(v)")
+    println( "on hh $(hh.hid) $(hh.data_year) pred_share=$pred_share hres.bhc_net_income=$(hres.bhc_net_income)")
+    pred_share = max(0.001, pred_share) # FIXME 1081 2015 net hres.bhc_net_income=0.8146880557002671
+
+    pred_share = min(0.999, pred_share)
     @assert pred_share > 0 && pred_share < 1
-    pred_spend = fuel_price*pred_share*household_result.bhc_net_income
-    return (pred_share=pred_share, pred_spend=pred_spend)
+    pred_spend = pred_share*household_result.bhc_net_income
+    consumption = pred_spend/fuel_price
+    return (pred_share=pred_share, pred_spend=pred_spend,consumption=consumption)
 end
 
 end # module
