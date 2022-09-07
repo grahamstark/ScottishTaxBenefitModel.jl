@@ -92,7 +92,8 @@ function impute_fuel(
     v[15] = ModelHousehold.count( hh, le_age, 17 ) 
     v[16] = ModelHousehold.count( hh, between_ages, 18, 69 ) 
     v[17] = ModelHousehold.count( hh, ge_age, 70 ) 
-    # @assert sum(v[15:17]) > 0 # == intermed.num_people
+    ap = v[15]+v[16]+v[17]
+    @assert ap == intermed.num_people
     v[18] = hh.interview_month in [12,1,2] ? 1 : 0 # winter dec-feb
     v[19] = hh.interview_month in [3,4,5] ? 1 : 0  # spring mar-may
     v[20] = hh.interview_month in [6,7,8] ? 1 : 0  # summer june-aug
