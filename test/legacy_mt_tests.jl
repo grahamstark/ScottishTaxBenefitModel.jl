@@ -74,7 +74,7 @@ using .ExampleHelpers
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
-sys = get_system( scotland=true )
+sys = get_system( year=2019, scotland=true )
 
 @testset "2 child policy" begin
     sph = get_example(single_parent_hh)
@@ -408,7 +408,7 @@ end # test set
 end
 
 @testset "Intermediates" begin
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     cpl = get_benefit_units(get_example(cpl_w_2_children_hh))[1]
     spouse = get_spouse( cpl )
     head = get_head( cpl )
@@ -544,12 +544,12 @@ end
 end
 
 @testset "Allowances" begin
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     # TODO
 end
 
 @testset "NDDS" begin
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     spers = get_benefit_units(get_example(single_hh))[1]
     head = get_head( spers ) # the only person, obvs..
     head.age = 30
@@ -738,7 +738,7 @@ end
 
 
 @testset "Allowances" begin
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     sing = get_example(single_hh)
     singbu = get_benefit_units(sing)[1]
     head = get_head( singbu )
@@ -930,7 +930,7 @@ end
 end
 
 @testset "Premia" begin
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     cplhh = get_example(cpl_w_2_children_hh)
     cpl = get_benefit_units(cplhh)[1]
     bures = init_benefit_unit_result(cpl)
@@ -1021,7 +1021,7 @@ end
 
 @testset "HB/CTB" begin
     # CPAG 19/20 p190
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     joplings = get_example(childless_couple_hh)
     jbu = get_benefit_units(joplings)[1]
     spouse = get_spouse( jbu )
@@ -1109,7 +1109,7 @@ end
 end
 
 @testset "NDDs" begin
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     bu3 = get_example(mbu)
     bus = get_benefit_units( bu3 )
     @assert size(bus)[1] == 3
@@ -1264,7 +1264,7 @@ end
 
 @testset "PC/SC" begin
     # cpag19/20 EXAMPLES on p274
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     bhh= get_example(single_hh)
     barbara = get_head(bhh)
     retire!( barbara )
@@ -1437,7 +1437,7 @@ end
 @testset "CTC/WTC/Childcare CPAG Ch 61" begin
     relevant_period = 366
     cpag_wpy = 366/365.25
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     mt_ben_sys = sys.lmt
 
     

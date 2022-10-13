@@ -37,7 +37,7 @@ end
 function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
-    sys = [get_system(scotland=false), get_system( scotland=true )]
+    sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
     tot = 0
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
@@ -58,7 +58,7 @@ end
         settings.means_tested_routing = modelled_phase_in
         settings.do_marginal_rates = true
         settings.dump_frames = true
-        sys = [get_system(scotland=false), get_system( scotland=true )]
+        sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
         results = do_one_run( settings, sys, obs )
         settings.poverty_line = make_poverty_line( results.hh[1], settings )
         outf = summarise_frames( results, settings )

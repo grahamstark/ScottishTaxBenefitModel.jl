@@ -45,7 +45,7 @@ using .Utils:
 
 using .ExampleHelpers
 
-sys = get_system( scotland=true )
+sys = get_system( year=2019, scotland=true )
 
 @testset "Benefit Cap Shakedown" begin
     examples = get_all_examples()

@@ -9,8 +9,8 @@
 # Use with `scripts/pluto_get_hh.jl`.
 #
 using CSV, DataFrames, Markdown
-using Mux
-import Mux.WebSockets
+# using Mux
+# import Mux.WebSockets
 using JSON
 using HttpCommon
 using Logging, LoggingExtras
@@ -270,7 +270,7 @@ end
 function get_data( hno, bits )::String
     mhh :: Household = FRSHouseholdGetter.get_household( hno )
     s = ModelHousehold.to_string( mhh )
-    sys = get_system(scotland=true)
+    sys = get_system( year=2019, scotland=true)
     intermed :: HHIntermed = make_intermediate(  
         mhh, 
         sys.lmt.hours_limits,
@@ -319,6 +319,7 @@ end
 
 init_data()
 
+#=
 WEB = true
 
 if WEB
@@ -351,6 +352,7 @@ if WEB
 
     init_data()
     println("data initialised")
+
     logger = FileLogger("/var/tmp/retriever.log")
     global_logger(logger)
     LogLevel( Logging.Info )

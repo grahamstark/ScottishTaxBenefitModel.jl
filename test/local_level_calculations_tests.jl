@@ -19,7 +19,7 @@ using .ExampleHelpers
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
-sys = get_system( scotland=true )
+sys = get_system( year=2019, scotland=true )
 
 rc = @timed begin
     num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )

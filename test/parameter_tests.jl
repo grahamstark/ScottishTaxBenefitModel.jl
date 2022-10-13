@@ -22,7 +22,7 @@ using .ExampleHelpers
     @test isapprox( itweekly.non_savings_thresholds, it.non_savings_thresholds, rtol=0.00001 )
     @test itweekly.mca_minimum ≈ it.mca_minimum
     
-    sys_scot = get_system( scotland=true )
+    sys_scot = get_system( year=2019, scotland=true )
     @show sys_scot
     @show sys_scot.it
     @show sys_scot.ni

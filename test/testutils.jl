@@ -95,7 +95,7 @@ function init_data(; reset :: Bool = false, settings = Settings() )
 end
 
 
-function get_system(; scotland::Bool ) :: TaxBenefitSystem
+function getSystem(; scotland::Bool ) :: TaxBenefitSystem
    sys = TaxBenefitSystem{DEFAULT_NUM_TYPE}()
    weeklyise!(sys)
    # overwrite IT to get RuK system as needed

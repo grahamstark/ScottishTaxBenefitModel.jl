@@ -14,8 +14,8 @@ using .STBIncomes
 using .ExampleHelpers
 
 settings = Settings()
-ruksys = get_system( scotland = false )
-scosys = get_system( scotland = true )
+ruksys = get_system( year=2019, scotland = false )
+scosys = get_system( year=2019, scotland = true )
 
 FRSHouseholdGetter.initialise( settings )
 
