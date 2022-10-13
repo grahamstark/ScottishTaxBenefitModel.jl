@@ -660,7 +660,7 @@ le_age( pers :: Person, age ... ) = pers.age <= age[1]
 
 ge_age( pers :: Person, age ... ) = pers.age >= age[1] 
 
-between_ages( pers :: Person, age ... ) = age[1] >= pers.age <= age[2] 
+between_ages( pers :: Person, age ... ) = age[1] <= pers.age <= age[2] 
 
 has_income( pers::Person, which :: Incomes_Type ) = haskey( pers.income, which )
 
