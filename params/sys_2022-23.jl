@@ -6,7 +6,10 @@
 # https://www.gov.uk/income-tax-rates
 # https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2022-to-2023
 # https://www.gov.scot/publications/scottish-income-tax-2022-2023/
-# 
+# https://www.gov.uk/government/publications/benefit-and-pension-rates-2022-to-2023
+#
+
+
 sys.it.savings_rates = [0.0, 20.0, 40.0, 45.0]
 sys.it.savings_thresholds = [5_000.0, 37_700.0, 150_000.0]
 sys.it.savings_basic_rate = 2 # above this counts as higher rate
@@ -70,21 +73,21 @@ sys.it.pension_contrib_withdrawal_rate = 50.0
 # sys.it.mca_date = MCA_DATE
 
 # NOTE THESE DO NOT INCLUDE JULY CHANGES
-
+# see: https://www.gov.uk/national-insurance-rates-letters
+# Nov 2022 - 5th april 2023
 sys.ni.abolished = false
-sys.ni.primary_class_1_rates = [0.0, 0.0, 13.25, 3.25 ]
-sys.ni.primary_class_1_bands = [123.0, 190.0, 967.0, 9999999999999.9] # the '-1' here is because json can't write inf
-sys.ni.secondary_class_1_rates = [0.0, 15.05, 15.05 ] # keep 2 so
+sys.ni.primary_class_1_rates = [0.0, 0.0, 12.0, 2.0 ]
+sys.ni.primary_class_1_bands = [123.0, 242.0, 967.0, 9999999999999.9] # the '-1' here is because json can't write inf
+	sys.ni.secondary_class_1_rates = [0.0, 13.8, 13.8 ] # keep 2 so
 sys.ni.secondary_class_1_bands = [175.0, 967.0, 99999999999999.9 ]
 sys.ni.state_pension_age = 66; # fixme move
+# https://www.gov.uk/self-employed-national-insurance-rates
 sys.ni.class_2_threshold = 6_725.0;
 sys.ni.class_2_rate = 3.15;
-sys.ni.class_4_rates = [0.0, 10.25, 3.25 ]
-sys.ni.class_4_bands = [9_880.0, 50_270.0, 99999999999999.9 ]
+sys.ni.class_4_rates = [0.0, 9.73, 2.73 ]
+sys.ni.class_4_bands = [11_909.0, 50_270.0, 99999999999999.9 ]
 # sys.ni.class_1_income = IncludedItems([WAGES],[PENSION_CONTRIBUTIONS_EMPLOYER])
 # sys.ni.class_4_income = [SELF_EMPLOYMENT_INCOME]
-
-# sys.uc.
 
 sys.lmt.isa_jsa_esa_abolished = false
 sys.lmt.pen_credit_abolished = false
@@ -219,7 +222,7 @@ sys.uc.capital_min = 6_000.0
 sys.uc.capital_max = 16_000.0
 # £1 *per week* ≆ 4.35 pm FIXME make 4.35 WEEKS_PER_MONTH? 
 sys.uc.capital_tariff = 250.0/4.35
-sys.uc.taper = 63.0
+sys.uc.taper = 55.0
 sys.uc.ctr_taper = 20.0
 
 sys.age_limits.state_pension_ages = pension_ages()
