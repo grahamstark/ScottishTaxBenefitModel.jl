@@ -121,7 +121,7 @@ function get_system( ; year, scotland = true )  :: TaxBenefitSystem
    sys = nothing
    if year == 2022
       sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
-      load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
+      # load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
    else
       return getSystem( scotland=scotland )
    end 

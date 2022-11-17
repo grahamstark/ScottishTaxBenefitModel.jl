@@ -1,5 +1,5 @@
 #
-# This is the benefit/tax credit/IT/MinWage/NI rates from April 2022
+# This is the benefit/tax credit/IT/MinWage/NI rates from November 17, 2022
 # sources:
 # https://www.gov.uk/government/publications/benefit-and-pension-rates-2022-to-2023
 # https://www.gov.uk/government/publications/rates-and-allowances-tax-credits-child-benefit-and-guardians-allowance/tax-credits-child-benefit-and-guardians-allowance
