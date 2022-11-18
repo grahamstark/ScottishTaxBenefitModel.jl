@@ -1,5 +1,10 @@
-using CSV,DataFrames,Statistics,StatsBase
-
+using CSV,DataFrames,Statistics,Statshs_all_years sBase
+#
+# FIXME THIS IS A MESS AND NEEDS CLEANING UP. 
+# * MOVE PATHS and constants into a file.
+# * move tests to a tests file in `tests`
+# * move most code to a package in `src/`
+# 
 include( "matching/matching_funcs.jl")
 
 frs_all_years_scot_he = create_frs( 2015:2019 )
@@ -98,7 +103,7 @@ CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true,
 
 mhh = CSV.File( "data/model_households_scotland.tab"; delim='\t') |> DataFrame
 shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
-target_pops = CSV.File( "data/merging/hhlds_and_people_2019_nrs_estimates.csv" ) |> DataFrame
+target_pops = CSV.File( "data/merging/hhlds_and_people_2022_nrs_estimates.csv" ) |> DataFrame
 shs_hhn = count_councils(shs_all_years, shs_councils )
 #
 # actual sampling frequencies by council, pooled over all shs years
@@ -107,22 +112,24 @@ shs_hhn = count_councils(shs_all_years, shs_councils )
 inv_freqs = Dict()
 
 for p in eachrow( target_pops )
-    inv_freqs[p.code] = p.hhlds_2019/shs_hhn[p.code]
+    inv_freqs[p.code] = p.hhlds_2022/shs_hhn[p.code]
 end
 #
 # idiot check that we sum back up
-#
+# FIXME really idiotic and hard wired in ..
 s = 0.0
 for p in eachrow( target_pops )
     global s
     s += inv_freqs[p.code]*shs_hhn[p.code]
 end
 
+@assert s  ≈ 2537971.91652663 # FIXME needs updating every time
+
 add_in_las_to_recip!( recip, shs_all_years, shs_councils )
 
-@assert s  ≈ 2495622
+# 2495622
 
-tot_hhlds_19 = 2_495_622
+ tot_hhlds_20 = 2537971.91652663 # FIXME just make this a sum
 
 n = add_council_to_frs!(
     # ;
@@ -132,7 +139,7 @@ n = add_council_to_frs!(
     inv_freqs = inv_freqs )
 
 
-aw = tot_hhlds_19/sum(values(n))
+aw =  tot_hhlds_20/sum(values(n))
 
 println( "|code|name|shs sample freq| n |" )
 println( "|----|----|-----------|------|" )
@@ -151,3 +158,10 @@ CSV.write( "data/model_households_scotland.tab", mhh; delim='\t')
 #
 # todo : add bedrooms bedroom6 frs capped at 6 hc4 shs
 # 
+
+#
+# save just the mapped SHS vars so we can speed up FRS create model dataset operations
+# 
+
+ss = mhh[!, [:data_year,:hid,:council,:nhs_board,:bedrooms]]
+CSV.write( "data/merging/mapped_from_shs_vars.tab", ss; delim='\t')

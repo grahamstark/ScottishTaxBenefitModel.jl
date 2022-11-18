@@ -72,7 +72,7 @@ using .STBIncomes
 using .ExampleHelpers
 
 ## FIXME don't need both
-sys = get_system( scotland=true )
+sys = get_system( year=2019, scotland=true )
 
 @testset "UC Example Shakedown Tests" begin
     #

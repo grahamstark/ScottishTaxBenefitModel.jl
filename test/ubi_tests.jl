@@ -10,7 +10,7 @@ using .STBParameters
 using .STBIncomes
 using .ExampleHelpers
 using .Monitor: Progress
-sys = get_system( scotland=true )
+sys = get_system( year=2019, scotland=true )
 sys.ubi.abolished = false
 
 settings = Settings()
@@ -55,7 +55,7 @@ end
 
 @testset "UBI Pre Adjustments" begin
 
-    sys = get_system( scotland = true )
+    sys = get_system( year=2019, scotland = true )
     println( typeof(sys.it.non_savings_income))
     sys.ubi.abolished = false
     sys.ubi.mt_bens_treatment = ub_as_is
@@ -94,7 +94,7 @@ end
 
 @testset "UBI Post Adjustments" begin
     
-    sys = get_system( scotland = true )
+    sys = get_system( year=2019, scotland = true )
     sys.ubi.abolished = false
     res1 = do_one_run(
         settings,

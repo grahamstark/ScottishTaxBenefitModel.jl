@@ -46,6 +46,7 @@ export
     age_then,
     between_ages, 
     child_pids, 
+    count,
     default_bu_allocation,
     empl_status_in, 
     ge_age, 
@@ -176,6 +177,7 @@ mutable struct Household{RT<:Real}
     tenure::Tenure_Type
     region::Standard_Region
     ct_band::CT_Band
+    dwelling :: DwellingType
     council_tax::RT
     water_and_sewerage ::RT
     mortgage_payment::RT
@@ -658,7 +660,7 @@ le_age( pers :: Person, age ... ) = pers.age <= age[1]
 
 ge_age( pers :: Person, age ... ) = pers.age >= age[1] 
 
-between_ages( pers :: Person, age ... ) = age[1] >= pers.age <= age[2] 
+between_ages( pers :: Person, age ... ) = age[1] <= pers.age <= age[2] 
 
 has_income( pers::Person, which :: Incomes_Type ) = haskey( pers.income, which )
 

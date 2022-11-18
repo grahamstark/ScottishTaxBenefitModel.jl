@@ -44,6 +44,7 @@ include( "output_tests.jl")
 include( "vs_policy_in_practice_tests.jl")
 include( "vs_age_uk_tests.jl")
 
+include( "affordability_tests.jl")
 
 # These will only run if datasets are locally installed
 if IS_LOCAL
@@ -53,4 +54,5 @@ if IS_LOCAL
     include( "uc_transition_tests.jl")
     include( "simple_runner_tests.jl")
     include( "equaliser_tests.jl")
+    include( "expenditure_tests.jl")
 end

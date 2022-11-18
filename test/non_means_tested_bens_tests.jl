@@ -73,8 +73,8 @@ using .ExampleHelpers
 using Dates
 
 ## FIXME don't need both
-sys = get_system( scotland=true )
-ruksys = get_system( scotland=false )
+sys = get_system( year=2019, scotland=true )
+ruksys = get_system( year=2019, scotland=false )
 itsys_scot = get_default_it_system( year=2019, scotland=true )
 
 @testset "CB" begin

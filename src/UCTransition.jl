@@ -23,10 +23,10 @@ export
 @enum ClaimantType trans_all trans_housing trans_w_kids trans_incapacity trans_jobseekers
 
 const PROPS_ON_UC = Dict(
-    trans_all => 0.59, 
-    trans_housing => 0.61,
-    trans_w_kids => 0.55,
-    trans_incapacity => 0.32,
+    trans_all => 0.62, 
+    trans_housing => 0.64,
+    trans_w_kids => 0.63,
+    trans_incapacity => 0.41,
     trans_jobseekers => 0.95 )
 
 """

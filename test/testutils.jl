@@ -5,7 +5,10 @@ using .STBParameters:
     NationalInsuranceSys,
     IncomeTaxSys,
     weeklyise!,
-    make_ubi_pre_adjustments!
+    make_ubi_pre_adjustments!,
+    load_file,
+    load_file!
+
 import .Results: init_benefit_unit_result, BenefitUnitResult
 using .ModelHousehold: 
    BenefitUnit, 
@@ -92,7 +95,7 @@ function init_data(; reset :: Bool = false, settings = Settings() )
 end
 
 
-function get_system(; scotland::Bool ) :: TaxBenefitSystem
+function getSystem(; scotland::Bool ) :: TaxBenefitSystem
    sys = TaxBenefitSystem{DEFAULT_NUM_TYPE}()
    weeklyise!(sys)
    # overwrite IT to get RuK system as needed
@@ -111,6 +114,18 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
    if ! sys.ubi.abolished
       make_ubi_pre_adjustments!( sys )
    end
+   return sys
+end
+
+function get_system( ; year, scotland = true )  :: TaxBenefitSystem
+   sys = nothing
+   if year == 2022
+      sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
+      # load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
+   else
+      return getSystem( scotland=scotland )
+   end 
+   weeklyise!(sys)
    return sys
 end
 

@@ -1,12 +1,15 @@
 #
-# This is the benefit/tax credit/IT/MinWage/NI rates from April 2022
+# This is the benefit/tax credit/IT/MinWage/NI rates from November 17, 2022
 # sources:
 # https://www.gov.uk/government/publications/benefit-and-pension-rates-2022-to-2023
 # https://www.gov.uk/government/publications/rates-and-allowances-tax-credits-child-benefit-and-guardians-allowance/tax-credits-child-benefit-and-guardians-allowance
 # https://www.gov.uk/income-tax-rates
 # https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2022-to-2023
 # https://www.gov.scot/publications/scottish-income-tax-2022-2023/
-# 
+# https://www.gov.uk/government/publications/benefit-and-pension-rates-2022-to-2023
+#
+
+
 sys.it.savings_rates = [0.0, 20.0, 40.0, 45.0]
 sys.it.savings_thresholds = [5_000.0, 37_700.0, 150_000.0]
 sys.it.savings_basic_rate = 2 # above this counts as higher rate
@@ -70,21 +73,21 @@ sys.it.pension_contrib_withdrawal_rate = 50.0
 # sys.it.mca_date = MCA_DATE
 
 # NOTE THESE DO NOT INCLUDE JULY CHANGES
-
+# see: https://www.gov.uk/national-insurance-rates-letters
+# Nov 2022 - 5th april 2023
 sys.ni.abolished = false
-sys.ni.primary_class_1_rates = [0.0, 0.0, 13.25, 3.25 ]
-sys.ni.primary_class_1_bands = [123.0, 190.0, 967.0, 9999999999999.9] # the '-1' here is because json can't write inf
-sys.ni.secondary_class_1_rates = [0.0, 15.05, 15.05 ] # keep 2 so
+sys.ni.primary_class_1_rates = [0.0, 0.0, 12.0, 2.0 ]
+sys.ni.primary_class_1_bands = [123.0, 242.0, 967.0, 9999999999999.9] # the '-1' here is because json can't write inf
+	sys.ni.secondary_class_1_rates = [0.0, 13.8, 13.8 ] # keep 2 so
 sys.ni.secondary_class_1_bands = [175.0, 967.0, 99999999999999.9 ]
 sys.ni.state_pension_age = 66; # fixme move
+# https://www.gov.uk/self-employed-national-insurance-rates
 sys.ni.class_2_threshold = 6_725.0;
 sys.ni.class_2_rate = 3.15;
-sys.ni.class_4_rates = [0.0, 10.25, 3.25 ]
-sys.ni.class_4_bands = [9_880.0, 50_270.0, 99999999999999.9 ]
+sys.ni.class_4_rates = [0.0, 9.73, 2.73 ]
+sys.ni.class_4_bands = [11_909.0, 50_270.0, 99999999999999.9 ]
 # sys.ni.class_1_income = IncludedItems([WAGES],[PENSION_CONTRIBUTIONS_EMPLOYER])
 # sys.ni.class_4_income = [SELF_EMPLOYMENT_INCOME]
-
-# sys.uc.
 
 sys.lmt.isa_jsa_esa_abolished = false
 sys.lmt.pen_credit_abolished = false
@@ -219,7 +222,7 @@ sys.uc.capital_min = 6_000.0
 sys.uc.capital_max = 16_000.0
 # £1 *per week* ≆ 4.35 pm FIXME make 4.35 WEEKS_PER_MONTH? 
 sys.uc.capital_tariff = 250.0/4.35
-sys.uc.taper = 63.0
+sys.uc.taper = 55.0
 sys.uc.ctr_taper = 20.0
 
 sys.age_limits.state_pension_ages = pension_ages()
@@ -231,10 +234,12 @@ sys.hours_limits.higher = 30
 
 sys.child_limits.max_children = 2
 
-# THESE ARE TILL APRIL 2022
+# https://www.gov.uk/government/publications/minimum-wage-rates-for-2022
+# col 1
 sys.minwage.ages = [16,18,21,23]
-sys.minwage.wage_per_hour = [4.62, 6.56, 8.36, 8.91]
-sys.minwage.apprentice_rate = 4.30
+sys.minwage.wage_per_hour = [4.81, 6.83, 9.18, 9.50]
+
+sys.minwage.apprentice_rate = 4.81
 
 sys.hr.maximum_rooms = 4
 sys.hr.rooms_rent_reduction = [14.0,25.0]
@@ -333,7 +338,7 @@ sys.bencap.inside_london_single = 296.35
 sys.bencap.inside_london_couple = 442.31
 sys.bencap.uc_incomes_limit = 617
 
-sys.scottish_child_payment.amount = 10.0
+sys.scottish_child_payment.amount = 20.0
 sys.scottish_child_payment.maximum_age = 5
 
 sys.ubi.abolished = true
@@ -342,3 +347,40 @@ sys.ubi.child_amount= 3_000.0
 sys.ubi.universal_pension = 8_780.0
 sys.ubi.adult_age = 17
 sys.ubi.retirement_age = 66
+
+sys.loctax.ct.band_d = Dict(
+  [
+    :S12000033 => 1418.62,
+    :S12000034 => 1339.83,
+    :S12000041 => 1242.14,
+    :S12000035 => 1408.76,
+    :S12000036 => 1378.75,
+    :S12000005 => 1343.77,
+    :S12000006 => 1259.30,
+    :S12000042 => 1419.03,
+    :S12000008 =>	1416.61,
+    :S12000045 =>	1348.25,
+    :S12000010 =>	1341.69,
+    :S12000011 =>	1335.11,
+    :S12000014 =>	1274.60,
+    :S12000047 =>	1319.22,
+    :S12000049 =>	1428.00,
+    :S12000017 =>	1372.29,
+    :S12000018 =>	1357.81,
+    :S12000019 =>	1442.60,
+    :S12000020 => 1362.56,
+    :S12000013 =>	1229.29,
+    :S12000021 =>	1382.97,
+    :S12000050 =>	1257.89,
+    :S12000023 =>	1244.73,
+    :S12000048 =>	1351.00,
+    :S12000038 =>	1354.88,
+    :S12000026 =>	1291.53,
+    :S12000027 =>	1206.33,
+    :S12000028 =>	1383.96,
+    :S12000029 =>	1233.00,
+    :S12000030 =>	1384.58,
+    :S12000039 =>	1332.36,
+    :S12000040 =>	1314.71] )
+
+

@@ -7,7 +7,7 @@ using .ScottishBenefits
 using .STBIncomes
 using .ExampleHelpers
 
-sys = get_system( scotland=true )
+sys = get_system(year=2019, scotland=true )
 
 @testset "Scottish Child Payment" begin
     

@@ -123,4 +123,10 @@ export Runner
 include( "TheEqualiser.jl" )
 export TheEqualiser
 
+include( "Expenditure.jl")
+export Expenditure
+
+include( "Affordability.jl")
+export Affordability
+
 end

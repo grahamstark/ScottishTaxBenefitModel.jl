@@ -66,13 +66,9 @@ function create_regression_dataframe(
     fm.rec_carers = ( fm.income_carers_allowance.>0.0)
     fm_rec_aa = ( fm.income_attendance_allowance.>0.0)
     fm.scotland = fm.region .== 299999999
-    fm.male = fm.sex .== 1
-
+    fm.male = fm.sex .== 1 
     return fm
 end
-
-
-
 function map_person( 
     hh           :: Household, 
     model_person :: DataFrameRow, 
@@ -266,6 +262,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         Tenure_Type(frs_hh.tenure),
         Standard_Region(frs_hh.region),
         CT_Band(frs_hh.ct_band),
+        DwellingType( frs_hh.dwelling ),
         m2z(frs_hh.council_tax),
         m2z(frs_hh.water_and_sewerage ),
         m2z(frs_hh.mortgage_payment),

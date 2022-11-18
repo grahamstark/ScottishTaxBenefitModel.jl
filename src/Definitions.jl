@@ -4,6 +4,7 @@ module Definitions
 #
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
+using Parameters
 
 export 
    Employment_Status,  # mapped from empstat
@@ -44,6 +45,22 @@ const NUM_REPEATS = 30 # simulates a longer calculation
 export LegacyOrUC, legacy_bens, uc_bens
 @enum LegacyOrUC legacy_bens uc_bens
 
+#
+# update this every time you add data, update prices, etc.
+#
+@with_kw struct CreationDates
+   data = Date( 2022, 08, 16 )
+   # target_set_target_date = Date( 2022, 06, 01 ) # roughly 
+   target_set = Date( 2022, 08, 12 )
+   uprating = Date( 2022, 04, 08 )
+   uc_transition = Date(2022, 02, 01 ) # feb 2022
+   pip_dla_historic = Date(2022, 08, 12 )
+   benefit_generosity = Date(2022, 08, 12 )
+end
+
+#
+# FIXME TODO shorten enum names; capitalise consistently
+#
 
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin
@@ -69,6 +86,19 @@ export Illness_Length  # mapped from limitl
 export Less_than_six_months, Between_six_months_and_12_months, v_12_months_or_more
 export Missing_Illness_Length, RT
 
+export DwellingType,  dwell_na, detatched, semi_detached, terraced,
+   flat_or_maisonette, converted_flat, caravan, other_dwelling
+
+@enum DwellingType begin
+   dwell_na = -1
+   detatched = 1
+   semi_detached = 2
+   terraced = 3
+   flat_or_maisonette = 4
+   converted_flat = 5
+   caravan = 6
+   other_dwelling = 7
+end
 
 @enum Illness_Length begin  # mapped from limitl
    Missing_Illness_Length = -1
@@ -689,7 +719,9 @@ export Missing_SIC_2007
    Activities_of_extraterritorial_organisations_and_bodies = 99
 end
 
-
+#
+# FIXME simplfy names
+#
 export Standard_Occupational_Classification  # mapped from soc2010
 export Undefined_SOC,
        Managers_Directors_and_Senior_Officials,
@@ -1309,7 +1341,11 @@ export DLAself_care,
        Future_Jobseekers_Allowance,
        Future_Employment_and_Support_Allowance,
        DWP_third_party_payments_UC,
-       Social_Fund_Loan_UC
+       Social_Fund_Loan_UC,
+       DWP_Third_Party_Payments_V2, # 2019 -
+       Repayment_UC_Advance, # 2019- 
+       Advance_of_UC # 2019 -
+    
 export Missing_Benefit_Type
 
 @enum Benefit_Type begin  # mapped from benefit
@@ -1372,6 +1408,10 @@ export Missing_Benefit_Type
    Future_Employment_and_Support_Allowance = 109
    DWP_third_party_payments_UC = 110
    Social_Fund_Loan_UC = 111
+   DWP_Third_Party_Payments_V2 = 112 # 2019- no idea what this is
+   Repayment_UC_Advance = 113 # 2019- 
+   Advance_of_UC = 114 # 2019 -
+
 end
 
 

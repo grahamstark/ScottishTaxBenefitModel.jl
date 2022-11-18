@@ -12,7 +12,7 @@ using .Intermediate
 using .STBIncomes
 using .ExampleHelpers
 
-sys = get_system( scotland=true )
+sys = get_system( year=2019, scotland=true )
 settings = Settings()
 settings.means_tested_routing = modelled_phase_in
 

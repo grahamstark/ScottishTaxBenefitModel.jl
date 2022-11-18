@@ -61,7 +61,7 @@ init_data()
     hhr = init_household_result( hh )
     @test hh_to_hhr_mismatch( hh, hhr )
 
-    sys = [get_system(scotland=false), get_system( scotland=true )]
+    sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
 
     wage = [50_000.0, 40_000, 10_000,16_500]./WEEKS_PER_YEAR
     savings = [0.0, 3_000, 10_000,3_000]./WEEKS_PER_YEAR
@@ -81,7 +81,7 @@ init_data()
 end
 
 @testset "Diagnose frs households" begin
-    sys = get_system( scotland=true )
+    sys = get_system( year=2019, scotland=true )
     target_hids = [1500]
     for hhno in target_hids
         hh = FRSHouseholdGetter.get_household( hhno )

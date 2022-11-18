@@ -143,7 +143,10 @@ function add_in_las_to_recip!(
                 shsrow=shs_all_years[((shs_all_years.uniqidnew.==id).&(shs_all_years.datayear.==y)),:][1,:]
                 cc = shs_councils[(shs_councils.SHS_ID .== shsrow.council),:Code][1]
                 r[ckey] = cc
-                r[nkey] = shsrow.hlthbd2014
+                # FIXME COMMENTED out since
+                # Glasgow/lanarkshire changed codes;
+                # see `notes.md` 
+                # r[nkey] = shsrow.hlthbd2014
             end
         end    
     end
@@ -201,7 +204,7 @@ function loadfrs( year::Int, fname :: String ) :: DataFrame
 	ystr = "$(year)$(year+1)"
 	fname = "$(DIR)/frs/$(year)/tab/$(fname).tab"
 	println( "loading '$fname'" )
-	frs = CSV.File( fname; missingstrings=["-1"] ) |> DataFrame
+	frs = CSV.File( fname; missingstring=["-1"] ) |> DataFrame
 	lcnames = Symbol.(lowercase.(string.(names(frs))))
     rename!(frs,lcnames)
     frs[!,:datayear] .= year-2000
