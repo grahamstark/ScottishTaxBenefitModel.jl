@@ -1,4 +1,8 @@
 module Pensions
+#
+# This module imputes missing employer's pension contributions
+# and will do other things in future.
+#
 
 using StatsBase
 
