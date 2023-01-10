@@ -1,4 +1,6 @@
 #
+# NOT USED; see Visualisations.jl
+# first attempt at a web interface.
 # see: https://github.com/JuliaWeb/Mux.jl
 # and:
 #
