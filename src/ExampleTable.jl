@@ -1,4 +1,7 @@
 module ExampleTables
+#
+# This will eventually contain a taxben style seekable table
+#
 
 using DataFrames
 
