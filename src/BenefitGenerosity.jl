@@ -1,5 +1,12 @@
 module BenefitGenerosity
 #
+# This module provides a simple way of modelling
+# the generosity of the tests for PIP,DLA and AA & their Scottish replacements.
+# see also the benefit regressions in tge `regressions/`
+# folder, and the blog post. For a less generous test, the recipient people with the lowest probs in 
+# the regressions are removed, for more generous the non-recipients
+# with the highest modelled probs are added.
+# 
 # This is crazily over/under designed and needs re-doing
 # Je n'ai fait celle-ci plus longue que parce que je n'ai pas eu le loisir de la faire plus courte.
 #
