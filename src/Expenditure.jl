@@ -1,5 +1,6 @@
 #
-# imputations
+# First try at fuel expenditure imputations. See also
+# `regressions/`
 #
 module Expenditure
 
