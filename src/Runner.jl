@@ -1,9 +1,9 @@
 module Runner
     #
-    # This model actually runs all the calculations over a collection of households and stores the results in dataframes.
-    # Presently it also contains code to summarise the output dataframes. FIXME output needs to be in own module.
     #
-
+    # This module is the main entry point for Scotben. 
+    # It runs all the calculations over a collection of households and stores the results in dataframes.
+    #
     using Base.Threads
 
     using Parameters: @with_kw
