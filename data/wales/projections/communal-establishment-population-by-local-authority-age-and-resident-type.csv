@@ -1,0 +1,55 @@
+"Census > 2001 > Communal establishment population by local authority, age and resident type"
+"Communal establishment population by local authority, age and resident type"
+
+Filters:
+gender: Persons
+
+"","All People ","Residents (non-staff): 0 to 14 ","Residents (non-staff): 15 ","Residents (non-staff): 16 to 17 ","Residents (non-staff): 18 to 19 ","Residents (non-staff): 20 to 34 ","Residents (non-staff): 35 to 49 ","Residents (non-staff): 50 to 59 ","Residents (non-staff): 60 to 64 ","Residents (non-staff): 65 to 74 ","Residents (non-staff): 75 to 84 ","Residents (non-staff): 85 to 89 ","Residents (non-staff): 90 and over ","Resident staff and families "
+"Wales ",43580,609,226,661,6804,7958,1828,1164,634,2335,6998,5128,5272,3963
+"Isle of Anglesey ",677,0,3,9,0,65,18,12,6,35,148,119,128,134
+"Gwynedd ",3011,22,3,17,726,908,83,39,19,120,378,246,269,181
+"Conwy ",2361,98,51,103,56,78,149,97,48,163,391,352,453,322
+"Denbighshire ",1857,54,18,41,57,101,73,71,43,145,367,291,305,291
+"Flintshire ",1074,3,6,7,16,47,36,32,15,86,266,230,241,89
+"Wrexham ",1649,19,0,12,125,201,65,49,27,113,385,263,291,99
+"Powys ",1590,68,36,92,49,150,65,66,22,95,283,236,240,188
+"Ceredigion ",2821,15,0,9,1161,1010,48,27,15,46,136,123,139,92
+"Pembrokeshire ",1376,18,6,14,31,151,74,63,25,113,319,226,232,104
+"Carmarthenshire ",2589,61,29,62,175,351,74,55,34,157,471,314,298,508
+"Swansea ",3610,17,3,9,581,719,178,127,50,194,584,482,439,227
+"Neath Port Talbot ",1149,9,6,0,6,35,34,20,12,87,347,198,230,165
+"Bridgend ",1530,12,3,7,45,346,124,63,34,89,312,198,196,101
+"The Vale of Glamorgan ",1884,3,0,157,213,205,43,21,19,84,333,285,267,254
+"Cardiff ",7928,25,13,45,2921,2417,335,136,71,222,591,399,439,314
+"Rhondda, Cynon, Taff ",2611,35,3,9,448,561,61,31,40,164,509,314,279,157
+"Merthyr Tydfil ",342,6,0,3,3,16,9,12,6,29,107,84,58,9
+"Caerphilly ",1093,11,0,3,3,31,61,30,26,94,286,186,195,167
+"Blaenau Gwent ",684,0,0,0,3,12,20,23,21,77,198,142,138,50
+"Torfaen ",780,3,3,0,0,6,26,46,26,94,218,141,127,90
+"Monmouthshire ",1384,93,44,74,54,157,199,117,44,68,144,80,106,204
+"Newport ",1636,28,6,3,141,388,64,61,27,63,220,209,210,216
+
+
+
+Metadata:
+"Title","S126: Type of communal establishment and gender by resident type and age"
+"Author","Knowledge and Analytical Services, Welsh Government"
+"Notes","Added to StatsWales: February 2005.
+Source: Office for National Statistics (ONS)
+
+This table lists the population by the following:
+Gender: All persons, males & females,
+Type: Medical, care and other establishements,
+Resident, All people, age-groups for non-staff residents and total of staff and their family residents,
+Area: Local authorites & wards.
+
+The data can be found by using the interactive drill down method.
+
+Note:
+(a) Cells in this table have been randomly adjusted to avoid the release of confidential data.
+(b) All Census tables are independently adjusted; this means that counts of the same population in two different tables may not necessarily be the same.
+(c) Wards below the Standard Table thresholds (1,000 people and 400 households) were amalgamated with another ward within the same Local Authority for the release of Standard Tables.  A full list of these wards can be found at, http://www.statistics.gov.uk/census2001/downloads/wards_below_st_threshold.xls
+
+Contact: Stats.popcensus@wales.gsi.gov.uk"
+"Keywords","communal establishment"
+"Data licensing","You may use and re-use this data free of charge in any format or medium, under the terms of the Open Government License - see http://www.nationalarchives.gov.uk/doc/open-government-licence"
