@@ -1,68 +1,68 @@
-"Housing > Dwelling stock estimates > Dwelling stock estimates by year and tenure"
-"Dwelling stock estimates by year and tenure"
-
-Filters:
-Area: Wales
-
-"","Local Authority (Number) (3)","Registered Social Landlord (Number) (4)","Owner occupied/Privately rented (Number) ","Owner occupied (Number) (5)","Privately rented (Number) ","All tenures (Number) "
-"As at 31 March 2001 ",187855,54998,1031646,941201,90445,1274500
-"As at 31 March 2002 ",182957,56687,1045513,956974,88539,1285157
-"As at 31 March 2003 ",175627,57165,1063320,965964,97356,1296112
-"As at 31 March 2004 ",159742,64499,1082972,979281,103691,1307217
-"As at 31 March 2005 ",155955,65090,1098032,989062,108970,1319077
-"As at 31 March 2006 ",154280,65665,1110620,997492,113128,1330567
-"As at 31 March 2007 ",152814,66633,1123825,1001630,122195,1343271
-"As at 31 March 2008 ",129946,89397,1135939,1001174,134765,1355281
-"As at 31 March 2009 ",112998,106929,1145882,989213,156669,1365794
-"As at 31 March 2010 ",110576,110451,1154158,983688,170470,1375186
-"As at 31 March 2011 ",88724,133593,1161497,981394,180103,1383813
-"As at 31 March 2012 ",88392,134690,1166037,976724,189313,1389118
-"As at 31 March 2013 ",88249.666667,134835.333333,1171366,979272.073898,192093.926102,1394451
-"As at 31 March 2014 ",88072.333333,135398.666667,1176601.999999,981788.978164,194813.021836,1400073
-"As at 31 March 2015 ",87807,136282.666667,1181869.333333,981234.808924,200634.524409,1405959
-"As at 31 March 2016 ",87323,137205.666667,1188138.333333,981850.717339,206287.615994,1412667
-"As at 31 March 2017 ",87222,138596,1193553,988315.452793,205237.547207,1419371
-"As at 31 March 2018 ",87290,139881,1198726,994288.150483,204437.849517,1425897
-"As at 31 March 2019 (1)",87298.666667,141227.666667,1203010.666667,996349,206662,1431537
-"As at 31 March 2020 (2)",87331.326173,142571.203776,1207664.014687,1002708.923352,204955.091335,1437566.544636
-
-
-
-Footnotes:
-"1","	Estimates of owner-occupied and privately rented stock have been revised due to smoothing of Annual Population Survey data."
-"2","	Estimates of owner-occupied and privately rented stock are provisional and subject to revision following publication of 2020 Annual Population Survey data."
-"3","Prior to 2008-09 data are from the Housing Revenue Account Subsidy (HRAS) second advance form. For 2008-09 onwards, data are from the annual Social Housing Stock return from local authorities.Data has been affected by the large scale voluntary stock transfers of local authority stock to registered social landlordsExcludes intermediate and other tenures not at social rents"
-"4","Prior to 2008-09 data are from the annual RSL1 to 4 forms from registered social landlords. For 2008-09 onwards, data are from the annual Social Housing Stock return from registered social landlords.Data has been affected by the large scale voluntary stock transfers of local authority stock to registered social landlordsIncludes Abbeyfield Societies, Almshouse Charities and Co-ownership societies. Excludes rented stock owned by English registered social landlords. These dwellings appear in the owner-occupied, privately rented and other tenures category.Excludes intermediate and other tenures not at social rents"
-"5","Includes, owner-occupied, intermediate and other tenures."
-Metadata:
-"Title","Dwelling Stock Estimates"
-"Last update","September 2020"
-"Next update","Not yet confirmed"
-"Publishing organisation","Welsh Government"
-"Source 1","Dwelling Stock Estimates, Welsh Government"
-"Source 2","No drop down value selected"
-"Source 3","No drop down value selected"
-"Contact email","stats.housing@gov.wales"
-"Designation","National Statistics"
-"Lowest level of geographical disaggregation","Local authorities"
-"Geographical coverage","Wales"
-"Languages covered","English and Welsh"
-"Data licensing","You may use and re-use this data free of charge in any format or medium, under the terms of the Open Government License - see http://www.nationalarchives.gov.uk/doc/open-government-licence"
-"General description","Estimates of the number of dwellings in Wales by tenure and for each local authority, as at 31 March each year."
-"Data collection and calculation","Estimates of the total dwelling stock are calculated based on data from the population censuses. The estimates are produced by using the dwelling count from the most recent 2011 census as a baseline. This count is then projected forward using information collected on annual changes to the dwelling stock through new build completions plus any gains or losses through conversions and demolitions.
+Housing > Dwelling stock estimates > Dwelling stock estimates by year and tenure,,,,,,,
+Dwelling stock estimates by year and tenure,,,,,,,
+,,,,,,,
+Filters:,,,,,,,
+Area: Wales,,,,,,,
+,,,,,,,
+,Local Authority (Number) (3),Registered Social Landlord (Number) (4),Owner occupied/Privately rented (Number) ,Owner occupied (Number) (5),Privately rented (Number) ,All tenures (Number) ,
+As at 31 March 2001 ,187855,54998,1031646,941201,90445,1274500,1086644
+As at 31 March 2002 ,182957,56687,1045513,956974,88539,1285157,
+As at 31 March 2003 ,175627,57165,1063320,965964,97356,1296112,
+As at 31 March 2004 ,159742,64499,1082972,979281,103691,1307217,
+As at 31 March 2005 ,155955,65090,1098032,989062,108970,1319077,
+As at 31 March 2006 ,154280,65665,1110620,997492,113128,1330567,
+As at 31 March 2007 ,152814,66633,1123825,1001630,122195,1343271,
+As at 31 March 2008 ,129946,89397,1135939,1001174,134765,1355281,
+As at 31 March 2009 ,112998,106929,1145882,989213,156669,1365794,
+As at 31 March 2010 ,110576,110451,1154158,983688,170470,1375186,
+As at 31 March 2011 ,88724,133593,1161497,981394,180103,1383813,
+As at 31 March 2012 ,88392,134690,1166037,976724,189313,1389118,
+As at 31 March 2013 ,88249.666667,134835.333333,1171366,979272.073898,192093.926102,1394451,
+As at 31 March 2014 ,88072.333333,135398.666667,1176601.999999,981788.978164,194813.021836,1400073,
+As at 31 March 2015 ,87807,136282.666667,1181869.333333,981234.808924,200634.524409,1405959,
+As at 31 March 2016 ,87323,137205.666667,1188138.333333,981850.717339,206287.615994,1412667,
+As at 31 March 2017 ,87222,138596,1193553,988315.452793,205237.547207,1419371,
+As at 31 March 2018 ,87290,139881,1198726,994288.150483,204437.849517,1425897,
+As at 31 March 2019 (1),87298.666667,141227.666667,1203010.666667,996349,206662,1431537,
+As at 31 March 2020 (2),87331.326173,142571.203776,1207664.014687,1002708.923352,204955.091335,1437566.544636,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+Footnotes:,,,,,,,
+1,	Estimates of owner-occupied and privately rented stock have been revised due to smoothing of Annual Population Survey data.,,,,,,
+2,	Estimates of owner-occupied and privately rented stock are provisional and subject to revision following publication of 2020 Annual Population Survey data.,,,,,,
+3,"Prior to 2008-09 data are from the Housing Revenue Account Subsidy (HRAS) second advance form. For 2008-09 onwards, data are from the annual Social Housing Stock return from local authorities.Data has been affected by the large scale voluntary stock transfers of local authority stock to registered social landlordsExcludes intermediate and other tenures not at social rents",,,,,,
+4,"Prior to 2008-09 data are from the annual RSL1 to 4 forms from registered social landlords. For 2008-09 onwards, data are from the annual Social Housing Stock return from registered social landlords.Data has been affected by the large scale voluntary stock transfers of local authority stock to registered social landlordsIncludes Abbeyfield Societies, Almshouse Charities and Co-ownership societies. Excludes rented stock owned by English registered social landlords. These dwellings appear in the owner-occupied, privately rented and other tenures category.Excludes intermediate and other tenures not at social rents",,,,,,
+5,"Includes, owner-occupied, intermediate and other tenures.",,,,,,
+Metadata:,,,,,,,
+Title,Dwelling Stock Estimates,,,,,,
+Last update,September 2020,,,,,,
+Next update,Not yet confirmed,,,,,,
+Publishing organisation,Welsh Government,,,,,,
+Source 1,"Dwelling Stock Estimates, Welsh Government",,,,,,
+Source 2,No drop down value selected,,,,,,
+Source 3,No drop down value selected,,,,,,
+Contact email,stats.housing@gov.wales,,,,,,
+Designation,National Statistics,,,,,,
+Lowest level of geographical disaggregation,Local authorities,,,,,,
+Geographical coverage,Wales,,,,,,
+Languages covered,English and Welsh,,,,,,
+Data licensing,"You may use and re-use this data free of charge in any format or medium, under the terms of the Open Government License - see http://www.nationalarchives.gov.uk/doc/open-government-licence",,,,,,
+General description,"Estimates of the number of dwellings in Wales by tenure and for each local authority, as at 31 March each year.",,,,,,
+Data collection and calculation,"Estimates of the total dwelling stock are calculated based on data from the population censuses. The estimates are produced by using the dwelling count from the most recent 2011 census as a baseline. This count is then projected forward using information collected on annual changes to the dwelling stock through new build completions plus any gains or losses through conversions and demolitions.
 
 The tenure split for Wales between owner-occupied and privately rented dwellings has been calculated using information from the Annual Population Survey (APS). Full details of the methodology are in the statistical release. 
-"
-"Frequency of publication","Annual"
-"Data reference periods","2000-01 onwards. Financial years.With the exception of Census years, the estimates presented relate to the end of each financial year i.e. estimates for 2019 relate to 31 March 2019."
-"Users, uses and context","The dwelling stock estimates provide annual base line information on the overall amount of housing stock at a Wales and local authority level. It is used as evidence for policy making by both central and local government. The data are used by the Welsh Government, local authorities and other housing organisations to help monitor trends in the overall level of Welsh housing stock, as well as any changes in its tenure distribution over time. Outside of government the dwelling stock estimates are used by the finance and investment industries, for example to help develop a picture of demographic trends."
-"Rounding applied","Due to the way in which the APS proportions have been applied, the Wales total may not equal the sum of the local authority numbers (and regions) for some tenures. The regional figures are calculated as the sum of the local authority numbers. "
-"Revisions information","Revised data is marked with an (r). 
+",,,,,,
+Frequency of publication,Annual,,,,,,
+Data reference periods,"2000-01 onwards. Financial years.With the exception of Census years, the estimates presented relate to the end of each financial year i.e. estimates for 2019 relate to 31 March 2019.",,,,,,
+"Users, uses and context","The dwelling stock estimates provide annual base line information on the overall amount of housing stock at a Wales and local authority level. It is used as evidence for policy making by both central and local government. The data are used by the Welsh Government, local authorities and other housing organisations to help monitor trends in the overall level of Welsh housing stock, as well as any changes in its tenure distribution over time. Outside of government the dwelling stock estimates are used by the finance and investment industries, for example to help develop a picture of demographic trends.",,,,,,
+Rounding applied,"Due to the way in which the APS proportions have been applied, the Wales total may not equal the sum of the local authority numbers (and regions) for some tenures. The regional figures are calculated as the sum of the local authority numbers. ",,,,,,
+Revisions information,"Revised data is marked with an (r). 
 
 Estimates of tenure split for Torfaen and Vale of Glamorgan, as at 31 March 2020,  have been revised on 21 September 2020 following the discovery of an error (now corrected).
 
-Owner-occupied and privately rented dwelling estimates for 2013-17 were revised in September 2019 due to a change in methodology."
-"Keywords","Dwellings Stock Houses Tenure Private sector Social sector"
-"Statistical quality","The United Kingdom Statistics Authority has designated these statistics as National Statistics, in accordance with the Statistics and Registration Service Act 2007 and signifying compliance with the Code of Practice for Official Statistics."
-"Weblinks","http://gov.wales/statistics-and-research/dwelling-stock-estimates/?lang=en
-http://gov.wales/statistics-and-research/social-housing-stock-rents/?lang=en"
+Owner-occupied and privately rented dwelling estimates for 2013-17 were revised in September 2019 due to a change in methodology.",,,,,,
+Keywords,Dwellings Stock Houses Tenure Private sector Social sector,,,,,,
+Statistical quality,"The United Kingdom Statistics Authority has designated these statistics as National Statistics, in accordance with the Statistics and Registration Service Act 2007 and signifying compliance with the Code of Practice for Official Statistics.",,,,,,
+Weblinks,"http://gov.wales/statistics-and-research/dwelling-stock-estimates/?lang=en
+http://gov.wales/statistics-and-research/social-housing-stock-rents/?lang=en",,,,,,

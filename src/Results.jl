@@ -275,6 +275,9 @@ module Results
         thing_just_to_make_with_kw_work :: RT = -99
     end
 
+    # TODO 23/1/23 - replicate income definition here *carefully*
+    # https://www.gov.uk/government/statistics/households-below-average-income-for-financial-years-ending-1995-to-2021/household-below-average-income-series-quality-and-methodology-information-report-fye-2021#income-definition
+
 
     function calc_net_income(incs::AbstractArray{T})::T where T
         # HB/CT treated seperately at household level

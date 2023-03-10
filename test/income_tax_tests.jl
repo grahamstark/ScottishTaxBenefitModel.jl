@@ -499,7 +499,6 @@ end
     @test allowance == 0
 end
 
-
 @testset "Run on actual Data" begin
     nhhs,npeople = init_data()
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )

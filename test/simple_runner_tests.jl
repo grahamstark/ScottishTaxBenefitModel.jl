@@ -52,6 +52,25 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
 end 
 
 
+@testset "Extreme Income Changes from Flat tax" begin    
+    sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]
+    settings.do_marginal_rates = false
+    # flat tax - 
+    sys[2].it.non_savings_rates = [0.19]
+    sys[2].it.non_savings_bands = []
+    results = do_one_run( settings, sys, obs )
+    nhhs = size(results.hh[1],1)
+    check = String(rand('a':'z',30))
+    fname = "$(settings.output_dir)/$(check)_hh.txt"
+    for hno in 1:nhhs
+        r1 = results.hh[1][hno].eq_bhc_net_income
+        r2 = results.hh[2][hno].eq_bhc_net_income
+        Δ = abs(r1-r2)
+        if Δ > 1000.0
+
+        end
+    end
+end
 
 @testset "MR test" begin
     @time begin
