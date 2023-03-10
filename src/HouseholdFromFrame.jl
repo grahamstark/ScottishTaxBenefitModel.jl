@@ -239,9 +239,11 @@ function map_person(
         m2z(model_person.fuel_supplied),
         strtobi(model_person.onerand)
     )
-    make_benefit_ratios!( 
-        pers, hh.interview_year, hh.interview_month )
-    switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
+    if settings.benefit_generosity_estimates_available
+        make_benefit_ratios!( 
+            pers, hh.interview_year, hh.interview_month )
+        switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
+    end
     if settings.impute_employer_pension
         impute_employer_pension!( pers )
     end

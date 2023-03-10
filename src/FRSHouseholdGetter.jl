@@ -101,7 +101,11 @@ module FRSHouseholdGetter
             end
         end
         # println( "made pers_map as $(MODEL_HOUSEHOLDS.pers_map)")
-        @time weight = generate_weights( nhhlds)
+        @time weight = generate_weights( 
+            nhhlds;
+            weight_type = settings.weight_type,
+            lower_multiple = settings.lower_multiple,
+            upper_multiple = settings.upper_multiple )
         for i in eachindex( weight )
             MODEL_HOUSEHOLDS.weight[i] = weight[i]
         end

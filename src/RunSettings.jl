@@ -7,6 +7,7 @@ module RunSettings
     using ScottishTaxBenefitModel
     using .Definitions
     using UUIDs
+    using SurveyDataWeighting
 
     export 
         Settings,
@@ -36,6 +37,7 @@ module RunSettings
     @enum MT_Routing uc_full lmt_full modelled_phase_in
     @enum IneqIncomeMeasure bhc_net_income eq_bhc_net_income ahc_net_income eq_ahc_net_income
     @enum DataIncomeSource ds_hbai ds_frs 
+
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
@@ -71,6 +73,13 @@ module RunSettings
         mr_incr = 0.001
         requested_threads = 1
         impute_employer_pension = true
+        benefit_generosity_estimates_available = true
+        #
+        # weights
+        #
+        weight_type :: DistanceFunctionType = constrained_chi_square
+        lower_multiple :: Real = 0.20 # these values can be narrowed somewhat, to around 0.25-4.7
+        upper_multiple :: Real = 5    
     end
 
 end

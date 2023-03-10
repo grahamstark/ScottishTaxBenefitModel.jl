@@ -20,6 +20,7 @@ export
    PRICES_DIR, 
    PROJECT_DIR,
    TEST_DIR,
+   SRC_DIR,
    DOCS_DIR,
    SCRIPTS_DIR 
 
@@ -33,6 +34,7 @@ const MODEL_PARAMS_DIR = joinpath( PROJECT_DIR, "params" )
 const SCRIPTS_DIR      = joinpath( PROJECT_DIR, "scripts" )
 const TEST_DIR         = joinpath( PROJECT_DIR, "test" )
 const DOCS_DIR         = joinpath( PROJECT_DIR, "docs" )
+const SRC_DIR          = joinpath( PROJECT_DIR, "src" )
 
 # FIXME these should be in some config file probably.
 const RAW_DATA = "/mnt/data/"

@@ -40,6 +40,10 @@ export
     initialise_target_dataframe,
     make_target_dataset
 
+# scotland-2022
+const TNAME = joinpath(SRC_DIR,"targets","wales-2023.jl")
+include( TNAME )
+
 #
 # See `weighting_target_set_creation.md`
 # and `data/targets/aug-2022-updates/aug-22target_generation_worksheet.ods`
@@ -48,8 +52,6 @@ export
 # NOTE!! only 2022 targets will work now without reversion of the data creation - 
 # 1. 15-16 yo band change
 # 2. adding SOCXXXX targets
-
-include( "targets/scotland-2022.jl")
 
 const NUM_HOUSEHOLDS = sum( DEFAULT_TARGETS[42:48]) # 2_537_971
 # 2_477_000.0 # sum of all hhld types below

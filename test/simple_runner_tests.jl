@@ -56,18 +56,20 @@ end
     sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]
     settings.do_marginal_rates = false
     # flat tax - 
+    sys[2].it.non_savings_basic_rate = 1
     sys[2].it.non_savings_rates = [0.19]
-    sys[2].it.non_savings_bands = []
+    sys[2].it.non_savings_thresholds = [9999999999999999999999.999]
     results = do_one_run( settings, sys, obs )
     nhhs = size(results.hh[1],1)
     check = String(rand('a':'z',30))
     fname = "$(settings.output_dir)/$(check)_hh.txt"
     for hno in 1:nhhs
-        r1 = results.hh[1][hno].eq_bhc_net_income
-        r2 = results.hh[2][hno].eq_bhc_net_income
-        Δ = abs(r1-r2)
+        r1 = results.hh[1][hno,:]
+        r2 = results.hh[1][hno,:]
+        Δ = abs(r1.eq_bhc_net_income-r2.eq_bhc_net_income)
         if Δ > 1000.0
-
+            println( "flat tax change of Δ for hh $(r1.hid) year $(r1.year)" )
+            
         end
     end
 end
