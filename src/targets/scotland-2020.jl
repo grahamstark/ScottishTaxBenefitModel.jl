@@ -1,8 +1,10 @@
 #
+# 2020 Version DON'T USE without creating dataframe with 2020 targets
+# which like an idiot I overwrote.
 #
 # see data/targets/target_set.ods for derivation of these targets.
 #
-const DEFAULT_TARGETS_2020 = [
+const DEFAULT_TARGETS = [
     # 1.01337880471403 is nrs 16+ popn estimate/nomis count
     # this scales to employment and popn numbers are consistent
     # we drop 'inactive' because of collinearity

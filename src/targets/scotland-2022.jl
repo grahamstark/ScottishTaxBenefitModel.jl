@@ -90,7 +90,6 @@ const DEFAULT_TARGETS_2022 = [
     144_372.57,	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
     272_503.22 ]	#	90	% all in employment who are - 9: elementary occupations (SOC2010)
 
-
     function initialise_target_dataframe( n :: Integer ) :: DataFrame
         df = DataFrame(
             m_total_in_employment = zeros(n),

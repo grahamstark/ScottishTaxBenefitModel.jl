@@ -2,7 +2,7 @@
 # This is our default set of targets for 2021/2. 
 # DON'T USE WITHOUT REVERTING the data creation.
 #
-const DEFAULT_TARGETS_2021 = [
+const DEFAULT_TARGETS = [
     # Employment totals from NOMIS
     # We drop 'inactive' because of collinearity with NRS population
     1.02361127107591*1_330_149,  #	1	M- Total in employment- aged 16+ - the constant here scales the NOMIS over 16 populations to the NRS totals
