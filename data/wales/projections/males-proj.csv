@@ -1,0 +1,65 @@
+"Population and migration > Population > Projections > National > 2020-based > Population projections by year and age"
+"Population projections by year and age"
+
+Filters:
+Area: Wales
+Sex: Male
+
+"","All ages ","","","All ages ","Mean age ","Median age "
+"","Aged 15 and under ","Aged 16 to 64 ","Aged 65 and over ",".",".","."
+2020 ,288221,966535,308768,1563524,41.370242,40.841815
+2021 ,286546,969962,312031,1568539,41.521095,40.898877
+2022 ,284270,973005,315857,1573132,41.658988,40.945546
+2023 ,281653,975488,320436,1577577,41.810822,40.976933
+2024 ,278384,978059,324965,1581408,41.958005,41.029167
+2025 ,275287,980141,329487,1584915,42.101046,41.07397
+2026 ,271977,981954,334430,1588361,42.238739,41.143191
+2027 ,268114,983235,340083,1591432,42.373563,41.221939
+2028 ,264568,984356,345426,1594350,42.50326,41.296618
+2029 ,261524,984457,351092,1597073,42.628563,41.392774
+2030 ,258700,984261,356612,1599573,42.748961,41.512257
+2031 ,256001,984595,361265,1601861,42.864713,41.650798
+2032 ,253358,984824,365767,1603949,42.975914,41.808442
+2033 ,251192,985148,369444,1605784,43.083549,41.987036
+2034 ,249319,984848,373225,1607392,43.187647,42.14575
+2035 ,248054,984892,375864,1608810,43.287593,42.300919
+2036 ,247627,983577,378911,1610115,43.382808,42.472807
+2037 ,248157,982134,381074,1611365,43.472768,42.63154
+2038 ,248466,982368,381746,1612580,43.557918,42.765441
+2039 ,248829,983685,381249,1613763,43.639094,42.914029
+2040 ,249101,985567,380238,1614906,43.717216,43.06569
+2041 ,249340,988269,378406,1616015,43.79308,43.216616
+2042 ,249587,990855,376707,1617149,43.867247,43.366333
+2043 ,249831,993861,374649,1618341,43.939781,43.51304
+2044 ,250060,995347,374180,1619587,44.011321,43.65771
+2045 ,250242,995978,374642,1620862,44.082998,43.78679
+
+
+
+".","The data item is not applicable."
+Metadata:
+"General description","The Office for National Statistics (ONS) produces national population projections for Wales, and the other UK countries (release date: 12 January 2022).  This dataset provides the Wales data from that source by sex, single year of age and each year from the base year of 2020, through the projection period to 2045."
+"Data collection and calculation","The 2020 population estimates have been used as the base for these national projections. The projected population is at 30 June each year. The base population estimates are based on the usually resident population. Usual residents away from home temporarily are included, but visitors are excluded. Students are counted at their term-time address. It should also be noted that the UN definition of an international migrant is used - those changing country of residence for a period of at least 12 months. Short-term migrants (for example, migrant workers from eastern European countries) are not counted in the population estimates and hence are not included in the population projections."
+"Frequency of publication","Every two years"
+"Data reference periods","Data are published for the period 2020 to 2045."
+"Users, uses and context","See weblinks."
+"Rounding applied","Data are rounded independently to the nearest whole number and may not add exactly.  Mean and median ages are rounded to two decimal places and are not additive."
+"Revisions information","The Office for National Statistics (ONS) has published a notice on its 2020-based interim national population projections to inform users of an error affecting international migration out of Wales. The ONS states that the impact of this on the projections for Wales is modest, with the population projected to be around 2,700 lower by 2030 than what is published, and around 16,400 lower by 2045. In consultation with the Welsh Government, the ONS has decided not to replace the product. For further information, please visit the ONS website (see weblinks).
+
+No revisions have been made to the data published for 2020. These data replaced the 2018 national population projections for Wales as the formal projections of population growth."
+"Title","2020-based interim national population projections for Wales, 2020-2045"
+"Last update","February 2022"
+"Next update","Not updated, this will be replaced by a future projection."
+"Publishing organisation","Welsh Government"
+"Source 1","2020-based interim national population projections for Wales, Office for National Statistics"
+"Contact email","stats.popcensus@gov.wales"
+"Designation","National Statistics"
+"Lowest level of geographical disaggregation","Wales"
+"Geographical coverage","Wales"
+"Languages covered","English and Welsh"
+"Data licensing","You may use and re-use this data free of charge in any format or medium, under the terms of the Open Government License - see http://www.nationalarchives.gov.uk/doc/open-government-licence"
+"Statistical quality","See weblinks."
+"Weblinks","National population projections: https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections;
+https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/methodologies/nationalpopulationprojectionsqmi
+https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationprojections/bulletins/nationalpopulationprojections/2020basedinterim"
+"Keywords","Population; population projections; migration; natural change; births; deaths"
