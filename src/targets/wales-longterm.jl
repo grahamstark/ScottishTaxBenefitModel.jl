@@ -1,8 +1,8 @@
 
-
+const WDIR = joinpath(MODEL_DATA_DIR, "wales", "projections")
 
 function loaddf()::DataFrame
-    males = CSV.File( "males-proj-edited.csv")|>DataFrame
+    males = CSV.File( joinpath(WDIR,"males-proj-edited.csv"))|>DataFrame
     females = CSV.File( "females-proj-edited.csv")|>DataFrame
     popn=hcat(males,females;makeunique=true)
     select!( popn, Not( [:".", :"._1", :"._2", :"year_1", :"._3", "._1_1", "._2_1"]))
@@ -11,18 +11,18 @@ function loaddf()::DataFrame
         :"1 person " => :v_1_adult,
         :"2 person (No children) " => :v_2_adults,
         :"2 person (1 adult, 1 child) " => :v_1_adult_1_child, 
-        :"3 person (No children) " 
-        :"3 person (2 adults, 1 child) "
-        :"3 person (1 adult, 2 children) "
-        :"4 person (No children) "
-        :"4 person (2+ adults, 1+ children) "
-        :"4 person (1 adult, 3 children) "
-        :"5+ person (No children) "
-        :"5+ person (2+ adults, 1+ children) "
-        :"5+ person (1 adult, 4+ children) "
-        :"total w/kids"
-        :"1 adult household with children "
-        :"2+ adult household with children "
+        :"3 person (No children) " => :v_3_adults,
+        :"3 person (2 adults, 1 child) " => :v_2_plus_adults_1_child,
+        :"3 person (1 adult, 2 children) " => :v_1_adult_3_children,
+        :"4 person (No children) " => :v_4_adults,
+        :"4 person (2+ adults, 1+ children) " => :v_2_adults_2_children,
+        :"4 person (1 adult, 3 children) " => :v_1_adult_3_children,
+        :"5+ person (No children) " => :v_5_adults,
+        :"5+ person (2+ adults, 1+ children) " => :v_5_plus_w_children,
+        :"5+ person (1 adult, 4+ children) " => :v_1_adult_4_plus_children
+        :"total w/kids" => :v_tot_w_kids,
+        :"1 adult household with children " => :v_1_adult_1_plus_children
+        :"2+ adult household with children " => :v_2_plus_adults_1_plus_children
     ])
 
 

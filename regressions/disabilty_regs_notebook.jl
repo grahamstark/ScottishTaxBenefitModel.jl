@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.15.1
+# v0.19.19
 
 using Markdown
 using InteractiveUtils
@@ -13,19 +13,23 @@ begin
 	# Pkg.activate(Base.current_project())
 	# Pkg.add( "https://github.com/grahamstark/ScottishTaxBenefitModel.jl" )
 	using ScottishTaxBenefitModel
-	using .Definitions
-	using .RunSettings: Settings
 	using CSV,DataFrames,GLM,RegressionTables
 	
+end
+
+# ╔═╡ 38a7b432-c068-4f55-a6f7-6c4e2d65efe2
+begin
+	using .Definitions
+	using .RunSettings: Settings
 end
 
 # ╔═╡ f00633e2-af9c-46cf-b4e6-2bf403d10392
 begin
 	
-const settings = Settings()
+const settings = RunSettings.Settings()
 
-frshh = CSV.File("$(MODEL_DATA_DIR)/model_households.tab" ) |> DataFrame
-frspeople = CSV.File("$(MODEL_DATA_DIR)/model_people.tab") |> DataFrame
+frshh = CSV.File("$(Definitions.MODEL_DATA_DIR)/model_households.tab" ) |> DataFrame
+frspeople = CSV.File("$(Definitions.MODEL_DATA_DIR)/model_people.tab") |> DataFrame
 
 end
 
@@ -143,6 +147,7 @@ dla_1=glm(@formula(rec_dla ~ scotland + male+age+age^2+has_long_standing_illness
 
 # ╔═╡ Cell order:
 # ╠═fb37684a-0e82-11ec-227f-4595b4e5fa74
+# ╠═38a7b432-c068-4f55-a6f7-6c4e2d65efe2
 # ╠═f00633e2-af9c-46cf-b4e6-2bf403d10392
 # ╠═dc101061-f980-4fba-b223-8bbb88a7218f
 # ╠═5d54d384-2b8e-4729-ab4a-dba5858c6f10
