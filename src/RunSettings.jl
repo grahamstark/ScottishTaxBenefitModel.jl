@@ -65,7 +65,7 @@ module RunSettings
         poverty_line :: Real = -1.0
         ineq_income_measure  :: IneqIncomeMeasure = eq_bhc_net_income
         growth :: Real = 0.02 # for time to exit poverty
-        income_data_source :: DataIncomeSource = ds_hbai
+        income_data_source :: DataIncomeSource = ds_frs # ds_hbai
         do_marginal_rates  :: Bool = false
         do_replacement_rates :: Bool = false
         replacement_rate_hours :: Int = 30
