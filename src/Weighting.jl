@@ -39,24 +39,23 @@ export
     generate_weights, 
     initialise_target_dataframe,
     make_target_dataset
-
-# scotland-2022
-const TNAME = joinpath(SRC_DIR,"targets","wales-2023.jl")
-include( TNAME )
+#
+# all possible datasets - we could just comment out ones we're not using 
+#
+include(joinpath(SRC_DIR,"targets","scotland-2022.jl"))
+include(joinpath(SRC_DIR,"targets","wales-2023.jl"))
+include(joinpath(SRC_DIR,"targets","wales-longterm.jl"))
 
 #
 # See `weighting_target_set_creation.md`
 # and `data/targets/aug-2022-updates/aug-22target_generation_worksheet.ods`
 # and the blog notes.
 # 
-# NOTE!! only 2022 targets will work now without reversion of the data creation - 
-# 1. 15-16 yo band change
-# 2. adding SOCXXXX targets
-
-const NUM_HOUSEHOLDS = sum( DEFAULT_TARGETS[42:48]) # 2_537_971
 # 2_477_000.0 # sum of all hhld types below
 
-function make_target_dataset( nhhlds :: Integer ) :: Matrix
+function make_target_dataset( nhhlds :: Integer, 
+    initialise_target_dataframe :: Function,
+    make_target_row! :: Function ) :: Matrix
     df :: DataFrame = initialise_target_dataframe( nhhlds )
     for hno in 1:nhhlds
         hh = FRSHouseholdGetter.get_household( hno )
@@ -74,13 +73,19 @@ function generate_weights(
     weight_type :: DistanceFunctionType = constrained_chi_square,
     lower_multiple :: Real = 0.20, # these values can be narrowed somewhat, to around 0.25-4.7
     upper_multiple :: Real = 5,
-    targets :: Vector = DEFAULT_TARGETS ) :: Vector
+    household_total :: Real = NUM_HOUSEHOLDS_SCOTLAND_2022,
+    targets :: Vector = DEFAULT_TARGETS_SCOTLAND_2022,
+    initialise_target_dataframe :: Function = initialise_target_dataframe_scotland_2022,
+    make_target_row! :: Function = make_target_row_scotland_2022! ) :: Vector
 
-    data :: Matrix = make_target_dataset( nhhlds )
+    data :: Matrix = make_target_dataset( 
+        nhhlds, 
+        initialise_target_dataframe, 
+        make_target_row! )
     nrows = size( data )[1]
     ncols = size( data )[2]
     ## FIXME parameterise this
-    initial_weights = ones(nhhlds)*NUM_HOUSEHOLDS/nhhlds
+    initial_weights = ones(nhhlds)*household_total/nhhlds
     println( "initial_weights $(initial_weights[1])")
 
      # any smaller min and d_and_s_constrained fails on this dataset

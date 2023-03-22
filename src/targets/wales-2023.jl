@@ -1,4 +1,4 @@
-const DEFAULT_TARGETS = [
+const DEFAULT_TARGETS_WALES_2023 = [
     741_397,#,1,M- Total in employment- aged 16+ July 2022 – see LFS\ headline indicators.xls m/f scottish tabs
     27_857,#,2,M- Total unemployed- aged 16+
     681_577,#,3,F- Total in employment- aged 16+
@@ -59,7 +59,7 @@ const DEFAULT_TARGETS = [
 ]
 
 
-function initialise_target_dataframe( n :: Integer ) :: DataFrame
+function initialise_target_dataframe_wales_2023( n :: Integer ) :: DataFrame
     df = DataFrame(
         m_total_in_employment = zeros(n),
         m_total_unemployed = zeros(n),
@@ -126,7 +126,7 @@ function initialise_target_dataframe( n :: Integer ) :: DataFrame
     return df
 end
 
-function make_target_row!( row :: DataFrameRow, hh :: Household )
+function make_target_row_wales_2023!( row :: DataFrameRow, hh :: Household )
     num_male_ads = 0
     num_female_ads = 0
     num_u_16s = 0

@@ -1,5 +1,5 @@
 
-const DEFAULT_TARGETS = [
+const DEFAULT_TARGETS_SCOTLAND_2022 = [
     1_347_880.73,	#	1	M- Total in employment- aged 16+ July 2022 – see LFS\ headline indicators.xls m/f scottish tabs
     63_487.44,	#	2	M- Total unemployed- aged 16+
     1_352_983.44,	#	3	F- Total in employment- aged 16+
@@ -90,7 +90,9 @@ const DEFAULT_TARGETS = [
     144_372.57,	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
     272_503.22 ]	#	90	% all in employment who are - 9: elementary occupations (SOC2010)
 
-    function initialise_target_dataframe( n :: Integer ) :: DataFrame
+    const NUM_HOUSEHOLDS_SCOTLAND_2022 = sum( DEFAULT_TARGETS_SCOTLAND_2022[42:48]) # 2_537_971
+
+    function initialise_target_dataframe_scotland_2022( n :: Integer ) :: DataFrame
         df = DataFrame(
             m_total_in_employment = zeros(n),
             m_total_unemployed = zeros(n),
@@ -191,7 +193,7 @@ const DEFAULT_TARGETS = [
         return df
     end
     
-    function make_target_row!( row :: DataFrameRow, hh :: Household )
+    function make_target_row_scotland_2022!( row :: DataFrameRow, hh :: Household )
         num_male_ads = 0
         num_female_ads = 0
         num_u_16s = 0
