@@ -18,7 +18,7 @@ Got to be a simpler way, but ..
 function one_years_targets_wales( year :: Int )::NamedTuple
     # a vector, by converting to a matrix & extracting 1 column, skipping 1st field (year)
     row = TARGET_DF_LONG_TERM_WALES[(TARGET_DF_LONG_TERM_WALES.year .== year),:][1,:]
-    targets = Matrix( row )[1,2:end]
+    targets = Vector( row )[2:end]
     num_households = 
         row.v_1_adult + 
         row.v_2_adults + 

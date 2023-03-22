@@ -18,18 +18,15 @@ using SurveyDataWeighting:
     d_and_s_type_b,
     do_reweighting
 
-include( joinpath(SRC_DIR,"targets","wales-2023.jl"))
-
 settings = Settings()
 settings.benefit_generosity_estimates_available = false
 settings.household_name = "model_households_wales"
 settings.people_name    = "model_people_wales"
 settings.lower_multiple = 0.2
 settings.upper_multiple = 5.0
+settings.auto_weight = false
 
 @time nhhx, num_peoplex, nhh2x = initialise( settings; reset=true )
-
-include( joinpath(SRC_DIR,"targets","wales-longterm.jl"))
 
 nrs = nhhx*21
 d = DataFrame( 
@@ -39,17 +36,19 @@ d = DataFrame(
         weight = zeros( nrs )
     )
 
-popn = loaddf()
 p = 0
 for year in 2020:2040
-    ytargets = onerow( popn, year )
-    println( ytargets )
-    w = generate_weights_xx( 
+    targets, household_total = one_years_targets_wales( year )
+    println( targets )
+    w = generate_weights( 
         nhhx;
         weight_type = constrained_chi_square,
         lower_multiple = settings.lower_multiple,
         upper_multiple = settings.upper_multiple,
-        targets = ytargets
+        household_total = household_total,
+        targets = targets,
+        initialise_target_dataframe = initialise_target_dataframe_wales_longterm,
+        make_target_row! = make_target_row_wales_longerm!
     )
     for n in 1:nhhx 
         global p
@@ -61,10 +60,8 @@ for year in 2020:2040
         r.weight = w[n]
         r.year = year
     end
-    println( "Weights for year $year = $w" )
+    # println( "Weights for year $year = $w" )
 end
 
-d
-
-
-
+du = unstack(d, :year, :weight )
+CSV.write( "/home/graham_s/tmp/wales_weights_by_year.csv", du )

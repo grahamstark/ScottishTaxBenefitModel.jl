@@ -22,25 +22,22 @@ settings.target_nation = N_Wales
 @time nhhx, num_peoplex, nhh2x = initialise( settings; reset=true )
 
 @time weight = generate_weights( 
-                nhhx;
-                weight_type = settings.weight_type,
-                lower_multiple = settings.lower_multiple,
-                upper_multiple = settings.upper_multiple,
-                hoiusehold_total=NUM_HOUSEHOLDS_WALES_2023,
-                targets=DEFAULT_TARGETS_WALES_2023,
-                initialise_target_dataframe=initialise_target_dataframe_wales_2023,
-                make_target_row!=make_target_row_wales_2023! )
+    nhhx;
+    weight_type = settings.weight_type,
+    lower_multiple = settings.lower_multiple,
+    upper_multiple = settings.upper_multiple,
+    household_total  = NUM_HOUSEHOLDS_WALES_2023,
+    targets = DEFAULT_TARGETS_WALES_2023,
+    initialise_target_dataframe = initialise_target_dataframe_wales_2023,
+    make_target_row! = make_target_row_wales_2023! )
+for i in eachindex( weight ) # just assign weight = weight?
+    FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = weight[i]
+end
 
-f = open( "tmp/wales_weights.csv","w")
-
-
-
+f = open( "/home/graham_s/tmp/wales_weights.csv","w")
 println( f, "hid,data_year,weight")
 for hno in 1:nhhx
     mhh = get_household( hno )
     println( f, "$(mhh.hid),$(mhh.data_year),$(mhh.weight)")
 end
 close(f)
-
-
-
