@@ -493,6 +493,19 @@ export Missing_Standard_Region
    Northern_Ireland = 499999999
 end
 
+export Nation, N_England, N_Scotland, N_Wales, N_Northern_Ireland, N_UK, N_GB, N_rUK
+
+@enum Nation begin
+   N_England = 199999999
+   N_Scotland = 299999999
+   N_Wales = 399999999
+   N_Northern_Ireland = 499999999
+   ## NOTE these 3 are Made up numbers
+   N_UK = 599999999
+   N_GB = 699999999
+   N_rUK = 799999999
+end
+
 
 export Socio_Economic_Group  # mapped from nssec
 export Employers_in_large_organisations,

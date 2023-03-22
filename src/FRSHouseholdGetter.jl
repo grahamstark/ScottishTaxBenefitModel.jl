@@ -100,14 +100,16 @@ module FRSHouseholdGetter
                 MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = OnePos(hseq,pseq)
             end
         end
-        # println( "made pers_map as $(MODEL_HOUSEHOLDS.pers_map)")
-        @time weight = generate_weights( 
-            nhhlds;
-            weight_type = settings.weight_type,
-            lower_multiple = settings.lower_multiple,
-            upper_multiple = settings.upper_multiple )
-        for i in eachindex( weight )
-            MODEL_HOUSEHOLDS.weight[i] = weight[i]
+        # default weighting using current Scotland settings; otherwise do manually
+        if settings.auto_weight && settings.target_nation == N_Scotland
+            @time weight = generate_weights( 
+                nhhlds;
+                weight_type = settings.weight_type,
+                lower_multiple = settings.lower_multiple,
+                upper_multiple = settings.upper_multiple )
+            for i in eachindex( weight ) # just assign weight = weight?
+                MODEL_HOUSEHOLDS.weight[i] = weight[i]
+            end
         end
         MODEL_HOUSEHOLDS.dimensions.=
             size(MODEL_HOUSEHOLDS.hhlds)[1],

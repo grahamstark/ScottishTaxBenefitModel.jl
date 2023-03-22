@@ -1,6 +1,6 @@
 
 #
-# a simple long-term weighting scheme
+# a simple long-term weighting scheme for wales
 #
 #
 using ScottishTaxBenefitModel

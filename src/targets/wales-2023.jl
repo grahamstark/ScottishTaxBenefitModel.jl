@@ -58,7 +58,8 @@ const DEFAULT_TARGETS_WALES_2023 = [
     154_837 #,90,% all in employment who are - 9: elementary occupations (SOC2010)
 ]
 
-
+const NUM_HOUSEHOLDS_WALES_2023 = sum( DEFAULT_TARGETS_WALES_2023[42:48]) # 2_537_971
+ 
 function initialise_target_dataframe_wales_2023( n :: Integer ) :: DataFrame
     df = DataFrame(
         m_total_in_employment = zeros(n),

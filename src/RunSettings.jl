@@ -46,9 +46,14 @@ module RunSettings
         end_year :: Int = 2019
         scotland_full :: Bool = true
         weighted :: Bool = false
+        
+        # weighting stuff
+        auto_weight = true
+ 
         data_dir :: String = MODEL_DATA_DIR
         household_name = "model_households_scotland"
         people_name    = "model_people_scotland"
+        target_nation :: Nation = N_Scotland
         dump_frames :: Bool = false
         num_households :: Int = 0
         num_people :: Int = 0
