@@ -61,7 +61,19 @@ function make_target_dataset( nhhlds :: Integer,
         hh = FRSHouseholdGetter.get_household( hno )
         make_target_row!( df[hno,:], hh )
     end
-    return Matrix{Float64}(df) # convert( Matrix, df )
+    m = Matrix{Float64}(df) 
+
+    # consistency
+    nr,nc = size(m)
+    # no column is all zero - since only +ive cells possible this is the easiest way
+    for c in 1:nc 
+        @assert sum(m[:,c]) != 0 "all zero column $c"
+    end
+    # no row all zero
+    for r in 1:nr
+        @assert sum(m[r,:] ) != 0 "all zero row $r"
+    end
+    return m
 end
 
 #

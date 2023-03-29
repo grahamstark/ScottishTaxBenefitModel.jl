@@ -549,7 +549,7 @@ end
 end
 
 @testset "NDDS" begin
-    sys = get_system( year=2019, scotland=true )
+     
     spers = get_benefit_units(get_example(single_hh))[1]
     head = get_head( spers ) # the only person, obvs..
     head.age = 30

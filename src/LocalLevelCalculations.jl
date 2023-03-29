@@ -321,6 +321,7 @@ export
         return hres
     end
 
+   
     """
     Very simple implementation of the CT scheme
     note this doesn't include rebates apart from single
@@ -331,7 +332,9 @@ export
         intermed :: MTIntermediate,
         ctsys :: CouncilTax{RT} ) :: RT where RT 
         ctres = zero(RT)
-        @assert hh.ct_band != Band_I # We're not Welsh
+        if hh.region != Wales
+            @assert hh.ct_band != Band_I # We're not Welsh
+        end
         ctres = ctsys.band_d[hh.council]* ctsys.relativities[hh.ct_band]
         if intermed.num_adults == 1
             ctres *= (1-ctsys.single_person_discount)
