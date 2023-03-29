@@ -3,7 +3,7 @@ using Formatting
 using StatsBase
 
 using ScottishTaxBenefitModel
-using .LocalLevelCalculations
+using .LocalLenelCalculations
 using .Definitions
 using .ModelHousehold
 using .FRSHouseholdGetter
@@ -19,7 +19,7 @@ using .Results:
     get_net_income,
     get_indiv_result,
     total
-
+using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .Uprating: load_prices
 using .SingleHouseholdCalculations: do_one_calc
 
@@ -86,7 +86,7 @@ function calculate_local()
     @time nhh, num_people, nhh2 = initialise( settings; reset=true )
 
     revs = DataFrame( 
-        code=fill("", 22), 
+        code=fill(Symbol(""), 22), 
         ctrev = zeros(22), 
         average_wage=zeros(22), 
         average_se=zeros(22), 
@@ -115,7 +115,7 @@ function calculate_local()
             for sysno in 1:2
                 res = do_one_calc( hh, params[sysno], settings )
                 if sysno == 1
-                    ctrev += w[i]*total( res, LOCAL_TAXES )
+                    ctrev += w[i]*total( res, LOCAL_TAXES )*WEEKS_PER_YEAR
                 end
             end
             #=            
