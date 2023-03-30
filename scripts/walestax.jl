@@ -3,7 +3,7 @@ using Formatting
 using StatsBase
 
 using ScottishTaxBenefitModel
-using .LocalLenelCalculations
+using .LocalLevelCalculations
 using .Definitions
 using .ModelHousehold
 using .FRSHouseholdGetter
