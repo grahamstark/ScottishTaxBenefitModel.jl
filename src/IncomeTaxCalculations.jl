@@ -80,7 +80,7 @@ function calculate_allowance( pers::Person, sys :: IncomeTaxSys ) :: Real
     allowance
 end
 
-function apply_allowance( allowance::Real, income::Real )::Tuple where RT<:Real
+function apply_allowance( allowance::Real, income::Real )::Tuple
     r = max( 0.0, income - allowance )
     allowance = max(0.0, allowance-income)
     allowance,r

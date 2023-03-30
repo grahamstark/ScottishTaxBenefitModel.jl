@@ -181,12 +181,13 @@ function do_one_calc(
     
     
     for buno in eachindex( bus )
-        calc_scottish_child_payment!( 
-            hres.bus[buno],
-            bus[buno],
-            intermed.buint[buno],
-            sys.scottish_child_payment )
-
+        if hh.region == Scotland
+            calc_scottish_child_payment!( 
+                hres.bus[buno],
+                bus[buno],
+                intermed.buint[buno],
+                sys.scottish_child_payment )
+        end
         apply_benefit_cap!( 
             hres.bus[buno],
             hh.region,
@@ -197,7 +198,9 @@ function do_one_calc(
     end
     # do this after the benefit cap
     # since the DISCRESIONARY_HOUSING_PAYMENT must be <= hb/uc housing costs
-    calc_bedroom_tax_mitigation!( hres, hh )
+    if hh.region == Scotland
+        calc_bedroom_tax_mitigation!( hres, hh )
+    end
     if ! sys.ubi.abolished
         make_ubi_post_adjustments!( hres, sys.ubi )
     end

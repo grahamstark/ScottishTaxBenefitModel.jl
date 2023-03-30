@@ -24,8 +24,8 @@ using .STBOutput
 using .STBParameters
 using .Utils
 
-@enum EqTargets eq_it eq_ni eq_it_ni
-export EqTargets,eq_it,eq_ni,eq_it_ni
+@enum EqTargets eq_it eq_ni eq_it_ni eq_ct_rels
+export EqTargets,eq_it,eq_ni,eq_it_ni, eq_ct_rels
 export equalise
 #
 # Roots only allows 1 parameter, I think, so:
@@ -55,8 +55,13 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
         rparams.params.ni.primary_class_1_rates .+= x
         rparams.params.ni.class_4_rates .+= x
     end
+    if rparams.target in [eq_ct_rels]
+        for key in keys( rparams.params.loctax.ct.relativities )
+            rparams.params.loctax.ct.relativities[k] += x
+        end
+    end
     # TODO check sensible ni rates    
-    results = do_one_run(rparams.settings, [rparams.params], rparams.obs )
+    results = do_one_run( rparams.settings, [rparams.params], rparams.obs )
     # restore
     rparams.params.it = nsr
     rparams.params.ni = nsi
