@@ -32,12 +32,17 @@ using .STBOutput:
     make_poverty_line
 using .Monitor: Progress
 using .Runner: do_one_run
+## using AbstractPlotting.MakieLayout
+
 
 export load_all_census,
     copysbdata,
     create_target_matrix,
     get_run_settings,
     DATADIR
+
+CTF = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-levels-23-24-edited.csv")
+CTRATES = CSV.File( CTF ) |> DataFrame
 
 function get_system( ; year = 2022 ) :: TaxBenefitSystem
     sys = nothing
@@ -55,11 +60,9 @@ function get_system( ; year = 2022 ) :: TaxBenefitSystem
             Band_H=>720/360,
             Band_I=>840/360,
             Household_not_valued_separately => 0.0 ) 
-        ctf = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-levels-23-24-edited.csv")
-        ctrates = CSV.File( ctf ) |> DataFrame
         p = 0
         band_ds = Dict{Symbol,Float64}()
-        for r in eachrow(ctrates)
+        for r in eachrow(CTRATES)
             p += 1
             if p > 1 # skip 1
                 band_ds[Symbol(r.code)] = r.D
@@ -95,6 +98,9 @@ end
 function calculate_local()
     wf = joinpath( MODEL_DATA_DIR,  "wales", "local","council-weights-2023-4.csv") 
     weights = CSV.File( wf ) |> DataFrame
+
+
+
     #  
     ccodes = Symbol.(names(weights)[3:end])
     settings = get_sett()
@@ -143,14 +149,46 @@ function calculate_local()
     (; overall_results, pc_frames, total_frames )
 end
 
-function analyse( res :: NamedTuple, compsys :: Int )
+function analyseone( oneresult :: NamedTuple, compsys :: Int )
     CairoMakie.activate!()
-    gains = (res.overall_results.deciles[compsys]-res.overall_results.deciles[1])[:,3]
-    charts=Figure(; resolution=(1200,1000))
-    axd = Axis(charts[1,1], title="Gains by Decile",xlabel="Decile", ylabel="£s pw")
+    gains = (oneresult.deciles[compsys] -
+        oneresult.deciles[1])[:,3]
+    ## scene, layout = layoutscene(resolution = (1200, 900))
+    chart=Figure() # ; resolution=(1200,1000))
+    axd = Axis( # = layout[1,1] 
+        chart[1,1], 
+        title="Gains by Decile",
+        xlabel="Decile", 
+        ylabel="£s pw" )
     barplot!(axd, 1:10, gains)
-
-    res.pc_frames[:W06000024].income_summary[1][:, [:label,:income_tax,:local_taxes,:council_tax_benefit]][1:2,:]
-
-    charts
+    return chart
 end
+
+#=
+    save( "main.svg", charts )
+
+    # res.pc_frames[:W06000024].income_summary[1][:, [:label,:income_tax,:local_taxes,:council_tax_benefit]][1:2,:]
+    i = 0
+    for r in eachrow( CTRATES )
+        if i > 0
+            lcharts=Figure() # ; resolution=(1200,1000))
+            row = (i ÷ 4) + 1
+            col = (i % 4) + 1
+            ores = res.pc_frames[Symbol(r.code)]
+            gains = (ores.deciles[compsys]-ores.deciles[1])[:,3] 
+            title = "$(r.name)"           
+            axd = Axis( # layout[row,col] = 
+                lcharts[1,1], 
+                title=title,
+                xlabel="Decile", 
+                ylabel="£s pw"),            
+            barplot!(axd, 
+                 1:10, 
+                 gains)   
+            save( "$(r.code).svg", lcharts )         
+        end
+        i += 1
+    end
+    (charts, allcharts)
+end
+=#
