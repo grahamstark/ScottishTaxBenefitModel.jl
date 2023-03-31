@@ -87,6 +87,11 @@ function setct!( sys, value )
 
 end
 
+
+function fmt(v::Number) 
+    return Formatting.format(v, commas=true, precision=0)
+end
+
 function get_sett()
     settings = Settings()
     settings.auto_weight = false
@@ -129,7 +134,7 @@ function calculate_local()
     T = eltype( sys1.it.personal_allowance )
         
     params = [sys1,sys2]
-    num_systems = size(params)[1]
+    num_systems = 4 #size(params)[1]
 
     @time num_households, num_people, nhh2 = initialise( settings; reset=true )
     # hack num people - repeated for each council in 1 big output record
@@ -145,13 +150,13 @@ function calculate_local()
     revenues = DataFrame( 
         name=CTLEVELS.name, 
         code=Symbol.(CTLEVELS.code), 
-        actual_revenues=CTLEVELS.to_be_collected .*= 1_000.0, 
-        modelled_ct=zeros(22), 
-        modelled_ctb=zeros(22), 
-        net_modelled=zeros(22),
-        local_income_tax = zeros(22),
-        fairer_bands_band_d = zeros(22),
-        local_wealth_tax = zeros(22) )
+        actual_revenues=fmt.(CTLEVELS.to_be_collected .*= 1_000.0), 
+        modelled_ct=fill("",22), 
+        modelled_ctb=fill("",22), 
+        net_modelled=fill("",22),
+        local_income_tax = fill("",22),
+        fairer_bands_band_d = fill("",22),
+        local_wealth_tax = fill("",22) )
 
     for code in ccodes 
         w = weights[!,code]
@@ -175,12 +180,12 @@ function calculate_local()
             pc_frames[code].income_summary[2].council_tax_benefit[1]
         ctrevenue = ctrevenue1 - ctrevenue2
         revenues[(revenues.code.==code),:modelled_ct] .= 
-            pc_frames[code].income_summary[1].local_taxes[1]
+            fmt.(pc_frames[code].income_summary[1].local_taxes[1])
         revenues[(revenues.code.==code),:modelled_ctb] .= 
-            pc_frames[code].income_summary[1].council_tax_benefit[1]
+            fmt.(pc_frames[code].income_summary[1].council_tax_benefit[1])
         revenues[(revenues.code.==code),:net_modelled] .= 
-            pc_frames[code].income_summary[1].local_taxes[1] -
-            pc_frames[code].income_summary[1].council_tax_benefit[1]
+            fmt.(pc_frames[code].income_summary[1].local_taxes[1] -
+                pc_frames[code].income_summary[1].council_tax_benefit[1])
         
         base_cost = pc_frames[code].income_summary[1][1,:net_cost]
         sys3 = deepcopy(sys2)
@@ -205,8 +210,8 @@ function calculate_local()
         frames = do_one_run( settings, [sys1,sys2,sys3,sys4], obs )
         pc_frames[code] = summarise_frames(frames, settings)
 
-        revenues[(revenues.code.==code),:local_income_tax] .= itchange
-        revenues[(revenues.code.==code),:fairer_bands_band_d] .= banddchange*WEEKS_PER_YEAR
+        revenues[(revenues.code.==code),:local_income_tax] .= Formatting.format(100.0*itchange, precision=2 )
+        revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
         rc = revenues[revenues.code.==code,:][1,:]
 
         for sysno in 1:num_systems
@@ -221,7 +226,8 @@ function calculate_local()
     (; overall_results, pc_frames, total_frames, revenues, sys1, sys2, sys3, sys4 )
 end
 
-function analyseone( title, oneresult :: NamedTuple, compsys :: Int )
+
+function analyse_one( title, subtitle, oneresult :: NamedTuple, compsys :: Int )
     CairoMakie.activate!()
     gains = (oneresult.deciles[compsys] -
         oneresult.deciles[1])[:,3]
@@ -230,9 +236,10 @@ function analyseone( title, oneresult :: NamedTuple, compsys :: Int )
     axd = Axis( # = layout[1,1] 
         chart[1,1], 
         title="$(title): Gains by Decile",
+        subtitle=subtitle,
         xlabel="Decile", 
-        ylabel="£s pw" )
-    ylims!( axd, [0,40])
+        ylabel="Equivalised Income £s pw" )
+    ylims!( axd, [-40,40])
     barplot!(axd, 1:10, gains)
     table = pretty_table( 
         String, 
@@ -243,14 +250,22 @@ function analyseone( title, oneresult :: NamedTuple, compsys :: Int )
 end
 
 
-function analyseall( dir, res )
+function analyse_one_set( dir, subtitle, res, sysno )
+    (pic,table) = analyse_one( "All Wales", subtitle, res.overall_results, sysno )
+    save( "$(dir)/wales_overall.svg", pic )
     for r in eachrow( CTRATES )
         if( r.code != "XX")
-            (pic,table) = analyseone( r.name, res.pc_frames[Symbol(r.code)], 2 )
+            (pic,table) = analyse_one( r.name, subtitle, res.pc_frames[Symbol(r.code)], sysno )
             println( table )
             save( "$(dir)/$(r.code).svg", pic )
         end
       end
+end
+
+function analyse_all( res )
+    analyse_one_set("../WalesTaxation/output/ctincidence", "CT Incidence", res, 2 )
+    analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", res, 3 )
+    analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", res, 4 )
 end
 
 #=
