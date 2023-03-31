@@ -44,10 +44,14 @@ export load_all_census,
 CTF = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-levels-23-24-edited.csv")
 CTRATES = CSV.File( CTF ) |> DataFrame
 
+CTL = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-reveues-23-24-edited.csv" )
+CTLEVELS = CSV.File( CTL ) |> DataFrame
+
 function get_system( ; year = 2022 ) :: TaxBenefitSystem
     sys = nothing
     if year == 2022
         sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
+        load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
         ## wales specific CT rels; see []??
         sys.loctax.ct.relativities = Dict{CT_Band,Float64}(
             Band_A=>240/360,
@@ -98,9 +102,6 @@ end
 function calculate_local()
     wf = joinpath( MODEL_DATA_DIR,  "wales", "local","council-weights-2023-4.csv") 
     weights = CSV.File( wf ) |> DataFrame
-
-
-
     #  
     ccodes = Symbol.(names(weights)[3:end])
     settings = get_sett()
@@ -110,8 +111,21 @@ function calculate_local()
 
     sys1 = get_system(year=2022)
     sys2 = deepcopy( sys1 )
+    sys3 = deepcopy( sys1 )
+    sys4 = deepcopy( sys1 )
+    ProgressiveRels = Dict{CT_Band,Float64}(
+            # halved below, doubled above
+            Band_A=>120/360,
+            Band_B=>140/360,
+            Band_C=>160/360,
+            Band_D=>360/360,
+            Band_E=>880/360,
+            Band_F=>1040/360,                                                                      
+            Band_G=>1200/360,
+            Band_H=>1440/360,
+            Band_I=>1680/360,
+            Household_not_valued_separately => 0.0 ) 
     setct!( sys2, 0.0 )
-
     T = eltype( sys1.it.personal_allowance )
         
     params = [sys1,sys2]
@@ -123,11 +137,26 @@ function calculate_local()
     settings.num_households = 0 # num_households * size(ccodes)[1]
     total_frames :: NamedTuple = initialise_frames( T, settings, num_systems )
     pc_frames = Dict()
+    pc_frames2 = Dict()
     ## for the individual results, num people 
     settings.num_people = num_people
     settings.num_households = num_households    
-    for code in ccodes        
+
+    revenues = DataFrame( 
+        name=CTLEVELS.name, 
+        code=Symbol.(CTLEVELS.code), 
+        actual_revenues=CTLEVELS.to_be_collected .*= 1_000.0, 
+        modelled_ct=zeros(22), 
+        modelled_ctb=zeros(22), 
+        net_modelled=zeros(22),
+        local_income_tax = zeros(22),
+        fairer_bands_band_d = zeros(22),
+        local_wealth_tax = zeros(22) )
+
+    for code in ccodes 
         w = weights[!,code]
+        
+        
         for i in 1:settings.num_households
             hh = get_household(i)
             hh.council = code
@@ -135,21 +164,64 @@ function calculate_local()
             FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = w[i]
         end
         frames = do_one_run( settings, [sys1, sys2], obs )
+        
         settings.poverty_line = make_poverty_line( frames.hh[1], settings )
+
+        # cleanup we don't need code map her
         pc_frames[code] = summarise_frames(frames, settings)
+        ctrevenue1 = pc_frames[code].income_summary[1].local_taxes[1] -
+            pc_frames[code].income_summary[1].council_tax_benefit[1]
+        ctrevenue2 = pc_frames[code].income_summary[2].local_taxes[1] -
+            pc_frames[code].income_summary[2].council_tax_benefit[1]
+        ctrevenue = ctrevenue1 - ctrevenue2
+        revenues[(revenues.code.==code),:modelled_ct] .= 
+            pc_frames[code].income_summary[1].local_taxes[1]
+        revenues[(revenues.code.==code),:modelled_ctb] .= 
+            pc_frames[code].income_summary[1].council_tax_benefit[1]
+        revenues[(revenues.code.==code),:net_modelled] .= 
+            pc_frames[code].income_summary[1].local_taxes[1] -
+            pc_frames[code].income_summary[1].council_tax_benefit[1]
+        
+        base_cost = pc_frames[code].income_summary[1][1,:net_cost]
+        sys3 = deepcopy(sys2)
+        itchange = equalise( 
+            eq_it, 
+            sys3, 
+            settings, 
+            base_cost, 
+            obs )
+        # sys3 = deepcopy(sys2)
+        sys3.it.non_savings_rates .+= itchange
+        sys4 = deepcopy(sys1)
+        sys4.loctax.ct.relativities = ProgressiveRels
+        banddchange = equalise( 
+            eq_ct_rels, 
+            sys4, 
+            settings, 
+            base_cost, 
+            obs )
+        sys4.loctax.ct.band_d[code] += banddchange
+        # just do everything again
+        frames = do_one_run( settings, [sys1,sys2,sys3,sys4], obs )
+        pc_frames[code] = summarise_frames(frames, settings)
+
+        revenues[(revenues.code.==code),:local_income_tax] .= itchange
+        revenues[(revenues.code.==code),:fairer_bands_band_d] .= banddchange*WEEKS_PER_YEAR
+        rc = revenues[revenues.code.==code,:][1,:]
+
         for sysno in 1:num_systems
-            total_frames.bu[sysno ] = vcat( total_frames.bu[sysno ], frames.bu[sysno] )
-            total_frames.hh[sysno ] = vcat( total_frames.hh[sysno ], frames.hh[sysno] )
-            total_frames.income[sysno ] = vcat( total_frames.income[sysno ], frames.income[sysno] )
-            total_frames.indiv[sysno ] = vcat( total_frames.indiv[sysno ], frames.indiv[sysno] )
+            total_frames.bu[sysno] = vcat( total_frames.bu[sysno ], frames.bu[sysno] )
+            total_frames.hh[sysno] = vcat( total_frames.hh[sysno ], frames.hh[sysno] )
+            total_frames.income[sysno] = vcat( total_frames.income[sysno ], frames.income[sysno] )
+            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno ], frames.indiv[sysno] )
         end
     end # each council
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
     overall_results = summarise_frames( total_frames, settings )
-    (; overall_results, pc_frames, total_frames )
+    (; overall_results, pc_frames, total_frames, revenues, sys1, sys2, sys3, sys4 )
 end
 
-function analyseone( oneresult :: NamedTuple, compsys :: Int )
+function analyseone( title, oneresult :: NamedTuple, compsys :: Int )
     CairoMakie.activate!()
     gains = (oneresult.deciles[compsys] -
         oneresult.deciles[1])[:,3]
@@ -157,11 +229,28 @@ function analyseone( oneresult :: NamedTuple, compsys :: Int )
     chart=Figure() # ; resolution=(1200,1000))
     axd = Axis( # = layout[1,1] 
         chart[1,1], 
-        title="Gains by Decile",
+        title="$(title): Gains by Decile",
         xlabel="Decile", 
         ylabel="£s pw" )
+    ylims!( axd, [0,40])
     barplot!(axd, 1:10, gains)
-    return chart
+    table = pretty_table( 
+        String, 
+        tf=tf_markdown, 
+        formatters = ft_printf("%.2f", [1, 9]),
+        oneresult.deciles[1][:,3] )
+    return (chart,table)
+end
+
+
+function analyseall( dir, res )
+    for r in eachrow( CTRATES )
+        if( r.code != "XX")
+            (pic,table) = analyseone( r.name, res.pc_frames[Symbol(r.code)], 2 )
+            println( table )
+            save( "$(dir)/$(r.code).svg", pic )
+        end
+      end
 end
 
 #=

@@ -215,6 +215,18 @@ const EXTRA_INC_COLS = 10
         (hh=hh, bu=bu, indiv=indiv, income=income)
     end
 
+        #= TODO CONCAT RUN OUTPUT
+        pc_frames[code].quantiles = vcat( pc_frames[code].quantiles, sframes2.quantiles )
+        pc_frames[code].deciles = vcat( pc_frames[code].deciles, sframes2.deciles )
+        pc_frames[code].income_summary = vcat( pc_frames[code].income_summary, sframes2.income_summary )
+        pc_frames[code].poverty = vcat( pc_frames[code].poverty, sframes2.poverty )
+        pc_frames[code].inequality = vcat( pc_frames[code].inequality, sframes2.inequality )
+        pc_frames[code].metrs = vcat( pc_frames[code].metrs, sframes2.metrs )
+        pc_frames[code].child_poverty = vcat( pc_frames[code].child_poverty, sframes2.child_poverty )
+        pc_frames[code].poverty_line = vcat( pc_frames[code].poverty_line, sframes2.poverty_line )
+        =#
+
+
     function fill_hh_frame_row!( hr :: DataFrameRow, hh :: Household, hres :: HouseholdResult )
         nps =  num_people(hh)
         hr.hid = hh.hid

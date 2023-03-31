@@ -1,0 +1,67 @@
+"Local government > Finance > Council Tax > Collection > In-year council tax, by billing authority (£ thousand)"
+"In-year council tax, by billing authority (£ thousand)"
+
+Filters:
+Column: In-year council tax
+Year: 2021-22
+
+"","","Total debit for year (1)","","Total debit for year (1)","Amount budgeted to be collected (2)","Amounts received during year ","Amount received as a percentage of total debit ","Amounts collected as a percentage of budgeted amount ","Amounts written off during year ","Amounts outstanding at 31 March "
+"","","Arrears brought forward at 1 April ","In-year council tax debit for year ",".",".",".",".",".",".","."
+"Total Unitary Authorities ","",".",1907789,1907789,1854276,1837070,96.293,99.072,625,70094
+"Total Unitary Authorities ","Isle of Anglesey ",".",47936,47936,47361,46464,96.929239,98.106037,19,1453
+"","Gwynedd ",".",93006,93006,80876,89449,96.175516,110.600178,19,3538
+"","Conwy ",".",79355,79355,77458,77260,97.359965,99.744378,14,2081
+"","Denbighshire ",".",62659,62659,60485,61240,97.735361,101.248243,15,1404
+"","Flintshire ",".",102972,102972,101846,100635,97.730451,98.81095,114,2223
+"","Wrexham ",".",79598,79598,78126,77007,96.744893,98.567698,4,2587
+"","Powys ",".",100403,100403,98663,97689,97.296894,99.012801,21,2693
+"","Ceredigion ",".",50376,50376,48824,48970,97.208988,100.299033,9,1397
+"","Pembrokeshire ",".",79121,79121,75760,76244,96.363797,100.63886,-5,2882
+"","Carmarthenshire ",".",114228,114228,114741,111073,97.23798,96.803235,-1,3156
+"","Swansea ",".",143361,143361,141781,134665,93.934194,94.980992,80,8616
+"","Neath Port Talbot ",".",79547,79547,76306,77967,98.013753,102.176762,9,1571
+"","Bridgend ",".",91918,91918,89623,87482,95.173959,97.611104,68,4368
+"","Vale of Glamorgan ",".",95948,95948,93053,92275,96.171885,99.163917,13,3660
+"","Rhondda Cynon Taf ",".",122601,122601,118005,118520,96.671316,100.436422,75,4006
+"","Merthyr Tydfil ",".",31833,31833,31866,30058,94.424025,94.326241,26,1749
+"","Caerphilly ",".",79737,79737,77173,75999,95.312088,98.478743,36,3702
+"","Blaenau Gwent ",".",35473,35473,33474,32734,92.278634,97.789329,0,2739
+"","Torfaen ",".",50351,50351,49462,47691,94.717086,96.419474,8,2652
+"","Monmouthshire ",".",77545,77545,76259,75350,97.169386,98.80801,4,2191
+"","Newport ",".",82115,82115,80699,78904,96.08963,97.775685,6,3205
+"","Cardiff ",".",207706,207706,202435,199394,95.99819,98.497789,91,8221
+
+
+
+Footnotes:
+"1","For arrears, this is the sum of any debits raised"
+"2","The amount budgeted to be collected when the council tax was set"
+".","The data item is not applicable."
+Metadata:
+"Title","Council tax collection"
+"Last update","June 2022"
+"Next update","June 2023"
+"Publishing organisation","Welsh Government"
+"Source 1","Council tax collection (CTC) data collection, Welsh Government"
+"Source 2","No drop down value selected"
+"Source 3","No drop down value selected"
+"Contact email","stats.finance@gov.wales"
+"Designation","National Statistics"
+"Lowest level of geographical disaggregation","Local authorities"
+"Geographical coverage","Local authorities"
+"Languages covered","English and Welsh"
+"Data licensing","You may use and re-use this data free of charge in any format or medium, under the terms of the Open Government License - see http://www.nationalarchives.gov.uk/doc/open-government-licence"
+"Statistical quality","See weblinks"
+"Weblinks","The associated statistical releases can be found via the links at the following webpage:
+https://gov.wales/statistics-and-research?lang=en
+A statistical quality report relating to all Local Government Finance statistical releases can be found at the following webpage:
+https://gov.wales/local-government-finance-statistics-quality-report
+"
+"Keywords","Local Government Finance, council tax collection rate"
+"General description","Arrears, amounts collected and amounts outstanding are net of council tax benefit grant from the Department of Work and Pensions. All figures include amounts collected on behalf of police authorities and community councils and the amounts received from the Home Office in respect of Class O exempt dwellings."
+"Data collection and calculation","The information presented here is collected via annual returns from Welsh Local Authorities."
+"Frequency of publication","Annual"
+"Data reference periods","Data are shown for each financial year from 1996-97 onwards."
+"Users, uses and context",""
+"Rounding applied",""
+"Revisions information",""

@@ -64,10 +64,12 @@ module Runner
         num_systems = size( params )[1]
         observer[]=Progress( settings.uuid, "start", 0, 0, 0, 0 )
         load_prices( settings, false )
+        #=
         for p in 1:num_systems
             println("sys $p")
             println(params[p].it)
         end
+        =#
         if settings.num_households == 0
             observer[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
             @time settings.num_households, settings.num_people, nhh2 = 

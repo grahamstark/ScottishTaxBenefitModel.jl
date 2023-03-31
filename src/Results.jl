@@ -485,7 +485,7 @@ module Results
                 hres.bhc_net_income += pers.it.pension_relief_at_source
             end
         end
-        if hres.bhc_net_income <= 0 
+        if hres.bhc_net_income <= -999999 # FIXME            
             println("zero bhc_net_income for seq=$(hh.sequence); hid=$(hh.hid) year=$(hh.interview_year) ")
             println("income")
             println( inctostr( hres.income ))
