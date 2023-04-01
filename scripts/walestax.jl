@@ -47,6 +47,56 @@ CTRATES = CSV.File( CTF ) |> DataFrame
 CTL = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-reveues-23-24-edited.csv" )
 CTLEVELS = CSV.File( CTL ) |> DataFrame
 
+function infer_house_price!( hh :: ModelHousehold )
+    ## wealth_regressions.jl , model 3
+
+    if is_owner_occupier
+        c = ["(Intercept)"            10.576
+        "scotland"               -0.279896
+        "wales"                  -0.286636
+        "london"                  0.843206
+        "owner"                   0.0274378
+        "detatched"               0.139247
+        "semi"                   -0.169271
+        "terraced"               -0.257117
+        "purpose_build_flat"     -0.170908
+        "HBedrmr7"                0.242845
+        "hrp_u_25"               -0.334261
+        "hrp_u_35"               -0.266385
+        "hrp_u_45"               -0.206901
+        "hrp_u_55"               -0.159525
+        "hrp_u_65"               -0.10077
+        "hrp_u_75"               -0.0509382
+        "log_weekly_net_income"   0.17728
+        "managerial"              0.227192
+        "intermediate"            0.165209]
+        
+        hrp = get_head( hh )
+
+        v = ["(Intercept)"          1
+        "scotland"                  0
+        "wales"                     1
+        "london"                    0
+        "owner"                     hh.tenure == Owned_Outright ? 1 : 0
+        "detatched"                 hh.dwelling ==  ? 1 : 0
+        "semi"                      hh.dwelling ==  ? 1 : 0
+        "terraced"                  hh.dwelling ==  ? 1 : 0
+        "purpose_build_flat"        hh.dwelling ==  ? 1 : 0
+        "HBedrmr7"                  hh.bedrooms
+        "hrp_u_25"                  
+        "hrp_u_35"               -0.266385
+        "hrp_u_45"               -0.206901
+        "hrp_u_55"               -0.159525
+        "hrp_u_65"               -0.10077
+        "hrp_u_75"               -0.0509382
+        "log_weekly_net_income"   0.17728
+        "managerial"              0.227192
+        "intermediate"            0.165209]
+    else
+        @assert hh.gross_rent > 0
+    end
+end
+
 function get_system( ; year = 2022 ) :: TaxBenefitSystem
     sys = nothing
     if year == 2022
