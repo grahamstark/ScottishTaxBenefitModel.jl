@@ -1,0 +1,55 @@
+using Markdown
+using CSV
+using GLM
+using Makie
+using CairoMakie
+using DataFrames
+using RegressionTables
+using StatsBase
+using Statistics
+using StatsModels
+using Colors
+using Dates
+
+was = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab") |> DataFrame
+
+
+was.scotland = was.gorr7 .== 12
+was.wales = was.gorr7 .== 11
+was.london = was.gorr7 .== 8
+was.hrp_u_25  =  was.HRPDVAge8r7 .== 2
+was.hrp_u_35 =  was.HRPDVAge8r7 .== 3
+was.hrp_u_45 =  was.HRPDVAge8r7 .== 4
+was.hrp_u_55 =  was.HRPDVAge8r7 .== 5
+was.hrp_u_65 =  was.HRPDVAge8r7 .== 6
+was.hrp_u_75 =  was.HRPDVAge8r7 .== 7
+was.hrp_75_plus = was.HRPDVAge8r7 .== 8
+was.weekly_net_income = was.HHNetIncMthR7 ./ 4.35
+was.log_weekly_net_income = log.(was.weekly_net_income)
+was.owner = was.ten1r7 .== 1
+was.mortgaged = was.ten1r7 .== 2 .|| was.ten1r7 .== 3
+was.renter = was.ten1r7 .== 4 # should never happen
+was.detatched = (was.accomr7 .== 1) .& (was.hsetyper7 .== 1)
+was.semi = (was.accomr7 .== 1) .& (was.hsetyper7 .== 2)
+was.terraced = (was.accomr7 .== 1) .& (was.hsetyper7 .== 3)
+was.purpose_build_flat = (was.accomr7 .== 2) .& (was.flttypr7 .== 1) 
+was.converted_flat = (was.accomr7 .== 2) .& (was.flttypr7 .== 2) 
+was.log_hprice = log.( was.hvaluer7)
+was.ctamtr7 # council tax amount 
+
+was.managerial = was.hrpnssec3r7 .== 1
+was.intermediate = was.hrpnssec3r7 .== 2
+was.routine = was.hrpnssec3r7 .== 3
+
+was = was[(was.hvaluer7 .> 0).&(was.weekly_net_income.>0),:]
+
+r1 = lm( @formula( log_hprice ~ scotland + wales + london + owner + detatched + semi + terraced + purpose_build_flat + HBedrmr7 ), was )
+r2 = lm( @formula( log_hprice ~ scotland + wales + london + owner + detatched + semi + terraced + purpose_build_flat + HBedrmr7 +
+    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 ), was )
+
+r3 = lm( @formula( log_hprice ~ scotland + wales + london + owner + detatched + semi + terraced + purpose_build_flat + HBedrmr7 +
+    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + log_weekly_net_income + managerial + intermediate ), was )
+
+[exp.(predict(r3)) was.hvaluer7]
+
+regtable( r1, r2, r3 )
