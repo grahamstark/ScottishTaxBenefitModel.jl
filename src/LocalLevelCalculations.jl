@@ -329,17 +329,42 @@ export
         return hh.house_value * pptsys.rate        
     end
 
-    function band_from_prices(
-        band_values :: Dict,
-        house_price :: Real ) :: CT_Band
-        for b in enumerate( CT_Band )
-            if house_price <= band_values[b]
-                return b
+    function band_from_value(
+        house_value :: Real,
+        band_values :: Dict ) :: CT_Band
+        for b in instances( CT_Band )
+            if b !== Missing_CT_Band
+                if house_value <= band_values[b]
+                    return b
+                end
             end
         end
-        @assert false "failed to match CT Band for value $house_price"
+        @assert false "failed to match CT Band for value $house_value"
     end
 
+    """
+     multiply all the house price bands by (1+x) if not progressive
+     else if progressive mult by 1+x all above D and by 1-x below
+    """
+    function change_ct_valuations!( bands :: Dict{CT_Band,T}, x :: T, progressive :: Bool ) where T <: AbstractFloat
+        if ! progressive 
+            for b in instances( CT_Band )
+                if ! (b in [Missing_CT_Band, Household_not_valued_separately])
+                    bands[b] *= (1+x)
+                end
+            end
+        else
+            for b in instances( CT_Band )
+                if ! (b in [Missing_CT_Band, Household_not_valued_separately])
+                    if b < Band_D
+                        bands[b] *= (1-x)
+                    elseif b > Band_D
+                        bands[b] *= (1+x)
+                    end
+                end # in range
+            end # each instance
+        end # progressive
+    end # functions
 
     """
     Very simple implementation of the CT scheme
@@ -356,9 +381,9 @@ export
         end
         ct_band = hh.ct_band
         if ctsys.revalue 
-            ct_band = band_from_price( 
+            ct_band = band_from_value( 
                 hh.house_value, 
-                ctsys.house_prices ) 
+                ctsys.house_values ) 
         end
         ctres = ctsys.band_d[hh.council] * 
             ctsys.relativities[ct_band]

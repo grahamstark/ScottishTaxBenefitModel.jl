@@ -27,7 +27,7 @@ module STBParameters
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
     export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit
-    export LocalTaxes, CouncilTax, ProportionalPropertyTax, wales_ct_house_prices
+    export LocalTaxes, CouncilTax, ProportionalPropertyTax, wales_ct_house_values
     export state_pension_age, reached_state_pension_age, load_file, load_file!
     export BRMA, loadBRMAs, DEFAULT_BRMA_2021
     export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
@@ -701,7 +701,7 @@ G	£106,000-£212,000
 H	More than £212,000
     =# 
 
-    function default_ct_house_prices(RT)
+    function default_ct_house_values(RT)
         return Dict{CT_Band,RT}(
             Band_A=>27_000.0,
             Band_B=>35_000.0,
@@ -710,7 +710,7 @@ H	More than £212,000
             Band_E=>80_000.0,
             Band_F=>106_000.0,                                                                      
             Band_G=>212_000.0,
-            Band_H=>99999999999999999.00,
+            Band_H=>99999999999999.00,
             Band_I=>-1, # wales only
             Household_not_valued_separately => 0.0 ) # see CT note
     end
@@ -727,7 +727,7 @@ G	£223,000-£324,000
 H	£324,000-£424,000
 I	More than £424,000
     =#
-    function wales_ct_house_prices(RT)
+    function wales_ct_house_values(RT)
 
         return Dict{CT_Band,RT}(
             Band_A=>44_000.0,
@@ -738,14 +738,14 @@ I	More than £424,000
             Band_F=>223_000.0,                                                                      
             Band_G=>324_000.0,
             Band_H=>424_000.00,
-            Band_I=>-999999999999999999999.99, # wales only
+            Band_I=>99999999999999999999999.999, # wales only
             Household_not_valued_separately => 0.0 ) # see CT note
     end
     
     @with_kw mutable struct CouncilTax{RT<:Real}
         abolished :: Bool = false
         revalue :: Bool = false
-        house_prices :: Dict{CT_Band,RT} = default_ct_house_prices(RT)
+        house_values :: Dict{CT_Band,RT} = default_ct_house_values(RT)
         band_d :: Dict{Symbol,RT} = default_band_ds(RT)
         relativities :: Dict{CT_Band,RT} = default_ct_ratios(RT)
         single_person_discount :: RT = 25.0

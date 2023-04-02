@@ -22,10 +22,11 @@ using .Runner
 using .RunSettings
 using .STBOutput
 using .STBParameters
+using .LocalLevelCalculations
 using .Utils
 
-@enum EqTargets eq_it eq_ni eq_it_ni eq_ct_rels eq_ct_band_d eq_ppt_rate
-export EqTargets,eq_it,eq_ni,eq_it_ni, eq_ct_rels, eq_ct_band_d, eq_ppt_rate
+@enum EqTargets eq_it eq_ni eq_it_ni eq_ct_rels eq_ct_band_d eq_ppt_rate eq_ct_bands_proportional eq_ct_bands_progressive
+export EqTargets,eq_it,eq_ni,eq_it_ni, eq_ct_rels, eq_ct_band_d, eq_ppt_rate, eq_ct_bands_proportional, eq_ct_bands_progressive
 export equalise
 #
 # Roots only allows 1 parameter, I think, so:
@@ -45,27 +46,36 @@ function op_tax!( sys :: TaxBenefitSystem{T}, r :: T ) where T <: AbstractFloat
 end
 
 function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
+    # backup
     nsr = deepcopy( rparams.params.it )
     nsi = deepcopy( rparams.params.ni )
     nbandd = deepcopy( rparams.params.loctax.ct.band_d )
     npptrate = rparams.params.loctax.ppt.rate
+    hvals = deepcopy(rparams.params.loctax.ct.house_values)
     if rparams.target in [eq_it, eq_it_ni]
         rparams.params.it.non_savings_rates .+= x
     end
+
     # TODO check sensible it rates
     if rparams.target in [eq_ni, eq_it_ni]
         rparams.params.ni.primary_class_1_rates .+= x
         rparams.params.ni.class_4_rates .+= x
     end
+    
     if rparams.target == eq_ct_band_d
         for k in keys( rparams.params.loctax.ct.band_d )
             rparams.params.loctax.ct.band_d[k] += x
         end
         # println( "set band ds to $(rparams.params.loctax.ct.band_d)")
     end
+
     if rparams.target == eq_ppt_rate
         rparams.params.loctax.ppt.rate += x
-        println( "set rparams.params.loctax.ppt.rate to $(rparams.params.loctax.ppt.rate)")
+    end
+
+    if rparams.target in [eq_ct_bands_proportional, eq_ct_bands_progressive] 
+        progressive = (rparams.target == eq_ct_bands_progressive)
+        change_ct_valuations!(rparams.params.loctax.ct.house_values, x, progressive )
     end
 
     # TODO check sensible ni rates    
@@ -75,6 +85,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.ni = nsi
     rparams.params.loctax.ct.band_d = nbandd
     rparams.params.loctax.ppt.rate = npptrate
+    rparams.params.loctax.ct.house_values = hvals
     summary = summarise_frames(results, rparams.settings)
     nc = summary.income_summary[1][1,:net_cost]
     return round( nc - rparams.base_cost, digits=0 )

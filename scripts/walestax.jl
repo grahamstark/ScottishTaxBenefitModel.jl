@@ -47,6 +47,20 @@ CTRATES = CSV.File( CTF ) |> DataFrame
 CTL = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-reveues-23-24-edited.csv" )
 CTLEVELS = CSV.File( CTL ) |> DataFrame
 
+PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
+    # halved below, doubled above
+    Band_A=>120/360,
+    Band_B=>140/360,
+    Band_C=>160/360,
+    Band_D=>360/360,
+    Band_E=>880/360,
+    Band_F=>1040/360,                                                                      
+    Band_G=>1200/360,
+    Band_H=>1440/360,
+    Band_I=>1680/360,
+    Household_not_valued_separately => 0.0 ) 
+
+
 function infer_house_price!( hh :: Household, hhincome :: Real )
     ## wealth_regressions.jl , model 3
     hhincome = max(hhincome, 1.0)
@@ -159,7 +173,7 @@ function get_system( ; year = 2022 ) :: TaxBenefitSystem
             end
         end
         sys.loctax.ct.band_d = band_ds
-        sys.loctax.ct.house_prices = wales_ct_house_prices()        
+        sys.loctax.ct.house_values = wales_ct_house_values(Float64)        
 
     end  # 2022
     sys.scottish_child_payment = 0.0
@@ -204,13 +218,13 @@ function calculate_local()
     base_sys = get_system(year=2022)
 
     no_ct_sys = deepcopy( base_sys )
-    no_ct_sys.loctax.ctsys.abolished = true
+    no_ct_sys.loctax.ct.abolished = true
     setct!( no_ct_sys, 0.0 )
     
     local_it_sys = deepcopy( no_ct_sys )
 
     progressive_ct_sys = deepcopy( base_sys )
-    progressive_ct_sys.loctax.ct.relativities = ProgressiveRels
+    progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
 
     ppt_sys = deepcopy( no_ct_sys )
     ppt_sys = deepcopy(no_ct_sys)
@@ -221,22 +235,10 @@ function calculate_local()
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
 
-    ProgressiveRels = Dict{CT_Band,Float64}(
-            # halved below, doubled above
-            Band_A=>120/360,
-            Band_B=>140/360,
-            Band_C=>160/360,
-            Band_D=>360/360,
-            Band_E=>880/360,
-            Band_F=>1040/360,                                                                      
-            Band_G=>1200/360,
-            Band_H=>1440/360,
-            Band_I=>1680/360,
-            Household_not_valued_separately => 0.0 ) 
     T = eltype( base_sys.it.personal_allowance )
         
     params = [base_sys,no_ct_sys]
-    num_systems = 6 #size(params)[1]
+    num_systems = 7 #size(params)[1]
 
     @time num_households, num_people, nhh2 = initialise( settings; reset=true )
     # hack num people - repeated for each council in 1 big output record
@@ -259,9 +261,11 @@ function calculate_local()
         local_income_tax = fill("",22),
         fairer_bands_band_d = fill("",22),
         proportional_property_tax = fill("",22),
-        revalued_housing_band_d = fill("",22) )
+        revalued_housing_band_d = fill("",22),
+        revalued_housing_band_d_w_fairer_bands = fill("",22) )
 
     for code in ccodes
+
         w = weights[!,code]
         
         
@@ -303,7 +307,7 @@ function calculate_local()
         local_it_sys.it.non_savings_rates .+= itchange
         
         progressive_ct_sys = deepcopy(base_sys)
-        progressive_ct_sys.loctax.ct.relativities = ProgressiveRels
+        progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
         banddchange = equalise( 
             eq_ct_band_d, 
             progressive_ct_sys, 
@@ -334,13 +338,29 @@ function calculate_local()
             settings, 
             base_cost, 
             obs )
-
         revalued_prices_sys.loctax.ct.band_d[code] += rev_banddchange
+        
+        revalued_prices_w_prog_bands_sys = deepcopy( base_sys )
+        revalued_prices_w_prog_bands_sys.loctax.ct.revalue = true
+        revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
+        prog_rev_banddchange = equalise( 
+            eq_ct_band_d, 
+            revalued_prices_w_prog_bands_sys, 
+            settings, 
+            base_cost, 
+            obs )
+        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += prog_rev_banddchange
         # just do everything again
         println( "on council $code - starting final do_one_run" )
         frames = do_one_run( 
             settings, 
-            [base_sys,no_ct_sys,local_it_sys,progressive_ct_sys,ppt_sys, revalued_prices_sys], 
+            [
+                base_sys,
+                no_ct_sys,
+                local_it_sys,
+                progressive_ct_sys,ppt_sys, 
+                revalued_prices_sys,
+                revalued_prices_w_prog_bands_sys], 
             obs )
         pc_frames[code] = summarise_frames(frames, settings)
 
@@ -348,14 +368,17 @@ function calculate_local()
         revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
         revenues[(revenues.code.==code),:proportional_property_tax] .= Formatting.format(ppt_sys.loctax.ppt.rate*100*WEEKS_PER_YEAR, precision=3)
         revenues[(revenues.code.==code),:revalued_housing_band_d].= fmt(rev_banddchange*WEEKS_PER_YEAR)
+        revenues[(revenues.code.==code),:revalued_housing_band_d_w_fairer_bands].= fmt(prog_rev_banddchange*WEEKS_PER_YEAR)
+
         rc = revenues[revenues.code.==code,:][1,:]
 
         for sysno in 1:num_systems
-            total_frames.bu[sysno] = vcat( total_frames.bu[sysno ], frames.bu[sysno] )
-            total_frames.hh[sysno] = vcat( total_frames.hh[sysno ], frames.hh[sysno] )
-            total_frames.income[sysno] = vcat( total_frames.income[sysno ], frames.income[sysno] )
-            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno ], frames.indiv[sysno] )
+            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], frames.bu[sysno] )
+            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], frames.hh[sysno] )
+            total_frames.income[sysno] = vcat( total_frames.income[sysno], frames.income[sysno] )
+            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], frames.indiv[sysno] )
         end
+
     end # each council
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
     overall_results = summarise_frames( total_frames, settings )
@@ -404,6 +427,7 @@ function analyse_all( res )
     analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", res, 4 )
     analyse_one_set("../WalesTaxation/output/proportional_property_tax", "Proportional Property Tax", res, 5 )
     analyse_one_set("../WalesTaxation/output/revalued_ct", "CT With Revalued House Prices", res, 6 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", "CT With Revalued House Prices & Fairer Bands", res, 7 )
 end
 
 #=
