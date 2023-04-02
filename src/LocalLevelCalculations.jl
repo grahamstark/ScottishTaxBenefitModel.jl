@@ -326,7 +326,7 @@ export
         hh :: Household{RT}, 
         intermed :: MTIntermediate,
         pptsys :: ProportionalPropertyTax ) :: RT where RT 
-        return hh.house_vale * pptsys.rate        
+        return hh.house_value * pptsys.rate        
     end
 
     """

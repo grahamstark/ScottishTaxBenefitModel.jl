@@ -186,7 +186,7 @@ function get_sett()
     settings.people_name    = "model_people_wales"
     settings.do_marginal_rates = false
     settings.ineq_income_measure = eq_ahc_net_income
-    settings.requested_threads = 6
+    settings.requested_threads = 5
     return settings
 end
 
@@ -221,7 +221,7 @@ function calculate_local()
     T = eltype( sys1.it.personal_allowance )
         
     params = [sys1,sys2]
-    num_systems = 4 #size(params)[1]
+    num_systems = 5 #size(params)[1]
 
     @time num_households, num_people, nhh2 = initialise( settings; reset=true )
     # hack num people - repeated for each council in 1 big output record
@@ -245,7 +245,7 @@ function calculate_local()
         fairer_bands_band_d = fill("",22),
         proportional_property_tax = fill("",22) )
 
-    for code in ccodes 
+    for code in ccodes
         w = weights[!,code]
         
         
@@ -292,12 +292,13 @@ function calculate_local()
             settings, 
             base_cost, 
             obs )
+        
         sys4.loctax.ct.band_d[code] += banddchange
 
-        sys5.loctax.ct.abolished = true
-        
+        sys5 = deepcopy(sys2)
+        sys5.loctax.ct.abolished = true        
         sys5.loctax.ppt.abolished = false
-        sys5.loctax.ppt.rate = 0.01
+        sys5.loctax.ppt.rate = 0.01/WEEKS_PER_YEAR
         pptrate = equalise( 
             eq_ppt_rate, 
             sys5, 
@@ -305,18 +306,18 @@ function calculate_local()
             base_cost, 
             obs )
 
-        sys5.loctax.ppt.rate = pptrate
+        sys5.loctax.ppt.rate += pptrate
 
 
         # just do everything again
+        println( "on council $code - starting final do_one_run" )
         frames = do_one_run( settings, [sys1,sys2,sys3,sys4,sys5], obs )
         pc_frames[code] = summarise_frames(frames, settings)
 
         revenues[(revenues.code.==code),:local_income_tax] .= Formatting.format(100.0*itchange, precision=2 )
         revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
-        revenues[(revenues.code.==code),:proportional_property_tax] .= fmt(pptrate*WEEKS_PER_YEAR)
+        revenues[(revenues.code.==code),:proportional_property_tax] .= Formatting.format(sys5.loctax.ppt.rate*100*WEEKS_PER_YEAR, precision=3)
 
-        proportional_property_tax
         rc = revenues[revenues.code.==code,:][1,:]
 
         for sysno in 1:num_systems
@@ -371,6 +372,7 @@ function analyse_all( res )
     analyse_one_set("../WalesTaxation/output/ctincidence", "CT Incidence", res, 2 )
     analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", res, 3 )
     analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", res, 4 )
+    analyse_one_set("../WalesTaxation/output/proportional_property_tax", "Proportional Property Tax", res, 5 )
 end
 
 #=

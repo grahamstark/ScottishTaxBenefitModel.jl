@@ -48,6 +48,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     nsr = deepcopy( rparams.params.it )
     nsi = deepcopy( rparams.params.ni )
     nbandd = deepcopy( rparams.params.loctax.ct.band_d )
+    npptrate = rparams.params.loctax.ppt.rate
     if rparams.target in [eq_it, eq_it_ni]
         rparams.params.it.non_savings_rates .+= x
     end
@@ -64,7 +65,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     end
     if rparams.target == eq_ppt_rate
         rparams.params.loctax.ppt.rate += x
-        # println( "set band ds to $(rparams.params.loctax.ct.band_d)")
+        println( "set rparams.params.loctax.ppt.rate to $(rparams.params.loctax.ppt.rate)")
     end
 
     # TODO check sensible ni rates    
@@ -73,6 +74,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.it = nsr
     rparams.params.ni = nsi
     rparams.params.loctax.ct.band_d = nbandd
+    rparams.params.loctax.ppt.rate = npptrate
     summary = summarise_frames(results, rparams.settings)
     nc = summary.income_summary[1][1,:net_cost]
     return round( nc - rparams.base_cost, digits=0 )

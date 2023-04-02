@@ -705,7 +705,7 @@ module STBParameters
 
     @with_kw mutable struct LocalTaxes{RT<:Real}
         ct = CouncilTax{RT}()
-        ppt = ProportionalPropertyTax{TY}()
+        ppt = ProportionalPropertyTax{RT}()
         # other possible local taxes go here
     end
     
@@ -714,7 +714,7 @@ module STBParameters
             lt.ct.band_d[c] /= wpy
         end
         lt.ct.single_person_discount /= 100.0
-        lt.ppt.rate /= 100.0
+        lt.ppt.rate /= (100.0*wpy)
     end
 
     @with_kw mutable struct SavingsCredit{RT<:Real}
