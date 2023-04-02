@@ -403,6 +403,7 @@ function analyse_all( res )
     analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", res, 3 )
     analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", res, 4 )
     analyse_one_set("../WalesTaxation/output/proportional_property_tax", "Proportional Property Tax", res, 5 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct", "CT With Revalued House Prices", res, 6 )
 end
 
 #=
