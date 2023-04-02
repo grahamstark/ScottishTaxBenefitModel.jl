@@ -329,6 +329,18 @@ export
         return hh.house_value * pptsys.rate        
     end
 
+    function band_from_prices(
+        band_values :: Dict,
+        house_price :: Real ) :: CT_Band
+        for b in enumerate( CT_Band )
+            if house_price <= band_values[b]
+                return b
+            end
+        end
+        @assert false "failed to match CT Band for value $house_price"
+    end
+
+
     """
     Very simple implementation of the CT scheme
     note this doesn't include rebates apart from single
@@ -342,7 +354,14 @@ export
         if hh.region != Wales
             @assert hh.ct_band != Band_I # We're not Welsh
         end
-        ctres = ctsys.band_d[hh.council]* ctsys.relativities[hh.ct_band]
+        ct_band = hh.ct_band
+        if ctsys.revalue 
+            ct_band = band_from_price( 
+                hh.house_value, 
+                ctsys.house_prices ) 
+        end
+        ctres = ctsys.band_d[hh.council] * 
+            ctsys.relativities[ct_band]
         if intermed.num_adults == 1
             ctres *= (1-ctsys.single_person_discount)
         end
