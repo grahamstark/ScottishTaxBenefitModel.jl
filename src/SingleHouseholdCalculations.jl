@@ -63,7 +63,8 @@ using .Results:
     NIResult
 
 using .LocalLevelCalculations:
-    calc_council_tax
+    calc_council_tax,
+    calc_proportional_property_tax
 
 using .LegacyMeansTestedBenefits: 
     calc_legacy_means_tested_benefits!
@@ -146,10 +147,15 @@ function do_one_calc(
         hh, 
         sys.nmt_bens, 
         sys.age_limits )
-        
-    hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
-        calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
-        
+    if ! sys.loctax.ct.abolished 
+        hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
+            calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
+    end
+    if ! sys.loctax.ppt.abolished       
+        hres.bus[1].pers[hd].income[LOCAL_TAXES] += 
+            calc_proportional_property_tax( hh, intermed.hhint, sys.loctax.ppt )
+
+    end
  
     calc_legacy_means_tested_benefits!(
         hres,

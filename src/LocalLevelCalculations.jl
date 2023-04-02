@@ -41,6 +41,7 @@ export
     apply_rent_restrictions,
     apply_size_criteria, 
     calc_council_tax, 
+    calc_proportional_property_tax,
     lookup, 
     make_la_to_brma_map
 
@@ -321,7 +322,13 @@ export
         return hres
     end
 
-   
+    function calc_proportional_property_tax( 
+        hh :: Household{RT}, 
+        intermed :: MTIntermediate,
+        pptsys :: ProportionalPropertyTax ) :: RT where RT 
+        return hh.house_vale * pptsys.rate        
+    end
+
     """
     Very simple implementation of the CT scheme
     note this doesn't include rebates apart from single

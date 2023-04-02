@@ -47,11 +47,12 @@ CTRATES = CSV.File( CTF ) |> DataFrame
 CTL = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-reveues-23-24-edited.csv" )
 CTLEVELS = CSV.File( CTL ) |> DataFrame
 
-function infer_house_price!( hh :: ModelHousehold, hhincome :: Real )
+function infer_house_price!( hh :: Household, hhincome :: Real )
     ## wealth_regressions.jl , model 3
     hhincome = max(hhincome, 1.0)
+
     hp = 0.0
-    if is_owner_occupier
+    if is_owner_occupier(hh.tenure)
         c = ["(Intercept)"            10.576
         "scotland"               -0.279896
         "wales"                  -0.286636
@@ -78,7 +79,7 @@ function infer_house_price!( hh :: ModelHousehold, hhincome :: Real )
         "scotland"                  0
         "wales"                     1
         "london"                    0
-        "owner"                     hh.tenure == Owned_Outright ? 1 : 0
+        "owner"                     hh.tenure == Owned_outright ? 1 : 0
         "detatched"                 hh.dwelling == detatched ? 1 : 0
         "semi"                      hh.dwelling == semi_detached ? 1 : 0
         "terraced"                  hh.dwelling == terraced ? 1 : 0
@@ -96,24 +97,40 @@ function infer_house_price!( hh :: ModelHousehold, hhincome :: Real )
         ]
         hp = exp( c[:,2]'v[:,2])
         
+    elseif hh.tenure !== Rent_free
+        # @assert hh.gross_rent > 0 "zero rent for hh $(hh.hid) $(hh.tenure) "
+        # 1 │  2272       2015         0.0
+        # 2 │ 10054       2015         0.0
+        # 3 │  5019       2016         0.0
+        # assign 50 pw to these 3
+        rent = hh.gross_rent == 0 ? 50.0 : hh.gross_rent # ?? 3 cases of 0 rent
+        hp = rent * WEEKS_PER_YEAR * 20
     else
-        @assert hh.gross_rent > 0
-        hp = gross_rent * WEEKS_PER_YEAR * 20
+        hp = 80_000
     end
     hh.house_value = hp
 end
 
 function add_house_price( settings::Settings)
     hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+    obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+    # coerce house_value from coltype 'Missing'
+    hh_dataset.house_value = zeros(settings.num_households)
     sys1 = get_system(year=2022)
     frames = do_one_run( settings, [sys1], obs )
-         
+    incomes = frames.hh[1].bhc_net_income     
     for i in 1:settings.num_households
         hh = get_household(i)
-        hres = frames.hh[1][i,:][1]
+        hres = frames.hh[1][i,:]
         @assert hres.hid == hh.hid
+        @assert hh_dataset[i,:].hid == hh.hid
+        infer_house_price!( hh, hres.bhc_net_income )
+        hh_dataset[i,:].house_value = hh.house_value
     end
+    rent_summary = combine(groupby(hh_dataset,:tenure), [:house_value] .=> [length,mean,median])
     
+    CSV.write( "$(settings.data_dir)/$(settings.household_name).tab", hh_dataset )
+    rent_summary
 end
 
 function get_system( ; year = 2022 ) :: TaxBenefitSystem

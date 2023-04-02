@@ -697,8 +697,14 @@ module STBParameters
         # TODO see CT note on disabled discounts
     end
 
+    @with_kw mutable struct ProportionalPropertyTax{RT<:Real}
+        abolished :: Bool = true
+        rate :: RT = 0.0
+    end
+
     @with_kw mutable struct LocalTaxes{RT<:Real}
         ct = CouncilTax{RT}()
+        ppt = ProportionalPropertyTax{TY}()
         # other possible local taxes go here
     end
     
