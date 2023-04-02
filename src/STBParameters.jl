@@ -26,7 +26,8 @@ module STBParameters
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
-    export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit, LocalTaxes, CouncilTax
+    export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit
+    export LocalTaxes, CouncilTax, ProportionalPropertyTax
     export state_pension_age, reached_state_pension_age, load_file, load_file!
     export BRMA, loadBRMAs, DEFAULT_BRMA_2021
     export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
@@ -713,6 +714,7 @@ module STBParameters
             lt.ct.band_d[c] /= wpy
         end
         lt.ct.single_person_discount /= 100.0
+        lt.ppt.rate /= 100.0
     end
 
     @with_kw mutable struct SavingsCredit{RT<:Real}

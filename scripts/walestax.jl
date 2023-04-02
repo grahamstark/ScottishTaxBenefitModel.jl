@@ -204,6 +204,7 @@ function calculate_local()
     sys2 = deepcopy( sys1 )
     sys3 = deepcopy( sys1 )
     sys4 = deepcopy( sys1 )
+    sys5 = deepcopy( sys1 )
     ProgressiveRels = Dict{CT_Band,Float64}(
             # halved below, doubled above
             Band_A=>120/360,
@@ -242,7 +243,7 @@ function calculate_local()
         net_modelled=fill("",22),
         local_income_tax = fill("",22),
         fairer_bands_band_d = fill("",22),
-        local_wealth_tax = fill("",22) )
+        proportional_property_tax = fill("",22) )
 
     for code in ccodes 
         w = weights[!,code]
@@ -286,18 +287,36 @@ function calculate_local()
         sys4 = deepcopy(sys1)
         sys4.loctax.ct.relativities = ProgressiveRels
         banddchange = equalise( 
-            eq_ct_rels, 
+            eq_ct_band_d, 
             sys4, 
             settings, 
             base_cost, 
             obs )
         sys4.loctax.ct.band_d[code] += banddchange
+
+        sys5.loctax.ct.abolished = true
+        
+        sys5.loctax.ppt.abolished = false
+        sys5.loctax.ppt.rate = 0.01
+        pptrate = equalise( 
+            eq_ppt_rate, 
+            sys5, 
+            settings, 
+            base_cost, 
+            obs )
+
+        sys5.loctax.ppt.rate = pptrate
+
+
         # just do everything again
-        frames = do_one_run( settings, [sys1,sys2,sys3,sys4], obs )
+        frames = do_one_run( settings, [sys1,sys2,sys3,sys4,sys5], obs )
         pc_frames[code] = summarise_frames(frames, settings)
 
         revenues[(revenues.code.==code),:local_income_tax] .= Formatting.format(100.0*itchange, precision=2 )
         revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
+        revenues[(revenues.code.==code),:proportional_property_tax] .= fmt(pptrate*WEEKS_PER_YEAR)
+
+        proportional_property_tax
         rc = revenues[revenues.code.==code,:][1,:]
 
         for sysno in 1:num_systems

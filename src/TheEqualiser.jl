@@ -24,8 +24,8 @@ using .STBOutput
 using .STBParameters
 using .Utils
 
-@enum EqTargets eq_it eq_ni eq_it_ni eq_ct_rels
-export EqTargets,eq_it,eq_ni,eq_it_ni, eq_ct_rels
+@enum EqTargets eq_it eq_ni eq_it_ni eq_ct_rels eq_ct_band_d eq_ppt_rate
+export EqTargets,eq_it,eq_ni,eq_it_ni, eq_ct_rels, eq_ct_band_d, eq_ppt_rate
 export equalise
 #
 # Roots only allows 1 parameter, I think, so:
@@ -56,12 +56,17 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
         rparams.params.ni.primary_class_1_rates .+= x
         rparams.params.ni.class_4_rates .+= x
     end
-    if rparams.target == eq_ct_rels
+    if rparams.target == eq_ct_band_d
         for k in keys( rparams.params.loctax.ct.band_d )
             rparams.params.loctax.ct.band_d[k] += x
         end
-        println( "set band ds to $(rparams.params.loctax.ct.band_d)")
+        # println( "set band ds to $(rparams.params.loctax.ct.band_d)")
     end
+    if rparams.target == eq_ppt_rate
+        rparams.params.loctax.ppt.rate += x
+        # println( "set band ds to $(rparams.params.loctax.ct.band_d)")
+    end
+
     # TODO check sensible ni rates    
     results = do_one_run( rparams.settings, [rparams.params], rparams.obs )
     # restore
