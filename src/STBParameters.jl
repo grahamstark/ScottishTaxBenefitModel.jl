@@ -27,7 +27,7 @@ module STBParameters
     export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
     export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
     export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit
-    export LocalTaxes, CouncilTax, ProportionalPropertyTax
+    export LocalTaxes, CouncilTax, ProportionalPropertyTax, wales_ct_house_prices
     export state_pension_age, reached_state_pension_age, load_file, load_file!
     export BRMA, loadBRMAs, DEFAULT_BRMA_2021
     export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
@@ -689,15 +689,70 @@ module STBParameters
             Band_I=>-1, # wales only
             Household_not_valued_separately => 0.0 ) # see CT note
     end
+
+#=
+    A	Up to £27,000
+B	£27,000-£35,000
+C	£35,000-£45,000
+D	£45,000-£58,000
+E	£58,000-£80,000
+F	£80,000-£106,000
+G	£106,000-£212,000
+H	More than £212,000
+    =# 
+
+    function default_ct_house_prices(RT)
+        return Dict{CT_Band,RT}(
+            Band_A=>27_000.0,
+            Band_B=>35_000.0,
+            Band_C=>45_000.0,
+            Band_D=>58_000.0,
+            Band_E=>80_000.0,
+            Band_F=>106_000.0,                                                                      
+            Band_G=>212_000.0,
+            Band_H=>99999999999999999.00,
+            Band_I=>-1, # wales only
+            Household_not_valued_separately => 0.0 ) # see CT note
+    end
+
+
+    #=
+A	Up to £44,000
+B	£44,000-£65,000
+C	£65,000-£91,000
+D	£91,000-£123,000
+E	£123,000-£162,000
+F	£162,000-£223,000
+G	£223,000-£324,000
+H	£324,000-£424,000
+I	More than £424,000
+    =#
+    function wales_ct_house_prices(RT)
+
+        return Dict{CT_Band,RT}(
+            Band_A=>44_000.0,
+            Band_B=>65_000.0,
+            Band_C=>91_000.0,
+            Band_D=>123_000.0,
+            Band_E=>162_000.0,
+            Band_F=>223_000.0,                                                                      
+            Band_G=>324_000.0,
+            Band_H=>424_000.00,
+            Band_I=>-999999999999999999999.99, # wales only
+            Household_not_valued_separately => 0.0 ) # see CT note
+    end
     
     @with_kw mutable struct CouncilTax{RT<:Real}
         abolished :: Bool = false
+        revalue :: Bool = false
+        house_prices :: Dict{CT_Band,RT} = default_ct_house_prices(RT)
         band_d :: Dict{Symbol,RT} = default_band_ds(RT)
         relativities :: Dict{CT_Band,RT} = default_ct_ratios(RT)
         single_person_discount :: RT = 25.0
         # TODO see CT note on disabled discounts
     end
 
+    
     @with_kw mutable struct ProportionalPropertyTax{RT<:Real}
         abolished :: Bool = true
         rate :: RT = 0.0
