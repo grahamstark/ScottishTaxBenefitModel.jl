@@ -47,9 +47,10 @@ CTRATES = CSV.File( CTF ) |> DataFrame
 CTL = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-reveues-23-24-edited.csv" )
 CTLEVELS = CSV.File( CTL ) |> DataFrame
 
-function infer_house_price!( hh :: ModelHousehold )
+function infer_house_price!( hh :: ModelHousehold, hhincome :: Real )
     ## wealth_regressions.jl , model 3
-
+    hhincome = max(hhincome, 1.0)
+    hp = 0.0
     if is_owner_occupier
         c = ["(Intercept)"            10.576
         "scotland"               -0.279896
@@ -78,23 +79,41 @@ function infer_house_price!( hh :: ModelHousehold )
         "wales"                     1
         "london"                    0
         "owner"                     hh.tenure == Owned_Outright ? 1 : 0
-        "detatched"                 hh.dwelling ==  ? 1 : 0
-        "semi"                      hh.dwelling ==  ? 1 : 0
-        "terraced"                  hh.dwelling ==  ? 1 : 0
-        "purpose_build_flat"        hh.dwelling ==  ? 1 : 0
+        "detatched"                 hh.dwelling == detatched ? 1 : 0
+        "semi"                      hh.dwelling == semi_detached ? 1 : 0
+        "terraced"                  hh.dwelling == terraced ? 1 : 0
+        "purpose_build_flat"        hh.dwelling == flat_or_maisonette ? 1 : 0
         "HBedrmr7"                  hh.bedrooms
-        "hrp_u_25"                  
-        "hrp_u_35"               -0.266385
-        "hrp_u_45"               -0.206901
-        "hrp_u_55"               -0.159525
-        "hrp_u_65"               -0.10077
-        "hrp_u_75"               -0.0509382
-        "log_weekly_net_income"   0.17728
-        "managerial"              0.227192
-        "intermediate"            0.165209]
+        "hrp_u_25"                  hrp.age < 25 ? 1 : 0
+        "hrp_u_35"                  hrp.age in [25:44] ? 1 : 0
+        "hrp_u_45"                  hrp.age in [45:54] ? 1 : 0
+        "hrp_u_55"                  hrp.age in [55:64] ? 1 : 0
+        "hrp_u_65"                  hrp.age in [65:74] ? 1 : 0
+        "hrp_u_75"                  hrp.age in [75:999] ? 1 : 0
+        "log_weekly_net_income"     log(hhincome)
+        "managerial"                hrp.socio_economic_grouping in [Managers_Directors_and_Senior_Officials,Professional_Occupations] ? 1 : 0
+        "intermediate"              hrp.socio_economic_grouping in [Associate_Prof_and_Technical_Occupations,Admin_and_Secretarial_Occupations] ? 1 : 0
+        ]
+        hp = exp( c[:,2]'v[:,2])
+        
     else
         @assert hh.gross_rent > 0
+        hp = gross_rent * WEEKS_PER_YEAR * 20
     end
+    hh.house_value = hp
+end
+
+function add_house_price( settings::Settings)
+    hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+    sys1 = get_system(year=2022)
+    frames = do_one_run( settings, [sys1], obs )
+         
+    for i in 1:settings.num_households
+        hh = get_household(i)
+        hres = frames.hh[1][i,:][1]
+        @assert hres.hid == hh.hid
+    end
+    
 end
 
 function get_system( ; year = 2022 ) :: TaxBenefitSystem
@@ -222,7 +241,7 @@ function calculate_local()
         
         settings.poverty_line = make_poverty_line( frames.hh[1], settings )
 
-        # cleanup we don't need code map her
+         # cleanup we don't need code map her
         pc_frames[code] = summarise_frames(frames, settings)
         ctrevenue1 = pc_frames[code].income_summary[1].local_taxes[1] -
             pc_frames[code].income_summary[1].council_tax_benefit[1]
