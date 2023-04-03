@@ -82,7 +82,7 @@ function run( x :: Number, things :: RunParameters )
     things.params.it.non_savings_rates .+= x
     results = do_one_run(things.settings, [things.params], obs )
     things.params.it.non_savings_rates = nsr
-	summary = summarise_frames(results,settings)
+	summary = summarise_frames!(results,settings)
 	nc = summary.income_summary[1][1,:net_cost]
 	return round( nc - things.base_cost, digits=0 )
     # x^2 + things.params.it.non_savings_rates[1] 
@@ -92,7 +92,7 @@ function baserun_cost()
     obs = Observable( 
 		Progress(settings.uuid, "",0,0,0,0))
 	results = do_one_run(settings, [sys], obs )
-	summary = summarise_frames(results,settings)
+	summary = summarise_frames!(results,settings)
 	return summary.income_summary[1][1,:net_cost]
 end
 

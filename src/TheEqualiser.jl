@@ -86,7 +86,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.loctax.ct.band_d = nbandd
     rparams.params.loctax.ppt.rate = npptrate
     rparams.params.loctax.ct.house_values = hvals
-    summary = summarise_frames(results, rparams.settings)
+    summary = summarise_frames!(results, rparams.settings)
     nc = summary.income_summary[1][1,:net_cost]
     return round( nc - rparams.base_cost, digits=0 )
 end

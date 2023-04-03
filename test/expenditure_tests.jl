@@ -16,7 +16,7 @@ using .Intermediate
 using .Monitor: Progress
 using .ExampleHelpers
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
-    dump_frames, summarise_frames, make_gain_lose
+    dump_frames, summarise_frames!, make_gain_lose
 using .Expenditure
 using StatsBase
 

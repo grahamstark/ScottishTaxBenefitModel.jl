@@ -28,7 +28,7 @@ using .SingleHouseholdCalculations: do_one_calc
 using .STBOutput: 
     initialise_frames, 
     add_to_frames!, 
-    summarise_frames, 
+    summarise_frames!, 
     make_poverty_line
 using .Monitor: Progress
 using .Runner: do_one_run
@@ -280,7 +280,7 @@ function calculate_local()
         settings.poverty_line = make_poverty_line( frames.hh[1], settings )
 
          # cleanup we don't need code map her
-        pc_frames[code] = summarise_frames(frames, settings)
+        pc_frames[code] = summarise_frames!(frames, settings)
         ctrevenue1 = pc_frames[code].income_summary[1].local_taxes[1] -
             pc_frames[code].income_summary[1].council_tax_benefit[1]
         ctrevenue2 = pc_frames[code].income_summary[2].local_taxes[1] -
@@ -363,7 +363,7 @@ function calculate_local()
                 revalued_prices_sys,
                 revalued_prices_w_prog_bands_sys], 
             obs )
-        pc_frames[code] = summarise_frames(frames, settings)
+        pc_frames[code] = summarise_frames!(frames, settings)
 
         revenues[(revenues.code.==code),:local_income_tax] .= Formatting.format(100.0*itchange, precision=2 )
         revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
@@ -382,7 +382,7 @@ function calculate_local()
 
     end # each council
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
-    overall_results = summarise_frames( total_frames, settings )
+    overall_results = summarise_frames!( total_frames, settings )
     (; overall_results, pc_frames, total_frames, revenues, base_sys, no_ct_sys, local_it_sys, progressive_ct_sys )
 end
 

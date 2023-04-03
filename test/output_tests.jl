@@ -8,7 +8,7 @@ using PrettyTables
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.RunSettings: Settings, MT_Routing
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
-    dump_frames, summarise_frames, make_gain_lose
+    dump_frames, summarise_frames!, make_gain_lose
 
 @testset "basic gain lose" begin
     pre = DataFrame( income=[1,2,3], weighted_people=[1,1,1]);

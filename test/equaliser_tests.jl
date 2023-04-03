@@ -53,7 +53,7 @@ end
         settings,
         [base],
         obs )
-    summary = summarise_frames(base_res,settings)
+    summary = summarise_frames!(base_res,settings)
     base_cost = summary.income_summary[1][1,:net_cost]
     
     eq = equalise( 
@@ -67,7 +67,7 @@ end
         settings,
         [sys],
         obs )
-    ubi_summary = summarise_frames(ubi_res,settings)
+    ubi_summary = summarise_frames!(ubi_res,settings)
     ubi_cost = ubi_summary.income_summary[1][1,:net_cost]
    
     println( "needs tax rise of $eq")

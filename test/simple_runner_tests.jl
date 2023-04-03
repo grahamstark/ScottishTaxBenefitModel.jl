@@ -14,7 +14,7 @@ using .Utils
 using .Monitor: Progress
 using .ExampleHelpers
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
-    dump_frames, summarise_frames, make_gain_lose
+    dump_frames, summarise_frames!, make_gain_lose
 
 settings = Settings()
 
@@ -45,7 +45,7 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings.poverty_line = make_poverty_line( results.hh[1], settings )
     dump_frames( settings, results )
     println( "poverty line = $(settings.poverty_line)")
-    outf = summarise_frames( results, settings )
+    outf = summarise_frames!( results, settings )
     println( outf )
     gl = make_gain_lose( results.hh[1], results.hh[2], settings )
     println(gl)
@@ -82,7 +82,7 @@ end
         sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
         results = do_one_run( settings, sys, obs )
         settings.poverty_line = make_poverty_line( results.hh[1], settings )
-        outf = summarise_frames( results, settings )
+        outf = summarise_frames!( results, settings )
         println( outf.metrs[1] )
     end
 end

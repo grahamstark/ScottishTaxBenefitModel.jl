@@ -19,7 +19,7 @@ using .Utils
 using .Monitor: Progress
 using .ExampleHelpers
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
-    dump_frames, summarise_frames, make_gain_lose
+    dump_frames, summarise_frames!, make_gain_lose
 
 include( "$(TEST_DIR)/testutils.jl")
 
@@ -47,7 +47,7 @@ h1 = results.hh[1]
 settings.poverty_line = make_poverty_line( results.hh[1], settings )
 dump_frames( settings, results )
 println( "poverty line = $(settings.poverty_line)")
-outf = summarise_frames( results, settings )
+outf = summarise_frames!( results, settings )
 println( outf )
 gl = make_gain_lose( results.hh[1], results.hh[2], settings )
     

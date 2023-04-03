@@ -35,8 +35,9 @@ using .SimplePovertyCounts:
 export 
     add_to_frames!,
     dump_frames,
+    fill_in_deciles!,
     initialise_frames,
-    summarise_frames,
+    summarise_frames!,
     make_poverty_line,
     make_gain_lose,
     hdiff,
@@ -72,7 +73,8 @@ const EXTRA_INC_COLS = 10
             num_people = zeros( Int, n ),
             tenure    = fill( Missing_Tenure_Type, n ),
             region    = fill( Missing_Standard_Region, n ),
-            gross_decile = zeros( Int, n ),
+            decile = zeros( Int, n ),
+            in_poverty = fill( false, n ),
             bhc_net_income = zeros(RT,n),
             ahc_net_income = zeros(RT,n),
             # eq_scale = zeros(RT,n),
@@ -105,7 +107,8 @@ const EXTRA_INC_COLS = 10
             bu_type   = zeros( Int, n ),
             tenure    = zeros( Int, n ),
             region    = zeros( Int, n ),
-            gross_decile = zeros( Int, n ),
+            decile = zeros( Int, n ),
+            in_poverty = fill( false, n ),
             net_income = zeros(RT,n),
             
             income_taxes = zeros(RT,n),
@@ -141,7 +144,8 @@ const EXTRA_INC_COLS = 10
         frame.employment_status = fill(Missing_ILO_Employment,n)
         frame.tenure    = fill( Missing_Tenure_Type, n )
         frame.region    = fill( Missing_Standard_Region, n )
-        frame.gross_decile = zeros( Int, n )
+        frame.decile = zeros( Int, n )
+        frame.in_poverty = fill( false, n )
         frame.council = fill( Symbol( "No_Council"), n)
 
         # ... and so on
@@ -175,6 +179,8 @@ const EXTRA_INC_COLS = 10
          income_taxes = zeros(RT,n),
          means_tested_benefits = zeros(RT,n),
          other_benefits = zeros(RT,n),
+         decile = zeros( Int, n ),
+         in_poverty = fill( false, n ),
 
          income_tax = zeros(RT,n),
          it_non_savings = zeros(RT,n),
@@ -238,7 +244,7 @@ const EXTRA_INC_COLS = 10
         hr.hh_type = -1
         hr.tenure = hh.tenure
         hr.region = hh.region
-        hr.gross_decile = -1
+        hr.decile = -1
         hr.income_taxes = isum(hres.income, INCOME_TAXES )
         hr.means_tested_benefits = isum( hres.income, MEANS_TESTED_BENS )
         hr.other_benefits = isum( hres.income, NON_MEANS_TESTED_BENS )
@@ -260,6 +266,41 @@ const EXTRA_INC_COLS = 10
 
     end
 
+    function get_decile( 
+        settings :: Settings, 
+        hh :: DataFrameRow, 
+        decs :: Vector ) :: Int
+        isym = income_measure_as_sym( settings.ineq_income_measure )
+        inc = hh[1,:isym][1]
+        for i in 1:10
+            if inc <= decs[i]
+                return i
+            end
+        end
+        @assert false "Decile for $inc hh $(hh.hid) is out-of-range."
+    end
+
+    function fill_in_deciles!( 
+        frames :: NamedTuple, 
+        settings :: Settings, 
+        deciles :: Vector{DataFrame} )
+        ns = size( frames.indiv )[1] # num systems        
+        for sysno in 1:ns
+            decs = deciles[sysno][:,3]
+            hh = frames.hh[sysno]
+            nhh = size(hh)[1]
+            indiv = frames.indiv[sysno]
+            income = frames.income[sysno]
+            bu = frames.bu[sysno]
+            for hno in 1:nhh
+                idec = get_decile( settings, hh[hno,:], decs )
+                hh[hno,:decile] = idec;
+                bus = bus[bus.hid .== hh.hid,:decile] .= idec
+                indivs = indivs[indiv.hid .== hh.hid,:decile] .= idec
+                incs = incs[income.hid .== hh.hid,:decile] .= idec
+            end
+        end
+    end
 
     function summarise_inc_frame( incd :: DataFrame ) :: DataFrame
         nrows = 80
@@ -352,7 +393,7 @@ const EXTRA_INC_COLS = 10
         ir.tenure = hh.tenure
         ir.data_year = hh.data_year
         ir.region = hh.region
-        ir.gross_decile = -1
+        ir.decile = -1
         ir.council = hh.council
         ir.employment_status = pers.employment_status
         ir.age_band = age_range( pers.age )
@@ -509,7 +550,7 @@ const EXTRA_INC_COLS = 10
         return ( mean=mmtr, hist=hist)
     end
 
-    function summarise_frames( 
+    function summarise_frames!( 
         frames :: NamedTuple,
         settings :: Settings ) :: NamedTuple
         ns = size( frames.indiv )[1] # num systems
@@ -562,6 +603,10 @@ const EXTRA_INC_COLS = 10
             )
             push!( child_poverty, cp )
         end   
+        fill_in_deciles!(
+            frames, 
+            settings, 
+            deciles )
         return ( 
             quantiles=quantiles, 
             deciles = deciles, 
@@ -592,7 +637,6 @@ const EXTRA_INC_COLS = 10
             income_summary = summarise_inc_frame(frames.income[fno])
             fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.csv"
             CSV.write( fname, income_summary )
-
         end
     end
 
