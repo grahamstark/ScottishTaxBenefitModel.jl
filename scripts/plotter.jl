@@ -125,7 +125,7 @@ function infer_house_price!( hh :: Household, hhincome :: Real )
     hh.house_value = hp
 end
 
-function add_house_price( settings::Settings )
+function add_house_price( settings::Settings)
     hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
     obs = Observable( Progress(settings.uuid,"",0,0,0,0))
     # coerce house_value from coltype 'Missing'
@@ -358,8 +358,7 @@ function calculate_local()
                 base_sys,
                 no_ct_sys,
                 local_it_sys,
-                progressive_ct_sys,
-                ppt_sys, 
+                progressive_ct_sys,ppt_sys, 
                 revalued_prices_sys,
                 revalued_prices_w_prog_bands_sys], 
             obs )
@@ -387,41 +386,6 @@ function calculate_local()
 end
 
 
-function xxanalyse_one( title, subtitle, oneresult :: NamedTuple, compsys :: Int )
-    CairoMakie.activate!()
-    gains = (oneresult.deciles[compsys] -
-        oneresult.deciles[1])[:,3]
-    ## scene, layout = layoutscene(resolution = (1200, 900))
-    chart=Figure() # ; resolution=(1200,1000))
-    axd = Axis( # = layout[1,1] 
-        chart[1,1], 
-        title="$(title): Gains by Decile",
-        subtitle=subtitle,
-        xlabel="Decile", 
-        ylabel="Equivalised Income £s pw" )
-    ylims!( axd, [-40,40])
-    barplot!(axd, 1:10, gains)
-    table = pretty_table( 
-        String, 
-        tf=tf_markdown, 
-        formatters = ft_printf("%.2f", [1, 9]),
-        oneresult.deciles[1][:,3] )
-    return (chart,table)
-end
-
-
-function xxanalyse_one_set( dir, subtitle, res, sysno )
-    (pic,table) = analyse_one( "All Wales", subtitle, res.overall_results, sysno )
-    save( "$(dir)/wales_overall.svg", pic )
-    for r in eachrow( CTRATES )
-        if( r.code != "XX")
-            (pic,table) = analyse_one( r.name, subtitle, res.pc_frames[Symbol(r.code)], sysno )
-            println( table )
-            save( "$(dir)/$(r.code).svg", pic )
-        end
-      end
-end
-
 function analyse_one( title, subtitle, oneresult :: NamedTuple, sysno :: Int )
     gains = (oneresult.deciles[sysno] -
         oneresult.deciles[1])[:,3]
@@ -438,11 +402,23 @@ function analyse_one( title, subtitle, oneresult :: NamedTuple, sysno :: Int )
 end
 
 
+function analyse_one_setxx( dir, subtitle, res, sysno )
+    (pic,table) = analyse_one( "All Wales", subtitle, res.overall_results, sysno )
+    save( "$(dir)/wales_overall.svg", pic )
+    for r in eachrow( CTRATES )
+        if( r.code != "XX")
+            (pic,table) = analyse_one( r.name, subtitle, res.pc_frames[Symbol(r.code)], sysno )
+            println( table )
+            save( "$(dir)/$(r.code).svg", pic )
+        end
+      end
+end
+
 function analyse_one_set( dir, subtitle, res, sysno )
     overall = analyse_one( "All Wales", subtitle, 
         res.overall_results, sysno )
-    save( "$(dir)/all_wales.svg", overall )
-    f = Figure(; resolution=( 1240, 1754 )) # a4 @ 150ppi
+    save( "$(dir)/all_wales.svg", f )
+    f = Figure()
     n = 1
     for row in 1:8
         for col in 1:3
@@ -451,7 +427,6 @@ function analyse_one_set( dir, subtitle, res, sysno )
                 break
             end
             r = CTRATES[n,:]
-            println( "on row $(r)")
             laresult = res.pc_frames[Symbol(r.code)]
             a = Axis( f[row,col], title="$(r.name)"); 
             ylims!(a,[-40,40])
@@ -461,66 +436,14 @@ function analyse_one_set( dir, subtitle, res, sysno )
             barplot!( a, xdata, ydata )
         end
     end
-    supertitle = Label(f[0, :], "$subtitle : changes by income decile", fontsize = 30) 
-    sidetitle = Label(f[:, 0], "Changes in Equivalised Income £s pw", fontsize = 20, rotation = pi/2)  
     save( "$(dir)/by_la.svg", f )
 end
-
 
 function analyse_all( res )
     analyse_one_set("../WalesTaxation/output/ctincidence", "CT Incidence", res, 2 )
     analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", res, 3 )
     analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", res, 4 )
     analyse_one_set("../WalesTaxation/output/proportional_property_tax", "Proportional Property Tax", res, 5 )
-    analyse_one_set("../WalesTaxation/output/revalued_ct", "Council Tax With Revalued House Prices and compensating band D cuts", res, 6 )
-    analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", "Council Tax With Revalued House Prices & Fairer Bands", res, 7 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct", "CT With Revalued House Prices", res, 6 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", "CT With Revalued House Prices & Fairer Bands", res, 7 )
 end
-
-#=
-    save( "main.svg", charts )
-
-    # res.pc_frames[:W06000024].income_summary[1][:, [:label,:income_tax,:local_taxes,:council_tax_benefit]][1:2,:]
-    i = 0
-    for r in eachrow( CTRATES )
-        if i > 0
-            lcharts=Figure() # ; resolution=(1200,1000))
-            row = (i ÷ 4) + 1
-            col = (i % 4) + 1
-            ores = res.pc_frames[Symbol(r.code)]
-            gains = (ores.deciles[compsys]-ores.deciles[1])[:,3] 
-            title = "$(r.name)"           
-            axd = Axis( # layout[row,col] = 
-                lcharts[1,1], 
-                title=title,
-                xlabel="Decile", 
-                ylabel="£s pw"),            
-            barplot!(axd, 
-                 1:10, 
-                 gains)   
-            save( "$(r.code).svg", lcharts )         
-        end
-        i += 1
-    end
-    (charts, allcharts)
-end
-=#
-
-function getbands()
-    settings = get_sett()
-    @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
-    nhhs = settings.num_households
-    bands = DataFrame( weight = zeros(nhhs), 
-        pre = fill(Missing_CT_Band,nhhs), 
-        post = fill(Missing_CT_Band,nhhs))
-    sys = get_system(year=2022)
-    for i in 1:settings.num_households
-        hh = get_household(i)
-        bands[i,:].weight = 1 #hh.weight
-        bands[i,:].pre = hh.ct_band
-        ct_band = LocalLevelCalculations.band_from_value( hh.house_value, sys.loctax.ct.house_values )
-        bands[i,:].post = ct_band
-    end
-    bands
-end
-
-
