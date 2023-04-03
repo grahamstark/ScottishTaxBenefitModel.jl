@@ -424,7 +424,7 @@ end
 
 function analyse_one( title, subtitle, oneresult :: NamedTuple, sysno :: Int )
     gains = (oneresult.deciles[sysno] -
-        oneresult.deciles[1])[:,3]
+        oneresult.deciles[1])[:,4]
     chart=Figure() # ; resolution=(1200,1000))
     axd = Axis( # = layout[1,1] 
         chart[1,1], 
@@ -457,7 +457,7 @@ function analyse_one_set( dir, subtitle, res, sysno )
             ylims!(a,[-40,40])
             xdata = 1:10
             ydata = (laresult.deciles[sysno] -
-                laresult.deciles[1])[:,3]
+                laresult.deciles[1])[:,4]
             barplot!( a, xdata, ydata )
         end
     end
