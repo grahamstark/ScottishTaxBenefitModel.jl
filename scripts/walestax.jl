@@ -232,21 +232,21 @@ function make_parameter_set(;
 
     progressive_ct_sys = deepcopy( base_sys )
     progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    progressive_ct_sys.loctax.ct.band_d[code] += fairer_bands_band_d 
+    progressive_ct_sys.loctax.ct.band_d[code] += fairer_bands_band_d / WEEKS_PER_YEAR
 
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
     ppt_sys.loctax.ppt.abolished = false
-    ppt_sys.loctax.ppt.rate = proportional_property_tax
+    ppt_sys.loctax.ppt.rate = proportional_property_tax/(100.0*WEEKS_PER_YEAR)
     
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
-    revalued_prices_sys.loctax.ct.band_d[code] += revalued_housing_band_d
+    revalued_prices_sys.loctax.ct.band_d[code] += revalued_housing_band_d/WEEKS_PER_YEAR
 
     revalued_prices_w_prog_bands_sys = deepcopy( base_sys )
     revalued_prices_w_prog_bands_sys.loctax.ct.revalue = true
     revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += revalued_housing_band_d_w_fairer_bands
+    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += revalued_housing_band_d_w_fairer_bands/WEEKS_PER_YEAR
         
     return base_sys,
         no_ct_sys,
@@ -284,8 +284,9 @@ function revenues_table()
         revalued_housing_band_d_w_fairer_bands = zeros(22))
 end
 
-function get_default_stuff()
+function get_default_stuff( num_systems :: Int )
     settings = get_sett()
+    T = Float64
     obs = Observable( Progress(settings.uuid,"",0,0,0,0))
     settings.num_people = 0 #num_people * size(ccodes)[1]
     settings.num_households = 0 # num_households * size(ccodes)[1]
@@ -430,11 +431,14 @@ end
 Skeleton for one non-equalising run.
 """
 function calculate_local()
-    settings, obs, total_frames = get_default_stuff()
+    num_systems = 7
+    settings, obs, total_frames = get_default_stuff(num_systems)
     load_prices( settings, false )
     pc_frames = Dict()    
     pc_results = Dict()    
-    for code in ccodes        
+    for code in CCODES[1:1]    
+        # Set weights for this council.
+        w = WEIGHTS[!,code] 
         for i in 1:settings.num_households
             hh = get_household(i)
             hh.council = code
@@ -447,13 +451,17 @@ function calculate_local()
             settings, 
             all_params,
             obs )
-        pc_results[code] = summarise_frames!(pc_frames[code], settings)    
+        for i in 1:num_systems
+            println( "RES $i $(pc_frames[code].hh[i][1,:bhc_net_income])")
+        end
+        settings.poverty_line = make_poverty_line( pc_frames[code].hh[1], settings )
+        pc_results[code] = summarise_frames!( pc_frames[code], settings)    
         ## accumulate totals - FIXME: isn't this all we really need?
         for sysno in 1:num_systems
-            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], frames.bu[sysno] )
-            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], frames.hh[sysno] )
-            total_frames.income[sysno] = vcat( total_frames.income[sysno], frames.income[sysno] )
-            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], frames.indiv[sysno] )
+            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
+            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], pc_frames[code].hh[sysno] )
+            total_frames.income[sysno] = vcat( total_frames.income[sysno], pc_frames[code].income[sysno] )
+            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], pc_frames[code].indiv[sysno] )
         end
     end # each council
     # summarise Wales totals

@@ -1,6 +1,6 @@
 module STBOutput
 
-using DataFrames: DataFrame, DataFrameRow, Not, select!
+using DataFrames: DataFrame, DataFrameRow, Not, select!, groupby, combine, unstack, sum
 
 using PovertyAndInequalityMeasures
 
@@ -519,7 +519,67 @@ const EXTRA_INC_COLS = 10
         return deciles[5,3]*(2.0/3.0)
     end
 
-    function make_gain_lose( post :: DataFrame, pre :: DataFrame, measure :: Symbol )::NamedTuple
+    const GL_COLNAMES = [
+        "Lose over £10",
+        "Lose £1-9.99",
+        "No Change",
+        "Gain £1-9.99",
+        "Gain over £10"
+    ] 
+
+    function gl( v :: Number ) :: String
+        return if v < -10.0
+            GL_COLNAMES[1]
+        elseif v < -1.0
+            GL_COLNAMES[2]
+        elseif v > 10.0
+            GL_COLNAMES[5]
+        elseif v > 1
+            GL_COLNAMES[4]
+        else
+            GL_COLNAMES[3]
+        end
+    end
+
+    function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
+
+        dhh.gainlose = gl.(dhh.change)
+        ghh = combine(groupby( dhh, [col,:gainlose] ),(:weight=>sum))
+        colnames = [String(col), GL_COLNAMES...]
+        vhh = unstack( ghh, :gainlose, :weight_sum )
+        n = size( vhh )[1]
+        missn = setdiff( colnames, names(vhh))
+        for m in missn
+            vhh[:,m] = zeros(n)
+        end
+        ns = Symbol.(colnames)
+        select!( sort!(vhh,col), ns... )
+        return coalesce.( vhh, 0.0)
+    end
+
+    function make_gain_lose( 
+        prehh :: DataFrame, 
+        posthh :: DataFrame, 
+        incomes_col :: Symbol ) :: NamedTuple
+
+        dhh = DataFrame( 
+            hid = prehh.hid,
+            data_year  = prehh.data_year,
+            weight = prehh.weighted_people,
+            tenure = prehh.tenure, 
+            region = prehh.region,
+            decile = prehh.decile,
+            in_poverty = prehh.in_poverty,
+            change = posthh[:, incomes_col] - prehh[:,incomes_col]
+        )
+
+        ten_gl = one_gain_lose( dhh, :tenure )
+
+        return (;ten_gl, gainers=0.0, losers=0.0,nc=0.0, popn = 0.0)
+    end
+
+
+    function xmake_gain_lose( post :: DataFrame, pre :: DataFrame, measure :: Symbol )::NamedTuple
         pre_inc = pre[:,measure]
         post_inc = post[:,measure]
         n = size(post_inc)[1]
