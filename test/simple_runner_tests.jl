@@ -16,7 +16,7 @@ using .ExampleHelpers
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
     dump_frames, summarise_frames!, make_gain_lose
 
-settings = Settings()
+
 
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
@@ -35,6 +35,7 @@ end
 
 
 function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
+    settings = Settings()
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
@@ -53,9 +54,11 @@ end
 
 
 @testset "Extreme Income Changes from Flat tax" begin    
+    settings = Settings()
     sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]
     settings.do_marginal_rates = false
     # flat tax - 
+    @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
     sys[2].it.non_savings_basic_rate = 1
     sys[2].it.non_savings_rates = [0.19]
     sys[2].it.non_savings_thresholds = [9999999999999999999999.999]
@@ -76,6 +79,7 @@ end
 
 @testset "MR test" begin
     @time begin
+        settings = Settings()
         settings.means_tested_routing = modelled_phase_in
         settings.do_marginal_rates = true
         settings.dump_frames = true
@@ -99,6 +103,7 @@ end
 
 @testset "thread test" begin
     # 42.531500 53 secs
+    settings = Settings()
     settings.requested_threads = 4
     @time basic_run( print_test=true, mtrouting = modelled_phase_in )
 

@@ -35,7 +35,7 @@ using .SimplePovertyCounts:
 export 
     add_to_frames!,
     dump_frames,
-    fill_in_deciles!,
+    fill_in_deciles_and_poverty!,
     initialise_frames,
     summarise_frames!,
     make_poverty_line,
@@ -266,24 +266,27 @@ const EXTRA_INC_COLS = 10
 
     end
 
-    function get_decile( 
+    function get_decile_poverty( 
         settings :: Settings, 
-        hh :: DataFrameRow, 
-        decs :: Vector ) :: Int
+        hr :: DataFrameRow, 
+        poverty_line :: Real,
+        decs :: Vector ) :: Tuple
         isym = income_measure_as_sym( settings.ineq_income_measure )
-        inc = hh[1,:isym][1]
+        inc = hr[isym]
+        in_poverty = inc <= poverty_line
         for i in 1:10
             if inc <= decs[i]
-                return i
+                return (i, in_poverty)
             end
         end
         @assert false "Decile for $inc hh $(hh.hid) is out-of-range."
     end
 
-    function fill_in_deciles!( 
+    function fill_in_deciles_and_poverty!( 
         frames :: NamedTuple, 
         settings :: Settings, 
-        deciles :: Vector{DataFrame} )
+        poverty_line :: Vector,
+        deciles :: Vector )
         ns = size( frames.indiv )[1] # num systems        
         for sysno in 1:ns
             decs = deciles[sysno][:,3]
@@ -291,13 +294,19 @@ const EXTRA_INC_COLS = 10
             nhh = size(hh)[1]
             indiv = frames.indiv[sysno]
             income = frames.income[sysno]
+            poverty = poverty_line[sysno]
             bu = frames.bu[sysno]
             for hno in 1:nhh
-                idec = get_decile( settings, hh[hno,:], decs )
-                hh[hno,:decile] = idec;
-                bus = bus[bus.hid .== hh.hid,:decile] .= idec
-                indivs = indivs[indiv.hid .== hh.hid,:decile] .= idec
-                incs = incs[income.hid .== hh.hid,:decile] .= idec
+                (idec, in_poverty) = get_decile_poverty( settings, hh[hno,:], poverty, decs )
+                onehh = hh[hno,:]
+                onehh[:decile] = idec;
+                bu[bu.hid .== onehh.hid,:decile] .= idec
+                indiv[indiv.hid .== onehh.hid,:decile] .= idec
+                income[income.hid .== onehh.hid,:decile] .= idec
+                onehh[:in_poverty] = in_poverty;
+                bu[bu.hid .== onehh.hid,:in_poverty] .= in_poverty
+                indiv[indiv.hid .== onehh.hid,:in_poverty] .= in_poverty
+                income[income.hid .== onehh.hid,:in_poverty] .= in_poverty
             end
         end
     end
@@ -603,9 +612,10 @@ const EXTRA_INC_COLS = 10
             )
             push!( child_poverty, cp )
         end   
-        fill_in_deciles!(
+        fill_in_deciles_and_poverty!(
             frames, 
             settings, 
+            poverty_line,
             deciles )
         return ( 
             quantiles=quantiles, 

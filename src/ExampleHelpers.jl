@@ -279,6 +279,7 @@ end
 function make_hh( 
     ;
     adults   :: Int = 1,
+    region   :: Standard_Region = Scotland,
     children :: Int = 0,
     earnings :: Real = -1,
     rent     :: Real = -1,
@@ -332,6 +333,7 @@ function make_hh(
     if rent != -1
        hh.gross_rent = rent
     end
+    hh.region = region
     make_eq_scales!( hh )
     return hh
  end

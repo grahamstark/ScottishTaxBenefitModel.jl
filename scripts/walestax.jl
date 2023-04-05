@@ -47,6 +47,15 @@ CTRATES = CSV.File( CTF ) |> DataFrame
 CTL = joinpath( MODEL_DATA_DIR, "wales", "counciltax", "council-tax-reveues-23-24-edited.csv" )
 CTLEVELS = CSV.File( CTL ) |> DataFrame
 
+DFL = joinpath( MODEL_DATA_DIR, "wales", "default_reform_levels.csv" )
+DEFAULT_REFORM_LEVELS = CSV.File( DFL ) |> DataFrame
+
+WF = joinpath( MODEL_DATA_DIR,  "wales", "local","council-weights-2023-4.csv") 
+WEIGHTS = CSV.File( WF ) |> DataFrame
+
+CCODES = Symbol.(names(WEIGHTS)[3:end])
+
+
 PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
     # halved below, doubled above
     Band_A=>120/360,
@@ -188,7 +197,6 @@ function setct!( sys, value )
 
 end
 
-
 function fmt(v::Number) 
     return Formatting.format(v, commas=true, precision=0)
 end
@@ -205,15 +213,13 @@ function get_sett()
     return settings
 end
 
-function calculate_local()
-    wf = joinpath( MODEL_DATA_DIR,  "wales", "local","council-weights-2023-4.csv") 
-    weights = CSV.File( wf ) |> DataFrame
-    #  
-    ccodes = Symbol.(names(weights)[3:end])
-    settings = get_sett()
-    obs = Observable( Progress(settings.uuid,"",0,0,0,0))
-
-    load_prices( settings, false )
+function make_parameter_set(;
+    local_income_tax :: Real, 
+    fairer_bands_band_d :: Real,  
+    proportional_property_tax :: Real,
+    revalued_housing_band_d :: Real,
+    revalued_housing_band_d_w_fairer_bands :: Real,
+    code :: Symbol )
 
     base_sys = get_system(year=2022)
 
@@ -222,70 +228,176 @@ function calculate_local()
     setct!( no_ct_sys, 0.0 )
     
     local_it_sys = deepcopy( no_ct_sys )
+    local_it_sys.it.non_savings_rates .+= local_income_tax/100.0
 
     progressive_ct_sys = deepcopy( base_sys )
     progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
+    progressive_ct_sys.loctax.ct.band_d[code] += fairer_bands_band_d 
 
-    ppt_sys = deepcopy( no_ct_sys )
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
     ppt_sys.loctax.ppt.abolished = false
-    ppt_sys.loctax.ppt.rate = 0.01/WEEKS_PER_YEAR
+    ppt_sys.loctax.ppt.rate = proportional_property_tax
     
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
+    revalued_prices_sys.loctax.ct.band_d[code] += revalued_housing_band_d
 
-    T = eltype( base_sys.it.personal_allowance )
+    revalued_prices_w_prog_bands_sys = deepcopy( base_sys )
+    revalued_prices_w_prog_bands_sys.loctax.ct.revalue = true
+    revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
+    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += revalued_housing_band_d_w_fairer_bands
         
-    params = [base_sys,no_ct_sys]
-    num_systems = 7 #size(params)[1]
+    return base_sys,
+        no_ct_sys,
+        local_it_sys,
+        progressive_ct_sys,
+        ppt_sys, 
+        revalued_prices_sys,
+        revalued_prices_w_prog_bands_sys
+end
 
-    @time num_households, num_people, nhh2 = initialise( settings; reset=true )
-    # hack num people - repeated for each council in 1 big output record
+function make_parameter_set( code :: Symbol )
+    r = DEFAULT_REFORM_LEVELS[
+        Symbol.(DEFAULT_REFORM_LEVELS.code) .== code,:][1,:]
+    return make_parameter_set(;
+        local_income_tax = r.local_income_tax,
+        fairer_bands_band_d = r.fairer_bands_band_d,
+        proportional_property_tax = r.proportional_property_tax,
+        revalued_housing_band_d = r.revalued_housing_band_d,
+        revalued_housing_band_d_w_fairer_bands = r.revalued_housing_band_d_w_fairer_bands,
+        code = code )
+end
+
+function revenues_table()
+    return DataFrame( 
+        name=CTLEVELS.name, 
+        code=Symbol.(CTLEVELS.code), 
+        actual_revenues=TLEVELS.to_be_collected, 
+        modelled_ct=zeros(22), 
+        modelled_ctb=zeros(22), 
+        net_modelled=zeros(22),
+        local_income_tax = zeros(22),
+        fairer_bands_band_d = zeros(22),
+        proportional_property_tax = zeros(22),
+        revalued_housing_band_d = zeros(22),
+        revalued_housing_band_d_w_fairer_bands = zeros(22))
+end
+
+function get_default_stuff()
+    settings = get_sett()
+    obs = Observable( Progress(settings.uuid,"",0,0,0,0))
     settings.num_people = 0 #num_people * size(ccodes)[1]
     settings.num_households = 0 # num_households * size(ccodes)[1]
     total_frames :: NamedTuple = initialise_frames( T, settings, num_systems )
-    pc_frames = Dict()
-    pc_frames2 = Dict()
-    ## for the individual results, num people 
+    @time num_households, num_people, nhh2 = initialise( settings; reset=true )
     settings.num_people = num_people
     settings.num_households = num_households    
+    return settings, obs, total_frames
+end
 
-    revenues = DataFrame( 
-        name=CTLEVELS.name, 
-        code=Symbol.(CTLEVELS.code), 
-        actual_revenues=fmt.(CTLEVELS.to_be_collected .*= 1_000.0), 
-        modelled_ct=fill("",22), 
-        modelled_ctb=fill("",22), 
-        net_modelled=fill("",22),
-        local_income_tax = fill("",22),
-        fairer_bands_band_d = fill("",22),
-        proportional_property_tax = fill("",22),
-        revalued_housing_band_d = fill("",22),
-        revalued_housing_band_d_w_fairer_bands = fill("",22) )
 
-    for code in ccodes
+function get_base_cost( base_sys :: TaxBenefitSystem ) :: Real
+    settings = get_sett()
+    frames = do_one_run( settings, [base_sys], obs )        
+    settings.poverty_line = make_poverty_line( frames.hh[1], settings )
+    pc_frames[code] = summarise_frames!(frames, settings)
+    base_cost = pc_frames[code].income_summary[1][1,:net_cost]
+    return base_cost
+end
 
-        w = weights[!,code]
+function do_equalising_runs( code :: Symbol )
+
+    # not acually using revenue and total here
+    settings = get_sett()
+    obs = obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+
+    no_ct_sys,
+    local_it_sys,
+    progressive_ct_sys,
+    ppt_sys, 
+    revalued_prices_sys,
+    revalued_prices_w_prog_bands_sys = make_parameter_set( code )
+
+    load_prices( settings, false )
+    @time settings.num_households, settings.num_people, nhh2 = initialise( 
+        settings; reset=true )
+
+    # switch dataset to current weights/ccode
+    w = WEIGHTS[!,code]
+    for i in 1:settings.num_households
+        hh = get_household(i)
+        hh.council = code
+        hh.weight = w[i]
+        FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = w[i]
+    end
+    
+    base_cost = get_base_cost( base_sys )
         
-        
-        for i in 1:settings.num_households
-            hh = get_household(i)
-            hh.council = code
-            hh.weight = w[i]
-            FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = w[i]
-        end
-        frames = do_one_run( settings, [base_sys, no_ct_sys], obs )
-        
-        settings.poverty_line = make_poverty_line( frames.hh[1], settings )
+    local_income_tax = equalise( 
+        eq_it, 
+        local_it_sys, 
+        settings, 
+        base_cost, 
+        obs )
+    
+    fairer_bands_band_d = equalise( 
+            eq_ct_band_d, 
+            progressive_ct_sys, 
+            settings, 
+            base_cost, 
+            obs )
+    
+    proportional_property_tax = equalise( 
+        eq_ppt_rate, 
+        ppt_sys, 
+        settings, 
+        base_cost, 
+        obs )
+    
+    revalued_housing_band_d = equalise( 
+        eq_ct_band_d, 
+        revalued_prices_sys, 
+        settings, 
+        base_cost, 
+        obs )
+     
+    revalued_housing_band_d_w_fairer_bands = equalise( 
+        eq_ct_band_d, 
+        revalued_prices_w_prog_bands_sys, 
+        settings, 
+        base_cost, 
+        obs )
+    (;  local_income_tax, 
+        fairer_bands_band_d, 
+        proportional_property_tax, 
+        revalued_housing_band_d, 
+        revalued_housing_band_d_w_fairer_bands )
+end
 
+function do_equalising_runs()
+    for code in CCODES 
+        local_income_tax, 
+        fairer_bands_band_d, 
+        proportional_property_tax, 
+        revalued_housing_band_d, 
+        revalued_housing_band_d_w_fairer_bands = do_equalising_runs( code )
+        # ...
          # cleanup we don't need code map her
-        pc_frames[code] = summarise_frames!(frames, settings)
+         #=
         ctrevenue1 = pc_frames[code].income_summary[1].local_taxes[1] -
             pc_frames[code].income_summary[1].council_tax_benefit[1]
         ctrevenue2 = pc_frames[code].income_summary[2].local_taxes[1] -
             pc_frames[code].income_summary[2].council_tax_benefit[1]
         ctrevenue = ctrevenue1 - ctrevenue2
+        revenues[(revenues.code.==code),:modelled_ct] .= 
+            pc_frames[code].income_summary[1].local_taxes[1]
+        revenues[(revenues.code.==code),:modelled_ctb] .= 
+            pc_frames[code].income_summary[1].council_tax_benefit[1]
+        revenues[(revenues.code.==code),:net_modelled] .= 
+            pc_frames[code].income_summary[1].local_taxes[1] -
+                pc_frames[code].income_summary[1].council_tax_benefit[1]
+
         revenues[(revenues.code.==code),:modelled_ct] .= 
             fmt.(pc_frames[code].income_summary[1].local_taxes[1])
         revenues[(revenues.code.==code),:modelled_ctb] .= 
@@ -293,135 +405,66 @@ function calculate_local()
         revenues[(revenues.code.==code),:net_modelled] .= 
             fmt.(pc_frames[code].income_summary[1].local_taxes[1] -
                 pc_frames[code].income_summary[1].council_tax_benefit[1])
-        
-        base_cost = pc_frames[code].income_summary[1][1,:net_cost]
-        
-        local_it_sys = deepcopy(no_ct_sys)
-        itchange = equalise( 
-            eq_it, 
-            local_it_sys, 
-            settings, 
-            base_cost, 
-            obs )
-        # local_it_sys = deepcopy(no_ct_sys)
-        local_it_sys.it.non_savings_rates .+= itchange
-        
-        progressive_ct_sys = deepcopy(base_sys)
-        progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-        banddchange = equalise( 
-            eq_ct_band_d, 
-            progressive_ct_sys, 
-            settings, 
-            base_cost, 
-            obs )
-        
-        progressive_ct_sys.loctax.ct.band_d[code] += banddchange
+        =#
+        #=
 
-        ppt_sys = deepcopy(no_ct_sys)
-        ppt_sys.loctax.ct.abolished = true        
-        ppt_sys.loctax.ppt.abolished = false
-        ppt_sys.loctax.ppt.rate = 0.01/WEEKS_PER_YEAR
-        pptrate = equalise( 
-            eq_ppt_rate, 
-            ppt_sys, 
-            settings, 
-            base_cost, 
-            obs )
+        revenues[(revenues.code.==code),:local_income_tax] .= 100.0*itchange
+        revenues[(revenues.code.==code),:fairer_bands_band_d] .= banddchange*WEEKS_PER_YEAR
+        revenues[(revenues.code.==code),:proportional_property_tax] .= ppt_sys.loctax.ppt.rate*100*WEEKS_PER_YEAR
+        revenues[(revenues.code.==code),:revalued_housing_band_d].= rev_banddchange*WEEKS_PER_YEAR
+        revenues[(revenues.code.==code),:revalued_housing_band_d_w_fairer_bands].= prog_rev_banddchange*WEEKS_PER_YEAR
+        =#
 
-        ppt_sys.loctax.ppt.rate += pptrate
-
-        revalued_prices_sys = deepcopy( base_sys )
-        revalued_prices_sys.loctax.ct.revalue = true
-        rev_banddchange = equalise( 
-            eq_ct_band_d, 
-            revalued_prices_sys, 
-            settings, 
-            base_cost, 
-            obs )
-        revalued_prices_sys.loctax.ct.band_d[code] += rev_banddchange
-        
-        revalued_prices_w_prog_bands_sys = deepcopy( base_sys )
-        revalued_prices_w_prog_bands_sys.loctax.ct.revalue = true
-        revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-        prog_rev_banddchange = equalise( 
-            eq_ct_band_d, 
-            revalued_prices_w_prog_bands_sys, 
-            settings, 
-            base_cost, 
-            obs )
-        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += prog_rev_banddchange
-        # just do everything again
-        println( "on council $code - starting final do_one_run" )
-        frames = do_one_run( 
-            settings, 
-            [
-                base_sys,
-                no_ct_sys,
-                local_it_sys,
-                progressive_ct_sys,
-                ppt_sys, 
-                revalued_prices_sys,
-                revalued_prices_w_prog_bands_sys], 
-            obs )
-        pc_frames[code] = summarise_frames!(frames, settings)
-
+        #=
         revenues[(revenues.code.==code),:local_income_tax] .= Formatting.format(100.0*itchange, precision=2 )
         revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
         revenues[(revenues.code.==code),:proportional_property_tax] .= Formatting.format(ppt_sys.loctax.ppt.rate*100*WEEKS_PER_YEAR, precision=3)
         revenues[(revenues.code.==code),:revalued_housing_band_d].= fmt(rev_banddchange*WEEKS_PER_YEAR)
         revenues[(revenues.code.==code),:revalued_housing_band_d_w_fairer_bands].= fmt(prog_rev_banddchange*WEEKS_PER_YEAR)
+        =#
+    end
+end
 
-        rc = revenues[revenues.code.==code,:][1,:]
 
+"""
+Skeleton for one non-equalising run.
+"""
+function calculate_local()
+    settings, obs, total_frames = get_default_stuff()
+    load_prices( settings, false )
+    pc_frames = Dict()    
+    pc_results = Dict()    
+    for code in ccodes        
+        for i in 1:settings.num_households
+            hh = get_household(i)
+            hh.council = code
+            hh.weight = w[i]
+            FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = w[i]
+        end
+        all_params = collect( make_parameter_set( code ))
+        println( "on council $code - starting final do_one_run" )
+        pc_frames[code] = do_one_run( 
+            settings, 
+            all_params,
+            obs )
+        pc_results[code] = summarise_frames!(pc_frames[code], settings)    
+        ## accumulate totals - FIXME: isn't this all we really need?
         for sysno in 1:num_systems
             total_frames.bu[sysno] = vcat( total_frames.bu[sysno], frames.bu[sysno] )
             total_frames.hh[sysno] = vcat( total_frames.hh[sysno], frames.hh[sysno] )
             total_frames.income[sysno] = vcat( total_frames.income[sysno], frames.income[sysno] )
             total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], frames.indiv[sysno] )
         end
-
     end # each council
+    # summarise Wales totals
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
     overall_results = summarise_frames!( total_frames, settings )
-    (; overall_results, pc_frames, total_frames, revenues, base_sys, no_ct_sys, local_it_sys, progressive_ct_sys )
+    (; overall_results, pc_results, pc_frames, total_frames )
 end
 
-
-function xxanalyse_one( title, subtitle, oneresult :: NamedTuple, compsys :: Int )
-    CairoMakie.activate!()
-    gains = (oneresult.deciles[compsys] -
-        oneresult.deciles[1])[:,3]
-    ## scene, layout = layoutscene(resolution = (1200, 900))
-    chart=Figure() # ; resolution=(1200,1000))
-    axd = Axis( # = layout[1,1] 
-        chart[1,1], 
-        title="$(title): Gains by Decile",
-        subtitle=subtitle,
-        xlabel="Decile", 
-        ylabel="Equivalised Income £s pw" )
-    ylims!( axd, [-40,40])
-    barplot!(axd, 1:10, gains)
-    table = pretty_table( 
-        String, 
-        tf=tf_markdown, 
-        formatters = ft_printf("%.2f", [1, 9]),
-        oneresult.deciles[1][:,3] )
-    return (chart,table)
-end
-
-
-function xxanalyse_one_set( dir, subtitle, res, sysno )
-    (pic,table) = analyse_one( "All Wales", subtitle, res.overall_results, sysno )
-    save( "$(dir)/wales_overall.svg", pic )
-    for r in eachrow( CTRATES )
-        if( r.code != "XX")
-            (pic,table) = analyse_one( r.name, subtitle, res.pc_frames[Symbol(r.code)], sysno )
-            println( table )
-            save( "$(dir)/$(r.code).svg", pic )
-        end
-      end
-end
-
+"""
+For the 'all Wales' deciles graph.
+"""
 function analyse_one( title, subtitle, oneresult :: NamedTuple, sysno :: Int )
     gains = (oneresult.deciles[sysno] -
         oneresult.deciles[1])[:,4]
@@ -437,7 +480,9 @@ function analyse_one( title, subtitle, oneresult :: NamedTuple, sysno :: Int )
     return chart
 end
 
-
+"""
+Create graphs and tables for one of our runs, and write them to files.
+"""
 function analyse_one_set( dir, subtitle, res, sysno )
     overall = analyse_one( "All Wales", subtitle, 
         res.overall_results, sysno )
@@ -466,7 +511,9 @@ function analyse_one_set( dir, subtitle, res, sysno )
     save( "$(dir)/by_la.svg", f )
 end
 
-
+"""
+Complete set of charts and tables written to file for each of our systems.
+"""
 function analyse_all( res )
     analyse_one_set("../WalesTaxation/output/ctincidence", "CT Incidence", res, 2 )
     analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", res, 3 )
@@ -476,35 +523,9 @@ function analyse_all( res )
     analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", "Council Tax With Revalued House Prices & Fairer Bands", res, 7 )
 end
 
-#=
-    save( "main.svg", charts )
-
-    # res.pc_frames[:W06000024].income_summary[1][:, [:label,:income_tax,:local_taxes,:council_tax_benefit]][1:2,:]
-    i = 0
-    for r in eachrow( CTRATES )
-        if i > 0
-            lcharts=Figure() # ; resolution=(1200,1000))
-            row = (i ÷ 4) + 1
-            col = (i % 4) + 1
-            ores = res.pc_frames[Symbol(r.code)]
-            gains = (ores.deciles[compsys]-ores.deciles[1])[:,3] 
-            title = "$(r.name)"           
-            axd = Axis( # layout[row,col] = 
-                lcharts[1,1], 
-                title=title,
-                xlabel="Decile", 
-                ylabel="£s pw"),            
-            barplot!(axd, 
-                 1:10, 
-                 gains)   
-            save( "$(r.code).svg", lcharts )         
-        end
-        i += 1
-    end
-    (charts, allcharts)
-end
-=#
-
+"""
+Honestly don't remember what this was for ..
+"""
 function getbands()
     settings = get_sett()
     @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
@@ -522,5 +543,3 @@ function getbands()
     end
     bands
 end
-
-

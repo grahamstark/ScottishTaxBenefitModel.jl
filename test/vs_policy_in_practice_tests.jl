@@ -226,8 +226,7 @@ end
     println(  to_md_table(hres.bus[1].uc ))
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     ## FIXME CHECK CT here
-    ## @test compare_w_2_m(hres.bhc_net_income,  2460.10 )
-
+    @test compare_w_2_m(hres.bhc_net_income,  2460.10 )
 end
 
 
