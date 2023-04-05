@@ -436,7 +436,7 @@ function calculate_local()
     load_prices( settings, false )
     pc_frames = Dict()    
     pc_results = Dict()    
-    for code in CCODES[1:1]    
+    for code in CCODES    
         # Set weights for this council.
         w = WEIGHTS[!,code] 
         for i in 1:settings.num_households

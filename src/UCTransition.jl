@@ -71,20 +71,20 @@ function route_to_uc_or_legacy!(
             bres.route = route_to_uc_or_legacy( settings, bus[bno], im )
             if bres.route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
+                tozero!( bres, COUNCIL_TAX_BENEFIT )
                 bres.uc = UCResults{RT}()
-                if( bno == 1 ) && ( bres.legacy_mtbens.ctr_recipient > 0 )# ctr assignment hack
+                if( bno == 1 ) && ( bres.legacy_mtbens.ctr_recipient > 0 ) # ctr assignment hack - it's possible
+                    # that there's actually the value of CTB in that slot from the UC calculation
+                    # so overwrite with the saved Legacy value
                     bres.pers[bres.legacy_mtbens.ctr_recipient].income[COUNCIL_TAX_BENEFIT] = bres.legacy_mtbens.ctr
-                else
-                    tozero!( bres, COUNCIL_TAX_BENEFIT )
                 end
             elseif bres.route == uc_bens
                 # nuke every old thing for everyone who's in scope for UC
                 tozero!( bres, LEGACY_MTBS...)
+                tozero!( bres, COUNCIL_TAX_BENEFIT )
                 bres.legacy_mtbens = LMTResults{RT}()
                 if( bno == 1 ) && ( bres.uc.recipient > 0 )# ctr assignment hack
                     bres.pers[bres.uc.recipient].income[COUNCIL_TAX_BENEFIT] = bres.uc.ctr
-                else
-                    tozero!( bres, COUNCIL_TAX_BENEFIT )
                 end
                 ## FIXME TRANSITIONAL PAYMENTS
             end
