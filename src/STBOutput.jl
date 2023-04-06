@@ -541,6 +541,65 @@ const EXTRA_INC_COLS = 10
         end
     end
 
+    function one_gain_losesz( size :: Int ) :: DataFrame
+        d = DataFrame()
+        d.Name = [] 
+        n = 0
+        for i in 1:n
+            push!(d.Name,i)
+        end
+        for c in GL_COLNAMES
+            d[:,Symbol(c)] = zeros(n)
+        end
+        d.Total = zeros(n)
+        d
+    end
+
+    function one_gain_lose_df( T :: Type ) :: DataFrame
+        d = DataFrame()
+        d.Name = [] 
+        n = 0
+        for i in instances(T)
+            push!( d.Name, i )
+            n += 1
+        end
+        for c in GL_COLNAMES
+            d[:,Symbol(c)] = zeros(n)
+        end
+        d.Total = zeros(n)
+        d
+    end
+
+
+    function make_gain_lose_static( 
+        prehh :: DataFrame, 
+        posthh :: DataFrame, 
+        incomes_col :: Symbol ) :: NamedTuple
+        ten_gl = one_gain_lose_df( Tenure_Type )
+        children_gl = one_gain_losez( 10 )
+
+        @assert size( prehh ) == size( posthh )
+        nrs = size( prehh )[1]
+        for i in 1:nrs
+            ten = prehh[i,:tenure]
+            nkids = prehh[i,:num_children]
+            gain = posthh[i, incomes_col] - prehh[i,incomes_col]
+            changecol = Symbol( gl( gain ))
+            ten_gl[ten .== ten_gl.name,changecol] .= prehh.weighted_people
+            ten_gl[ten .== ten_gl.name].Total .= prehh.weighted_people
+            children_gl[nkids .== children_gl.name,changecol] .= prehh.weighted_people
+            children_gl[nkids .== children_gl.name].Total .= prehh.weighted_people
+
+        end
+        #=
+        ten_gl = one_gain_lose_df( :tenure )
+        dec_gl = one_gain_lose_df( :decile )
+        children_gl = one_gain_lose_df( 7 )
+        hhtype_gl = one_gain_lose_df( dhh, :hh_type )
+        =#   
+        (; ten_gl, children_gl )
+    end
+
     function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
 
         dhh.gainlose = gl.(dhh.change)
@@ -640,7 +699,8 @@ const EXTRA_INC_COLS = 10
 
     function summarise_frames!( 
         frames :: NamedTuple,
-        settings :: Settings ) :: NamedTuple
+        settings :: Settings;
+        do_gain_lose :: Bool = true ) :: NamedTuple
         ns = size( frames.indiv )[1] # num systems
         income_summary = []
         gain_lose = []
@@ -696,12 +756,14 @@ const EXTRA_INC_COLS = 10
             settings, 
             poverty_line,
             deciles )
-        for sysno in 1:ns 
-            push!( gain_lose,
-                make_gain_lose( 
-                    frames.hh[1], # FIXME add setting for comparison system
-                    frames.hh[sysno],
-                    income_measure )) 
+        if do_gain_lose
+            for sysno in 1:ns 
+                push!( gain_lose,
+                    make_gain_lose( 
+                        frames.hh[1], # FIXME add setting for comparison system
+                        frames.hh[sysno],
+                        income_measure )) 
+            end
         end
         return ( 
             quantiles=quantiles, 

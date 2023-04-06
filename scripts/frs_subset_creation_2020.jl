@@ -12,7 +12,7 @@ using TableTraits
 using CSV
 using .Utils
 using .Definitions
-using CSVFiles
+# using CSVFiles
 
 function loadfrs(which::AbstractString, year::Integer)::DataFrame
     filename = "$(FRS_DIR)/$(year)/tab/$(which).tab"
@@ -266,5 +266,5 @@ for year in 2017:2017
     append!(output_adults, output_adults_yr)
 end
 
-CSVFiles.save( File( format"CSV", "/mnt/data/teaching/frs/2019J/data/dd309_frs_adults_2017.tab" ),
+CSV.write( "/mnt/data/teaching/frs/2019J/data/dd309_frs_adults_2017.tab" ,
     output_adults, delim = "\t",  nastring="")

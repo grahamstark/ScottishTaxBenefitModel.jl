@@ -302,8 +302,8 @@ function get_base_cost( base_sys :: TaxBenefitSystem ) :: Real
     settings = get_sett()
     frames = do_one_run( settings, [base_sys], obs )        
     settings.poverty_line = make_poverty_line( frames.hh[1], settings )
-    pc_frames[code] = summarise_frames!(frames, settings)
-    base_cost = pc_frames[code].income_summary[1][1,:net_cost]
+    pc_frames = summarise_frames!(frames, settings)
+    base_cost = pc_frames.income_summary[1][1,:net_cost]
     return base_cost
 end
 
@@ -386,26 +386,26 @@ function do_equalising_runs()
         # ...
          # cleanup we don't need code map her
          #=
-        ctrevenue1 = pc_frames[code].income_summary[1].local_taxes[1] -
-            pc_frames[code].income_summary[1].council_tax_benefit[1]
-        ctrevenue2 = pc_frames[code].income_summary[2].local_taxes[1] -
-            pc_frames[code].income_summary[2].council_tax_benefit[1]
+        ctrevenue1 = pc_frames.income_summary[1].local_taxes[1] -
+            pc_frames.income_summary[1].council_tax_benefit[1]
+        ctrevenue2 = pc_frames.income_summary[2].local_taxes[1] -
+            pc_frames.income_summary[2].council_tax_benefit[1]
         ctrevenue = ctrevenue1 - ctrevenue2
         revenues[(revenues.code.==code),:modelled_ct] .= 
-            pc_frames[code].income_summary[1].local_taxes[1]
+            pc_frames.income_summary[1].local_taxes[1]
         revenues[(revenues.code.==code),:modelled_ctb] .= 
-            pc_frames[code].income_summary[1].council_tax_benefit[1]
+            pc_frames.income_summary[1].council_tax_benefit[1]
         revenues[(revenues.code.==code),:net_modelled] .= 
-            pc_frames[code].income_summary[1].local_taxes[1] -
-                pc_frames[code].income_summary[1].council_tax_benefit[1]
+            pc_frames.income_summary[1].local_taxes[1] -
+                pc_frames.income_summary[1].council_tax_benefit[1]
 
         revenues[(revenues.code.==code),:modelled_ct] .= 
-            fmt.(pc_frames[code].income_summary[1].local_taxes[1])
+            fmt.(pc_frames.income_summary[1].local_taxes[1])
         revenues[(revenues.code.==code),:modelled_ctb] .= 
-            fmt.(pc_frames[code].income_summary[1].council_tax_benefit[1])
+            fmt.(pc_frames.income_summary[1].council_tax_benefit[1])
         revenues[(revenues.code.==code),:net_modelled] .= 
-            fmt.(pc_frames[code].income_summary[1].local_taxes[1] -
-                pc_frames[code].income_summary[1].council_tax_benefit[1])
+            fmt.(pc_frames.income_summary[1].local_taxes[1] -
+                pc_frames.income_summary[1].council_tax_benefit[1])
         =#
         #=
 
@@ -426,7 +426,6 @@ function do_equalising_runs()
     end
 end
 
-
 """
 Skeleton for one non-equalising run.
 """
@@ -434,9 +433,8 @@ function calculate_local()
     num_systems = 7
     settings, obs, total_frames = get_default_stuff(num_systems)
     load_prices( settings, false )
-    pc_frames = Dict()    
     pc_results = Dict()    
-    for code in CCODES    
+    for code in CCODES
         # Set weights for this council.
         w = WEIGHTS[!,code] 
         for i in 1:settings.num_households
@@ -447,27 +445,31 @@ function calculate_local()
         end
         all_params = collect( make_parameter_set( code ))
         println( "on council $code - starting final do_one_run" )
-        pc_frames[code] = do_one_run( 
+        pc_frames = do_one_run( 
             settings, 
             all_params,
             obs )
         for i in 1:num_systems
-            println( "RES $i $(pc_frames[code].hh[i][1,:bhc_net_income])")
+            println( "RES $i $(pc_frames.hh[i][1,:bhc_net_income])")
         end
-        settings.poverty_line = make_poverty_line( pc_frames[code].hh[1], settings )
-        pc_results[code] = summarise_frames!( pc_frames[code], settings)    
+        settings.poverty_line = make_poverty_line( pc_frames.hh[1], settings )
+        pc_results[code] = summarise_frames!( pc_frames, settings)    
         ## accumulate totals - FIXME: isn't this all we really need?
+        println( "appending $code data to global")
         for sysno in 1:num_systems
-            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
-            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], pc_frames[code].hh[sysno] )
-            total_frames.income[sysno] = vcat( total_frames.income[sysno], pc_frames[code].income[sysno] )
-            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], pc_frames[code].indiv[sysno] )
+            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames.bu[sysno] )
+            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], pc_frames.hh[sysno] )
+            total_frames.income[sysno] = vcat( total_frames.income[sysno], pc_frames.income[sysno] )
+            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], pc_frames.indiv[sysno] )
         end
+        println( "end of council $code")
     end # each council
     # summarise Wales totals
+
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
-    overall_results = summarise_frames!( total_frames, settings )
-    (; overall_results, pc_results, pc_frames, total_frames )
+    println( "making overall results summarise_frames")
+    overall_results = summarise_frames!( total_frames ) # settings; do_gain_lose = false  )
+    (; overall_results, pc_results )
 end
 
 """
