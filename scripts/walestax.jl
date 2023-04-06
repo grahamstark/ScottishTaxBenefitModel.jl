@@ -451,10 +451,11 @@ function calculate_local()
             all_params,
             obs )
         for i in 1:num_systems
-            println( "RES $i $(pc_frames.hh[i][1,:bhc_net_income])")
+            println( "RES $i $(pc_frames[code].hh[i][1,:bhc_net_income])")
         end
-        settings.poverty_line = make_poverty_line( pc_frames.hh[1], settings )
-        pc_results[code] = summarise_frames!( pc_frames, settings)    
+        settings.poverty_line = make_poverty_line( pc_frames[code].hh[1], 
+            settings )
+        pc_results[code] = summarise_frames!( pc_frames[code], settings )    
         println( "appending $code data to global")
     end # each council
     # summarise Wales totals
@@ -547,6 +548,11 @@ end
 ## accumulate totals - FIXME: isn't this all we really need?
 """
 function do_all( pc_frames :: Dict )
+    settings = get_sett()
+    num_systems = 7
+    settings.num_people = 0 #num_people * size(ccodes)[1]
+    settings.num_households = 0 # num_households * size(ccodes)[1]
+    total_frames = initialise_frames( T, settings, num_systems )
     for code in CCODES
         for sysno in 1:num_systems
             total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
@@ -558,5 +564,6 @@ function do_all( pc_frames :: Dict )
     println( "end of council $code")
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
     println( "making overall results summarise_frames")
-    overall_results = summarise_frames!( total_frames ) # settings; do_gain_lose = false  )
+    overall_results = summarise_frames!( total_frames, settings ) 
+    return overall_results #  do_gain_lose = false  )
 end
