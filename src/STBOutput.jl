@@ -298,15 +298,16 @@ const EXTRA_INC_COLS = 10
             bu = frames.bu[sysno]
             for hno in 1:nhh
                 (idec, in_poverty) = get_decile_poverty( settings, hh[hno,:], poverty, decs )
-                onehh = hh[hno,:]
-                onehh[:decile] = idec;
-                bu[bu.hid .== onehh.hid,:decile] .= idec
-                indiv[indiv.hid .== onehh.hid,:decile] .= idec
-                income[income.hid .== onehh.hid,:decile] .= idec
-                onehh[:in_poverty] = in_poverty;
-                bu[bu.hid .== onehh.hid,:in_poverty] .= in_poverty
-                indiv[indiv.hid .== onehh.hid,:in_poverty] .= in_poverty
-                income[income.hid .== onehh.hid,:in_poverty] .= in_poverty
+                onehh = hh[hno,:decile] .= idec;
+                onehh = hh[hno,:in_poverty] .= in_poverty;
+                # onehh[:] 
+                # bu[bu.hid .== onehh.hid,:decile] .= idec
+                # indiv[indiv.hid .== onehh.hid,:decile] .= idec
+                # income[income.hid .== onehh.hid,:decile] .= idec
+                # onehh[:in_poverty] = in_poverty;
+                # bu[bu.hid .== onehh.hid,:in_poverty] .= in_poverty
+                # indiv[indiv.hid .== onehh.hid,:in_poverty] .= in_poverty
+                # income[income.hid .== onehh.hid,:in_poverty] .= in_poverty
             end
         end
     end
@@ -715,26 +716,31 @@ const EXTRA_INC_COLS = 10
 
         for sysno in 1:ns
             push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
+            println( "metrs to hist done")
             push!(income_summary, 
                 summarise_inc_frame(frames.income[sysno]))
+            println( "income summary")
             push!( deciles, 
                 PovertyAndInequalityMeasures.binify( 
                     frames.hh[sysno], 
                     10, 
                     :weighted_people, 
                     income_measure ))
+            println( "deciles")
             push!( quantiles, 
                 PovertyAndInequalityMeasures.binify( 
                     frames.hh[sysno], 
                     50, 
                     :weighted_people, 
                     income_measure  ))
+            println( "quantiles")
                 
             ineq = make_inequality(
                 frames.hh[sysno], 
                 :weighted_people, 
                 income_measure  )
             push!( inequality, ineq )
+            println( "inequality")
             push!(  
                 poverty,
                 PovertyAndInequalityMeasures.make_poverty( 
@@ -743,12 +749,14 @@ const EXTRA_INC_COLS = 10
                     settings.growth, 
                     :weighted_people, 
                     income_measure ))
+            println( "poverty")
             push!( poverty_line, settings.poverty_line )
             cp = calc_child_poverty( 
                 settings.poverty_line, 
                 frames.hh[sysno],
                 measure=income_measure
             )
+            println( "child poverty")
             push!( child_poverty, cp )
         end   
         fill_in_deciles_and_poverty!(
@@ -756,6 +764,7 @@ const EXTRA_INC_COLS = 10
             settings, 
             poverty_line,
             deciles )
+        println( "fill in deciles and poverty")
         if do_gain_lose
             for sysno in 1:ns 
                 push!( gain_lose,
@@ -764,6 +773,7 @@ const EXTRA_INC_COLS = 10
                         frames.hh[sysno],
                         income_measure )) 
             end
+            println( "gain lose")
         end
         return ( 
             quantiles=quantiles, 
@@ -780,19 +790,20 @@ const EXTRA_INC_COLS = 10
     ## FIXME eventually, move this to DrWatson
     function dump_frames(
         settings :: Settings,
-        frames :: NamedTuple )
+        frames :: NamedTuple;
+        append :: Bool = false )
         ns = size( frames.indiv )[1] # num systems
         fbase = basiccensor(settings.run_name)
         mkpath(settings.output_dir)
         for fno in 1:ns
             fname = "$(settings.output_dir)/$(fbase)_$(fno)_hh.csv"
-            CSV.write( fname, frames.hh[fno] )
+            CSV.write( fname, frames.hh[fno] ; append=append)
             fname = "$(settings.output_dir)/$(fbase)_$(fno)_bu.csv"
-            CSV.write( fname, frames.bu[fno] )
+            CSV.write( fname, frames.bu[fno]; append=append )
             fname = "$(settings.output_dir)/$(fbase)_$(fno)_pers.csv"
-            CSV.write( fname, frames.indiv[fno] )
+            CSV.write( fname, frames.indiv[fno];append=append )
             fname = "$(settings.output_dir)/$(fbase)_$(fno)_income.csv"
-            CSV.write( fname, frames.income[fno] )
+            CSV.write( fname, frames.income[fno]; append=append )
             income_summary = summarise_inc_frame(frames.income[fno])
             fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.csv"
             CSV.write( fname, income_summary )

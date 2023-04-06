@@ -29,7 +29,8 @@ using .STBOutput:
     initialise_frames, 
     add_to_frames!, 
     summarise_frames!, 
-    make_poverty_line
+    make_poverty_line,
+    dump_frames
 using .Monitor: Progress
 using .Runner: do_one_run
 ## using AbstractPlotting.MakieLayout
@@ -433,8 +434,8 @@ function calculate_local()
     num_systems = 7
     settings, obs, total_frames = get_default_stuff(num_systems)
     load_prices( settings, false )
-    pc_results = Dict()    
-    pc_frames = Dict()    
+    pc_results = Dict{Symbol,NamedTuple}()    
+    pc_frames = Dict{Symbol,NamedTuple}()    
     for code in CCODES
         # Set weights for this council.
         w = WEIGHTS[!,code] 
@@ -459,7 +460,20 @@ function calculate_local()
         println( "appending $code data to global")
     end # each council
     # summarise Wales totals
+    JLD2.save("all_las_frames.jld2", pc_frames );
+    JLD2.save("all_las_results.jld2", pc_results );
+
     (; pc_frames, pc_results )
+
+end
+
+function dump_la_frames( pc_frames::Dict, settings :: Settings )
+    i = 0
+    for code in CCODES
+        i += 1
+        append = i > 1 
+        dump_frames( settings, pc_frames[code]; append=append)
+    end
 end
 
 """
@@ -547,14 +561,17 @@ end
 """
 ## accumulate totals - FIXME: isn't this all we really need?
 """
-function do_all( pc_frames :: Dict )
+function do_all( pc_frames :: Dict; do_gain_lose=false )
     settings = get_sett()
     num_systems = 7
     settings.num_people = 0 #num_people * size(ccodes)[1]
     settings.num_households = 0 # num_households * size(ccodes)[1]
     total_frames = initialise_frames( Float64, settings, num_systems )
-    for code in CCODES
+    for scode in CCODES
+        code = String(scode)
+        println( "on $code")
         for sysno in 1:num_systems
+            println( "sysno $sysno")
             total_frames.bu[sysno] = 
                 vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
             total_frames.hh[sysno] = 
@@ -565,11 +582,11 @@ function do_all( pc_frames :: Dict )
                 vcat( total_frames.indiv[sysno], pc_frames[code].indiv[sysno] )
         end
         # force gc
-        pc_frames[code] = nothing
+        # pc_frames[code] = nothing
     end
-    println( "end of council $code")
+    
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
     println( "making overall results summarise_frames")
-    overall_results = summarise_frames!( total_frames, settings ) 
+    overall_results = summarise_frames!( total_frames, settings; do_gain_lose=do_gain_lose ) 
     return overall_results #  do_gain_lose = false  )
 end
