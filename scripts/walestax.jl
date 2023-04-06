@@ -552,7 +552,7 @@ function do_all( pc_frames :: Dict )
     num_systems = 7
     settings.num_people = 0 #num_people * size(ccodes)[1]
     settings.num_households = 0 # num_households * size(ccodes)[1]
-    total_frames = initialise_frames( T, settings, num_systems )
+    total_frames = initialise_frames( Float64, settings, num_systems )
     for code in CCODES
         for sysno in 1:num_systems
             total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
