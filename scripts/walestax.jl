@@ -3,6 +3,7 @@ using Formatting
 using StatsBase
 using PrettyTables
 using CairoMakie
+using JLD2
 
 using ScottishTaxBenefitModel
 using .LocalLevelCalculations

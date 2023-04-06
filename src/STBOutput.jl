@@ -298,8 +298,8 @@ const EXTRA_INC_COLS = 10
             bu = frames.bu[sysno]
             for hno in 1:nhh
                 (idec, in_poverty) = get_decile_poverty( settings, hh[hno,:], poverty, decs )
-                onehh = hh[hno,:decile] .= idec;
-                onehh = hh[hno,:in_poverty] .= in_poverty;
+                onehh = hh[hno,:decile] = idec;
+                onehh = hh[hno,:in_poverty] = in_poverty;
                 # onehh[:] 
                 # bu[bu.hid .== onehh.hid,:decile] .= idec
                 # indiv[indiv.hid .== onehh.hid,:decile] .= idec
