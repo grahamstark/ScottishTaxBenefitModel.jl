@@ -241,7 +241,7 @@ const EXTRA_INC_COLS = 10
         hr.data_year = hh.data_year
         hr.weighted_people = hh.weight*nps
         hr.num_people = nps
-        hr.hh_type = -1
+        hr.hh_type = num_people( hh ) ## FIXME
         hr.tenure = hh.tenure
         hr.region = hh.region
         hr.decile = -1
@@ -557,6 +557,13 @@ const EXTRA_INC_COLS = 10
         return coalesce.( vhh, 0.0)
     end
 
+    @enum PctDirection by_row by_col by_totals
+    export PctDirection, by_row, by_col, by_totals
+
+    function to_percentages( table :: DataFrame, direction :: PctDirection ) :: DataFrame
+
+    end
+
     function make_gain_lose( 
         prehh :: DataFrame, 
         posthh :: DataFrame, 
@@ -569,13 +576,25 @@ const EXTRA_INC_COLS = 10
             tenure = prehh.tenure, 
             region = prehh.region,
             decile = prehh.decile,
+            hh_type = prehh.hh_type,
+            num_children = prehh.num_children,            
             in_poverty = prehh.in_poverty,
             change = posthh[:, incomes_col] - prehh[:,incomes_col]
         )
 
         ten_gl = one_gain_lose( dhh, :tenure )
-
-        return (;ten_gl, gainers=0.0, losers=0.0,nc=0.0, popn = 0.0)
+        dec_gl = one_gain_lose( dhh, :decile )
+        children_gl = one_gain_lose( dhh, :num_children )
+        hhtype_gl = one_gain_lose( dhh, :hh_type )
+        # FIXME this is vvv problematic
+        poverty_gl = one_gain_lose( dhh, :in_poverty )
+        return (;
+            ten_gl, 
+            dec_gl,
+            children_gl,
+            hhtype_gl,
+            
+            gainers=0.0, losers=0.0,nc=0.0, popn = 0.0)
     end
 
 
@@ -677,6 +696,13 @@ const EXTRA_INC_COLS = 10
             settings, 
             poverty_line,
             deciles )
+        for sysno in 1:ns 
+            push!( gain_lose,
+                make_gain_lose( 
+                    frames.hh[1], # FIXME add setting for comparison system
+                    frames.hh[sysno],
+                    income_measure )) 
+        end
         return ( 
             quantiles=quantiles, 
             deciles = deciles, 
@@ -685,6 +711,7 @@ const EXTRA_INC_COLS = 10
             inequality=inequality, 
             metrs = metrs, 
             child_poverty=child_poverty,
+            gain_lose=gain_lose,
             poverty_line = settings.poverty_line )
     end
 
