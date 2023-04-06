@@ -555,11 +555,17 @@ function do_all( pc_frames :: Dict )
     total_frames = initialise_frames( Float64, settings, num_systems )
     for code in CCODES
         for sysno in 1:num_systems
-            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
-            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], pc_frames[code].hh[sysno] )
-            total_frames.income[sysno] = vcat( total_frames.income[sysno], pc_frames[code].income[sysno] )
-            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], pc_frames[code].indiv[sysno] )
+            total_frames.bu[sysno] = 
+                vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
+            total_frames.hh[sysno] = 
+                vcat( total_frames.hh[sysno], pc_frames[code].hh[sysno] )
+            total_frames.income[sysno] = 
+                vcat( total_frames.income[sysno], pc_frames[code].income[sysno] )
+            total_frames.indiv[sysno] = 
+                vcat( total_frames.indiv[sysno], pc_frames[code].indiv[sysno] )
         end
+        # force gc
+        pc_frames[code] = nothing
     end
     println( "end of council $code")
     settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
