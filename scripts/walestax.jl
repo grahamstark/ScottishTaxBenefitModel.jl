@@ -434,6 +434,7 @@ function calculate_local()
     settings, obs, total_frames = get_default_stuff(num_systems)
     load_prices( settings, false )
     pc_results = Dict()    
+    pc_frames = Dict()    
     for code in CCODES
         # Set weights for this council.
         w = WEIGHTS[!,code] 
@@ -445,7 +446,7 @@ function calculate_local()
         end
         all_params = collect( make_parameter_set( code ))
         println( "on council $code - starting final do_one_run" )
-        pc_frames = do_one_run( 
+        pc_frames[code] = do_one_run( 
             settings, 
             all_params,
             obs )
@@ -454,22 +455,10 @@ function calculate_local()
         end
         settings.poverty_line = make_poverty_line( pc_frames.hh[1], settings )
         pc_results[code] = summarise_frames!( pc_frames, settings)    
-        ## accumulate totals - FIXME: isn't this all we really need?
         println( "appending $code data to global")
-        for sysno in 1:num_systems
-            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames.bu[sysno] )
-            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], pc_frames.hh[sysno] )
-            total_frames.income[sysno] = vcat( total_frames.income[sysno], pc_frames.income[sysno] )
-            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], pc_frames.indiv[sysno] )
-        end
-        println( "end of council $code")
     end # each council
     # summarise Wales totals
-
-    settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
-    println( "making overall results summarise_frames")
-    overall_results = summarise_frames!( total_frames ) # settings; do_gain_lose = false  )
-    (; overall_results, pc_results )
+    (; pc_frames, pc_results )
 end
 
 """
@@ -552,4 +541,22 @@ function getbands()
         bands[i,:].post = ct_band
     end
     bands
+end
+
+"""
+## accumulate totals - FIXME: isn't this all we really need?
+"""
+function do_all( pc_frames :: Dict )
+    for code in CCODES
+        for sysno in 1:num_systems
+            total_frames.bu[sysno] = vcat( total_frames.bu[sysno], pc_frames[code].bu[sysno] )
+            total_frames.hh[sysno] = vcat( total_frames.hh[sysno], pc_frames[code].hh[sysno] )
+            total_frames.income[sysno] = vcat( total_frames.income[sysno], pc_frames[code].income[sysno] )
+            total_frames.indiv[sysno] = vcat( total_frames.indiv[sysno], pc_frames[code].indiv[sysno] )
+        end
+    end
+    println( "end of council $code")
+    settings.poverty_line = make_poverty_line( total_frames.hh[1], settings )
+    println( "making overall results summarise_frames")
+    overall_results = summarise_frames!( total_frames ) # settings; do_gain_lose = false  )
 end
