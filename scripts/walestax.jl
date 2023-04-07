@@ -34,6 +34,8 @@ using .STBOutput:
     dump_frames
 using .Monitor: Progress
 using .Runner: do_one_run
+using .Utils: pretty
+
 ## using AbstractPlotting.MakieLayout
 
 
@@ -215,6 +217,15 @@ function get_sett()
     return settings
 end
 
+SYSTEM_NAMES = [
+    "Current System", 
+    "CT Incidence",
+    "Local Income Tax",
+    "Progressive Bands", 
+    "Proportional Property Tax",
+    "Council Tax With Revalued House Prices and compensating band D cuts", 
+    "Council Tax With Revalued House Prices & Fairer Bands" ]
+
 function make_parameter_set(;
     local_income_tax :: Real, 
     fairer_bands_band_d :: Real,  
@@ -270,6 +281,44 @@ function make_parameter_set( code :: Symbol )
         revalued_housing_band_d_w_fairer_bands = r.revalued_housing_band_d_w_fairer_bands,
         code = code )
 end
+
+
+function incremented_params( code :: Symbol, pct_change = false )
+    base_sys,
+    no_ct_sys,
+    local_it_sys,
+    progressive_ct_sys,
+    ppt_sys, 
+    revalued_prices_sys,
+    revalued_prices_w_prog_bands_sys = make_parameter_set( code )
+
+    if( ! pct_change )
+        base_sys.loctax.ct.band_d[code] += 100.0
+        # no_ct_sys
+        local_it_sys.it.non_savings_rates .+= 0.01
+        progressive_ct_sys.loctax.ct.band_d[code] += 100.0
+        ppt_sys.loctax.ppt.rate  += 0.001
+        revalued_prices_sys.loctax.ct.band_d[code] += 100.0
+        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += 100.0
+    else
+        base_sys.loctax.ct.band_d[code] *= 1.01
+        # no_ct_sys
+        local_it_sys.it.non_savings_rates *= 1.01
+        progressive_ct_sys.loctax.ct.band_d[code] *= 1.01
+        ppt_sys.loctax.ppt.rate  += 1.01
+        revalued_prices_sys.loctax.ct.band_d[code] *= 1.01
+        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] *= 1.01
+    end
+    return base_sys,
+        no_ct_sys,
+        local_it_sys,
+        progressive_ct_sys,
+        ppt_sys, 
+        revalued_prices_sys,
+        revalued_prices_w_prog_bands_sys
+
+end
+
 
 function revenues_table()
     return DataFrame( 
@@ -431,7 +480,7 @@ end
 """
 Skeleton for one non-equalising run.
 """
-function calculate_local()
+function calculate_local( incremented = false )
     num_systems = 7
     settings, obs, total_frames = get_default_stuff(num_systems)
     load_prices( settings, false )
@@ -446,7 +495,12 @@ function calculate_local()
             hh.weight = w[i]
             FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = w[i]
         end
-        all_params = collect( make_parameter_set( code ))
+        all_params=nothing
+        if incremented 
+            all_params = collect( incremented_params( code ))
+        else
+            all_params = collect( make_parameter_set( code ))
+        end
         println( "on council $code - starting final do_one_run" )
         pc_frames[code] = do_one_run( 
             settings, 
@@ -461,8 +515,9 @@ function calculate_local()
         println( "appending $code data to global")
     end # each council
     # summarise Wales totals
-    JLD2.save("all_las_frames.jld2", pc_frames );
-    JLD2.save("all_las_results.jld2", pc_results );
+    incstr = incremented ? "-incremened" : ""
+    JLD2.save("all_las_frames$(incstr).jld2", pc_frames );
+    JLD2.save("all_las_results$(incstr).jld2", pc_results );
 
     (; pc_frames, pc_results )
 
@@ -530,12 +585,12 @@ end
 Complete set of charts and tables written to file for each of our systems.
 """
 function analyse_all( allres::NamedTuple, lares :: Dict )
-    analyse_one_set("../WalesTaxation/output/ctincidence", "CT Incidence", allres, lares, 2 )
-    analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", allres, lares, 3 )
-    analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", allres, lares,  4 )
-    analyse_one_set("../WalesTaxation/output/proportional_property_tax", "Proportional Property Tax", allres, lares,  5 )
-    analyse_one_set("../WalesTaxation/output/revalued_ct", "Council Tax With Revalued House Prices and compensating band D cuts", allres, lares,  6 )
-    analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", "Council Tax With Revalued House Prices & Fairer Bands", allres, lares,  7 )
+    analyse_one_set("../WalesTaxation/output/ctincidence", SYSTEM_NAMES[2], allres, lares, 2 )
+    analyse_one_set("../WalesTaxation/output/local_income_tax", SYSTEM_NAMES[3], allres, lares, 3 )
+    analyse_one_set("../WalesTaxation/output/progressive_bands", SYSTEM_NAMES[4], allres, lares,  4 )
+    analyse_one_set("../WalesTaxation/output/proportional_property_tax", SYSTEM_NAMES[5], allres, lares,  5 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct", SYSTEM_NAMES[6], allres, lares,  6 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", SYSTEM_NAMES[7], allres, lares,  7 )
 end
 
 """
@@ -604,6 +659,19 @@ function how_we_doing_fmt(val, row, col )
     return fmt(val/1000.0)
 end
 
+
+function gl_fmt(val, row, col )
+    if col == 1 # name col
+        if typeof(val) <: AbstractFloat
+            return Formatting.format(val, precision=0)
+        else 
+            return pretty("$val")
+        end
+    end
+    return fmt(val)
+end
+
+
 function headline_fmt(val, row, col )
     if col == 1
        return val
@@ -616,13 +684,13 @@ end
 
 function write_main_tables( mainres :: NamedTuple, lares :: Dict )
     open("../WalesTaxation/output/main_tables.md","w") do outfile
-        println( outfile, "\n\n### Accuracy: Modelled Net Council Tax vs Actual \n\n")
+        println( outfile, "\n\n### Accuracy: Modelled Net Council Tax vs Actual \n")
         pretty_table( outfile,
             DEFAULT_REFORM_LEVELS[!,[:name,:actual_revenues,:modelled_ct,:modelled_ctb,:net_modelled]],
             formatters=how_we_doing_fmt, 
             tf = tf_markdown )
 
-        println( outfile, "\n\n### Baseline reform levels\n\n")
+        println( outfile, "\n\n### Baseline reform levels\n")
         pretty_table( outfile,
             DEFAULT_REFORM_LEVELS[!,
                 [:name,
@@ -632,6 +700,16 @@ function write_main_tables( mainres :: NamedTuple, lares :: Dict )
                 :revalued_housing_band_d,
                 :revalued_housing_band_d_w_fairer_bands]],
             formatters=headline_fmt, tf = tf_markdown )
+        for sysno in 1:7
+            println( outfile, "\n\n### Gainers and Losers: By Tenure:  $(SYSTEM_NAMES[sysno])  \n")
+            pretty_table( outfile, mainres.gain_lose[sysno].ten_gl, formatters=gl_fmt, tf = tf_markdown )
+            println( outfile, "\n\n### Gainers and Losers: By Decile:  $(SYSTEM_NAMES[sysno])  \n")
+            pretty_table( outfile, mainres.gain_lose[sysno].ten_gl, formatters=gl_fmt, tf = tf_markdown )
+            println( outfile, "\n\n### Gainers and Losers: By Number of Children:  $(SYSTEM_NAMES[sysno])  \n")
+            pretty_table( outfile, mainres.gain_lose[sysno].children_gl, formatters=gl_fmt, tf = tf_markdown )
+            println( outfile, "\n\n### Gainers and Losers: By Number of Children:  $(SYSTEM_NAMES[sysno])  \n")
+            pretty_table( outfile, mainres.gain_lose[sysno].hhtype_gl, formatters=gl_fmt, tf = tf_markdown )
+        end
     end # file open
 end
 
