@@ -296,7 +296,7 @@ function get_default_stuff( num_systems :: Int )
     @time num_households, num_people, nhh2 = initialise( settings; reset=true )
     settings.num_people = num_people
     settings.num_households = num_households    
-    return settings, obs, total_frames
+    return settings, obs, total_frames, revenues_table()
 end
 
 
@@ -591,3 +591,49 @@ function do_all( pc_frames :: Dict; do_gain_lose=false )
     overall_results = summarise_frames!( total_frames, settings; do_gain_lose=do_gain_lose ) 
     return overall_results #  do_gain_lose = false  )
 end
+
+
+# output formatters
+countfmt = (v, i, j) -> fmt(v)
+pctfmt = (v, i, j) -> Formatting.format(v, precision=2)
+
+function how_we_doing_fmt(val, row, col )
+    if col == 1 # name col
+       return val
+    end
+    return fmt(val)
+end
+
+function headline_fmt(val, row, col )
+    if col == 1
+       return val
+    elseif col in (2,4)
+       return Formatting.format(val, precision=2)
+    end 
+    return fmt(val)
+end
+
+
+function write_main_tables()
+    open("../WalesTaxation/output/main_tables.md","w") do outfile
+        println( outfile, "### Accuracy: Modelled Net Council Tax vs Actual \n\n")
+        pretty_table( outfile,
+            DEFAULT_REFORM_LEVELS[!,[:name,:actual_revenues,:modelled_ct,:modelled_ctb,:net_modelled]],
+            formatters=how_we_doing_fmt, 
+            tf = tf_markdown )
+
+        println( outfile, "### Baseline reform levels\n\n")
+        pretty_table( outfile,
+            DEFAULT_REFORM_LEVELS[!,
+                [:name,
+                :local_income_tax,
+                :fairer_bands_band_d,
+                :proportional_property_tax,
+                :revalued_housing_band_d,
+                :revalued_housing_band_d_w_fairer_bands]],
+            formatters=headline_fmt, tf = tf_markdown )
+    end # file open
+end
+
+
+# prettytable( df; formatters=countfmt, tf = tf_markdown )
