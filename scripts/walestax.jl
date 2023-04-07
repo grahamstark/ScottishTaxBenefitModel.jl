@@ -498,9 +498,9 @@ end
 """
 Create graphs and tables for one of our runs, and write them to files.
 """
-function analyse_one_set( dir, subtitle, res, sysno )
+function analyse_one_set( dir::String, subtitle::String, allres::String, lares :: Dict, sysno::Int )
     overall = analyse_one( "All Wales", subtitle, 
-        res.overall_results, sysno )
+        allres.overall_results, sysno )
     save( "$(dir)/all_wales.svg", overall )
     f = Figure(; resolution=( 1240, 1754 )) # a4 @ 150ppi
     n = 1
@@ -512,7 +512,7 @@ function analyse_one_set( dir, subtitle, res, sysno )
             end
             r = CTRATES[n,:]
             println( "on row $(r)")
-            laresult = res.pc_frames[Symbol(r.code)]
+            laresult = lares.pc_frames[Symbol(r.code)]
             a = Axis( f[row,col], title="$(r.name)"); 
             ylims!(a,[-40,40])
             xdata = 1:10
@@ -529,13 +529,13 @@ end
 """
 Complete set of charts and tables written to file for each of our systems.
 """
-function analyse_all( res )
-    analyse_one_set("../WalesTaxation/output/ctincidence", "CT Incidence", res, 2 )
-    analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", res, 3 )
-    analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", res, 4 )
-    analyse_one_set("../WalesTaxation/output/proportional_property_tax", "Proportional Property Tax", res, 5 )
-    analyse_one_set("../WalesTaxation/output/revalued_ct", "Council Tax With Revalued House Prices and compensating band D cuts", res, 6 )
-    analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", "Council Tax With Revalued House Prices & Fairer Bands", res, 7 )
+function analyse_all( allres::NamedTuple, lares :: Dict )
+    analyse_one_set("../WalesTaxation/output/ctincidence", "CT Incidence", allres, lares, 2 )
+    analyse_one_set("../WalesTaxation/output/local_income_tax", "Local Income Tax", allres, lares, 3 )
+    analyse_one_set("../WalesTaxation/output/progressive_bands", "Progressive Bands", allres, lares,  4 )
+    analyse_one_set("../WalesTaxation/output/proportional_property_tax", "Proportional Property Tax", allres, lares,  5 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct", "Council Tax With Revalued House Prices and compensating band D cuts", allres, lares,  6 )
+    analyse_one_set("../WalesTaxation/output/revalued_ct_w_fairer_bands", "Council Tax With Revalued House Prices & Fairer Bands", allres, lares,  7 )
 end
 
 """
@@ -601,7 +601,7 @@ function how_we_doing_fmt(val, row, col )
     if col == 1 # name col
        return val
     end
-    return fmt(val)
+    return fmt(val/1000.0)
 end
 
 function headline_fmt(val, row, col )
@@ -614,15 +614,15 @@ function headline_fmt(val, row, col )
 end
 
 
-function write_main_tables()
+function write_main_tables( mainres :: NamedTuple, lares :: Dict )
     open("../WalesTaxation/output/main_tables.md","w") do outfile
-        println( outfile, "### Accuracy: Modelled Net Council Tax vs Actual \n\n")
+        println( outfile, "\n\n### Accuracy: Modelled Net Council Tax vs Actual \n\n")
         pretty_table( outfile,
             DEFAULT_REFORM_LEVELS[!,[:name,:actual_revenues,:modelled_ct,:modelled_ctb,:net_modelled]],
             formatters=how_we_doing_fmt, 
             tf = tf_markdown )
 
-        println( outfile, "### Baseline reform levels\n\n")
+        println( outfile, "\n\n### Baseline reform levels\n\n")
         pretty_table( outfile,
             DEFAULT_REFORM_LEVELS[!,
                 [:name,
@@ -637,3 +637,10 @@ end
 
 
 # prettytable( df; formatters=countfmt, tf = tf_markdown )
+
+function do_everything()
+    pc_frames=JLD2.load("all_las_frames.jld2")
+    pc_results = JLD2.load( "all_las_results.jld2")
+    overall_results = do_all( pc_frames, do_gain_lose=true )
+    write_main_tables( overall_results, pc_results )
+end
