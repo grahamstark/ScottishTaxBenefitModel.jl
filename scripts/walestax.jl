@@ -498,9 +498,9 @@ end
 """
 Create graphs and tables for one of our runs, and write them to files.
 """
-function analyse_one_set( dir::String, subtitle::String, allres::String, lares :: Dict, sysno::Int )
+function analyse_one_set( dir::String, subtitle::String, allres::NamedTuple, lares :: Dict, sysno::Int )
     overall = analyse_one( "All Wales", subtitle, 
-        allres.overall_results, sysno )
+        allres, sysno )
     save( "$(dir)/all_wales.svg", overall )
     f = Figure(; resolution=( 1240, 1754 )) # a4 @ 150ppi
     n = 1
@@ -512,7 +512,7 @@ function analyse_one_set( dir::String, subtitle::String, allres::String, lares :
             end
             r = CTRATES[n,:]
             println( "on row $(r)")
-            laresult = lares.pc_frames[Symbol(r.code)]
+            laresult = lares[r.code]
             a = Axis( f[row,col], title="$(r.name)"); 
             ylims!(a,[-40,40])
             xdata = 1:10
@@ -643,4 +643,5 @@ function do_everything()
     pc_results = JLD2.load( "all_las_results.jld2")
     overall_results = do_all( pc_frames, do_gain_lose=true )
     write_main_tables( overall_results, pc_results )
+    analyse_all( overall_results, pc_results )
 end
