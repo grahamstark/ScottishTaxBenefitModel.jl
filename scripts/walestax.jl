@@ -282,6 +282,15 @@ function make_parameter_set( code :: Symbol )
         code = code )
 end
 
+INCREMENT_NAMES = [
+    "£100pa Band D Increase",
+    "£100pa Band D",
+    "1p increase to all income tax bands",
+    "£100pa Band D Increase",
+    "0.1 increase in rate",
+    "£100pa Band D Increase",
+    "£100pa Band D Increase"
+]
 
 function incremented_params( code :: Symbol, pct_change = false )
     base_sys,
@@ -293,13 +302,13 @@ function incremented_params( code :: Symbol, pct_change = false )
     revalued_prices_w_prog_bands_sys = make_parameter_set( code )
 
     if( ! pct_change )
-        base_sys.loctax.ct.band_d[code] += 100.0
+        base_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
         # no_ct_sys
         local_it_sys.it.non_savings_rates .+= 0.01
-        progressive_ct_sys.loctax.ct.band_d[code] += 100.0
-        ppt_sys.loctax.ppt.rate  += 0.001
-        revalued_prices_sys.loctax.ct.band_d[code] += 100.0
-        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += 100.0
+        progressive_ct_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
+        ppt_sys.loctax.ppt.rate  += 0.1/(100*WEEKS_PER_YEAR)
+        revalued_prices_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
+        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
     else
         base_sys.loctax.ct.band_d[code] *= 1.01
         # no_ct_sys
@@ -324,7 +333,7 @@ function revenues_table()
     return DataFrame( 
         name=CTLEVELS.name, 
         code=Symbol.(CTLEVELS.code), 
-        actual_revenues=TLEVELS.to_be_collected, 
+        actual_revenues=CTLEVELS.to_be_collected, 
         modelled_ct=zeros(22), 
         modelled_ctb=zeros(22), 
         net_modelled=zeros(22),
@@ -480,7 +489,7 @@ end
 """
 Skeleton for one non-equalising run.
 """
-function calculate_local( incremented = false )
+function calculate_local( ; incremented :: Bool = false )
     num_systems = 7
     settings, obs, total_frames = get_default_stuff(num_systems)
     load_prices( settings, false )
@@ -682,9 +691,42 @@ function headline_fmt(val, row, col )
 end
 
 
-function write_main_tables( mainres :: NamedTuple, lares :: Dict )
+
+
+function changes_to_table( base::Dict, changed::Dict )
+    tables = []
+    for sys in 1:7
+        d = DataFrame( 
+            name=CTLEVELS.name, 
+            code=Symbol.(CTLEVELS.code), 
+            ct_change = zeros(22), 
+            ctb_change = zeros(22),
+            net_change = zeros(22) )        
+        for code in CCODES
+            scode = String(code) ## FIXME fix base to symbol
+            if sys == 3 ## income tax
+                ct_change = changed[code].income_summary[sys][1,:income_tax] - 
+                    base[scode].income_summary[sys][1,:income_tax]
+            else
+                ct_change = changed[code].income_summary[sys][1,:local_taxes] - 
+                    base[scode].income_summary[sys][1,:local_taxes]
+            end
+            ctb_change = changed[code].income_summary[sys][1,:council_tax_benefit] - 
+                base[scode].income_summary[sys][1,:council_tax_benefit]
+            net_change = ct_change - ctb_change
+            d[(d.code.==code),:ct_change] .= ct_change
+            d[(d.code.==code),:ctb_change] .= ctb_change
+            d[(d.code.==code),:net_change] .= net_change
+        end
+        push!(tables, d)
+    end
+    tables
+end
+
+
+function write_main_tables( mainres :: NamedTuple, lares :: Dict, lares_incr :: Dict )
     open("../WalesTaxation/output/main_tables.md","w") do outfile
-        println( outfile, "\n\n### Accuracy: Modelled Net Council Tax vs Actual \n")
+        println( outfile, "\n\n### Accuracy: Modelled Net Council Tax vs Actual \n£000s pa\n")
         pretty_table( outfile,
             DEFAULT_REFORM_LEVELS[!,[:name,:actual_revenues,:modelled_ct,:modelled_ctb,:net_modelled]],
             formatters=how_we_doing_fmt, 
@@ -700,19 +742,23 @@ function write_main_tables( mainres :: NamedTuple, lares :: Dict )
                 :revalued_housing_band_d,
                 :revalued_housing_band_d_w_fairer_bands]],
             formatters=headline_fmt, tf = tf_markdown )
+        change_frames = changes_to_table( lares, lares_incr )
         for sysno in 1:7
-            println( outfile, "\n\n### Gainers and Losers: By Tenure:  $(SYSTEM_NAMES[sysno])  \n")
+            println( outfile, "\n\n## $(SYSTEM_NAMES[sysno])\n")
+            println( outfile, "### Gainers and Losers\n" )
+            println( outfile, "\n####  By Tenure  \n")
             pretty_table( outfile, mainres.gain_lose[sysno].ten_gl, formatters=gl_fmt, tf = tf_markdown )
-            println( outfile, "\n\n### Gainers and Losers: By Decile:  $(SYSTEM_NAMES[sysno])  \n")
-            pretty_table( outfile, mainres.gain_lose[sysno].ten_gl, formatters=gl_fmt, tf = tf_markdown )
-            println( outfile, "\n\n### Gainers and Losers: By Number of Children:  $(SYSTEM_NAMES[sysno])  \n")
+            println( outfile, "\n\n#### By Decile\n")
+            pretty_table( outfile, mainres.gain_lose[sysno].dec_gl, formatters=gl_fmt, tf = tf_markdown )
+            println( outfile, "\n\n#### By Number of Children\n")
             pretty_table( outfile, mainres.gain_lose[sysno].children_gl, formatters=gl_fmt, tf = tf_markdown )
-            println( outfile, "\n\n### Gainers and Losers: By Number of Children:  $(SYSTEM_NAMES[sysno])  \n")
+            println( outfile, "\n\n#### By Number of People \n")
             pretty_table( outfile, mainres.gain_lose[sysno].hhtype_gl, formatters=gl_fmt, tf = tf_markdown )
+            println( outfile, "\n\n### Effect of $(INCREMENT_NAMES[sysno]). \n£000s pa\n")
+            pretty_table( outfile, change_frames[sysno][!,[:name, :ct_change,:ctb_change,:net_change ]], formatters=how_we_doing_fmt, tf = tf_markdown )
         end
     end # file open
 end
-
 
 # prettytable( df; formatters=countfmt, tf = tf_markdown )
 
@@ -720,6 +766,8 @@ function do_everything()
     pc_frames=JLD2.load("all_las_frames.jld2")
     pc_results = JLD2.load( "all_las_results.jld2")
     overall_results = do_all( pc_frames, do_gain_lose=true )
-    write_main_tables( overall_results, pc_results )
+    res_incr = calculate_local( incremented = true )
+    write_main_tables( overall_results, pc_results, res_incr.pc_results )
     analyse_all( overall_results, pc_results )
+
 end
