@@ -34,6 +34,7 @@ was.semi = (was.accomr7 .== 1) .& (was.hsetyper7 .== 2)
 was.terraced = (was.accomr7 .== 1) .& (was.hsetyper7 .== 3)
 was.purpose_build_flat = (was.accomr7 .== 2) .& (was.flttypr7 .== 1) 
 was.converted_flat = (was.accomr7 .== 2) .& (was.flttypr7 .== 2) 
+was = was[was.hvaluer7 .> 0,:]
 was.log_hprice = log.( was.hvaluer7)
 was.ctamtr7 # council tax amount 
 
@@ -52,4 +53,4 @@ r3 = lm( @formula( log_hprice ~ scotland + wales + london + owner + detatched + 
 
 [exp.(predict(r3)) was.hvaluer7]
 
-regtable( r1, r2, r3 )
+regtable( r1, r2, r3, ; renderSettings = latexOutput("houseprices.tex") )
