@@ -545,16 +545,17 @@ end
 For the 'all Wales' deciles graph.
 """
 function analyse_one( title, subtitle, oneresult :: NamedTuple, sysno :: Int )
-    gains = (oneresult.deciles[sysno] -
-        oneresult.deciles[1])[:,4]
+    cs = oneresult.deciles[sysno][:,4]
+    c1 = oneresult.deciles[1][:,4]
+    gains = 100.0 .* (cs - c1)/c1
     chart=Figure() # ; resolution=(1200,1000))
     axd = Axis( # = layout[1,1] 
         chart[1,1], 
         title="$(title): Gains by Decile",
         subtitle=subtitle,
         xlabel="Decile", 
-        ylabel="Equivalised Income £s pw" )
-    ylims!( axd, [-40,40])
+        ylabel="% change Equivalised Income" )
+    ylims!( axd, [-10,10])
     barplot!(axd, 1:10, gains)
     return chart
 end
@@ -578,15 +579,17 @@ function analyse_one_set( dir::String, subtitle::String, allres::NamedTuple, lar
             println( "on row $(r)")
             laresult = lares[r.code]
             a = Axis( f[row,col], title="$(r.name)"); 
-            ylims!(a,[-40,40])
+            ylims!(a,[-20,20])
             xdata = 1:10
-            ydata = (laresult.deciles[sysno] -
-                laresult.deciles[1])[:,4]
+            cs = laresult.deciles[sysno][:,4]
+            c1 = laresult.deciles[1][:,4]
+            @assert c1 .!== 0
+            ydata = 100.0*(cs - c1)/c1 
             barplot!( a, xdata, ydata )
         end
     end
     supertitle = Label(f[0, :], "$subtitle : changes by income decile", fontsize = 30) 
-    sidetitle = Label(f[:, 0], "Changes in Equivalised Income £s pw", fontsize = 20, rotation = pi/2)  
+    sidetitle = Label(f[:, 0], "% Changes in Equivalised Income", fontsize = 20, rotation = pi/2)  
     save( "$(dir)/by_la.svg", f )
 end
 
@@ -633,7 +636,7 @@ function do_all( pc_frames :: Dict; do_gain_lose=false )
     settings.num_households = 0 # num_households * size(ccodes)[1]
     total_frames = initialise_frames( Float64, settings, num_systems )
     for scode in CCODES
-        code = String(scode)
+        code = scode #String(scode)
         println( "on $code")
         for sysno in 1:num_systems
             println( "sysno $sysno")
@@ -703,7 +706,7 @@ function changes_to_table( base::Dict, changed::Dict )
             ctb_change = zeros(22),
             net_change = zeros(22) )        
         for code in CCODES
-            scode = String(code) ## FIXME fix base to symbol
+            scode = code # String(code) ## FIXME fix base to symbol
             if sys == 3 ## income tax
                 ct_change = changed[code].income_summary[sys][1,:income_tax] - 
                     base[scode].income_summary[sys][1,:income_tax]
@@ -763,8 +766,9 @@ end
 # prettytable( df; formatters=countfmt, tf = tf_markdown )
 
 function do_everything()
-    pc_frames=JLD2.load("all_las_frames.jld2")
-    pc_results = JLD2.load( "all_las_results.jld2")
+    # pc_frames=JLD2.load("all_las_frames.jld2")
+    # pc_results = JLD2.load( "all_las_results.jld2")
+    pc_frames, pc_results = calculate_local()
     overall_results = do_all( pc_frames, do_gain_lose=true )
     res_incr = calculate_local( incremented = true )
     write_main_tables( overall_results, pc_results, res_incr.pc_results )
