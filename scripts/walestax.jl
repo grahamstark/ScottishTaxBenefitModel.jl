@@ -547,7 +547,8 @@ For the 'all Wales' deciles graph.
 function analyse_one( title, subtitle, oneresult :: NamedTuple, sysno :: Int )
     cs = oneresult.deciles[sysno][:,4]
     c1 = oneresult.deciles[1][:,4]
-    gains = 100.0 .* (cs - c1)/c1
+    gains = 100.0 .* (cs - c1)./c1
+    println( "gains $gains")
     chart=Figure() # ; resolution=(1200,1000))
     axd = Axis( # = layout[1,1] 
         chart[1,1], 
@@ -579,12 +580,12 @@ function analyse_one_set( dir::String, subtitle::String, allres::NamedTuple, lar
             println( "on row $(r)")
             laresult = lares[r.code]
             a = Axis( f[row,col], title="$(r.name)"); 
-            ylims!(a,[-20,20])
+            ylims!(a,[-10,10])
             xdata = 1:10
             cs = laresult.deciles[sysno][:,4]
             c1 = laresult.deciles[1][:,4]
-            @assert c1 .!== 0
-            ydata = 100.0*(cs - c1)/c1 
+            # @assert c1 .!== 0
+            ydata = 100.0 .* (cs - c1) ./ c1 
             barplot!( a, xdata, ydata )
         end
     end
@@ -636,7 +637,7 @@ function do_all( pc_frames :: Dict; do_gain_lose=false )
     settings.num_households = 0 # num_households * size(ccodes)[1]
     total_frames = initialise_frames( Float64, settings, num_systems )
     for scode in CCODES
-        code = scode #String(scode)
+        code = String(scode)
         println( "on $code")
         for sysno in 1:num_systems
             println( "sysno $sysno")
@@ -699,28 +700,44 @@ end
 function changes_to_table( base::Dict, changed::Dict )
     tables = []
     for sys in 1:7
+        codes=copy(CTLEVELS.code) # Symbol.(CTLEVELS.code)
+        push!( codes, "Total" ) # Symbol(""))
+        names=copy(CTLEVELS.name)
+        println( "names=$names")
+        push!(names,"Total")
         d = DataFrame( 
-            name=CTLEVELS.name, 
-            code=Symbol.(CTLEVELS.code), 
-            ct_change = zeros(22), 
-            ctb_change = zeros(22),
-            net_change = zeros(22) )        
+            name=names, 
+            code=codes, 
+            ct_change = zeros(23), 
+            ctb_change = zeros(23),
+            net_change = zeros(23) )  
+        
+        net_total = 0.0      
+        ctb_total = 0.0
+        ct_total = 0.0
         for code in CCODES
-            scode = code # String(code) ## FIXME fix base to symbol
+            scode = String(code) ## FIXME fix base to symbol
+            println( "looking for code $scode")
             if sys == 3 ## income tax
-                ct_change = changed[code].income_summary[sys][1,:income_tax] - 
+                ct_change = changed[scode].income_summary[sys][1,:income_tax] - 
                     base[scode].income_summary[sys][1,:income_tax]
             else
-                ct_change = changed[code].income_summary[sys][1,:local_taxes] - 
+                ct_change = changed[scode].income_summary[sys][1,:local_taxes] - 
                     base[scode].income_summary[sys][1,:local_taxes]
             end
-            ctb_change = changed[code].income_summary[sys][1,:council_tax_benefit] - 
+            ctb_change = changed[scode].income_summary[sys][1,:council_tax_benefit] - 
                 base[scode].income_summary[sys][1,:council_tax_benefit]
             net_change = ct_change - ctb_change
-            d[(d.code.==code),:ct_change] .= ct_change
-            d[(d.code.==code),:ctb_change] .= ctb_change
-            d[(d.code.==code),:net_change] .= net_change
+            net_total += net_change
+            ctb_total += ctb_change
+            ct_total += ct_change
+            d[(d.code.==scode),:ct_change] .= ct_change
+            d[(d.code.==scode),:ctb_change] .= ctb_change
+            d[(d.code.==scode),:net_change] .= net_change
         end
+        d[23,:ct_change] = ct_total
+        d[23,:ctb_change] = ctb_total
+        d[23,:net_change] = net_total
         push!(tables, d)
     end
     tables
@@ -766,12 +783,14 @@ end
 # prettytable( df; formatters=countfmt, tf = tf_markdown )
 
 function do_everything()
-    # pc_frames=JLD2.load("all_las_frames.jld2")
-    # pc_results = JLD2.load( "all_las_results.jld2")
-    pc_frames, pc_results = calculate_local()
+    pc_frames=JLD2.load("all_las_frames.jld2")
+    pc_results = JLD2.load( "all_las_results.jld2")
+    # pc_frames, pc_results = calculate_local()
     overall_results = do_all( pc_frames, do_gain_lose=true )
-    res_incr = calculate_local( incremented = true )
-    write_main_tables( overall_results, pc_results, res_incr.pc_results )
+    # res_incr = calculate_local( incremented = true )
+    pc_frames_incr = JLD2.load("all_las_frames-incremened.jld2")
+    pc_results_incr = JLD2.load("all_las_results-incremened.jld2")
+    write_main_tables( overall_results, pc_results, pc_results_incr )
     analyse_all( overall_results, pc_results )
 
 end
