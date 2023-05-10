@@ -683,7 +683,7 @@ const EXTRA_INC_COLS = 10
             hhtype_gl,            
             ex_gainers=ex_gainers[1:n_gainers], 
             ex_losers=ex_losers[1:n_losers],
-            ex_nc=ex_nc[1:n_ncs], 
+            ex_ncs=ex_ncs[1:n_ncs], 
             gainers=gainers, 
             losers=losers,
             nc=nc, 
