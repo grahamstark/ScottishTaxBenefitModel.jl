@@ -624,6 +624,9 @@ const EXTRA_INC_COLS = 10
 
     end
 
+    const GL_MIN = 0.10
+    const MAX_EXAMPLES = 50
+
     function make_gain_lose( 
         prehh :: DataFrame, 
         posthh :: DataFrame, 
@@ -649,8 +652,28 @@ const EXTRA_INC_COLS = 10
         # FIXME this is vvv problematic
         poverty_gl = one_gain_lose( dhh, :in_poverty )
         # some overall changes - easier way?
-        gainers = sum( dhh[dhh.change .> 0.010,:weight])
-        losers = sum( dhh[dhh.change .< -0.010,:weight] )
+        gainers = sum( dhh[dhh.change .> GL_MIN, :weight] )
+        losers = sum( dhh[dhh.change .< -GL_MIN, :weight] )
+        # sample gain/lose
+        ex_gainers = Array{OneIndex}(undef,MAX_EXAMPLES)
+        n_gainers = 0
+        ex_losers = Array{OneIndex}(undef,MAX_EXAMPLES)
+        n_losers = 0
+        ex_ncs  = Array{OneIndex}(undef,MAX_EXAMPLES)
+        n_ncs = 0
+        for i in eachrow( dhh )
+            if (i.change > GL_MIN) && (n_gainers <= MAX_EXAMPLES)
+                n_gainers += 1
+                ex_gainers[n_gainers] = OneIndex( i.hid, i.data_year ) 
+            elseif (i.change < -GL_MIN) && (n_losers <= MAX_EXAMPLES)
+                n_losers += 1
+                ex_losers[n_losers] = OneIndex( i.hid, i.data_year ) 
+            elseif ( -GL_MIN <= i.change <= GL_MIN ) && (n_ncs < MAX_EXAMPLES )
+                n_ncs += 1
+                ex_ncs[n_ncs] = OneIndex( i.hid, i.data_year ) 
+            end
+        end
+
         popn = sum( dhh.weight )
         nc = popn - gainers - losers
         return (;
@@ -658,7 +681,13 @@ const EXTRA_INC_COLS = 10
             dec_gl,
             children_gl,
             hhtype_gl,            
-            gainers=gainers, losers=losers,nc=nc, popn = popn)
+            ex_gainers=ex_gainers[1:n_gainers], 
+            ex_losers=ex_losers[1:n_losers],
+            ex_nc=ex_nc[1:n_ncs], 
+            gainers=gainers, 
+            losers=losers,
+            nc=nc, 
+            popn = popn)
     end
 
 
