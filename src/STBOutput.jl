@@ -662,10 +662,10 @@ const EXTRA_INC_COLS = 10
         ex_ncs  = Array{OneIndex}(undef,MAX_EXAMPLES)
         n_ncs = 0
         for i in eachrow( dhh )
-            if (i.change > GL_MIN) && (n_gainers <= MAX_EXAMPLES)
+            if (i.change > GL_MIN) && (n_gainers < MAX_EXAMPLES)
                 n_gainers += 1
                 ex_gainers[n_gainers] = OneIndex( i.hid, i.data_year ) 
-            elseif (i.change < -GL_MIN) && (n_losers <= MAX_EXAMPLES)
+            elseif (i.change < -GL_MIN) && (n_losers < MAX_EXAMPLES)
                 n_losers += 1
                 ex_losers[n_losers] = OneIndex( i.hid, i.data_year ) 
             elseif ( -GL_MIN <= i.change <= GL_MIN ) && (n_ncs < MAX_EXAMPLES )
