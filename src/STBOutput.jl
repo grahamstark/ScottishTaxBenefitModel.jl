@@ -648,13 +648,17 @@ const EXTRA_INC_COLS = 10
         hhtype_gl = one_gain_lose( dhh, :hh_type )
         # FIXME this is vvv problematic
         poverty_gl = one_gain_lose( dhh, :in_poverty )
+        # some overall changes - easier way?
+        gainers = sum( dhh[dhh.change .> 0.010,:weight])
+        losers = sum( dhh[dhh.change .< -0.010,:weight] )
+        popn = sum( dhh.weight )
+        nc = popn - gainers - losers
         return (;
             ten_gl, 
             dec_gl,
             children_gl,
-            hhtype_gl,
-            
-            gainers=0.0, losers=0.0,nc=0.0, popn = 0.0)
+            hhtype_gl,            
+            gainers=gainers, losers=losers,nc=nc, popn = popn)
     end
 
 
