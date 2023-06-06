@@ -5,6 +5,7 @@ module Definitions
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
 using Parameters
+using JSON3
 
 export 
    Employment_Status,  # mapped from empstat
@@ -24,22 +25,43 @@ export
    DOCS_DIR,
    SCRIPTS_DIR 
 
+
+"""
+Inefficient but works ... load a path 'which' from a json file etc/config.json
+with default if config isn't there or which isn't in the file. Loads the
+whole file each time but hey ho. FIXME remove CONFIG_DIR/move to Utils???
+"""
+function load_data_path( ; default :: String, which::Symbol ) :: String
+   jpath = joinpath(CONFIG_DIR, "config.json" )
+   if ! isfile( jpath )
+      return default
+   end
+   jfile = JSON3.read( jpath )
+   if ! haskey( jfile, which )
+      return default
+   end
+   return jfile[which]
+end
+
 const MODEL_NAME       = "Scottish Tax Benefit Model" 
 # FIXME these might be better at the top of ScottishTaxBenefitModel.jl itself
 const PROJECT_DIR      = joinpath(dirname(pathof(ScottishTaxBenefitModel)),".." )
-const MODEL_DATA_DIR   = joinpath( PROJECT_DIR, "data" )
-const PRICES_DIR       = joinpath( MODEL_DATA_DIR, "prices", "indexes" )
-const MATCHING_DIR     = joinpath( MODEL_DATA_DIR, "merging" )
 const MODEL_PARAMS_DIR = joinpath( PROJECT_DIR, "params" )
 const SCRIPTS_DIR      = joinpath( PROJECT_DIR, "scripts" )
 const TEST_DIR         = joinpath( PROJECT_DIR, "test" )
 const DOCS_DIR         = joinpath( PROJECT_DIR, "docs" )
 const SRC_DIR          = joinpath( PROJECT_DIR, "src" )
+const CONFIG_DIR       = joinpath( PROJECT_DIR, "etc" )
 
-# FIXME these should be in some config file probably.
-const RAW_DATA = "/mnt/data/"
-const FRS_DIR = "$RAW_DATA/frs/"
-const HBAI_DIR = "$RAW_DATA/hbai/"
+
+const DEF_MODEL_DATA_DIR   = joinpath( PROJECT_DIR, "data" )
+const MODEL_DATA_DIR   = load_data_path( which=:model_data_dir, default=DEF_MODEL_DATA_DIR )
+const PRICES_DIR       = joinpath( MODEL_DATA_DIR, "prices", "indexes" )
+const MATCHING_DIR     = joinpath( MODEL_DATA_DIR, "merging" )
+
+const RAW_DATA         = load_data_path( which=:raw_data, default="/mnt/data/" )
+const FRS_DIR          = joinpath(RAW_DATA, "/frs/" )
+const HBAI_DIR         = joinpath( RAW_DATA, "/hbai/" )
 
 export NUM_REPEATS
 const NUM_REPEATS = 30 # simulates a longer calculation

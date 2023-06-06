@@ -19,4 +19,7 @@ using .Definitions
     @test p.hid == 19064
     @test p.pno == 4
 
+    @test Definitions.load_data_path( default="Fred", which=:model_data_dirxx ) == "Fred"
+    @test Definitions.load_data_path( default="Fred", which=:model_data_dir ) == "/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/"
+
 end

@@ -4,13 +4,15 @@ module Utils
 # This contains general purpose, messy stuff not easily fitting elsewhere. 
 # A fair chunk is no longer used :(
 #
+
+using BudgetConstraints
+
 using ArgCheck
 using Base: Integer, String, Bool
-using DataFrames
-using Dates
 using Base.Unicode
 using CSV
-using BudgetConstraints
+using DataFrames
+using Dates
 using Printf
 
 export 
@@ -51,6 +53,9 @@ export
    to_md_table,
    todays_date, 
    uprate_struct!
+
+
+   
 
 """
 Make a new dataframe with the difference between the fields between
