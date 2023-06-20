@@ -30,11 +30,13 @@ end
     
     for (hht,hh) in get_all_examples()
         hres = init_household_result( hh )
-
+        intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits, sys.child_limits )
         calc_UBI!(
             hres,
             hh,
-            sys.ubi
+            sys.ubi,
+            intermed,
+            sys.hours_limits
         )
         aggregate!( hh, hres )
         numkids = ModelHousehold.count( hh, le_age, sys.ubi.adult_age-1 )

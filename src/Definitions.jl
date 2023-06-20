@@ -1763,6 +1763,37 @@ export UBIMTBenTreatment,
 
 @enum UBIMTBenTreatment ub_as_is ub_abolish ub_keep_housing
 
+# Dan's entitlement stuff
+export UBEntitlement,
+   ub_ent_all,
+   ub_ent_all_but_non_jobseekers,
+   ub_ent_only_in_work,
+   ub_end_only_not_in_work
+
+@enum UBEntitlement ub_ent_all ub_ent_all_but_non_jobseekers ub_ent_only_in_work ub_end_only_not_in_work
+ #=
+    People in and out of work are entitled
+Everyone is entitled but people of working age who are not disabled are required to look for work
+Only people in work are entitled
+Only people out of work are entitled 
+   =#
+
+# Dan's citizenship
+export UBCitizenship,
+   ub_cit_all, # ish ..
+   ub_cit_plus_perm_res,
+   ub_cit_only
+
+@enum UBCitizenship ub_cit_all ub_cit_plus_perm_res ub_cit_only
+
+#=
+Citizens, permanent residents and anyone residing in the UK for more than six months are entitled
+Only citizens and permanent residents are entitled
+Only citizens are entitled 
+=#
+
+  
+
 
 
 end # module

@@ -12,15 +12,29 @@ using .ModelHousehold:
     Household, 
     Person,
     get_benefit_units
-    
+
+using .Intermediate: 
+    MTIntermediate, 
+    HHIntermed
+
+using LegacyMeansTestedBenefits:
+    make_lmt_benefit_applicability
+
 using .STBParameters: 
+    HoursLimits,
+    MinimumWage,
+    TaxBenefitSystem,
     UBISys,
-    TaxBenefitSystem
+    UniversalCreditSys
 
 using .STBIncomes
 using .Definitions
+using .LegacyMeansTestedBenefits: make_lmt_benefit_applicability
 
-using .Results: BenefitUnitResult, HouseholdResult
+using .Results: 
+    BenefitUnitResult, 
+    LMTCanApplyFor,
+    HouseholdResult
 
 export 
     calc_UBI!, 
@@ -53,10 +67,16 @@ end
 function calc_UBI!( 
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit        :: BenefitUnit,
-    ubisys              :: UBISys )
+    ubisys              :: UBISys,
+    intermed            :: MTIntermediate,
+    hrs                 :: HoursLimits )
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
+    if ubisys.entitlement !== ub_ent_all 
+        
+
+    end
     for (pid,pers) in bu.people
         if pers.age < ubisys.adult_age 
             bi = ubisys.child_amount
@@ -67,12 +87,35 @@ function calc_UBI!(
         end
         bur.pers[pid].income[BASIC_INCOME] = bi
      end
+     #=
+     export UBEntitlement,
+   ub_ent_all,
+   ub_ent_all_but_non_jobseekers,
+   ub_ent_only_in_work,
+   ub_end_only_not_in_work
+
+@enum UBEntitlement ub_ent_all ub_ent_all_but_non_jobseekers ub_ent_only_in_work ub_end_only_not_in_work
+ 
+    People in and out of work are entitled
+Everyone is entitled but people of working age who are not disabled are required to look for work
+Only people in work are entitled
+Only people out of work are entitled 
+ 
+# Dan's citizenship
+export UBCitizenship,
+   ub_cit_all, # ish ..
+   ub_cit_plus_perm_res,
+   ub_cit_only
+   =#
+
 end
 
 function calc_UBI!( 
     household_result :: HouseholdResult,
     hh               :: Household,
-    ubisys           :: UBISys )
+    ubisys           :: UBISys,
+    intermed         :: HHIntermed,
+    hrs              :: HoursLimits  )
     if ubisys.abolished
         return
     end
@@ -81,7 +124,9 @@ function calc_UBI!(
         calc_UBI!(
             household_result.bus[bn],
             bus[bn],
-            ubisys
+            ubisys,
+            intermed.buint[bn],
+            hrs
         )
     end
 end

@@ -64,8 +64,10 @@ export
     basic_conditions_satisfied,
     calc_elements!,
     calc_standard_allowance,
+    calc_tariff_income,
     calc_tariff_income!,
     calc_uc_child_costs!,
+    calc_uc_income,
     calc_uc_income!,
     calc_universal_credit!, 
     disqualified_on_capital,
@@ -303,15 +305,12 @@ function make_min_se(
     return max( min_se, seinc )
 end
 
-"""
-Implements CPAG 19/20 ch 7
-"""
-function calc_uc_income!( 
+function calc_uc_income( 
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit        :: BenefitUnit,
     intermed            :: MTIntermediate,
     uc                  :: UniversalCreditSys,
-    minwage             :: MinimumWage ) 
+    minwage             :: MinimumWage ) :: NamedTuple
     bu = benefit_unit # shortcut
     bur = benefit_unit_result # shortcut
     inc = 0.0  
@@ -332,15 +331,34 @@ function calc_uc_income!(
             uc.work_allowance_w_housing : uc.work_allowance_no_housing
         earn = max( 0.0, earn-bur.uc.work_allowance)
     end
-    bur.uc.other_income = inc
-    bur.uc.earned_income = earn*uc.taper
+    earned_income = earn*uc.taper
+    return (; other_income=inc, earned_income=earned_income )
+end
+
+
+"""
+Implements CPAG 19/20 ch 7
+"""
+function calc_uc_income!( 
+    benefit_unit_result :: BenefitUnitResult,
+    benefit_unit        :: BenefitUnit,
+    intermed            :: MTIntermediate,
+    uc                  :: UniversalCreditSys,
+    minwage             :: MinimumWage ) 
+    benefit_unit_result.uc.other_income, 
+    benefit_unit_result.uc.earned_income = calc_uc_income( 
+        benefit_unit_result, 
+        benefit_unit,
+        intermed,
+        uc,
+        minwage )
 end
 
 ## FIXME we need the extra capital var here benunit.Totsav
-function calc_tariff_income!( 
+function calc_tariff_income( 
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit :: BenefitUnit, 
-    uc           :: UniversalCreditSys )
+    uc           :: UniversalCreditSys ) :: NamedTuple
     bu = benefit_unit # shortcut
     ucr = benefit_unit_result.uc # shortcut
     cap = 0.0
@@ -350,8 +368,17 @@ function calc_tariff_income!(
             cap += val
         end
     end
-    ucr.assets = cap    
-    ucr.tariff_income = tariff_income( cap, uc.capital_min, uc.capital_tariff )
+    tincome = tariff_income( cap, uc.capital_min, uc.capital_tariff )
+    (; cap, tincome )
+ end
+
+ function calc_tariff_income!( 
+    benefit_unit_result :: BenefitUnitResult,
+    benefit_unit :: BenefitUnit, 
+    uc           :: UniversalCreditSys )
+    benefit_unit_result.uc.assets, 
+    benefit_unit_result.uc.tariff_income = calc_tariff_income( 
+        benefit_unit_result, benefit_unit, uc )
  end
 
 #

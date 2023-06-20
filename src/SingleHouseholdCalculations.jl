@@ -112,7 +112,9 @@ function do_one_calc(
     calc_UBI!(
         hres,
         hh,
-        sys.ubi )    
+        sys.ubi,
+        intermed,
+        sys.hours_limits )    
     buno = 1
     for bu in bus
 

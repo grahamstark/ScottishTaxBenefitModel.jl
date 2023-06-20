@@ -933,6 +933,11 @@ I	More than £424,000
         abolish_others  :: Bool = true
         ub_as_mt_income :: Bool = true
         ub_taxable :: Bool = false
+        # Dan's stuff
+
+        income_limit :: RT = -1.0
+        citizen :: UBCitizenship = ub_cit_all
+        entitlement :: UBEntitlement = ub_ent_all
     end
 
 
