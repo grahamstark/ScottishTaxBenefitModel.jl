@@ -1768,9 +1768,9 @@ export UBEntitlement,
    ub_ent_all,
    ub_ent_all_but_non_jobseekers,
    ub_ent_only_in_work,
-   ub_end_only_not_in_work
+   ub_ent_only_not_in_work
 
-@enum UBEntitlement ub_ent_all ub_ent_all_but_non_jobseekers ub_ent_only_in_work ub_end_only_not_in_work
+@enum UBEntitlement ub_ent_all ub_ent_all_but_non_jobseekers ub_ent_only_in_work ub_ent_only_not_in_work
  #=
     People in and out of work are entitled
 Everyone is entitled but people of working age who are not disabled are required to look for work

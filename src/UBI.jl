@@ -63,6 +63,60 @@ function make_ubi_post_adjustments!(
     end
 end
 
+"""
+Strategy: use eligibility calcs for wtc, is .. 
+Dan's conjoint criteria
+People in and out of work are entitled
+Everyone is entitled but people of working age who are not disabled are required to look for work
+Only people in work are entitled
+Only people out of work are entitled 
+"""
+function is_elig(     
+    benefit_unit        :: BenefitUnit,
+    intermed            :: MTIntermediate,    
+    ubisys              :: UBISys,
+    mt_ben_sys          :: LegacyMeansTestedBenefitSystem,
+    hrs                 :: HoursLimits) ::Bool
+    if ubisys.entitlement == ub_ent_all 
+        return true
+    end
+    # in case we've switched these off ..    
+    elig = false
+    ctc_ab = mt_ben_sys.child_tax_credit.abolished
+    wtc_ab = mt_ben_sys.working_tax_credit.abolished
+    hb_ab = mt_ben_sys.hb.abolished
+    ctr_ab = mt_ben_sys.ctr.abolished
+    sc_ab = mt_ben_sys.savings_credit.abolished
+    isa_ab = mt_ben_sys.isa_jsa_esa_abolished 
+
+    mt_ben_sys.child_tax_credit.abolished = false
+    mt_ben_sys.working_tax_credit.abolished = false
+    mt_ben_sys.hb.abolished = false
+    mt_ben_sys.ctr.abolished = false
+    mt_ben_sys.savings_credit.abolished = false
+    mt_ben_sys.isa_jsa_esa_abolished = false
+    whichb = make_lmt_benefit_applicability( mt_ben_sys, intermed, hrs )
+    if( whichb.sc || whichb.pc ) # always qualify anyone qualifying for pensioner benefit
+        elig = true
+    else ## FIXME could some bu fall between these cracks? Add an assert?
+        elig = 
+            if ubisys.entitlement == ub_ent_all_but_non_jobseekers 
+                ! whichb.is
+            elseif ubisys.entitlement == ub_ent_only_in_work 
+                whichb.wtc 
+            elseif ubisys.entitlement == ub_ent_only_not_in_work
+                whichb.is || whichb.esa || whichb.jsa
+            end
+    end
+    mt_ben_sys.child_tax_credit.abolished = ctc_ab
+    mt_ben_sys.working_tax_credit.abolished = wtc_ab
+    mt_ben_sys.hb.abolished = hb_ab
+    mt_ben_sys.ctr.abolished = ctr_ab 
+    mt_ben_sys.savings_credit.abolished = sc_ab
+    mt_ben_sys.isa_jsa_esa_abolished = isa_ab
+    return elig
+end 
+
 function calc_UBI!( 
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit        :: BenefitUnit,
@@ -74,59 +128,18 @@ function calc_UBI!(
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
-    if ubisys.entitlement !== ub_ent_all 
-        # in case we've switched these off ..
-        ctc_ab = mt_ben_sys.child_tax_credit.abolished
-        wtc_ab = mt_ben_sys.working_tax_credit.abolished
-        hb_ab = mt_ben_sys.hb.abolished
-        ctr_ab = mt_ben_sys.ctr.abolished
-        sc_ab = mt_ben_sys.savings_credit.abolished
-    
-        mt_ben_sys.child_tax_credit.abolished = false
-        mt_ben_sys.working_tax_credit.abolished = false
-        mt_ben_sys.hb.abolished = false
-        mt_ben_sys.ctr.abolished = false
-        mt_ben_sys.savings_credit.abolished = false
-
-
-
-        mt_ben_sys.child_tax_credit.abolished = ctc_ab
-        mt_ben_sys.working_tax_credit.abolished = wtc_ab
-        mt_ben_sys.hb.abolished = hb_ab
-        mt_ben_sys.ctr.abolished = ctr_ab 
-        mt_ben_sys.savings_credit.abolished = sc_ab
-    end
-    for (pid,pers) in bu.people
-        if pers.age < ubisys.adult_age 
-            bi = ubisys.child_amount
-        elseif pers.age < ubisys.retirement_age
-            bi = ubisys.adult_amount
-        else
-            bi = ubisys.universal_pension
+    if is_elig( bu, intermed, ubisys, mt_ben_sys, hrs )
+        for (pid,pers) in bu.people
+            if pers.age < ubisys.adult_age 
+                bi = ubisys.child_amount
+            elseif pers.age < ubisys.retirement_age
+                bi = ubisys.adult_amount
+            else
+                bi = ubisys.universal_pension
+            end
+            bur.pers[pid].income[BASIC_INCOME] = bi
         end
-        bur.pers[pid].income[BASIC_INCOME] = bi
-     end
-     #=
-     export UBEntitlement,
-   ub_ent_all,
-   ub_ent_all_but_non_jobseekers,
-   ub_ent_only_in_work,
-   ub_end_only_not_in_work
-
-@enum UBEntitlement ub_ent_all ub_ent_all_but_non_jobseekers ub_ent_only_in_work ub_end_only_not_in_work
- 
-    People in and out of work are entitled
-Everyone is entitled but people of working age who are not disabled are required to look for work
-Only people in work are entitled
-Only people out of work are entitled 
- 
-# Dan's citizenship
-export UBCitizenship,
-   ub_cit_all, # ish ..
-   ub_cit_plus_perm_res,
-   ub_cit_only
-   =#
-
+    end
 end
 
 function calc_UBI!( 

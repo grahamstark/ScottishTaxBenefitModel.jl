@@ -29,29 +29,33 @@ end
 @testset "Basic UBI Tests" begin
     
     for (hht,hh) in get_all_examples()
-        hres = init_household_result( hh )
         intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits, sys.child_limits )
-        calc_UBI!(
-            hres,
-            hh,
-            sys.ubi,
-            sys.lmt,
-            sys.uc,    
-            intermed,
-            sys.hours_limits
-        )
-        aggregate!( hh, hres )
-        numkids = ModelHousehold.count( hh, le_age, sys.ubi.adult_age-1 )
-        numpens = ModelHousehold.count( hh, ge_age, sys.ubi.retirement_age)
-        numpeeps = length( hh.people )[1]
-        numads = numpeeps - numpens - numkids
-        ubit = numkids*sys.ubi.child_amount+
-            numads*sys.ubi.adult_amount+
-            numpens*sys.ubi.universal_pension
-        @test hres.income[BASIC_INCOME] ≈ ubit
-        println( "$hht : adults=$numads pens=$numpens child=$numkids => ubi=$ubit")
+        for ent in instances( UBEntitlement )
+            hres = init_household_result( hh )
+            sys.ubi.entitlement = ent
+            calc_UBI!(
+                hres,
+                hh,
+                sys.ubi,
+                sys.lmt,
+                sys.uc,    
+                intermed,
+                sys.hours_limits
+            )
+            aggregate!( hh, hres )
+            numkids = ModelHousehold.count( hh, le_age, sys.ubi.adult_age-1 )
+            numpens = ModelHousehold.count( hh, ge_age, sys.ubi.retirement_age)
+            numpeeps = length( hh.people )[1]
+            numads = numpeeps - numpens - numkids
+            ubit = numkids*sys.ubi.child_amount+
+                numads*sys.ubi.adult_amount+
+                numpens*sys.ubi.universal_pension
+            @test hres.income[BASIC_INCOME] ≈ ubit
+            println( "$hht : adults=$numads pens=$numpens child=$numkids => ubi=$ubit")        
+        end
     end
-
+    # restore
+    sys.ubi.entitlement = ub_ent_all
     # todo make_ubi_pre_adjustments
     # toto make_ubi_post_adjustments
 
