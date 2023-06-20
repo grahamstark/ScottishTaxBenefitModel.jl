@@ -17,11 +17,9 @@ using .Intermediate:
     MTIntermediate, 
     HHIntermed
 
-using LegacyMeansTestedBenefits:
-    make_lmt_benefit_applicability
-
 using .STBParameters: 
     HoursLimits,
+    LegacyMeansTestedBenefitSystem,
     MinimumWage,
     TaxBenefitSystem,
     UBISys,
@@ -30,6 +28,7 @@ using .STBParameters:
 using .STBIncomes
 using .Definitions
 using .LegacyMeansTestedBenefits: make_lmt_benefit_applicability
+using .UniversalCredit: calc_uc_income, calc_tariff_income
 
 using .Results: 
     BenefitUnitResult, 
@@ -68,14 +67,34 @@ function calc_UBI!(
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit        :: BenefitUnit,
     ubisys              :: UBISys,
+    mt_ben_sys          :: LegacyMeansTestedBenefitSystem,
+    uc_sys              :: UniversalCreditSys,
     intermed            :: MTIntermediate,
     hrs                 :: HoursLimits )
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
     if ubisys.entitlement !== ub_ent_all 
-        
+        # in case we've switched these off ..
+        ctc_ab = mt_ben_sys.child_tax_credit.abolished
+        wtc_ab = mt_ben_sys.working_tax_credit.abolished
+        hb_ab = mt_ben_sys.hb.abolished
+        ctr_ab = mt_ben_sys.ctr.abolished
+        sc_ab = mt_ben_sys.savings_credit.abolished
+    
+        mt_ben_sys.child_tax_credit.abolished = false
+        mt_ben_sys.working_tax_credit.abolished = false
+        mt_ben_sys.hb.abolished = false
+        mt_ben_sys.ctr.abolished = false
+        mt_ben_sys.savings_credit.abolished = false
 
+
+
+        mt_ben_sys.child_tax_credit.abolished = ctc_ab
+        mt_ben_sys.working_tax_credit.abolished = wtc_ab
+        mt_ben_sys.hb.abolished = hb_ab
+        mt_ben_sys.ctr.abolished = ctr_ab 
+        mt_ben_sys.savings_credit.abolished = sc_ab
     end
     for (pid,pers) in bu.people
         if pers.age < ubisys.adult_age 
@@ -114,6 +133,8 @@ function calc_UBI!(
     household_result :: HouseholdResult,
     hh               :: Household,
     ubisys           :: UBISys,
+    mt_ben_sys       :: LegacyMeansTestedBenefitSystem,
+    uc_sys           :: UniversalCreditSys,
     intermed         :: HHIntermed,
     hrs              :: HoursLimits  )
     if ubisys.abolished
@@ -125,6 +146,8 @@ function calc_UBI!(
             household_result.bus[bn],
             bus[bn],
             ubisys,
+            mt_ben_sys,
+            uc_sys,
             intermed.buint[bn],
             hrs
         )

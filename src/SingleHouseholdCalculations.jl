@@ -109,10 +109,13 @@ function do_one_calc(
         sys.nmt_bens,
         sys.hours_limits,
         sys.age_limits )
+        
     calc_UBI!(
         hres,
         hh,
         sys.ubi,
+        sys.lmt,
+        sys.uc,
         intermed,
         sys.hours_limits )    
     buno = 1
