@@ -162,7 +162,7 @@ function calc_UBI!(
                 prop = newbi/totalbi
                 # scale ubis by this
                 for (pid,pers) in bu.people
-                    bur.pers[pid].income[BASIC_INCOME] /= prop
+                    bur.pers[pid].income[BASIC_INCOME] *= prop
                 end    # round people           
             end
         end

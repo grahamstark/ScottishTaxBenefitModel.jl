@@ -2,6 +2,8 @@ using Test
 using ScottishTaxBenefitModel
 using Observables
 using .ModelHousehold: count,Household, le_age, ge_age
+using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR, WEEKS_PER_MONTH
+   
 using .Results: aggregate!, init_household_result
 using ScottishTaxBenefitModel.Runner: do_one_run
 using .Intermediate: MTIntermediate, make_intermediate    
@@ -25,6 +27,68 @@ of = on(obs) do p
     tot += p.step
     println(tot)
 end
+
+
+@testset "UBI Pre Adjustments" begin
+
+    sys = get_system( year=2019, scotland = true )
+    println( typeof(sys.it.non_savings_income))
+    sys.ubi.abolished = false
+    sys.ubi.mt_bens_treatment = ub_as_is
+    make_ubi_pre_adjustments!( sys )
+    @test sys.uc.abolished == false
+    @test sys.lmt.isa_jsa_esa_abolished == false
+    @test sys.lmt.savings_credit.abolished == false
+    @test sys.lmt.ctr.abolished == false
+    @test sys.lmt.hb.abolished == false
+    @test sys.lmt.working_tax_credit.abolished == false
+    @test sys.lmt.child_tax_credit.abolished == false
+
+    sys.ubi.mt_bens_treatment = ub_keep_housing
+    make_ubi_pre_adjustments!( sys )
+    @test sys.lmt.isa_jsa_esa_abolished == true
+    @test sys.lmt.savings_credit.abolished == true
+    @test sys.lmt.ctr.abolished == false
+    @test sys.lmt.hb.abolished == false
+    @test sys.lmt.working_tax_credit.abolished == true
+    @test sys.lmt.child_tax_credit.abolished == true
+    # Worried about inadvertently doing this twice .. should
+    # make no difference.
+    make_ubi_pre_adjustments!( sys )
+    @test sys.lmt.isa_jsa_esa_abolished == true
+    @test sys.lmt.savings_credit.abolished == true
+    @test sys.lmt.ctr.abolished == false
+    @test sys.lmt.hb.abolished == false
+    @test sys.lmt.working_tax_credit.abolished == true
+    @test sys.lmt.child_tax_credit.abolished == true
+
+    @test BASIC_INCOME in sys.lmt.income_rules.sc_incomes 
+    @test ! (BASIC_INCOME in sys.it.non_savings_income)
+
+end
+
+
+@testset "UBI Post Adjustments" begin
+    
+    sys = get_system( year=2019, scotland = true )
+    sys.ubi.abolished = false
+    res1 = do_one_run(
+        settings,
+        [sys],
+        obs )
+    sys.ubi.mt_bens_treatment = ub_keep_housing
+    res2 = do_one_run(
+        settings,
+        [sys],
+        obs )
+    # dodo finish
+end
+
+@testset "example tests" begin
+    # TODO FINISH
+
+end
+
 
 @testset "Basic UBI Tests" begin
     
@@ -95,65 +159,5 @@ Only those with incomes less than £125k are entitled to the full benefit
     sys.ubi.entitlement = ub_ent_all
     # todo make_ubi_pre_adjustments
     # toto make_ubi_post_adjustments
-
-end
-
-@testset "UBI Pre Adjustments" begin
-
-    sys = get_system( year=2019, scotland = true )
-    println( typeof(sys.it.non_savings_income))
-    sys.ubi.abolished = false
-    sys.ubi.mt_bens_treatment = ub_as_is
-    make_ubi_pre_adjustments!( sys )
-    @test sys.uc.abolished == false
-    @test sys.lmt.isa_jsa_esa_abolished == false
-    @test sys.lmt.savings_credit.abolished == false
-    @test sys.lmt.ctr.abolished == false
-    @test sys.lmt.hb.abolished == false
-    @test sys.lmt.working_tax_credit.abolished == false
-    @test sys.lmt.child_tax_credit.abolished == false
-
-    sys.ubi.mt_bens_treatment = ub_keep_housing
-    make_ubi_pre_adjustments!( sys )
-    @test sys.lmt.isa_jsa_esa_abolished == true
-    @test sys.lmt.savings_credit.abolished == true
-    @test sys.lmt.ctr.abolished == false
-    @test sys.lmt.hb.abolished == false
-    @test sys.lmt.working_tax_credit.abolished == true
-    @test sys.lmt.child_tax_credit.abolished == true
-    # Worried about inadvertently doing this twice .. should
-    # make no difference.
-    make_ubi_pre_adjustments!( sys )
-    @test sys.lmt.isa_jsa_esa_abolished == true
-    @test sys.lmt.savings_credit.abolished == true
-    @test sys.lmt.ctr.abolished == false
-    @test sys.lmt.hb.abolished == false
-    @test sys.lmt.working_tax_credit.abolished == true
-    @test sys.lmt.child_tax_credit.abolished == true
-
-    @test BASIC_INCOME in sys.lmt.income_rules.sc_incomes 
-    @test ! (BASIC_INCOME in sys.it.non_savings_income)
-
-end
-
-
-@testset "UBI Post Adjustments" begin
-    
-    sys = get_system( year=2019, scotland = true )
-    sys.ubi.abolished = false
-    res1 = do_one_run(
-        settings,
-        [sys],
-        obs )
-    sys.ubi.mt_bens_treatment = ub_keep_housing
-    res2 = do_one_run(
-        settings,
-        [sys],
-        obs )
-    # dodo finish
-end
-
-@testset "example tests" begin
-    # TODO FINISH
 
 end
