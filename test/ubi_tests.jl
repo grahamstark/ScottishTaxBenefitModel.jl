@@ -40,19 +40,56 @@ end
                 sys.lmt,
                 sys.uc,    
                 intermed,
-                sys.hours_limits
+                sys.hours_limits,
+                sys.minwage
             )
             aggregate!( hh, hres )
             numkids = ModelHousehold.count( hh, le_age, sys.ubi.adult_age-1 )
             numpens = ModelHousehold.count( hh, ge_age, sys.ubi.retirement_age)
             numpeeps = length( hh.people )[1]
             numads = numpeeps - numpens - numkids
+
             ubit = numkids*sys.ubi.child_amount+
                 numads*sys.ubi.adult_amount+
                 numpens*sys.ubi.universal_pension
-            @test hres.income[BASIC_INCOME] ≈ ubit
+            if ent == ub_ent_all
+                @test hres.income[BASIC_INCOME] ≈ ubit
+            elseif ent == ub_ent_all_but_non_jobseekers
+                # FIXME expand this ti BUs and Dan's elig categories
+            elseif ent == ub_ent_only_in_work 
+
+            elseif ent == ub_ent_only_not_in_work
+
+            else
+
+            end
             println( "$hht : adults=$numads pens=$numpens child=$numkids => ubi=$ubit")        
         end
+        # Dan's income thresholds
+        sys.ubi.entitlement = ub_ent_all
+        for thresh in [-1,20_000,50_000,125_000]
+            hres = init_household_result( hh )
+            sys.ubi.income_limit = thresh/WEEKS_PER_YEAR
+            calc_UBI!(
+                hres,
+                hh,
+                sys.ubi,
+                sys.lmt,
+                sys.uc,    
+                intermed,
+                sys.hours_limits,
+                sys.minwage
+            )
+            aggregate!( hh, hres )
+
+            bi = hres.income[BASIC_INCOME]
+            println( "hh $(hht)  thresh=$thresh bi=$bi")
+        end
+            #=
+            Only those with incomes less than £20k are entitled to the full benefit
+Only those with incomes less than £50k are entitled to the full benefit
+Only those with incomes less than £125k are entitled to the full benefit 
+            =#
     end
     # restore
     sys.ubi.entitlement = ub_ent_all

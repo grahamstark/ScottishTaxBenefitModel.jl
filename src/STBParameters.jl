@@ -933,9 +933,10 @@ I	More than £424,000
         abolish_others  :: Bool = true
         ub_as_mt_income :: Bool = true
         ub_taxable :: Bool = false
+        
         # Dan's stuff
-
         income_limit :: RT = -1.0
+        taper :: RT = 100.0
         citizen :: UBCitizenship = ub_cit_all
         entitlement :: UBEntitlement = ub_ent_all
     end
@@ -946,6 +947,10 @@ I	More than £424,000
         ubi.adult_amount /= wpy
         ubi.child_amount /= wpy
         ubi.universal_pension /= wpy
+        if ubi.income_limit > 0
+            ubi.income_limit /= wpy
+            ubi.taper /= 100.0
+        end
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}

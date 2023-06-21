@@ -124,11 +124,14 @@ function calc_UBI!(
     mt_ben_sys          :: LegacyMeansTestedBenefitSystem,
     uc_sys              :: UniversalCreditSys,
     intermed            :: MTIntermediate,
-    hrs                 :: HoursLimits )
+    hrs                 :: HoursLimits,
+    minwage             :: MinimumWage )
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
     if is_elig( bu, intermed, ubisys, mt_ben_sys, hrs )
+        # for means-test
+        totalbi = 0.0
         for (pid,pers) in bu.people
             if pers.age < ubisys.adult_age 
                 bi = ubisys.child_amount
@@ -138,6 +141,30 @@ function calc_UBI!(
                 bi = ubisys.universal_pension
             end
             bur.pers[pid].income[BASIC_INCOME] = bi
+            totalbi += bi
+        end    # round people    
+        if ubisys.income_limit > 0 # set to -1.0 by default
+            other_income, 
+            earned_income = calc_uc_income( 
+                benefit_unit_result, 
+                benefit_unit,
+                intermed,
+                uc_sys,
+                minwage )
+            assets, tariff_income = calc_tariff_income( 
+                benefit_unit_result, benefit_unit, uc_sys )
+            total_income = other_income + earned_income/uc_sys.taper +
+                tariff_income
+            excess = max(0.0, total_income - ubisys.income_limit)
+            if excess > 0
+                @assert ubisys.taper <= 100.0
+                newbi = max( 0.0, totalbi - excess*ubisys.taper ) 
+                prop = newbi/totalbi
+                # scale ubis by this
+                for (pid,pers) in bu.people
+                    bur.pers[pid].income[BASIC_INCOME] /= prop
+                end    # round people           
+            end
         end
     end
 end
@@ -149,7 +176,8 @@ function calc_UBI!(
     mt_ben_sys       :: LegacyMeansTestedBenefitSystem,
     uc_sys           :: UniversalCreditSys,
     intermed         :: HHIntermed,
-    hrs              :: HoursLimits  )
+    hrs              :: HoursLimits,
+    minwage          :: MinimumWage  )
     if ubisys.abolished
         return
     end
@@ -162,7 +190,8 @@ function calc_UBI!(
             mt_ben_sys,
             uc_sys,
             intermed.buint[bn],
-            hrs
+            hrs,
+            minwage
         )
     end
 end
