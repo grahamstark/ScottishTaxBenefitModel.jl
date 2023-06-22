@@ -145,7 +145,7 @@ end
                 sys.minwage
             )
             aggregate!( hh, hres )
-
+            # TODO test the f**k out of this
             bi = hres.income[BASIC_INCOME]
             println( "hh $(hht)  thresh=$thresh bi=$bi")
         end
