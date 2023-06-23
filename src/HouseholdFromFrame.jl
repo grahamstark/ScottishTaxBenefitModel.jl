@@ -69,6 +69,7 @@ function create_regression_dataframe(
     fm.male = fm.sex .== 1 
     return fm
 end
+
 function map_person( 
     hh           :: Household, 
     model_person :: DataFrameRow, 

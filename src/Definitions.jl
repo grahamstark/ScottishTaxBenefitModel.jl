@@ -483,6 +483,129 @@ export Missing_Highest_Qualification
    Any_other_professional_or_vocational_or_foreign_qualifications = 86
 end
 
+# FIXME this stuff needs checked thoroughly.
+
+export 
+   highqual_degree, 
+   highqual_other_he,
+   highqual_alevel_equiv, 
+   highqual_gcse_equiv, 
+   highqual_other, 
+   no_qualification
+
+function no_qualification( q :: Qualification_Type ) :: Bool
+   q == Missing_Highest_Qualification
+end
+
+function highqual_degree_equiv( q :: Qualification_Type ) :: Bool
+   q in [Doctorate_or_MPhil,
+      Masters_PGCE_or_some_other_post_graduate_degree,
+      Degree_inc_foundation_degree_or_professional_institute_member,
+      Teaching_qualification_excluding_PGCE,
+      Any_other_foreign_qualification_at_degree_level,
+      Any_other_work_related_or_vocational_qualification_at_degr,
+      Any_other_professional_qualification_at_degree_level]
+
+end
+
+function highqual_other_he( q :: Qualification_Type ) :: Bool
+   q in [
+      BTEC_BEC_TEC_EdExcel_or_LQL_at_higher_level_Higher_Lev,
+      SCOTVEC_SCOTEC_or_SCOTBEC_Scotland_higher_level_level,
+      Other_Higher_Education_qualification_below_degree_level,
+      Nursing_or_other_medical_qualification_not_yet_mentioned,
+      HNC_or_HND,
+      Diploma_in_higher_education ]
+end
+
+
+function highqual_alevel_equiv( q :: Qualification_Type ) :: Bool
+   q in [
+      NVQ_or_SVQ_Level_4,
+      NVQ_or_SVQ_Level_5,
+      RSA_or_OCR_a_higher_diploma_or_OCR_Level_4,
+      A_Level_or_GCE_in_Applied_Subjects_or_equivalent,
+      Welsh_Baccalaureate_at_Advanced_level,
+      Scottish_Baccalaureate,
+      Welsh_Baccalaureate,
+      International_Baccalaureate,
+      AS_level_or_equivalent,
+      Certificate_of_6th_Year_Studies_CSYS_Scotland,
+      Access_to_Higher_Education.
+      Advanced_Higher_or_Higher_or_Intermediate_or_Access_Qualification_Sc,
+      Skills_for_work_Higher,
+      ONC_or_OND,
+      BTEC_BEC_TEC_EdExcel_or_LQL_at_Nat_Cert_or_Nat_Dipl_leve,
+      SCOTVEC_SCOTEC_or_SCOTBEC_Scotland_full_Nat_Cert_Level,
+      New_Diploma_an_Advanced_diploma_level3,
+      New_Diploma_a_Progression_diploma_level_3,
+      NVQ_or_SVQ_Level_3,
+      GNVQ_or_GSVQ_Advanced.
+      RSA_or_OCR_an_advanced_diploma_or_advanced_certificate_or_OCR_L,
+      City_and_Guilds_advanced_craft_or_part_3,
+      Welsh_Baccalaureate_at_the_Intermediate_level ]
+end
+
+function highqual_gcse_equiv( q :: Qualification_Type ) :: Bool
+   q in [
+      O_Level_or_equivalent_five_or_more,
+      Standard_Grade_or_Ordinary_Grade_or_Lower_Scotland_five_or,
+      GCSE_or_equivalent_five_or_more,
+      CSE_five_or_more,
+      Scottish_National_level_5,
+      Skills_for_work_National_level_5,
+      O_Level_or_equivalent,
+      O_Level_or_equivalent_fewer_than_5,
+      Standard_Grade_or_Ordinary_Grade_or_Lower_Scotland,
+      Standard_Grade_or_Ordinary_Grade_or_Lower_Scotland_fewer_t,
+      GCSE_or_equivalent,
+      GCSE_or_equivalent_fewer_than_5,
+      Scottish_National_level_1_to_4,
+      Scottish_National_level,
+      Skills_for_work_National_level_3_and_4,
+      Skills_for_work,
+      CSE,
+      CSE_fewer_than_5,
+      Welsh_Baccalaureate_at_the_foundation_level = 58
+      NVQ_or_SVQ,
+      NVQ_or_SVQ_Level_1,
+      GNVQ_or_GSVQ,
+      GNVQ_or_GSVQ_Part_One_Intermediate,
+      GNVQ_or_GSVQ_Full_Foundation,
+      GNVQ_or_GSVQ_Part_One_Foundation    
+   ]
+end
+
+function highqual_other( q :: Qualification_Type ) :: Bool
+   q in [
+      BTEC_BEC_TEC_EdExcel_or_LQL_first_diploma_or_general_diplo,
+      SCOTVEC_SCOTEC_or_SCOTBEC_Scotland_first_diploma_or_genera,
+      New_Diploma_a_Higher_diploma_level_2,
+      NVQ_or_SVQ_Level_2,
+      GNVQ_or_GSVQ_Full_Intermediate,
+      RSA_or_OCR_a_diploma_or_OCR_Level_2,
+      City_and_Guilds_craft_or_part_2,
+      Any_other_qualification_high_school_leavers_qualification,
+      BTEC_BEC_TEC_EdExcel_or_LQL,
+      BTEC_BEC_TEC_EdExcel_or_LQL_first_cert_or_general_cert_Le,
+      SCOTVEC_SCOTEC_or_SCOTBEC_Scotland,
+      SCOTVEC_SCOTEC_or_SCOTBEC_Scotland_first_cert_or_general_c,
+      SCOTVEC_SCOTEC_or_SCOTBEC_Scotland_modules_towards_Nat,
+      New_Diploma,
+      New_Diploma_Foundation_Diploma_level_1,
+      RSA_or_OCR,
+      RSA_or_OCR_some_other_RSA_including_Stage_I_II_and_III_or_OC,
+      City_and_Guilds,
+      City_and_Guilds_foundation_or_part_1,
+      YT_Certificate_or_YTP,
+      Key_Skills_or_Core_Skills_Scotland_or_Essential_Skills_Wales,
+      Basic_Skills_skills_for_life_or_literacy_or_numeracy_or_language,
+      Entry_Level_Qualifications,
+      Award_Certificate_or_Diploma_at_entry_level_levels_1_to_8,
+      Any_other_professional_or_vocational_or_foreign_qualifications
+   ]
+end
+
 
 export Standard_Region  # mapped from gvtregn
 export North_East,
