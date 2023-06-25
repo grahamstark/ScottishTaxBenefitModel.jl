@@ -20,9 +20,9 @@ end
     for (hht,hh) in get_all_examples()
         for inc in quintiles
             inc -= 1
-            sf16 = get_sf_6d( hh = hh, eq_bhc_net_income=inc, quintiles=quintiles )
-            for (pid,sf) in sf16
-                @test 0 < sf6 < 1
+            sf6 = get_sf_6d( hh = hh, eq_bhc_net_income=inc, quintiles=quintiles )
+            for (pid,sf) in sf6
+                @test 0 < sf < 1
                 pers = hh.people[pid]
                 println( "income $inc hh $hht age $(pers.age) sex $(pers.sex) sf $sf")
             end # people in hh
