@@ -33,7 +33,7 @@ end
 function q_from_inc( thresh :: Vector, inc :: Real )::Int
     n = size(thresh)[1]
     for i in 1:n
-        if i <= thresh[i]
+        if inc <= thresh[i]
             return i;
         end
     end
@@ -87,8 +87,8 @@ end
     ## actually 
     settings.poverty_line = make_poverty_line( results.hh[1], settings )
     outf = summarise_frames!( results, settings )
-    @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
-    quintiles = []
+    @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=false )
+    quint_count = fill( 0.0, 5, 2 )
     sf6s = fill( 0.0 ,100_000, 2 )
     for sysno in 1:2
         hhr = results.hh[sysno]
@@ -98,6 +98,7 @@ end
             hh = FRSHouseholdGetter.get_household( hno )
             inc = hhr[ (hhr.hid.== hh.hid) .& (hhr.data_year .== hh.data_year), :eq_bhc_net_income][1]
             quintile = q_from_inc( quintiles, inc )
+            quint_count[quintile,sysno] += hh.weight*num_people(hh)
             if sysno == 2
                 inc *= 2.0
             end
@@ -110,4 +111,5 @@ end
         push!(summary, StatsBase.summarystats( sf6s[1:ncases,sysno] ))
     end
     println( summary )
+    println( quint_count )
 end
