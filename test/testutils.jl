@@ -121,6 +121,13 @@ function get_system( ; year, scotland = true )  :: TaxBenefitSystem
    sys = nothing
    if year == 2022
       sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
+      if ! scotland
+         sys.scottish_child_payment.amount = 0.0
+         sys.scottish_child_payment.maximum_age = 0
+         sys.scottish_child_payment.qualifying_benefits = []
+         sys.nmt_bens.carers.scottish_supplement = 0.0
+      end
+   
       # load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
    else
       return getSystem( scotland=scotland )

@@ -1,11 +1,13 @@
 module HealthRegressions
+
 using ArgCheck
 using DataFrames
 
 using ScottishTaxBenefitModel
 using .Definitions
+using .GeneralTaxComponents:WEEKS_PER_MONTH
 using .ModelHousehold
-using .Results;
+using .Results
 
 export get_death_prob
 export get_sf6d
@@ -78,36 +80,36 @@ const QUINTILE_LIMITS = [
 # +(.*) \| *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *
 
 """
-Imputes the sf_6 measure for each non-child member of a household 
+    Imputes the sf_6 measure for each non-child member of a household 
+    Note the regression has monthly income by the taxben stuff is weekly
 """
 function get_sf_6d( 
-    ; hh   :: Household, eq_bhc_net_income :: Real, quintiles :: Vector ) :: Dict{BigInt,Number}
-    @argcheck size(quintiles)[1] == 5
+    ; hh   :: Household, 
+      eq_bhc_net_income :: Real, 
+      quintile :: Int ) :: Dict{BigInt,Number}
+    @argcheck quintile in 1:5
 
-    quintile = 0
-    for i in 1:5
-        if eq_bhc_net_income <= quintiles[i]
-            quintile = i 
-            break
-        end
+    # @assert quintile in 1:5 "quintile is $quintile for income $eq_bhc_net_income"
+    # but US income is monthly 
+    inc = WEEKS_PER_MONTH*eq_bhc_net_income
+    l_inc = 0.0
+    if inc > 0
+        l_inc = log(inc)
     end
-    @assert quintile in 1:5 "quintile is $quintile for income $eq_bhc_net_income"
-    inc = eq_bhc_net_income <= 0 ? 0 : log(eq_bhc_net_income)
 
     # single row with the `var`s in the big matrix as the element names
     r = unstack(SFD6_REGRESSION[!,1:2],:var,:coef)[1,:]
     r .= 0.0
 
     sf_6ds = Dict{BigInt,Float64}() # FIXME T where T where ...
-
     
      # household level
-    r.q1mlog = quintile == 1 ? inc : 0.0
-    r.q2mlog = quintile == 2 ? inc : 0
-    r.q3mlog = quintile == 3 ? inc : 0
-    r.q4mlog = quintile == 4 ? inc : 0
+    r.q1mlog = quintile == 1 ? l_inc : 0.0
+    r.q2mlog = quintile == 2 ? l_inc : 0
+    r.q3mlog = quintile == 3 ? l_inc : 0
+    r.q4mlog = quintile == 4 ? l_inc : 0
     # r.q5mlog = quintile == 5 ? inc : 0
-    r.mlogbhc = inc
+    r.mlogbhc = l_inc
     r.gor_nw = hh.region == North_West ? 1 : 0
     r.gor_yh = hh.region == Yorks_and_the_Humber ? 1 : 0
     r.gor_em = hh.region == East_Midlands ? 1 : 0
@@ -178,6 +180,7 @@ function get_death_prob(
     ;
     hh   :: Household,
     hres :: HouseholdResult )  :: Dict{BigInt,Number}
+    
 end
 
 end # module
