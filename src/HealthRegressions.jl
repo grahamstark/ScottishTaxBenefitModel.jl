@@ -77,6 +77,9 @@ const QUINTILE_LIMITS = [
 
 # +(.*) \| *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *
 
+"""
+Imputes the sf_6 measure for each non-child member of a household 
+"""
 function get_sf_6d( 
     ; hh   :: Household, eq_bhc_net_income :: Real, quintiles :: Vector ) :: Dict{BigInt,Number}
     @argcheck size(quintiles)[1] == 5
@@ -120,6 +123,7 @@ function get_sf_6d(
     r.ten_sr = hh.tenure in [Council_Rented, Housing_Association] ? 1 : 0
     r._cons = 1.0 
 
+    # person (non child) level
     for (pid,pers) in hh.people
         if ! pers.is_standard_child
             r.female = pers.sex == Female ? 1 : 0
