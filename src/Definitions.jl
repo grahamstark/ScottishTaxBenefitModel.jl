@@ -486,7 +486,7 @@ end
 # FIXME this stuff needs checked thoroughly.
 
 export 
-   highqual_degree, 
+   highqual_degree_equiv, 
    highqual_other_he,
    highqual_alevel_equiv, 
    highqual_gcse_equiv, 
@@ -531,7 +531,7 @@ function highqual_alevel_equiv( q :: Qualification_Type ) :: Bool
       International_Baccalaureate,
       AS_level_or_equivalent,
       Certificate_of_6th_Year_Studies_CSYS_Scotland,
-      Access_to_Higher_Education.
+      Access_to_Higher_Education,
       Advanced_Higher_or_Higher_or_Intermediate_or_Access_Qualification_Sc,
       Skills_for_work_Higher,
       ONC_or_OND,
@@ -540,7 +540,7 @@ function highqual_alevel_equiv( q :: Qualification_Type ) :: Bool
       New_Diploma_an_Advanced_diploma_level3,
       New_Diploma_a_Progression_diploma_level_3,
       NVQ_or_SVQ_Level_3,
-      GNVQ_or_GSVQ_Advanced.
+      GNVQ_or_GSVQ_Advanced,
       RSA_or_OCR_an_advanced_diploma_or_advanced_certificate_or_OCR_L,
       City_and_Guilds_advanced_craft_or_part_3,
       Welsh_Baccalaureate_at_the_Intermediate_level ]
@@ -566,7 +566,7 @@ function highqual_gcse_equiv( q :: Qualification_Type ) :: Bool
       Skills_for_work,
       CSE,
       CSE_fewer_than_5,
-      Welsh_Baccalaureate_at_the_foundation_level = 58
+      Welsh_Baccalaureate_at_the_foundation_level,
       NVQ_or_SVQ,
       NVQ_or_SVQ_Level_1,
       GNVQ_or_GSVQ,

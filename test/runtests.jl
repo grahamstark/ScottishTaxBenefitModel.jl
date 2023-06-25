@@ -55,4 +55,5 @@ if IS_LOCAL
     include( "simple_runner_tests.jl")
     include( "equaliser_tests.jl")
     include( "expenditure_tests.jl")
+    include( "health_regression_tests.jl")
 end

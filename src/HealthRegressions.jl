@@ -1,7 +1,8 @@
 module HealthRegressions
+using ArgCheck
+using DataFrames
 
 using ScottishTaxBenefitModel
-
 using .Definitions
 using .ModelHousehold
 using .Results;
@@ -77,11 +78,17 @@ const QUINTILE_LIMITS = [
 # +(.*) \| *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *
 
 function get_sf_6d( 
-    ;
-    hh   :: Household
-    eq_bhc_net_income :: Real,
-    quintiles :: Vector ) :: Dict{BigInt,Number}
+    ; hh   :: Household, eq_bhc_net_income :: Real, quintiles :: Vector ) :: Dict{BigInt,Number}
+    @argcheck size(quintiles)[1] == 5
 
+    quintile = 0
+    for i in 1:5
+        if eq_bhc_net_income <= quintiles[i]
+            quintile = i 
+            break
+        end
+    end
+    @assert quintile in 1:5 "quintile is $quintile for income $eq_bhc_net_income"
     inc = eq_bhc_net_income <= 0 ? 0 : log(eq_bhc_net_income)
 
     # single row with the `var`s in the big matrix as the element names
@@ -90,27 +97,19 @@ function get_sf_6d(
 
     sf_6ds = Dict{BigInt,Float64}() # FIXME T where T where ...
 
-    inc = eq_bhc_net_income
-    quintile = 0
-    for i 1:5
-        if inc >= quintiles[i]
-            quintile = i 
-            break
-        end
-    end
-    @assert quintile in 1:5
-    # household level
+    
+     # household level
     r.q1mlog = quintile == 1 ? inc : 0.0
     r.q2mlog = quintile == 2 ? inc : 0
     r.q3mlog = quintile == 3 ? inc : 0
     r.q4mlog = quintile == 4 ? inc : 0
-    r.q5mlog = quintile == 5 ? inc : 0
+    # r.q5mlog = quintile == 5 ? inc : 0
     r.mlogbhc = inc
     r.gor_nw = hh.region == North_West ? 1 : 0
-    r.gor_yh = hh.region == Yorkshire ? 1 : 0
+    r.gor_yh = hh.region == Yorks_and_the_Humber ? 1 : 0
     r.gor_em = hh.region == East_Midlands ? 1 : 0
     r.gor_wm = hh.region == West_Midlands ? 1 : 0
-    r.gor_ee = hh.region == East_Of_England ? 1 : 0
+    r.gor_ee = hh.region == East_of_England ? 1 : 0
     r.gor_lo = hh.region == London ? 1 : 0
     r.gor_se = hh.region == South_East ? 1 : 0
     r.gor_sw = hh.region == South_West ? 1 : 0
@@ -122,20 +121,19 @@ function get_sf_6d(
     r._cons = 1.0 
 
     for (pid,pers) in hh.people
-        if ! pers.from_child_record
+        if ! pers.is_standard_child
             r.female = pers.sex == Female ? 1 : 0
-            r.race_ms = pers.race == Missing_Ethnic_Group ? 1 : 0
-            r.race_mx = pers.race == Mixed_or_Multiple_ethnic_groups ? 1 : 0
-            r.race_as = pers.race == Asian_or_Asian_British ? 1 : 0
-            r.race_bl = pers.race == Black_or_African_or_Caribbean_or_Black_British ? 1 : 0
-            r.race_ot = pers.race == Other_ethnic_group ? 1 : 0
+            r.race_ms = pers.ethnic_group == Missing_Ethnic_Group ? 1 : 0
+            r.race_mx = pers.ethnic_group == Mixed_or_Multiple_ethnic_groups ? 1 : 0
+            r.race_as = pers.ethnic_group == Asian_or_Asian_British ? 1 : 0
+            r.race_bl = pers.ethnic_group == Black_or_African_or_Caribbean_or_Black_British ? 1 : 0
+            r.race_ot = pers.ethnic_group == Other_ethnic_group ? 1 : 0
             r.born_m = 0
             r.born_uk = 0
             r.llsid = 
                 if pers.has_long_standing_illness
                     1.0
-                elseif
-                    (pers.adls_are_reduced in [reduced_a_lot]) &&
+                elseif (pers.adls_are_reduced in [reduced_a_lot]) &&
                     (pers.how_long_adls_reduced in [Between_six_months_and_12_months, v_12_months_or_more])
                     1.0
                 else
@@ -164,15 +162,18 @@ function get_sf_6d(
             r.ec_un = pers.employment_status in [Unemployed] ? 1 : 0
             ec_ret = pers.employment_status in [Retired] ? 1 : 0
             # cast our row as a vector, then vector product
-            sf_6ds[ pers.pid ] = Vector(r)' .* SFD6_REGRESSION.coef
+            sf6 = Vector(r)' * SFD6_REGRESSION.coef
+            @assert 0 < sf6 < 1 "sf6 out-of-range 0:1 $sf6"
+            sf_6ds[ pers.pid ] = sf6
         end
     end
     sf_6ds
 end
 
 function get_death_prob( 
-    hh   :: Household
-    hres :: HouseholdResult)  :: Dict{BigInt,Number}
-
-
+    ;
+    hh   :: Household,
+    hres :: HouseholdResult )  :: Dict{BigInt,Number}
 end
+
+end # module
