@@ -68,15 +68,7 @@ const SFD6_REGRESSION = DataFrame([
     "_cons" .3024495 .0068728  44.01  0.000  .2889791  .31592 
 ], ["var", "coef", "stderr",  "t",   "p",  "conflow",  "confhigh"] )
 
-## TODO
-const QUINTILE_LIMITS = [
-    1,
-    2,
-    3,
-    4,
-    5
-]
-
+# note to me:
 # +(.*) \| *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *
 
 """
