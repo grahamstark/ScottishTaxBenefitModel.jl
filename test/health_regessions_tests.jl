@@ -6,7 +6,7 @@ using Test
 using ScottishTaxBenefitModel
 using .Definitions
 using .ExampleHelpers
-using .HealthRegressions: get_sf_6d
+using .HealthRegressions: get_sf_6d, create_sf6s
 using .ModelHousehold
 using .Monitor: Progress
 using .Results
@@ -16,30 +16,6 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
     dump_frames, summarise_frames!, make_gain_lose
 
 # observer = Observer(Progress("",0,0,0))
-
-
-function get_quintiles( decs :: Vector )::Vector
-    @argcheck size(decs)[1] == 10
-    quintiles = fill(0.0,5)
-    q = 0
-    for i in 2:2:10
-        q += 1
-        quintiles[q] = decs[i]
-    end
-    @assert size( quintiles )[1] == 5
-    quintiles
-end
-
-function q_from_inc( thresh :: Vector, inc :: Real )::Int
-    n = size(thresh)[1]
-    for i in 1:n
-        if inc <= thresh[i]
-            return i;
-        end
-    end
-    @assert false "got to end shouldn't happen"
-end
-
 
 
 @testset "get_death_prob" begin
@@ -90,7 +66,7 @@ end
     @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=false )
     quint_count = fill( 0.0, 5, 2 )
     sf6s = fill( 0.0 ,100_000, 2 )
-    for sysno in 1:2
+    @time for sysno in 1:2
         hhr = results.hh[sysno]
         quintiles = get_quintiles( outf.deciles[sysno][:,3])
         ncases = 0
@@ -108,8 +84,15 @@ end
                 sf6s[ncases,sysno] = sf
             end
         end
-        push!(summary, StatsBase.summarystats( sf6s[1:ncases,sysno] ))
+        push!( summary, StatsBase.summarystats( sf6s[1:ncases,sysno] ))
     end
     println( summary )
     println( quint_count )
+    
+    for sysno in 1:2
+        @time outps = create_sf6s( results.hh[sysno], outf.deciles[sysno], settings )
+        sum2 = StatsBase.summarystats( outps[!,:sf6] )
+        println(sum2)
+    end
+    # @test summary[1] ≈ sum2
 end

@@ -84,7 +84,8 @@ module RunSettings
         #
         weight_type :: DistanceFunctionType = constrained_chi_square
         lower_multiple :: Real = 0.20 # these values can be narrowed somewhat, to around 0.25-4.7
-        upper_multiple :: Real = 5    
+        upper_multiple :: Real = 5 
+        do_health_esimates = false   
     end
 
 end

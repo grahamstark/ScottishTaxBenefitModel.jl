@@ -1,5 +1,7 @@
 module HealthRegressions
 
+using Base.Threads
+
 using ArgCheck
 using DataFrames
 
@@ -8,9 +10,12 @@ using .Definitions
 using .GeneralTaxComponents:WEEKS_PER_MONTH
 using .ModelHousehold
 using .Results
+using .RunSettings
+using .Utils: make_start_stops
 
-export get_death_prob
-export get_sf6d
+export get_death_prob,
+    get_sf6d,
+    create_sf6s
 
 const SFD6_REGRESSION = DataFrame([
     "q1mlog" -.0004121 .0001645  -2.51  0.012  -.0007345  -.0000898;
@@ -162,10 +167,95 @@ function get_sf_6d(
             # cast our row as a vector, then vector product
             sf6 = Vector(r)' * SFD6_REGRESSION.coef
             @assert 0 < sf6 < 1 "sf6 out-of-range 0:1 $sf6"
-            sf_6ds[ pers.pid ] = sf6
+            sf_6ds[ pers.pid ] = sf6/(1-0.5337817) 
+            # for long-run equilibrium, divide by the lagged coef on SF6d.
         end
     end
     sf_6ds
+end
+
+
+"""
+FIXME move this somewhere more sensible?
+"""
+function get_quintiles( decs :: Vector )::Vector
+    @argcheck size(decs)[1] == 10
+    quintiles = fill(0.0,5)
+    q = 0
+    for i in 2:2:10
+        q += 1
+        quintiles[q] = decs[i]
+    end
+    @assert size( quintiles )[1] == 5
+    quintiles
+end
+
+function q_from_inc( thresh :: Vector, inc :: Real )::Int
+    n = size(thresh)[1]
+    for i in 1:n
+        if inc <= thresh[i]
+            return i;
+        end
+    end
+    @assert false "got to end shouldn't happen"
+end
+
+"""
+Create a dataframe worth of sf6s.
+Call after a run, for 1 system, sending in the main deciles output
+"""
+function create_sf6s( 
+    hhr :: DataFrame, 
+    deciles :: Matrix, 
+    settings :: Settings ) :: DataFrame
+    N = size(hhr)[1]*5 # 5 people per hhld : should be enough
+    ncases = 0
+    num_threads = min( nthreads(), settings.requested_threads )
+    out = DataFrame( 
+        hid=fill( BigInt(0), N ),
+        pid=fill( BigInt(0), N ), 
+        data_year = fill( 0, N ), 
+        weight = fill( 0.0, N ), 
+        hh_type = zeros( Int, N ),
+        num_people = zeros( Int, N ),
+        tenure = fill( Missing_Tenure_Type, N ),
+        region = fill( Missing_Standard_Region, N ),
+        sex = fill(Missing_Sex, N ),
+        ethnic_group = fill(Missing_Ethnic_Group, N ),
+        is_child = fill( false, N ),
+        age_band  = zeros(Int, N ),
+        employment_status = fill(Missing_ILO_Employment, N ),
+        decile = zeros( Int, N ),
+        sf6=fill( 0.0, N ))
+    quintiles = get_quintiles( deciles[:,3])
+    start,stop = make_start_stops( settings.num_households, num_threads )
+    @time @threads for thread in 1:num_threads
+        for hno in start[thread]:stop[thread]
+            hh = FRSHouseholdGetter.get_household( hno )
+            inc = hhr[ (hhr.hid.== hh.hid) .& (hhr.data_year .== hh.data_year), :eq_bhc_net_income][1]
+            quintile = q_from_inc( quintiles, inc )
+            sf6 = get_sf_6d( hh = hh, eq_bhc_net_income=inc, quintile=quintile )
+            for (pid,sf) in sf6
+                ncases += 1
+                pers = hh.people[pid]
+                out[ncases,:weight] = hh.weight
+                out[ncases,:pid] = pid
+                out[ncases,:hid] = hh.hid
+                out[ncases,:data_year] = hh.data_year
+                out[ncases,:sf6] = sf
+                out[ncases,:hh_type] = hhr[hno,:hh_type]
+                out[ncases,:num_people] = hhr[hno,:num_people]
+                out[ncases,:tenure] = hh.tenure
+                out[ncases,:region] = hh.region
+                out[ncases,:decile] = hhr[hno,:decile]
+                out[ncases,:sex] = pers.sex
+                out[ncases,:age_band] = age_range( pers.age )
+                out[ncases,:employment_status] = pers.employment_status
+                out[ncases,:ethnic_group] = pers.ethnic_group
+            end # pids in hhld
+        end # hh loop
+    end # threads
+    out[1:ncases,:]
 end
 
 function get_death_prob( 

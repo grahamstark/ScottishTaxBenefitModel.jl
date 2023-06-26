@@ -120,7 +120,6 @@ module Runner
                     end
                     if settings.do_replacement_rates
                         for (pid,pers) in hh.people
-
                             if ( ! pers.is_standard_child ) && ( pers.age <= settings.mr_rr_upper_age )
                                 # FIXME TODO need to be careful with hours and so on
                             end # working age
@@ -135,7 +134,6 @@ module Runner
             dump_frames( settings, frames )
         end
         observer[]= Progress( settings.uuid, "end", -99, -99, -99, -99 )
-
         return frames
     end # do one run
 
