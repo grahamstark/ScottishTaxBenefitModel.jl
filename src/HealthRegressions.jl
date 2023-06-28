@@ -4,6 +4,7 @@ using Base.Threads
 
 using ArgCheck
 using DataFrames
+using StatsBase 
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -15,6 +16,7 @@ using .Utils: make_start_stops
 
 export get_death_prob,
     get_sf6d,
+    summarise_sf12,
     create_health_indicator
 
 const SFD12_REGRESSION = DataFrame([
@@ -337,6 +339,25 @@ function create_health_indicator(
         allout = vcat( allout, out[1:ncases,:] )
     end # threads
     allout
+end
+
+"""
+h - the dataframe made by create_health_indicator
+return histogram, count of below settings.sf12_depression_limit, thresholds
+for 0.025% increments 
+"""
+function summarise_sf12( h :: DataFrame, settings :: Settings ) :: NamedTuple
+    w = weights(h[!,:weight])
+    sf = h[!,:sf12]
+    range = 0.025:0.025:1
+    average,sdev = StatsBase.mean_and_std( sf, w )
+    med = StatsBase.median( sf, w )
+    thresholds = quantile( sf , w, range ) 
+    hist = fit(Histogram, sf, w, 0:2:100 )
+    pop = sum( h[ !, :weight ])
+    depressed = sum( h[h.sf12 .<= settings.sf12_depression_limit, :weight ])
+    depressed_pct = 100*depressed/pop
+    (; depressed, depressed_pct, hist, thresholds, range, average, med, sdev )
 end
 
 function get_death_prob( 

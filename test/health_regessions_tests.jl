@@ -6,7 +6,7 @@ using Test
 using ScottishTaxBenefitModel
 using .Definitions
 using .ExampleHelpers
-using .HealthRegressions: get_health, create_health_indicator
+using .HealthRegressions: get_health, create_health_indicator, summarise_sf12
 using .ModelHousehold
 using .Monitor: Progress
 using .Results
@@ -100,6 +100,15 @@ end
         pop = sum( outps[ !, :weight ])
         depressed = sum( outps[outps.sf12 .<= settings.sf12_depression_limit, :weight ])
         dp = 100*depressed/pop
-        println( "num depressed $depressed out of $pop ($(dp)%)")        
+        println( "num depressed $depressed out of $pop ($(dp)%)")   
+        w = weights(outps[!,:weight])
+        sf = outps[!,:sf12]
+        range = 0.025:0.025:1
+        dist = quantile( sf , w, range ) 
+        println( "20th groups $(dist)")
+        hist = fit(Histogram, sf, w, 0:2:100 )
+        println( "histogram $hist")
+
+        println( summarise_sf12( outps, settings ))
     end
 end
