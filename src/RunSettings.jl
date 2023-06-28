@@ -84,8 +84,10 @@ module RunSettings
         #
         weight_type :: DistanceFunctionType = constrained_chi_square
         lower_multiple :: Real = 0.20 # these values can be narrowed somewhat, to around 0.25-4.7
-        upper_multiple :: Real = 5 
-        do_health_esimates = false   
+        upper_multiple :: Real = 5.0
+        do_health_esimates = false 
+        ## Elliot's email of June 21, 2023
+        sf12_depression_limit = 45.60
     end
 
 end

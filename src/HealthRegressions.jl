@@ -15,7 +15,67 @@ using .Utils: make_start_stops
 
 export get_death_prob,
     get_sf6d,
-    create_sf6s
+    create_health_indicator
+
+const SFD12_REGRESSION = DataFrame([
+    "q1mlog" -.0669224 .0129316 -5.18 0.000 -.0922679 -.0415769;
+    "q2mlog" -.065569 .0104701 -6.26 0.000 -.0860902 -.0450479;
+    "q3mlog" -.0412175 .0083636 -4.93 0.000 -.0576098 -.0248251;
+    "q4mlog" -.020758 .0068287 -3.04 0.002 -.034142 -.0073741;
+    "mlogbhc" .168725 .0648695 2.60 0.009 .0415827 .2958673;
+#    "q1dlog" -.0625272 .1071465 -0.58 0.560 -.2725313 .1474769;
+#    "q2dlog" -.5528586 .1677468 -3.30 0.001 -.8816375 -.2240796;
+#    "q3dlog" -.8932082 .1628441 -5.49 0.000 -1.212378 -.5740385;
+#    "q4dlog" -.6595537 .1581312 -4.17 0.000 -.9694864 -.349621;
+#    "dlogbhc" .0676555 .0926011 0.73 0.465 -.11384 .2491511;
+#                 |
+#      sf12mcs_dv |
+#    "L1." .5262758 .0015297 344.04 0.000 .5232776 .5292739;
+#                 |
+    "female" -.799361 .0301345 -26.53 0.000 -.8584237 -.7402983;
+    "race_ms" .8272873 .2600764 3.18 0.001 .317545 1.33703;
+    "race_mx" -.4235778 .117867 -3.59 0.000 -.6545937 -.1925619;
+    "race_as" -.2153134 .0672696 -3.20 0.001 -.3471599 -.0834669;
+    "race_bl" .8555785 .0941759 9.08 0.000 .6709964 1.040161;
+    "race_ot" -.0818178 .1989814 -0.41 0.681 -.4718156 .30818;
+    "born_m" -.4412494 .1317057 -3.35 0.001 -.6993888 -.1831099;
+    "born_uk" -.2516825 .0552214 -4.56 0.000 -.3599147 -.1434502;
+    "llsid" -1.948192 .0330161 -59.01 0.000 -2.012903 -1.883482;
+    "marciv" .4932766 .04302 11.47 0.000 .4089587 .5775946;
+    "divsep" -.0224856 .0580789 -0.39 0.699 -.1363186 .0913475;
+    "widow" .4939777 .0767766 6.43 0.000 .3434978 .6444576;
+    "age2534" -.9669299 .0686889 -14.08 0.000 -1.101558 -.8323016;
+    "age3544" -.662258 .0701197 -9.44 0.000 -.7996906 -.5248254;
+    "age4554" -.2041259 .0709515 -2.88 0.004 -.3431888 -.0650631;
+    "age5565" .616918 .0749932 8.23 0.000 .4699335 .7639024;
+    "age6574" 1.180853 .0934391 12.64 0.000 .9977149 1.363991;
+    "age75" 1.327786 .1054333 12.59 0.000 1.12114 1.534432;
+    "hq_deg" -.1245185 .0595372 -2.09 0.036 -.2412097 -.0078273;
+    "hq_ohe" .0742798 .0635622 1.17 0.243 -.0503004 .19886;
+    "hq_al" .1178647 .0589437 2.00 0.046 .0023367 .2333927;
+    "hq_gcse" .2075504 .0579199 3.58 0.000 .094029 .3210718;
+    "hq_oth" .1935175 .0661833 2.92 0.003 .0638001 .3232349;
+    "ec_emp" 2.582286 .0618956 41.72 0.000 2.460973 2.7036;
+    "ec_se" 2.979511 .0795412 37.46 0.000 2.823612 3.13541;
+    "ec_fam" 2.179118 .0870071 25.05 0.000 2.008587 2.34965;
+    "ec_un" .5503545 .0904333 6.09 0.000 .3731078 .7276012;
+    "ec_ret" 3.087541 .0829093 37.24 0.000 2.925041 3.250041;
+    "rural" .2987942 .0350712 8.52 0.000 .2300557 .3675328;
+    "gor_nw" .1452431 .0864176 1.68 0.093 -.024133 .3146192;
+    "gor_yh" .1790899 .0895601 2.00 0.046 .0035547 .3546252;
+    "gor_em" .2360591 .090613 2.61 0.009 .0584603 .4136579;
+    "gor_wm" -.0172429 .0898078 -0.19 0.848 -.1932635 .1587778;
+    "gor_ee" .2282277 .0885268 2.58 0.010 .0547177 .4017376;
+    "gor_lo" .0892817 .0908445 0.98 0.326 -.088771 .2673344;
+    "gor_se" .1642839 .0845966 1.94 0.052 -.0015231 .330091;
+    "gor_sw" .1898351 .0885738 2.14 0.032 .0162329 .3634373;
+    "gor_wa" -.071062 .0921799 -0.77 0.441 -.251732 .1096079;
+    "gor_sc" .2934197 .0880426 3.33 0.001 .1208587 .4659807;
+    "gor_ni" .5129039 .0951431 5.39 0.000 .3264262 .6993816;
+    "ten_own" .3748749 .0493456 7.60 0.000 .278159 .4715909;
+    "ten_sr" -.2750053 .0597592 -4.60 0.000 -.3921317 -.1578789;
+    "_cons" 20.01 .5385379 37.16 0.000 18.95448 21.06552 ], 
+    ["var", "coef", "stderr",  "t",   "p",  "conflow",  "confhigh"] )
 
 const SFD6_REGRESSION = DataFrame([
     "q1mlog" -.0004121 .0001645  -2.51  0.012  -.0007345  -.0000898;
@@ -80,10 +140,12 @@ const SFD6_REGRESSION = DataFrame([
     Imputes the sf_6 measure for each non-child member of a household 
     Note the regression has monthly income by the taxben stuff is weekly
 """
-function get_sf_6d( 
+function get_health( 
     ; hh   :: Household, 
       eq_bhc_net_income :: Real, 
-      quintile :: Int ) :: Dict{BigInt,Number}
+      quintile :: Int,
+      regression :: DataFrame = SFD12_REGRESSION,
+      lagvalue = 0.5262758 ) :: Dict{BigInt,Number}
     @argcheck quintile in 1:5
 
     # @assert quintile in 1:5 "quintile is $quintile for income $eq_bhc_net_income"
@@ -95,10 +157,10 @@ function get_sf_6d(
     end
 
     # single row with the `var`s in the big matrix as the element names
-    r = unstack(SFD6_REGRESSION[!,1:2],:var,:coef)[1,:]
+    r = unstack(regression[!,1:2],:var,:coef)[1,:]
     r .= 0.0
 
-    sf_6ds = Dict{BigInt,Float64}() # FIXME T where T where ...
+    hh_results = Dict{BigInt,Float64}() # FIXME T where T where ...
     
      # household level
     r.q1mlog = quintile == 1 ? l_inc : 0.0
@@ -163,15 +225,15 @@ function get_sf_6d(
             r.ec_se = pers.employment_status in [Full_time_Self_Employed,Part_time_Self_Employed] ? 1 : 0
             r.ec_fam = pers.employment_status in [Looking_after_family_or_home] ? 1 : 0
             r.ec_un = pers.employment_status in [Unemployed] ? 1 : 0
-            ec_ret = pers.employment_status in [Retired] ? 1 : 0
+            r.ec_ret = pers.employment_status in [Retired] ? 1 : 0
             # cast our row as a vector, then vector product
-            sf6 = Vector(r)' * SFD6_REGRESSION.coef
-            @assert 0 < sf6 < 1 "sf6 out-of-range 0:1 $sf6"
-            sf_6ds[ pers.pid ] = sf6/(1-0.5337817) 
+            res = Vector(r)' * regression.coef
+            # @assert 0 < res < 1 "sf6 out-of-range 0:1 $res"
+            hh_results[ pers.pid ] = res/(1-lagvalue) 
             # for long-run equilibrium, divide by the lagged coef on SF6d.
         end
     end
-    sf_6ds
+    hh_results
 end
 
 
@@ -200,18 +262,10 @@ function q_from_inc( thresh :: Vector, inc :: Real )::Int
     @assert false "got to end shouldn't happen"
 end
 
-"""
-Create a dataframe worth of sf6s.
-Call after a run, for 1 system, sending in the main deciles output
-"""
-function create_sf6s( 
-    hhr :: DataFrame, 
-    deciles :: Matrix, 
-    settings :: Settings ) :: DataFrame
-    N = size(hhr)[1]*5 # 5 people per hhld : should be enough
-    ncases = 0
-    num_threads = min( nthreads(), settings.requested_threads )
-    out = DataFrame( 
+function make_frame( nhhlds :: Int )::DataFrame
+    N = nhhlds*5 # 5 people per hhld : should be enough
+    
+    return DataFrame( 
         hid=fill( BigInt(0), N ),
         pid=fill( BigInt(0), N ), 
         data_year = fill( 0, N ), 
@@ -226,15 +280,40 @@ function create_sf6s(
         age_band  = zeros(Int, N ),
         employment_status = fill(Missing_ILO_Employment, N ),
         decile = zeros( Int, N ),
-        sf6=fill( 0.0, N ))
+        sf6=fill( 0.0, N ),
+        sf12=fill( 0.0, N ))
+end
+
+"""
+Create a dataframe worth of sf6s.
+Call after a run, for 1 system, sending in the main deciles output
+"""
+function create_health_indicator( 
+    hhr :: DataFrame, 
+    deciles :: Matrix, 
+    settings :: Settings ) :: DataFrame
+    num_threads = min( nthreads(), settings.requested_threads )
     quintiles = get_quintiles( deciles[:,3])
     start,stop = make_start_stops( settings.num_households, num_threads )
+    allout = make_frame(0)
     @time @threads for thread in 1:num_threads
+        n = stop[thread] - start[thread] + 1
+        ncases = 0
+        out = make_frame( n )
         for hno in start[thread]:stop[thread]
             hh = FRSHouseholdGetter.get_household( hno )
             inc = hhr[ (hhr.hid.== hh.hid) .& (hhr.data_year .== hh.data_year), :eq_bhc_net_income][1]
             quintile = q_from_inc( quintiles, inc )
-            sf6 = get_sf_6d( hh = hh, eq_bhc_net_income=inc, quintile=quintile )
+            sf12 = get_health( 
+                hh = hh, 
+                eq_bhc_net_income=inc, 
+                quintile=quintile )
+            sf6 = get_health( 
+                hh = hh, 
+                eq_bhc_net_income=inc, 
+                quintile=quintile,
+                regression = SFD6_REGRESSION,
+                lagvalue = 0.5337817 )
             for (pid,sf) in sf6
                 ncases += 1
                 pers = hh.people[pid]
@@ -243,6 +322,7 @@ function create_sf6s(
                 out[ncases,:hid] = hh.hid
                 out[ncases,:data_year] = hh.data_year
                 out[ncases,:sf6] = sf
+                out[ncases,:sf12] = sf12[pid]
                 out[ncases,:hh_type] = hhr[hno,:hh_type]
                 out[ncases,:num_people] = hhr[hno,:num_people]
                 out[ncases,:tenure] = hh.tenure
@@ -254,15 +334,16 @@ function create_sf6s(
                 out[ncases,:ethnic_group] = pers.ethnic_group
             end # pids in hhld
         end # hh loop
+        allout = vcat( allout, out[1:ncases,:] )
     end # threads
-    out[1:ncases,:]
+    allout
 end
 
 function get_death_prob( 
     ;
     hh   :: Household,
     hres :: HouseholdResult )  :: Dict{BigInt,Number}
-    
+   
 end
 
 end # module
