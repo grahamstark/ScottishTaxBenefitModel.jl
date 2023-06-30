@@ -284,11 +284,13 @@ module STBParameters
         it.savings_thresholds .*= wpy
         it.dividend_thresholds .*= wpy
         it.personal_allowance *= wpy
+        it.personal_allowance_income_limit *= wpy
         it.blind_persons_allowance *= wpy
         it.married_couples_allowance *= wpy
         it.mca_minimum *= wpy
         it.marriage_allowance *= wpy
         it.personal_savings_allowance *= wpy
+        
         it.pension_contrib_basic_amount *= wpy
         
         
@@ -315,6 +317,7 @@ module STBParameters
         it.savings_thresholds ./= wpy
         it.dividend_thresholds ./= wpy
         it.personal_allowance /= wpy
+        it.personal_allowance_income_limit /= wpy
         it.blind_persons_allowance /= wpy
         it.married_couples_allowance /= wpy
         it.mca_minimum /= wpy
