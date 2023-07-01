@@ -10,6 +10,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .GeneralTaxComponents:WEEKS_PER_MONTH
 using .ModelHousehold
+using .Monitor: Progress
 using .Results
 using .RunSettings
 using .Utils: make_start_stops
