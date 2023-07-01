@@ -5,7 +5,7 @@ using Base.Threads
 using ArgCheck
 using DataFrames
 using StatsBase 
-
+using Observables
 using ScottishTaxBenefitModel
 using .Definitions
 using .GeneralTaxComponents:WEEKS_PER_MONTH
@@ -293,6 +293,7 @@ Call after a run, for 1 system, sending in the main deciles output
 function create_health_indicator( 
     hhr :: DataFrame, 
     deciles :: Matrix, 
+    observer :: Observable,
     settings :: Settings ) :: DataFrame
     # FIXME jamming threading off here since there's a problem runnung 2x in close succession & no time to fix it
     # settings.requested_threads )
@@ -307,6 +308,10 @@ function create_health_indicator(
         out = make_frame( n )
         for hno in start[thread]:stop[thread]
             hh = FRSHouseholdGetter.get_household( hno )
+            if hno % 100 == 0
+                observer[] = 
+                    Progress( settings.uuid, "health", thread, hno, 100, settings.num_households )
+            end
             inc = hhr[ (hhr.hid.== hh.hid) .& (hhr.data_year .== hh.data_year), :eq_bhc_net_income][1]
             quintile = q_from_inc( quintiles, inc )
             sf12 = get_health( 
