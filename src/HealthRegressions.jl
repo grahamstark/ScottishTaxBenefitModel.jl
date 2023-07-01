@@ -294,9 +294,12 @@ function create_health_indicator(
     hhr :: DataFrame, 
     deciles :: Matrix, 
     settings :: Settings ) :: DataFrame
-    num_threads = min( nthreads(), settings.requested_threads )
+    # FIXME jamming threading off here since there's a problem runnung 2x in close succession & no time to fix it
+    # settings.requested_threads )
+    num_threads = min( nthreads(), 1 ) 
     quintiles = get_quintiles( deciles[:,3])
     start,stop = make_start_stops( settings.num_households, num_threads )
+    println("settings.num_households=$(settings.num_households) num_threads=$num_threads")
     allout = make_frame(0)
     @time @threads for thread in 1:num_threads
         n = stop[thread] - start[thread] + 1
