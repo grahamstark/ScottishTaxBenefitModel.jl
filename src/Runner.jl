@@ -62,7 +62,7 @@ module Runner
         println( "starting $num_threads threads")
 
         num_systems = size( params )[1]
-        observer[]=Progress( settings.uuid, "start", 0, 0, 0, 0 )
+        observer[]=Progress( settings.uuid, "do-one-run-start", 0, 0, 0, 0 )
         load_prices( settings, false )
         #=
         for p in 1:num_systems
@@ -133,7 +133,7 @@ module Runner
             observer[]= Progress( settings.uuid, "dumping_frames", 0, 0, 0, 0 )
             dump_frames( settings, frames )
         end
-        observer[]= Progress( settings.uuid, "end", -99, -99, -99, -99 )
+        observer[]= Progress( settings.uuid, "do-one-run-end", -99, -99, -99, -99 )
         return frames
     end # do one run
 
