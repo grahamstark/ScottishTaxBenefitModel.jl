@@ -363,10 +363,10 @@ function summarise_sf12( h :: DataFrame, settings :: Settings ) :: NamedTuple
     med = StatsBase.median( sf, w )
     thresholds = quantile( sf , w, range ) 
     hist = fit(Histogram, sf, w, 0:2:100 )
-    pop = sum( h[ !, :weight ])
+    popn = sum( h[ !, :weight ])
     depressed = sum( h[h.sf12 .<= settings.sf12_depression_limit, :weight ])
-    depressed_pct = 100*depressed/pop
-    (; depressed, depressed_pct, hist, thresholds, range, average, med, sdev )
+    depressed_pct = 100*depressed/popn
+    (; depressed, depressed_pct, hist, thresholds, range, average, med, sdev, popn )
 end
 
 function get_death_prob( 

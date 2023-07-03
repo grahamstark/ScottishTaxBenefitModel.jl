@@ -613,7 +613,7 @@ const EXTRA_INC_COLS = 10
             vhh[:,m] = zeros(n)
         end
         ns = Symbol.(colnames)
-        select!( sort!(vhh,col), ns... )
+        select!( sort!(vhh, col), ns... )
         return coalesce.( vhh, 0.0)
     end
 
