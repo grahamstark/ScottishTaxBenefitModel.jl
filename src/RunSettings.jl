@@ -30,7 +30,9 @@ module RunSettings
         ahc_hh, 
         bhc_hh, 
         total_bens, 
-        total_taxes
+        total_taxes,
+
+        get_all_uk_settings_2023
         
     @enum TargetBCIncomes ahc_hh bhc_hh total_bens total_taxes
         
@@ -88,6 +90,28 @@ module RunSettings
         do_health_esimates = false 
         ## Elliot's email of June 21, 2023
         sf12_depression_limit = 45.60
+ create_own_grossing = true
+        use_average_band_d = false
+    end
+
+    function get_all_uk_settings_2023()::Settings
+        settings = Settings()
+        settings.household_name = "model_households-2021-2021"
+        settings.people_name    = "model_people-2021-2021"
+        settings.target_nation :: Nation = N_UK
+        settings.dump_frames :: Bool = false
+        settings.num_households :: Int = 0
+        settings.num_people :: Int = 0
+        settings.prices_file = "indexes-july-2023.tab"
+        settings.to_y :: Int = 2023
+        settings.to_q :: Int = 1
+        settings.auto_weight = false
+        settings.use_benefit_generosity = false
+        settings.use_average_band_d = true
+        settings.requested_threads = 4
+        settings.impute_employer_pension = false
+        settings.benefit_generosity_estimates_available = false
+        return settings
     end
 
 end

@@ -359,7 +359,14 @@ function initialise_person(n::Integer)::DataFrame
         ),
         income_social_fund_loan_uc = Vector{Union{Real,Missing}}(missing, n),
         income_other_benefits = Vector{Union{Real,Missing}}(missing, n),
-        
+
+        income_scottish_child_payment = Vector{Union{Real,Missing}}(missing, n),
+        income_job_start_payment = Vector{Union{Real,Missing}}(missing, n),
+        income_troubles_permanent_disablement = Vector{Union{Real,Missing}}(missing, n),
+        income_child_disability_payment_care = Vector{Union{Real,Missing}}(missing, n),
+        income_child_disability_payment_mobility = Vector{Union{Real,Missing}}(missing, n),
+        income_pupil_development_grant = Vector{Union{Real,Missing}}(missing, n),
+                
         wages_frs = Vector{Union{Real,Missing}}(missing, n),
         self_emp_frs = Vector{Union{Real,Missing}}(missing, n),
         wages_hbai = Vector{Union{Real,Missing}}(missing, n),
@@ -414,6 +421,9 @@ function initialise_person(n::Integer)::DataFrame
         asset_credit_unions = Vector{Union{Real,Missing}}(missing, n),
         asset_endowment_policy_not_linked = Vector{Union{Real,Missing}}(missing, n),
         asset_informal_assets = Vector{Union{Real,Missing}}(missing, n),
+        asset_post_office_card_account= Vector{Union{Real,Missing}}(missing, n),
+        asset_friendly_society_investment = Vector{Union{Real,Missing}}(missing, n),
+
         contracted_out_of_serps = Vector{Union{Integer,Missing}}(missing, n),
         registered_blind = Vector{Union{Integer,Missing}}(missing, n),
         registered_partially_sighted = Vector{Union{Integer,Missing}}(missing, n),
@@ -664,7 +674,9 @@ function map_investment_income!(model_adult::DataFrameRow, accounts::DataFrame)
             Premium_bonds,
             Company_Share_Option_Plans,
             Post_Office_Card_Account,
-            Pensioners_Guaranteed_Bonds
+            Pensioners_Guaranteed_Bonds,
+            Informal_Assets,            
+            Friendly_Society_Investment
         ]
             model_adult.income_other_investment_income += v
         elseif atype in [

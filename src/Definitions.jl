@@ -1093,6 +1093,13 @@ export wages,
        universal_credit,
        personal_independence_payment_daily_living,
        personal_independence_payment_mobility,
+       scottish_child_payment,
+       job_start_payment,
+       troubles_permanent_disablement,
+       child_disability_payment_care,
+       child_disability_payment_mobility,
+       pupil_development_grant,
+    
        other_benefits
 
 @enum Incomes_Type begin
@@ -1182,6 +1189,13 @@ export wages,
    personal_independence_payment_daily_living = 2096
    personal_independence_payment_mobility = 2097
 
+   scottish_child_payment = 2112
+   job_start_payment = 2115
+   troubles_permanent_disablement = 2116
+   child_disability_payment_care = 2121
+   child_disability_payment_mobility = 2122
+   pupil_development_grant = 2123
+
    other_benefits = 3000
 end
 
@@ -1232,7 +1246,9 @@ export A_Current_account,
        A_Basic_Account,
        A_Credit_Unions,
        A_Endowment_Policy_Not_Linked,
-       A_Informal_Assets
+       A_Post_Office_Card_Account,
+       A_Informal_Assets,
+       A_Friendly_Society_Investment
 export Missing_Asset_Type
 
 @enum Asset_Type begin  # mapped from assetype
@@ -1262,6 +1278,8 @@ export Missing_Asset_Type
    A_Basic_Account = 27
    A_Credit_Unions = 28
    A_Endowment_Policy_Not_Linked = 29
+   A_Post_Office_Card_Account = 30
+   A_Friendly_Society_Investment = 31
    A_Informal_Assets = 32
 end
 
@@ -1401,6 +1419,7 @@ export Current_account,
        Credit_Unions,
        Endowment_Policy_Not_Linked,
        Post_Office_Card_Account,
+       Friendly_Society_Investment,
        Informal_Assets
 export Missing_Account_Type
 
@@ -1435,6 +1454,7 @@ export Missing_Account_Type
    Credit_Unions = 28
    Endowment_Policy_Not_Linked = 29
    Post_Office_Card_Account = 30
+   Friendly_Society_Investment = 31
    Informal_Assets = 32
 end
 
@@ -1511,8 +1531,13 @@ export DLAself_care,
        Social_Fund_Loan_UC,
        DWP_Third_Party_Payments_V2, # 2019 -
        Repayment_UC_Advance, # 2019- 
-       Advance_of_UC # 2019 -
-    
+       Advance_of_UC, # 2019 -
+       Job_Start_Payment,
+       Troubles_Permanent_Disablement,
+       Child_Disability_Payment_Care,
+       Child_Disability_Payment_Mobility,
+       Pupil_Development_Grant
+        
 export Missing_Benefit_Type
 
 @enum Benefit_Type begin  # mapped from benefit
@@ -1576,9 +1601,16 @@ export Missing_Benefit_Type
    Future_Employment_and_Support_Allowance = 109
    DWP_third_party_payments_UC = 110
    Social_Fund_Loan_UC = 111
-   DWP_Third_Party_Payments_V2 = 112 # 2019- no idea what this is
+   DWP_Third_Party_Payments_V2 = 1112 # 2019- no idea what this is
    Repayment_UC_Advance = 113 # 2019- 
    Advance_of_UC = 114 # 2019 -
+   Scottish_Child_Payment = 112
+   Job_Start_Payment = 115
+   Troubles_Permanent_Disablement = 116
+   Child_Disability_Payment_Care = 121
+   Child_Disability_Payment_Mobility = 122
+   Pupil_Development_Grant = 123
+
 
 end
 

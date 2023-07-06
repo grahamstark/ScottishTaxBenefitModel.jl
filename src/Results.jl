@@ -824,6 +824,17 @@ module Results
             if haskey(incd, Definitions.guardians_allowance )
                 out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
             end
+
+            # FIXME 6/7/2023 add 
+            #=
+            scottish_child_payment = 2112
+            job_start_payment = 2115
+            troubles_permanent_disablement = 2116
+            child_disability_payment_care = 2121
+            child_disability_payment_mobility = 2122
+            pupil_development_grant = 2123
+            =#
+
             # not in the income list
             # if haskey(incd, Definitions.council_tax_rebate )
             #     out[COUNCIL_TAX_REBATE] = incd[Definitions.council_tax_rebate]
