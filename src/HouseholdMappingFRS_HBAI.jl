@@ -143,8 +143,16 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
    af = ad_frs[1,:]
    jsa = head ? af.jsatyphd : af.jsatypsp
    # fixme refactor
-   jtype = -1
-   if jsa == -1
+    # 2021 has mostly single blank
+    if typeof(jsa) <: AbstractString
+    jsa = if jsa == " " 
+        -1
+      else
+        parse(Int,jsa)
+      end
+    end
+    jtype = -1
+    if jsa == -1
         jtype = -1
     elseif jsa in [1,3]
         jtype = 1
@@ -157,6 +165,15 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
     end 
     etype = -1
     esa = head ? af.esatyphd : af.esatypsp
+    # 2021 has mostly single blank
+    if typeof(esa) <: AbstractString
+        esa = if esa == " " 
+            -1
+        else
+            parse(Int,esa)
+        end
+    end
+    
     if esa == -1
         etype = -1
     elseif esa in [1,3]
@@ -303,6 +320,7 @@ function initialise_person(n::Integer)::DataFrame
             n
         ),
         income_winter_fuel_payments = Vector{Union{Real,Missing}}(missing, n),
+        income_child_winter_heating_assistance_payment = Vector{Union{Real,Missing}}(missing, n),
         income_dwp_third_party_payments_is_or_pc = Vector{Union{Real,Missing}}(missing, n),
         income_dwp_third_party_payments_jsa_or_esa = Vector{Union{Real,Missing}}(
             missing,
@@ -395,6 +413,7 @@ function initialise_person(n::Integer)::DataFrame
         asset_basic_account = Vector{Union{Real,Missing}}(missing, n),
         asset_credit_unions = Vector{Union{Real,Missing}}(missing, n),
         asset_endowment_policy_not_linked = Vector{Union{Real,Missing}}(missing, n),
+        asset_informal_assets = Vector{Union{Real,Missing}}(missing, n),
         contracted_out_of_serps = Vector{Union{Integer,Missing}}(missing, n),
         registered_blind = Vector{Union{Integer,Missing}}(missing, n),
         registered_partially_sighted = Vector{Union{Integer,Missing}}(missing, n),
@@ -900,9 +919,10 @@ function process_benefits!( model_adult::DataFrameRow, a_benefits::DataFrame)
         bno = a_benefits[b, :benefit]
         if !(bno in [46, 47]) # 2015 receipt in last 6 months of tax credits
             btype = Benefit_Type(bno)
-            # println( "bno=$bno BenefitType=$btype")
+            println( "bno=$bno BenefitType=$btype")
             if btype <= Personal_Independence_Payment_Mobility
                 ikey = make_sym_for_frame("income", btype)
+                println( "ikey=$ikey")
                 model_adult[ikey] = safe_inc(model_adult[ikey], a_benefits[b, :benamt])
             end
         end
@@ -1452,14 +1472,17 @@ const HBAIS = Dict(
     2003 => "hbai0304_g4.tab"
 )
 
+# FIXME paths in Definitions.jl broken
+const L_HBAI_DIR="/mnt/data/hbai/"
+const L_FRS_DIR="/mnt/data/frs/"
 
 
 function loadfrs(which::AbstractString, year::Integer)::DataFrame
-    filename = "$(FRS_DIR)/$(year)/tab/$(which).tab"
+    filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"
     loadtoframe(filename)
 end
 
-function create_data()
+function create_data(;start_year::Int, end_year::Int, hbai::String)
     #
     # every time I do this the HBAI has been re-arranged
     # now, there's one file for the years 2015-2019; despite the name
@@ -1467,13 +1490,13 @@ function create_data()
     # `5828_hbai_1920_harmonised_dataset_variables_guide.xlsx`
     # in the doc bundle 
     #
-    hbai_res = loadtoframe("$(HBAI_DIR)/tab/i1518e_1920prices.tab")
-    hbai_res = vcat( hbai_res, loadtoframe("$(HBAI_DIR)/tab/i1820e_1920prices.tab"))
+    hbai_res = loadtoframe("$(L_HBAI_DIR)/tab/$(hbai).tab")
+    # hbai_res = vcat( hbai_res, loadtoframe("$(HBAI_DIR)/tab/i1820e_1920prices.tab"))
 
-    # model_households = initialise_household(0)
-    # model_people = initialise_person(0)
-    start_year = 2015
-    end_year = 2019
+    model_households = initialise_household(0)
+    model_people = initialise_person(0)
+    # start_year = 2015
+    # end_year = 2019
     hbai_year = 21 # hbai year counter; 1994/5 == 1 => 2015 == 22
 
     for year in start_year:end_year
@@ -1488,31 +1511,35 @@ function create_data()
         # if year < 2019
         frsx = loadfrs( "frs$ystr", year )
         # else
-        #    frsx=CSV.File( "$(FRS_DIR)/$(year)/tab/frs1920.tab", missingstring=["", " "]) |> DataFrame
+        #    frsx=CSV.File( "$(L_FRS_DIR)/$(year)/tab/frs1920.tab", missingstring=["", " "]) |> DataFrame
         #  
         # end
         accounts = loadfrs("accounts", year)
-        benunit = loadfrs("benunit", year)
-        extchild = loadfrs("extchild", year)
-        maint = loadfrs("maint", year)
-        penprov = loadfrs("penprov", year)
-        care = loadfrs("care", year)
-        mortcont = loadfrs("mortcont", year)
-        pension = loadfrs("pension", year)
         adult = loadfrs("adult", year)
-        child = loadfrs("child", year)
-        govpay = loadfrs("govpay", year)
-        mortgage = loadfrs("mortgage", year)
         assets = loadfrs("assets", year)
-        chldcare = loadfrs("chldcare", year)
-        househol = loadfrs("househol", year)
-        oddjob = loadfrs("oddjob", year)
-        rentcont = loadfrs("rentcont", year)
         benefits = loadfrs("benefits", year)
+        benunit = loadfrs("benunit", year)
+        care = loadfrs("care", year)
+        child = loadfrs("child", year)
+        chldcare = loadfrs("chldcare", year)
         endowmnt = loadfrs("endowmnt", year)
+        extchild = loadfrs("extchild", year)
+        govpay = loadfrs("govpay", year)
+        househol = loadfrs("househol", year)
         job = loadfrs("job", year)
+        maint = loadfrs("maint", year)
+        mortcont = loadfrs("mortcont", year)
+        mortgage = loadfrs("mortgage", year)
+        oddjob = loadfrs("oddjob", year)
         owner = loadfrs("owner", year)
+        penprov = loadfrs("penprov", year)
+        pension = loadfrs("pension", year)
+        rentcont = loadfrs("rentcont", year)
         renter = loadfrs("renter", year)
+        #
+        # 2021 renames ... these are all the same variables
+        #
+        renameif!( adult, ["nssec20"=> "nssec", "soc2020"=>"soc2010"]) # 2021 change; this seems to be the same variable
 
         model_children_yr = create_children(
             year, 
@@ -1520,7 +1547,7 @@ function create_data()
             chldcare, 
             hbai_res[(hbai_res.year .== hbai_year),:], benefits )
 
-        # append!(model_people, model_children_yr)
+        append!(model_people, model_children_yr)
         model_adults_yr = create_adults(
             year,
             adult,
@@ -1544,7 +1571,7 @@ function create_data()
             job,
             hbai_res[(hbai_res.year .== hbai_year),:],
             frsx )
-        # append!(model_people, model_adults_yr)
+        append!(model_people, model_adults_yr)
         model_households_yr = create_household(
             year,
             househol,
@@ -1553,15 +1580,15 @@ function create_data()
             mortcont,
             owner,
             hbai_res[(hbai_res.year .== hbai_year),:] )
-        # append!(model_households, model_households_yr)
+        append!(model_households, model_households_yr)
         println( "on year $year")
         println( "hhlds")
-        CSV.write("$(MODEL_DATA_DIR)/model_households.tab", model_households_yr, delim = "\t", append=appendb)
-        println( "adults")
-        CSV.write("$(MODEL_DATA_DIR)/model_people.tab", model_adults_yr, delim = "\t", append=appendb)
-        println( "children")
-        CSV.write("$(MODEL_DATA_DIR)/model_people.tab", model_children_yr, delim = "\t", append=true)
+        # CSV.write("$(MODEL_DATA_DIR)/model_households-$(start_year)-$(end_year).tab", model_households_yr, delim = "\t", append=appendb)
+        # println( "adults")
+        # CSV.write("$(MODEL_DATA_DIR)/model_people.tab-$(start_year)-$(end_year)", model_adults_yr, delim = "\t", append=appendb)
+        # println( "children")
+        # CSV.write("$(MODEL_DATA_DIR)/model_people.tab-$(start_year)-$(end_year)", model_children_yr, delim = "\t", append=true)
     end    
-    # CSV.write("$(MODEL_DATA_DIR)model_households.tab", model_households, delim = "\t")
-    # CSV.write("$(MODEL_DATA_DIR)model_people.tab", model_people, delim = "\t")
+    CSV.write("$(MODEL_DATA_DIR)model_households-$(start_year)-$(end_year).tab", model_households, delim = "\t")
+    CSV.write("$(MODEL_DATA_DIR)model_people-$(start_year)-$(end_year).tab", model_people, delim = "\t")
 end

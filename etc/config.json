@@ -1,6 +1,6 @@
 {
 	"model_data_dir":"/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/",
-	"raw_data_dir":"/mnt/data/"
+	"raw_data":"/mnt/data/"
 }
 
 

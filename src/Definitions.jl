@@ -60,7 +60,7 @@ const PRICES_DIR       = joinpath( MODEL_DATA_DIR, "prices", "indexes" )
 const MATCHING_DIR     = joinpath( MODEL_DATA_DIR, "merging" )
 
 const RAW_DATA         = load_data_path( which=:raw_data, default="/mnt/data/" )
-const FRS_DIR          = joinpath(RAW_DATA, "/frs/" )
+const FRS_DIR          = joinpath( RAW_DATA, "/frs/" )
 const HBAI_DIR         = joinpath( RAW_DATA, "/hbai/" )
 
 export NUM_REPEATS
@@ -1076,6 +1076,7 @@ export wages,
        widows_payment,
        unemployment_or_redundancy_insurance,
        winter_fuel_payments,
+       child_winter_heating_assistance_payment,
        dwp_third_party_payments_is_or_pc,
        dwp_third_party_payments_jsa_or_esa,
        social_fund_loan_repayment_from_is_or_pc,
@@ -1163,6 +1164,7 @@ export wages,
    widows_payment = 2060
    unemployment_or_redundancy_insurance = 2061
    winter_fuel_payments = 2062
+   child_winter_heating_assistance_payment = 2063
    dwp_third_party_payments_is_or_pc = 2065
    dwp_third_party_payments_jsa_or_esa = 2066
    social_fund_loan_repayment_from_is_or_pc = 2069
@@ -1229,7 +1231,8 @@ export A_Current_account,
        A_GEB,
        A_Basic_Account,
        A_Credit_Unions,
-       A_Endowment_Policy_Not_Linked
+       A_Endowment_Policy_Not_Linked,
+       A_Informal_Assets
 export Missing_Asset_Type
 
 @enum Asset_Type begin  # mapped from assetype
@@ -1259,6 +1262,7 @@ export Missing_Asset_Type
    A_Basic_Account = 27
    A_Credit_Unions = 28
    A_Endowment_Policy_Not_Linked = 29
+   A_Informal_Assets = 32
 end
 
 @enum Included_In_Pay_Type begin  # mapped from assetype
@@ -1396,7 +1400,8 @@ export Current_account,
        Basic_Account,
        Credit_Unions,
        Endowment_Policy_Not_Linked,
-       Post_Office_Card_Account
+       Post_Office_Card_Account,
+       Informal_Assets
 export Missing_Account_Type
 
 @enum Account_Type begin  # mapped from account
@@ -1430,6 +1435,7 @@ export Missing_Account_Type
    Credit_Unions = 28
    Endowment_Policy_Not_Linked = 29
    Post_Office_Card_Account = 30
+   Informal_Assets = 32
 end
 
 
@@ -1474,6 +1480,7 @@ export DLAself_care,
        Widows_Payment,
        Unemployment_or_Redundancy_Insurance,
        Winter_Fuel_Payments,
+       Child_Winter_Heating_Assistance_Payment,
        DWP_third_party_payments_IS_or_PC,
        DWP_third_party_payments_JSA_or_ESA,
        Social_Fund_Loan_Repayment_from_IS_or_PC,
@@ -1540,6 +1547,7 @@ export Missing_Benefit_Type
    Widows_Payment = 60
    Unemployment_or_Redundancy_Insurance = 61
    Winter_Fuel_Payments = 62
+   Child_Winter_Heating_Assistance_Payment = 63
    DWP_third_party_payments_IS_or_PC = 65
    DWP_third_party_payments_JSA_or_ESA = 66
    Social_Fund_Loan_Repayment_from_IS_or_PC = 69

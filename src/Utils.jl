@@ -49,13 +49,45 @@ export
    operate_on_struct!, 
    pretty, 
    qstrtodict, 
+   renameif!,
    riskyhash,
    to_md_table,
    todays_date, 
    uprate_struct!
 
+"""
+DataFrames `rename` throws an exception if the thing being renamed doesn't exist, but it's 
+useful to be able to do that e.g. when joining datasets from multiple years. So...
 
+renameif!( df, "FRED", "JOE" )
+
+Rename column "from" in d to "to", if "from" exists, otherwise do nothing.
+"""
+function renameif!( d::DataFrame, from::AbstractString, to::AbstractString )
+   if from in names(d)
+      rename!(d,[from=>to])
+   end
+end
+    
    
+"""
+renameif!( df, "FRED"=>"JOE" )
+rename column "tf[1]" in d to tf[2], if tf[1] exists.
+"""
+function renameif!(d::DataFrame, pair :: Pair )
+   renameif!(d, pair[1], pair[2])
+end
+
+"""
+renameif!( df, ["FRED"=>"JOE","A"=>"SS"] )
+Rename columns of `d` using the collection of pairs tf.
+"""
+function renameif!(d::DataFrame, pairs :: AbstractArray )
+   for t in pairs
+      renameif!( d, t ) 
+   end
+end
+
 
 """
 Make a new dataframe with the difference between the fields between
