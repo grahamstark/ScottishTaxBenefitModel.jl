@@ -117,3 +117,17 @@ https://commonslibrary.parliament.uk/constituency-data-universal-credit-roll-out
    - incapacity  54
    - jobseekers 97
 NIRELAND:  ????
+
+```julia
+
+# missing cols in old data
+
+function makessamecols( old::DataFrame, new::DataFrame)
+         targ = Symbol.(setdiff(names(new),names(old)))
+         println( "targ = $targ");rows,cols = size(old)
+         for t in targ
+            old[:,t] = zeros(rows)
+         end
+end
+```
+

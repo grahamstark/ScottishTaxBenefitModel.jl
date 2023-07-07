@@ -86,7 +86,7 @@ function map_person(
                 if tv == String # FIXME delete not needed
                     v = parse( Float64, v )
                 end
-                println( "setting ikey = $ikey to $v of type $tv")
+                # println( "setting ikey = $ikey to $v of type $tv")
                 income[i] = v
             end
         end
