@@ -26,6 +26,7 @@ settings.means_tested_routing = modelled_phase_in
         for bno in eachindex(bus)
             @test typeof(bus[bno]) <: BenefitUnit
             intermed = make_intermediate( 
+                Scotland,
                 bno,
                 bus[bno],  
                 sys.lmt.hours_limits,
