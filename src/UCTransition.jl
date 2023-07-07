@@ -22,12 +22,29 @@ export
 
 @enum ClaimantType trans_all trans_housing trans_w_kids trans_incapacity trans_jobseekers
 
-const PROPS_ON_UC = Dict(
-    trans_all => 0.62, 
-    trans_housing => 0.64,
-    trans_w_kids => 0.63,
-    trans_incapacity => 0.41,
-    trans_jobseekers => 0.95 )
+const PROPS_ON_UC = 
+    Dict(N_England=>
+            Dict(
+                trans_all => 0.70, 
+                trans_housing => 0.69,
+                trans_w_kids => 0.71,
+                trans_incapacity => 0.53,
+                trans_jobseekers => 0.97 ),
+        N_Scotland=>
+            Dict(
+                trans_all => 0.70, 
+                trans_housing => 0.71,
+                trans_w_kids => 0.71,
+                trans_incapacity => 0.54,
+                trans_jobseekers => 0.97 ),
+        N_Wales=>
+            Dict(
+                trans_all => 0.70, 
+                trans_housing => 0.69,
+                trans_w_kids => 0.71,
+                trans_incapacity => 0.53,
+                trans_jobseekers => 0.97 )
+        )
 
 """
 Allocate a benefit unit to ether UC or Legacy Benefits. Very crudely.
@@ -41,15 +58,15 @@ function route_to_uc_or_legacy(
     end
     prob = 0.0
     if intermed.num_job_seekers > 0
-        prob = PROPS_ON_UC[trans_jobseekers]
+        prob = PROPS_ON_UC[intermed.nation][trans_jobseekers]
     elseif intermed.limited_capacity_for_work
-        prob = PROPS_ON_UC[trans_incapacity]
+        prob = PROPS_ON_UC[intermed.nation][trans_incapacity]
     elseif intermed.num_children > 0
-        prob = PROPS_ON_UC[trans_w_kids]
+        prob = PROPS_ON_UC[intermed.nation][trans_w_kids]
     elseif intermed.benefit_unit_number == 1
-        prob = PROPS_ON_UC[trans_housing]
+        prob = PROPS_ON_UC[intermed.nation][trans_housing]
     else
-        prob = PROPS_ON_UC[trans_all]
+        prob = PROPS_ON_UC[intermed.nation][trans_all]
     end
     head = get_head( bu )
     switch = testp( head.onerand, prob, Randoms.UC_TRANSITION )

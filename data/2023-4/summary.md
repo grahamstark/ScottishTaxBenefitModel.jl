@@ -1,4 +1,4 @@
-# SUMMARY LHA/CTD Rates 2023/4
+# HACKY SUMMARY LHA/CTD Rates 2023/4
 
 ## BRMA
 
@@ -67,6 +67,8 @@ https://www.gov.scot/publications/council-tax-datasets/
 
 ### HACK CODE
 
+```julia 
+
 hhlds = CSV.File( "model_households-2021-2021.tab") |> DataFrame
 nr,nc = size(hhlds)
 hhlds.council = Vector{Symbol}(undef,nr)
@@ -79,7 +81,7 @@ hhlds.council[hhlds.region .== 499999999] .= :NIRELAND
 
 people = CSV.File( "model_people-2021-2021.tab")|>DataFrame
 
-# random room allocation
+# garbagy random room allocation
 for hh in eachrow( hhlds )
     hhpeeps = people[((people.data_year .== hh.data_year).&(people.hid .== hh.hid)),:]
     hhkids = hhpeeps[hhpeeps.from_child_record .== 1,:]
@@ -92,3 +94,26 @@ for hh in eachrow( hhlds )
     println( "np $np nk $nk hrooms $hrooms" )
     hh.bedrooms = hrooms
 end
+
+```
+
+## Legacy -> UC Transition
+
+https://commonslibrary.parliament.uk/constituency-data-universal-credit-roll-out/
+
+* WALES: 
+   - children 71
+   - hcosts 69
+   - incapacity  53
+   - jobseekers 97
+* ENGLAND:
+   - children 74
+   - hcosts 73
+   - incapacity  53
+   - jobseekers 98
+* SCOŦLAND:
+   - children 71
+   - hcosts 71
+   - incapacity  54
+   - jobseekers 97
+NIRELAND:  ????

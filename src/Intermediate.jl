@@ -251,6 +251,7 @@ mutable struct MTIntermediate
     economically_active :: Bool
     working_disabled :: Bool
     num_benefit_units :: Int
+    nation :: Nation 
 end
 
 
@@ -341,6 +342,7 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
 end
 
 function make_intermediate(
+    region :: Standard_Region,
     buno :: Int,
     bu   :: BenefitUnit, 
     hrs  :: HoursLimits,
@@ -348,6 +350,7 @@ function make_intermediate(
     child_limits :: ChildLimits,
     num_benefit_units :: Int ) :: MTIntermediate
     # {RT} where RT
+    nation = nation_from_region( region )
     age_youngest_adult :: Int = 9999
     age_oldest_adult :: Int = -9999
     age_youngest_child :: Int = 9999
@@ -523,7 +526,8 @@ function make_intermediate(
         has_children,
         economically_active,
         is_working_disabled,
-        num_benefit_units
+        num_benefit_units,
+        nation
     )
 end
 
@@ -539,6 +543,7 @@ function make_intermediate(
     buint = Vector{MTIntermediate}(undef,n)
     for buno in 1:n
         buint[buno] = make_intermediate( 
+            hh.region,
             buno, 
             bus[buno], 
             hrs, 

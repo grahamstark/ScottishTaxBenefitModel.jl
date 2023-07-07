@@ -638,7 +638,7 @@ export Missing_Standard_Region
    Northern_Ireland = 499999999
 end
 
-export Nation, N_England, N_Scotland, N_Wales, N_Northern_Ireland, N_UK, N_GB, N_rUK
+export nation_from_region, Nation, N_England, N_Scotland, N_Wales, N_Northern_Ireland, N_UK, N_GB, N_rUK
 
 @enum Nation begin
    N_England = 199999999
@@ -649,6 +649,28 @@ export Nation, N_England, N_Scotland, N_Wales, N_Northern_Ireland, N_UK, N_GB, N
    N_UK = 599999999
    N_GB = 699999999
    N_rUK = 799999999
+end
+
+function nation_from_region( r :: Standard_Region ) :: Nation
+   return if r in [North_East,
+      North_West,
+      Yorks_and_the_Humber,
+      East_Midlands,
+      West_Midlands,
+      East_of_England,
+      London,
+      South_East,
+      South_West]
+         N_England
+   elseif r == Scotland 
+      N_Scotland
+   elseif r == Wales
+      N_Wales
+   elseif r == Northern_Ireland 
+      N_Northern_Ireland
+   else
+      @assert false "failed to map $r"
+   end
 end
 
 

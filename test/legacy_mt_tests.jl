@@ -123,6 +123,7 @@ end
         bus = get_benefit_units( hh )
         bu = bus[1]
         intermed = make_intermediate( 
+            Scotland,
             1,
             bu,  
             lmt.hours_limits,
@@ -199,6 +200,7 @@ end
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
     intermed = make_intermediate( 
+        Scotland,
         1,
         e_and_m,  
         lmt.hours_limits,
@@ -230,6 +232,7 @@ end # test set
     cpl = get_benefit_units(get_example(cpl_w_2_children_hh))[1]
     sparent = get_benefit_units(get_example(single_parent_hh))[1]
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -255,6 +258,7 @@ end # test set
     unemploy!( head )
     unemploy!( spouse )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -275,6 +279,7 @@ end # test set
     
     disable_slightly!( spouse )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -294,6 +299,7 @@ end # test set
     carer!( head )
     println( "head.employment_status=$(head.employment_status) spouse.employment_status=$(spouse.employment_status)")
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -308,6 +314,7 @@ end # test set
     @test ! eligs_cpl.wtc
     
     intermed = make_intermediate( 
+        Scotland,
         1,
         sparent,  
         sys.lmt.hours_limits,
@@ -325,6 +332,7 @@ end # test set
     head = get_head( sparent )
     unemploy!( head )
     intermed = make_intermediate( 
+        Scotland,
         1,
         sparent,  
         sys.lmt.hours_limits,
@@ -341,6 +349,7 @@ end # test set
     @test eligs_sp.ctr 
     carer!( head )
     intermed = make_intermediate( 
+        Scotland,
         1,
         sparent,  
         sys.lmt.hours_limits,
@@ -357,6 +366,7 @@ end # test set
     @test eligs_sp.ctr 
     head.age = 70
     intermed = make_intermediate( 
+        Scotland,
         1,
         sparent,  
         sys.lmt.hours_limits,
@@ -373,6 +383,7 @@ end # test set
     @test eligs_sp.ctr 
     retire!( head )
     intermed = make_intermediate( 
+        Scotland,
         1,
         sparent,  
         sys.lmt.hours_limits,
@@ -391,6 +402,7 @@ end # test set
     @test eligs_sp.ctr 
     employ!( head )
     intermed = make_intermediate( 
+        Scotland,
         1,
         sparent,  
         sys.lmt.hours_limits,
@@ -414,6 +426,7 @@ end
     head = get_head( cpl )
     println( "sp=$spouse" )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -443,6 +456,7 @@ end
     unemploy!( head )
     unemploy!( spouse )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -468,6 +482,7 @@ end
     
     disable_slightly!( spouse )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -493,6 +508,7 @@ end
     
     carer!( head )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -517,6 +533,7 @@ end
 
     sparent = get_benefit_units(get_example(single_parent_hh))[1]
     intermed = make_intermediate( 
+        Scotland,
         1,
         sparent,  
         sys.lmt.hours_limits,
@@ -564,6 +581,7 @@ end
     for i in 1:nt
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -587,6 +605,7 @@ end
     for i in 1:nt
         head.income[wages] = wage[i]
         intermed = make_intermediate( 
+            Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -611,6 +630,7 @@ end
         # head.income[wages] = wage[i]
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -636,6 +656,7 @@ end
         # head.income[wages] = wage[i]
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -667,6 +688,7 @@ end
         # spouse.income[wages] = wage[i]
         bur.pers[spouse.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            Scotland,
             1,
             cpl,  
             sys.lmt.hours_limits,
@@ -690,6 +712,7 @@ end
         bur.pers[spouse.pid].income[WAGES] = wage[i] / 3.0
         bur.pers[head.pid].income[WAGES] = wage[i]* 2 / 3.0
         intermed = make_intermediate( 
+            Scotland,
             1,
             cpl,  
             sys.lmt.hours_limits,
@@ -718,6 +741,7 @@ end
         # head.income[wages] = wage[i]
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            Scotland,
             1,   
             spers,  
             sys.lmt.hours_limits,
@@ -745,6 +769,7 @@ end
     head.age = 25
     empty!( head.income )
     intermed = make_intermediate( 
+            Scotland,
             1,   
             singbu,  
             sys.lmt.hours_limits,
@@ -764,6 +789,7 @@ end
     end
     head.age = 17
     intermed = make_intermediate( 
+            Scotland,
             1,   
             singbu,  
             sys.lmt.hours_limits,
@@ -794,6 +820,7 @@ end
     head = get_head(sparbu) 
     
     intermed = make_intermediate( 
+            Scotland,
             1,   
             sparbu,  
             sys.lmt.hours_limits,
@@ -802,6 +829,7 @@ end
             1 )
     head.age = 17
     intermed = make_intermediate( 
+            Scotland,
             1,   
             sparbu,  
             sys.lmt.hours_limits,
@@ -838,6 +866,7 @@ end
     head.age = 17
     println( "sp=$spouse" )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -862,6 +891,7 @@ end
     spouse.age = 17
     head.age = 18
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -885,6 +915,7 @@ end
     spouse.age = 18
     head.age = 18
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -908,6 +939,7 @@ end
     spouse.age = 60
     head.age = 60
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -939,6 +971,7 @@ end
     spouse.age = 60
     head.age = 60
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -961,6 +994,7 @@ end
     bures.pers[head.pid].income[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING] = 
         sys.nmt_bens.pip.dl_standard
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -990,6 +1024,7 @@ end
     end
     disable_seriously!( head )
     intermed = make_intermediate( 
+        Scotland,
         1,
         cpl,  
         sys.lmt.hours_limits,
@@ -1622,4 +1657,3 @@ end
     @test hhres.bus[1].pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ 0
  
 end
-
