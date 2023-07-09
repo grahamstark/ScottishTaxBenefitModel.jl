@@ -97,6 +97,9 @@ function make_uprate_types() :: Dict
     d[A_Basic_Account] = upr_nominal_gdp
     d[A_Credit_Unions] = upr_nominal_gdp
     d[A_Endowment_Policy_Not_Linked] = upr_nominal_gdp
+    d[A_Post_Office_Card_Account] = upr_nominal_gdp
+    d[A_Informal_Assets] = upr_nominal_gdp
+    d[A_Friendly_Society_Investment] = upr_nominal_gdp
 
     d
 end

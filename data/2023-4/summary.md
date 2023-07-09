@@ -131,3 +131,17 @@ function makessamecols( old::DataFrame, new::DataFrame)
 end
 ```
 
+### CREATE RUN
+
+sys is: sys_2023-24_ruk.jl
+
+settings: get_all_uk_settings_2023()
+
+test harness:  all_uk_runner_tests.jl
+
+testutils.jl get_uk_system( year :: Int )
+
+### FIXMES
+
+6 ethnic code !!
+

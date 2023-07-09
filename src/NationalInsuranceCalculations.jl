@@ -75,6 +75,7 @@ function calculate_national_insurance!(
     if pers.age < 16 || sys.abolished # must be 16+
         return
     end
+    # println( "pers.income $(pers.income)" )
     bc = make_gross_wage_bc( pers, sys )
     wage = isum( 
         pres.income, 

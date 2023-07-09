@@ -74,59 +74,66 @@ module Runner
             observer[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
             @time settings.num_households, settings.num_people, nhh2 = 
                 FRSHouseholdGetter.initialise( settings )
-            BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" )       
+            if settings.benefit_generosity_estimates_available
+                BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" )  
+            end     
         end
 
         # vary generosity of disability benefits
-        observer[]= Progress( 
-            settings.uuid, "disability_eligibility", 0, 0, 0, settings.num_households )
-        for sysno in 1:num_systems
-            adjust_disability_eligibility!( params[sysno].nmt_bens )
+        if settings.benefit_generosity_estimates_available
+            observer[]= Progress( 
+                settings.uuid, "disability_eligibility", 0, 0, 0, settings.num_households )
+            for sysno in 1:num_systems
+                adjust_disability_eligibility!( params[sysno].nmt_bens )
+            end
         end
-
         start,stop = make_start_stops( settings.num_households, num_threads )
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
         observer[] =Progress( settings.uuid, "starting",0, 0, 0, settings.num_households )
         @time @threads for thread in 1:num_threads
             for hno in start[thread]:stop[thread]
                 hh = FRSHouseholdGetter.get_household( hno )
-                if hno % 100 == 0
-                    observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
-                    # println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year) thread $thread")
-                end
-                for sysno in 1:num_systems
-                    res = do_one_calc( hh, params[sysno], settings )
-                    if settings.do_marginal_rates
-                        for (pid,pers) in hh.people
-                            #
-                            # `from_child_record` sorts out 17+ in education.
-                            #
-                            if ( ! pers.is_standard_child) && ( pers.age <= settings.mr_rr_upper_age )
-                                # FIXME choose between SE and Wage depending on which is
-                                # bigger, or empoyment status
-                                # println( "wage was $(pers.income[wages])")
-                                pers.income[wages] += settings.mr_incr
-                                subres = do_one_calc( hh, params[sysno], settings )            
-                                subhhinc = get_net_income( subres; target=settings.target_mr_rr_income )
-                                hhinc = get_net_income( res; target=settings.target_mr_rr_income )
-                                pres = get_indiv_result( res, pid )
-                                pres.metr = round( 
-                                    100.0 * (1-((subhhinc-hhinc)/settings.mr_incr)),
-                                    digits=7 )                           
-                                pers.income[wages] -= settings.mr_incr                        
-                                # println( "wage set back to $(pers.income[wages]) metr is $(pres.metr)")
-                            end # working age
-                        end # people
+                nation = nation_from_region( hh.region )
+                # println( "nation = $nation; included nations=$(settings.included_nations)")
+                if nation in settings.included_nations
+                    if hno % 100 == 0
+                        observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
+                        # println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year) thread $thread")
                     end
-                    if settings.do_replacement_rates
-                        for (pid,pers) in hh.people
-                            if ( ! pers.is_standard_child ) && ( pers.age <= settings.mr_rr_upper_age )
-                                # FIXME TODO need to be careful with hours and so on
-                            end # working age
-                        end # people
-                    end
-                    add_to_frames!( frames, hh, res,  sysno, num_systems )
-                end # sysno
+                    for sysno in 1:num_systems
+                        res = do_one_calc( hh, params[sysno], settings )
+                        if settings.do_marginal_rates
+                            for (pid,pers) in hh.people
+                                #
+                                # `from_child_record` sorts out 17+ in education.
+                                #
+                                if ( ! pers.is_standard_child) && ( pers.age <= settings.mr_rr_upper_age )
+                                    # FIXME choose between SE and Wage depending on which is
+                                    # bigger, or empoyment status
+                                    # println( "wage was $(pers.income[wages])")
+                                    pers.income[wages] += settings.mr_incr
+                                    subres = do_one_calc( hh, params[sysno], settings )            
+                                    subhhinc = get_net_income( subres; target=settings.target_mr_rr_income )
+                                    hhinc = get_net_income( res; target=settings.target_mr_rr_income )
+                                    pres = get_indiv_result( res, pid )
+                                    pres.metr = round( 
+                                        100.0 * (1-((subhhinc-hhinc)/settings.mr_incr)),
+                                        digits=7 )                           
+                                    pers.income[wages] -= settings.mr_incr                        
+                                    # println( "wage set back to $(pers.income[wages]) metr is $(pres.metr)")
+                                end # working age
+                            end # people
+                        end
+                        if settings.do_replacement_rates
+                            for (pid,pers) in hh.people
+                                if ( ! pers.is_standard_child ) && ( pers.age <= settings.mr_rr_upper_age )
+                                    # FIXME TODO need to be careful with hours and so on
+                                end # working age
+                            end # people
+                        end
+                        add_to_frames!( frames, hh, res,  sysno, num_systems )
+                    end # sysno
+                end # included in nations 
             end #household loop
         end # threads
         if settings.dump_frames 

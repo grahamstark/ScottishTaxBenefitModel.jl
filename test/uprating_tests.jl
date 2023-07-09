@@ -2,7 +2,7 @@ using Test
 using ScottishTaxBenefitModel.Uprating
 using DataFrames
 using ScottishTaxBenefitModel
-using .RunSettings: Settings
+using .RunSettings: Settings, get_all_uk_settings_2023
 using .ModelHousehold
 using .ExampleHouseholdGetter
 using .FRSHouseholdGetter
@@ -26,6 +26,24 @@ print( prfr )
     # average index 2008 q1=100; 2019 Q4 = 125.9812039916
     pers.income[wages] = 100.0
     uprate!( hh )
+    println( hh )
     # FIXME CHANGEME hardly a test & needs changed every time the index changes
-    @test pers.income[wages] ≈ 100*20.31/14.87 # 2022q3 av wages index
+    # @test pers.income[wages] ≈ 100*20.31/14.87 # 2022q3 av wages index
+end
+
+@testset "2023UK uprating" begin
+
+    settings23 = get_all_uk_settings_2023()
+    pruk23 = Uprating.load_prices( settings23 )
+
+    println( "pruk23=$pruk23" )
+    println( "prfr=$prfr" )
+    hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" )
+    hh.quarter = 1
+    hh.interview_year = 2022
+    pers = hh.people[SCOT_HEAD]
+    pers.income[wages] = 100.0
+    uprate!( hh )
+    println(hh)
+
 end

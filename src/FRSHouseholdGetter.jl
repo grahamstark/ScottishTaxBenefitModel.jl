@@ -110,6 +110,10 @@ module FRSHouseholdGetter
             for i in eachindex( weight ) # just assign weight = weight?
                 MODEL_HOUSEHOLDS.weight[i] = weight[i]
             end
+        else
+            for hseq in 1:nhhlds # just assign weight = weight?
+                MODEL_HOUSEHOLDS.weight[hseq] = MODEL_HOUSEHOLDS.hhlds[hseq].weight
+            end
         end
         MODEL_HOUSEHOLDS.dimensions.=
             size(MODEL_HOUSEHOLDS.hhlds)[1],

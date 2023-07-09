@@ -200,7 +200,8 @@ export White,
        Mixed_or_Multiple_ethnic_groups,
        Asian_or_Asian_British,
        Black_or_African_or_Caribbean_or_Black_British,
-       Other_ethnic_group
+       Other_ethnic_group,
+       Yet_Another_Fixme_Ethnic
 export Missing_Ethnic_Group
 
 @enum Ethnic_Group begin  # mapped from ethgr3
@@ -210,6 +211,7 @@ export Missing_Ethnic_Group
    Asian_or_Asian_British = 3
    Black_or_African_or_Caribbean_or_Black_British = 4
    Other_ethnic_group = 5
+   Yet_Another_Fixme_Ethnic = 6
 end
 
 

@@ -117,6 +117,17 @@ function getSystem(; scotland::Bool ) :: TaxBenefitSystem
    return sys
 end
 
+function get_uk_system(; year = 2023 ) :: TaxBenefitSystem
+   sys = nothing
+   if year == 2023
+      # FIXME 
+      sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
+      load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
+      weeklyise!(sys)
+      return sys
+   end
+end
+
 function get_system( ; year, scotland = true )  :: TaxBenefitSystem
    sys = nothing
    if year == 2022

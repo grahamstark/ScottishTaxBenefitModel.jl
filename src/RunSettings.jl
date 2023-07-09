@@ -90,8 +90,9 @@ module RunSettings
         do_health_esimates = false 
         ## Elliot's email of June 21, 2023
         sf12_depression_limit = 45.60
- create_own_grossing = true
+        create_own_grossing = true
         use_average_band_d = false
+        included_nations = [N_Scotland]
     end
 
     function get_all_uk_settings_2023()::Settings
@@ -106,11 +107,12 @@ module RunSettings
         settings.to_y :: Int = 2023
         settings.to_q :: Int = 1
         settings.auto_weight = false
-        settings.use_benefit_generosity = false
         settings.use_average_band_d = true
+        settings.benefit_generosity_estimates_available = false
         settings.requested_threads = 4
         settings.impute_employer_pension = false
-        settings.benefit_generosity_estimates_available = false
+        settings.included_nations = [N_Scotland,N_England,N_Wales]
+        settings.means_tested_routing = modelled_phase_in
         return settings
     end
 
