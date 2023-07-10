@@ -31,6 +31,9 @@ function calc_scottish_child_payment!(
     benefit_unit        :: BenefitUnit,
     intermed            :: MTIntermediate,
     scpsys              :: ScottishChildPayment )
+    if scpsys.abolished
+        return
+    end
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 

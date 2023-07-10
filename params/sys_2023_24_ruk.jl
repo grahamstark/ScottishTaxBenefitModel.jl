@@ -343,8 +343,6 @@ sys.ubi.universal_pension = 8_780.0
 sys.ubi.adult_age = 17
 sys.ubi.retirement_age = 66
 
-sys.scottish_child_payment.abolished = true
-
 sys.loctax.ct.band_d = Dict(
   [
     :ENGLAND  => 2_065.0,
@@ -352,9 +350,13 @@ sys.loctax.ct.band_d = Dict(
     :SCOTLAND => 1_417.0,
     :LONDON => 2_065.0,
     :NIRELAND => -99999.99
-    ] )
+  ] )
 
 brmapath = joinpath(MODEL_DATA_DIR, "local", "brma-2023-2024-country-averages.csv")
 
-sys.hr.brmas = loadBRMAs( 4, T, brmapath )     
+sys.hr.brmas = loadBRMAs( 4, T, brmapath )
 
+# here so it's always on 
+sys.scottish_child_payment.abolished = false
+sys.scottish_child_payment.amount = 25.0
+sys.scottish_child_payment.maximum_age = 15

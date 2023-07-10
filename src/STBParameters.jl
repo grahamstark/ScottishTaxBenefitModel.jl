@@ -556,6 +556,7 @@ module STBParameters
     @with_kw mutable struct ScottishChildPayment{ RT<:Real }
         # the guidance is really ambigious about weeks/months
         # just jam on weeks
+        abolished = false
         amount :: RT = 10.0
         maximum_age :: Int = 5
         qualifying_benefits = [

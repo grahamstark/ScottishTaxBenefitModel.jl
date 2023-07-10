@@ -50,20 +50,18 @@ const targets = [ :label,
     :savings_credit,  :non_contrib_jobseekers_allowance,  
     :housing_benefit,  :free_school_meals,  :universal_credit,  :other_benefits]
 
-function do_basic_uk_run( ; print_test :: Bool )
+function do_basic_uk_run()
     settings = get_all_uk_settings_2023()
     settings.run_name="all-uk-run-$(date_string())"
-    sys = [get_uk_system(), get_uk_system()]
+    sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=true)]
     println( sys[1].ni)
     tot = 0
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
-    # pretty_table( h1[:,[:weighted_people,:bhc_net_income,:eq_bhc_net_income,:ahc_net_income,:eq_ahc_net_income]] )
     settings.poverty_line = make_poverty_line( results.hh[1], settings )
     dump_frames( settings, results )
     println( "poverty line = $(settings.poverty_line)")
-    summarise_frames!( results, settings )
-    
+    summarise_frames!( results, settings )   
 end
 
 @testset "UK Basic Run" begin

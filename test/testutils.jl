@@ -121,7 +121,6 @@ function get_uk_system(; year = 2023 ) :: TaxBenefitSystem
    sys = nothing
    if year == 2023
       # FIXME 
-      sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
       load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
       weeklyise!(sys)
       return sys
@@ -138,8 +137,11 @@ function get_system( ; year, scotland = true )  :: TaxBenefitSystem
          sys.scottish_child_payment.qualifying_benefits = []
          sys.nmt_bens.carers.scottish_supplement = 0.0
       end
-   
-      # load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
+   elseif year == 2023
+      sys = load_file( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
+      if scotland
+         load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
+      end
    else
       return getSystem( scotland=scotland )
    end 
