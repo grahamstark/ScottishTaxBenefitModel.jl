@@ -109,7 +109,7 @@ function basic_conditions_satisfied(
     else
         all_in_educ = true
         for pid in bu.adults
-            # FIXME need a better test than this
+            # FIXME need a better test than this - note there's not a all_student_bu in intermed
             in_educ :: Bool = 
                 (bu.people[pid].employment_status == Student) &&
                 (intermed.num_children == 0) && 

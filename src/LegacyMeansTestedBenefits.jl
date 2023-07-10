@@ -261,7 +261,8 @@ function make_lmt_benefit_applicability(
         whichb.sc = true
     end
     # println( "intermed: intermed.num_working_16_or_less=$(intermed.num_working_16_or_less) intermed.economically_active=$(intermed.economically_active) intermed.num_working_16_or_less=$(intermed.num_working_16_or_less)")
-    if (! intermed.all_pension_age ) && (intermed.num_working_16_or_less >= 1)
+    # FIXME: the all-student one should actually let through ESA, I think
+    if (! intermed.all_student_bu ) && (! intermed.all_pension_age ) && (intermed.num_working_16_or_less >= 1)
         if ((intermed.num_adults == 1) ||
            ((intermed.num_adults == 2) && (intermed.num_working_24_plus == 0)))
             if intermed.limited_capacity_for_work
@@ -289,7 +290,9 @@ function make_lmt_benefit_applicability(
     #
     # WTC - not quite so easy
     #
-    if intermed.someone_working_ft_and_25_plus
+    if intermed.all_student_bu
+        whichb.wtc = false
+    elseif intermed.someone_working_ft_and_25_plus
         whichb.wtc = true
     elseif (intermed.total_hours_worked >= hrs.med) && (intermed.num_working_pt>0) && intermed.has_children 
         # ie. 24 hrs worked total and one person  >= 16 hrs and has children
@@ -302,8 +305,8 @@ function make_lmt_benefit_applicability(
         whichb.wtc = true
     end
     # FIXME not really true
-    if intermed.benefit_unit_number == 1
-        whichb.hb = true
+    if( intermed.benefit_unit_number == 1 )
+        whichb.hb = ! intermed.all_student_bu
         whichb.ctr = true
     end
     # check!!! is this correct? is, etc. or wtc over pc/sc

@@ -68,6 +68,7 @@ end
 
 @testset "UK Basic Run" begin
     outf = do_basic_uk_run( print_test=true )
+    #=
     k = 1
     println(outf.income_summary[1][1:5,targets[1:5]] )
     println(outf.income_summary[1][1:5,targets[6:10]] )
@@ -79,5 +80,6 @@ end
     println(outf.income_summary[1][1:5,targets[36:40]] )
     println(outf.income_summary[1][1:5,targets[41:end]] )
     println(names( outf.income_summary[1] ))
+    =#
     CSV.write( "/home/graham_s/tmp/income_summary_uk.csv", outf.income_summary[1])
 end

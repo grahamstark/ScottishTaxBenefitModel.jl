@@ -51,20 +51,21 @@ Allocate a benefit unit to ether UC or Legacy Benefits. Very crudely.
 """
 function route_to_uc_or_legacy( 
     settings :: Settings,
+    tenure   :: Tenure_Type,
     bu       :: BenefitUnit, 
     intermed :: MTIntermediate ) :: LegacyOrUC
     if settings.means_tested_routing != modelled_phase_in
         return settings.means_tested_routing == uc_full ? uc_bens : legacy_bens
     end
     prob = 0.0
-    if intermed.num_job_seekers > 0
-        prob = PROPS_ON_UC[intermed.nation][trans_jobseekers]
-    elseif intermed.limited_capacity_for_work
+    if intermed.limited_capacity_for_work
         prob = PROPS_ON_UC[intermed.nation][trans_incapacity]
+    elseif (intermed.benefit_unit_number == 1) && renter( tenure )
+        prob = PROPS_ON_UC[intermed.nation][trans_housing]
     elseif intermed.num_children > 0
         prob = PROPS_ON_UC[intermed.nation][trans_w_kids]
-    elseif intermed.benefit_unit_number == 1
-        prob = PROPS_ON_UC[intermed.nation][trans_housing]
+    elseif intermed.num_job_seekers > 0
+        prob = PROPS_ON_UC[intermed.nation][trans_jobseekers]
     else
         prob = PROPS_ON_UC[intermed.nation][trans_all]
     end
@@ -85,7 +86,7 @@ function route_to_uc_or_legacy!(
         im = intermed.buint[bno]
         bres = results.bus[bno]
         if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
-            bres.route = route_to_uc_or_legacy( settings, bus[bno], im )
+            bres.route = route_to_uc_or_legacy( settings, hh.tenure, bus[bno], im )
             if bres.route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
                 tozero!( bres, COUNCIL_TAX_BENEFIT )

@@ -35,6 +35,7 @@ settings.means_tested_routing = modelled_phase_in
                 nbus )
             route = route_to_uc_or_legacy(
                 settings,
+                hh.tenure,
                 bus[bno],
                 intermed )
         end
@@ -65,6 +66,7 @@ end # example tests
                 # on actual data !! FIXME the HoC thing is actually Benefit Units
                 route = route_to_uc_or_legacy( 
                     settings, 
+                    hh.tenure,
                     bus[1], 
                     im )
                 col = route == uc_bens ? :uc : :legacy

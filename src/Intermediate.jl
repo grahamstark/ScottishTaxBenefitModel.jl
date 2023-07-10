@@ -252,6 +252,7 @@ mutable struct MTIntermediate
     working_disabled :: Bool
     num_benefit_units :: Int
     nation :: Nation 
+    all_student_bu :: Bool
 end
 
 
@@ -427,13 +428,20 @@ function make_intermediate(
         Unemployed, 
         Temporarily_sick_or_injured )
     
+
+
     # can't think of a simple way of doing the rest with searches..
 
     is_disabled = has_disabled_member( bu )
     num_disabled_adults = 0
     num_severely_disabled_adults = 0
+    num_students = 0
     for pid in bu.adults
         pers = bu.people[pid]
+        # kinda sorta CPAG ch 41
+        if(pers.employment_status == Student) && (!is_severe_disability( pers )) # fix
+            num_students += 1
+        end
 
         if( pers.age >= 25 ) && ( pers.usual_hours_worked >= hrs.higher )
             someone_working_ft_and_25_plus = true
@@ -464,6 +472,8 @@ function make_intermediate(
     num_children = size( bu.children )[1] # count( bu, le_age, 16 )
     num_children_born_before = num_born_before( bu ) # fixme parameterise
     num_disabled_children = 0
+    # CPAG 41 - there are actually multiple rules for different benefits but hopefully this is near enough
+    all_student_bu = (num_students == num_adlts) && (num_children == 0) # CPAG 41 - crude but gets us most of the way here.
     num_severely_disabled_children :: Int = 0
     for pid in bu.children
         pers = bu.people[pid]
@@ -527,7 +537,8 @@ function make_intermediate(
         economically_active,
         is_working_disabled,
         num_benefit_units,
-        nation
+        nation,
+        all_student_bu
     )
 end
 

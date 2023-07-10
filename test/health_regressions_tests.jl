@@ -94,6 +94,7 @@ end
         @time outps = create_health_indicator( 
             results.hh[sysno], 
             outf.deciles[sysno], 
+            obs,
             settings )
         sum2 = StatsBase.summarystats( outps[!,:sf12] )
         println(sum2)

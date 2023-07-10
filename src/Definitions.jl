@@ -201,7 +201,7 @@ export White,
        Asian_or_Asian_British,
        Black_or_African_or_Caribbean_or_Black_British,
        Other_ethnic_group,
-       Yet_Another_Fixme_Ethnic
+       Ethnic_Not_Declared
 export Missing_Ethnic_Group
 
 @enum Ethnic_Group begin  # mapped from ethgr3
@@ -211,7 +211,7 @@ export Missing_Ethnic_Group
    Asian_or_Asian_British = 3
    Black_or_African_or_Caribbean_or_Black_British = 4
    Other_ethnic_group = 5
-   Yet_Another_Fixme_Ethnic = 6
+   Ethnic_Not_Declared = 6
 end
 
 
@@ -958,7 +958,9 @@ export Missing_Tenure_Type,is_owner_occupier,renter, is_social_renter, is_privat
 end
 
 
-
+"""
+FIXME: should be `is_renter` for consistency.
+"""
 function renter(tt::Tenure_Type)::Bool
    tt < Mortgaged_Or_Shared
 end
