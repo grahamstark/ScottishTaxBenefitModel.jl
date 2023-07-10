@@ -978,8 +978,6 @@ I	More than £424,000
 
 
     function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
-
-        
         if sys.ubi.ub_as_mt_income
             push!(sys.uc.other_income,BASIC_INCOME)
             push!( sys.lmt.income_rules.incomes.included, BASIC_INCOME )
