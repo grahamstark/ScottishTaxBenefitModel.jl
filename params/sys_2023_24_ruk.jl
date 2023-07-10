@@ -190,29 +190,29 @@ sys.lmt.ctr.ndd_incomes = []
 
 sys.uc.abolished = false
 sys.uc.threshold = 2_500.0 ## NOT USED
-sys.uc.age_18_24 = 265.31
-sys.uc.age_25_and_over = 334.91
+sys.uc.age_18_24 = 292.11
+sys.uc.age_25_and_over = 368.74
 
-sys.uc.couple_both_under_25 = 416.45
-sys.uc.couple_oldest_25_plus = 525.72
+sys.uc.couple_both_under_25 = 458.51
+sys.uc.couple_oldest_25_plus = 578.82
 
-sys.uc.first_child = 290.00
-sys.uc.subsequent_child = 244.58
-sys.uc.disabled_child_lower = 132.89
-sys.uc.disabled_child_higher = 414.88
-sys.uc.limited_capcacity_for_work_activity = 354.28
-sys.uc.carer = 168.81
+sys.uc.first_child = 315.00
+sys.uc.subsequent_child = 269.58
+sys.uc.disabled_child_lower = 146.31
+sys.uc.disabled_child_higher = 456.89
+sys.uc.limited_capcacity_for_work_activity = 390.06
+sys.uc.carer = 185.86
 
-sys.uc.ndd = 77.87
+sys.uc.ndd = 85.73
 
-sys.uc.childcare_max_2_plus_children = 1_108.04 # pm
-sys.uc.childcare_max_1_child = 646.35
+sys.uc.childcare_max_2_plus_children = 1_630.15 # pm
+sys.uc.childcare_max_1_child = 950.92
 sys.uc.childcare_proportion = 85.0 # pct
 
 sys.uc.minimum_income_floor_hours = 35*WEEKS_PER_MONTH
 
-sys.uc.work_allowance_w_housing = 344.00 
-sys.uc.work_allowance_no_housing = 573.00
+sys.uc.work_allowance_w_housing = 379.00
+sys.uc.work_allowance_no_housing = 631.00
 sys.uc.other_income = UC_OTHER_INCOME
 # sys.uc.earned_income :: IncludedItems = UC_EARNED_INCOME
 sys.uc.capital_min = 6_000.0
