@@ -3,10 +3,22 @@
 # This is the benefit/tax credit/IT/MinWage/NI rates for rUK, excluding NI,
 #  from As of July, 2023
 # sources:
-# TODO
+# IT: 
+#   - allowances: https://www.gov.uk/government/publications/rates-and-allowances-income-tax/income-tax-rates-and-allowances-current-and-past
+#   - https://www.gov.uk/marriage-allowance
+#   - pension:https://www.gov.uk/government/publications/abolition-of-lifetime-allowance-and-increases-to-pension-tax-limits/pension-tax-limits
+# NI: https://www.gov.uk/government/publications/rates-and-allowances-national-insurance-contributions/rates-and-allowances-national-insurance-contributions
+# Benefits: https://www.gov.uk/government/publications/benefit-and-pension-rates-2023-to-2024/benefit-and-pension-rates-2023-to-2024
+# Tax Credits, CB etc.:https://www.gov.uk/government/publications/rates-and-allowances-tax-credits-child-benefit-and-guardians-allowance/tax-credits-child-benefit-and-guardians-allowance
 #
-#
-
+# Local Taxes: 
+#  - ENGLAND https://www.gov.uk/government/statistics/council-tax-levels-set-by-local-authorities-in-england-2023-to-2024/council-tax-levels-set-by-local-authorities-in-england-2023-to-2024
+#  - WALES https://www.gov.wales/council-tax-levels-april-2023-march-2024
+#  - SCOTLAND http://www.gov.scot/publications/council-tax-datasets/
+# LHA 
+#  - ENGLAND https://www.gov.uk/government/publications/local-housing-allowance-lha-rates-applicable-from-april-2023-to-march-2024
+#  - WALES https://www.gov.wales/local-housing-allowance
+#  - SCOTLAND: 
 
 sys.it.savings_rates = [10.0, 20.0, 40.0, 45.0]
 sys.it.savings_thresholds = [5_000.0, 37_700.0, 125_000.0]
@@ -15,12 +27,6 @@ sys.it.savings_basic_rate = 2 # above this counts as higher rate
 sys.it.non_savings_rates = [20.0,40.0,45.0]
 sys.it.non_savings_thresholds = [37_700, 125_140.0]
 sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
-
-#= SCOTLAND
-sys.it.non_savings_rates = [19.0,20.0,21.0,42.0,47.0]
-sys.it.non_savings_thresholds = [2_162, 13_118, 31_092, 125_120.0]
-sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
-=#
 
 sys.it.dividend_rates = [0.0, 7.5,32.5,42.5]
 sys.it.dividend_thresholds = [2_000.0, 37_700.0, 150_000.0] # FIXME this gets the right answers & follows Melville, but the 2k is called 'dividend allowance in HMRC docs'
@@ -69,18 +75,19 @@ sys.it.pension_contrib_annual_minimum = 10_000.00
 sys.it.pension_contrib_threshold_income = 260_000.00
 sys.it.pension_contrib_withdrawal_rate = 50.0
 
-
+# NI
+# FREEPORTS ??? WTF ???
 sys.ni.abolished = false
 sys.ni.primary_class_1_rates = [0.0, 0.0, 12.0, 2.0 ]
 sys.ni.primary_class_1_bands = [123.0, 242.0, 967.0, 9999999999999.9] # the '-1' here is because json can't write inf
-	sys.ni.secondary_class_1_rates = [0.0, 13.8, 13.8 ] # keep 2 so
+sys.ni.secondary_class_1_rates = [0.0, 13.8, 13.8 ] # keep 2 so
 sys.ni.secondary_class_1_bands = [175.0, 967.0, 99999999999999.9 ]
 sys.ni.state_pension_age = 66; # fixme move
 # https://www.gov.uk/self-employed-national-insurance-rates
 sys.ni.class_2_threshold = 6_725.0;
-sys.ni.class_2_rate = 3.15;
-sys.ni.class_4_rates = [0.0, 9.73, 2.73 ]
-sys.ni.class_4_bands = [11_909.0, 50_270.0, 99999999999999.9 ]
+sys.ni.class_2_rate = 3.45;
+sys.ni.class_4_rates = [0.0, 9.0, 2.0 ]
+sys.ni.class_4_bands = [12_570.0, 50_270.0, 99999999999999.9 ]
 # sys.ni.class_1_income = IncludedItems([WAGES],[PENSION_CONTRIBUTIONS_EMPLOYER])
 # sys.ni.class_4_income = [SELF_EMPLOYMENT_INCOME]
 
@@ -336,9 +343,7 @@ sys.ubi.universal_pension = 8_780.0
 sys.ubi.adult_age = 17
 sys.ubi.retirement_age = 66
 
-sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
-sys.scottish_child_payment.amount = 25.0
-sys.scottish_child_payment.maximum_age = 15
+sys.scottish_child_payment.abolished = true
 
 sys.loctax.ct.band_d = Dict(
   [
@@ -352,3 +357,4 @@ sys.loctax.ct.band_d = Dict(
 brmapath = joinpath(MODEL_DATA_DIR, "local", "brma-2023-2024-country-averages.csv")
 
 sys.hr.brmas = loadBRMAs( 4, T, brmapath )     
+
