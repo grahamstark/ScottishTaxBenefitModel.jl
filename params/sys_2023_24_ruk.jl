@@ -234,74 +234,70 @@ sys.child_limits.max_children = 2
 # https://www.gov.uk/government/publications/minimum-wage-rates-for-2022
 # col 1
 sys.minwage.ages = [16,18,21,23]
-sys.minwage.wage_per_hour = [4.81, 6.83, 9.18, 9.50]
+sys.minwage.wage_per_hour = [5.28, 7.49, 10.18, 10.42]
 
-sys.minwage.apprentice_rate = 4.81
+sys.minwage.apprentice_rate = 5.28
 
+# CHECK THESE 3
 sys.hr.maximum_rooms = 4
 sys.hr.rooms_rent_reduction = [14.0,25.0]
 sys.hr.single_room_age = 35
-#
-# These are unchanged in 3 years; see:
-# https://www.gov.scot/publications/local-housing-allowance-rates-2021-2022/
-#
-sys.hr.brmas = loadBRMAs( 4, T, DEFAULT_BRMA_2021 ) 
-
 
 
 sys.nmt_bens.attendance_allowance.abolished = false
-sys.nmt_bens.attendance_allowance.higher = 92.40
-sys.nmt_bens.attendance_allowance.lower = 61.85
+sys.nmt_bens.attendance_allowance.higher = 101.75
+sys.nmt_bens.attendance_allowance.lower = 68.10
 
 
 sys.nmt_bens.child_benefit.abolished = false
-sys.nmt_bens.child_benefit.first_child = 21.80
-sys.nmt_bens.child_benefit.other_children = 14.45
+sys.nmt_bens.child_benefit.first_child = 24.00
+sys.nmt_bens.child_benefit.other_children = 15.90
 sys.nmt_bens.child_benefit.high_income_thresh = 50_000.0
 sys.nmt_bens.child_benefit.withdrawal = 1/100
-sys.nmt_bens.child_benefit.guardians_allowance = 18.55
+sys.nmt_bens.child_benefit.guardians_allowance = 20.40
 
 sys.nmt_bens.dla.abolished = false
-sys.nmt_bens.dla.care_high = 92.40
-sys.nmt_bens.dla.care_middle = 61.85
-sys.nmt_bens.dla.care_low = 24.45
-sys.nmt_bens.dla.mob_high = 64.50
-sys.nmt_bens.dla.mob_low = 24.45
+sys.nmt_bens.dla.care_high = 101.75
+sys.nmt_bens.dla.care_middle = 68.10
+sys.nmt_bens.dla.care_low = 26.90
+sys.nmt_bens.dla.mob_high = 71.00
+sys.nmt_bens.dla.mob_low = 26.90
 
 
 sys.nmt_bens.carers.abolished = false
-sys.nmt_bens.carers.allowance = 69.70
+sys.nmt_bens.carers.allowance = 76.75
 
+# TODO
 sys.nmt_bens.carers.scottish_supplement = 231.40 # FROM APRIL 2021
 sys.nmt_bens.carers.hours :: Int = 35
 sys.nmt_bens.carers.gainful_employment_min = 132.00
 
 
 sys.nmt_bens.pip.abolished = false
-sys.nmt_bens.pip.dl_standard = 61.85
-sys.nmt_bens.pip.dl_enhanced = 92.40
-sys.nmt_bens.pip.mobility_standard = 24.45
-sys.nmt_bens.pip.mobility_enhanced = 64.50
+sys.nmt_bens.pip.dl_standard = 68.10
+sys.nmt_bens.pip.dl_enhanced = 101.75
+sys.nmt_bens.pip.mobility_standard = 26.90
+sys.nmt_bens.pip.mobility_enhanced = 71.00
  
 sys.nmt_bens.esa.abolished = false
-sys.nmt_bens.esa.assessment_u25 = 61.05
-sys.nmt_bens.esa.assessment_25p = 77.00
-sys.nmt_bens.esa.main   = 77.00
-sys.nmt_bens.esa.work   = 30.60
-sys.nmt_bens.esa.support  = 40.60
+sys.nmt_bens.esa.assessment_u25 = 67.20
+sys.nmt_bens.esa.assessment_25p = 84.80
+sys.nmt_bens.esa.main   = 84.80
+sys.nmt_bens.esa.work   = 33.70
+sys.nmt_bens.esa.support  = 44.70
 
 
 sys.nmt_bens.jsa.abolished = false
-sys.nmt_bens.jsa.u25 = 61.05
-sys.nmt_bens.jsa.o24 = 77.00
+sys.nmt_bens.jsa.u25 = 67.20
+sys.nmt_bens.jsa.o24 = 84.80
 
 sys.nmt_bens.pensions.abolished = false
-sys.nmt_bens.pensions.new_state_pension = 185.15
+sys.nmt_bens.pensions.new_state_pension = 203.85
 # pension_start_date = Date( 2016, 04, 06 )
-sys.nmt_bens.pensions.cat_a  = 141.85
-sys.nmt_bens.pensions.cat_b  = 141.85
-sys.nmt_bens.pensions.cat_b_survivor = 85.00
-sys.nmt_bens.pensions.cat_d  = 85.00
+sys.nmt_bens.pensions.cat_a  = 156.20
+sys.nmt_bens.pensions.cat_b  = 156.20
+sys.nmt_bens.pensions.cat_b_survivor = 93.60
+sys.nmt_bens.pensions.cat_d  = 93.60
 
 sys.nmt_bens.bereavement.abolished = false
 # higher effectively just means 'with children'; 
@@ -311,29 +307,29 @@ sys.nmt_bens.bereavement.higher = 350
 sys.nmt_bens.bereavement.lower = 100
 
 sys.nmt_bens.widows_pension.abolished = false
-sys.nmt_bens.widows_pension.industrial_higher = 141.85
-sys.nmt_bens.widows_pension.industrial_lower = 42.56
-sys.nmt_bens.widows_pension.standard_rate = 126.35
-sys.nmt_bens.widows_pension.parent = 126.35
+sys.nmt_bens.widows_pension.industrial_higher = 156.20
+sys.nmt_bens.widows_pension.industrial_lower = 46.86
+sys.nmt_bens.widows_pension.standard_rate = 139.10
+sys.nmt_bens.widows_pension.parent = 139.10
 sys.nmt_bens.widows_pension.ages = collect(54:-1:45)
-sys.nmt_bens.widows_pension.age_amounts = [117.51,108.66,99.82,90.97,82.13,73.28,64.44,55.59,46.75,37.91]
+sys.nmt_bens.widows_pension.age_amounts = [129.36,119.63,109.89,100.15,90.42,80.68,70.94,61.20,51.47,41.73]
 
 # 
 # young carer grant
 sys.nmt_bens.maternity.abolished = false
-sys.nmt_bens.maternity.rate = 156.66
+sys.nmt_bens.maternity.rate = 172.48
 
 
-sys.nmt_bens.smp = 156.66 ## 90% of earn cpag 21/2 812
+sys.nmt_bens.smp = 172.48 ## 90% of earn cpag 21/2 812
 # = XX
 
 sys.bencap.abolished = false
-sys.bencap.outside_london_single = 257.69
-sys.bencap.outside_london_couple = 384.62
+sys.bencap.outside_london_single = 283.71
+sys.bencap.outside_london_couple = 423.46
 # not really needed, but anyway ..
-sys.bencap.inside_london_single = 296.35
-sys.bencap.inside_london_couple = 442.31
-sys.bencap.uc_incomes_limit = 617
+sys.bencap.inside_london_single = 326.29
+sys.bencap.inside_london_couple = 486.98
+sys.bencap.uc_incomes_limit = 722.0
 
 sys.scottish_child_payment.amount = 25.0
 sys.scottish_child_payment.maximum_age = 15
