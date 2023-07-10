@@ -8,25 +8,31 @@
 #
 
 
-sys.it.savings_rates = [0.0, 20.0, 40.0, 45.0]
-sys.it.savings_thresholds = [5_000.0, 37_700.0, 150_000.0]
+sys.it.savings_rates = [10.0, 20.0, 40.0, 45.0]
+sys.it.savings_thresholds = [5_000.0, 37_700.0, 125_000.0]
 sys.it.savings_basic_rate = 2 # above this counts as higher rate
 
-sys.it.non_savings_rates = [19.0,20.0,21.0,41.0,46.0]
-sys.it.non_savings_thresholds = [2_162, 13_118, 31_092, 150_000.0]
+sys.it.non_savings_rates = [20.0,40.0,45.0]
+sys.it.non_savings_thresholds = [37_700, 125_140.0]
 sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
 
-sys.it.dividend_rates = [0.0, 8.75,33.75,39.35]
+#= SCOTLAND
+sys.it.non_savings_rates = [19.0,20.0,21.0,42.0,47.0]
+sys.it.non_savings_thresholds = [2_162, 13_118, 31_092, 125_120.0]
+sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
+=#
+
+sys.it.dividend_rates = [0.0, 7.5,32.5,42.5]
 sys.it.dividend_thresholds = [2_000.0, 37_700.0, 150_000.0] # FIXME this gets the right answers & follows Melville, but the 2k is called 'dividend allowance in HMRC docs'
 sys.it.dividend_basic_rate = 2 # above this counts as higher 
 
 sys.it.personal_allowance   = 12_570.00
 sys.it.personal_allowance_income_limit = 100_000.00
 sys.it.personal_allowance_withdrawal_rate = 50.0
-sys.it.blind_persons_allowance  = 2_600.00
+sys.it.blind_persons_allowance  = 2_870.00
 
-sys.it.married_couples_allowance = 9_415.00
-sys.it.mca_minimum     = 3_640.00
+sys.it.married_couples_allowance = 10_375.0
+sys.it.mca_minimum     = 4_010.00
 sys.it.mca_income_maximum   = 31_400.00
 sys.it.mca_credit_rate    = 10.0
 sys.it.mca_withdrawal_rate  = 50.0
@@ -55,24 +61,15 @@ merge( sys.it.company_car_charge_by_CO2_emissions,
 sys.it.fuel_imputation = 25_300.00 # 22/23
 
 #
-# pensions !!! CHECKUNCHANED 2022
-#
-sys.it.pension_contrib_basic_amount = 3_600.00
-sys.it.pension_contrib_annual_allowance = 40_000.00
-sys.it.pension_contrib_annual_minimum = 4_000.00
-sys.it.pension_contrib_threshold_income = 240_000.00
+# TODO CHECK THIS WORKED EXAMPLE
+# 
+sys.it.pension_contrib_basic_amount = 10_000.00
+sys.it.pension_contrib_annual_allowance = 60_000.00
+sys.it.pension_contrib_annual_minimum = 10_000.00
+sys.it.pension_contrib_threshold_income = 260_000.00
 sys.it.pension_contrib_withdrawal_rate = 50.0
 
-# sys.it.non_savings_income = NON_SAVINGS_INCOME
-# sys.it.all_taxable = ALL_TAXABLE_INCOME
-# sys.it.savings_income = SAVINGS_INCOME
-# sys.it.dividend_income = DIVIDEND_INCOME
 
-# sys.it.mca_date = MCA_DATE
-
-# NOTE THESE DO NOT INCLUDE JULY CHANGES
-# see: https://www.gov.uk/national-insurance-rates-letters
-# Nov 2022 - 5th april 2023
 sys.ni.abolished = false
 sys.ni.primary_class_1_rates = [0.0, 0.0, 12.0, 2.0 ]
 sys.ni.primary_class_1_bands = [123.0, 242.0, 967.0, 9999999999999.9] # the '-1' here is because json can't write inf
