@@ -7,6 +7,7 @@
 #
 #
 
+
 sys.it.savings_rates = [0.0, 20.0, 40.0, 45.0]
 sys.it.savings_thresholds = [5_000.0, 37_700.0, 150_000.0]
 sys.it.savings_basic_rate = 2 # above this counts as higher rate
@@ -331,9 +332,6 @@ sys.bencap.inside_london_single = 326.29
 sys.bencap.inside_london_couple = 486.98
 sys.bencap.uc_incomes_limit = 722.0
 
-sys.scottish_child_payment.amount = 25.0
-sys.scottish_child_payment.maximum_age = 15
-
 sys.ubi.abolished = true
 sys.ubi.adult_amount = 4_800.0
 sys.ubi.child_amount= 3_000.0
@@ -341,18 +339,9 @@ sys.ubi.universal_pension = 8_780.0
 sys.ubi.adult_age = 17
 sys.ubi.retirement_age = 66
 
-
-
-
-sys.it.non_savings_rates = [20.0,40.0,45.0]
-sys.it.non_savings_thresholds = [37_700, 150_000.0]
-sys.it.non_savings_basic_rate = 1 # above this counts as higher rate
-
 sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
-
 sys.scottish_child_payment.amount = 25.0
 sys.scottish_child_payment.maximum_age = 15
-
 
 sys.loctax.ct.band_d = Dict(
   [
