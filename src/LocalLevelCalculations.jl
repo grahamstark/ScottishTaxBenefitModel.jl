@@ -385,7 +385,7 @@ export
                 hh.house_value, 
                 ctsys.house_values ) 
         end
-        println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
+        # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
         ctres = ctsys.band_d[hh.council] * 
             ctsys.relativities[ct_band]
         if intermed.num_adults == 1
