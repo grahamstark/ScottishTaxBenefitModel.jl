@@ -309,41 +309,46 @@ function create_health_indicator(
         out = make_frame( n )
         for hno in start[thread]:stop[thread]
             hh = FRSHouseholdGetter.get_household( hno )
-            if hno % 100 == 0
-                observer[] = 
-                    Progress( settings.uuid, "health", thread, hno, 100, settings.num_households )
-            end
-            inc = hhr[ (hhr.hid.== hh.hid) .& (hhr.data_year .== hh.data_year), :eq_bhc_net_income][1]
-            quintile = q_from_inc( quintiles, inc )
-            sf12 = get_health( 
-                hh = hh, 
-                eq_bhc_net_income=inc, 
-                quintile=quintile )
-            sf6 = get_health( 
-                hh = hh, 
-                eq_bhc_net_income=inc, 
-                quintile=quintile,
-                regression = SFD6_REGRESSION,
-                lagvalue = 0.5337817 )
-            for (pid,sf) in sf6
-                ncases += 1
-                pers = hh.people[pid]
-                out[ncases,:weight] = hh.weight
-                out[ncases,:pid] = pid
-                out[ncases,:hid] = hh.hid
-                out[ncases,:data_year] = hh.data_year
-                out[ncases,:sf6] = sf
-                out[ncases,:sf12] = sf12[pid]
-                out[ncases,:hh_type] = hhr[hno,:hh_type]
-                out[ncases,:num_people] = hhr[hno,:num_people]
-                out[ncases,:tenure] = hh.tenure
-                out[ncases,:region] = hh.region
-                out[ncases,:decile] = hhr[hno,:decile]
-                out[ncases,:sex] = pers.sex
-                out[ncases,:age_band] = age_range( pers.age )
-                out[ncases,:employment_status] = pers.employment_status
-                out[ncases,:ethnic_group] = pers.ethnic_group
-            end # pids in hhld
+            nation = nation_from_region( hh.region )
+            if nation in settings.included_nations
+                if hno % 100 == 0
+                    observer[] = 
+                        Progress( settings.uuid, "health", thread, hno, 100, settings.num_households )
+                end
+                # println( "hh.hid=$(hh.hid) hh.data_year=$(hh.data_year)")
+                # println( "hhrs = $( hhr[1:5,[:hid,:data_year]])")
+                inc = hhr[ (hhr.hid.== hh.hid) .& (hhr.data_year .== hh.data_year), :eq_bhc_net_income][1]
+                quintile = q_from_inc( quintiles, inc )
+                sf12 = get_health( 
+                    hh = hh, 
+                    eq_bhc_net_income=inc, 
+                    quintile=quintile )
+                sf6 = get_health( 
+                    hh = hh, 
+                    eq_bhc_net_income=inc, 
+                    quintile=quintile,
+                    regression = SFD6_REGRESSION,
+                    lagvalue = 0.5337817 )
+                for (pid,sf) in sf6
+                    ncases += 1
+                    pers = hh.people[pid]
+                    out[ncases,:weight] = hh.weight
+                    out[ncases,:pid] = pid
+                    out[ncases,:hid] = hh.hid
+                    out[ncases,:data_year] = hh.data_year
+                    out[ncases,:sf6] = sf
+                    out[ncases,:sf12] = sf12[pid]
+                    out[ncases,:hh_type] = hhr[hno,:hh_type]
+                    out[ncases,:num_people] = hhr[hno,:num_people]
+                    out[ncases,:tenure] = hh.tenure
+                    out[ncases,:region] = hh.region
+                    out[ncases,:decile] = hhr[hno,:decile]
+                    out[ncases,:sex] = pers.sex
+                    out[ncases,:age_band] = age_range( pers.age )
+                    out[ncases,:employment_status] = pers.employment_status
+                    out[ncases,:ethnic_group] = pers.ethnic_group
+                end # pids in hhld
+            end # included
         end # hh loop
         allout = vcat( allout, out[1:ncases,:] )
     end # threads
