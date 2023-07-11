@@ -17,7 +17,7 @@ using .HistoricBenefits:
     make_benefit_ratios!, 
     switch_dla_to_pip!
 using .EquivalenceScales: EQScales
-using .Inferences: infer_wealth
+using .Inferences: infer_wealth!
 using .Utils: not_zero_or_missing
 using .Randoms: strtobi
 using .RunSettings
@@ -289,7 +289,6 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         people,        
         strtobi(frs_hh.onerand),
         ZERO_EQ_SCALE )
-    infer_wealth( hh )
     return hh
 end
 
@@ -313,6 +312,7 @@ function load_hhld_from_frame(
     end
     # rewrite the eq scale once we know everything
     make_eq_scales!( hh )
+    infer_wealth!( hh )    
     @assert hh.head_of_household !== -1
     return hh
 end

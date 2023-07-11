@@ -150,28 +150,12 @@ testutils.jl get_uk_system( year :: Int )
 WAS regression `r6` in `weath_regressions.jl`. Going to ignore income since it's going to be easier to implement for now. Figures are big. Predictions have fewer small wealth values than actual:
 
 ```
-predicted:
- Summary Stats:
-Length:         13078
-Missing Count:  0
-Mean:           826895.608792
-Minimum:        56936.544337
-1st Quartile:   424225.796706
-Median:         667962.983111
-3rd Quartile:   1087751.100536
-Maximum:        5186135.243017
-
- actual:
- Summary Stats:
-Length:         13078
-Missing Count:  0
-Mean:           1022002.832045
-Minimum:        6160.000000
-1st Quartile:   356125.467970
-Median:         688921.824023
-3rd Quartile:   1282413.120267
-Maximum:        78521163.638965
-
+Mean:           807,684.116504
+Minimum:        15.333333
+1st Quartile:   163,521.716450
+Median:         488,257.709664
+3rd Quartile:   1,057,610.432064
+Maximum:        7,852,1163.638965
 
 ```
 
@@ -191,5 +175,13 @@ Maximum:        3152044.379579
 
 ```
 
+Modelled using FRS dataset (after several SNAFUs)
+
+Mean:           379,393.622325
+Minimum:        6,418.506903
+1st Quartile:   70,167.589825
+Median:         303,485.405193
+3rd Quartile:   536,157.907387
+Maximum:        4,156,325.713490
 
 
