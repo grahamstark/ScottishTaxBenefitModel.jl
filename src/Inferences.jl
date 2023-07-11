@@ -79,12 +79,16 @@ function infer_wealth!( hh :: Household )
         Employers_in_large_organisations,
         Higher_managerial_occupations,
         Higher_professional_occupations_New_self_employed,
-        Higher_supervisory_occupations ] ? 1 : 0
-    "intermediate"              hrp.socio_economic_grouping in [
-        Lower_prof_and_higher_technical_Traditional_employee,
-        Lower_managerial_occupations,Intermediate_clerical_and_administrative,
+        Higher_supervisory_occupations,
         Employers_in_small_organisations_non_professional,
-        Lower_supervisory_occupations] ? 1 : 0
+        Lower_managerial_occupations,Intermediate_clerical_and_administrative,
+        Lower_supervisory_occupations
+         ] ? 1 : 0
+    "intermediate"              hrp.socio_economic_grouping in [
+        Lower_technical_craft,
+        Semi_routine_sales,
+        Routine_sales_and_service  
+        ] ? 1 : 0
     "num_adults"           num_adults(hh)
     "num_children"         num_children(hh)
         ]

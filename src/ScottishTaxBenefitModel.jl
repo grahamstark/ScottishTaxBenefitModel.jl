@@ -102,6 +102,9 @@ export UCTransition
 include( "UBI.jl")
 export UBI
 
+include( "OtherTaxes.jl")
+export OtherTaxes
+
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
 

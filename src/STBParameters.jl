@@ -945,7 +945,10 @@ I	More than £424,000
         entitlement :: UBEntitlement = ub_ent_all
     end
 
+    @with_kw mutable struct OtherTaxesSys{RT<:Real}
+        wealth_tax :: RT = 0.0
 
+    end
 
     function weeklyise!( ubi :: UBISys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         ubi.adult_amount /= wpy
@@ -974,6 +977,7 @@ I	More than £424,000
         nmt_bens = NonMeansTestedSys{RT}()
         bencap = BenefitCapSys{RT}()
         ubi = UBISys{RT}()
+        othertaxes = OtherTaxesSys{RT}()
     end
 
 

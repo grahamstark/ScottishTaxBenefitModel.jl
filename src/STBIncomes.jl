@@ -117,6 +117,7 @@ using .Utils
 
     BASIC_INCOME
 
+    OTHER_TAX
 end
 
 const IncomesSet = Set{Incomes}
@@ -217,6 +218,7 @@ export SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_MOBILITY
 export SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE
 export SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING
 export SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_MOBILITY
+export OTHER_TAX
 
 
 function sz(thing)::Int
@@ -329,7 +331,7 @@ function IncludedItems( included :: Set, deducted :: Vector )
 end
 
 const NET_COST = IncludedItems(    
-    BENEFITS, [INCOME_TAX,NATIONAL_INSURANCE,LOCAL_TAXES] )
+    BENEFITS, [INCOME_TAX,NATIONAL_INSURANCE,LOCAL_TAXES,OTHER_TAX] )
 
 function make_a( T :: Type ) :: IncomesArray
     return IncomesArray{T}( zeros(T, INC_ARRAY_SIZE))
