@@ -143,5 +143,53 @@ testutils.jl get_uk_system( year :: Int )
 
 ### FIXMES
 
-6 ethnic code !!
+6 ethnic code !! - this is OK: another missing
+
+### WEALTH
+
+WAS regression `r6` in `weath_regressions.jl`. Going to ignore income since it's going to be easier to implement for now. Figures are big. Predictions have fewer small wealth values than actual:
+
+```
+predicted:
+ Summary Stats:
+Length:         13078
+Missing Count:  0
+Mean:           826895.608792
+Minimum:        56936.544337
+1st Quartile:   424225.796706
+Median:         667962.983111
+3rd Quartile:   1087751.100536
+Maximum:        5186135.243017
+
+ actual:
+ Summary Stats:
+Length:         13078
+Missing Count:  0
+Mean:           1022002.832045
+Minimum:        6160.000000
+1st Quartile:   356125.467970
+Median:         688921.824023
+3rd Quartile:   1282413.120267
+Maximum:        78521163.638965
+
+
+```
+
+linear one `p7` behaves worse. Much lower 3rd quartile/max w
+
+``` 
+predicted (linear):
+ Summary Stats:
+Length:         13137
+Missing Count:  0
+Mean:           1019672.598609
+Minimum:        -720382.174779
+1st Quartile:   571362.265471
+Median:         991733.467818
+3rd Quartile:   1480206.099492
+Maximum:        3152044.379579
+
+```
+
+
 
