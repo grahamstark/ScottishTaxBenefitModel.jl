@@ -20,7 +20,7 @@ using StatsBase
         hh = FRSHouseholdGetter.get_household( hhno )
         v = infer_wealth!( hh  )
         hrp = get_head(hh)
-        println(hrp.socio_economic_grouping)
+        # println(hrp.socio_economic_grouping)
         wealth[hhno] = hh.total_wealth
         # println(v[:,2]')
         regressors[hhno,:] = v[:,2]'
@@ -32,5 +32,8 @@ using StatsBase
         l = v[c,1]
         println( " avg(reg[$l]) = $s" )
     end
+
+    include( "../regressions/wealth_regressions.jl")
+
 
 end
