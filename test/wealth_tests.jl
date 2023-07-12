@@ -2,9 +2,28 @@ using Test
 using ScottishTaxBenefitModel
 using .Inferences: infer_wealth!
 using .ModelHousehold
+using .OtherTaxes: calculate_other_taxes!
+using .Results
 using .RunSettings
+using .STBIncomes
+
 using StatsBase
 
+
+@testset "Wealth Tax" begin
+    sys = get_system( year=2023, scotland=true )
+    sys.othertaxes.wealth_tax = 0.01
+    hh = make_hh()
+    println( INCOME_TAXES )
+    for w in [0,1_000,100_000.0,1_000_000.0]
+        hh.total_wealth = w
+        hres = init_household_result( hh )
+        calculate_other_taxes!( hres, hh, sys.othertaxes )
+        aggregate!( hh, hres )
+        @test hres.income[OTHER_TAX] ≈ w*sys.othertaxes.wealth_tax
+        println( "hres.bhc_net_income=$(hres.bhc_net_income)" )
+    end
+end
 
 @testset "simulated wealth distribution" begin
     num_households = 0

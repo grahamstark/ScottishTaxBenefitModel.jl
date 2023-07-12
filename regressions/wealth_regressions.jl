@@ -12,7 +12,6 @@ using Dates
 
 was = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab") |> DataFrame
 
-
 was.north_east = was.gorr7 .== 1
 was.north_west = was.gorr7 .== 2
 was.yorkshire = was.gorr7 .== 4

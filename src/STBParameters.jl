@@ -35,6 +35,7 @@ module STBParameters
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
     export NonMeansTestedSys, MaternityAllowance, ChildLimits
     export BenefitCapSys, make_ubi_pre_adjustments!
+    export OtherTaxesSys
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -960,6 +961,13 @@ I	More than £424,000
         end
     end
 
+    function weeklyise!( 
+        othertaxes :: OtherTaxesSys; 
+        wpm=WEEKS_PER_MONTH, 
+        wpy=WEEKS_PER_YEAR )
+        othertaxes.wealth_tax /= 100.0
+    end
+
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: String = "Scotland 2919/20"
         it   = IncomeTaxSys{RT}()
@@ -1069,6 +1077,7 @@ I	More than £424,000
         weeklyise!( tb.uc; wpm=wpm, wpy=wpy )
         weeklyise!( tb.bencap; wpm=wpm, wpy=wpy )
         weeklyise!( tb.ubi; wpm=wpm, wpy=wpy )
+        weeklyise!( tb.othertaxes; wpm=wpm, wpy=wpy)
     end
     
    """

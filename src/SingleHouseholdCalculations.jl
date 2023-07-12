@@ -216,6 +216,9 @@ function do_one_calc(
     if ! sys.ubi.abolished
         make_ubi_post_adjustments!( hres, sys.ubi )
     end
+    
+    calculate_other_taxes( hres, hh, sys.othertax )
+
     aggregate!( hh, hres )
     return hres
 end

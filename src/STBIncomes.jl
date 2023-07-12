@@ -123,7 +123,7 @@ end
 const IncomesSet = Set{Incomes}
 
 const FIRST_INCOME = instances(Incomes)[1]
-const LAST_INCOME = instances(Incomes)[end]
+const LAST_INCOME = instances(Incomes)[end-1] # skip OTHER_TAX
 const NUM_INCOMES = length(instances(Incomes))[1]
 
 export IncomesSet
@@ -244,6 +244,18 @@ function fill( starti::Incomes, stopi :: Incomes) :: IncomesSet
     return is
 end
 
+function make_income_taxes() :: IncomesSet
+    is = IncomesSet()
+    for i in Int(INCOME_TAX):Int(NATIONAL_INSURANCE)
+        if i != Int(LOCAL_TAXES)
+            push!( is, Incomes(i))
+        end
+    end
+    push!( is, OTHER_TAX )
+    return is
+    # IncomesSet(setdiff(fill(INCOME_TAX,NATIONAL_INSURANCE),[LOCAL_TAXES]) ) # CT treated seperately
+end
+
 const NON_CALCULATED_INCOMES = fill( WAGES, TRADE_UNION_SICK_OR_STRIKE_PAY )
 const NON_CALCULATED_ITEMS = fill( WAGES, PENSION_CONTRIBUTIONS_EMPLOYER )
 const BENEFITS = fill(CHILD_BENEFIT, LAST_INCOME ) # careful!
@@ -251,7 +263,7 @@ const LEGACY_MTBS =fill(WORKING_TAX_CREDIT,HOUSING_BENEFIT)
 
 const MEANS_TESTED_BENS = union(fill(WORKING_TAX_CREDIT,UNIVERSAL_CREDIT), [SCOTTISH_CHILD_PAYMENT,COUNCIL_TAX_BENEFIT] )
 const NON_MEANS_TESTED_BENS = IncomesSet(setdiff( BENEFITS, MEANS_TESTED_BENS ))
-const INCOME_TAXES = IncomesSet(setdiff(fill(INCOME_TAX,NATIONAL_INSURANCE),[LOCAL_TAXES])) # CT treated seperately
+const INCOME_TAXES = make_income_taxes()
 
 const CALCULATED = fill(INCOME_TAX,SCOTTISH_CARERS_SUPPLEMENT)
 const SCOTTISH_SICKNESS_BENEFITS = IncomesSet([
