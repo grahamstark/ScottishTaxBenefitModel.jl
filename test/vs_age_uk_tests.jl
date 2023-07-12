@@ -35,7 +35,8 @@ settings = Settings()
         rent = 0,
         rooms = 0,
         age = 68,
-        tenure = Private_Rented_Furnished )
+        tenure = Private_Rented_Furnished,
+        council = :S12000049 )
     head = get_head( hh )
     settings.means_tested_routing = lmt_full 
 

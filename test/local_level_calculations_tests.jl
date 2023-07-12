@@ -182,9 +182,22 @@ end
             for kids in 0:5
                 for age in [30,40,70]
                     if adults == 1                    
-                        hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
+                        hh = make_hh( 
+                            adults=adults, 
+                            children=kids, 
+                            age=age, 
+                            tenure=tenure, 
+                            rent=500.0,
+                            council=:S12000049 )
                     else
-                        hh = make_hh( adults=adults, children=kids, age=age, spouse_age=age, tenure=tenure, rent=500.0 )
+                        hh = make_hh( 
+                            adults=adults, 
+                            children=kids, 
+                            age=age, 
+                            spouse_age=age, 
+                            tenure=tenure, 
+                            rent=500.0,
+                            council=:S12000049 )
                     end
                     intermed = make_intermediate( 
                         hh, 
@@ -242,9 +255,22 @@ end
             for kids in 0:5
                 for age in [30,40,70]
                     if adults == 1                    
-                        hh = make_hh( adults=adults, children=kids, age=age, tenure=tenure, rent=500.0 )
+                        hh = make_hh( 
+                            adults=adults, 
+                            children=kids, 
+                            age=age, 
+                            tenure=tenure, 
+                            rent=500.0, 
+                            council=:S12000049 ) # Glasgow
                     else
-                        hh = make_hh( adults=adults, children=kids, age=age, spouse_age=age, tenure=tenure, rent=500.0 )
+                        hh = make_hh( 
+                            adults=adults, 
+                            children=kids, 
+                            age=age, 
+                            spouse_age=age, 
+                            tenure=tenure, 
+                            rent=500.0,
+                            council=:S12000049 ) # Glasgow
                     end
                     intermed = make_intermediate( 
                         hh, 
@@ -344,7 +370,7 @@ end
     println( "total raised $(trunc(value/1_000_000))m pa before rebates")
     println( "dwellings $(trunc(dwellings)) ")
     println( "av per dwelling, before ctrebate $(trunc(value/dwellings))")
-    hh = make_hh(adults=2)
+    hh = make_hh(adults=2, council=:S12000049)
     intermed = make_intermediate( 
         hh, 
         sys.hours_limits, 

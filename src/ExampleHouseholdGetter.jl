@@ -41,9 +41,10 @@ function initialise(
     for hseq in 1:nhhlds
         hhf = hh_dataset[hseq,:]
         push!( KEYMAP, hhf.name )
-        println( "loading $(hhf.name)")
+        println( "loading $(hhf.name) $(hhf.council)")
         EXAMPLE_HOUSEHOLDS[hhf.name] = load_hhld_from_frame( 
             hseq, hhf, people_dataset, ExampleSource, settings )
+        println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
     end
     return KEYMAP
 end

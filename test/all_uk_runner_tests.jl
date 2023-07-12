@@ -66,6 +66,9 @@ function do_basic_uk_run()
     sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=true)]
     println( sys[1].ni)
     tot = 0
+    # force reset of data to use UK dataset
+    settings.num_households, settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true )
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
     settings.poverty_line = make_poverty_line( results.hh[1], settings )

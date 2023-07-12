@@ -58,6 +58,8 @@ init_data()
 # table 2
 @testset "Reproduce HMRC 2019/20" begin
     hh = ExampleHouseholdGetter.get_household( "mel_c2" )
+    println( "council $(hh.council)" )
+    
     hhr = init_household_result( hh )
     @test hh_to_hhr_mismatch( hh, hhr )
 
@@ -71,6 +73,7 @@ init_data()
         hh.people[ RUK_PERSON ].income[wages] = wage[i]
         hh.people[ RUK_PERSON ].income[bank_interest] = savings[i]
         hh.people[ RUK_PERSON ].income[stocks_shares] = divs[i]
+        println( "council $(hh.council)" )
         hres = ScottishTaxBenefitModel.SingleHouseholdCalculations.do_one_calc( hh, sys[1] )
         hres_scot = ScottishTaxBenefitModel.SingleHouseholdCalculations.do_one_calc( hh, sys[2] )
         if i == 1

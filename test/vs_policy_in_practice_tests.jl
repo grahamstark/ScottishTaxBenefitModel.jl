@@ -45,7 +45,8 @@ settings = Settings()
         rent = 0,
         rooms = 0,
         age = 50,
-        tenure = Private_Rented_Furnished )
+        tenure = Private_Rented_Furnished,
+        council = :S12000049 ) # glasgow
     
     head = get_head( hh )
     
@@ -174,7 +175,8 @@ end
         rent = 0,
         rooms = 0,
         age = 50,
-        tenure = Private_Rented_Furnished )
+        tenure = Private_Rented_Furnished,
+        council = :S12000049 )
     
     head = get_head( hh )
     empty!( head.income )
@@ -239,7 +241,8 @@ end
         rent = 0,
         rooms = 0,
         age = 50,
-        tenure = Private_Rented_Furnished )
+        tenure = Private_Rented_Furnished,
+        council = :S12000049 )
     hh.gross_rent = 400/PWPM
     #
     # Glasgow:  They have 493.62 LHA per month 1 bedroom 113.92pw (4.333 = 52/12)
@@ -312,7 +315,8 @@ end
         rent = 200,
         rooms = 3,
         age = 50,
-        tenure = Private_Rented_Furnished )
+        tenure = Private_Rented_Furnished,
+        council = :S12000049 )
     hh.gross_rent = 200 # 800/PWPM
     hh.water_and_sewerage = 0
     hh.other_housing_charges = 0
@@ -452,7 +456,8 @@ end
         rent = 200,
         rooms = 3,
         age = 50,
-        tenure = Private_Rented_Furnished )
+        tenure = Private_Rented_Furnished,
+        council = :S12000049 )
     hh.gross_rent = 200 # 800/PWPM
     hh.water_and_sewerage = 0
     hh.other_housing_charges = 0    # === 2 ch family unemployed & hit by benefit cap & rent reduction

@@ -286,6 +286,7 @@ function make_hh(
     rooms    :: Int  = 4,
     age      :: Int = -1,
     spouse_age :: Int = -1,
+    council = :SCOTLAND, # dummy average council
     tenure   :: Tenure_Type = Private_Rented_Furnished ) :: Household
     hh = nothing
     if adults == 2
@@ -305,6 +306,7 @@ function make_hh(
     end
     hh.tenure = tenure
     hh.ct_band = Band_B
+    hh.council = council
     num_kids = num_children( hh )
     if num_kids < children
        for i in (num_kids+1):children
