@@ -1,6 +1,7 @@
 module OtherTaxes
 
 using ScottishTaxBenefitModel
+using .Definitions
 using .ModelHousehold
 using .Results
 using .STBParameters
@@ -16,7 +17,7 @@ function calculate_wealth_tax!(
     sys              :: OtherTaxesSys )
     hd = get_head( hh )
     wt = sys.wealth_tax * hh.total_wealth
-    household_result.bus[1].pers[ hd.pid ].income[OTHER_TAX] = wt
+    household_result.bus[1].pers[ hd.pid ].income[OTHER_TAX] += wt
 end
 
 """
@@ -28,14 +29,18 @@ function calculate_corporation_tax!(
     sys              :: OtherTaxesSys )
     bus = get_benefit_units( hh )
     ot = 0.0
+    buno = 0
     for bu in bus
+        buno += 1
         for adno in bu.adults
             pers = bu.people[adno]
-            if(pers.income[WAGES] > 0.0) && (pers.public_or_private == Private)
-                bures.pers[adno].income[OTHER_TAX] = pers.income[WAGES] * sys.implicit_wage_tax
+            wage = get(pers.income, wages, 0.0 )
+            if( wage > 0.0) && (pers.public_or_private == Private)
+                household_result.bus[buno].pers[adno].income[OTHER_TAX] += wage * sys.implicit_wage_tax
             end
-            if(pers.income[SELF_EMPLOYMENT_INCOME] > 0.0)
-                bures.pers[adno].income[OTHER_TAX] = pers.income[SELF_EMPLOYMENT_INCOME] * sys.implicit_wage_tax
+            se = get(pers.income, self_employment_income, 0.0 )
+            if se > 0.0
+                household_result.bus[buno].pers[adno].income[OTHER_TAX] += se * sys.implicit_wage_tax
             end
         end # adults
     end # bus

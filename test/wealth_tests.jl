@@ -25,6 +25,23 @@ using StatsBase
     end
 end
 
+@testset "Corporation Tax" begin
+    sys = get_system( year=2023, scotland=true )
+    sys.othertaxes.corporation_tax_changed = true
+    sys.othertaxes.implicit_wage_tax = 0.01
+    hh = make_hh( adults = 2 )
+    for w in [0,1_000,100_000.0,1_000_000.0]
+        for (pid,ad) in hh.people
+            hh.people[pid].public_or_private = Private
+            hh.people[pid].income[wages] = w
+        end
+        hres = init_household_result( hh )
+        calculate_other_taxes!( hres, hh, sys.othertaxes )
+        aggregate!( hh, hres )
+        println( "hres.bhc_net_income=$(hres.bhc_net_income)" )
+    end
+end
+
 @testset "simulated wealth distribution" begin
     num_households = 0
     settings = get_all_uk_settings_2023()
