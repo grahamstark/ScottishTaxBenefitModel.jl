@@ -14,6 +14,8 @@ using .TheEqualiser
 using .STBOutput
 using PrettyTables
 using CSV
+using .GeneralTaxComponents:
+    WEEKS_PER_YEAR
 
 function load_system()::TaxBenefitSystem
 	sys = load_file( joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021_22.jl" ))
@@ -48,6 +50,8 @@ end
     sys = load_system()
     sys.ubi.abolished = false
     sys.it.personal_allowance = 0.0
+    settings.num_households, settings.num_people, nhh2 = 
+                FRSHouseholdGetter.initialise( settings; reset=true )
     make_ubi_pre_adjustments!( sys )
     base_res = do_one_run(
         settings,
@@ -69,7 +73,6 @@ end
         obs )
     ubi_summary = summarise_frames!(ubi_res,settings)
     ubi_cost = ubi_summary.income_summary[1][1,:net_cost]
-   
     println( "needs tax rise of $eq")
     net_cost = ubi_cost - base_cost
     println( "net_cost=$net_cost" )
@@ -99,7 +102,7 @@ end
         settings, 
         base_cost, 
         obs )
-    sys.it.non_savings_rates .+= eq
+    sys.othertaxes.wealth_tax = eq
     ubi_res = do_one_run(
         settings,
         [sys],
@@ -110,7 +113,7 @@ end
     println( "needs tax rise of $eq")
     net_cost = ubi_cost - base_cost
     println( "net_cost=$net_cost" )
-    println( "taxrates $(sys.othertaxes.wealth_tax)")
+    println( "taxrates $(sys.othertaxes.wealth_tax*WEEKS_PER_YEAR*100)%")
     println("ubi summary")
     CSV.write( "ubi_summary.income_summary_wealth.csv", ubi_summary.income_summary[1] )
     # pretty_table( ubi_summary.income_summary[1][1,:] )
