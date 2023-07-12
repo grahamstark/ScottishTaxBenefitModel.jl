@@ -19,6 +19,28 @@ function calculate_wealth_tax!(
     household_result.bus[1].pers[ hd.pid ].income[OTHER_TAX] = wt
 end
 
+"""
+hacky - modelled as a % wage tax on self-employed and non-state employed
+"""
+function calculate_corporation_tax!( 
+    household_result :: HouseholdResult,
+    hh               :: Household,
+    sys              :: OtherTaxesSys )
+    bus = get_benefit_units( hh )
+    ot = 0.0
+    for bu in bus
+        for adno in bu.adults
+            pers = bu.people[adno]
+            if(pers.income[WAGES] > 0.0) && (pers.public_or_private == Private)
+                bures.pers[adno].income[OTHER_TAX] = pers.income[WAGES] * sys.implicit_wage_tax
+            end
+            if(pers.income[SELF_EMPLOYMENT_INCOME] > 0.0)
+                bures.pers[adno].income[OTHER_TAX] = pers.income[SELF_EMPLOYMENT_INCOME] * sys.implicit_wage_tax
+            end
+        end # adults
+    end # bus
+end # corptax
+
 function calculate_other_taxes!(     
     household_result :: HouseholdResult,
     hh               :: Household,
@@ -27,6 +49,9 @@ function calculate_other_taxes!(
         calculate_wealth_tax!(     
             household_result, hh, sys )
     end
-end
+    if sys.corporation_tax_changed
+        calculate_corporation_tax!( household_result, hh, sys )
+    end
+end # othertaxes
 
 end # module OtherTaxes

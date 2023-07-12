@@ -79,3 +79,40 @@ end
     # pretty_table( ubi_summary.income_summary[1][1,:] )
 
 end
+
+@testset "Eq UBI With Wealth Tests" begin
+    base = load_system()
+    sys = load_system()
+    sys.ubi.abolished = false
+    sys.it.personal_allowance = 0.0
+    make_ubi_pre_adjustments!( sys )
+    base_res = do_one_run(
+        settings,
+        [base],
+        obs )
+    summary = summarise_frames!(base_res,settings)
+    base_cost = summary.income_summary[1][1,:net_cost]
+    
+    eq = equalise( 
+        eq_wealth_tax, 
+        sys, 
+        settings, 
+        base_cost, 
+        obs )
+    sys.it.non_savings_rates .+= eq
+    ubi_res = do_one_run(
+        settings,
+        [sys],
+        obs )
+    ubi_summary = summarise_frames!(ubi_res,settings)
+    ubi_cost = ubi_summary.income_summary[1][1,:net_cost]
+   
+    println( "needs tax rise of $eq")
+    net_cost = ubi_cost - base_cost
+    println( "net_cost=$net_cost" )
+    println( "taxrates $(sys.othertaxes.wealth_tax)")
+    println("ubi summary")
+    CSV.write( "ubi_summary.income_summary_wealth.csv", ubi_summary.income_summary[1] )
+    # pretty_table( ubi_summary.income_summary[1][1,:] )
+
+end

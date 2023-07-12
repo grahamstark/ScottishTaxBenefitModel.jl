@@ -83,6 +83,8 @@ using .ScottishBenefits:
 
 using .UBI: calc_UBI!, make_ubi_post_adjustments!
 
+using .OtherTaxes: calculate_other_taxes!
+
 export do_one_calc
 
 """
@@ -217,7 +219,7 @@ function do_one_calc(
         make_ubi_post_adjustments!( hres, sys.ubi )
     end
     
-    calculate_other_taxes( hres, hh, sys.othertax )
+    calculate_other_taxes!( hres, hh, sys.othertaxes )
 
     aggregate!( hh, hres )
     return hres

@@ -25,8 +25,31 @@ using .STBParameters
 using .LocalLevelCalculations
 using .Utils
 
-@enum EqTargets eq_it eq_ni eq_it_ni eq_ct_rels eq_ct_band_d eq_ppt_rate eq_ct_bands_proportional eq_ct_bands_progressive
-export EqTargets,eq_it,eq_ni,eq_it_ni, eq_ct_rels, eq_ct_band_d, eq_ppt_rate, eq_ct_bands_proportional, eq_ct_bands_progressive
+@enum EqTargets begin 
+    eq_it 
+    eq_ni 
+    eq_it_ni 
+    eq_ct_rels 
+    eq_ct_band_d 
+    eq_ppt_rate 
+    eq_ct_bands_proportional 
+    eq_ct_bands_progressive 
+    eq_wealth_tax 
+    eq_corporation_tax 
+end
+
+export EqTargets,
+    eq_it,
+    eq_ni,
+    eq_it_ni, 
+    eq_ct_rels, 
+    eq_ct_band_d, 
+    eq_ppt_rate, 
+    eq_ct_bands_proportional, 
+    eq_ct_bands_progressive,
+    eq_wealth_tax,
+    eq_corporation_tax
+
 export equalise
 #
 # Roots only allows 1 parameter, I think, so:
@@ -52,6 +75,8 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     nbandd = deepcopy( rparams.params.loctax.ct.band_d )
     npptrate = rparams.params.loctax.ppt.rate
     hvals = deepcopy(rparams.params.loctax.ct.house_values)
+    othvals = deepcopy(rparams.params.othertaxes )
+
     if rparams.target in [eq_it, eq_it_ni]
         rparams.params.it.non_savings_rates .+= x
     end
@@ -78,6 +103,13 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
         change_ct_valuations!(rparams.params.loctax.ct.house_values, x, progressive )
     end
 
+    if rparams.target == eq_wealth_tax
+        rparams.params.othertaxes.wealth_tax += x
+    end
+    if rparams.target == eq_corporation_tax
+        rparams.params.othertaxes.implicit_wage_tax += x
+    end
+
     # TODO check sensible ni rates    
     results = do_one_run( rparams.settings, [rparams.params], rparams.obs )
     # restore
@@ -86,6 +118,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.loctax.ct.band_d = nbandd
     rparams.params.loctax.ppt.rate = npptrate
     rparams.params.loctax.ct.house_values = hvals
+    rparams.params.othertaxes = othvals 
     summary = summarise_frames!(results, rparams.settings)
     nc = summary.income_summary[1][1,:net_cost]
     return round( nc - rparams.base_cost, digits=0 )

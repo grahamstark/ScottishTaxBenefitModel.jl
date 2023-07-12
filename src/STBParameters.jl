@@ -948,7 +948,8 @@ I	More than £424,000
 
     @with_kw mutable struct OtherTaxesSys{RT<:Real}
         wealth_tax :: RT = 0.0
-
+        corporation_tax_changed = false
+        implicit_wage_tax :: RT = 0.0
     end
 
     function weeklyise!( ubi :: UBISys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
@@ -966,6 +967,7 @@ I	More than £424,000
         wpm=WEEKS_PER_MONTH, 
         wpy=WEEKS_PER_YEAR )
         othertaxes.wealth_tax /= 100.0
+        othertaxes.implicit_wage_tax /= 100.0
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
