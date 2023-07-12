@@ -1,4 +1,3 @@
-using Markdown
 using CSV
 using GLM
 # using Makie
