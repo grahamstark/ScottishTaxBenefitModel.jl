@@ -1,4 +1,6 @@
 using ArgCheck
+using CSV
+using DataFrames
 using Observables
 using StatsBase 
 using Test
@@ -8,6 +10,7 @@ using .Definitions
 using .ExampleHelpers
 using .HealthRegressions: get_health, create_health_indicator, summarise_sf12
 using .ModelHousehold
+using .HouseholdFromFrame: create_regression_dataframe
 using .Monitor: Progress
 using .Results
 using .Runner: do_one_run
@@ -112,4 +115,95 @@ end
 
         println( summarise_sf12( outps, settings ))
     end
+end # testset
+
+@testset "big merged data" begin
+
+    settings = Settings()
+    sc_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+    sc_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
+    sc_data = create_regression_dataframe( sc_hh_dataset, sc_people_dataset )
+
+    sc_data_ads = sc_data[sc_data.age .>=16,:]
+
+    settings = get_all_uk_settings_2023()
+    uk_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+    uk_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
+    uk_data = create_regression_dataframe( uk_hh_dataset, uk_people_dataset )
+
+    uk_data_ads = uk_data[(uk_data.age .>=16).&(uk_data.gor_ni .== 0),:]
+    nr,nc = size(uk_data)
+    nr2 = nr*2
+    results = DataFrame( 
+        hid=zeros(BigInt,nr2), 
+        pid=zeros(Int,nr2), 
+        sysno=zeros(Int,nr2), 
+        
+        data_year=zeros(Int,nr2), 
+        quintile=zeros(Int,nr2),
+        eqinc = zeros(Float64, nr2 ))
+
+
+    hresults = DataFrame( 
+        hid=zeros(BigInt,nr2), 
+        pid=zeros(Int,nr2), 
+        sysno=zeros(Int,nr2),         
+        data_year=zeros(Int,nr2), 
+        sf12 = zeros(Float64, nr2 ),
+        sf6 = zeros(Float64, nr2 ),
+        imputed_wealth = zeros(Float64, nr2 ))
+
+    p = 0
+    @time for h in eachrow(sc_data_ads)
+            for sysno in 1:2
+                p += 1
+                results[p,:hid] = h.hid    
+                results[p,:pid] = h.pid    
+                results[p,:sysno] = sysno
+                results[p,:data_year] = h.data_year
+                results[p,:quintile] = rand(1:5)
+                results[p,:eqinc] = log.(1000.0*rand())
+                hresults[p,:hid] = h.hid    
+                hresults[p,:pid] = h.pid    
+                hresults[p,:sysno] = sysno
+                hresults[p,:data_year] = h.data_year
+            end
+        end
+    
+    @time for sysno in 1:2
+        for h in eachrow(sc_data_ads)
+            HealthRegressions.rmul( h, HealthRegressions.SFD12_REGRESSION_TR)
+        end
+    end
+    nc12 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD12_REGRESSION_TR)))
+    coefs12 = Vector{Float64}( HealthRegressions.SFD12_REGRESSION_TR[nc12] )
+    nc6 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD6_REGRESSION_TR)))
+    coefs6 = Vector{Float64}( HealthRegressions.SFD6_REGRESSION_TR[nc6] )
+    p = 0
+    @time for sysno in 1:2
+        sr = results[results.sysno .== sysno,:]
+        data_ads = innerjoin( 
+            sc_data_ads, 
+            sr, on=[:data_year, :hid ],makeunique=true )
+        data_ads.mlogbhc = data_ads.eqinc 
+        data_ads.q1mlog = (data_ads.quintile .== 1) .* data_ads.eqinc
+        data_ads.q2mlog = (data_ads.quintile .== 2) .* data_ads.eqinc
+        data_ads.q3mlog = (data_ads.quintile .== 3) .* data_ads.eqinc
+        data_ads.q4mlog = (data_ads.quintile .== 4) .* data_ads.eqinc
+        data_ads.q5mlog = (data_ads.quintile .== 5) .* data_ads.eqinc
+        for h in eachrow(sc_data_ads)
+            p += 1
+            hresults[p,:sf12] = HealthRegressions.rm2( nc12, h, coefs12 )
+            hresults[p,:sf6] = HealthRegressions.rm2( nc6, h, coefs6 )
+            hresults[p,:hid] = h.hid
+            hresults[p,:data_year] = h.data_year
+            hresults[p,:pid] = h.pid
+            hresults[p,:sysno] = sysno
+        end
+    end
+    
+    println(summarystats(hresults.sf12))
+    println(summarystats(hresults.sf6))
+
 end
+

@@ -29,18 +29,29 @@ export
     map_hhld 
 
 const ZERO_EQ_SCALE = EQScales(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
- 
-#
-# Create the dataframe used in the regressions for (e.g) disability
-# by joining the household and person frames, and adding
-# some disability fields
-#
+
+"""
+A vector which is 1 if element is one of the things, 0 otherwise.
+"""
+function in_vect( f :: Vector, things... )::Vector
+    nr = size(f)[1]
+    out = zeros(nr)    
+    its = [Int.( collect(things))]; 
+    return in.(Int.(f),its)
+end
+
+"""
+ Create the dataframe used in the regressions for (e.g) disability
+ by joining the household and person frames, and adding
+ some disability fields
+"""
 function create_regression_dataframe(
     model_households :: DataFrame,
     model_people :: DataFrame ) :: DataFrame
 
-    fm = innerjoin( model_households, model_people, on=[:data_year, :hid ] )
-
+    fm = innerjoin( model_households, model_people, on=[:data_year, :hid ],makeunique=true )
+    nrows,ncols = size( fm )
+    fm.cons = zeros( nrows )
     fm.deaf_blind=fm.registered_blind .| fm.registered_deaf .| fm.registered_partially_sighted
     fm.yr = fm.data_year .- 2014
     fm.any_dis = (
@@ -65,9 +76,73 @@ function create_regression_dataframe(
     fm.rec_esa = ( fm.income_employment_and_support_allowance.>0.0)
     fm.rec_aa = ( fm.income_attendance_allowance.>0.0)
     fm.rec_carers = ( fm.income_carers_allowance.>0.0)
-    fm_rec_aa = ( fm.income_attendance_allowance.>0.0)
+    fm.rec_aa = ( fm.income_attendance_allowance.>0.0)
+    
     fm.scotland = fm.region .== 299999999
-    fm.male = fm.sex .== 1 
+
+    fm.mlogbhc = zeros(nrows)
+    fm.gor_nw = Int.(fm.region .== Int(North_West))
+    fm.gor_yh = Int.(fm.region .== Int(Yorks_and_the_Humber))
+    fm.gor_em = Int.(fm.region .== Int(East_Midlands))
+    fm.gor_wm = Int.(fm.region .== Int(West_Midlands))
+    fm.gor_ee = Int.(fm.region .== Int(East_of_England))
+    fm.gor_lo = Int.(fm.region .== Int(London))
+    fm.gor_se = Int.(fm.region .== Int(South_East))
+    fm.gor_sw = Int.(fm.region .== Int(South_West))
+    fm.gor_wa = Int.(fm.region .== Int(Wales))
+    fm.gor_sc = Int.(fm.region .== Int(Scotland))
+    fm.gor_ni = Int.(fm.region .== Int(Northern_Ireland))
+    fm.ten_own = in_vect(fm.tenure,Owned_outright, Mortgaged_Or_Shared )
+    fm.ten_sr = in_vect(fm.tenure,Council_Rented, Housing_Association )
+
+
+    fm.male = Int.(fm.sex .== 1) 
+    fm.female = Int.(fm.sex .== 2)
+
+    eg = safe_assign.(fm.ethnic_group)
+
+    fm.race_ms = Int.( eg .== Int(Missing_Ethnic_Group))
+    fm.race_mx = Int.( eg .== Int(Mixed_or_Multiple_ethnic_groups))
+    fm.race_as = Int.( eg .== Int(Asian_or_Asian_British ))
+    fm.race_bl = Int.( eg .== Int(Black_or_African_or_Caribbean_or_Black_British ))
+    fm.race_ot = Int.( eg  .== Int(Other_ethnic_group ))
+    fm.born_m = zeros(nrows)
+    fm.born_uk = zeros(nrows)
+    fm.llsid = zeros(nrows)
+    ms = safe_assign.(fm.marital_status)
+    fm.marciv = Int.(ms .== Int(Married_or_Civil_Partnership))
+    fm.divsep = in_vect(ms, Separated,Divorced_or_Civil_Partnership_dissolved )
+    fm.widow = in_vect(ms, Widowed )
+
+    fm.age2534 = Int.(in.(fm.age, [25:34] ))
+    fm.age3544 = Int.(in.(fm.age, [35:44] ))
+    fm.age4554 = Int.(in.(fm.age, [45:54] ))
+
+    # FIXME check HR 5564
+    fm.age5565 = Int.(in.(fm.age, [55:64] ))
+    fm.age6574 = Int.(in.(fm.age, [65:74] ))
+    fm.age75 = Int.(in.(fm.age,[75:200]))
+    hq = Qualification_Type.(safe_assign.(fm.highest_qualification))
+    fm.hq_deg = Int.(highqual_degree_equiv.( hq ))
+    fm.hq_ohe = Int.(highqual_other_he.( hq ))
+    fm.hq_al = Int.(highqual_alevel_equiv.( hq ))
+    fm.hq_gcse = Int.(highqual_gcse_equiv.( hq ))
+    fm.hq_oth = Int.(highqual_other.( hq))
+    es = safe_assign.( fm.employment_status )
+    fm.ec_emp = in_vect(es, Full_time_Employee, Part_time_Employee )
+    fm.ec_se = in_vect(es, Full_time_Self_Employed,Part_time_Self_Employed )
+    fm.ec_fam = in_vect(es, Looking_after_family_or_home )
+    fm.ec_un = in_vect(es, Unemployed )
+    fm.ec_ret = in_vect(es, Retired )
+
+    fm.q1mlog = zeros(nrows)
+    fm.q2mlog = zeros(nrows)
+    fm.q3mlog = zeros(nrows)
+    fm.q4mlog = zeros(nrows)
+    fm.q5mlog = zeros(nrows)
+    fm.mlogbhc = zeros(nrows)
+
+    fm.rural = zeros(nrows) # missing from frs public
     return fm
 end
 

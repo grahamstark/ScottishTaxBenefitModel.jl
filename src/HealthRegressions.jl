@@ -77,8 +77,11 @@ const SFD12_REGRESSION = DataFrame([
     "gor_ni" .5129039 .0951431 5.39 0.000 .3264262 .6993816;
     "ten_own" .3748749 .0493456 7.60 0.000 .278159 .4715909;
     "ten_sr" -.2750053 .0597592 -4.60 0.000 -.3921317 -.1578789;
-    "_cons" 20.01 .5385379 37.16 0.000 18.95448 21.06552 ], 
+    "cons" 20.01 .5385379 37.16 0.000 18.95448 21.06552 ], 
     ["var", "coef", "stderr",  "t",   "p",  "conflow",  "confhigh"] )
+
+# just the sf12 coefficients, as a df row
+const SFD12_REGRESSION_TR = unstack(SFD12_REGRESSION[!,[:var,:coef]],:var,:coef)[1,:]
 
 const SFD6_REGRESSION = DataFrame([
     "q1mlog" -.0004121 .0001645  -2.51  0.012  -.0007345  -.0000898;
@@ -133,15 +136,36 @@ const SFD6_REGRESSION = DataFrame([
     "gor_ni" .0001698 .0012101  0.14  0.888  -.002202  .0025415;
     "ten_own" .0072883 .0006278  11.61  0.000  .0060578  .0085189;
     "ten_sr" -.00562 .0007603  -7.39  0.000  -.0071102  -.0041298;
-    "_cons" .3024495 .0068728  44.01  0.000  .2889791  .31592 
+    "cons" .3024495 .0068728  44.01  0.000  .2889791  .31592 
 ], ["var", "coef", "stderr",  "t",   "p",  "conflow",  "confhigh"] )
+
+# just the sf6 coefficients, as a df row
+const SFD6_REGRESSION_TR = unstack(SFD6_REGRESSION[!,[:var,:coef]],:var,:coef)[1,:]
+
+"""
+cross-mult a row in a dataframe using just the col names in common
+"""
+function rmul( d1 :: DataFrameRow, d2::DataFrameRow)::Number
+    nc = Symbol.(intersect( names(d1), names(d2)))
+    v1 = Vector(d1[nc])
+    v2 = Vector(d2[nc])
+    return v1'*v2
+end
+
+function rm2( 
+    names :: Vector{Symbol}, 
+    d1 :: DataFrameRow, 
+    v2 ::Vector{Float64} )::Float64
+    v1 = Vector(d1[names])
+    v1'*v2
+end
 
 # note to me:
 # +(.*) \| *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *
 
 """
     Imputes the sf_6 measure for each non-child member of a household 
-    Note the regression has monthly income by the taxben stuff is weekly
+    Note the regression has monthly income but the taxben stuff is weekly
 """
 function get_health( 
     ; hh   :: Household, 

@@ -64,6 +64,12 @@ module FRSHouseholdGetter
             Dict{OneIndex,Int}(),
             Dict{OneIndex,Int}())
     
+    struct RegWrapper 
+        data :: DataFrame
+    end
+
+    const REG_DATA = RegWrapper( DataFrame())
+
     """
     Initialise the dataset. If this has already been done, do nothing unless 
     `reset` is true.
@@ -119,6 +125,9 @@ module FRSHouseholdGetter
             size(MODEL_HOUSEHOLDS.hhlds)[1],
             npeople,
             nhhlds
+
+        # REG_DATA.data = create_regression_dataframe( hh_dataset, people_dataset )
+
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
     
