@@ -8,7 +8,9 @@ using Test
 using ScottishTaxBenefitModel
 using .Definitions
 using .ExampleHelpers
+using .FRSHouseholdGetter
 using .HealthRegressions: get_health, create_health_indicator, summarise_sf12
+using .GeneralTaxComponents:WEEKS_PER_MONTH
 using .ModelHousehold
 using .HouseholdFromFrame: create_regression_dataframe
 using .Monitor: Progress
@@ -46,9 +48,9 @@ end
     println(StatsBase.summarystats( sf12s ))
 end
 
-    
 @testset "get_sfd6 Live Data" begin
     settings = Settings()
+    @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
     # Actually, `eq_bhc_net_income` is the default anyway.
     settings.requested_threads = 4
     settings.ineq_income_measure = eq_bhc_net_income
@@ -117,69 +119,7 @@ end
     end
 end # testset
 
-@testset "big merged data" begin
-
-    #=
-    settings = Settings()
-    
-    sc_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
-    sc_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
-    sc_data = create_regression_dataframe( sc_hh_dataset, sc_people_dataset )
-
-    sc_data_ads = sc_data[sc_data.age .>=16,:]
-    =#
-
-    settings = get_all_uk_settings_2023()
-    uk_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
-    uk_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
-    uk_data = create_regression_dataframe( uk_hh_dataset, uk_people_dataset )
-    uk_data_ads = uk_data[(uk_data.age .>=16).&(uk_data.gor_ni .== 0),:]
-    nr,nc = size(uk_data)
-    
-    sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]    
-    results = do_one_run( settings, sys, obs )
-    ## actually 
-    outf = summarise_frames!( results, settings )    
-
-    #=
-    nr2 = nr*2
-
-    results[sys] = DataFrame( 
-        hid=zeros(BigInt,nr2), 
-        pid=zeros(Int,nr2), 
-        sysno=zeros(Int,nr2), 
-        
-        data_year=zeros(Int,nr2), 
-        quintile=zeros(Int,nr2),
-        eqinc = zeros(Float64, nr2 ))
-
-    hresults = DataFrame( 
-        hid=zeros(BigInt,nr2), 
-        pid=zeros(Int,nr2), 
-        sysno=zeros(Int,nr2),         
-        data_year=zeros(Int,nr2), 
-        sf12 = zeros(Float64, nr2 ),
-        sf6 = zeros(Float64, nr2 ),
-        imputed_wealth = zeros(Float64, nr2 ))
-
-    p = 0
-    @time for h in eachrow(sc_data_ads)
-            for sysno in 1:2
-                p += 1
-                results[p,:hid] = h.hid    
-                results[p,:pid] = h.pid    
-                results[p,:sysno] = sysno
-                results[p,:data_year] = h.data_year
-                results[p,:quintile] = rand(1:5)
-                results[p,:eqinc] = log.(1000.0*rand())
-                hresults[p,:hid] = h.hid    
-                hresults[p,:pid] = h.pid    
-                hresults[p,:sysno] = sysno
-                hresults[p,:data_year] = h.data_year
-            end
-        end
-    =#
-
+function health_regressions!( results :: NamedTuple, num_systems :: Int )
     nc12 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD12_REGRESSION_TR)))
     coefs12 = Vector{Float64}( HealthRegressions.SFD12_REGRESSION_TR[nc12] )
     nc6 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD6_REGRESSION_TR)))
@@ -188,24 +128,73 @@ end # testset
         data_ads = innerjoin( 
             uk_data_ads, 
             results.indiv[sysno], on=[:data_year, :hid ],makeunique=true )
-        data_ads.mlogbhc = log.(max.(1,data_ads.eq_bhc_net_income ))
-        data_ads.quintile = ((results.indiv[sysno][!,:decile] .+1) .÷ 2)
+        data_ads.mlogbhc = log.(max.(1,WEEKS_PER_MONTH.*data_ads.eq_bhc_net_income ))
+        data_ads.quintile = ((data_ads.decile .+1) .÷ 2)
         data_ads.q1mlog = (data_ads.quintile .== 1) .* data_ads.mlogbhc
         data_ads.q2mlog = (data_ads.quintile .== 2) .* data_ads.mlogbhc
         data_ads.q3mlog = (data_ads.quintile .== 3) .* data_ads.mlogbhc
         data_ads.q4mlog = (data_ads.quintile .== 4) .* data_ads.mlogbhc
         data_ads.q5mlog = (data_ads.quintile .== 5) .* data_ads.mlogbhc
-        for h in eachrow(sc_data_ads)
-            pslot = get_slot_for_person( h.pid, h.data_year )
-            results.indiv[sysno][:sf12] = 
-                HealthRegressions.rm2( nc12, h, coefs12 )
-            results.indiv[sysno][:sf6] = 
-                HealthRegressions.rm2( nc6, h, coefs6 )
-            results.indiv[sysno][:has_mental_health_problem] = -1
-            results.indiv[sysno][:qualys] = -1
-            results.indiv[sysno][:life_expectancy] = -1
+        k = 0
+        for h in eachrow(data_ads)
+            k += 1
+            pslot = get_slot_for_person( BigInt(h.pid), h.data_year )
+            results.indiv[sysno][pslot,:sf12] = 
+                HealthRegressions.rm2( nc12, h, coefs12; lagvalue = 0.526275 )            
+            results.indiv[sysno][pslot,:sf6] = 
+                HealthRegressions.rm2( nc6, h, coefs6; lagvalue = 0.5337817 )
+            results.indiv[sysno][pslot,:has_mental_health_problem] = false
+            results.indiv[sysno][pslot,:qualys] = -1
+            results.indiv[sysno][pslot,:life_expectancy] = -1
         end
-        println(summarystats(results.indiv[sysno][!,:sf12]))
-        println(summarystats(results.indiv[sysno][!,:sf6]))
+        println(summarystats(results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:sf12]))
+        println(summarystats(results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:sf6]))        
+    end    
+end
+
+@testset "big merged data" begin
+    settings = get_all_uk_settings_2023()
+ 
+    uk_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+    uk_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
+    uk_data = create_regression_dataframe( uk_hh_dataset, uk_people_dataset )
+    uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni .== 0),:]
+    nr,nc = size(uk_data)
+
+    @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
+    
+    sys = [get_system(year=2023, scotland=false), get_system( year=2023, scotland=false )]    
+    results = do_one_run( settings, sys, obs )
+    ## actually 
+    outf = summarise_frames!( results, settings )    
+    nc12 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD12_REGRESSION_TR)))
+    coefs12 = Vector{Float64}( HealthRegressions.SFD12_REGRESSION_TR[nc12] )
+    nc6 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD6_REGRESSION_TR)))
+    coefs6 = Vector{Float64}( HealthRegressions.SFD6_REGRESSION_TR[nc6] )
+    @time for sysno in 1:2        
+        data_ads = innerjoin( 
+            uk_data_ads, 
+            results.indiv[sysno], on=[:data_year, :hid ],makeunique=true )
+        data_ads.mlogbhc = log.(max.(1,WEEKS_PER_MONTH.*data_ads.eq_bhc_net_income ))
+        data_ads.quintile = ((data_ads.decile .+1) .÷ 2)
+        data_ads.q1mlog = (data_ads.quintile .== 1) .* data_ads.mlogbhc
+        data_ads.q2mlog = (data_ads.quintile .== 2) .* data_ads.mlogbhc
+        data_ads.q3mlog = (data_ads.quintile .== 3) .* data_ads.mlogbhc
+        data_ads.q4mlog = (data_ads.quintile .== 4) .* data_ads.mlogbhc
+        data_ads.q5mlog = (data_ads.quintile .== 5) .* data_ads.mlogbhc
+        k = 0
+        for h in eachrow(data_ads)
+            k += 1
+            pslot = get_slot_for_person( BigInt(h.pid), h.data_year )
+            results.indiv[sysno][pslot,:sf12] = 
+                HealthRegressions.rm2( nc12, h, coefs12; lagvalue = 0.526275 )            
+            results.indiv[sysno][pslot,:sf6] = 
+                HealthRegressions.rm2( nc6, h, coefs6; lagvalue = 0.5337817 )
+            results.indiv[sysno][pslot,:has_mental_health_problem] = false
+            results.indiv[sysno][pslot,:qualys] = -1
+            results.indiv[sysno][pslot,:life_expectancy] = -1
+        end
+        println(summarystats(results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:sf12]))
+        println(summarystats(results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:sf6]))        
     end    
 end

@@ -20,6 +20,8 @@ export get_death_prob,
     summarise_sf12,
     create_health_indicator
 
+
+
 const SFD12_REGRESSION = DataFrame([
     "q1mlog" -.0669224 .0129316 -5.18 0.000 -.0922679 -.0415769;
     "q2mlog" -.065569 .0104701 -6.26 0.000 -.0860902 -.0450479;
@@ -155,9 +157,10 @@ end
 function rm2( 
     names :: Vector{Symbol}, 
     d1 :: DataFrameRow, 
-    v2 ::Vector{Float64} )::Float64
+    v2 ::Vector{Float64}; lagvalue=0.0 )::Float64
     v1 = Vector(d1[names])
-    v1'*v2
+    # println( [names v1])
+    v1'*v2/(1-lagvalue)
 end
 
 # note to me:

@@ -175,8 +175,8 @@ const EXTRA_INC_COLS = 10
          employment_status = fill(Missing_ILO_Employment,n),
          # ... and so on
 
-         hr.eq_bhc_net_income = zeros(RT,n)
-         hr.eq_ahc_net_income = zeros(RT,n)
+         eq_bhc_net_income = zeros(RT,n),
+         eq_ahc_net_income = zeros(RT,n),
  
          income_taxes = zeros(RT,n),
          means_tested_benefits = zeros(RT,n),
@@ -313,24 +313,26 @@ const EXTRA_INC_COLS = 10
             bu = frames.bu[sysno]
             for hno in 1:nhh
                 onehh = hh[hno,:]
-            
-                (decile, in_poverty) = get_decile_and_poverty_state( 
-                    settings, onehh, poverty_line, decs )
-                onehh.in_poverty = in_poverty
-                onehh.decile = decile
-                onehh.in_poverty = in_poverty
-                # faster than matching hid 
-                pseqs = get_people_slots_for_household( onehh.hid, onehh.data_year )
-                @assert length(pseqs) > 0
-                for pseq in pseqs 
-                    # indiv[indiv.hid .== onehh.hid,:]
-                    pers = indiv[pseq,:]
-                    @assert (pers.hid == onehh.hid) && (pers.data_year == onehh.data_year)
-                    pers.in_poverty = in_poverty
-                    pers.decile = decile
-                    pers.eq_bhc_net_income = onehh.eq_bhc_net_income
-                    pers.eq_ahc_net_income = onehh.eq_ahc_net_income
-                end
+                if onehh.hid > 0 # e.g. skip NI
+                    # println( "onehh.hid $(onehh.hid)  onehh.data_year $(onehh.data_year)")
+                    (decile, in_poverty) = get_decile_and_poverty_state( 
+                        settings, onehh, poverty_line, decs )
+                    onehh.in_poverty = in_poverty
+                    onehh.decile = decile
+                    onehh.in_poverty = in_poverty
+                    # faster than matching hid 
+                    pseqs = get_people_slots_for_household( onehh.hid, onehh.data_year )
+                    @assert length(pseqs) > 0
+                    for pseq in pseqs 
+                        # indiv[indiv.hid .== onehh.hid,:]
+                        pers = indiv[pseq,:]
+                        @assert (pers.hid == onehh.hid) && (pers.data_year == onehh.data_year)
+                        pers.in_poverty = in_poverty
+                        pers.decile = decile
+                        pers.eq_bhc_net_income = onehh.eq_bhc_net_income
+                        pers.eq_ahc_net_income = onehh.eq_ahc_net_income
+                    end
+                end # not ni, etc.
             end
         end
     end

@@ -51,7 +51,7 @@ function create_regression_dataframe(
 
     fm = innerjoin( model_households, model_people, on=[:data_year, :hid ],makeunique=true )
     nrows,ncols = size( fm )
-    fm.cons = zeros( nrows )
+    fm.cons = ones( nrows )
     fm.deaf_blind=fm.registered_blind .| fm.registered_deaf .| fm.registered_partially_sighted
     fm.yr = fm.data_year .- 2014
     fm.any_dis = (

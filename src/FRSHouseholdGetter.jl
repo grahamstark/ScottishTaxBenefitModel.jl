@@ -32,6 +32,7 @@ module FRSHouseholdGetter
         get_household, 
         num_households, 
         get_household_of_person,
+        get_regression_dataset, 
         get_people_slots_for_household,
         get_slot_for_person,
         get_slot_for_household
@@ -67,7 +68,7 @@ module FRSHouseholdGetter
             Vector{Household{Float64}}(undef, 0 ), 
             zeros(Float64,0),
             zeros(Int,3),
-            Dict{OneIndex,Int}(),
+            Dict{OneIndex,HHPeople}(),
             Dict{OneIndex,Int}())
     
     struct RegWrapper 
@@ -76,6 +77,7 @@ module FRSHouseholdGetter
 
     const REG_DATA = RegWrapper( DataFrame())
 
+    
     """
     Initialise the dataset. If this has already been done, do nothing unless 
     `reset` is true.
@@ -135,11 +137,15 @@ module FRSHouseholdGetter
             npeople,
             nhhlds
 
-        # REG_DATA.data = create_regression_dataframe( hh_dataset, people_dataset )
+        REG_DATA.data = create_regression_dataframe( hh_dataset, people_dataset )
 
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
-    
+
+    function get_regression_dataset()::DataFrame
+        REG_DATA.data
+    end
+
     function get_household( pos :: Integer ) :: Household
         hh = MODEL_HOUSEHOLDS.hhlds[pos]
         hh.weight = MODEL_HOUSEHOLDS.weight[pos]
