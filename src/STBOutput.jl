@@ -24,6 +24,7 @@ using .ModelHousehold
 
 using .FRSHouseholdGetter: 
     get_slot_for_household,
+    get_people_slots_for_household,
     get_slot_for_person
     
 using .RunSettings
@@ -146,9 +147,7 @@ const EXTRA_INC_COLS = 10
         frame.region    = fill( Missing_Standard_Region, n )
         frame.decile = zeros( Int, n )
         frame.in_poverty = fill( false, n )
-        frame.council = fill( Symbol( "No_Council"), n),
-
-        # ... and so on
+        frame.council = fill( Symbol( "No_Council"), n)
         return frame
     end
 
@@ -176,6 +175,9 @@ const EXTRA_INC_COLS = 10
          employment_status = fill(Missing_ILO_Employment,n),
          # ... and so on
 
+         hr.eq_bhc_net_income = zeros(RT,n)
+         hr.eq_ahc_net_income = zeros(RT,n)
+ 
          income_taxes = zeros(RT,n),
          means_tested_benefits = zeros(RT,n),
          other_benefits = zeros(RT,n),
@@ -201,7 +203,7 @@ const EXTRA_INC_COLS = 10
 
          sf12 = zeros( RT,n ),
          sf6 = zeros(RT, n ),
-         has_mental_health_problem = fill( false, n )
+         has_mental_health_problem = fill( false, n ),
          qualys = zeros( RT, n ),
          life_expectancy = zeros(RT, n ) )
  
@@ -298,7 +300,7 @@ const EXTRA_INC_COLS = 10
     function fill_in_deciles_and_poverty!( 
         frames :: NamedTuple, 
         settings :: Settings, 
-        poverty_line :: Vector,
+        poverty_lines :: Vector,
         deciles :: Vector )
         ns = size( frames.indiv )[1] # num systems        
         for sysno in 1:ns
@@ -307,17 +309,28 @@ const EXTRA_INC_COLS = 10
             nhh = size(hh)[1]
             indiv = frames.indiv[sysno]
             income = frames.income[sysno]
-            poverty = poverty_line[sysno]
+            poverty_line = poverty_lines[sysno]
             bu = frames.bu[sysno]
             for hno in 1:nhh
-                onehh = hh[hno,:][1]
-                (decile, in_poverty) = get_decile_and_poverty_state( settings, onehh, poverty, decs )
+                onehh = hh[hno,:]
+            
+                (decile, in_poverty) = get_decile_and_poverty_state( 
+                    settings, onehh, poverty_line, decs )
                 onehh.in_poverty = in_poverty
                 onehh.decile = decile
                 onehh.in_poverty = in_poverty
-                indivs = indiv[indiv.hid .== onehh.hid,:]
-                indivs[!,:in_poverty] .= in_poverty
-                indivs[!,:decile] .= decile
+                # faster than matching hid 
+                pseqs = get_people_slots_for_household( onehh.hid, onehh.data_year )
+                @assert length(pseqs) > 0
+                for pseq in pseqs 
+                    # indiv[indiv.hid .== onehh.hid,:]
+                    pers = indiv[pseq,:]
+                    @assert (pers.hid == onehh.hid) && (pers.data_year == onehh.data_year)
+                    pers.in_poverty = in_poverty
+                    pers.decile = decile
+                    pers.eq_bhc_net_income = onehh.eq_bhc_net_income
+                    pers.eq_ahc_net_income = onehh.eq_ahc_net_income
+                end
             end
         end
     end
@@ -392,7 +405,7 @@ const EXTRA_INC_COLS = 10
         pers :: Person,
         pres :: IndividualResult,
         from_child_record :: Bool )
-
+        # println( names(ir))
         STBIncomes.fill_inc_frame_row!( 
             ir, pers.pid, hh.hid, hh.weight, pres.income )
         # some aggregate income fields    
@@ -472,8 +485,6 @@ const EXTRA_INC_COLS = 10
         hres   :: HouseholdResult,
         sysno  :: Integer,
         num_systems :: Integer  )
-
-        
         hfno = get_slot_for_household( hh.hid, hh.data_year )
         fill_hh_frame_row!( 
             frames.hh[sysno][hfno, :], hh, hres)
@@ -482,8 +493,6 @@ const EXTRA_INC_COLS = 10
         bus = get_benefit_units( hh )
         pfbu = 0
         for buno in 1:nbus
-            # this won't work at the moment & isn't used
-            # fill_bu_frame_row!( frames.bu[sysno][bfno,:], hh, hres.bus[buno])
             for( pid, pers ) in bus[buno].people
                 pfno = get_slot_for_person( pid, hh.data_year )
                 # pfbu += 1
@@ -700,30 +709,6 @@ const EXTRA_INC_COLS = 10
             popn = popn)
     end
 
-
-    function xmake_gain_lose( post :: DataFrame, pre :: DataFrame, measure :: Symbol )::NamedTuple
-        pre_inc = pre[:,measure]
-        post_inc = post[:,measure]
-        n = size(post_inc)[1]
-        diff = zeros(n)
-        # so check for 0 pre income
-        for i in 1:n 
-            if pre_inc[i] != 0
-                diff[i] = (pre_inc[i]-post_inc[i])/pre_inc[i]
-            end
-        end
-        # println( "diff=$diff n=$n")
-        popn = sum(post[:,:weighted_people])
-        gainers = (diff.>=0.01).*post[:,:weighted_people]
-        sg = sum(gainers)
-        losers = (diff.<= -0.01).*post[:,:weighted_people]
-        sl = sum(losers)
-        nc = (abs.(diff).< 0.01).*post[:,:weighted_people]
-        sn = sum(nc)
-        @assert sg+sl+sn ≈ popn "sg=$sg + sl=$sl + sn=$sn !≈ popn=$popn"
-        return ( gainers=sg, losers=sl,nc=sn, popn = popn )
-    end
- 
     function make_gain_lose( post :: DataFrame, pre :: DataFrame, settings :: Settings )::NamedTuple
         income = income_measure_as_sym( settings.ineq_income_measure )
         return make_gain_lose( post, pre, income )
@@ -753,14 +738,14 @@ const EXTRA_INC_COLS = 10
         deciles = []
         quantiles = []
         metrs = []
-        poverty_line = []
+        poverty_lines = []
         child_poverty = []
         income_measure = income_measure_as_sym( settings.ineq_income_measure )
 
         poverty_line = if settings.poverty_line_source == pl_from_settings
             settings.poverty_line
-        elseif if settings.poverty_line_source == pl_first_sys
-            make_poverty_line( results.hh[1], settings )
+        elseif settings.poverty_line_source == pl_first_sys
+            make_poverty_line( frames.hh[1], settings )
         else
             -1.0 # make sure we crash if not set
         end
@@ -768,7 +753,7 @@ const EXTRA_INC_COLS = 10
         for sysno in 1:ns
             # poverty relative to current system median
             if settings.poverty_line_source == pl_current_sys
-                poverty_line = make_poverty_line( results.hh[sysno], settings )
+                poverty_line = make_poverty_line( frames.hh[sysno], settings )
             end
             push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
             println( "metrs to hist done")
@@ -805,7 +790,7 @@ const EXTRA_INC_COLS = 10
                     :weighted_people, 
                     income_measure ))
             println( "poverty")
-            push!( poverty_line, poverty_line )
+            push!( poverty_lines, poverty_line )
             cp = calc_child_poverty( 
                 poverty_line, 
                 frames.hh[sysno],
@@ -814,10 +799,10 @@ const EXTRA_INC_COLS = 10
             println( "child poverty")
             push!( child_poverty, cp )
         end   
-        fill_in_deciles_and_poverty!(
+        @time fill_in_deciles_and_poverty!(
             frames, 
             settings, 
-            poverty_line,
+            poverty_lines,
             deciles )
         println( "fill in deciles and poverty")
         if do_gain_lose
@@ -830,16 +815,16 @@ const EXTRA_INC_COLS = 10
             end
             println( "gain lose")
         end
-        return ( 
-            quantiles=quantiles, 
-            deciles = deciles, 
-            income_summary = income_summary, 
-            poverty=poverty, 
-            inequality=inequality, 
-            metrs = metrs, 
-            child_poverty=child_poverty,
-            gain_lose=gain_lose,
-            poverty_line = settings.poverty_line )
+        return ( ;
+            quantiles, 
+            deciles, 
+            income_summary, 
+            poverty, 
+            inequality, 
+            metrs, 
+            child_poverty,
+            gain_lose,
+            poverty_lines )
     end
 
     ## FIXME eventually, move this to DrWatson

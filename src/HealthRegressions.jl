@@ -209,7 +209,7 @@ function get_health(
     r.gor_ni = hh.region == Northern_Ireland ? 1 : 0
     r.ten_own = hh.tenure in [Owned_outright, Mortgaged_Or_Shared ] ? 1 : 0
     r.ten_sr = hh.tenure in [Council_Rented, Housing_Association] ? 1 : 0
-    r._cons = 1.0 
+    r.cons = 1.0 
 
     # person (non child) level
     for (pid,pers) in hh.people

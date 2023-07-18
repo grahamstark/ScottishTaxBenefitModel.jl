@@ -32,6 +32,7 @@ module FRSHouseholdGetter
         get_household, 
         num_households, 
         get_household_of_person,
+        get_people_slots_for_household,
         get_slot_for_person,
         get_slot_for_household
     
@@ -48,11 +49,16 @@ module FRSHouseholdGetter
         pseq :: Int
     end
 
+    struct HHPeople
+        hseq :: Int
+        pseqs :: Vector{Int}
+    end
+
     struct HHWrapper 
         hhlds      :: Vector{Household{Float64}}
         weight     :: Vector{Float64}   
         dimensions :: Vector{Int}  
-        hh_map     :: Dict{OneIndex,Int}   
+        hh_map     :: Dict{OneIndex,HHPeople}   
         pers_map   :: Dict{OneIndex,OnePos}
     end
     
@@ -100,11 +106,14 @@ module FRSHouseholdGetter
             hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS, settings )
             MODEL_HOUSEHOLDS.hhlds[hseq] = hh
             uprate!( hh )
-            MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = hseq
+            pseqs = []
             for pid in keys(hh.people)
                 pseq += 1
+                push!( pseqs, pseq )
                 MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = OnePos(hseq,pseq)
             end
+            MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = HHPeople( hseq, pseqs)
+            
         end
         # default weighting using current Scotland settings; otherwise do manually
         if settings.auto_weight && settings.target_nation == N_Scotland
@@ -150,11 +159,15 @@ module FRSHouseholdGetter
         return get_household( pos.hseq )
     end
 
-    function get_slot_for_household( hid :: BigInt, datayear :: Int  )
-        return MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ]
+    function get_slot_for_household( hid :: BigInt, datayear :: Int  ) :: Int
+        return MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ].hseq
     end
 
-    function get_slot_for_person( pid :: BigInt, datayear :: Int  )
+    function get_people_slots_for_household( hid :: BigInt, datayear :: Int ) :: Vector{Int}
+        return MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ].pseqs
+    end
+
+    function get_slot_for_person( pid :: BigInt, datayear :: Int  ) :: Int
         return MODEL_HOUSEHOLDS.pers_map[ OneIndex( pid, datayear) ].pseq
     end
     

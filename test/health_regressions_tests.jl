@@ -65,7 +65,7 @@ end
     summary = []
     results = do_one_run( settings, sys, obs )
     ## actually 
-    settings.poverty_line = make_poverty_line( results.hh[1], settings )
+    # settings.poverty_line = make_poverty_line( results.hh[1], settings )
     outf = summarise_frames!( results, settings )
     @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=false )
     quint_count = fill( 0.0, 5, 2 )
@@ -119,6 +119,7 @@ end # testset
 
 @testset "big merged data" begin
 
+    #=
     settings = Settings()
     
     sc_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
@@ -126,22 +127,21 @@ end # testset
     sc_data = create_regression_dataframe( sc_hh_dataset, sc_people_dataset )
 
     sc_data_ads = sc_data[sc_data.age .>=16,:]
+    =#
 
     settings = get_all_uk_settings_2023()
     uk_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
     uk_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
     uk_data = create_regression_dataframe( uk_hh_dataset, uk_people_dataset )
-
-    sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]    
-    summary = []
-    results = do_one_run( settings, sys, obs )
-    ## actually 
-    settings.poverty_line = make_poverty_line( results.hh[1], settings )
-    outf = summarise_frames!( results, settings )    
-    
-
     uk_data_ads = uk_data[(uk_data.age .>=16).&(uk_data.gor_ni .== 0),:]
     nr,nc = size(uk_data)
+    
+    sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]    
+    results = do_one_run( settings, sys, obs )
+    ## actually 
+    outf = summarise_frames!( results, settings )    
+
+    #=
     nr2 = nr*2
 
     results[sys] = DataFrame( 
@@ -178,50 +178,34 @@ end # testset
                 hresults[p,:data_year] = h.data_year
             end
         end
-    
-    @time for sysno in 1:2
-        for h in eachrow(sc_data_ads)
-            HealthRegressions.rmul( h, HealthRegressions.SFD12_REGRESSION_TR)
-        end
-    end
+    =#
+
     nc12 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD12_REGRESSION_TR)))
     coefs12 = Vector{Float64}( HealthRegressions.SFD12_REGRESSION_TR[nc12] )
     nc6 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD6_REGRESSION_TR)))
     coefs6 = Vector{Float64}( HealthRegressions.SFD6_REGRESSION_TR[nc6] )
-    p = 0
-    @time for sysno in 1:2
-        sr = results[results.sysno .== sysno,:]
+    @time for sysno in 1:2        
         data_ads = innerjoin( 
-            sc_data_ads, 
-            sr, on=[:data_year, :hid ],makeunique=true )
-        data_ads.mlogbhc = data_ads.eqinc 
-        data_ads.q1mlog = (data_ads.quintile .== 1) .* data_ads.eqinc
-        data_ads.q2mlog = (data_ads.quintile .== 2) .* data_ads.eqinc
-        data_ads.q3mlog = (data_ads.quintile .== 3) .* data_ads.eqinc
-        data_ads.q4mlog = (data_ads.quintile .== 4) .* data_ads.eqinc
-        data_ads.q5mlog = (data_ads.quintile .== 5) .* data_ads.eqinc
+            uk_data_ads, 
+            results.indiv[sysno], on=[:data_year, :hid ],makeunique=true )
+        data_ads.mlogbhc = log.(max.(1,data_ads.eq_bhc_net_income ))
+        data_ads.quintile = ((results.indiv[sysno][!,:decile] .+1) .÷ 2)
+        data_ads.q1mlog = (data_ads.quintile .== 1) .* data_ads.mlogbhc
+        data_ads.q2mlog = (data_ads.quintile .== 2) .* data_ads.mlogbhc
+        data_ads.q3mlog = (data_ads.quintile .== 3) .* data_ads.mlogbhc
+        data_ads.q4mlog = (data_ads.quintile .== 4) .* data_ads.mlogbhc
+        data_ads.q5mlog = (data_ads.quintile .== 5) .* data_ads.mlogbhc
         for h in eachrow(sc_data_ads)
             pslot = get_slot_for_person( h.pid, h.data_year )
-            results.frames.indiv[sysno][:sf12] = 
+            results.indiv[sysno][:sf12] = 
                 HealthRegressions.rm2( nc12, h, coefs12 )
-            results.frames.indiv[sysno][:sf6] = 
+            results.indiv[sysno][:sf6] = 
                 HealthRegressions.rm2( nc6, h, coefs6 )
-            results.frames.indiv[sysno][:has_mental_health_problem] = -1
-            results.frames.indiv[sysno][:qualys] = -1
-            results.frames.indiv[sysno][:life_expectancy] = -1
-            #=
-            p += 1
-            hresults[p,:sf12] = HealthRegressions.rm2( nc12, h, coefs12 )
-            hresults[p,:sf6] = HealthRegressions.rm2( nc6, h, coefs6 )
-            hresults[p,:hid] = h.hid
-            hresults[p,:data_year] = h.data_year
-            hresults[p,:pid] = h.pid
-            hresults[p,:sysno] = sysno
-            =#
+            results.indiv[sysno][:has_mental_health_problem] = -1
+            results.indiv[sysno][:qualys] = -1
+            results.indiv[sysno][:life_expectancy] = -1
         end
-    end
-    
-    println(summarystats(hresults.sf12))
-    println(summarystats(hresults.sf6))
-
+        println(summarystats(results.indiv[sysno][!,:sf12]))
+        println(summarystats(results.indiv[sysno][!,:sf6]))
+    end    
 end

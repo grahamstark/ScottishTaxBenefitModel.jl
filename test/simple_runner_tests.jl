@@ -24,6 +24,8 @@ BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
 tot = 0
 
+settings = Settings()
+
 # observer = Observer(Progress("",0,0,0))
 obs = Observable( Progress(settings.uuid,"",0,0,0,0))
 of = on(obs) do p
