@@ -146,7 +146,7 @@ const EXTRA_INC_COLS = 10
         frame.region    = fill( Missing_Standard_Region, n )
         frame.decile = zeros( Int, n )
         frame.in_poverty = fill( false, n )
-        frame.council = fill( Symbol( "No_Council"), n)
+        frame.council = fill( Symbol( "No_Council"), n),
 
         # ... and so on
         return frame
@@ -197,7 +197,14 @@ const EXTRA_INC_COLS = 10
          assumed_gross_wage = Vector{Union{Real,Missing}}(missing, n),         
          metr = Vector{Union{Real,Missing}}(missing, n),
          tax_credit = zeros(RT,n),
-         replacement_rate = Vector{Union{Real,Missing}}(missing, n))
+         replacement_rate = Vector{Union{Real,Missing}}(missing, n),
+
+         sf12 = zeros( RT,n ),
+         sf6 = zeros(RT, n ),
+         has_mental_health_problem = fill( false, n )
+         qualys = zeros( RT, n ),
+         life_expectancy = zeros(RT, n ) )
+ 
     end
 
     function irdiff( d1 :: DataFrame, d2 :: DataFrame )
@@ -266,7 +273,10 @@ const EXTRA_INC_COLS = 10
 
     end
 
-    function get_decile_poverty( 
+    """
+    return decile and poverty state for the income contain in the row
+    """
+    function get_decile_and_poverty_state( 
         settings :: Settings, 
         hr :: DataFrameRow, 
         poverty_line :: Real,
@@ -282,6 +292,9 @@ const EXTRA_INC_COLS = 10
         @assert false "Decile for $inc hh $(hh.hid) is out-of-range."
     end
 
+    """
+    Add a decile and in-poverty marker to each hh and personal record.
+    """
     function fill_in_deciles_and_poverty!( 
         frames :: NamedTuple, 
         settings :: Settings, 
@@ -297,17 +310,14 @@ const EXTRA_INC_COLS = 10
             poverty = poverty_line[sysno]
             bu = frames.bu[sysno]
             for hno in 1:nhh
-                (idec, in_poverty) = get_decile_poverty( settings, hh[hno,:], poverty, decs )
-                onehh = hh[hno,:decile] = idec;
-                onehh = hh[hno,:in_poverty] = in_poverty;
-                # onehh[:] 
-                # bu[bu.hid .== onehh.hid,:decile] .= idec
-                # indiv[indiv.hid .== onehh.hid,:decile] .= idec
-                # income[income.hid .== onehh.hid,:decile] .= idec
-                # onehh[:in_poverty] = in_poverty;
-                # bu[bu.hid .== onehh.hid,:in_poverty] .= in_poverty
-                # indiv[indiv.hid .== onehh.hid,:in_poverty] .= in_poverty
-                # income[income.hid .== onehh.hid,:in_poverty] .= in_poverty
+                onehh = hh[hno,:][1]
+                (decile, in_poverty) = get_decile_and_poverty_state( settings, onehh, poverty, decs )
+                onehh.in_poverty = in_poverty
+                onehh.decile = decile
+                onehh.in_poverty = in_poverty
+                indivs = indiv[indiv.hid .== onehh.hid,:]
+                indivs[!,:in_poverty] .= in_poverty
+                indivs[!,:decile] .= decile
             end
         end
     end
@@ -747,7 +757,19 @@ const EXTRA_INC_COLS = 10
         child_poverty = []
         income_measure = income_measure_as_sym( settings.ineq_income_measure )
 
+        poverty_line = if settings.poverty_line_source == pl_from_settings
+            settings.poverty_line
+        elseif if settings.poverty_line_source == pl_first_sys
+            make_poverty_line( results.hh[1], settings )
+        else
+            -1.0 # make sure we crash if not set
+        end
+
         for sysno in 1:ns
+            # poverty relative to current system median
+            if settings.poverty_line_source == pl_current_sys
+                poverty_line = make_poverty_line( results.hh[sysno], settings )
+            end
             push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
             println( "metrs to hist done")
             push!(income_summary, 
@@ -778,14 +800,14 @@ const EXTRA_INC_COLS = 10
                 poverty,
                 PovertyAndInequalityMeasures.make_poverty( 
                     frames.hh[sysno], 
-                    settings.poverty_line, 
+                    poverty_line, 
                     settings.growth, 
                     :weighted_people, 
                     income_measure ))
             println( "poverty")
-            push!( poverty_line, settings.poverty_line )
+            push!( poverty_line, poverty_line )
             cp = calc_child_poverty( 
-                settings.poverty_line, 
+                poverty_line, 
                 frames.hh[sysno],
                 measure=income_measure
             )

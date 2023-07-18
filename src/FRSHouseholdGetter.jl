@@ -154,8 +154,8 @@ module FRSHouseholdGetter
         return MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ]
     end
 
-    function get_slot_for_person( hid :: BigInt, datayear :: Int  )
-        return MODEL_HOUSEHOLDS.pers_map[ OneIndex( hid, datayear) ].pseq
+    function get_slot_for_person( pid :: BigInt, datayear :: Int  )
+        return MODEL_HOUSEHOLDS.pers_map[ OneIndex( pid, datayear) ].pseq
     end
     
     function get_num_households()::Integer

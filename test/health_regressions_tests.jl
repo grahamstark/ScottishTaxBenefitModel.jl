@@ -120,6 +120,7 @@ end # testset
 @testset "big merged data" begin
 
     settings = Settings()
+    
     sc_hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
     sc_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
     sc_data = create_regression_dataframe( sc_hh_dataset, sc_people_dataset )
@@ -131,10 +132,19 @@ end # testset
     uk_people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
     uk_data = create_regression_dataframe( uk_hh_dataset, uk_people_dataset )
 
+    sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]    
+    summary = []
+    results = do_one_run( settings, sys, obs )
+    ## actually 
+    settings.poverty_line = make_poverty_line( results.hh[1], settings )
+    outf = summarise_frames!( results, settings )    
+    
+
     uk_data_ads = uk_data[(uk_data.age .>=16).&(uk_data.gor_ni .== 0),:]
     nr,nc = size(uk_data)
     nr2 = nr*2
-    results = DataFrame( 
+
+    results[sys] = DataFrame( 
         hid=zeros(BigInt,nr2), 
         pid=zeros(Int,nr2), 
         sysno=zeros(Int,nr2), 
@@ -142,7 +152,6 @@ end # testset
         data_year=zeros(Int,nr2), 
         quintile=zeros(Int,nr2),
         eqinc = zeros(Float64, nr2 ))
-
 
     hresults = DataFrame( 
         hid=zeros(BigInt,nr2), 
@@ -192,6 +201,15 @@ end # testset
         data_ads.q4mlog = (data_ads.quintile .== 4) .* data_ads.eqinc
         data_ads.q5mlog = (data_ads.quintile .== 5) .* data_ads.eqinc
         for h in eachrow(sc_data_ads)
+            pslot = get_slot_for_person( h.pid, h.data_year )
+            results.frames.indiv[sysno][:sf12] = 
+                HealthRegressions.rm2( nc12, h, coefs12 )
+            results.frames.indiv[sysno][:sf6] = 
+                HealthRegressions.rm2( nc6, h, coefs6 )
+            results.frames.indiv[sysno][:has_mental_health_problem] = -1
+            results.frames.indiv[sysno][:qualys] = -1
+            results.frames.indiv[sysno][:life_expectancy] = -1
+            #=
             p += 1
             hresults[p,:sf12] = HealthRegressions.rm2( nc12, h, coefs12 )
             hresults[p,:sf6] = HealthRegressions.rm2( nc6, h, coefs6 )
@@ -199,6 +217,7 @@ end # testset
             hresults[p,:data_year] = h.data_year
             hresults[p,:pid] = h.pid
             hresults[p,:sysno] = sysno
+            =#
         end
     end
     
@@ -206,4 +225,3 @@ end # testset
     println(summarystats(hresults.sf6))
 
 end
-
