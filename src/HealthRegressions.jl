@@ -18,9 +18,8 @@ using .Utils: make_start_stops
 export get_death_prob,
     get_sf6d,
     summarise_sf12,
-    create_health_indicator
-
-
+    create_health_indicator,
+    do_health_regressions!
 
 const SFD12_REGRESSION = DataFrame([
     "q1mlog" -.0669224 .0129316 -5.18 0.000 -.0922679 -.0415769;
@@ -399,6 +398,51 @@ function summarise_sf12( h :: DataFrame, settings :: Settings ) :: NamedTuple
     depressed = sum( h[h.sf12 .<= settings.sf12_depression_limit, :weight ])
     depressed_pct = 100*depressed/popn
     (; depressed, depressed_pct, hist, thresholds, range, average, med, sdev, popn )
+end
+
+"""
+Calculate sf6 & sf12 health measures, return a summary of sf12, and insert health stuff into indiv records.
+"""
+function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :: Array{NamedTuple}
+    uk_data = get_regression_dataset() # alias
+    uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:]
+    sys = [get_system(year=2023, scotland=false), get_system( year=2023, scotland=false )]    
+    results = do_one_run( settings, sys, obs )
+    outf = summarise_frames!( results, settings )    
+    summaries = []
+    nc12 = Symbol.(intersect( names(uk_data), names(SFD12_REGRESSION_TR)))
+    coefs12 = Vector{Float64}( SFD12_REGRESSION_TR[nc12] )
+    nc6 = Symbol.(intersect( names(uk_data), names(SFD6_REGRESSION_TR)))
+    coefs6 = Vector{Float64}( SFD6_REGRESSION_TR[nc6] )
+    nsys = size( results.indiv )[1]
+    @time for sysno in 1:nsys
+        data_ads = innerjoin( 
+            uk_data_ads, 
+            results.indiv[sysno], on=[:data_year, :hid ], makeunique=true )
+        data_ads.mlogbhc = log.(max.(1,WEEKS_PER_MONTH.*data_ads.eq_bhc_net_income ))
+        data_ads.quintile = ((data_ads.decile .+1) .÷ 2)
+        data_ads.q1mlog = (data_ads.quintile .== 1) .* data_ads.mlogbhc
+        data_ads.q2mlog = (data_ads.quintile .== 2) .* data_ads.mlogbhc
+        data_ads.q3mlog = (data_ads.quintile .== 3) .* data_ads.mlogbhc
+        data_ads.q4mlog = (data_ads.quintile .== 4) .* data_ads.mlogbhc
+        data_ads.q5mlog = (data_ads.quintile .== 5) .* data_ads.mlogbhc
+        k = 0
+        for h in eachrow(data_ads)
+            k += 1
+            pslot = get_slot_for_person( BigInt(h.pid), h.data_year )
+            sf12 = rm2( nc12, h, coefs12; lagvalue = 0.526275 )            
+            results.indiv[sysno][pslot,:sf12] = sf12
+            sf6 = rm2( nc6, h, coefs6; lagvalue = 0.5337817 )
+            results.indiv[sysno][pslot,:sf6] = sf6                
+            results.indiv[sysno][pslot,:has_mental_health_problem] = 
+                sf12 <= settings.sf12_depression_limit 
+            results.indiv[sysno][pslot,:qualys] = -1
+            results.indiv[sysno][pslot,:life_expectancy] = -1
+        end
+        summary = summarise_sf12( results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:], settings )
+        push!( summaries, summary )
+    end       
+    return summaries
 end
 
 function get_death_prob( 

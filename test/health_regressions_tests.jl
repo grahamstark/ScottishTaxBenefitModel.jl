@@ -9,7 +9,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ExampleHelpers
 using .FRSHouseholdGetter
-using .HealthRegressions: get_health, create_health_indicator, summarise_sf12
+using .HealthRegressions: get_health, create_health_indicator, summarise_sf12, do_health_regressions!
 using .GeneralTaxComponents:WEEKS_PER_MONTH
 using .ModelHousehold
 using .HouseholdFromFrame
@@ -120,6 +120,7 @@ end
     end
 end # testset
 
+#=
 function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :: Array{NamedTuple}
     uk_data = get_regression_dataset() # alias
     uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:]
@@ -159,8 +160,9 @@ function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :
         summary = summarise_sf12( results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:], settings )
         push!( summaries, summary )
     end       
+    return summaries
 end
-
+=# 
 @testset "big merged data" begin
     settings = get_all_uk_settings_2023()
     @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
@@ -170,7 +172,7 @@ end
     results = do_one_run( settings, sys, obs )
     outf = summarise_frames!( results, settings )    
 
-    summaries = do_health_regressions!( results, settings, 2 )
+    @time summaries = do_health_regressions!( results, settings )
     #=
     nc12 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD12_REGRESSION_TR)))
     coefs12 = Vector{Float64}( HealthRegressions.SFD12_REGRESSION_TR[nc12] )
