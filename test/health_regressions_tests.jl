@@ -120,15 +120,22 @@ end
     end
 end # testset
 
-function health_regressions!( results :: NamedTuple, num_systems :: Int )
+function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :: Array{NamedTuple}
+    uk_data = get_regression_dataset() # alias
+    uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:]
+    sys = [get_system(year=2023, scotland=false), get_system( year=2023, scotland=false )]    
+    results = do_one_run( settings, sys, obs )
+    outf = summarise_frames!( results, settings )    
+    summaries = []
     nc12 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD12_REGRESSION_TR)))
     coefs12 = Vector{Float64}( HealthRegressions.SFD12_REGRESSION_TR[nc12] )
     nc6 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD6_REGRESSION_TR)))
     coefs6 = Vector{Float64}( HealthRegressions.SFD6_REGRESSION_TR[nc6] )
-    @time for sysno in 1:2        
+    nsys = size( results.indiv )[1]
+    @time for sysno in 1:nsys
         data_ads = innerjoin( 
             uk_data_ads, 
-            results.indiv[sysno], on=[:data_year, :hid ],makeunique=true )
+            results.indiv[sysno], on=[:data_year, :hid ], makeunique=true )
         data_ads.mlogbhc = log.(max.(1,WEEKS_PER_MONTH.*data_ads.eq_bhc_net_income ))
         data_ads.quintile = ((data_ads.decile .+1) .÷ 2)
         data_ads.q1mlog = (data_ads.quintile .== 1) .* data_ads.mlogbhc
@@ -140,17 +147,18 @@ function health_regressions!( results :: NamedTuple, num_systems :: Int )
         for h in eachrow(data_ads)
             k += 1
             pslot = get_slot_for_person( BigInt(h.pid), h.data_year )
-            results.indiv[sysno][pslot,:sf12] = 
-                HealthRegressions.rm2( nc12, h, coefs12; lagvalue = 0.526275 )            
-            results.indiv[sysno][pslot,:sf6] = 
-                HealthRegressions.rm2( nc6, h, coefs6; lagvalue = 0.5337817 )
-            results.indiv[sysno][pslot,:has_mental_health_problem] = false
+            sf12 = HealthRegressions.rm2( nc12, h, coefs12; lagvalue = 0.526275 )            
+            results.indiv[sysno][pslot,:sf12] = sf12
+            sf6 = HealthRegressions.rm2( nc6, h, coefs6; lagvalue = 0.5337817 )
+            results.indiv[sysno][pslot,:sf6] = sf6                
+            results.indiv[sysno][pslot,:has_mental_health_problem] = 
+                sf12 <= settings.sf12_depression_limit 
             results.indiv[sysno][pslot,:qualys] = -1
             results.indiv[sysno][pslot,:life_expectancy] = -1
         end
-        println(summarystats(results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:sf12]))
-        println(summarystats(results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:sf6]))        
-    end    
+        summary = summarise_sf12( results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:], settings )
+        push!( summaries, summary )
+    end       
 end
 
 @testset "big merged data" begin
@@ -162,6 +170,8 @@ end
     results = do_one_run( settings, sys, obs )
     outf = summarise_frames!( results, settings )    
 
+    summaries = do_health_regressions!( results, settings, 2 )
+    #=
     nc12 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD12_REGRESSION_TR)))
     coefs12 = Vector{Float64}( HealthRegressions.SFD12_REGRESSION_TR[nc12] )
     nc6 = Symbol.(intersect( names(uk_data), names(HealthRegressions.SFD6_REGRESSION_TR)))
@@ -198,4 +208,7 @@ end
         CSV.write( "/home/graham_s/tmp/sf12_output_v2.csv", results.indiv[sysno][results.indiv[sysno].sf6 .> 0, :])
         println( summary )
     end    
+    =#
+    println( summaries[1])
+    println( summaries[2])
 end
