@@ -8,6 +8,7 @@ using StatsBase
 using Observables
 using ScottishTaxBenefitModel
 using .Definitions
+using .FRSHouseholdGetter: get_regression_dataset
 using .GeneralTaxComponents:WEEKS_PER_MONTH
 using .ModelHousehold
 using .Monitor: Progress
