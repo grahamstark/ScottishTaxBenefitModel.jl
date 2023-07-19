@@ -403,20 +403,19 @@ end
 
 """
 Calculate sf6 & sf12 health measures, return a summary of sf12, and insert health stuff into indiv records.
+Results need to have been passed through summarise_frames.
 """
 function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :: Array{NamedTuple}
+    # @assert something results
     uk_data = get_regression_dataset() # alias
     uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:]
-    sys = [get_system(year=2023, scotland=false), get_system( year=2023, scotland=false )]    
-    results = do_one_run( settings, sys, obs )
-    outf = summarise_frames!( results, settings )    
     summaries = []
     nc12 = Symbol.(intersect( names(uk_data), names(SFD12_REGRESSION_TR)))
     coefs12 = Vector{Float64}( SFD12_REGRESSION_TR[nc12] )
     nc6 = Symbol.(intersect( names(uk_data), names(SFD6_REGRESSION_TR)))
     coefs6 = Vector{Float64}( SFD6_REGRESSION_TR[nc6] )
     nsys = size( results.indiv )[1]
-    @time for sysno in 1:nsys
+    for sysno in 1:nsys
         data_ads = innerjoin( 
             uk_data_ads, 
             results.indiv[sysno], on=[:data_year, :hid ], makeunique=true )
