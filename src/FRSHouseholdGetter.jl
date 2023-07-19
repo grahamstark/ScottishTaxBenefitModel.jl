@@ -18,6 +18,7 @@ module FRSHouseholdGetter
         uprate!
 
     using .HouseholdFromFrame: 
+        create_regression_dataframe,
         load_hhld_from_frame
 
     using .RunSettings: Settings
@@ -71,12 +72,12 @@ module FRSHouseholdGetter
             Dict{OneIndex,HHPeople}(),
             Dict{OneIndex,Int}())
     
-    struct RegWrapper 
+    mutable struct RegWrapper # I don't understand why I need 'mutable' here, but..
         data :: DataFrame
     end
 
-    const REG_DATA = RegWrapper( DataFrame())
-
+    # fixme I don't see how to make this a constant 
+    REG_DATA :: DataFrame = DataFrame()
     
     """
     Initialise the dataset. If this has already been done, do nothing unless 
@@ -88,6 +89,7 @@ module FRSHouseholdGetter
             reset :: Bool = false ) :: Tuple
     
         global MODEL_HOUSEHOLDS
+        global REG_DATA 
         nhh = size( MODEL_HOUSEHOLDS.hhlds )[1]
         if( nhh > 0 ) && ( ! reset )
             # weird syntax to make tuple from array; 
@@ -137,13 +139,13 @@ module FRSHouseholdGetter
             npeople,
             nhhlds
 
-        REG_DATA.data = create_regression_dataframe( hh_dataset, people_dataset )
+        REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
 
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
 
     function get_regression_dataset()::DataFrame
-        REG_DATA.data
+        REG_DATA
     end
 
     function get_household( pos :: Integer ) :: Household

@@ -1,7 +1,10 @@
 using Test
-using ScottishTaxBenefitModel.HistoricBenefits
 using ScottishTaxBenefitModel
-using .Definitions, .Utils, .Randoms
+using ScottishTaxBenefitModel
+using .HistoricBenefits
+using .Definitions
+using .Utils
+using .Randoms
 using .ExampleHelpers
 using .RunSettings: Settings
 

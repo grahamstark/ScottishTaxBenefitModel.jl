@@ -51,6 +51,7 @@ function create_regression_dataframe(
 
     fm = innerjoin( model_households, model_people, on=[:data_year, :hid ],makeunique=true )
     nrows,ncols = size( fm )
+    fm.age_sq = fm.age.^2
     fm.cons = ones( nrows )
     fm.deaf_blind=fm.registered_blind .| fm.registered_deaf .| fm.registered_partially_sighted
     fm.yr = fm.data_year .- 2014
@@ -108,7 +109,7 @@ function create_regression_dataframe(
     fm.race_ot = Int.( eg  .== Int(Other_ethnic_group ))
     fm.born_m = zeros(nrows)
     fm.born_uk = zeros(nrows)
-    fm.llsid = zeros(nrows)
+    fm.llsid = safe_to_bool.(fm.has_long_standing_illness) .| (fm.adls_bad)
     ms = safe_assign.(fm.marital_status)
     fm.marciv = Int.(ms .== Int(Married_or_Civil_Partnership))
     fm.divsep = in_vect(ms, Separated,Divorced_or_Civil_Partnership_dissolved )

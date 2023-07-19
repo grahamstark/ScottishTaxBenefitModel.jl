@@ -244,7 +244,7 @@ function get_health(
             # FIXME check HR 5564
             r.age5565 = pers.age in 55:64 ? 1 : 0
             r.age6574 = pers.age in 65:74 ? 1 : 0
-            r.age75 = pers.age in [75:200]
+            r.age75 = pers.age in 75:200 ? 1 : 0
 
             r.hq_deg = highqual_degree_equiv( pers.highest_qualification ) ? 1 : 0 
             r.hq_ohe = highqual_other_he( pers.highest_qualification ) ? 1 : 0 
