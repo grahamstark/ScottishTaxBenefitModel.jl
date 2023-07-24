@@ -42,6 +42,7 @@ def extractTableName( dataset, filename )
                 return $1
         elsif dataset == 'frs' && filename =~ /(.*)_ukda_data_dictionary/
                 return $1
+        elsif dataset == 'was'
         end
 end
 

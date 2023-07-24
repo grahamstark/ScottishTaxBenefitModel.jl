@@ -410,12 +410,21 @@ function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :
     uk_data = get_regression_dataset() # alias
     uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:]
     summaries = []
+    #
+    # extract variable names and regression coefficients as vectors - 
+    # this speeds things up.
+    #
     nc12 = Symbol.(intersect( names(uk_data), names(SFD12_REGRESSION_TR)))
     coefs12 = Vector{Float64}( SFD12_REGRESSION_TR[nc12] )
     nc6 = Symbol.(intersect( names(uk_data), names(SFD6_REGRESSION_TR)))
     coefs6 = Vector{Float64}( SFD6_REGRESSION_TR[nc6] )
     nsys = size( results.indiv )[1]
     for sysno in 1:nsys
+        #
+        # create a dataset from the main dataset but with the results for 1 run appended.
+        # This merges in averaged household income, deciles, poverty line, etc., 
+        # from one system run.
+        #
         data_ads = innerjoin( 
             uk_data_ads, 
             results.indiv[sysno], on=[:data_year, :hid ], makeunique=true )
@@ -440,6 +449,7 @@ function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :
             results.indiv[sysno][pslot,:life_expectancy] = -1
         end
         summary = summarise_sf12( results.indiv[sysno][results.indiv[sysno].sf12 .> 0,:], settings )
+        
         push!( summaries, summary )
     end       
     return summaries
