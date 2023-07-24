@@ -16,7 +16,7 @@ def parseFiles( targetdir, dataset )
         Dir["#{targetdir}/*.txt"].each{
                 |fullFileName|
                 fileName = File.basename( fullFileName )
-                if fileName =~ /was_.*?_([1-7])_(.*?)_.*/
+                if fileName =~ /was_.*_([1-7])_(.*?)_.*/
                     wave = $1.to_i
                     year = (wave * 2) + 2006 # wave 1 = 2008, 2=2010 etc.
                     tableName = $2
