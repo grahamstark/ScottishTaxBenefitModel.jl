@@ -354,7 +354,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         safe_to_bool(frs_hh.rent_includes_water_and_sewerage),
         m2z(frs_hh.other_housing_charges),
         m2z(frs_hh.gross_housing_costs),
-        m2z(frs_hh.total_income),
+        # m2z(frs_hh.total_income),
         m2z(frs_hh.total_wealth),
         m2z(frs_hh.house_value),
         m2z(frs_hh.weight),

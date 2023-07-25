@@ -193,7 +193,7 @@ mutable struct Household{RT<:Real}
     rent_includes_water_and_sewerage::Bool
     other_housing_charges::RT 
     gross_housing_costs::RT
-    total_income::RT
+    # total_income::RT
     total_wealth::RT
     house_value::RT
     weight::RT
@@ -283,8 +283,13 @@ function uprate!( hh :: Household )
     hh.gross_rent = uprate( hh.gross_rent, hh.interview_year, hh.quarter, upr_housing_rents )
     hh.other_housing_charges = uprate( hh.other_housing_charges, hh.interview_year, hh.quarter, upr_nominal_gdp )
     hh.gross_housing_costs = uprate( hh.gross_housing_costs, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.total_income = uprate( hh.total_income, hh.interview_year, hh.quarter, upr_nominal_gdp )
+    # hh.total_income = uprate( hh.total_income, hh.interview_year, hh.quarter, upr_nominal_gdp )
     hh.total_wealth = uprate( hh.total_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+    hh.net_physical_wealth = uprate( hh.net_physical_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+    hh.net_financial_wealth = uprate( hh.net_financial_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+    hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+    hh.net_pension_wealth = uprate( hh.net_pension_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+
     hh.house_value = uprate( hh.house_value, hh.interview_year, hh.quarter, upr_housing_oo )
     for (pid,person) in hh.people
         uprate!( pid, hh.interview_year, hh.quarter, person )
