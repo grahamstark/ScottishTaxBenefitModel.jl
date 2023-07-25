@@ -362,6 +362,12 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         Symbol( frs_hh.nhs_board ),
         frs_hh.bedrooms,
         head_of_household,
+        frs_hh.net_physical_wealth,
+        frs_hh.net_financial_wealth,
+        frs_hh.net_housing_wealth,
+        frs_hh.net_pension_wealth,
+        frs_hh.original_gross_income,
+    
         people,        
         strtobi(frs_hh.onerand),
         ZERO_EQ_SCALE )

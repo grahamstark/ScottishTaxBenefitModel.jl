@@ -1,7 +1,7 @@
 using CSV
 using GLM
-# using Makie
-# using CairoMakie
+using Makie
+using CairoMakie
 using DataFrames
 using RegressionTables
 using StatsBase
@@ -14,6 +14,8 @@ was = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_202
 
 lcnames = lowercase.(names(was))
 rename!( was, lcnames )
+
+wpy=365.25/7
 
 # household reference person only 
 was.employee = was.hrpdvecactr7 .== 1
@@ -44,7 +46,7 @@ was.hrp_u_55 =  was.hrpdvage8r7 .== 5
 was.hrp_u_65 =  was.hrpdvage8r7 .== 6
 was.hrp_u_75 =  was.hrpdvage8r7 .== 7
 was.hrp_75_plus = was.hrpdvage8r7 .== 8
-was.weekly_net_income = was.hhnetincmthr7 ./ 4.35
+was.weekly_gross_income = was.dvtotgirr7./wpy
 was.owner = was.ten1r7 .== 1
 was.mortgaged = was.ten1r7 .== 2 .|| was.ten1r7 .== 3
 was.renter = was.ten1r7 .>= 4 
@@ -74,7 +76,7 @@ was.has_pension_wealth = was.total_pensions .> 0
 was_owner = was[was.ten1r7 .<=3,:]
 was.is_in_debt = was.net_financial .< 0
 
-was = was[was.weekly_net_income .> 0, :] # drop -ive current incomes
+was = was[was.weekly_gross_income .> 0, :] # drop -ive current incomes
 
 
 

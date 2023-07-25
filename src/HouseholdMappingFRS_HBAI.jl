@@ -517,13 +517,18 @@ function initialise_household(n::Integer)::DataFrame
         rent_includes_water_and_sewerage = Vector{Union{Integer,Missing}}(missing, n),
         other_housing_charges = Vector{Union{Real,Missing}}(missing, n),
         gross_housing_costs = Vector{Union{Real,Missing}}(missing, n),
-        total_income = Vector{Union{Real,Missing}}(missing, n),
+        original_gross_income = Vector{Union{Real,Missing}}(missing, n),
         total_wealth = Vector{Union{Real,Missing}}(missing, n),
         house_value = Vector{Union{Real,Missing}}(missing, n),
         weight = Vector{Union{Real,Missing}}(missing, n),
         council = fill( "", n ),
         nhs_board = fill( "", n ),
         bedrooms = fill( 0, n ),
+        # these should map to the corresponding WAS hh categories
+        net_physical_wealth = zeros(n), # todo change all the rest to zeros(n)
+        net_financial_wealth = zeros(n),
+        net_housing_wealth = zeros(n),
+        net_pension_wealth = zeros(n),
         onerand = Vector{String}(undef,n)
     )
 end
@@ -1453,9 +1458,9 @@ function create_household(
             hh_model[hhno, :other_housing_charges] = ohc
             hh_model[hhno, :bedrooms] = hh.bedroom6
             hh_model[hhno, :onerand] = mybigrandstr()
-        # TODO
+            hh_model[hhno, :original_gross_income] = hh.hhinc
+            # TODO
             # gross_housing_costs::Real
-            # total_income::Real
             # total_wealth::Real
             # house_value::Real
             # people::People_Dict
