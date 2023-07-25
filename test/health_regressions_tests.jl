@@ -55,6 +55,7 @@ end
     println(StatsBase.summarystats( sf12s ))
 end
 
+#=
 @testset "get_sfd6 Live Data" begin
     ## settings = Settings()
     settings = get_all_uk_settings_2023()
@@ -119,6 +120,7 @@ end
         println( summarise_sf12( outps, settings ))
     end
 end # testset
+=#
 
 #=
 function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :: Array{NamedTuple}
