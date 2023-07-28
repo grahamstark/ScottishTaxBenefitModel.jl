@@ -33,11 +33,10 @@ const ZERO_EQ_SCALE = EQScales(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
 """
 A vector which is 1 if element is one of the things, 0 otherwise.
 """
-function in_vect( f :: Vector, things... )::Vector
+function in_vect( f :: Vector, things... )::Vector{Int}
     nr = size(f)[1]
-    out = zeros(nr)    
     its = [Int.( collect(things))]; 
-    return in.(Int.(f),its)
+    return in.(Int.(coalesce.(f,-1)),its)
 end
 
 """
@@ -81,6 +80,8 @@ function create_regression_dataframe(
     
     fm.scotland = fm.region .== 299999999
 
+    ## these rather cryptic names below are to match Howard' Stata regressions.
+    ## FIXME make them all consistent 
     fm.mlogbhc = zeros(nrows)
     fm.gor_nw = Int.(fm.region .== Int(North_West))
     fm.gor_yh = Int.(fm.region .== Int(Yorks_and_the_Humber))
@@ -95,7 +96,6 @@ function create_regression_dataframe(
     fm.gor_ni = Int.(fm.region .== Int(Northern_Ireland))
     fm.ten_own = in_vect(fm.tenure,Owned_outright, Mortgaged_Or_Shared )
     fm.ten_sr = in_vect(fm.tenure,Council_Rented, Housing_Association )
-
 
     fm.male = Int.(fm.sex .== 1) 
     fm.female = Int.(fm.sex .== 2)
@@ -143,7 +143,82 @@ function create_regression_dataframe(
     fm.q5mlog = zeros(nrows)
     fm.mlogbhc = zeros(nrows)
 
-    fm.rural = zeros(nrows) # missing from frs public
+    fm.rural = zeros(nrows) # missing from frs public version
+
+    ## region renames for my wealth and housing regressions - 
+    ## this eats memory, obs, but still...
+
+    fm.wales = fm.gor_wa  
+    fm.london = fm.gor_lo  
+    fm.north_west = fm.gor_nw
+    fm.yorkshire = fm.gor_yh 
+    fm.east_midlands = fm.gor_em
+    fm.west_midlands = fm.gor_wm  
+    fm.east_of_england = fm.gor_ee
+    fm.south_east = fm.gor_se 
+    fm.south_west = fm.gor_sw
+
+    fm.age_u_25 = Int.(in.(fm.age, [0:24] ))
+    fm.age_25_34 = fm.age2534 
+    fm.age_35_44 = fm.age3544
+    fm.age_45_54 = fm.age4554
+    fm.age_55_64 = fm.age5565 # check
+    fm.age_65_74 = fm.age6574
+    fm.age_75_plus = fm.age75
+
+    fm.employee = in_vect(es, Full_time_Employee, Part_time_Employee )
+    fm.selfemp = in_vect(es, Full_time_Self_Employed,Part_time_Self_Employed )
+    fm.inactive = in_vect(es, Looking_after_family_or_home, Other_Inactive )
+    fm.unemployed = in_vect(es, Unemployed )
+    fm.student = in_vect(es, Student )
+    fm.sick = in_vect(es, Permanently_sick_or_disabled, Temporarily_sick_or_injured )
+    fm.retired = in_vect(es, Retired )
+
+    fm.log_weekly_gross_income = log.( max.(1.0, fm.original_gross_income))
+    fm.weekly_gross_income = fm.original_gross_income
+    fm.detatched = in_vect( fm.dwelling, detatched )
+    fm.semi = in_vect( fm.dwelling, semi_detached )
+    fm.terraced = in_vect( fm.dwelling, terraced )
+    fm.purpose_build_flat = in_vect(fm.dwelling, flat_or_maisonette )
+    fm.converted_flat = in_vect(fm.dwelling, converted_flat )
+
+    fm.managerial = in_vect(fm.socio_economic_grouping, 
+        Employers_in_large_organisations,
+        Higher_managerial_occupations,
+        Lower_managerial_occupations,
+        Higher_supervisory_occupations, 
+        Higher_professional_occupations_New_self_employed,
+        Lower_supervisory_occupations )
+
+    fm.intermediate = in_vect(fm.socio_economic_grouping, 
+        Lower_prof_and_higher_technical_Traditional_employee,
+        Lower_technical_craft,
+        Own_account_workers_non_professional )
+
+    fm.routine = in_vect(fm.socio_economic_grouping,
+        Lower_technical_craft,
+        Semi_routine_sales,
+        Routine_sales_and_service )
+
+    fm.num_people = zeros(Int,nrows)
+    fm.num_adults = zeros(Int,nrows)
+    fm.num_children = zeros(Int,nrows)
+
+    hhlds = groupby( fm, [:hid,:data_year])
+    for hhld in hhlds 
+        hhld.num_children .= Int.(sum( hhld.from_child_record ))
+        hhld.num_people .= Int.(size( hhld )[1])
+        hhld.num_adults .= Int.(hhld.num_people - hhld.num_children)
+    end
+
+    fm.owner = in_vect( fm.tenure, Owned_outright )
+    fm.mortgaged = in_vect( fm.tenure, Mortgaged_Or_Shared )
+    fm.renter = in_vect( fm.tenure, Council_Rented,
+        Housing_Association,
+        Private_Rented_Unfurnished,
+        Private_Rented_Furnished )
+
+    fm.is_hrp = coalesce.(fm.is_hrp,0)
     return fm
 end
 

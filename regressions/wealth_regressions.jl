@@ -12,80 +12,87 @@ summarystats( was.net_housing )
 summarystats( was.total_pensions )
 
 reg_is_in_debt_1 = glm( @formula( is_in_debt ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     owner + mortgaged + 
+    female +
     employee + selfemp + unemployed + student + inactive + sick +   
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + weekly_gross_income + managerial + intermediate + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was, Binomial(), ProbitLink() )
 
 reg_net_financial_1 = lm( @formula( net_financial  ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     owner + mortgaged +    
+    female +
     employee + selfemp + unemployed + student + inactive + sick +   
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 + age_65_74 + age_75_plus + 
     weekly_gross_income + managerial + intermediate + 
     num_adults + num_children), was )
 
 reg_net_financial_2 = lm( @formula( log(net_financial) ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     owner + mortgaged +    
+    female +
     employee + selfemp + unemployed + student + inactive + sick +   
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[was.net_financial.>0,:] )
 
 reg_net_financial_3 = lm( @formula( log(-net_financial) ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     owner + mortgaged +    
+    female +
     employee + selfemp + unemployed + student + inactive + sick +   
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[was.net_financial.<0,:] )
 
 
 
-reg_net_financial_4 = lm( @formula( net_financial  ~ scotland + wales + london + hbedrmr7 +
-           hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + 
-           hrp_u_75 + weekly_gross_income + managerial + intermediate + 
+reg_net_financial_4 = lm( @formula( net_financial  ~ scotland + wales + london + north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +#  bedrooms +
+           age_25_34 + age_35_44 + age_45_54 + age_55_64 +  
+           age_65_74 + age_75_plus + weekly_gross_income + managerial + intermediate + 
            num_adults + num_children), was )
 
-reg_net_financial_5 = lm( @formula( net_financial  ~ scotland + wales + london + hbedrmr7 +
-           hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + 
-           hrp_u_75 + managerial + intermediate + 
+reg_net_financial_5 = lm( @formula( net_financial  ~ scotland + wales + london + north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +#  bedrooms +
+           age_25_34 + age_35_44 + age_45_54 + age_55_64 +  
+           age_65_74 + age_75_plus + managerial + intermediate + 
            num_adults + num_children), was )
 
-reg_net_financial_6 = lm( @formula( net_financial  ~ scotland + wales + london + hbedrmr7 +
-           hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + 
-           hrp_u_75 + managerial + intermediate ), was )
+reg_net_financial_6 = lm( @formula( net_financial  ~ scotland + wales + london + north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +#  bedrooms +
+           age_25_34 + age_35_44 + age_45_54 + age_55_64 +  
+           age_65_74 + age_75_plus + managerial + intermediate ), was )
 regtable( reg_is_in_debt_1, reg_net_financial_1, reg_net_financial_2, reg_net_financial_3, reg_net_financial_4, reg_net_financial_5, reg_net_financial_6; renderSettings = latexOutput("docs/wealth/net_financial.tex") )
 regtable( reg_is_in_debt_1, reg_net_financial_1, reg_net_financial_2, reg_net_financial_3, reg_net_financial_4, reg_net_financial_5, reg_net_financial_6 )
            
 reg_net_physical_1 = lm( @formula( net_physical  ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     owner + mortgaged +    
+    female +
     employee + selfemp + unemployed + student + inactive + sick +   
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     weekly_gross_income + managerial + intermediate + 
     num_adults + num_children), was[was.net_physical.>0,:] )
 
 reg_net_physical_2 = lm( @formula( log(net_physical) ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     owner + mortgaged +    
+    female +
     employee + selfemp + unemployed + student + inactive + sick +   
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[was.net_physical.>0,:] )
 
 reg_net_physical_3 = lm( @formula( log(net_physical) ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
+    female +
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[was.net_physical.>0,:] )
 
@@ -94,20 +101,22 @@ regtable( reg_net_physical_1, reg_net_physical_2,reg_net_physical_3 )
 
 
 reg_net_housing_1 = lm( @formula( net_housing ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     employee + selfemp + unemployed + student + inactive + sick +   
+    female +
     owner + 
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     weekly_gross_income + managerial + intermediate + 
     num_adults + num_children), was[was.net_housing .>0,:] )
 
 reg_net_housing_2 = lm( @formula( log(net_housing) ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
     employee + selfemp + unemployed + student + inactive + sick +   
+    female +
     owner +
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[(was.net_housing .>0).&(was.weekly_gross_income .>0),:] )
 
@@ -116,10 +125,13 @@ regtable( reg_net_housing_1, reg_net_housing_2 )
     
 
 has_pension = glm( @formula( has_pension_wealth ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +
+    # east_midlands + west_midlands + east_of_england + 
+    # south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + # #  bedrooms +
     unemployed + student + inactive + sick +       
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    female +
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     employee + selfemp + unemployed + student + inactive + sick +       
     owner + mortgaged + 
     log(weekly_gross_income) + managerial + intermediate + 
@@ -127,19 +139,23 @@ has_pension = glm( @formula( has_pension_wealth ~
 
 reg_total_pensions_1 = lm( @formula( total_pensions ~ 
     scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    # north_west + yorkshire +east_midlands + west_midlands + east_of_england + 
+    south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + # #  bedrooms +
+    female +
     owner + mortgaged +    
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     employee + selfemp + unemployed + student + inactive + sick +       
     owner + mortgaged +    
     weekly_gross_income + managerial + intermediate + 
     num_adults + num_children), was[was.total_pensions.>0,:] )
 
 reg_total_pensions_2 = lm( @formula( log(total_pensions)  ~ 
-    scotland + wales + london + 
-    detatched + semi + terraced + purpose_build_flat + hbedrmr7 +
+    scotland + wales + london + # north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +
+    detatched + semi + terraced + purpose_build_flat + #  bedrooms +
+    female +
     owner + mortgaged +    
-    hrp_u_25 + hrp_u_35 + hrp_u_45 + hrp_u_55 + hrp_u_65 + hrp_u_75 + 
+    age_25_34 + age_35_44 + age_45_54 + age_55_64 +  age_65_74 + age_75_plus + 
     employee + selfemp + unemployed + student + inactive + sick +       
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[(was.total_pensions.>0).&(was.weekly_gross_income .> 0),:] )
@@ -147,14 +163,17 @@ reg_total_pensions_2 = lm( @formula( log(total_pensions)  ~
 regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2; renderSettings = latexOutput("total_pensions.tex") )
 regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2 )
     
+final_regs = [reg_is_in_debt_1, reg_net_financial_1, reg_net_financial_3, reg_net_physical_1, has_pension, reg_total_pensions_1, reg_net_housing_1]
+final_titles = ["is_in_debt", "net_financial", "net_debt", "net_physical", "has_pension", "total_pensions", "net_housing"]
 
-regtable( reg_net_financial_2, reg_net_physical_2, reg_total_pensions_2, reg_net_housing_2 ; renderSettings = latexOutput("docs/wealth/total_hh_disagg_wealth_logs.tex") )
-regtable( reg_net_financial_2, reg_net_physical_2, reg_total_pensions_2, reg_net_housing_2 )
+regtable( final_regs... ; renderSettings = latexOutput("docs/wealth/total_hh_disagg_wealth_logs.tex") )
+regtable( final_regs... )
 
-#=
-p6 = [exp.(predict(r6)) wasw.total_wealth]
-    p7 = predict(r7)
-    
-    
-    println(coef(r6))
-=#
+for i in 1:size(final_regs)[1]
+    CSV.write( "data/2023-4/uk_wealth_regressions/$(final_titles[i]).tab", 
+        DataFrame(coeftable(final_regs[i]));delim='\t')
+end
+
+p5 = [predict(reg_net_financial_1) was[!,:net_financial]]
+
+p6 = [exp.(predict(reg_net_financial_2)) was[was.net_financial.>0,:net_financial]]

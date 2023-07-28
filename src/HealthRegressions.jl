@@ -20,7 +20,8 @@ export get_death_prob,
     get_sf6d,
     summarise_sf12,
     create_health_indicator,
-    do_health_regressions!
+    do_health_regressions!,
+    rm2 # fixme move this
 
 const SFD12_REGRESSION = DataFrame([
     "q1mlog" -.0669224 .0129316 -5.18 0.000 -.0922679 -.0415769;
@@ -154,6 +155,9 @@ function rmul( d1 :: DataFrameRow, d2::DataFrameRow)::Number
     return v1'*v2
 end
 
+"""
+As above but with a pre-computed set of names in common and a pre-computed coefficient vector
+"""
 function rm2( 
     names :: Vector{Symbol}, 
     d1 :: DataFrameRow, 
@@ -163,224 +167,6 @@ function rm2(
     v1'*v2/(1-lagvalue)
 end
 
-# note to me:
-# +(.*) \| *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *([0-9\.\-]+) *
-
-"""
-    Imputes the sf_6 measure for each non-child member of a household 
-    Note the regression has monthly income but the taxben stuff is weekly
-"""
-function get_health( 
-    ; hh   :: Household, 
-      eq_bhc_net_income :: Real, 
-      quintile :: Int,
-      regression :: DataFrame = SFD12_REGRESSION,
-      lagvalue = 0.5262758 ) :: Dict{BigInt,Number}
-    @argcheck quintile in 1:5
-
-    # @assert quintile in 1:5 "quintile is $quintile for income $eq_bhc_net_income"
-    # but US income is monthly 
-    inc = WEEKS_PER_MONTH*eq_bhc_net_income
-    l_inc = 0.0
-    if inc > 0
-        l_inc = log(inc)
-    end
-
-    # single row with the `var`s in the big matrix as the element names
-    r = unstack(regression[!,1:2],:var,:coef)[1,:]
-    r .= 0.0
-
-    hh_results = Dict{BigInt,Float64}() # FIXME T where T where ...
-    
-     # household level
-    r.q1mlog = quintile == 1 ? l_inc : 0.0
-    r.q2mlog = quintile == 2 ? l_inc : 0
-    r.q3mlog = quintile == 3 ? l_inc : 0
-    r.q4mlog = quintile == 4 ? l_inc : 0
-    # r.q5mlog = quintile == 5 ? inc : 0
-    r.mlogbhc = l_inc
-    r.gor_nw = hh.region == North_West ? 1 : 0
-    r.gor_yh = hh.region == Yorks_and_the_Humber ? 1 : 0
-    r.gor_em = hh.region == East_Midlands ? 1 : 0
-    r.gor_wm = hh.region == West_Midlands ? 1 : 0
-    r.gor_ee = hh.region == East_of_England ? 1 : 0
-    r.gor_lo = hh.region == London ? 1 : 0
-    r.gor_se = hh.region == South_East ? 1 : 0
-    r.gor_sw = hh.region == South_West ? 1 : 0
-    r.gor_wa = hh.region == Wales ? 1 : 0
-    r.gor_sc = hh.region == Scotland ? 1 : 0
-    r.gor_ni = hh.region == Northern_Ireland ? 1 : 0
-    r.ten_own = hh.tenure in [Owned_outright, Mortgaged_Or_Shared ] ? 1 : 0
-    r.ten_sr = hh.tenure in [Council_Rented, Housing_Association] ? 1 : 0
-    r.cons = 1.0 
-
-    # person (non child) level
-    for (pid,pers) in hh.people
-        if ! pers.is_standard_child
-            r.female = pers.sex == Female ? 1 : 0
-            r.race_ms = pers.ethnic_group == Missing_Ethnic_Group ? 1 : 0
-            r.race_mx = pers.ethnic_group == Mixed_or_Multiple_ethnic_groups ? 1 : 0
-            r.race_as = pers.ethnic_group == Asian_or_Asian_British ? 1 : 0
-            r.race_bl = pers.ethnic_group == Black_or_African_or_Caribbean_or_Black_British ? 1 : 0
-            r.race_ot = pers.ethnic_group == Other_ethnic_group ? 1 : 0
-            r.born_m = 0
-            r.born_uk = 0
-            r.llsid = 
-                if pers.has_long_standing_illness
-                    1.0
-                elseif (pers.adls_are_reduced in [reduced_a_lot]) &&
-                    (pers.how_long_adls_reduced in [Between_six_months_and_12_months, v_12_months_or_more])
-                    1.0
-                else
-                    0.0
-                end
-
-            r.marciv = pers.marital_status == Married_or_Civil_Partnership ? 1.0 : 0
-            r.divsep = pers.marital_status in [Separated,Divorced_or_Civil_Partnership_dissolved] ? 1 : 0
-            r.widow = pers.marital_status == Widowed
-            r.age2534 = pers.age in 25:34 ? 1 : 0
-            r.age3544 = pers.age in 35:44 ? 1 : 0
-            r.age4554 = pers.age in 45:54 ? 1 : 0
-            # FIXME check HR 5564
-            r.age5565 = pers.age in 55:64 ? 1 : 0
-            r.age6574 = pers.age in 65:74 ? 1 : 0
-            r.age75 = pers.age in 75:200 ? 1 : 0
-
-            r.hq_deg = highqual_degree_equiv( pers.highest_qualification ) ? 1 : 0 
-            r.hq_ohe = highqual_other_he( pers.highest_qualification ) ? 1 : 0 
-            r.hq_al = highqual_alevel_equiv( pers.highest_qualification ) ? 1 : 0
-            r.hq_gcse = highqual_gcse_equiv( pers.highest_qualification ) ? 1 : 0
-            r.hq_oth = highqual_other( pers.highest_qualification ) ? 1 : 0
-            r.ec_emp = pers.employment_status in [Full_time_Employee, Part_time_Employee] ? 1 : 0
-            r.ec_se = pers.employment_status in [Full_time_Self_Employed,Part_time_Self_Employed] ? 1 : 0
-            r.ec_fam = pers.employment_status in [Looking_after_family_or_home] ? 1 : 0
-            r.ec_un = pers.employment_status in [Unemployed] ? 1 : 0
-            r.ec_ret = pers.employment_status in [Retired] ? 1 : 0
-            # cast our row as a vector, then vector product
-            res = Vector(r)' * regression.coef
-            # @assert 0 < res < 1 "sf6 out-of-range 0:1 $res"
-            hh_results[ pers.pid ] = res/(1-lagvalue) 
-            # for long-run equilibrium, divide by the lagged coef on SF6d.
-        end
-    end
-    hh_results
-end
-
-
-"""
-FIXME move this somewhere more sensible?
-"""
-function get_quintiles( decs :: Vector )::Vector
-    @argcheck size(decs)[1] == 10
-    quintiles = fill(0.0,5)
-    q = 0
-    for i in 2:2:10
-        q += 1
-        quintiles[q] = decs[i]
-    end
-    @assert size( quintiles )[1] == 5
-    quintiles
-end
-
-function q_from_inc( thresh :: Vector, inc :: Real )::Int
-    n = size(thresh)[1]
-    for i in 1:n
-        if inc <= thresh[i]
-            return i;
-        end
-    end
-    @assert false "got to end shouldn't happen"
-end
-
-function make_frame( nhhlds :: Int )::DataFrame
-    N = nhhlds*5 # 5 people per hhld : should be enough
-    
-    return DataFrame( 
-        hid=fill( BigInt(0), N ),
-        pid=fill( BigInt(0), N ), 
-        data_year = fill( 0, N ), 
-        weight = fill( 0.0, N ), 
-        hh_type = zeros( Int, N ),
-        num_people = zeros( Int, N ),
-        tenure = fill( Missing_Tenure_Type, N ),
-        region = fill( Missing_Standard_Region, N ),
-        sex = fill(Missing_Sex, N ),
-        ethnic_group = fill(Missing_Ethnic_Group, N ),
-        is_child = fill( false, N ),
-        age_band  = zeros(Int, N ),
-        employment_status = fill(Missing_ILO_Employment, N ),
-        decile = zeros( Int, N ),
-        sf6=fill( 0.0, N ),
-        sf12=fill( 0.0, N ))
-end
-
-"""
-Create a dataframe worth of sf6s.
-Call after a run, for 1 system, sending in the main deciles output
-"""
-function create_health_indicator( 
-    hhr :: DataFrame, 
-    deciles :: Matrix, 
-    observer :: Observable,
-    settings :: Settings ) :: DataFrame
-    # FIXME jamming threading off here since there's a problem runnung 2x in close succession & no time to fix it
-    # settings.requested_threads )
-    num_threads = min( nthreads(), 1 ) 
-    quintiles = get_quintiles( deciles[:,3])
-    start,stop = make_start_stops( settings.num_households, num_threads )
-    println("settings.num_households=$(settings.num_households) num_threads=$num_threads")
-    allout = make_frame(0)
-    @time @threads for thread in 1:num_threads
-        n = stop[thread] - start[thread] + 1
-        ncases = 0
-        out = make_frame( n )
-        for hno in start[thread]:stop[thread]
-            hh = FRSHouseholdGetter.get_household( hno )
-            nation = nation_from_region( hh.region )
-            if nation in settings.included_nations
-                if hno % 100 == 0
-                    observer[] = 
-                        Progress( settings.uuid, "health", thread, hno, 100, settings.num_households )
-                end
-                # println( "hh.hid=$(hh.hid) hh.data_year=$(hh.data_year)")
-                # println( "hhrs = $( hhr[1:5,[:hid,:data_year]])")
-                inc = hhr[ (hhr.hid.== hh.hid) .& (hhr.data_year .== hh.data_year), :eq_bhc_net_income][1]
-                quintile = q_from_inc( quintiles, inc )
-                sf12 = get_health( 
-                    hh = hh, 
-                    eq_bhc_net_income=inc, 
-                    quintile=quintile )
-                sf6 = get_health( 
-                    hh = hh, 
-                    eq_bhc_net_income=inc, 
-                    quintile=quintile,
-                    regression = SFD6_REGRESSION,
-                    lagvalue = 0.5337817 )
-                for (pid,sf) in sf6
-                    ncases += 1
-                    pers = hh.people[pid]
-                    out[ncases,:weight] = hh.weight
-                    out[ncases,:pid] = pid
-                    out[ncases,:hid] = hh.hid
-                    out[ncases,:data_year] = hh.data_year
-                    out[ncases,:sf6] = sf
-                    out[ncases,:sf12] = sf12[pid]
-                    out[ncases,:hh_type] = hhr[hno,:hh_type]
-                    out[ncases,:num_people] = hhr[hno,:num_people]
-                    out[ncases,:tenure] = hh.tenure
-                    out[ncases,:region] = hh.region
-                    out[ncases,:decile] = hhr[hno,:decile]
-                    out[ncases,:sex] = pers.sex
-                    out[ncases,:age_band] = age_range( pers.age )
-                    out[ncases,:employment_status] = pers.employment_status
-                    out[ncases,:ethnic_group] = pers.ethnic_group
-                end # pids in hhld
-            end # included
-        end # hh loop
-        allout = vcat( allout, out[1:ncases,:] )
-    end # threads
-    allout
-end
 
 """
 h - the dataframe made by create_health_indicator

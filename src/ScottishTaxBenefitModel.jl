@@ -42,14 +42,14 @@ export ModelHousehold
 include("Weighting.jl" )
 export Weighting
 
-include( "Inferences.jl")
-export Inferences
-
 include( "HistoricBenefits.jl")
 export HistoricBenefits
 
 include( "Pensions.jl")
 export Pensions
+
+include( "Inferences.jl")
+export Inferences
 
 include("HouseholdFromFrame.jl" )
 export HouseholdFromFrame
