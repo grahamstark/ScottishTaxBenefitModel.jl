@@ -177,3 +177,27 @@ end
 p5 = [predict(reg_net_financial_1) was[!,:net_financial]]
 
 p6 = [exp.(predict(reg_net_financial_2)) was[was.net_financial.>0,:net_financial]]
+
+v=exp.(predict(reg_net_physical_2))
+
+Random.seed!(0)
+
+## Example predict net physical
+
+#e=rand(Normal(0,0.75),n)
+
+# summary actual
+summarystats(reg_net_physical_1.mf.data.net_physical)
+n = size( reg_net_physical_1.mf.data.net_physical )[1]
+# summary predicted - understates
+wpd2 = predict( reg_net_physical_2 )
+summarystats( exp.(wpd2 ))
+# std deviation of residuals - should also check for normality
+sdf2 = std(residuals(reg_net_physical_2))
+# random residuals with mean 0 same sd
+edf2 = rand(Normal(0,sdf2), n)
+# summary of predicted + random - same mean
+summarystats( exp.( wpd2+edf2 ))
+
+
+
