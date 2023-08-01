@@ -163,7 +163,7 @@ reg_total_pensions_2 = lm( @formula( log(total_pensions)  ~
 regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2; renderSettings = latexOutput("total_pensions.tex") )
 regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2 )
     
-final_regs = [reg_is_in_debt_1, reg_net_financial_1, reg_net_financial_3, reg_net_physical_1, has_pension, reg_total_pensions_1, reg_net_housing_1]
+final_regs = [reg_is_in_debt_1, reg_net_financial_2, reg_net_financial_3, reg_net_physical_2, has_pension, reg_total_pensions_2, reg_net_housing_2]
 final_titles = ["is_in_debt", "net_financial", "net_debt", "net_physical", "has_pension", "total_pensions", "net_housing"]
 
 regtable( final_regs... ; renderSettings = latexOutput("docs/wealth/total_hh_disagg_wealth_logs.tex") )
@@ -180,24 +180,41 @@ p6 = [exp.(predict(reg_net_financial_2)) was[was.net_financial.>0,:net_financial
 
 v=exp.(predict(reg_net_physical_2))
 
-Random.seed!(0)
+seed!(0)
 
 ## Example predict net physical
 
 #e=rand(Normal(0,0.75),n)
 
 # summary actual
-summarystats(reg_net_physical_1.mf.data.net_physical)
+
 n = size( reg_net_physical_1.mf.data.net_physical )[1]
 # summary predicted - understates
 wpd2 = predict( reg_net_physical_2 )
-summarystats( exp.(wpd2 ))
 # std deviation of residuals - should also check for normality
 sdf2 = std(residuals(reg_net_physical_2))
 # random residuals with mean 0 same sd
 edf2 = rand(Normal(0,sdf2), n)
 # summary of predicted + random - same mean
+summarystats(reg_net_physical_1.mf.data.net_physical)
+summarystats( exp.(wpd2 ))
+summarystats( exp.( wpd2+edf2 ))
+
+n = size( reg_net_physical_1.mf.data.net_physical )[1]
+# summary predicted - understates
+wpd2 = predict( reg_net_physical_2 )
+# std deviation of residuals - should also check for normality
+sdf2 = std(residuals(reg_net_physical_2))
+# random residuals with mean 0 same sd
+edf2 = rand(Normal(0,sdf2), n)
+# summary of predicted + random - same mean
+summarystats(reg_net_physical_1.mf.data.net_physical)
+summarystats( exp.(wpd2 ))
 summarystats( exp.( wpd2+edf2 ))
 
 
+for f in 1:size(final_regs)[1]
+    println( final_titles[f], "  : ", dispersion( final_regs[f].model ))
+    println( summarystats( exp.(predict( final_regs[f]))))
+end
 

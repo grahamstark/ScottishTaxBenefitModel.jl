@@ -174,7 +174,7 @@ function create_regression_dataframe(
     fm.sick = in_vect(es, Permanently_sick_or_disabled, Temporarily_sick_or_injured )
     fm.retired = in_vect(es, Retired )
 
-    fm.log_weekly_gross_income = log.( max.(1.0, fm.original_gross_income))
+    fm.log_weekly_gross_income = log.( max.(0.0001, fm.original_gross_income))
     fm.weekly_gross_income = fm.original_gross_income
     fm.detatched = in_vect( fm.dwelling, detatched )
     fm.semi = in_vect( fm.dwelling, semi_detached )

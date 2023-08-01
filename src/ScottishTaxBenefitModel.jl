@@ -48,9 +48,6 @@ export HistoricBenefits
 include( "Pensions.jl")
 export Pensions
 
-include( "Inferences.jl")
-export Inferences
-
 include("HouseholdFromFrame.jl" )
 export HouseholdFromFrame
 

@@ -9,6 +9,7 @@ using Statistics
 using StatsModels
 # using Colors
 using Dates
+using Distributions
 
 
 renames = Dict(

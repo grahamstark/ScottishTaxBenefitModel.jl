@@ -1,12 +1,17 @@
 using Test
 using ScottishTaxBenefitModel
-using .Inferences: infer_wealth!
+using .Definitions
+using .Inferences: add_wealth_to_dataframes!
+using .HouseholdFromFrame: create_regression_dataframe
 using .ModelHousehold
 using .OtherTaxes: calculate_other_taxes!
 using .Results
 using .RunSettings
 using .STBIncomes
 
+using CSV
+using DataFrames
+using GLM
 using StatsBase
 
 
@@ -42,6 +47,7 @@ end
     end
 end
 
+#=
 @testset "simulated wealth distribution" begin
     num_households = 0
     settings = get_all_uk_settings_2023()
@@ -107,4 +113,41 @@ end
     println( "num_children", ":",mean( was.num_children ))
     println( "num_adults", ":",mean( was.num_adults ))
     
+end
+=#
+
+@testset "Wealth Regressions" begin
+
+    coefs = [:scotland, :female, :wales, :london, 
+        :age_25_34, :age_35_44, :age_45_54, :age_55_64, :age_65_74, 
+        :age_75_plus, :employee, :selfemp, :inactive, 
+        :unemployed, :student, :sick,  :detatched, :semi, :terraced, :purpose_build_flat, :managerial, :intermediate, 
+        :num_adults, :num_children, :owner, :mortgaged]
+
+    # was = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab") |> DataFrame
+    include( "../regressions/load_was.jl")
+    hh = CSV.File( joinpath( MODEL_DATA_DIR, "model_households-2021-2021.tab")) |> DataFrame
+    pers = CSV.File( joinpath( MODEL_DATA_DIR, "model_people-2021-2021.tab")) |> DataFrame
+    hhr = create_regression_dataframe( hh, pers )
+    hhp = hhr[ hhr.is_hrp .== 1, : ]
+    add_wealth_to_dataframes!( hhr, hh )
+    for c in coefs
+        println("FRS: $c",summarystats(hhp[!,c]))
+        println("WAS: $c",summarystats(was[!,c]))
+    end
+    println("FRS; weekly gross income ", summarystats( hhr[!,:weekly_gross_income] ))
+    println( "WAS; weekly gross income ", summarystats( was[!,:weekly_gross_income] ))
+
+    println( "WAS Physical Wealth", summarystats(was.net_physical))
+    println( "Imputed Physical Wealth", summarystats(hh.net_physical_wealth))
+    
+    println( "WAS Financial Wealth", summarystats(was.net_financial ))
+    println( "Imputed Financial Wealth", summarystats(hh.net_financial_wealth ))
+
+    println( "WAS Housing Wealth", summarystats(was.net_housing ))
+    println( "Imputed Housing Wealth", summarystats(hh.net_housing_wealth ))
+    
+    println( "WAS Pension Wealth", summarystats(was.total_pensions ))
+    println( "Imputed Pension Wealth", summarystats(hh.net_pension_wealth ))
+
 end
