@@ -1,17 +1,3 @@
-using CSV
-using GLM
-# using Makie
-# using CairoMakie
-using DataFrames
-using RegressionTables
-using StatsBase
-using Statistics
-using StatsModels
-# using Colors
-using Dates
-using Distributions
-
-
 renames = Dict(
     "log(weekly_gross_income)"=>"log_weekly_gross_income",
     "(Intercept)"=>"cons"
@@ -25,21 +11,6 @@ function renamecol!( d ::DataFrame, col :: Symbol, renames :: Dict )
     for r in eachrow(d)
         r[col] = rename( r[col], renames )
     end
-end
-
-function todfstr( depvar, r )
-    DEPVAR = uppercase( depvar )*"_COEFFS"
-    s = "const $DEPVAR = DataFrame( [ \n"
-    vars = coefnames( r )
-    coefs = coef( r )
-    n = size(vars)[1]
-    for i in 1:n
-        vn = rename( vars[i], renames )
-        s *= "        \"$vn\"  $(coefs[i]);\n"
-    end
-    s *= "], [\"var\", \"coef\"] )\n\n"
-    s *= "const $(DEPVAR)_TR = unstack($(DEPVAR)[!,[:var,:coef]],:var,:coef)[1,:]\n\n"
-    println(s)
 end
 
 function ustack( d :: DataFrame )

@@ -1,10 +1,17 @@
 module ScottishTaxBenefitModel
 
+using Random
+
 #
 # A microsimulation tax benefit model of Scotland.
 #
 # This is the `parent module` that just imports (and re-exports) all its child modules.
 #
+
+#
+# Seed the random engine
+#
+Random.seed!( 1 )
 
 include("Utils.jl" )
 export Utils

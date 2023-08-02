@@ -1981,8 +1981,14 @@ Only citizens and permanent residents are entitled
 Only citizens are entitled 
 =#
 
-  
+#
+# wealth tax
+#
 
+export WealthTypes,net_physical_wealth,net_financial_wealth,
+   net_housing_wealth,net_pension_wealth,WealthSet
 
+@enum WealthTypes net_physical_wealth net_financial_wealth net_housing_wealth net_pension_wealth
+WealthSet = Set{WealthTypes}
 
 end # module

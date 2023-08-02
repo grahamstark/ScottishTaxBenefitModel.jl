@@ -16,7 +16,22 @@ function calculate_wealth_tax!(
     hh               :: Household,
     sys              :: OtherTaxesSys )
     hd = get_head( hh )
-    wt = sys.wealth_tax * hh.total_wealth
+    wealth = 0.0
+    if net_physical_wealth in sys.included_wealth 
+        wealth += hh.net_physical_wealth
+    end 
+    if net_financial_wealth in sys.included_wealth 
+        wealth += hh.net_financial_wealth
+    end 
+    if net_housing_wealth in sys.included_wealth 
+        wealth += hh.net_housing_wealth
+    end 
+    if net_pension_wealth in sys.included_wealth 
+        wealth += hh.net_pension_wealth
+    end 
+
+    wealth = max( 0.0, wealth - sys.wealth_allowance )
+    wt = wealth * sys.wealth_tax 
     household_result.bus[1].pers[ hd.pid ].income[OTHER_TAX] += wt
 end
 

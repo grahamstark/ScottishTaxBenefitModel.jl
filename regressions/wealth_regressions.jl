@@ -1,10 +1,6 @@
 
 #
 #
-
-include( "load_was.jl" )
-
-
 #
 summarystats( was.net_financial )
 summarystats( was.net_physical )
@@ -163,24 +159,33 @@ reg_total_pensions_2 = lm( @formula( log(total_pensions)  ~
 regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2; renderSettings = latexOutput("total_pensions.tex") )
 regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2 )
     
-final_regs = [reg_is_in_debt_1, reg_net_financial_2, reg_net_financial_3, reg_net_physical_2, has_pension, reg_total_pensions_2, reg_net_housing_2]
-final_titles = ["is_in_debt", "net_financial", "net_debt", "net_physical", "has_pension", "total_pensions", "net_housing"]
+final_regs = OrderedDict([
+    :is_in_debt=>reg_is_in_debt_1, 
+    :net_financial_wealth=>reg_net_financial_2, 
+    :net_debt=>reg_net_financial_3, 
+    :net_physical_wealth=>reg_net_physical_2, 
+    :has_pension=>has_pension, 
+    :net_pension_wealth=>reg_total_pensions_2, 
+    :net_housing_wealth=>reg_net_housing_2 ])
 
-regtable( final_regs... ; renderSettings = latexOutput("docs/wealth/total_hh_disagg_wealth_logs.tex") )
-regtable( final_regs... )
+regtable( collect(values(final_regs))... ; renderSettings = latexOutput("docs/wealth/total_hh_disagg_wealth_logs.tex") )
+regtable( collect(values(final_regs))... )
 
+#=
 for i in 1:size(final_regs)[1]
     CSV.write( "data/2023-4/uk_wealth_regressions/$(final_titles[i]).tab", 
         DataFrame(coeftable(final_regs[i]));delim='\t')
 end
+=#
 
+#=
 p5 = [predict(reg_net_financial_1) was[!,:net_financial]]
 
 p6 = [exp.(predict(reg_net_financial_2)) was[was.net_financial.>0,:net_financial]]
 
 v=exp.(predict(reg_net_physical_2))
 
-seed!(0)
+Random.seed!(0)
 
 ## Example predict net physical
 
@@ -212,9 +217,10 @@ summarystats(reg_net_physical_1.mf.data.net_physical)
 summarystats( exp.(wpd2 ))
 summarystats( exp.( wpd2+edf2 ))
 
-
 for f in 1:size(final_regs)[1]
     println( final_titles[f], "  : ", dispersion( final_regs[f].model ))
     println( summarystats( exp.(predict( final_regs[f]))))
+
 end
+=#
 

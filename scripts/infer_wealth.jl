@@ -9,41 +9,39 @@
 using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold
+using .HouseholdFromFrame
 
 using CSV
 using DataFrames
 using Distributions 
-export add_wealth_to_dataframes!
+using DataStructures
+using Formatting
+using GLM
+using Random
+using RegressionTables
+using StatsBase
 
+include( "../regressions/load_was.jl")
+include( "../regressions/wealth_regressions.jl")
 
 const RENAMES =  Dict( [
     "log(weekly_gross_income)"=>"log_weekly_gross_income",
     "(Intercept)"=>"cons" ])
 
-
+#=
 function load_reg( filename :: String ) :: DataFrameRow
     reg = CSV.File( "data/2023-4/uk_wealth_regressions/$(filename).tab")|>DataFrame
     tr_reg = unstack(reg[!,[1,2]],1,2)
     rename!( tr_reg, RENAMES )
     tr_reg[1,:]
 end
-
-const WEALTH_REG_NAMES = ["is_in_debt", "net_financial", "net_debt", "net_physical", "has_pension", "total_pensions", "net_housing"]
-
-function load_all_regs()::Dict
-    tt = Dict()
-    for r in WEALTH_REG_NAMES
-        tt[r] = load_reg( r )
-    end
-    tt
-end
-
+=#
 
 """
 As above but with a pre-computed set of names in common and a pre-computed coefficient vector
 """
 function rowmul( 
-    names :: Vector{Symbol}, 
+    names :: Vector{String}, 
     d1 :: DataFrameRow, 
     v2 ::Vector{Float64} )::Float64
     v1 = Vector(d1[names])
@@ -51,64 +49,148 @@ function rowmul(
     v1'*v2
 end
 
-stderrs = Dict(
-    "net_financial"=>0.754930602845524
-
-
-)
+function extract( 
+    name :: Symbol, 
+    r :: RegressionModel, 
+    dfnames :: Vector{String},
+    translations :: Dict  ) :: NamedTuple
+    ns = collect( coefnames( r ))
+    n = length(ns)
+    for i in 1:n
+        ns[i] = get( translations, ns[i], ns[i] )
+    end
+    # @assert issubset( coefnames, dfnames ) "this is missing: $(setdiff( coefnames, dfnames ))"
+    (; name=name, coefnames = ns, coefs=coef( r ), sdev=dispersion(r.model), model=r )
+end 
 
 nrand(sd) = rand(Normal( 0.0, sd ))
 
-function add_wealth_to_dataframes!( hhr:: DataFrame, hh :: DataFrame )
-    WEALTH_REGS = load_all_regs()
+function t2x( 
+    actual::StatsBase.SummaryStats, 
+    was_reg::StatsBase.SummaryStats, 
+    imputed ::StatsBase.SummaryStats )::DataFrame
+
+    f( v ) = format( v, precision=0, commas=true )
+
+    function ovec( t :: StatsBase.SummaryStats ) :: Vector
+        return [
+            f(t.mean),
+            f(t.min),
+            f(t.q25),
+            f(t.median), 
+            f(t.q75), 
+            f(t.max), 
+            f(t.nobs), 
+            f(t.nmiss)]
+    end
+
+    return DataFrame( 
+        measure=[:Mean, :Min, :"25th percentile", :Median, :"75th Percentile", "Max", :"Observations", :"Missing Values"], 
+        Actual=ovec( actual ), 
+        Was_Regession= ovec( was_reg ), 
+        FRS_Imputed=ovec( imputed ))
+end
+
+function add_wealth_to_dataframes!( 
+    hhr:: DataFrame, 
+    hh :: DataFrame, 
+    final_regs :: OrderedDict )
     
     hhp = hhr[ hhr.is_hrp .== 1, : ] # 1 per hhld
+    hpnames = names( hhp )
     println( "hhp loaded $(size(hhp))")
     
-    ncs = Dict()
-    coefs = Dict()
-    for r in WEALTH_REG_NAMES
-       ncs[r] = Symbol.(intersect( names(WEALTH_REGS[r]), names(hhp)))
-       println( "$r : made coefs names as $(ncs[r])")
-       coefs[r] = Vector{Float64}( WEALTH_REGS[r] )
-       println( "$r : made coef vals as $(coefs[r])")
+    ex = OrderedDict()
+    for (k,r) in final_regs
+        ex[k] = extract( k, r, hpnames, RENAMES )
     end
-    k = 0
+
     for hrow in eachrow( hhp )
-        k += 1
-        if k == 10
-           # break
-        end
-        p = (hh.hid .== hrow.hid).&(hh.data_year .== hrow.data_year)
-        # println( "got outrow = ", hh[p,[:hid,:region]] )
-        pw = rowmul( ncs["has_pension"], hrow,  coefs["has_pension"])+nrand(1)
+        p = (hh.hid .== hrow.hid).&(hh.data_year .== hrow.data_year) 
+         
+        pw = rowmul( ex[:has_pension].coefnames, hrow, ex[:has_pension].coefs)+nrand(1)
         if pw >= 0 # so, probit > 0.5 - infer pension wealth
-            w = rowmul( ncs[ "total_pensions"], hrow, coefs["total_pensions"])
-            hh[p,:net_pension_wealth] .= exp(w+nrand(1.3556770839942154))
+            w = rowmul( ex[:net_pension_wealth].coefnames, hrow, ex[:net_pension_wealth].coefs )
+            hh[p,:net_pension_wealth] .= exp(w+nrand(ex[:net_pension_wealth].sdev ))
         end
+
         if hrow.owner == 1 || hrow.mortgaged == 1
-            w = rowmul( ncs[ "net_housing"], hrow, coefs["net_housing"])
-            hh[p,:net_housing_wealth] .= exp(w+nrand(0.6285169266546937))
+            w = rowmul( ex[:net_housing_wealth].coefnames, hrow, ex[:net_housing_wealth].coefs)
+            hh[p,:net_housing_wealth] .= exp(w+nrand(ex[:net_housing_wealth].sdev))
         end
-        is_in_debt = rowmul( ncs["is_in_debt"], hrow,  coefs["is_in_debt"])+nrand(1)
-        target =  "net_financial"
+
+        # debt and +ive financial wealth treated seperately
+        is_in_debt = rowmul( ex[:is_in_debt].coefnames, hrow, ex[:is_in_debt].coefs)+nrand(1)
+        target =  :net_financial_wealth
         m  = 1.0
         if is_in_debt >= 0 
             m = -1
-            target = "net_debt"
+            target = :net_debt
         end
-        w = rowmul( ncs[target], hrow, coefs[target])
-        hh[p,:net_financial_wealth] .= m*(exp(w+nrand( 1.6934164956598172 )))
-        w = rowmul( ncs["net_physical"], hrow, coefs["net_physical"])
-        # println( "log physical wealth $w")
-        hh[p,:net_physical_wealth] .= exp(w+nrand(0.754930602845524 ))
-        #
-        # also back into hrp 
-        # 
-        hrow.net_pension_wealth = hh[p,:net_pension_wealth][1]
-        hrow.net_financial_wealth = hh[p,:net_financial_wealth][1]
-        hrow.net_physical_wealth = hh[p,:net_physical_wealth][1]
-        hrow.net_housing_wealth = hh[p,:net_housing_wealth][1]
-        # println( "row ",hh[p,[:net_pension_wealth,:net_physical_wealth,:net_financial_wealth,:net_housing_wealth]])
+        w = rowmul( ex[target].coefnames, hrow, ex[target].coefs )
+        hh[p,:net_financial_wealth] .= m*(exp(w+nrand( ex[target].sdev )))
+        
+        w = rowmul( ex[:net_physical_wealth].coefnames, hrow, ex[:net_physical_wealth].coefs)
+        hh[p,:net_physical_wealth] .= exp(w+nrand( ex[:net_physical_wealth].sdev ))
+
     end # each row    
-end # function add_wealth_to_dataframes!
+    hh.total_wealth = 
+        hh.net_housing_wealth + 
+        hh.net_financial_wealth + 
+        hh.net_physical_wealth + 
+        hh.net_pension_wealth
+ end # function add_wealth_to_dataframes!
+
+function comptable(
+    wasv :: Vector,
+    reg  :: NamedTuple,
+    frsv :: Vector  )
+    wpred = predict( reg.model )
+    err = rand(Normal(0, reg.sdev ),Int(nobs(reg.model )))
+    wpred = exp.(wpred+err)
+    t2x( 
+        summarystats( wasv ),
+        summarystats(wpred),
+        summarystats(frsv) )
+    
+end
+
+model_hhlds_path = joinpath( MODEL_DATA_DIR, "model_households-2021-2021.tab")
+hh = CSV.File( model_hhlds_path ) |> DataFrame
+pers = CSV.File( joinpath( MODEL_DATA_DIR, "model_people-2021-2021.tab")) |> DataFrame
+hhr = create_regression_dataframe( hh, pers )
+add_wealth_to_dataframes!( hhr, hh, final_regs )
+
+io = IOBuffer()
+println( io, "Net Physical")
+    println(io, comptable(
+        was.net_physical,
+        ex[:net_physical_wealth],
+        hh.net_physical_wealth))
+
+println( io, "Net Housing")
+println( io, 
+    comptable(
+        was.net_housing,
+        ex[:net_housing_wealth],
+        hh.net_housing_wealth
+    ))
+
+println( io, "Net Pensions")
+println( io, 
+    comptable(
+        was.total_pensions,
+        ex[:net_pension_wealth],
+        hh.net_pension_wealth
+    ))
+
+println( io, "Net Financial")
+println( io, comptable(
+    was.net_financial,
+    ex[:net_financial_wealth],
+    hh.net_financial_wealth))
+
+write( "docs/wealth_summary.txt", String(take!(io)) )
+
+CSV.write( model_hhlds_path, hh )
+ 

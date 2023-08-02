@@ -202,6 +202,7 @@ mutable struct Household{RT<:Real}
     bedrooms :: Int
     head_of_household :: BigInt
     
+    # fixme make these a set based on WealthTypes
     net_physical_wealth :: RT
     net_financial_wealth :: RT
     net_housing_wealth :: RT

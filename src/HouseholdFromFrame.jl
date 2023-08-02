@@ -17,7 +17,6 @@ using .HistoricBenefits:
     make_benefit_ratios!, 
     switch_dla_to_pip!
 using .EquivalenceScales: EQScales
-using .Inferences: infer_wealth!
 using .Utils: not_zero_or_missing
 using .Randoms: strtobi
 using .RunSettings
@@ -219,6 +218,10 @@ function create_regression_dataframe(
         Private_Rented_Furnished )
 
     fm.is_hrp = coalesce.(fm.is_hrp,0)
+
+    ## wealth for head only
+    fm[fm.is_hrp.==0,[:net_housing_wealth,:net_pension_wealth,:net_financial_wealth,:net_physical_wealth]] .= 0.0
+
     return fm
 end
 
@@ -469,7 +472,7 @@ function load_hhld_from_frame(
     end
     # rewrite the eq scale once we know everything
     make_eq_scales!( hh )
-    infer_wealth!( hh )    
+    # infer_wealth!( hh )    
     @assert hh.head_of_household !== -1
     return hh
 end
