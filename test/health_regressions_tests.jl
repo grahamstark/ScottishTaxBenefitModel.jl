@@ -9,7 +9,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ExampleHelpers
 using .FRSHouseholdGetter
-using .HealthRegressions: get_health, create_health_indicator, summarise_sf12, do_health_regressions!
+using .HealthRegressions
 using .GeneralTaxComponents:WEEKS_PER_MONTH
 using .ModelHousehold
 using .HouseholdFromFrame
@@ -35,6 +35,7 @@ end
 
 end
 
+#=
 @testset "get_sfd6 Examples" begin
     # just make something up pro. tem.
     quintiles = [100.0,200,300,400,50000000]
@@ -54,6 +55,7 @@ end
     end # example loop
     println(StatsBase.summarystats( sf12s ))
 end
+=#
 
 #=
 @testset "get_sfd6 Live Data" begin

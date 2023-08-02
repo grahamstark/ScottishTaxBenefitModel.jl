@@ -1,7 +1,6 @@
 using Test
 using ScottishTaxBenefitModel
 using .Definitions
-using .Inferences: add_wealth_to_dataframes!
 using .HouseholdFromFrame: create_regression_dataframe
 using .ModelHousehold
 using .OtherTaxes: calculate_other_taxes!
@@ -26,7 +25,7 @@ using StatsBase
         hres = init_household_result( hh )
         calculate_other_taxes!( hres, hh, sys.othertaxes )
         aggregate!( hh, hres )
-        @test hres.income[OTHER_TAX] ≈ w*sys.othertaxes.wealth_tax
+        @test hres.income[OTHER_TAX] ≈ max(0,w-sys.othertaxes.wealth_allowance) *sys.othertaxes.wealth_tax
         println( "hres.bhc_net_income=$(hres.bhc_net_income)" )
     end
 end

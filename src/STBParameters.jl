@@ -949,8 +949,11 @@ I	More than £424,000
     @with_kw mutable struct OtherTaxesSys{RT<:Real}
         wealth_tax :: RT = 0.0
         wealth_allowance :: RT = 1_000_000.0
-        included_wealth = WealthSet([physical_wealth,financial_wealth,
-            housing_wealth,pension_wealth])
+        included_wealth = WealthSet([
+            net_physical_wealth,
+            net_financial_wealth,
+            net_housing_wealth,
+            net_pension_wealth])
         corporation_tax_changed = false
         implicit_wage_tax :: RT = 0.0
     end
