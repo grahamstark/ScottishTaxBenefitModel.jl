@@ -952,8 +952,10 @@ I	More than £424,000
         included_wealth = WealthSet([
             net_physical_wealth,
             net_financial_wealth,
-            net_housing_wealth,
-            net_pension_wealth])
+            net_housing_wealth])
+            # see: https://www.wealthandpolicy.com/wp/EP8_TaxBase.pdf 
+            # for arguments for ignoring pensions. Pragmatic one is
+            # results look silly. net_pension_wealth])
         corporation_tax_changed = false
         implicit_wage_tax :: RT = 0.0
     end
