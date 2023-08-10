@@ -97,7 +97,7 @@ frshh.num_people = frshh.adulth + frshh.num_children
 
 
 # not possible in lcf???
-lcfhh.any_disabled = 0
+lcfhh.any_disabled .= 0
 frshh.any_disabled = (frshh.diswhha1 + frshh.diswhhc1) .> 0 #DISWHHA1 DISWHHC1
 
 lcf_femalepids = lcf_hh_pp[(lcf_hh_pp.a004 .== 2),:case]
@@ -538,7 +538,7 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Float6
     t += lcf.has_female_adult == frs.has_female_adult ? 1 : 0
     t += score( lcf.num_children, frs.num_children )
     t += score( lcf.num_people, frs.num_people )
-    t += 10*compare_income( lcf.p344p, frs.hhinc )
+    t += 12*compare_income( lcf.p344p, frs.hhinc )
     return t
 end
 
