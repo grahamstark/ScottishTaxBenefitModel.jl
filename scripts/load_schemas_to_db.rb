@@ -12,8 +12,8 @@ load 'conversion_constants.rb'
 
 # datasets = [  "frs", 'lcf', 'shs' ]
 # years = [2016,2017]
-datasets = [  "shs" ]
-years = [2018]
+datasets = [  "lcf" ]
+years = 2009..2020
 
 
 #
@@ -30,6 +30,27 @@ def parseFiles( targetdir, dataset, year )
                         puts "datset #{dataset}; Parsing |#{fileName}| tablename=|#{tableName}|"
                         readOneRTF( dataset, year, fullFileName, tableName, be )
                 end
+        }
+end
+
+#
+# lcf filenames are all over the place, so this is just a manually edited version
+# with filename,tablename,year fields /mnt/data/lcf/txts
+#
+def hacky_lcf_parse( filename )
+        be = BlankEdit.new()
+        f = File.new( filename, 'r' )
+        dataset = "lcf"
+        f.each_line{
+                |line|
+                bits = line.split( " ")
+                puts bits
+                year = bits[2].to_i
+                puts year
+                tableName = bits[1]
+                fileName = "#{UKDS_DATA_DIR}/#{dataset}/#{bits[0]}"
+                puts "parsing #{fileName}"
+                readOneRTF( dataset, year, fileName, tableName, be )
         }
 end
 
