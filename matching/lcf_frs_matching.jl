@@ -70,8 +70,8 @@ frshh.a036 .= 0
 frshh.a037 .= 0
 =#
 
-lcfhh.any_worker .= lcfhh.p356p .> 0
-frshh.any_worker .= frshh.hearns .> 0
+lcfhh.any_wages .= lcfhh.p356p .> 0
+frshh.any_wages .= frshh.hearns .> 0
 
 lcfhh.any_pension_income .= lcfhh.p364p .> 0
 frshh.any_pension_income .= frshh.hpeninc .> 0
@@ -94,6 +94,19 @@ lcfhh[lcfhh.case .∈ (lcf_nonwhitepids,),:hrp_non_white] .= 1
 
 lcfhh.num_people = lcfhh.a049
 frshh.num_people = frshh.adulth + frshh.num_children
+
+
+# not possible in lcf???
+lcfhh.any_disabled = 0
+frshh.any_disabled = (frshh.diswhha1 + frshh.diswhhc1) .> 0 #DISWHHA1 DISWHHC1
+
+lcf_femalepids = lcf_hh_pp[(lcf_hh_pp.a004 .== 2),:case]
+lcfhh.has_female_adult .= 0
+lcfhh[lcfhh.case .∈ (lcf_femalepids,),:has_female_adult] .= 1
+
+frshh.has_female_adult .= 0
+frs_femalepids = frs_hh_pp[(frs_hh_pp.sex .== 2),:sernum]
+frshh[frshh.sernum .∈ (frs_femalepids,),:has_female_adult] .= 1
 
 struct FRSLocation
     hid :: BigInt
@@ -516,15 +529,15 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Float6
     # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
     t += score( lcf_age_hrp(  lcf.a065p ), frs_age_hrp( frs.hhagegr4 ))
     t += score( lcf_composition_map( lcf.a062 ), frs_composition_map( frs.hhcomps ))
-    t += lcf.any_worker == frs.any_worker ? 1 : 0
+    t += lcf.any_wages == frs.any_wages ? 1 : 0
     t += lcf.any_pension_income == frs.any_pension_income ? 1 : 0
     t += lcf.any_selfemp == frs.any_selfemp ? 1 : 0
     t += lcf.hrp_unemployed == frs.hrp_unemployed ? 1 : 0
     t += lcf.hrp_non_white == frs.hrp_non_white ? 1 : 0
+    # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
+    t += lcf.has_female_adult == frs.has_female_adult ? 1 : 0
     t += score( lcf.num_children, frs.num_children )
     t += score( lcf.num_people, frs.num_people )
-    
-    t += lcf.any_worker == frs.any_worker ? 1 : 0
     t += 10*compare_income( lcf.p344p, frs.hhinc )
     return t
 end
