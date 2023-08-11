@@ -9,6 +9,10 @@ function load( path::String, datayear :: Int )::Tuple
     return rows,cols,d
 end
 
+const NUM_SAMPLES = 20
+
+
+uprd = CSV.File("/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/prices/indexes/indexes-july-2023.tab"; delim = '\t', comment = "#") |> DataFrame
 
 
 # 1 years FRS
@@ -66,13 +70,12 @@ lcfhh[lcfhh.case .∈ (lcf_nonwhitepids,),:hrp_non_white] .= 1
 lcfhh.num_people = lcfhh.a049
 frshh.num_people = frshh.adulth + frshh.num_children
 
-within(x,min,max) = if x < min min elseif x > max max else x end
-
+within(x;min=min,max=max) = if x < min min elseif x > max max else x end
 
 const TOPCODE = 2420.03
 
-frshh.income = within.( 0, TOPCODE, frshh.hhinc )
-lcf.income = p344p
+frshh.income = within.( frshh.hhinc, min=0, max=TOPCODE )
+lcfhh.income = lcfhh.p344p
 
 # not possible in lcf???
 lcfhh.any_disabled .= 0
@@ -97,6 +100,7 @@ struct LCFLocation
     datayear :: Int
     score :: Float64
     income :: Float64
+    incdiff :: Float64
 end
 
 #=
@@ -492,10 +496,10 @@ function compare_income( hhinc :: Real, p344p :: Real ) :: Real
     # top & bottom code hhinc to match the lcf p344
     # hhinc = max( 0, hhinc )
     # hhinc = min( TOPCODE, hhinc ) 
-    abs( hhinc - p344p )/TOPCODE # topcode is also the range 
+    1-abs( hhinc - p344p )/TOPCODE # topcode is also the range 
 end
 
-function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Float64
+function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     t = 0.0
     t += score( lcf_tenuremap( lcf.a121 ), frs_tenuremap( frs.tentyp2 ))
     t += score( lcf_regionmap( lcf.gorx ), frs_regionmap( frs.gvtregn ))
@@ -509,34 +513,33 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Float6
     t += lcf.any_selfemp == frs.any_selfemp ? 1 : 0
     t += lcf.hrp_unemployed == frs.hrp_unemployed ? 1 : 0
     t += lcf.hrp_non_white == frs.hrp_non_white ? 1 : 0
+    t += lcf.datayear == frs.datayear ? 0.5 : 0 # - a little on same year FIXME use date range
     # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
     t += lcf.has_female_adult == frs.has_female_adult ? 1 : 0
     t += score( lcf.num_children, frs.num_children )
     t += score( lcf.num_people, frs.num_people )
-    t += 12*compare_income( lcf.income, frs.income )
-    return t
+    incdiff = compare_income( lcf.income, frs.income )
+    t += 20.0*incdiff
+    return t,incdiff
 end
 
-isless( l1::LCFLocation, l2::LCFLocation ) = l1.score < l2.score
+islessscore( l1::LCFLocation, l2::LCFLocation ) = l1.score < l2.score
+islessincdiff( l1::LCFLocation, l2::LCFLocation ) = l1.incdiff < l2.incdiff
 
-function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: Function ) Vector{Location}
+function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: Function ) :: Vector{LCFLocation}
     drows, dcols = size(donor)
     i = 0
-    similar = Vector{Location}( undef, drows )
+    similar = Vector{LCFLocation}( undef, drows )
     for lr in eachrow(donor)
         i += 1
-        similar[i] = LCFLocation( donor.sernum, donor.datayear, matcher( recip, lr ), donor.income)
+        score, incdiff = matcher( recip, lr )
+        similar[i] = LCFLocation( lr.case, lr.datayear, score, lr.income, incdiff )
     end
-    sort( similar; lt=isless, rev=true )[1:50]
-end
-
-function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function )
-    p = 0
-    for fr in eachrow(recip); 
-        p += 1
-        println(p)
-        matches = match_recip_row( fr, donor, matcher ) 
-    end
+    # sort by characteristics   
+    similar = sort( similar; lt=islessscore, rev=true )[1:NUM_SAMPLES]
+    # .. then the nearest income amongst those
+    similar = sort( similar; lt=islessincdiff, rev=true )[1:NUM_SAMPLES]
+    return similar
 end
 
 function makeoutdf( n :: Int ) :: DataFrame
@@ -544,7 +547,7 @@ function makeoutdf( n :: Int ) :: DataFrame
     frs_sernum = zeros(Int, n),
     frs_datayear = zeros(Int, n),
     frs_income = zeros(n))
-    for i in 1:50
+    for i in 1:NUM_SAMPLES
         lcf_case_sym = Symbol( "lcf_case_$i")
         lcf_datayear_sym = Symbol( "lcf_datayear_$i")
         lcf_score_sym = Symbol( "lcf_score_$i")
@@ -555,4 +558,55 @@ function makeoutdf( n :: Int ) :: DataFrame
         d[!,lcf_income_sym] .= 0.0
     end
     d
+end
+
+function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function )::DataFrame
+    p = 0
+    nrows = size(recip)[1]
+    df = makeoutdf( nrows )
+    for fr in eachrow(recip); 
+        p += 1
+        println(p)
+        df[p,:frs_sernum] = fr.sernum
+        df[p,:frs_datayear] = fr.datayear
+        df[p,:frs_income] = fr.income
+        matches = match_recip_row( fr, donor, matcher ) 
+        for i in 1:NUM_SAMPLES
+            lcf_case_sym = Symbol( "lcf_case_$i")
+            lcf_datayear_sym = Symbol( "lcf_datayear_$i")
+            lcf_score_sym = Symbol( "lcf_score_$i")
+            lcf_income_sym = Symbol( "lcf_income_$i")
+            df[p,lcf_case_sym] = matches[i].case
+            df[p,lcf_datayear_sym] = matches[i].datayear
+            df[p,lcf_score_sym] = matches[i].score
+            df[p,lcf_income_sym] = matches[i].income    
+        end
+        if p > 100
+            break
+        end
+    end
+    return df
+end
+
+
+function comparefrslcf( frs_sernum::Int, frs_datayear::Int, lcf_case::Int, lcf_datayear::Int )
+    frs1 = frshh[(frshh.sernum .== frs_sernum).&(frshh.datayear.==frs_datayear),
+        [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,:hrp_non_white,:has_female_adult,
+         :num_children,:num_people,:tentyp2,:gvtregn,:hhagegr4]]
+
+    lcf1 = lcfhh[(lcfhh.case .== lcf_case).&(lcfhh.datayear .== lcf_datayear),
+        [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,
+         :hrp_non_white,:has_female_adult,:num_children,:num_people,
+         :a121,:gorx,:a065p]]
+    println(frs1)
+    println( "frs tenure", frs_tenuremap( frs1.tentyp2[1]))
+    println( "frs region", frs_regionmap( frs1.gvtregn[1] ))
+    println( "lcf age hrp", lcf_age_hrp( frshh.hhagegr4[1] ))
+    println( "frs composition", frs_composition_map( frshh.hhcomps[1] ))
+
+    println(lcf1)
+    println( "lcf tenure",lcf_tenuremap( lcf1.a121[1] ))
+    println( "lcf region", lcf_regionmap( lcf1.gorx[1] ))
+    println( "lcf age_hrp", lcf_age_hrp( lcfhh.a065p[1] ))
+    println( "lcf composition", lcf_composition_map( lcfhh.a062[1] ))
 end
