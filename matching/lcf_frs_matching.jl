@@ -1,5 +1,21 @@
-using CSV,DataFrames,Measures,StatsBase
+using ScottishTaxBenefitModel
+using .Uprating,
+      .RunSettings
 
+using CSV,
+      DataFrames,
+      Measures,
+      StatsBase
+
+
+struct LCFLocation
+    case :: Int
+    datayear :: Int
+    score :: Float64
+    income :: Float64
+    incdiff :: Float64
+end
+    
 function load( path::String, datayear :: Int )::Tuple
     d = CSV.File( path ) |> DataFrame
     ns = lowercase.(names( d ))
@@ -12,7 +28,33 @@ end
 const NUM_SAMPLES = 20
 
 
-uprd = CSV.File("/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/prices/indexes/indexes-july-2023.tab"; delim = '\t', comment = "#") |> DataFrame
+Uprating.load_prices( Settings() )
+
+function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
+    for r in eachrow( frshh )
+        dd = split(r.intdate, "/")
+        y = parse(Int, dd[3])
+        m = parse(Int, dd[1])
+        q = div( m - 1, 3) + 1
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+        println( "r.yearcode $(r.yearcode); r.mnthcode $(r.mnthcode); y=$y q=$q income=$(r.income) orig = $(r.income)")
+    end
+    for r in eachrow( lcfhh )
+        #
+        # This is e.g January REIS and I don't know what REIS means 
+        #
+        if r.a055 > 20
+            r.a055 -= 20
+        end
+        q = (r.a055 ÷ 4) + 1
+        # lcf year seems to be actual interview year 
+        y = r.year
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+    end
+end
+
+
+# uprd = CSV.File("/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/prices/indexes/indexes-july-2023.tab"; delim = '\t', comment = "#") |> DataFrame
 
 
 # 1 years FRS
@@ -69,7 +111,6 @@ lcfhh[lcfhh.case .∈ (lcf_nonwhitepids,),:hrp_non_white] .= 1
 
 lcfhh.num_people = lcfhh.a049
 frshh.num_people = frshh.adulth + frshh.num_children
-
 within(x;min=min,max=max) = if x < min min elseif x > max max else x end
 
 const TOPCODE = 2420.03
@@ -89,19 +130,7 @@ frshh.has_female_adult .= 0
 frs_femalepids = frs_hh_pp[(frs_hh_pp.sex .== 2),:sernum]
 frshh[frshh.sernum .∈ (frs_femalepids,),:has_female_adult] .= 1
 
-struct FRSLocation
-    hid :: BigInt
-    datayear :: Int
-    score :: Float64
-end
-
-struct LCFLocation
-    case :: Int
-    datayear :: Int
-    score :: Float64
-    income :: Float64
-    incdiff :: Float64
-end
+uprate_incomes!( frshh, lcfhh ) # all in constant prices
 
 #=
  frs     | 2020 | househol | TENTYP2       | 1     | LA / New Town / NIHE / Council rented                 | LA__or__New_Town__or__NIHE__or__Council_rented
@@ -199,24 +228,30 @@ frs     | 2020 | househol | GVTREGN       | 112000009 | South West           | S
 frs     | 2020 | househol | GVTREGN       | 299999999 | Scotland             | Scotland
 frs     | 2020 | househol | GVTREGN       | 399999999 | Wales                | Wales
 frs     | 2020 | househol | GVTREGN       | 499999999 | Northern Ireland     | Northern_Ireland
+
+2nd level is London,REngland,Scotland,Wales,NI
+
 =#
 function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( 9999, 3 )
     # gvtregn = parse(Int, gvtregn )
     if ismissing( gvtregn )
         ;
+    elseif gvtregn == 112000007
+        out[1] = 7
+        out[2] = 1
     elseif gvtregn in 112000001:112000009
         out[1] = gvtregn - 112000000
-        out[2] = 1
+        out[2] = 2
     elseif gvtregn == 299999999
         out[1] = 11 # note swap wales/scot
-        out[2] = 2
+        out[2] = 3
     elseif gvtregn == 399999999
         out[1] = 10
-        out[2] = 3
+        out[2] = 4
     elseif gvtregn == 499999999
         out[1] = 12
-        out[2] = 4
+        out[2] = 5
     else
         @assert false "unmatched gvtregn $gvtregn";
     end 
@@ -241,18 +276,21 @@ function lcf_regionmap( gorx :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( 9998, 3 )
     if ismissing( gorx )
         ;
-    elseif gorx in 1:9
+    elseif gorx == 7 # london
         out[1] = gorx
         out[2] = 1
+    elseif gorx in 1:9
+        out[1] = gorx
+        out[2] = 2
     elseif gorx == 10
         out[1] = 10 # note swap wales/scot
         out[2] = 3
     elseif gorx == 11
         out[1] = 11
-        out[2] = 2
+        out[2] = 4
     elseif gorx == 12
         out[1] = 12
-        out[2] = 4
+        out[2] = 5
     else
         @assert false "unmatched gorx $gorx";
     end 
@@ -581,7 +619,7 @@ function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function ):
             df[p,lcf_score_sym] = matches[i].score
             df[p,lcf_income_sym] = matches[i].income    
         end
-        if p > 100
+        if p > 10000000
             break
         end
     end
