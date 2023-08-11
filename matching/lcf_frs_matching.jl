@@ -1,73 +1,44 @@
-using CSV,DataFrames,Measures
+using CSV,DataFrames,Measures,StatsBase
 
-function lcnames!( df :: DataFrame )
-    ns = lowercase.(names( df ))
-    rename!( df, ns )
+function load( path::String, datayear :: Int )::Tuple
+    d = CSV.File( path ) |> DataFrame
+    ns = lowercase.(names( d ))
+    rename!( d, ns )
+    rows,cols = size(d)
+    d.datayear .= datayear
+    return rows,cols,d
 end
 
-frshh = CSV.File( "/mnt/data/frs/2021/tab/househol.tab") |> DataFrame
-lcnames!( frshh )
-frsrows,frscols = size(frshh)
-frshh.datayear .= 2021
-
-frsad = CSV.File( "/mnt/data/frs/2021/tab/adult.tab") |> DataFrame
-lcnames!( frsad )
-farows,facols = size(frsad)
-frsad.datayear .= 2021
-
-frsch = CSV.File( "/mnt/data/frs/2021/tab/child.tab") |> DataFrame
-frsch.datayear .= 2021
-lcnames!( frsch )
-fcrows,fccols = size(frsch)
-
-# frsall = CSV.File( "/mnt/data/frs/2021/tab/frs2122.tab" ) |> DataFrame
-# lcnames!( frsall )
 
 
-lcfhh = CSV.File( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab") |> DataFrame
-lcfhh.datayear .= 2020
-lcnames!( lcfhh )
-lcfhrows,lcfhcols = size(lcfhh)
-
-lcfpers = CSV.File( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab") |> DataFrame
-lcfpers.datayear .= 2020
-lcnames!( lcfpers )
-lcfprows,lcpfcols = size(lcfpers)
-
-lcf_hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
-grp_lcf_hh_pp = groupby(lcf_hh_pp,:case)
-
+# 1 years FRS
+frsrows,frscols,frshh = load( "/mnt/data/frs/2021/tab/househol.tab",2021)
+farows,facols,frsad = load( "/mnt/data/frs/2021/tab/adult.tab", 2021)
 frs_hh_pp = innerjoin( frshh, frsad, on=[:sernum,:datayear], makeunique=true )
-grp_frs_hh_pp = groupby(frs_hh_pp,:sernum)
+# fcrows,fccols,frsch = load( "/mnt/data/frs/2021/tab/child.tab", 2021 )
 
+# 3 years lcf
+lcfhrows,lcfhcols,lcfhh18 = load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
+lcfhrows,lcfhcols,lcfhh19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
+lcfhrows,lcfhcols,lcfhh20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
+lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, cols=:union )
+
+lcfprows,lcpfcols,lcfpers18 = load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+lcfprows,lcpfcols,lcfpers19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+lcfprows,lcpfcols,lcfpers20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+
+lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, cols=:union )
+lcf_hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
+
+#=
+grp_lcf_hh_pp = groupby(lcf_hh_pp,[:datayear,:case])
+grp_frs_hh_pp = groupby(frs_hh_pp,[:datayear,:sernum])
 lcfhh.thing .= 0
-
 for i in grp_lcf_hh_pp 
     icase = i[1,:case]; 
     println(icase)
     lcfhh[lcfhh.case .== icase,:thing] .= sum( i.a200 )
 end
-
-#=
-
-frshh.thing .= 0
-frshh.cons .= 1
-frshh.a020 .= 0
-frshh.a021 .= 0
-frshh.a022 .= 0
-frshh.a023 .= 0
-frshh.a024 .= 0
-frshh.a025 .= 0
-frshh.a026 .= 0
-frshh.a027 .= 0
-frshh.a030 .= 0
-frshh.a031 .= 0
-frshh.a032 .= 0
-frshh.a033 .= 0
-frshh.a034 .= 0
-frshh.a035 .= 0
-frshh.a036 .= 0
-frshh.a037 .= 0
 =#
 
 lcfhh.any_wages .= lcfhh.p356p .> 0
@@ -95,6 +66,13 @@ lcfhh[lcfhh.case .∈ (lcf_nonwhitepids,),:hrp_non_white] .= 1
 lcfhh.num_people = lcfhh.a049
 frshh.num_people = frshh.adulth + frshh.num_children
 
+within(x,min,max) = if x < min min elseif x > max max else x end
+
+
+const TOPCODE = 2420.03
+
+frshh.income = within.( 0, TOPCODE, frshh.hhinc )
+lcf.income = p344p
 
 # not possible in lcf???
 lcfhh.any_disabled .= 0
@@ -114,9 +92,11 @@ struct FRSLocation
     score :: Float64
 end
 
-struct Location
-    row :: Int
+struct LCFLocation
+    case :: Int
+    datayear :: Int
     score :: Float64
+    income :: Float64
 end
 
 #=
@@ -368,9 +348,6 @@ function frs_accmap( typeacc :: Union{Int,Missing})  :: Vector{Int}
     out
 end
 
-
-similar = Vector{Location}( undef, 100 )
-
 function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
     return if a3[1] == b3[1]
         1.0
@@ -511,12 +488,10 @@ Maximum:        30084.000000
 
 =#
 
-const TOPCODE = 2420.03
-
 function compare_income( hhinc :: Real, p344p :: Real ) :: Real
     # top & bottom code hhinc to match the lcf p344
-    hhinc = max( 0, hhinc )
-    hhinc = min( TOPCODE, hhinc ) 
+    # hhinc = max( 0, hhinc )
+    # hhinc = min( TOPCODE, hhinc ) 
     abs( hhinc - p344p )/TOPCODE # topcode is also the range 
 end
 
@@ -538,11 +513,11 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Float6
     t += lcf.has_female_adult == frs.has_female_adult ? 1 : 0
     t += score( lcf.num_children, frs.num_children )
     t += score( lcf.num_people, frs.num_people )
-    t += 12*compare_income( lcf.p344p, frs.hhinc )
+    t += 12*compare_income( lcf.income, frs.income )
     return t
 end
 
-isless( l1::Location, l2::Location ) = l1.score < l2.score
+isless( l1::LCFLocation, l2::LCFLocation ) = l1.score < l2.score
 
 function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: Function ) Vector{Location}
     drows, dcols = size(donor)
@@ -550,7 +525,7 @@ function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: 
     similar = Vector{Location}( undef, drows )
     for lr in eachrow(donor)
         i += 1
-        similar[i] = Location( i, matcher( recip, lr ))
+        similar[i] = LCFLocation( donor.sernum, donor.datayear, matcher( recip, lr ), donor.income)
     end
     sort( similar; lt=isless, rev=true )[1:50]
 end
@@ -562,4 +537,22 @@ function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function )
         println(p)
         matches = match_recip_row( fr, donor, matcher ) 
     end
+end
+
+function makeoutdf( n :: Int ) :: DataFrame
+    d = DataFrame(
+    frs_sernum = zeros(Int, n),
+    frs_datayear = zeros(Int, n),
+    frs_income = zeros(n))
+    for i in 1:50
+        lcf_case_sym = Symbol( "lcf_case_$i")
+        lcf_datayear_sym = Symbol( "lcf_datayear_$i")
+        lcf_score_sym = Symbol( "lcf_score_$i")
+        lcf_income_sym = Symbol( "lcf_income_$i")
+        d[!,lcf_case_sym] .= 0
+        d[!,lcf_datayear_sym] .= 0
+        d[!,lcf_score_sym] .= 0.0
+        d[!,lcf_income_sym] .= 0.0
+    end
+    d
 end
