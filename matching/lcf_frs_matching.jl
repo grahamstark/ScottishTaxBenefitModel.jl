@@ -237,13 +237,13 @@ function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
     # gvtregn = parse(Int, gvtregn )
     if ismissing( gvtregn )
         ;
-    elseif gvtregn == 112000007
+    elseif gvtregn == 112000007 # london
         out[1] = 7
         out[2] = 1
-    elseif gvtregn in 112000001:112000009
+    elseif gvtregn in 112000001:112000009 # rEngland
         out[1] = gvtregn - 112000000
         out[2] = 2
-    elseif gvtregn == 299999999
+    elseif gvtregn == 299999999 # scotland
         out[1] = 11 # note swap wales/scot
         out[2] = 3
     elseif gvtregn == 399999999
