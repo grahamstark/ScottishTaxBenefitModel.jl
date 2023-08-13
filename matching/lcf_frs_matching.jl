@@ -1,3 +1,11 @@
+#
+# A script to match records from 2019/19 to 2020/21 lcf to 2020 FRS
+# strategy is to match to a bunch of characteristics, take the top 20 of those, and then
+# match between those 20 on household income. 
+# TODO
+# - make this into a module and a bit more general-purpose;
+# - write up, so why not just Engel curves?
+#
 using ScottishTaxBenefitModel
 using .Uprating,
       .RunSettings
@@ -20,8 +28,8 @@ function load( path::String, datayear :: Int )::Tuple
     d = CSV.File( path ) |> DataFrame
     ns = lowercase.(names( d ))
     rename!( d, ns )
-    rows,cols = size(d)
     d.datayear .= datayear
+    rows,cols = size(d)
     return rows,cols,d
 end
 
@@ -46,7 +54,7 @@ function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
         if r.a055 > 20
             r.a055 -= 20
         end
-        q = (r.a055 ÷ 4) + 1
+        q = ((r.a055+1) ÷ 3) + 1
         # lcf year seems to be actual interview year 
         y = r.year
         r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
@@ -302,6 +310,10 @@ end
 See lcf_frs_composition_mapping.md
 
 =#
+
+"""`
+Convoluted household type map. See the note `lcf_frs_composition_mapping.md`.
+"""
 function composition_map( comp :: Int, mappings; default::Int ) Vector{Int}
     out = fill( default, 3 )
     n = length(mappings)
@@ -345,6 +357,9 @@ lcf     | 2020 | dvhh            | A116          | 4     | Purpose-built flat ma
 lcf     | 2020 | dvhh            | A116          | 5     | Part of house converted flat  | Part_of_house_converted_flat
 lcf     | 2020 | dvhh            | A116          | 6     | Others                        | Others
 =#
+"""
+Map accomodation. Unused in the end.
+"""
 function lcf_accmap( a116 :: Any)  :: Vector{Int}
     out = fill( 9998, 3 )
     # missing in 2020 f*** 
@@ -375,6 +390,10 @@ end
  frs     | 2020 | househol | TYPEACC       | 6     | Caravan/Mobile home or Houseboat    | Caravan_or_Mobile_home_or_Houseboat
  frs     | 2020 | househol | TYPEACC       | 7     | Other                               | Other
 =#
+
+"""
+Map housing type. Not used because the f**ing this is deleted in 19/20 public lcf.
+"""
 function frs_accmap( typeacc :: Union{Int,Missing})  :: Vector{Int}
     out = fill( 9999, 3 )
     out[1] = min(6,typeacc)
@@ -390,6 +409,9 @@ function frs_accmap( typeacc :: Union{Int,Missing})  :: Vector{Int}
     out
 end
 
+"""
+Score for one of our 3-level matches 1 for exact 0.5 for partial 1, 0.1 for partial 2
+"""
 function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
     return if a3[1] == b3[1]
         1.0
@@ -402,6 +424,9 @@ function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
     end
 end
 
+"""
+Score for comparison between 2 ints: 1 for exact, 0.5 for within 2 steps, 0.1 for within 5. FIXME look at this again.
+"""
 function score( a :: Int, b :: Int ) :: Float64
     return if a == b
         1.0
@@ -414,7 +439,9 @@ function score( a :: Int, b :: Int ) :: Float64
     end
 end
 
-
+"""
+Infuriatingly, this can't be used as rooms is deleted in 19/20 lcf
+"""
 function rooms( rooms :: Union{Missing,Int,AbstractString}, def::Int ) :: Vector{Int}
     # !!! Another missing in lcf 2020 for NO FUCKING REASON
     out = fill(def,3)    
@@ -449,6 +476,10 @@ end
  frs     | 2020 | househol | HHAGEGR4      | 12    | Age 70 to 74   | Age_70_to_74
  frs     | 2020 | househol | HHAGEGR4      | 13    | Age 75 or over | Age_75_or_over
 =#
+
+"""
+frs age group for hrp - 1st is exact, 2nd u40,40+
+"""
 function frs_age_hrp( hhagegr4 :: Int ) :: Vector{Int}
     out = fill( 9998, 3 )
     out[1] = hhagegr4
@@ -477,8 +508,12 @@ end
 	Value = 14.0	Label =  70 but under 75 yrs
 	Value = 15.0	Label =  75 but under 80 yrs
 	Value = 16.0	Label =  80 and over
-
 =#
+
+"""
+Triple for the age group for the lcf hrp - 1st is groups above to 75, 2nd is 16-39, 40+ 3rd no match.
+See coding frame above.
+"""
 function lcf_age_hrp( a065p :: Int ) :: Vector{Int}
     out = fill( 9998, 3 )
     a065p -= 2
@@ -530,6 +565,9 @@ Maximum:        30084.000000
 
 =#
 
+"""
+Absolute difference in income, scaled by max difference (TOPCODE,since the possible range is zero to the top-coding)
+"""
 function compare_income( hhinc :: Real, p344p :: Real ) :: Real
     # top & bottom code hhinc to match the lcf p344
     # hhinc = max( 0, hhinc )
@@ -537,6 +575,9 @@ function compare_income( hhinc :: Real, p344p :: Real ) :: Real
     1-abs( hhinc - p344p )/TOPCODE # topcode is also the range 
 end
 
+"""
+Produce a comparison between on frs and one lcf row on tenure, region, wages, etc.
+"""
 function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     t = 0.0
     t += score( lcf_tenuremap( lcf.a121 ), frs_tenuremap( frs.tentyp2 ))
@@ -556,14 +597,19 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     t += lcf.has_female_adult == frs.has_female_adult ? 1 : 0
     t += score( lcf.num_children, frs.num_children )
     t += score( lcf.num_people, frs.num_people )
+    # fixme should we include this at all?
     incdiff = compare_income( lcf.income, frs.income )
-    t += 20.0*incdiff
+    t += 10.0*incdiff
     return t,incdiff
 end
 
 islessscore( l1::LCFLocation, l2::LCFLocation ) = l1.score < l2.score
 islessincdiff( l1::LCFLocation, l2::LCFLocation ) = l1.incdiff < l2.incdiff
 
+"""
+Match one row in the FRS (recip) with all possible lcf matches (donor). Intended to be general
+but isn't really any more. FIXME: pass in a saving function so we're not tied to case/datayear.
+"""
 function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: Function ) :: Vector{LCFLocation}
     drows, dcols = size(donor)
     i = 0
@@ -580,6 +626,10 @@ function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: 
     return similar
 end
 
+"""
+Create a dataframe for storing all the matches. 
+This has the FRS record and then 20 lcf records, with case,year,income and matching score for each.
+"""
 function makeoutdf( n :: Int ) :: DataFrame
     d = DataFrame(
     frs_sernum = zeros(Int, n),
@@ -598,6 +648,9 @@ function makeoutdf( n :: Int ) :: DataFrame
     d
 end
 
+"""
+Map the entire datasets.
+"""
 function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function )::DataFrame
     p = 0
     nrows = size(recip)[1]
@@ -626,25 +679,27 @@ function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function ):
     return df
 end
 
-
+"""
+print out our lcf and frs records
+"""
 function comparefrslcf( frs_sernum::Int, frs_datayear::Int, lcf_case::Int, lcf_datayear::Int )
     frs1 = frshh[(frshh.sernum .== frs_sernum).&(frshh.datayear.==frs_datayear),
         [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,:hrp_non_white,:has_female_adult,
-         :num_children,:num_people,:tentyp2,:gvtregn,:hhagegr4]]
+         :num_children,:num_people,:tentyp2,:gvtregn,:hhagegr4,:hhcomps]]
 
     lcf1 = lcfhh[(lcfhh.case .== lcf_case).&(lcfhh.datayear .== lcf_datayear),
         [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,
          :hrp_non_white,:has_female_adult,:num_children,:num_people,
-         :a121,:gorx,:a065p]]
+         :a121,:gorx,:a065p,:a062]]
     println(frs1)
     println( "frs tenure", frs_tenuremap( frs1.tentyp2[1]))
     println( "frs region", frs_regionmap( frs1.gvtregn[1] ))
-    println( "lcf age hrp", lcf_age_hrp( frshh.hhagegr4[1] ))
-    println( "frs composition", frs_composition_map( frshh.hhcomps[1] ))
+    println( "frs age hrp", lcf_age_hrp( frs1.hhagegr4[1] ))
+    println( "frs composition", frs_composition_map( frs1.hhcomps[1] ))
 
     println(lcf1)
     println( "lcf tenure",lcf_tenuremap( lcf1.a121[1] ))
     println( "lcf region", lcf_regionmap( lcf1.gorx[1] ))
-    println( "lcf age_hrp", lcf_age_hrp( lcfhh.a065p[1] ))
-    println( "lcf composition", lcf_composition_map( lcfhh.a062[1] ))
+    println( "lcf age_hrp", lcf_age_hrp( lcf1.a065p[1] ))
+    println( "lcf composition", lcf_composition_map( lcf1.a062[1] ))
 end
