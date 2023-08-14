@@ -54,7 +54,7 @@ function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
         if r.a055 > 20
             r.a055 -= 20
         end
-        q = ((r.a055+1) ÷ 3) + 1
+        q = ((r.a055-1) ÷ 3) + 1 # 1,2,3=q1 and so on
         # lcf year seems to be actual interview year 
         y = r.year
         r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
@@ -703,3 +703,6 @@ function comparefrslcf( frs_sernum::Int, frs_datayear::Int, lcf_case::Int, lcf_d
     println( "lcf age_hrp", lcf_age_hrp( lcf1.a065p[1] ))
     println( "lcf composition", lcf_composition_map( lcf1.a062[1] ))
 end
+
+# alldf = match_all(frshh, lcfhh, frs_lcf_match_row )
+# CSV.write( "frs_lcf_matches_2020_vx.csv", alldf )
