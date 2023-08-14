@@ -73,6 +73,9 @@ export BenefitGenerosity
 include( "Intermediate.jl")
 export Intermediate
 
+include( "IndirectTaxes.jl")
+export IndirectTaxes
+
 include( "Results.jl")
 export Results
 

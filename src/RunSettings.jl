@@ -37,6 +37,11 @@ module RunSettings
         pl_first_sys,
         pl_current_sys,
 
+        ExtraDataMethod, 
+        no_method,
+        imputation, 
+        matching,
+
         get_all_uk_settings_2023
         
     @enum TargetBCIncomes ahc_hh bhc_hh total_bens total_taxes
@@ -53,6 +58,8 @@ module RunSettings
     # An arbitrary poverty line supplied in the settings, 60% of the base sys median income, 60% of the current 
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
+
+    @enum ExtraDataMethod no_method imputation matching
 
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
@@ -108,6 +115,11 @@ module RunSettings
         create_own_grossing = true
         use_average_band_d = false
         included_nations = [N_Scotland]
+
+        indirect_method =  no_method 
+        indirect_matching_dataframe = ""
+        expenditure_dataset = ""
+        wealth_method = no_method
     end
 
     function get_all_uk_settings_2023()::Settings
@@ -128,6 +140,11 @@ module RunSettings
         settings.impute_employer_pension = false
         settings.included_nations = [N_Scotland,N_England,N_Wales]
         settings.means_tested_routing = modelled_phase_in
+        
+        settings.indirect_method = matching
+        settings.indirect_matching_dataframe = "frs2020_lcf2018-20_matches_all_uk"
+        settings.expenditure_dataset = "lcf_edited-2018-20.csv"
+        settings.wealth_method=imputation
         return settings
     end
 

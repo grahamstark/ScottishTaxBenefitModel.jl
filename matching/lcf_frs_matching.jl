@@ -756,6 +756,7 @@ frshh,frspers,frs_hh_pp = loadfrs()
 uprate_incomes!( frshh, lcfhh ) # all in constant prices
 alldf = map_all(frshh, lcfhh, frs_lcf_match_row )
 CSV.write( "frs_lcf_matches_2020_vx.csv", alldf )
+CSV.write( "data/lcf_edited.csv", lcfhh )
 
 # test stuff 
 lcfhrows = size(lcfhh)[1]
