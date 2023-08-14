@@ -64,25 +64,73 @@ end
 
 # uprd = CSV.File("/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/prices/indexes/indexes-july-2023.tab"; delim = '\t', comment = "#") |> DataFrame
 
+const TOPCODE = 2420.03
 
-# 1 years FRS
-frsrows,frscols,frshh = load( "/mnt/data/frs/2021/tab/househol.tab",2021)
-farows,facols,frsad = load( "/mnt/data/frs/2021/tab/adult.tab", 2021)
-frs_hh_pp = innerjoin( frshh, frsad, on=[:sernum,:datayear], makeunique=true )
+function within(x;min=min,max=max) 
+    return if x < min min elseif x > max max else x end
+end
+
+"""
+Load 2020/21 FRS and add some matching fields
+"""
+function loadfrs()::Tuple
+    frsrows,frscols,frshh = load( "/mnt/data/frs/2021/tab/househol.tab",2021)
+    farows,facols,frsad = load( "/mnt/data/frs/2021/tab/adult.tab", 2021)
+    frs_hh_pp = innerjoin( frshh, frsad, on=[:sernum,:datayear], makeunique=true )
+    frshh.any_wages .= frshh.hearns .> 0    
+    frshh.any_pension_income .= frshh.hpeninc .> 0    
+    frshh.any_selfemp .= frshh.hseinc .!= 0     
+    frshh.hrp_unemployed .= frshh.emp .== 1    
+    frshh.num_children = frshh.depchldh # DEPCHLDH    
+    frshh.hrp_non_white = frshh.hheth .!= 1
+    # LCF case ids of non white HRPs - convoluted; see: 
+    # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
+    frshh.num_people = frshh.adulth + frshh.num_children
+    frshh.income = within.( frshh.hhinc, min=0, max=TOPCODE )    
+    # not possible in lcf???
+    frshh.any_disabled = (frshh.diswhha1 + frshh.diswhhc1) .> 0 #DISWHHA1 DISWHHC1    
+    frshh.has_female_adult .= 0
+    frs_femalepids = frs_hh_pp[(frs_hh_pp.sex .== 2),:sernum]
+    frshh[frshh.sernum .∈ (frs_femalepids,),:has_female_adult] .= 1
+    return frshh,frspers,frs_hh_pp
+end
 # fcrows,fccols,frsch = load( "/mnt/data/frs/2021/tab/child.tab", 2021 )
 
-# 3 years lcf
-lcfhrows,lcfhcols,lcfhh18 = load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
-lcfhrows,lcfhcols,lcfhh19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
-lcfhrows,lcfhcols,lcfhh20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
-lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, cols=:union )
+"""
+Load 2018/9 - 2020/1 LCFs and add some matching fields.
+"""
+function load3lcfs()::Tuple
+    lcfhrows,lcfhcols,lcfhh18 = load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
+    lcfhrows,lcfhcols,lcfhh19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
+    lcfhrows,lcfhcols,lcfhh20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
+    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, cols=:union )
+    lcfhrows = size(lcfhh)[1]
 
-lcfprows,lcpfcols,lcfpers18 = load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
-lcfprows,lcpfcols,lcfpers19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
-lcfprows,lcpfcols,lcfpers20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-
-lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, cols=:union )
-lcf_hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
+    lcfprows,lcpfcols,lcfpers18 = load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+    lcfprows,lcpfcols,lcfpers19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+    lcfprows,lcpfcols,lcfpers20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, cols=:union )
+    lcf_hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
+    lcfhh.any_wages .= lcfhh.p356p .> 0
+    lcfhh.any_pension_income .= lcfhh.p364p .> 0
+    lcfhh.any_selfemp .= lcfhh.p320p .!= 0
+    lcfhh.hrp_unemployed .= lcfhh.p304 .== 1
+    lcfhh.num_children = lcfhh.a040 + lcfhh.a041 + lcfhh.a042
+    # LCF case ids of non white HRPs - convoluted; see: 
+    # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
+    lcf_nonwhitepids = lcf_hh_pp[(lcf_hh_pp.a012p .∈ (["10","2","3","4"],)).&(lcf_hh_pp.a003 .== 1),:case]
+    lcfhh.hrp_non_white .= 0
+    lcfhh[lcfhh.case .∈ (lcf_nonwhitepids,),:hrp_non_white] .= 1    
+    lcfhh.num_people = lcfhh.a049
+    lcfhh.income = lcfhh.p344p    
+    # not possible in lcf???
+    lcfhh.any_disabled .= 0
+    lcf_femalepids = lcf_hh_pp[(lcf_hh_pp.a004 .== 2),:case]
+    lcfhh.has_female_adult .= 0
+    lcfhh[lcfhh.case .∈ (lcf_femalepids,),:has_female_adult] .= 1
+    lcfhh.is_selected = fill( false, lcfhrows )
+    lcfhh,lcfpers,lcf_hh_pp
+end
 
 #=
 grp_lcf_hh_pp = groupby(lcf_hh_pp,[:datayear,:case])
@@ -95,6 +143,7 @@ for i in grp_lcf_hh_pp
 end
 =#
 
+#=
 lcfhh.any_wages .= lcfhh.p356p .> 0
 frshh.any_wages .= frshh.hearns .> 0
 
@@ -119,9 +168,6 @@ lcfhh[lcfhh.case .∈ (lcf_nonwhitepids,),:hrp_non_white] .= 1
 
 lcfhh.num_people = lcfhh.a049
 frshh.num_people = frshh.adulth + frshh.num_children
-within(x;min=min,max=max) = if x < min min elseif x > max max else x end
-
-const TOPCODE = 2420.03
 
 frshh.income = within.( frshh.hhinc, min=0, max=TOPCODE )
 lcfhh.income = lcfhh.p344p
@@ -137,10 +183,10 @@ lcfhh[lcfhh.case .∈ (lcf_femalepids,),:has_female_adult] .= 1
 frshh.has_female_adult .= 0
 frs_femalepids = frs_hh_pp[(frs_hh_pp.sex .== 2),:sernum]
 frshh[frshh.sernum .∈ (frs_femalepids,),:has_female_adult] .= 1
-
-uprate_incomes!( frshh, lcfhh ) # all in constant prices
+=#
 
 #=
+
  frs     | 2020 | househol | TENTYP2       | 1     | LA / New Town / NIHE / Council rented                 | LA__or__New_Town__or__NIHE__or__Council_rented
  frs     | 2020 | househol | TENTYP2       | 2     | Housing Association / Co-Op / Trust rented            | Housing_Association__or__Co_Op__or__Trust_rented
  frs     | 2020 | househol | TENTYP2       | 3     | Other private rented unfurnished                      | Other_private_rented_unfurnished
@@ -237,7 +283,7 @@ frs     | 2020 | househol | GVTREGN       | 299999999 | Scotland             | S
 frs     | 2020 | househol | GVTREGN       | 399999999 | Wales                | Wales
 frs     | 2020 | househol | GVTREGN       | 499999999 | Northern Ireland     | Northern_Ireland
 
-2nd level is London,REngland,Scotland,Wales,NI
+2nd level is London=1,REngland=2,Scotland=3,Wales=4,NI=5
 
 =#
 function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
@@ -252,7 +298,7 @@ function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
         out[1] = gvtregn - 112000000
         out[2] = 2
     elseif gvtregn == 299999999 # scotland
-        out[1] = 11 # note swap wales/scot
+        out[1] = 11 
         out[2] = 3
     elseif gvtregn == 399999999
         out[1] = 10
@@ -266,7 +312,7 @@ function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
-#=
+"""
  lcf     | 2020 | dvhh            | Gorx          | 1     | North East                | North_East
  lcf     | 2020 | dvhh            | Gorx          | 2     | North West and Merseyside | North_West_and_Merseyside
  lcf     | 2020 | dvhh            | Gorx          | 3     | Yorkshire and the Humber  | Yorkshire_and_the_Humber
@@ -279,7 +325,10 @@ end
  lcf     | 2020 | dvhh            | Gorx          | 10    | Wales                     | Wales
  lcf     | 2020 | dvhh            | Gorx          | 11    | Scotland                  | Scotland
  lcf     | 2020 | dvhh            | Gorx          | 12    | Northern Ireland          | Northern_Ireland
-=#
+
+ load 2 levels of region from LCF into a 3 vector - 1= actual/ 2=London/rEngland/Scot/Wales/Ni
+
+"""
 function lcf_regionmap( gorx :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( 9998, 3 )
     if ismissing( gorx )
@@ -290,12 +339,12 @@ function lcf_regionmap( gorx :: Union{Int,Missing} ) :: Vector{Int}
     elseif gorx in 1:9
         out[1] = gorx
         out[2] = 2
-    elseif gorx == 10
-        out[1] = 10 # note swap wales/scot
-        out[2] = 3
-    elseif gorx == 11
-        out[1] = 11
+    elseif gorx == 10 # wales
+        out[1] = 10 
         out[2] = 4
+    elseif gorx == 11 # scotland
+        out[1] = 11
+        out[2] = 3
     elseif gorx == 12
         out[1] = 12
         out[2] = 5
@@ -305,13 +354,7 @@ function lcf_regionmap( gorx :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
-#=
- 
-See lcf_frs_composition_mapping.md
-
-=#
-
-"""`
+"""
 Convoluted household type map. See the note `lcf_frs_composition_mapping.md`.
 """
 function composition_map( comp :: Int, mappings; default::Int ) Vector{Int}
@@ -682,27 +725,45 @@ end
 """
 print out our lcf and frs records
 """
-function comparefrslcf( frs_sernum::Int, frs_datayear::Int, lcf_case::Int, lcf_datayear::Int )
-    frs1 = frshh[(frshh.sernum .== frs_sernum).&(frshh.datayear.==frs_datayear),
-        [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,:hrp_non_white,:has_female_adult,
-         :num_children,:num_people,:tentyp2,:gvtregn,:hhagegr4,:hhcomps]]
-
+function comparefrslcf( frshh::DataFrame, lcfhh:: DataFrame, frs_sernums, frs_datayear::Int, lcf_case::Int, lcf_datayear::Int )
     lcf1 = lcfhh[(lcfhh.case .== lcf_case).&(lcfhh.datayear .== lcf_datayear),
         [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,
          :hrp_non_white,:has_female_adult,:num_children,:num_people,
-         :a121,:gorx,:a065p,:a062]]
-    println(frs1)
-    println( "frs tenure", frs_tenuremap( frs1.tentyp2[1]))
-    println( "frs region", frs_regionmap( frs1.gvtregn[1] ))
-    println( "frs age hrp", lcf_age_hrp( frs1.hhagegr4[1] ))
-    println( "frs composition", frs_composition_map( frs1.hhcomps[1] ))
-
+         :a121,:gorx,:a065p,:a062,:income]]
     println(lcf1)
     println( "lcf tenure",lcf_tenuremap( lcf1.a121[1] ))
     println( "lcf region", lcf_regionmap( lcf1.gorx[1] ))
     println( "lcf age_hrp", lcf_age_hrp( lcf1.a065p[1] ))
     println( "lcf composition", lcf_composition_map( lcf1.a062[1] ))
+    for i in frs_sernums
+        println( "sernum $i")
+        frs1 = frshh[(frshh.sernum .== i).&(frshh.datayear.==frs_datayear),
+            [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,:hrp_non_white,:has_female_adult,
+            :num_children,:num_people,:tentyp2,:gvtregn,:hhagegr4,:hhcomps,:income]]
+        println(frs1)
+        println( "frs tenure", frs_tenuremap( frs1.tentyp2[1]))
+        println( "frs region", frs_regionmap( frs1.gvtregn[1] ))
+        println( "frs age hrp", lcf_age_hrp( frs1.hhagegr4[1] ))
+        println( "frs composition", frs_composition_map( frs1.hhcomps[1] ))
+        println( "income $(frs1.income)")
+    end
 end
 
-# alldf = match_all(frshh, lcfhh, frs_lcf_match_row )
-# CSV.write( "frs_lcf_matches_2020_vx.csv", alldf )
+#= to run this, so
+
+lcfhh,lcfpers,lcf_hh_pp = load3lcfs()
+frshh,frspers,frs_hh_pp = loadfrs()
+uprate_incomes!( frshh, lcfhh ) # all in constant prices
+alldf = map_all(frshh, lcfhh, frs_lcf_match_row )
+CSV.write( "frs_lcf_matches_2020_vx.csv", alldf )
+
+# test stuff 
+lcfhrows = size(lcfhh)[1]
+lcfhh.is_selected = fill( false, lcfhrows )
+for i in eachrow(alldf)
+    lcfhh[(lcfhh.datayear.==i.lcf_datayear_1).&(lcfhh.case.==i.lcf_case_1),:is_selected] .= true
+end
+
+sellcfhh = lcfhh[lcfhh.is_selected,:]
+
+=#
