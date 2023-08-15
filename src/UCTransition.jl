@@ -44,7 +44,14 @@ const PROPS_ON_UC =
                 trans_w_kids => 0.71,
                 trans_incapacity => 0.53,
                 trans_jobseekers => 0.97 )
-        )
+        ),N_Northern_Ireland=>
+            Dict(
+                trans_all => 0.70, 
+                trans_housing => 0.69,
+                trans_w_kids => 0.71,
+                trans_incapacity => 0.53,
+                trans_jobseekers => 0.97 ) # FIXME this is just Wales!!
+            )
 
 """
 Allocate a benefit unit to ether UC or Legacy Benefits. Very crudely.
