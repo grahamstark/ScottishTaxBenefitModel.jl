@@ -81,8 +81,8 @@ module RunSettings
         num_households :: Int = 0
         num_people :: Int = 0
         prices_file = "indexes.tab"
-        to_y :: Int = 2022
-        to_q :: Int = 3
+        to_y :: Int = 2023
+        to_q :: Int = 1
         output_dir :: String = joinpath(tempdir(),"output")
         means_tested_routing :: MT_Routing = uc_full
         poverty_line :: Real = -1.0
@@ -122,6 +122,9 @@ module RunSettings
         wealth_method = no_method
     end
 
+    """
+    Hacky prebuilt settings for the Northumbria model.
+    """
     function get_all_uk_settings_2023()::Settings
         settings = Settings()
         settings.household_name = "model_households-2021-2021"
@@ -143,7 +146,7 @@ module RunSettings
         
         settings.indirect_method = matching
         settings.indirect_matching_dataframe = "frs2020_lcf2018-20_matches_all_uk"
-        settings.expenditure_dataset = "lcf_edited-2018-20.csv"
+        settings.expenditure_dataset = "lcf_edited-2018-20"
         settings.wealth_method=imputation
         return settings
     end

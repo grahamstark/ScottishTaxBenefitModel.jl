@@ -58,6 +58,9 @@ export Pensions
 include("HouseholdFromFrame.jl" )
 export HouseholdFromFrame
 
+include( "ConsumptionData.jl")
+export ConsumptionData
+
 include("ExampleHouseholdGetter.jl" )
 export ExampleHouseholdGetter
 

@@ -7,6 +7,7 @@ module ModelHousehold
 #
 using Base: String
 using Dates
+using DataFrames
 import Base.show
 
 using ScottishTaxBenefitModel
@@ -208,7 +209,8 @@ mutable struct Household{RT<:Real}
     net_housing_wealth :: RT
     net_pension_wealth :: RT
     original_gross_income :: RT
-
+    # FIXME make a proper consumption structure here rather than just an lcf dump.
+    consumption :: Union{Nothing,DataFrameRow}
     people::People_Dict{RT}
     onerand :: String
     equivalence_scales :: EQScales{RT}

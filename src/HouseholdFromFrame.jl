@@ -445,7 +445,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         frs_hh.net_housing_wealth,
         frs_hh.net_pension_wealth,
         frs_hh.original_gross_income,
-    
+        nothing, # consumption; loaded afterwards as needed
         people,        
         strtobi(frs_hh.onerand),
         ZERO_EQ_SCALE )

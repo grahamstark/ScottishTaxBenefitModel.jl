@@ -978,6 +978,17 @@ I	More than £424,000
         othertaxes.implicit_wage_tax /= 100.0
     end
 
+    @with_kw mutable struct VATSummary{RT<:Real}
+        standard_rate :: RT = 20.0
+        standard_rate_goods = BroadConsumptionSet([])
+        reduced_rate  :: RT = 5
+        reduced_rate_goods = BroadConsumptionSet([])
+        zero_rate     :: RT = 0
+        zero_rate_goods = BroadConsumptionSet([])
+        assumed_exempt_rate :: RT = 8 # FIXME find this number!
+        exempt_goods = BroadConsumptionSet([])
+    end
+
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: String = "Scotland 2919/20"
         it   = IncomeTaxSys{RT}()
@@ -996,6 +1007,7 @@ I	More than £424,000
         bencap = BenefitCapSys{RT}()
         ubi = UBISys{RT}()
         othertaxes = OtherTaxesSys{RT}()
+        vat = VATSummary{RT}()
     end
 
 

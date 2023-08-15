@@ -21,12 +21,14 @@ module FRSHouseholdGetter
         create_regression_dataframe,
         load_hhld_from_frame
 
-    using .RunSettings: Settings
+    using .RunSettings 
 
     using .Weighting: 
         generate_weights
 
     using .Uprating: load_prices
+
+    using .ConsumptionData
 
     export 
         initialise, 
@@ -97,6 +99,9 @@ module FRSHouseholdGetter
             return (MODEL_HOUSEHOLDS.dimensions...,) 
         end
         load_prices( settings )
+        if settings.indirect_method == matching 
+            ConsumptionData.init( settings )
+        end
         hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
         people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
         npeople = size( people_dataset)[1]
@@ -110,6 +115,9 @@ module FRSHouseholdGetter
             hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS, settings )
             MODEL_HOUSEHOLDS.hhlds[hseq] = hh
             uprate!( hh )
+            if settings.indirect_method == matching 
+                ConsumptionData.find_consumption_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
+            end
             pseqs = []
             for pid in keys(hh.people)
                 pseq += 1
