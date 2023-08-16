@@ -48,7 +48,10 @@ function uprate_expenditure( settings :: Settings )
         # lcf year seems to be actual interview year 
         y = r.year
         for n in nms
-            if match( r"^c[0-9]+[a-z]*$",  n ) !== nothing # so c1234x, for example - CIOCP code
+            if( match( r"^c[0-9]+[a-z]*$",  n ) !== nothing) || # coicop disagregates so c1234x, for example - CIOCP code
+                ( match( r"^p6[0-9]+[a-z]*$",  n ) !== nothing) || 
+                ( match( r"^c[0-9a-z]+$",  n ) !== nothing)
+                 # p6xxx coicop aggregates
                 # println( "uprating $n")
                 sym = Symbol(n)
                 r[sym] = Uprating.uprate( r[sym], y, q, Uprating.upr_nominal_gdp )
@@ -83,4 +86,4 @@ function init( settings :: Settings; reset = false )
     end
 end
 
-end
+end # module
