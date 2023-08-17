@@ -113,8 +113,39 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
     out.domestic_fuel_other = lcf.b017 + lcf.c45312t + lcf.c45412t + lcf.c45511t
     out.other_housing = lcf.p604t - out.domestic_fuel_electric - out.domestic_fuel_gas - out.domestic_fuel_coal - out.domestic_fuel_other
 
+    # 05	Furnishings, Household Equipment and Routine Maintenance of the House
 
-    
+    out.furnishings_etc = lcf.p605
+
+    # 06 Health 
+
+    out.hospitals_and_nhs C61111c C62111c
+    out.medicines C61112c 
+    out.spectacles_etc = C61311c + C62114c # but see: https://www.chapman-opticians.co.uk/vat_on_spectacles
+    out.private_medical_care = 
+
+    #=
+Dataset | year |     tables      |  name   | pos | var_fmt | measurement_level |                                              label                                              | data_type 
+---------+------+-----------------+---------+-----+---------+-------------------+-------------------------------------------------------------------------------------------------+-----------
+ lcf     | 2020 | dvhh            | C61111c | 960 | numeric | scale             | NHS prescription charges and payments - children, aged between 7 and 15                         |         1
+ lcf     | 2020 | dvhh            | C61112c | 961 | numeric | scale             | Medicines and medical goods (not NHS) - children, aged between 7 and 15                         |         1
+ lcf     | 2020 | dvhh            | C61211c | 962 | numeric | scale             | Other medical products (eg plasters, condoms, tubigrip, etc.) - children, aged between 7 and 15 |         1
+ lcf     | 2020 | dvhh            | C61311c | 963 | numeric | scale             | Purchase of spectacles, lenses, prescription glasses - children, aged between 7 and 15          |         1
+ lcf     | 2020 | dvhh            | C61312c | 964 | numeric | scale             | Accessories repairs to spectacles lenses - children, aged between 7 and 15                      |         1
+ lcf     | 2020 | dvhh            | C61313c | 965 | numeric | scale             | Non-optical appliances and equipment (eg wheelchairs, etc.) - children, aged between 7 and 15   |         1
+ lcf     | 2020 | dvhh            | C62111c | 966 | numeric | scale             | NHS medical services - children, aged between 7 and 15                                          |         1
+ lcf     | 2020 | dvhh            | C62112c | 967 | numeric | scale             | Private medical services - children, aged between 7 and 15                                      |         1
+ lcf     | 2020 | dvhh            | C62113c | 968 | numeric | scale             | NHS optical services - children, aged between 7 and 15                                          |         1
+ lcf     | 2020 | dvhh            | C62114c | 969 | numeric | scale             | Private optical services - children, aged between 7 and 15                                      |         1
+ lcf     | 2020 | dvhh            | C62211c | 970 | numeric | scale             | NHS dental services - children, aged between 7 and 15                                           |         1
+ lcf     | 2020 | dvhh            | C62212c | 971 | numeric | scale             | Private dental services - children, aged between 7 and 15                                       |         1
+ lcf     | 2020 | dvhh            | C62311c | 972 | numeric | scale             | Services of medical analysis laboratorie - children, aged between 7 and 15                      |         1
+ lcf     | 2020 | dvhh            | C62321c | 973 | numeric | scale             | Services of NHS medical auxiliaries - children, aged between 7 and 15                           |         1
+ lcf     | 2020 | dvhh            | C62322c | 974 | numeric | scale             | Services of private medical auxiliaries - children, aged between 7 and 15                       |         1
+ lcf     | 2020 | dvhh            | C62331c | 975 | numeric | scale             | Non-hospital ambulance services etc. - children, aged between 7 and 15                          |         1
+ lcf     | 2020 | dvhh            | C63111c | 976 | numeric | scale             | Hospital services - children, aged between 7 and 15                                             |         1
+
+
     # 11 (B)	Restaurant and Hotels
     out.hotels_and_restaurants = lcf.p611t - out.hot_and_eat_out_food - (lcf.cb111ct+lcf.cb111dt+lcf.cb111et+lcf.cb111ft+lcf.cb111gt+lcf.cb111ht+lcf.cb111it + lcf.cb111jt) # h&r less the food,drink,alcohol
 
