@@ -77,6 +77,3 @@ end
         println( "hres.bhc_net_income=$(hres.bhc_net_income)" )
     end
 end
-
-
-

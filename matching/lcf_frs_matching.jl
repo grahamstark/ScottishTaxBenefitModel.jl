@@ -38,6 +38,700 @@ const NUM_SAMPLES = 20
 
 Uprating.load_prices( Settings() )
 
+"""
+Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
+"""
+function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
+     out = DataFrame( case = lcf.case, datayear = lcf.datayear, month = lcf.a055, year= lcf.year  )
+#= top level COICOP
+01	Food and Non-Alcoholic Beverages
+02	Alcoholic Beverages, Tobacco and Narcotics
+03	Clothing and Footwear
+04	Housing, Water, Electricity, Gas and Other Fuels
+05	Furnishings, Household Equipment and Routine Maintenance of the House
+06	Health
+07	Transport
+08	Communication
+09	Recreation
+10 (A)	Education
+11 (B)	Restaurant and Hotels
+12 (C)	Miscellaneous Goods and Services
+20 (K)	Non-Consumption Expenditure
+=#
+
+    # 01) food 
+
+    out.sweets_and_icecream = lcf.c11831t + lcf.c11841t + lcf.c11851t
+    out.other_food_and_beverages = lcf.p601t - out.sweets_and_icecream
+    out.hot_and_eat_out_food =  ## CHECK is this counting children's sweets twice?
+        lcf.cb1111t +
+        lcf.cb1112t +
+        lcf.cb1113t +
+        lcf.cb1114t +
+        lcf.cb1115t +
+        lcf.cb1116t +
+        lcf.cb1117c +
+        lcf.cb1118c +
+        lcf.cb1119c +
+        lcf.cb111ac +
+        lcf.cb111bc +
+        lcf.cb1121t +
+        lcf.cb1122t +
+        lcf.cb1123t +
+        lcf.cb1124t +
+        lcf.cb1125t +
+        lcf.cb1126t +
+        lcf.cb1127t +
+        lcf.cb1128t +
+        lcf.cb112bt +
+        lcf.cb1213t
+
+    # 02 Alcoholic Beverages, Tobacco and Narcotics
+
+    out.spirits = lcf.cb111ct + lcf.c21111t
+    out.wine = lcf.cb111dt + lcf.c21211t
+    out.fortified_wine = lcf.cb111et + lcf.c21212t
+    out.cider = lcf.cb111ft + lcf.c21213t 
+    out.alcopops = lcf.cb111gt + lcf.c21214t
+    out.champagne = lcf.cb111ht + lcf.c21221t
+    out.beer = lcf.cb111it + lcf.cb111jt + lcf.c21311t # fixme rounds of drinks are beer!
+
+    out.cigarettes = lcf.c22111t
+    out.cigars = lcf.c22121t
+    out.other_tobacco = lcf.c22131t # ?? Assume Vapes?
+
+    # 03 Clothing and Footwear
+
+    out.childrens_clothing_and_footwear = lcf.c31231t + lcf.c31232t + lcf.c31233t + lcf.c31234t + lcf.c31313t + lcf.c32131t
+    out.helmets_etc = lcf.c31315t
+    out.other_clothing_and_footwear = lcf.p603t - out.helmets_etc - out.childrens_clothing_and_footwear
+
+    # 04	Housing, Water, Electricity, Gas and Other Fuels
+    out.domestic_fuel_electric =(lcf.b175 - lcf.b178) + lcf.b227 + lcf.c45114t
+    out.domestic_fuel_gas = (lcf.b170 - lcf.b173) + lcf.b226 + lcf.b018 + lcf.c45112t + lcf.c45214t + lcf.c45222t
+    out.domestic_fuel_coal = lcf.c45411t
+    out.domestic_fuel_other = lcf.b017 + lcf.c45312t + lcf.c45412t + lcf.c45511t
+    out.other_housing = lcf.p604t - out.domestic_fuel_electric - out.domestic_fuel_gas - out.domestic_fuel_coal - out.domestic_fuel_other
+
+
+    
+    # 11 (B)	Restaurant and Hotels
+    out.hotels_and_restaurants = lcf.p611t - out.hot_and_eat_out_food - (lcf.cb111ct+lcf.cb111dt+lcf.cb111et+lcf.cb111ft+lcf.cb111gt+lcf.cb111ht+lcf.cb111it + lcf.cb111jt) # h&r less the food,drink,alcohol
+
+
+    #=
+    lcf     | 2020 | dvhh   | CB1111t | 586 | numeric | scale             | Catered food non-alcoholic drink eaten / drunk on premises - children and adults |         1
+    lcf     | 2020 | dvhh   | CB1112t | 587 | numeric | scale             | Confectionery eaten off premises - children and adults                           |         1
+    lcf     | 2020 | dvhh   | CB1113t | 588 | numeric | scale             | Ice cream eaten off premises - children and adults                               |         1
+    lcf     | 2020 | dvhh   | CB1114t | 589 | numeric | scale             | Soft drinks eaten off premises - children and adults                             |         1
+    lcf     | 2020 | dvhh   | CB1115t | 590 | numeric | scale             | Hot food eaten off premises - children and adults                                |         1
+    lcf     | 2020 | dvhh   | CB1116t | 591 | numeric | scale             | Cold food eaten off premises - children and adults                               |         1
+    lcf     | 2020 | dvhh   | CB1117c | 492 | numeric | scale             | Confectionery (child) - children, aged between 7 and 15                          |         1
+    lcf     | 2020 | dvhh   | CB1118c | 493 | numeric | scale             | Ice cream (child) - children, aged between 7 and 15                              |         1
+    lcf     | 2020 | dvhh   | CB1119c | 494 | numeric | scale             | Soft drinks (child) - children, aged between 7 and 15                            |         1
+    lcf     | 2020 | dvhh   | CB111Ac | 495 | numeric | scale             | Hot food (child)                                                                 |         1
+    lcf     | 2020 | dvhh   | CB111Bc | 496 | numeric | scale             | Cold food (child)                                                                |         1
+    lcf     | 2020 | dvhh   | CB1121t | 605 | numeric | scale             | Food non-alcoholic drinks eaten drunk on premises - children and adults          |         1
+    lcf     | 2020 | dvhh   | CB1122t | 606 | numeric | scale             | Confectionery - children and adults                                              |         1
+    lcf     | 2020 | dvhh   | CB1123t | 607 | numeric | scale             | Ice cream - children and adults                                                  |         1
+    lcf     | 2020 | dvhh   | CB1124t | 608 | numeric | scale             | Soft drinks - children and adults                                                |         1
+    lcf     | 2020 | dvhh   | CB1125t | 609 | numeric | scale             | Hot food - children and adults                                                   |         1
+    lcf     | 2020 | dvhh   | CB1126t | 610 | numeric | scale             | Cold food - children and adults                                                  |         1
+    lcf     | 2020 | dvhh   | CB1127t | 611 | numeric | scale             | Hot take away meal eaten at home - children and adults                           |         1
+    lcf     | 2020 | dvhh   | CB1128t | 612 | numeric | scale             | Cold take away meal eaten at home - children and adults                          |         1
+    lcf     | 2020 | dvhh   | CB112Bt | 613 | numeric | scale             | Contract catering (food)                                                         |         1
+    lcf     | 2020 | dvhh   | CB1213t | 614 | numeric | scale             | Meals bought and eaten at workplace - children and adults                        |         1
+    =#
+
+#=
+Pos. = 576	Variable = C21111t	Variable label = Spirits and liqueurs (brought home) - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C21111t
+
+Pos. = 577	Variable = C21211t	Variable label = Wine from grape or other fruit (brought home) - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C21211t
+
+Pos. = 578	Variable = C21212t	Variable label = Fortified wine (brought home) - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C21212t
+
+Pos. = 579	Variable = C21213t	Variable label = Ciders and Perry (brought home) - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C21213t
+
+Pos. = 580	Variable = C21214t	Variable label = Alcopops (brought home) - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C21214t
+
+Pos. = 581	Variable = C21221t	Variable label = Champagne and sparkling wines (brought home) - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C21221t
+
+Pos. = 582	Variable = C21311t	Variable label = Beer and lager (brought home) - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C21311t
+
+Pos. = 583	Variable = C22111t	Variable label = Cigarettes - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C22111t
+
+Pos. = 584	Variable = C22121t	Variable label = Cigars - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C22121t
+
+Pos. = 585	Variable = C22131t	Variable label = Other tobacco - children and adults
+This variable is    numeric, the SPSS measurement level is SCALE
+        =#
+
+
+#=
+    lcf     | 2020 | dvhh   | CB111Ct | 597 | numeric | scale             | Spirits and liqueurs (away from home)                                            |         1
+    lcf     | 2020 | dvhh   | CB111Dt | 598 | numeric | scale             | Wine from grape or other fruit (away from home)                                  |         1
+    lcf     | 2020 | dvhh   | CB111Et | 599 | numeric | scale             | Fortified wines (away from home)                                                 |         1
+    lcf     | 2020 | dvhh   | CB111Ft | 600 | numeric | scale             | Ciders and Perry (away from home)                                                |         1
+    lcf     | 2020 | dvhh   | CB111Gt | 601 | numeric | scale             | Alcopops (away from home)                                                        |         1
+    lcf     | 2020 | dvhh   | CB111Ht | 602 | numeric | scale             | Champagne and sparkling wines (away from home)                                   |         1
+    lcf     | 2020 | dvhh   | CB111It | 603 | numeric | scale             | Beer and lager (away from home)                                                  |         1
+    lcf     | 2020 | dvhh   | CB111Jt | 604 | numeric | scale             | Round of drinks (away from home)                                                 |         1
+=#
+   #= SWEETS
+    Pos. = 467	Variable = C11831c	Variable label = Chocolate - children, aged between 7 and 15
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for C11831c
+    
+    Pos. = 468	Variable = C11841c	Variable label = Confectionery products - children, aged between 7 and 15
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for C11841c
+    
+    Pos. = 469	Variable = C11851c	Variable label = Edible ices and ice cream - children, aged between 7 and 15
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for C11851c
+    
+    Pos. = 470	Variable = C11861c	Variable label = Other sugar products - children, aged between 7 and 15
+    =#
+
+    #=
+    dataset | year | tables |  name   | pos | var_fmt | measurement_level |                                        label                                         | data_type 
+    ---------+------+--------+---------+-----+---------+-------------------+--------------------------------------------------------------------------------------+-----------
+     lcf     | 2020 | dvhh   | C11111t | 509 | numeric | scale             | Rice - children and adults                                                           |         1
+     lcf     | 2020 | dvhh   | C11121t | 510 | numeric | scale             | Bread - children and adults                                                          |         1
+     lcf     | 2020 | dvhh   | C11122t | 511 | numeric | scale             | Buns, crispbread and biscuits - children and adults                                  |         1
+     lcf     | 2020 | dvhh   | C11131t | 512 | numeric | scale             | Pasta products - children and adults                                                 |         1
+     lcf     | 2020 | dvhh   | C11141t | 513 | numeric | scale             | Cakes and puddings - children and adults                                             |         1
+     lcf     | 2020 | dvhh   | C11142t | 514 | numeric | scale             | Pastry (savoury) - children and adults                                               |         1
+     lcf     | 2020 | dvhh   | C11151t | 515 | numeric | scale             | Other breads and cereals - children and adults                                       |         1
+     lcf     | 2020 | dvhh   | C11211t | 516 | numeric | scale             | Beef (fresh, chilled or frozen) - children and adults                                |         1
+     lcf     | 2020 | dvhh   | C11221t | 517 | numeric | scale             | Pork (fresh, chilled or frozen) - children and adults                                |         1
+     lcf     | 2020 | dvhh   | C11231t | 518 | numeric | scale             | Lamb (fresh, chilled or frozen) - children and adults                                |         1
+     lcf     | 2020 | dvhh   | C11241t | 519 | numeric | scale             | Poultry (fresh, chilled or frozen) - children and adults                             |         1
+     lcf     | 2020 | dvhh   | C11251t | 520 | numeric | scale             | Sausages - children and adults                                                       |         1
+     lcf     | 2020 | dvhh   | C11252t | 521 | numeric | scale             | Bacon and ham - children and adults                                                  |         1
+     lcf     | 2020 | dvhh   | C11253t | 522 | numeric | scale             | Offal, pâté etc. - children and adults                                               |         1
+     lcf     | 2020 | dvhh   | C11261t | 523 | numeric | scale             | Other preserved or processed meat and meat preparations - children and adults        |         1
+     lcf     | 2020 | dvhh   | C11271t | 524 | numeric | scale             | Other fresh, chilled or frozen edible meat - children and adults                     |         1
+     lcf     | 2020 | dvhh   | C11311t | 525 | numeric | scale             | Fish (fresh, chilled or frozen) - children and adults                                |         1
+     lcf     | 2020 | dvhh   | C11321t | 526 | numeric | scale             | Seafood (fresh, chilled or frozen) - children and adults                             |         1
+     lcf     | 2020 | dvhh   | C11331t | 527 | numeric | scale             | Dried, smoked or salted fish and seafood - children and adults                       |         1
+     lcf     | 2020 | dvhh   | C11341t | 528 | numeric | scale             | Other preserved or processed fish and seafood and preparations - children and adults |         1
+     lcf     | 2020 | dvhh   | C11411t | 529 | numeric | scale             | Whole milk - children and adults                                                     |         1
+     lcf     | 2020 | dvhh   | C11421t | 530 | numeric | scale             | Low fat milk - children and adults                                                   |         1
+     lcf     | 2020 | dvhh   | C11431t | 531 | numeric | scale             | Preserved milk - children and adults                                                 |         1
+     lcf     | 2020 | dvhh   | C11441t | 532 | numeric | scale             | Yoghurt - children and adults                                                        |         1
+     lcf     | 2020 | dvhh   | C11451t | 533 | numeric | scale             | Cheese and curd - children and adults                                                |         1
+     lcf     | 2020 | dvhh   | C11461t | 534 | numeric | scale             | Other milk products - children and adults                                            |         1
+     lcf     | 2020 | dvhh   | C11471t | 535 | numeric | scale             | Eggs - children and adults                                                           |         1
+     lcf     | 2020 | dvhh   | C11511t | 536 | numeric | scale             | Butter - children and adults                                                         |         1
+     lcf     | 2020 | dvhh   | C11521t | 537 | numeric | scale             | Margarine and other vegetable fats - children and adults                             |         1
+     lcf     | 2020 | dvhh   | C11522t | 538 | numeric | scale             | Peanut butter - children and adults                                                  |         1
+     lcf     | 2020 | dvhh   | C11531t | 539 | numeric | scale             | Olive oil - children and adults                                                      |         1
+     lcf     | 2020 | dvhh   | C11541t | 540 | numeric | scale             | Edible oils - children and adults                                                    |         1
+     lcf     | 2020 | dvhh   | C11551t | 541 | numeric | scale             | Other edible animal fats - children and adults                                       |         1
+     lcf     | 2020 | dvhh   | C11611t | 542 | numeric | scale             | Citrus fruits (fresh) - children and adults                                          |         1
+     lcf     | 2020 | dvhh   | C11621t | 543 | numeric | scale             | Bananas (fresh) - children and adults                                                |         1
+     lcf     | 2020 | dvhh   | C11631t | 544 | numeric | scale             | Apples (fresh) - children and adults                                                 |         1
+     lcf     | 2020 | dvhh   | C11641t | 545 | numeric | scale             | Pears (fresh) - children and adults                                                  |         1
+     lcf     | 2020 | dvhh   | C11651t | 546 | numeric | scale             | Stone fruits (fresh) - children and adults                                           |         1
+     lcf     | 2020 | dvhh   | C11661t | 547 | numeric | scale             | Berries (fresh) - children and adults                                                |         1
+     lcf     | 2020 | dvhh   | C11671t | 548 | numeric | scale             | Other fresh, chilled or frozen fruits - children and adults                          |         1
+     lcf     | 2020 | dvhh   | C11681t | 549 | numeric | scale             | Dried fruit and nuts - children and adults                                           |         1
+     lcf     | 2020 | dvhh   | C11691t | 550 | numeric | scale             | Preserved fruit and fruit-based products - children and adults                       |         1
+     lcf     | 2020 | dvhh   | C11711t | 551 | numeric | scale             | Leaf and stem vegetables (fresh or chilled) - children and adults                    |         1
+     lcf     | 2020 | dvhh   | C11721t | 552 | numeric | scale             | Cabbages (fresh or chilled) - children and adults                                    |         1
+     lcf     | 2020 | dvhh   | C11731t | 553 | numeric | scale             | Vegetables grown for their fruit (fresh, chilled or frozen) - children and adults    |         1
+     lcf     | 2020 | dvhh   | C11741t | 554 | numeric | scale             | Root crops, non-starchy bulbs and mushrooms (fresh or frozen) - children and adults  |         1
+     lcf     | 2020 | dvhh   | C11751t | 555 | numeric | scale             | Dried vegetables - children and adults                                               |         1
+     lcf     | 2020 | dvhh   | C11761t | 556 | numeric | scale             | Other preserved or processed vegetables - children and adults                        |         1
+     lcf     | 2020 | dvhh   | C11771t | 557 | numeric | scale             | Potatoes - children and adults                                                       |         1
+     lcf     | 2020 | dvhh   | C11781t | 558 | numeric | scale             | Other tubers and products of tuber vegetables - children and adults                  |         1
+     lcf     | 2020 | dvhh   | C11811t | 559 | numeric | scale             | Sugar - children and adults                                                          |         1
+     lcf     | 2020 | dvhh   | C11821t | 560 | numeric | scale             | Jams, marmalades - children and adults                                               |         1
+     lcf     | 2020 | dvhh   | C11831t | 561 | numeric | scale             | Chocolate - children and adults                                                      |         1
+     lcf     | 2020 | dvhh   | C11841t | 562 | numeric | scale             | Confectionery products - children and adults                                         |         1
+     lcf     | 2020 | dvhh   | C11851t | 563 | numeric | scale             | Edible ices and ice cream - children and adults                                      |         1
+     lcf     | 2020 | dvhh   | C11861t | 564 | numeric | scale             | Other sugar products - children and adults                                           |         1
+     lcf     | 2020 | dvhh   | C11911t | 565 | numeric | scale             | Sauces, condiments - children and adults                                             |         1
+     lcf     | 2020 | dvhh   | C11921t | 566 | numeric | scale             | Salt, spices and culinary herbs - children and adults                                |         1
+     lcf     | 2020 | dvhh   | C11931t | 567 | numeric | scale             | Baker's yeast, dessert preparations, soups - children and adults                     |         1
+     lcf     | 2020 | dvhh   | C11941t | 568 | numeric | scale             | Other food products - children and adults                                            |         1
+     lcf     | 2020 | dvhh   | C12111t | 569 | numeric | scale             | Coffee - children and adults                                                         |         1
+     lcf     | 2020 | dvhh   | C12121t | 570 | numeric | scale             | Tea - children and adults                                                            |         1
+     lcf     | 2020 | dvhh   | C12131t | 571 | numeric | scale             | Cocoa and powdered chocolate - children and adults                                   |         1
+     lcf     | 2020 | dvhh   | C12211t | 572 | numeric | scale             | Mineral or spring waters - children and adults                                       |         1
+     lcf     | 2020 | dvhh   | C12221t | 573 | numeric | scale             | Soft drinks - children and adults                                                    |         1
+     lcf     | 2020 | dvhh   | C12231t | 574 | numeric | scale             | Fruit juices - children and adults                                                   |         1
+     lcf     | 2020 | dvhh   | C12241t | 575 | numeric | scale             | Vegetable juices - children and adults                                               |         1
+    :
+    =#    
+    
+
+    #=
+
+    VATABLE FOOD - from resteraunts and hotels
+
+    Pos. = 610	Variable = CB1126t	Variable label = Cold food - children and adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1126t
+
+    Pos. = 611	Variable = CB1127t	Variable label = Hot take away meal eaten at home - children and adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1127t
+
+    Pos. = 612	Variable = CB1128t	Variable label = Cold take away meal eaten at home - children and adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1128t
+
+    Pos. = 613	Variable = CB112Bt	Variable label = Contract catering (food)
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB112Bt
+
+    Pos. = 614	Variable = CB1213t	Variable label = Meals bought and eaten at workplace - children and adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1213t
+
+    Pos. = 615	Variable = CB1311t	Variable label = Catered food - eaten on premises - children and adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1311t
+
+    Pos. = 389	Variable = CB1111	Variable label = Catered food non-alcoholic drink eaten / drunk on premises - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1111
+    
+    Pos. = 390	Variable = CB1112	Variable label = Confectionery eaten off premises - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1112
+    
+    Pos. = 391	Variable = CB1113	Variable label = Ice cream eaten off premises - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1113
+    
+    Pos. = 392	Variable = CB1114	Variable label = Soft drinks drunk off premises - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1114
+    
+    Pos. = 393	Variable = CB1115	Variable label = Hot food eaten off premises - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1115
+    
+    Pos. = 394	Variable = CB1116	Variable label = Cold food eaten off premises - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for CB1116
+    =#
+
+
+
+    # 02) alcohol and tobacco subsets
+
+#=
+    lcf     | 2020 | dvhh   | CB111Ct | 597 | numeric | scale             | Spirits and liqueurs (away from home)                                            |         1
+    lcf     | 2020 | dvhh   | CB111Dt | 598 | numeric | scale             | Wine from grape or other fruit (away from home)                                  |         1
+    lcf     | 2020 | dvhh   | CB111Et | 599 | numeric | scale             | Fortified wines (away from home)                                                 |         1
+    lcf     | 2020 | dvhh   | CB111Ft | 600 | numeric | scale             | Ciders and Perry (away from home)                                                |         1
+    lcf     | 2020 | dvhh   | CB111Gt | 601 | numeric | scale             | Alcopops (away from home)                                                        |         1
+    lcf     | 2020 | dvhh   | CB111Ht | 602 | numeric | scale             | Champagne and sparkling wines (away from home)                                   |         1
+    lcf     | 2020 | dvhh   | CB111It | 603 | numeric | scale             | Beer and lager (away from home)                                                  |         1
+    lcf     | 2020 | dvhh   | CB111Jt | 604 | numeric | scale             | Round of drinks (away from home)                                                 |         1
+=#
+
+    
+    #= 
+
+Children’s Clothes and footwear
+C31231 Variable label = Boys' outer garments (5-15) - adults
+C31232 Variable label = Girls' outer garments (5-15) - adults
+C31233 Variable label = Infants' outer garments (Under 5) - adults
+C31234 Variable label = Children's under garments (Under 16) - adults
+C31313 Variable label = Children's accessories - adults
+C32131 Variable label = Footwear for children (5-15) and infants - adults
+
+=#
+#=
+ DOMESTIC Fuel
+
+(B175 - B178) + B222 + (B170 - B173) + B221 + B018 + B017 + C41211t + C43111t + C43112t + C43212c + C44112u + C44211t + C45112t + C45114t + C45212t + C45214t + C45222t + C45312t + C45411t + C45412t + C45511t 
+
+ dataset | year | tables |  name   | pos | var_fmt | measurement_level |                                              label                                              | data_type 
+---------+------+--------+---------+-----+---------+-------------------+-------------------------------------------------------------------------------------------------+-----------
+x lcf     | 2020 | dvhh   | B017    |  62 | numeric | scale             | Oil for central heating - last quarter                                                          |         1
+x lcf     | 2020 | dvhh   | B018    |  63 | numeric | scale             | Bottled gas for central heating                                                                 |         1
+x lcf     | 2020 | dvhh   | B170    | 116 | numeric | scale             | Gas amount paid in last account                                                                 |         1
+x lcf     | 2020 | dvhh   | B173    | 133 | numeric | scale             | Rebate for separate Gas amount                                                                  |         1
+x lcf     | 2020 | dvhh   | B175    | 134 | numeric | scale             | Electricity amount paid in last account                                                         |         1
+x lcf     | 2020 | dvhh   | B178    | 135 | numeric | scale             | Rebate for separate Electricity amount                                                          |         1
+x lcf     | 2020 | dvhh   | C45112t |   1 | numeric | scale             | Second dwelling: electricity account pay - children and adults                                  |         1
+x lcf     | 2020 | dvhh   | C45114t |   1 | numeric | scale             | Electricity slot meter payment - children and adults                                            |         1
+x lcf     | 2020 | dvhh   | C45214t |   1 | numeric | scale             | Gas slot meter payment - children and adults                                                    |         1
+x lcf     | 2020 | dvhh   | C45222t |   1 | numeric | scale             | Bottled gas - other - children and adults                                                       |         1
+x lcf     | 2020 | dvhh   | C45312t |   1 | numeric | scale             | Paraffin - children and adults                                                                  |         1
+x lcf     | 2020 | dvhh   | C45411t |   1 | numeric | scale             | Coal and coke - children and adults                                                             |         1
+x lcf     | 2020 | dvhh   | C45412t |   1 | numeric | scale             | Wood and peat - children and adults                                                             |         1
+ lcf     | 2020 | dvhh   | C45511t |   1 | numeric | scale             | Hot water, steam and ice - children and adults                                                  |         1
+
+    # 05 Furnishings, Household Equipment and Routine Maintenance of the House
+
+    :furnishings P605
+
+    # 06 Health 
+
+    :health 
+    
+    :hospital # Care or medical treatment provided by a qualifying institution like a hospital, hospice or nursing home 	Exempt 	VAT Notice 701/31
+    :prescriptions # Dispensing of prescriptions by a registered pharmacist 	0% 	VAT Notice 701/57
+    :doctors  # Health services provided by registered doctors, dentists, opticians, pharmacists and other health professionals 	Exempt 	VAT Notice 701/57
+    :incontinence # Incontinence products 	0% 	VAT Notice 701/7
+    :maternity_pads # Maternity pads 	0% 	VAT Notice 701/18
+    :sanitary_products # Sanitary protection products 	0% 	VAT Notice 701/18
+    :low_vision_aids # Low vision aids 	0% 	Equipment for blind or partially sighted people
+    :disability_aids 
+
+#=
+
+dataset | year |     tables      |  name   | pos | var_fmt | measurement_level |                                              label                                              | data_type 
+---------+------+-----------------+---------+-----+---------+-------------------+-------------------------------------------------------------------------------------------------+-----------
+ lcf     | 2020 | dvhh            | C61111c | 960 | numeric | scale             | NHS prescription charges and payments - children, aged between 7 and 15                         |         1
+ lcf     | 2020 | dvhh            | C61112c | 961 | numeric | scale             | Medicines and medical goods (not NHS) - children, aged between 7 and 15                         |         1
+ lcf     | 2020 | dvhh            | C61211c | 962 | numeric | scale             | Other medical products (eg plasters, condoms, tubigrip, etc.) - children, aged between 7 and 15 |         1
+ lcf     | 2020 | dvhh            | C61311c | 963 | numeric | scale             | Purchase of spectacles, lenses, prescription glasses - children, aged between 7 and 15          |         1
+ lcf     | 2020 | dvhh            | C61312c | 964 | numeric | scale             | Accessories repairs to spectacles lenses - children, aged between 7 and 15                      |         1
+ lcf     | 2020 | dvhh            | C61313c | 965 | numeric | scale             | Non-optical appliances and equipment (eg wheelchairs, etc.) - children, aged between 7 and 15   |         1
+ lcf     | 2020 | dvhh            | C62111c | 966 | numeric | scale             | NHS medical services - children, aged between 7 and 15                                          |         1
+ lcf     | 2020 | dvhh            | C62112c | 967 | numeric | scale             | Private medical services - children, aged between 7 and 15                                      |         1
+ lcf     | 2020 | dvhh            | C62113c | 968 | numeric | scale             | NHS optical services - children, aged between 7 and 15                                          |         1
+ lcf     | 2020 | dvhh            | C62114c | 969 | numeric | scale             | Private optical services - children, aged between 7 and 15                                      |         1
+ lcf     | 2020 | dvhh            | C62211c | 970 | numeric | scale             | NHS dental services - children, aged between 7 and 15                                           |         1
+ lcf     | 2020 | dvhh            | C62212c | 971 | numeric | scale             | Private dental services - children, aged between 7 and 15                                       |         1
+ lcf     | 2020 | dvhh            | C62311c | 972 | numeric | scale             | Services of medical analysis laboratorie - children, aged between 7 and 15                      |         1
+ lcf     | 2020 | dvhh            | C62321c | 973 | numeric | scale             | Services of NHS medical auxiliaries - children, aged between 7 and 15                           |         1
+ lcf     | 2020 | dvhh            | C62322c | 974 | numeric | scale             | Services of private medical auxiliaries - children, aged between 7 and 15                       |         1
+ lcf     | 2020 | dvhh            | C62331c | 975 | numeric | scale             | Non-hospital ambulance services etc. - children, aged between 7 and 15                          |         1
+ lcf     | 2020 | dvhh            | C63111c | 976 | numeric | scale             | Hospital services - children, aged between 7 and 15                                             |         1
+
+=#
+
+#=
+ DOMESTIC Fuel
+
+(B175 - B178) + B222 + (B170 - B173) + B221 + B018 + B017 + C41211t + C43111t + C43112t + C43212c + C44112u + C44211t + C45112t + C45114t + C45212t + C45214t + C45222t + C45312t + C45411t + C45412t + C45511t 
+
+ dataset | year | tables |  name   | pos | var_fmt | measurement_level |                                              label                                              | data_type 
+---------+------+--------+---------+-----+---------+-------------------+-------------------------------------------------------------------------------------------------+-----------
+ lcf     | 2020 | dvhh   | B017    |  62 | numeric | scale             | Oil for central heating - last quarter                                                          |         1
+ lcf     | 2020 | dvhh   | B018    |  63 | numeric | scale             | Bottled gas for central heating                                                                 |         1
+ lcf     | 2020 | dvhh   | B170    | 116 | numeric | scale             | Gas amount paid in last account                                                                 |         1
+ lcf     | 2020 | dvhh   | B173    | 133 | numeric | scale             | Rebate for separate Gas amount                                                                  |         1
+ lcf     | 2020 | dvhh   | B175    | 134 | numeric | scale             | Electricity amount paid in last account                                                         |         1
+ lcf     | 2020 | dvhh   | B178    | 135 | numeric | scale             | Rebate for separate Electricity amount                                                          |         1
+ lcf     | 2020 | dvhh   | C41211t |   1 | numeric | scale             | Second dwelling - rent - children and adults                                                    |         1
+ lcf     | 2020 | dvhh   | C43111t |   1 | numeric | scale             | Paint, wallpaper, timber - children and adults                                                  |         1
+ lcf     | 2020 | dvhh   | C43112t |   1 | numeric | scale             | Equipment hire, small materials - children and adults                                           |         1
+ lcf     | 2020 | dvhh   | C43212c | 906 | numeric | scale             | Other services for the maintenance and repair of the dwelling - children, aged between 7 and 15 |         1
+ lcf     | 2020 | dvhh   | C44211t |   1 | numeric | scale             | Refuse collection, including skip hire - children and adults                                    |         1
+ lcf     | 2020 | dvhh   | C45112t |   1 | numeric | scale             | Second dwelling: electricity account pay - children and adults                                  |         1
+ lcf     | 2020 | dvhh   | C45114t |   1 | numeric | scale             | Electricity slot meter payment - children and adults                                            |         1
+ lcf     | 2020 | dvhh   | C45214t |   1 | numeric | scale             | Gas slot meter payment - children and adults                                                    |         1
+ lcf     | 2020 | dvhh   | C45222t |   1 | numeric | scale             | Bottled gas - other - children and adults                                                       |         1
+ lcf     | 2020 | dvhh   | C45312t |   1 | numeric | scale             | Paraffin - children and adults                                                                  |         1
+ lcf     | 2020 | dvhh   | C45411t |   1 | numeric | scale             | Coal and coke - children and adults                                                             |         1
+ lcf     | 2020 | dvhh   | C45412t |   1 | numeric | scale             | Wood and peat - children and adults                                                             |         1
+ lcf     | 2020 | dvhh   | C45511t |   1 | numeric | scale             | Hot water, steam and ice - children and adults                                                  |         1
+
+
+=#
+    # 07	Transport
+
+    :other_transport
+    :bus_boat_and_train_tickets
+    :air_travel 
+    :petrol
+    :diesel
+    :other_motor_oils
+
+    # 08	Communication
+
+
+
+    #  09	Recreation
+
+    :other_recreation 
+    :books
+    :newspapers
+    :periodicals
+
+    # 10 (A)	Education
+
+    :education
+
+    # 11 (B)	Restaurant and Hotels - note takeaway food is already covered above
+
+    #=
+    lcf     | 2020 | dvhh   | B260    | 183 | numeric | scale             | School meals - total amount paid last week                                       |         1
+    lcf     | 2020 | dvhh   | B482    | 224 | numeric | scale             | Holiday hotel within United Kingdom                                              |         1
+    lcf     | 2020 | dvhh   | B483    | 225 | numeric | scale             | Holiday hotel outside United Kingdom                                             |         1
+    lcf     | 2020 | dvhh   | B484    | 226 | numeric | scale             | Holiday self-cathering within United Kingdom                                     |         1
+    lcf     | 2020 | dvhh   | B485    | 227 | numeric | scale             | Holiday self-cathering outside United Kingdom                                    |         1
+    lcf     | 2020 | dvhh   | CB1111t | 586 | numeric | scale             | Catered food non-alcoholic drink eaten / drunk on premises - children and adults |         1
+    lcf     | 2020 | dvhh   | CB1112t | 587 | numeric | scale             | Confectionery eaten off premises - children and adults                           |         1
+    lcf     | 2020 | dvhh   | CB1113t | 588 | numeric | scale             | Ice cream eaten off premises - children and adults                               |         1
+    lcf     | 2020 | dvhh   | CB1114t | 589 | numeric | scale             | Soft drinks eaten off premises - children and adults                             |         1
+    lcf     | 2020 | dvhh   | CB1115t | 590 | numeric | scale             | Hot food eaten off premises - children and adults                                |         1
+    lcf     | 2020 | dvhh   | CB1116t | 591 | numeric | scale             | Cold food eaten off premises - children and adults                               |         1
+    lcf     | 2020 | dvhh   | CB1117c | 492 | numeric | scale             | Confectionery (child) - children, aged between 7 and 15                          |         1
+    lcf     | 2020 | dvhh   | CB1118c | 493 | numeric | scale             | Ice cream (child) - children, aged between 7 and 15                              |         1
+    lcf     | 2020 | dvhh   | CB1119c | 494 | numeric | scale             | Soft drinks (child) - children, aged between 7 and 15                            |         1
+    lcf     | 2020 | dvhh   | CB111Ac | 495 | numeric | scale             | Hot food (child)                                                                 |         1
+    lcf     | 2020 | dvhh   | CB111Bc | 496 | numeric | scale             | Cold food (child)                                                                |         1
+    lcf     | 2020 | dvhh   | CB1121t | 605 | numeric | scale             | Food non-alcoholic drinks eaten drunk on premises - children and adults          |         1
+    lcf     | 2020 | dvhh   | CB1122t | 606 | numeric | scale             | Confectionery - children and adults                                              |         1
+    lcf     | 2020 | dvhh   | CB1123t | 607 | numeric | scale             | Ice cream - children and adults                                                  |         1
+    lcf     | 2020 | dvhh   | CB1124t | 608 | numeric | scale             | Soft drinks - children and adults                                                |         1
+    lcf     | 2020 | dvhh   | CB1125t | 609 | numeric | scale             | Hot food - children and adults                                                   |         1
+    lcf     | 2020 | dvhh   | CB1126t | 610 | numeric | scale             | Cold food - children and adults                                                  |         1
+    lcf     | 2020 | dvhh   | CB1127t | 611 | numeric | scale             | Hot take away meal eaten at home - children and adults                           |         1
+    lcf     | 2020 | dvhh   | CB1128t | 612 | numeric | scale             | Cold take away meal eaten at home - children and adults                          |         1
+    lcf     | 2020 | dvhh   | CB112Bt | 613 | numeric | scale             | Contract catering (food)                                                         |         1
+    lcf     | 2020 | dvhh   | CB1213t | 614 | numeric | scale             | Meals bought and eaten at workplace - children and adults                        |         1
+   =#
+
+    # 12 (C)	Miscellaneous Goods and Services
+
+    :other_misc_goods
+    :insurance 
+    :other_financial
+    :prams_and_baby_chairs
+    :funerals
+
+#=
+    dataset | year | tables |  name   | pos | var_fmt | measurement_level |                                        label                                         | data_type 
+    ---------+------+--------+---------+-----+---------+-------------------+--------------------------------------------------------------------------------------+-----------
+     lcf     | 2020 | dvhh   | B110    |  90 | numeric | scale             | Structure insurance - last payment                                                   |         1
+     lcf     | 2020 | dvhh   | B168    | 115 | numeric | scale             | Content insurance amount of last premium                                             |         1
+     lcf     | 2020 | dvhh   | B1802   | 137 | numeric | scale             | Bank and Building societies charges - net amount last 3 months                       |         1
+     lcf     | 2020 | dvhh   | B188    | 142 | numeric | scale             | Vehicle insurance - amount paid last year                                            |         1
+     lcf     | 2020 | dvhh   | B229    | 168 | numeric | scale             | Medical insurance - total amount premium                                             |         1
+     lcf     | 2020 | dvhh   | B238    | 172 | numeric | scale             | Annual standing charge for credit cards                                              |         1
+     lcf     | 2020 | dvhh   | B273    | 201 | numeric | scale             | Furniture removal and or storage                                                     |         1
+     lcf     | 2020 | dvhh   | B280    | 202 | numeric | scale             | Property transaction - purchase and sale                                             |         1
+     lcf     | 2020 | dvhh   | B281    | 203 | numeric | scale             | Property transaction - sale only                                                     |         1
+     lcf     | 2020 | dvhh   | B282    | 204 | numeric | scale             | Property transaction - purchase only                                                 |         1
+     lcf     | 2020 | dvhh   | B283    | 205 | numeric | scale             | Property transaction - other payments                                                |         1
+     lcf     | 2020 | dvhh   | CC1111t |   1 | numeric | scale             | Hairdressing salons and personal grooming - children and adults                      |         1
+     lcf     | 2020 | dvhh   | CC1211t |   1 | numeric | scale             | Electrical appliances for personal care - children and adults                        |         1
+     lcf     | 2020 | dvhh   | CC1311t |   1 | numeric | scale             | Toilet paper - children and adults                                                   |         1
+     lcf     | 2020 | dvhh   | CC1312t |   1 | numeric | scale             | Toiletries (disposables - tampons, lip balm, toothpaste, etc.) - children and adults |         1
+     lcf     | 2020 | dvhh   | CC1313t |   1 | numeric | scale             | Bar of soap, liquid soap, shower gel, etc. - children and adults                     |         1
+     lcf     | 2020 | dvhh   | CC1314t |   1 | numeric | scale             | Toilet requisites (durables - razors, hairbrushes, etc.) - children and adults       |         1
+     lcf     | 2020 | dvhh   | CC1315t |   1 | numeric | scale             | Hair products - children and adults                                                  |         1
+     lcf     | 2020 | dvhh   | CC1316t |   1 | numeric | scale             | Cosmetics and related accessories - children and adults                              |         1
+     lcf     | 2020 | dvhh   | CC1317t |   1 | numeric | scale             | Baby toiletries and accessories (disposable) - children and adults                   |         1
+     lcf     | 2020 | dvhh   | CC3111t |   1 | numeric | scale             | Jewellery, clocks and watches - children and adults                                  |         1
+     lcf     | 2020 | dvhh   | CC3112t |   1 | numeric | scale             | Repairs to personal goods - children and adults                                      |         1
+     lcf     | 2020 | dvhh   | CC3211t |   1 | numeric | scale             | Leather and travel goods (excluding baby items) - children and adults                |         1
+     lcf     | 2020 | dvhh   | CC3221t |   1 | numeric | scale             | Other personal effects n.e.c. - children and adults                                  |         1
+     lcf     | 2020 | dvhh   | CC3222t |   1 | numeric | scale             | Baby equipment (excluding prams and pushchairs) - children and adults                |         1
+     lcf     | 2020 | dvhh   | CC3223t |   1 | numeric | scale             | Prams, pram accessories and pushchairs - children and adults                         |         1
+     lcf     | 2020 | dvhh   | CC3224t |   1 | numeric | scale             | Sunglasses (non-prescription) - children and adults                                  |         1
+     lcf     | 2020 | dvhh   | CC4111t |   1 | numeric | scale             | Residential homes - children and adults                                              |         1
+     lcf     | 2020 | dvhh   | CC4112t |   1 | numeric | scale             | Home help - children and adults                                                      |         1
+     lcf     | 2020 | dvhh   | CC4121t |   1 | numeric | scale             | Nursery, creche, playschools - children and adults                                   |         1
+     lcf     | 2020 | dvhh   | CC4122t |   1 | numeric | scale             | Child care payments - children and adults                                            |         1
+     lcf     | 2020 | dvhh   | CC5213t |   1 | numeric | scale             | Insurance for household appliances - children and adults                             |         1
+     lcf     | 2020 | dvhh   | CC5311c |   1 | numeric | scale             | Private medical insurance - children, aged between 7 and 15                          |         1
+     lcf     | 2020 | dvhh   | CC5411c |   1 | numeric | scale             | Vehicle insurance - children, aged between 7 and 15                                  |         1
+     lcf     | 2020 | dvhh   | CC5412t |   1 | numeric | scale             | Boat insurance (not home) - children and adults                                      |         1
+     lcf     | 2020 | dvhh   | CC5413t |   1 | numeric | scale             | Non-package holiday, other travel insurance - children and adults                    |         1
+     lcf     | 2020 | dvhh   | CC6211c |   1 | numeric | scale             | Bank service charges - children, aged between 7 and 15                               |         1
+     lcf     | 2020 | dvhh   | CC6212t |   1 | numeric | scale             | Bank and Post Office counter charges - children and adults                           |         1
+     lcf     | 2020 | dvhh   | CC6214t |   1 | numeric | scale             | Commission travellers cheques and currency - children and adults                     |         1
+     lcf     | 2020 | dvhh   | CC7111t |   1 | numeric | scale             | Legal fees paid to banks - children and adults                                       |         1
+     lcf     | 2020 | dvhh   | CC7112t |   1 | numeric | scale             | Legal fees paid to solicitors - children and adults                                  |         1
+     lcf     | 2020 | dvhh   | CC7113t |   1 | numeric | scale             | Other payments for services eg photocopy - children and adults                       |         1
+     lcf     | 2020 | dvhh   | CC7114t |   1 | numeric | scale             | Funeral expenses - children and adults                                               |         1
+     lcf     | 2020 | dvhh   | CC7115t |   1 | numeric | scale             | Other professional fees including court fines - children and adults                  |         1
+     lcf     | 2020 | dvhh   | CC7116t |   1 | numeric | scale             | TU and professional organisations - children and adults                              |         1
+=#
+
+    # 20 (K)	Non-Consumption Expenditure
+
+    :non_consumption_expenditure 
+
+    #=
+    dataset | year | tables |  name   | pos | var_fmt | measurement_level |                                          label                                           | data_type 
+    ---------+------+--------+---------+-----+---------+-------------------+------------------------------------------------------------------------------------------+-----------
+     lcf     | 2020 | dvhh   | B030    |  68 | numeric | scale             | Domestic rates - last net payment                                                        |         1
+     lcf     | 2020 | dvhh   | B038p   |  69 | numeric | scale             | Council tax - last payment weekly amount                                                 |         1
+     lcf     | 2020 | dvhh   | B130    |  92 | numeric | scale             | Mortgage interest only - last payment                                                    |         1
+     lcf     | 2020 | dvhh   | B150    |  94 | numeric | scale             | Mortgage interest / principle - interest paid                                            |         1
+     lcf     | 2020 | dvhh   | B179    | 136 | numeric | scale             | Vehicle road tax - amount refunded last                                                  |         1
+     lcf     | 2020 | dvhh   | B187    | 141 | numeric | scale             | Vehicle road tax - amount paid last year                                                 |         1
+     lcf     | 2020 | dvhh   | B1961   | 150 | numeric | scale             | Life insurance premium - amount premium                                                  |         1
+     lcf     | 2020 | dvhh   | B199    | 152 | numeric | scale             | Insurance for household and electrical a                                                 |         1
+     lcf     | 2020 | dvhh   | B2011   | 154 | numeric | scale             | Mortgage endowment policy amount premium                                                 |         1
+     lcf     | 2020 | dvhh   | B205    | 157 | numeric | scale             | Friendly socs - deductions from main pay                                                 |         1
+     lcf     | 2020 | dvhh   | B206    | 158 | numeric | scale             | Other insurance - total amount premium                                                   |         1
+     lcf     | 2020 | dvhh   | B2081   | 160 | numeric | scale             | Mortgage protection amount premium                                                       |         1
+     lcf     | 2020 | dvhh   | B228    | 167 | numeric | scale             | Personal pension                                                                         |         1
+     lcf     | 2020 | dvhh   | B237    | 171 | numeric | scale             | Credit card interest payments                                                            |         1
+     lcf     | 2020 | dvhh   | B265    | 188 | numeric | scale             | Maintenance allowance expenditure                                                        |         1
+     lcf     | 2020 | dvhh   | B334h   |   1 | numeric | scale             | Money sent abroad - household                                                            |         1
+     lcf     | 2020 | dvhh   | CC5111c |   1 | numeric | scale             | Life, death, non-house endowment - children, aged between 7 and 15                       |         1
+     lcf     | 2020 | dvhh   | CC5312c |   1 | numeric | scale             | Accident, sickness, redundancy, animal insurance, etc. - children, aged between 7 and 15 |         1
+     lcf     | 2020 | dvhh   | CC5511c |   1 | numeric | scale             | Other insurance - children, aged between 7 and 15                                        |         1
+     lcf     | 2020 | dvhh   | CK1313t |   1 | numeric | scale             | Central heating installation (DIY) - children and adults                                 |         1
+     lcf     | 2020 | dvhh   | CK1314t |   1 | numeric | scale             | Double Glazing, Kitchen Units, Sheds etc. - children and adults                          |         1
+     lcf     | 2020 | dvhh   | CK1315t |   1 | numeric | scale             | Purchase of materials for Capital Improvements - children and adults                     |         1
+     lcf     | 2020 | dvhh   | CK1316t |   1 | numeric | scale             | Bathroom fittings - children and adults                                                  |         1
+     lcf     | 2020 | dvhh   | CK2111t |   1 | numeric | scale             | Food stamps, other food related expenditure - children and adults                        |         1
+     lcf     | 2020 | dvhh   | CK3111t |   1 | numeric | scale             | Stamp duty, licences and fines (excluding motoring fines) - children and adults          |         1
+     lcf     | 2020 | dvhh   | CK3112t |   1 | numeric | scale             | Motoring Fines - children and adults                                                     |         1
+     lcf     | 2020 | dvhh   | CK4111t |   1 | numeric | scale             | Money spent abroad - children and adults                                                 |         1
+     lcf     | 2020 | dvhh   | CK4112t |   1 | numeric | scale             | Duty free goods bought in UK - children and adults                                       |         1
+     lcf     | 2020 | dvhh   | CK5111t |   1 | numeric | scale             | Savings, investments (excluding AVCs) - children and adults                              |         1
+     lcf     | 2020 | dvhh   | CK5113t |   1 | numeric | scale             | Additional Voluntary Contributions - children and adults                                 |         1
+     lcf     | 2020 | dvhh   | CK5212t |   1 | numeric | scale             | Money given to members for specific purposes: pocket money - children and adults         |         1
+     lcf     | 2020 | dvhh   | CK5213t |   1 | numeric | scale             | Money given to members for specific purposes: school dinner - children and adults        |         1
+     lcf     | 2020 | dvhh   | CK5214t |   1 | numeric | scale             | Money given to members for specific purposes: school travel - children and adults        |         1
+     lcf     | 2020 | dvhh   | CK5215t |   1 | numeric | scale             | Money given to children for specific purposes - children and adults                      |         1
+     lcf     | 2020 | dvhh   | CK5216t |   1 | numeric | scale             | Cash gifts to children - children and adults                                             |         1
+     lcf     | 2020 | dvhh   | CK5221t |   1 | numeric | scale             | Money given to those outside the household - children and adults                         |         1
+     lcf     | 2020 | dvhh   | CK5222t |   1 | numeric | scale             | Present - not specified - children and adults                                            |         1
+     lcf     | 2020 | dvhh   | CK5223t |   1 | numeric | scale             | Charitable donations and subscriptions - children and adults                             |         1
+     lcf     | 2020 | dvhh   | CK5224c |   1 | numeric | scale             | Money sent abroad - children, aged between 7 and 15                                      |         1
+     lcf     | 2020 | dvhh   | CK5315c |   1 | numeric | scale             | Club instalment payment - children, aged between 7 and 15                                |         1
+    
+=#
+
+#=
+
+ lcf     | 2020 | dvhh   | C31315  | 630 | numeric | scale             | Protective head gear (crash helmets) - adults                          |         1
+ lcf     | 2020 | dvhh   | C31315c | 896 | numeric | scale             | Protective head gear (crash helmets) - children, aged between 7 and 15 |         1
+ lcf     | 2020 | dvhh   | C31315t |   1 | numeric | scale             | Protective head gear (crash helmets) - children and adults             |         1
+
+=#
+
+#= BOOKS
+    Pos. = 817	Variable = C95111	Variable label = Books - adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C95111
+
+Pos. = 818	Variable = C95211	Variable label = Newspapers - adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C95211
+
+Pos. = 819	Variable = C95212	Variable label = Magazines and periodicals - adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C95212
+
+BUT NOT:
+Pos. = 820	Variable = C95311	Variable label = Cards, calendars, posters and other printed matter - adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C95311
+
+Pos. = 821	Variable = C95411	Variable label = Stationery, diaries, address books, art materials - adults
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for C95411
+
+see: 
+https://www.gov.uk/guidance/zero-rating-books-and-printed-matter-for-vat-notice-70110
+    =#
+
+
+ 
+
+
+
+    :other_transport
+    :bus_boat_and_train_tickets
+    :air_travel
+    :petrol
+    :diesel
+    :other_motor_oils
+
+#=
+    dataset | year | tables |  name   | pos | var_fmt | measurement_level |                                              label                                              | data_type 
+    ---------+------+--------+---------+-----+---------+-------------------+-------------------------------------------------------------------------------------------------+-----------
+     lcf     | 2020 | dvhh   | B216    | 163 | numeric | scale             | Bus Tube and/or rail season ticket                                                              |         1
+     lcf     | 2020 | dvhh   | B217    | 164 | numeric | scale             | Season ticket-bus/coach-total net amount                                                        |         1
+     lcf     | 2020 | dvhh   | B218    | 165 | numeric | scale             | Season ticket-rail/tube-total net amount                                                        |         1
+     lcf     | 2020 | dvhh   | B219    | 166 | numeric | scale             | Water travel season ticket                                                                      |         1
+     lcf     | 2020 | dvhh   | B244    | 173 | numeric | scale             | Vehicle - cost of new car/van outright                                                          |         1
+     lcf     | 2020 | dvhh   | B245    | 175 | numeric | scale             | Vehicle - cost of second-hand car/van outright                                                  |         1
+     lcf     | 2020 | dvhh   | B247    | 177 | numeric | scale             | Vehicle - cost of motorcycle outright                                                           |         1
+     lcf     | 2020 | dvhh   | B248    | 178 | numeric | scale             | Car leasing on                                                                                  |         1
+     lcf     | 2020 | dvhh   | B249    | 179 | numeric | scale             | Car or van - servicing : amount paid                                                            |         1
+     lcf     | 2020 | dvhh   | B250    | 180 | numeric | scale             | Car or van - other works, repairs: amount paid                                                  |         1
+     lcf     | 2020 | dvhh   | B252    | 181 | numeric | scale             | Motor cycle - services, repairs: amount paid                                                    |         1
+     lcf     | 2020 | dvhh   | B487    | 229 | numeric | scale             | Domestic flight expenditure                                                                     |         1
+     lcf     | 2020 | dvhh   | B488    | 230 | numeric | scale             | International flight expenditure                                                                |         1
+     lcf     | 2020 | dvhh   | C71111c | 977 | numeric | scale             | Outright purchase of new car/van - children, aged between 7 and 15                              |         1
+     lcf     | 2020 | dvhh   | C71112t |   1 | numeric | scale             | Loan / HP purchase of new car/van - children and adults                                         |         1
+     lcf     | 2020 | dvhh   | C71121c | 978 | numeric | scale             | Outright purchase of second-hand car/van - children, aged between 7 and 15                      |         1
+     lcf     | 2020 | dvhh   | C71122t |   1 | numeric | scale             | Loan / HP purchase of second-hand car/van - children and adults                                 |         1
+     lcf     | 2020 | dvhh   | C71211c | 979 | numeric | scale             | Outright purchase of new or second-hand motorcycle - children, aged between 7 and 15            |         1
+     lcf     | 2020 | dvhh   | C71212t |   1 | numeric | scale             | Loan / HP purchase of new or second-hand motorcycle - children and adults - children and adults |         1
+     lcf     | 2020 | dvhh   | C71311t |   1 | numeric | scale             | Purchase of bicycle - children and adults                                                       |         1
+     lcf     | 2020 | dvhh   | C71411t |   1 | numeric | scale             | Animal drawn vehicles - children and adults                                                     |         1
+     lcf     | 2020 | dvhh   | C72111t |   1 | numeric | scale             | Car van accessories and fittings - children and adults                                          |         1
+     lcf     | 2020 | dvhh   | C72112t |   1 | numeric | scale             | Car van spare parts - children and adults                                                       |         1
+     lcf     | 2020 | dvhh   | C72113t |   1 | numeric | scale             | Motor cycle accessories and spare parts - children and adults                                   |         1
+     lcf     | 2020 | dvhh   | C72114t |   1 | numeric | scale             | Anti-freeze, battery water, cleaning materials - children and adults                            |         1
+     lcf     | 2020 | dvhh   | C72115t |   1 | numeric | scale             | Bicycle accessories, repairs and other costs - children and adults                              |         1
+     lcf     | 2020 | dvhh   | C72211t |   1 | numeric | scale             | Petrol - children and adults                                                                    |         1
+     lcf     | 2020 | dvhh   | C72212t |   1 | numeric | scale             | Diesel oil - children and adults                                                                |         1
+     lcf     | 2020 | dvhh   | C72213t |   1 | numeric | scale             | Other motor oils - children and adults                                                          |         1
+     lcf     | 2020 | dvhh   | C72311c | 990 | numeric | scale             | Car or van repairs and servicing - children, aged between 7 and 15                              |         1
+     lcf     | 2020 | dvhh   | C72312c | 991 | numeric | scale             | Motor cycle repairs, service - children, aged between 7 and 15                                  |         1
+     lcf     | 2020 | dvhh   | C72313t |   1 | numeric | scale             | Motoring organisation subscription (eg AA and RAC) - children and adults                        |         1
+     lcf     | 2020 | dvhh   | C72314t |   1 | numeric | scale             | Car washing and breakdown services - children and adults                                        |         1
+     lcf     | 2020 | dvhh   | C72411t |   1 | numeric | scale             | Parking fees, tolls, and permits (excluding motoring fines) - children and adults               |         1
+     lcf     | 2020 | dvhh   | C72412t |   1 | numeric | scale             | Garage rent,MOT,etc.    - children and adults                                                   |         1
+     lcf     | 2020 | dvhh   | C72413t |   1 | numeric | scale             | Driving lessons - children and adults                                                           |         1
+     lcf     | 2020 | dvhh   | C72414t |   1 | numeric | scale             | Hire of self-drive cars, vans, bicycles - children and adults                                   |         1
+     lcf     | 2020 | dvhh   | C73112t |   1 | numeric | scale             | Railway and tube fares other than season tickets - children and adults                          |         1
+     lcf     | 2020 | dvhh   | C73212t |   1 | numeric | scale             | Bus and coach fares other than season tickets - children and adults                             |         1
+     lcf     | 2020 | dvhh   | C73213t |   1 | numeric | scale             | Taxis and hired cars with drivers - children and adults                                         |         1
+     lcf     | 2020 | dvhh   | C73214t |   1 | numeric | scale             | Other personal travel - children and adults                                                     |         1
+     lcf     | 2020 | dvhh   | C73411t |   1 | numeric | scale             | Water travel - children and adults                                                              |         1
+     lcf     | 2020 | dvhh   | C73512t |   1 | numeric | scale             | Combined fares other than season tickets - children and adults                                  |         1
+     lcf     | 2020 | dvhh   | C73513t |   1 | numeric | scale             | School travel - children and adults                                                             |         1
+     lcf     | 2020 | dvhh   | C73611t |   1 | numeric | scale             | Delivery charges and other transport services - children and adults                             |         1
+=#
+
+
+#=
+    Pos. = 721	Variable = C72211	Variable label = Petrol - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for C72211
+    
+    Pos. = 722	Variable = C72212	Variable label = Diesel oil - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+        Value label information for C72212
+    
+    Pos. = 723	Variable = C72213	Variable label = Other motor oils - adults
+    This variable is    numeric, the SPSS measurement level is SCALE
+=#  
+
+end
+
 function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
     for r in eachrow( frshh )
         dd = split(r.intdate, "/")
