@@ -210,7 +210,7 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
 
     out.total_expenditure = lcf.p630tp
 
-    checkdiff( "total spending",
+    checkdiffs( "total spending",
         out.sweets_and_icecream + 
         out.other_food_and_beverages + 
         out.hot_and_eat_out_food + 
