@@ -210,6 +210,57 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
 
     out.total_expenditure = lcf.p630tp
 
+    checkdiff( "total spending",
+        out.sweets_and_icecream + 
+        out.other_food_and_beverages + 
+        out.hot_and_eat_out_food + 
+        out.spirits + 
+        out.wine + 
+        out.fortified_wine + 
+        out.cider + 
+        out.alcopops + 
+        out.champagne + 
+        out.beer + 
+        out.cigarettes + 
+        out.cigars + 
+        out.other_tobacco + 
+        out.childrens_clothing_and_footwear + 
+        out.helmets_etc + 
+        out.other_clothing_and_footwear + 
+        out.domestic_fuel_electric + 
+        out.domestic_fuel_gas + 
+        out.domestic_fuel_coal + 
+        out.domestic_fuel_other+ 
+        out.other_housing + 
+        out.furnishings_etc + 
+        out.medical_services + 
+        out.prescriptions + 
+        out.other_medicinces + 
+        out.spectacles_etc + 
+        out.other_health + 
+        out.bus_boat_and_train  + 
+        out.air_travel + 
+        out.petrol + 
+        out.diesel + 
+        out.other_motor_oils + 
+        out.other_transport + 
+        out.communication + 
+        out.books + 
+        out.newspapers + 
+        out.magazines + 
+        out.other_recreation + 
+        out.education +
+        out.hotels_and_restaurants + 
+        out.insurance + 
+        out.other_financial + 
+        out.prams_and_baby_chairs + 
+        out.care_services + 
+        out.nappies + 
+        out.funerals + 
+        out.other_misc_goods + 
+        out.non_consumption, 
+        lcf.p630tp )
+
     return out
 
     #= 06 
