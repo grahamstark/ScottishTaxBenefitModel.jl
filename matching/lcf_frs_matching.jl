@@ -52,6 +52,30 @@ function checkdiffs( title::String, col1::Vector, col2::Vector )
     @assert size(out)[1] == 0 "differences at positions $out"
 end
 
+function searchbaddies(lcf::DataFrame, rows, amount::Real)
+    nms = names(lcf)
+    nc = size(lcf)[2]
+    for i in 1:nc
+        for r in rows
+            if(typeof(lcf[r,i]) == Float64) && (lcf[r,i] ≈ amount )
+                println("row $r varname = $(n[i])")
+            end
+        end
+    end
+end
+
+function searchbaddiesge(lcf::DataFrame, rows, amount::Real)
+    nms = names(lcf)
+    nc = size(lcf)[2]
+    for i in 1:nc
+        for r in rows
+            if(typeof(lcf[r,i]) == Float64) && (lcf[r,i] >= amount )
+                println("row $r varname = $(n[i])")
+            end
+        end
+    end
+end
+
 """
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
@@ -130,7 +154,7 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
 
     # 05	Furnishings, Household Equipment and Routine Maintenance of the House
 
-    out.furnishings_etc = lcf.p605
+    out.furnishings_etc = lcf.p605t
 
     out.medical_services = lcf.c62112t + lcf.c62113t + lcf.c62114t + lcf.c62211t + lcf.c62311t + lcf.c62321t + lcf.c63111t + lcf.c62331t + lcf.c62322t + lcf.c62212t + lcf.c62111t# exempt
     out.prescriptions = lcf.c61111t    # zero
@@ -145,12 +169,12 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
 
     # 07 Transport  !!1 DURABLES 
     # ?? how are outright purchases handled?
-    out.bus_boat_and_train = lcf.b216 + lcf.b217 + lcf.b218 + lcf.b219 + lcf.c73212t + lcf.c73411t + lcf.c73512t + lcf.c73513t # zero
+    out.bus_boat_and_train = lcf.b216 + lcf.b217 + lcf.b218 + lcf.b219 + lcf.c73212t + lcf.c73411t + lcf.c73512t + lcf.c73513t + lcf.p546c # zero FIXME I don't see why p546c - children's transport - is needed but we don't add up otherwise.
     out.air_travel = lcf.b487 + lcf.b488
     out.petrol = lcf.c72211t
     out.diesel = lcf.c72212t
     out.other_motor_oils = lcf.c72213t
-    out.other_transport = lcf.p607 - (out.bus_boat_and_train + out.air_travel + out.petrol + out.diesel + out.other_motor_oils)
+    out.other_transport = lcf.p607t - (out.bus_boat_and_train + out.air_travel + out.petrol + out.diesel + out.other_motor_oils)
 
     # 08 Communication
     out.communication  = lcf.p608t # Standard 
@@ -159,10 +183,12 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
     out.books = lcf.c95111t
     out.newspapers = lcf.c95211t
     out.magazines = lcf.c95212t
-    out.other_recreation = lcf.p609t - (out.books + out.newspapers + out.magazines )
+    out.gambling = lcf.c94314t  # - winnings? C9431Dt
+
+    out.other_recreation = lcf.p609t - (out.books + out.newspapers + out.magazines + out.gambling )
      # FIXME deaf ebooks ..
     # 10 (A)	Education
-    out.education = lcf.p610t
+    out.education = lcf.p610t # exempt
     # 11 (B)	Restaurant and Hotels
     out.hotels_and_restaurants = lcf.p611t - out.hot_and_eat_out_food - (lcf.cb111ct+lcf.cb111dt+lcf.cb111et+lcf.cb111ft+lcf.cb111gt+lcf.cb111ht+lcf.cb111it + lcf.cb111jt) # h&r less the food,drink,alcohol
     # 12 (C)	Miscellaneous Goods and Services
@@ -200,11 +226,23 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
 
     out.care_services = lcf.cc4121t + lcf.cc4111t + lcf.cc4112t
 
-    out.nappies = lcf.cc1317t # nappies zero rated, other baby goods standard rated
+    out.trade_union_subs = lcf.cc1317t # fixme rename
+
+    out.nappies = lcf.cc1317t * 0.5 # nappies zero rated, other baby goods standard rated FIXME wild guess
 
     out.funerals = lcf.cc7114t # exempt https://www.gov.uk/guidance/burial-cremation-and-commemoration-of-the-dead-notice-70132
 
-    out.other_misc_goods = lcf.p612t - (out.insurance + out.other_financial + out.prams_and_baby_chairs + out.care_services + out.nappies + out.funerals) # rest standard rated
+    out.womens_sanitary = lcf.cc1312t * 0.5 # FIXME wild guess 
+
+    out.other_misc_goods = lcf.p612t - (
+        out.womens_sanitary + 
+        out.insurance + 
+        out.other_financial + 
+        out.prams_and_baby_chairs + 
+        out.care_services + 
+        out.nappies + 
+        out.funerals + 
+        out.trade_union_subs) # rest standard rated
 
     out.non_consumption = lcf.p620tp 
 
@@ -256,8 +294,11 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
         out.prams_and_baby_chairs + 
         out.care_services + 
         out.nappies + 
-        out.funerals + 
+        out.funerals +
+        out.womens_sanitary + 
         out.other_misc_goods + 
+        out.trade_union_subs + 
+        out.gambling + 
         out.non_consumption, 
         lcf.p630tp )
 
