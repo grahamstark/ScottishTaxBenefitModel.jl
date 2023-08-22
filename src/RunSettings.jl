@@ -146,7 +146,7 @@ module RunSettings
         
         settings.indirect_method = matching
         settings.indirect_matching_dataframe = "frs2020_lcf2018-20_matches_all_uk"
-        settings.expenditure_dataset = "lcf_edited-2018-20"
+        settings.expenditure_dataset = "lcf_subset-2018-2020"
         settings.wealth_method=imputation
         return settings
     end

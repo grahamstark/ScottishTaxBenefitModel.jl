@@ -978,15 +978,19 @@ I	More than £424,000
         othertaxes.implicit_wage_tax /= 100.0
     end
 
-    @with_kw mutable struct VATSummary{RT<:Real}
+    @with_kw mutable struct VATSystem{RT<:Real}
         standard_rate :: RT = 20.0
-        standard_rate_goods = BroadConsumptionSet([])
-        reduced_rate  :: RT = 5
-        reduced_rate_goods = BroadConsumptionSet([])
+        standard_rate_goods = default_standard_rated()
+        reduced_rate  :: RT = 5.0
+        reduced_rate_goods = default_reduced_rate()
         zero_rate     :: RT = 0
-        zero_rate_goods = BroadConsumptionSet([])
+        zero_rate_goods = default_zero_rated()
         assumed_exempt_rate :: RT = 8 # FIXME find this number!
-        exempt_goods = BroadConsumptionSet([])
+        exempt_goods = default_exempt()
+    end
+
+    @with_kw mutable struct IndirectTaxSystem{RT<:Real}
+        vat = VATSystem{RT}()
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
@@ -1007,7 +1011,7 @@ I	More than £424,000
         bencap = BenefitCapSys{RT}()
         ubi = UBISys{RT}()
         othertaxes = OtherTaxesSys{RT}()
-        vat = VATSummary{RT}()
+        indirect = IndirectTaxSystem{RT}()
     end
 
 

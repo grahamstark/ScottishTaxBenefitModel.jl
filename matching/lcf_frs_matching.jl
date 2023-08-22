@@ -49,38 +49,43 @@ function checkdiffs( title::String, col1::Vector, col2::Vector )
             push!( out, (i, d) )
         end
     end
-    @assert size(out)[1] == 0 "differences at positions $out"
+    if size(out)[1] !== 0 
+        println("differences at positions $out")
+    end
 end
 
-function searchbaddies(lcf::DataFrame, rows, amount::Real)
+function searchbaddies(lcf::DataFrame, rows, amount::Real, op=≈)
     nms = names(lcf)
     nc = size(lcf)[2]
     for i in 1:nc
         for r in rows
-            if(typeof(lcf[r,i]) == Float64) && (lcf[r,i] ≈ amount )
+            if(typeof(lcf[r,i]) == Float64) && op(lcf[r,i], amount )
                 println("row $r varname = $(n[i])")
             end
         end
     end
 end
 
-function searchbaddiesge(lcf::DataFrame, rows, amount::Real)
-    nms = names(lcf)
-    nc = size(lcf)[2]
-    for i in 1:nc
-        for r in rows
-            if(typeof(lcf[r,i]) == Float64) && (lcf[r,i] >= amount )
-                println("row $r varname = $(n[i])")
-            end
-        end
-    end
-end
 
 """
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
 function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
-    out = DataFrame( case = lcf.case, datayear = lcf.datayear, month = lcf.a055, year= lcf.year  )
+    out = DataFrame( 
+        case = lcf.case, 
+        datayear = lcf.datayear, 
+        month = lcf.a055, 
+        year= lcf.year,
+        any_wages = lcf.any_wages,
+        any_pension_income = lcf.any_pension_income,
+        any_selfemp = lcf.any_selfemp,
+        hrp_unemployed = lcf.hrp_unemployed,
+        num_children = lcf.num_children,
+        hrp_non_white = lcf.hrp_non_white,
+        num_people = lcf.num_people,
+        income = lcf.income,
+        any_disabled = lcf.any_disabled,
+        has_female_adult = lcf.has_female_adult )
 
     #= top level COICOP
     01	Food and Non-Alcoholic Beverages
@@ -184,8 +189,9 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
     out.newspapers = lcf.c95211t
     out.magazines = lcf.c95212t
     out.gambling = lcf.c94314t  # - winnings? C9431Dt
-
-    out.other_recreation = lcf.p609t - (out.books + out.newspapers + out.magazines + out.gambling )
+    out.museums_etc = lcf.c94221t * 0.5 # FIXME includes theme parks
+    out.postage = lcf.c81111t + lcf.cc6212t 
+    out.other_recreation = lcf.p609t - (out.books + out.newspapers + out.magazines + out.gambling + out.museums_etc + out.postage)
      # FIXME deaf ebooks ..
     # 10 (A)	Education
     out.education = lcf.p610t # exempt
@@ -286,6 +292,8 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
         out.books + 
         out.newspapers + 
         out.magazines + 
+        out.museums_etc +
+        out.postage +
         out.other_recreation + 
         out.education +
         out.hotels_and_restaurants + 

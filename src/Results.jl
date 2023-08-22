@@ -167,6 +167,26 @@ module Results
         premia = LMTPremiaSet()
         can_apply_for = LMTCanApplyFor()
     end
+    @with_kw mutable struct IndirectTaxResult{RT<:Real}
+        VED :: RT = 0.0
+        fuel_duty :: RT = 0.0
+        VAT :: RT = 0.0
+        excise_beer :: RT = 0.0
+        excise_cider :: RT = 0.0
+        excise_wine :: RT = 0.0
+        excise_tobacco :: RT = 0.0
+        # .. and so on
+    end
+
+    function total( it :: IndirectTaxResult{T}) :: T where T <:Real
+        return it.VED + 
+        it.fuel_duty + 
+        it.VAT + 
+        it.excise_beer + 
+        it.excise_cider + 
+        it.excise_wine + 
+        it.excise_tobacco
+    end
 
     @with_kw mutable struct NIResult{RT<:Real}
         above_lower_earnings_limit :: Bool = false
@@ -311,6 +331,7 @@ module Results
         
         net_housing_costs :: RT = zero(RT)
         housing = HousingResult{RT}()
+        indirect = IndirectTaxResult{RT}()
         # FIXME note this is at the household level, which makes local income taxes, etc. akward. OK for now.
         local_tax = LocalTaxes{RT}()
         # 

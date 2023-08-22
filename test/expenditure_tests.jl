@@ -1,3 +1,9 @@
+#=
+    Tests for imputed fuel data from regressions. See `Expenditure.jl` module. 
+    Note we also now have a ConsumptionData module, which does the same thing with
+    matched data.
+=#
+
 using Test
 using CSV
 using DataFrames

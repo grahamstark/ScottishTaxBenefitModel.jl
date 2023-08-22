@@ -1993,6 +1993,7 @@ WealthSet = Set{WealthTypes}
 
 # see https://www.gov.uk/guidance/rates-of-vat-on-different-goods-and-services
 
+#== NOT USED
 export BroadConsumptionCategories,
    BroadConsumptionSet,
    sports,
@@ -2040,5 +2041,6 @@ export BroadConsumptionCategories,
 end
 
 const BroadConsumptionSet = Set{BroadConsumptionCategories}
+=#
 
 end # module

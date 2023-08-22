@@ -1,3 +1,7 @@
+--
+-- Queries to show exactly what's in LFS coicop top level divisions.
+-- see lfs docs: 9022_volume_f_derived_variables_2020-21.xlsx
+-- 
 -- food & non alc 
 
 select * from dictionaries.variables where name in (

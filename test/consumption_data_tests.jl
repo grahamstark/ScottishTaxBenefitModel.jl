@@ -1,4 +1,7 @@
 
+#=
+Tests of the ExpenditureData.jl module, which matches in lcf expenditure data.
+=#
 using CSV,DataFrames,StatsBase,Test
 using Observables
 using ScottishTaxBenefitModel
