@@ -23,11 +23,18 @@ using .RunSettings
 using .STBParameters
 using .Uprating
 
-IND_MATCHING = DataFrame()
-EXPENDITURE_DATASET = DataFrame()
-
-function calc_indirect_tax!(  hres :: HouseholdResult, hh :: Household, sys :: IndirectTaxSys )
+function calc_indirect_tax!(  hres :: HouseholdResult, hh :: Household, sys :: IndirectTaxSystem )
+    
+                # FIXME 
+                if sym in DEFAULT_STANDARD_RATE
+                    r[sym] /= 1.2
+                elseif sym in DEFAULT_REDUCED_RATE
+                    r[sym] /= 1.05
+                elseif sym in DEFAULT_EXEMPT
+                    r[sym] /= 1.08
+                end
+    
     
 end
 
-end
+end # IndirectTaxes module 

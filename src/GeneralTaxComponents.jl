@@ -19,6 +19,7 @@ export
    *,
    
    annualise, 
+   calc_factor_cost,
    calc_indirect, 
    calctaxdue, 
    delete_thresholds_up_to,

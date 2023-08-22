@@ -35,7 +35,7 @@ module STBParameters
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
     export NonMeansTestedSys, MaternityAllowance, ChildLimits
     export BenefitCapSys, make_ubi_pre_adjustments!
-    export OtherTaxesSys
+    export OtherTaxesSys, IndirectTaxSystem, VATSystem
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -980,13 +980,13 @@ I	More than £424,000
 
     @with_kw mutable struct VATSystem{RT<:Real}
         standard_rate :: RT = 20.0
-        standard_rate_goods = default_standard_rated()
+        standard_rate_goods = DEFAULT_STANDARD_RATE
         reduced_rate  :: RT = 5.0
-        reduced_rate_goods = default_reduced_rate()
+        reduced_rate_goods = DEFAULT_REDUCED_RATE
         zero_rate     :: RT = 0
-        zero_rate_goods = default_zero_rated()
+        zero_rate_goods = DEFAULT_ZERO_RATE
         assumed_exempt_rate :: RT = 8 # FIXME find this number!
-        exempt_goods = default_exempt()
+        exempt_goods = DEFAULT_EXEMPT
     end
 
     @with_kw mutable struct IndirectTaxSystem{RT<:Real}

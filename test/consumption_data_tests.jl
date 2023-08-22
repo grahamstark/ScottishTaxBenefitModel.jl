@@ -37,14 +37,24 @@ end
     println( settings.indirect_method )
     obs[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
     # force initialisation so we're not mixing uk and scot datasets
-    FRSHouseholdGetter.initialise( settings; reset=true ) # force UK dataset 
+    settings.num_households, settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true ) # force UK dataset 
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household( hno )
-        @test isnothing( hh.consumption )
-        ConsumptionData.find_consumption_for_hh!( hh, settings, 1)
-        @test ! isnothing( hh.consumption )
+        # @test isnothing( hh.expenditure )
+        # ConsumptionData.find_consumption_for_hh!( hh, settings, 1)
+        @test ! isnothing( hh.expenditure )
+        println( "on hno $hno")
         if (hno % 100) == 0
-            println( hh.consumption )
+            println( hh.expenditure )
+            println( hh.factor_costs )
         end
     end
+end
+
+@testset "Indirect Parameters" begin
+    println( "default_exempt = $(DEFAULT_EXEMPT)")
+    println( "default_reduced_rate = $(DEFAULT_REDUCED_RATE)")
+    println( "default_zero_rated = $(DEFAULT_ZERO_RATED)")
+    println( "default_standard_rate = $(DEFAULT_STANDARD_RATE)")
 end

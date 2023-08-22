@@ -3,13 +3,15 @@
 This module holds both the data for indirect tax calculations. Quickie pro tem thing
 for Northumberland, but you know how that goes..
 
-TODO move the declarations to a Seperate module/ModelHousehold module.
 TODO add mapping for example households.
 TODO all uprating is nom gdp for now.
+TODO Factor costs for excisable goods and base excisable good parameters.
+TODO Better calculation of exempt goods.
+TODO Recheck allocations REALLY carefully.
+TODO Much more detailed uprating.
+TODO costs of spirits etc.
 
 =#
-
-
 module ConsumptionData
 
 using ArgCheck
@@ -25,14 +27,15 @@ using .RunSettings
 using .Uprating
 
 IND_MATCHING = DataFrame()
-EXPENDITURE_DATASET = DataFrame()
+EXPENDITURE_DATASET = DataFrame() 
+FACTOR_COST_DATASET = DataFrame()  # expenditure less taxes *at the time*.
 
 export 
     LFS_CATEGORIES,
-    default_exempt, 
-    default_reduced_rate, 
-    default_standard_rate, 
-    default_zero_rated, 
+    DEFAULT_EXEMPT,
+    DEFAULT_REDUCED_RATE, 
+    DEFAULT_STANDARD_RATE, 
+    DEFAULT_ZERO_RATED, 
     find_consumption_for_hh!, 
     init,
     uprate_expenditure
@@ -116,9 +119,13 @@ function default_exempt()
     # sports from charities
 end
 
+const DEFAULT_EXEMPT = default_exempt()
+const DEFAULT_EXEMPT_RATE = 0.08 # FIXME wild guess
+
 function default_zero_rated()::Set{Symbol}
     s = Set([
         :bus_boat_and_train,
+        :air_travel,
         :other_food_and_beverages,
         :books,
         :newspapers,
@@ -131,6 +138,8 @@ function default_zero_rated()::Set{Symbol}
     # talking books & audio for the deaf, contraceptives on prescription
 end
 
+const DEFAULT_ZERO_RATED = default_zero_rated()
+
 function default_reduced_rate()::Set{Symbol}
     s = Set([:domestic_fuel_electric,
         :domestic_fuel_gas,
@@ -142,22 +151,25 @@ function default_reduced_rate()::Set{Symbol}
     # contraceptives,insulation and energy saving, anti-smoking, car child seats, condoms
 end
 
+const DEFAULT_REDUCED_RATE = default_reduced_rate()
+
 function default_standard_rate()::Set{Symbol}
-    nonstandard = union( 
+    non_standard = union( 
         default_exempt(), 
         default_zero_rated(), 
         default_reduced_rate())
     s = setdiff( LFS_CATEGORIES, non_standard )
-    @assert union(  s, nonstandard ) == LFS_CATEGORIES
+    @assert union(  s, non_standard ) == LFS_CATEGORIES
     return s
 end
 
+const DEFAULT_STANDARD_RATE = default_standard_rate()
 
 """
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
-function find_consumption_for_hh!( hh :: Household, settings :: Settings, which :: Int )::DataFrameRow  
+function find_consumption_for_hh!( hh :: Household, settings :: Settings, which :: Int )
     @argcheck settings.indirect_method == matching
     @argcheck which <= 20
     match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
@@ -165,17 +177,24 @@ function find_consumption_for_hh!( hh :: Household, settings :: Settings, which 
     lcf_datayear_sym = Symbol( "lcf_datayear_$(which)")
     case = match[lcf_case_sym]
     datayear = match[lcf_datayear_sym]
-    return hh.consumption = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
+    # println( "find_consumption_for_hh! matching to case $case datayear $datayear")
+    hh.expenditure = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
+    hh.factor_costs = FACTOR_COST_DATASET[(FACTOR_COST_DATASET.case .== case).&(FACTOR_COST_DATASET.datayear.==datayear),:][1,:]
+    @assert ! isnothing( hh.expenditure )
+    @assert ! isnothing( hh.factor_costs )
 end
 
 """
-Quick n dirty uprating using nominal gdp for everything for now.
+Quick n dirty uprating using nominal gdp for everything for now. Factor costs are just ex VAT not excise duties.
 """
 function uprate_expenditure( settings :: Settings )
     ## TODO much more specific uprating factors - just nom_gdp for now
     ## TODO just add q into created dataset 
     nms = names( EXPENDITURE_DATASET )
-    for r in eachrow( EXPENDITURE_DATASET)
+    nr = size(EXPENDITURE_DATASET)[1]
+    for i in 1:nr 
+        r = EXPENDITURE_DATASET[i,:]
+        f = FACTOR_COST_DATASET[i,:]
         if r.month > 20 # a055 is interview Month code: > 20 is e.g January REIS and I don't know what REIS means 
             r.month -= 20
         end
@@ -183,9 +202,21 @@ function uprate_expenditure( settings :: Settings )
         # lcf year seems to be actual interview year 
         y = r.year
         r.income =  Uprating.uprate( r.income, y, q, Uprating.upr_earnings )
+        f.income =  Uprating.uprate( f.income, y, q, Uprating.upr_earnings )
         for n in LFS_CATEGORIES
             sym = Symbol(n)
             r[sym] = Uprating.uprate( r[sym], y, q, Uprating.upr_nominal_gdp )
+            ### FIXME WE NEED EXCISE DUTIES HERE AND PARAMETERISE THESE NUMBERS. See GeneralTaxComponents.jl for
+            ## proper factor cost calcs
+            if sym in DEFAULT_EXEMPT
+                f[sym] /= 1.1 # 
+            elseif sym in DEFAULT_REDUCED_RATE
+                f[sym] /= 1.05
+            elseif sym in DEFAULT_STANDARD_RATE
+                f[sym] /= 1.20
+            end
+            
+            f[sym] = Uprating.uprate( f[sym], y, q, Uprating.upr_nominal_gdp )
         end
     end
 end
@@ -194,18 +225,24 @@ function init( settings :: Settings; reset = false )
     if(settings.indirect_method == matching) && (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
         global IND_MATCHING
         global EXPENDITURE_DATASET
+        global FACTOR_COST_DATASET
         IND_MATCHING = CSV.File( "$(settings.data_dir)/$(settings.indirect_matching_dataframe).tab") |> DataFrame
         EXPENDITURE_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
-        nms = names( EXPENDITURE_DATASET )
+        FACTOR_COST_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
         # coerce coicop int cols to floats
+        #=
+        nms = names( EXPENDITURE_DATASET )
         for n in nms
             if( match( r"^c[0-9]+[a-z]*$",  n ) !== nothing) || # coicop disagregates so c1234x, for example - CIOCP code
                 ( match( r"^p6[0-9]+[a-z]*$",  n ) !== nothing) || 
                 ( match( r"^c[0-9a-z]+$",  n ) !== nothing)
                 sym = Symbol(n)
                 EXPENDITURE_DATASET[!,sym] = Float64.(EXPENDITURE_DATASET[:,sym])
+                FACTOR_COST_DATASET[!,sym] = Float64.(EXPENDITURE_DATASET[:,sym])
+
             end
         end        
+        =#
         println( EXPENDITURE_DATASET[1:2,:])
         uprate_expenditure(  settings )
     end

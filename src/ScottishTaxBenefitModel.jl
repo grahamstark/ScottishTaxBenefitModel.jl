@@ -76,9 +76,6 @@ export BenefitGenerosity
 include( "Intermediate.jl")
 export Intermediate
 
-include( "IndirectTaxes.jl")
-export IndirectTaxes
-
 include( "Results.jl")
 export Results
 
@@ -114,6 +111,9 @@ export UBI
 
 include( "OtherTaxes.jl")
 export OtherTaxes
+
+include( "IndirectTaxes.jl")
+export IndirectTaxes
 
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations

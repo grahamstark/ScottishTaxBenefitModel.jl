@@ -210,7 +210,8 @@ mutable struct Household{RT<:Real}
     net_pension_wealth :: RT
     original_gross_income :: RT
     # FIXME make a proper consumption structure here rather than just an lcf dump.
-    consumption :: Union{Nothing,DataFrameRow}
+    expenditure :: Union{Nothing,DataFrameRow}
+    factor_costs :: Union{Nothing,DataFrameRow}
     people::People_Dict{RT}
     onerand :: String
     equivalence_scales :: EQScales{RT}
