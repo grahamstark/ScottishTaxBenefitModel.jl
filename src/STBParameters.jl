@@ -21,6 +21,7 @@ module STBParameters
     using .Utils
     using .TimeSeriesUtils: fy, fy_array
     using .STBIncomes
+    using .ConsumptionData
     
     # FIXME make this ordered list
     export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
@@ -993,6 +994,17 @@ I	More than £424,000
         vat = VATSystem{RT}()
     end
 
+    function weeklyise!( indir :: IndirectTaxSystem ; 
+        wpm=WEEKS_PER_MONTH, 
+        wpy=WEEKS_PER_YEAR )
+    
+        indir.vat.standard_rate /= 100.0
+        indir.vat.assumed_exempt_rate /= 100.0
+        indir.vat.reduced_rate /= 100.0
+        indir.vat.zero_rate /= 100.0
+
+    end 
+
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: String = "Scotland 2919/20"
         it   = IncomeTaxSys{RT}()
@@ -1104,6 +1116,7 @@ I	More than £424,000
         weeklyise!( tb.bencap; wpm=wpm, wpy=wpy )
         weeklyise!( tb.ubi; wpm=wpm, wpy=wpy )
         weeklyise!( tb.othertaxes; wpm=wpm, wpy=wpy)
+        weeklyise!( tb.indirect; wpm=wpm, wpy=wpy )
     end
     
    """

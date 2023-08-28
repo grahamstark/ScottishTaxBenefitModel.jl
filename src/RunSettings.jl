@@ -120,6 +120,7 @@ module RunSettings
         indirect_matching_dataframe = ""
         expenditure_dataset = ""
         wealth_method = no_method
+        do_indirect_tax_calculations = false
     end
 
     """
@@ -148,6 +149,7 @@ module RunSettings
         settings.indirect_matching_dataframe = "frs2020_lcf2018-20_matches_all_uk"
         settings.expenditure_dataset = "lcf_subset-2018-2020"
         settings.wealth_method=imputation
+        settings.do_indirect_tax_calculations = true
         return settings
     end
 

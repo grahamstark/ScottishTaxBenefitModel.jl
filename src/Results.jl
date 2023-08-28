@@ -493,6 +493,7 @@ module Results
         # FIXME it's possible we need BU net incomes as well
         #
         hres.bhc_net_income = calc_net_income( hres.income ) 
+        hres.bhc_net_income -= total( hres.indirect )
         # - 
         #     hres.bus[1].uc.housing_element 
         #    hres.income[HOUSING_BENEFIT] - 

@@ -36,6 +36,8 @@ using .Utils
     eq_ct_bands_progressive 
     eq_wealth_tax 
     eq_corporation_tax 
+    eq_all_vat 
+    eq_std_vat
 end
 
 export EqTargets,
@@ -48,7 +50,9 @@ export EqTargets,
     eq_ct_bands_proportional, 
     eq_ct_bands_progressive,
     eq_wealth_tax,
-    eq_corporation_tax
+    eq_corporation_tax,
+    eq_all_vat,
+    eq_std_vat
 
 export equalise
 #
@@ -76,6 +80,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     npptrate = rparams.params.loctax.ppt.rate
     hvals = deepcopy(rparams.params.loctax.ct.house_values)
     othvals = deepcopy(rparams.params.othertaxes )
+    VAT = deepcopy(rparams.params.indirect.VAT )
 
     if rparams.target in [eq_it, eq_it_ni]
         rparams.params.it.non_savings_rates .+= x
@@ -110,6 +115,19 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
         rparams.params.othertaxes.implicit_wage_tax += x
     end
 
+    if rparams.target == eq_all_vat
+        rparams.params.indirect.VAT.standard_rate += x
+        rparams.params.indirect.VAT.reduced_rate += x
+        # FIXME wild guess
+        rparams.params.indirect.VAT.assumed_exempt_rate += x*0.5
+    end
+
+    if rparams.target == eq_std_vat
+        rparams.params.indirect.VAT.standard_rate += x
+        # FIXME wild guess at % of VAT in exempt goods
+        rparams.params.indirect.VAT.assumed_exempt_rate += x*0.4
+    end
+
     # TODO check sensible ni rates    
     results = do_one_run( rparams.settings, [rparams.params], rparams.obs )
     # restore
@@ -119,6 +137,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.loctax.ppt.rate = npptrate
     rparams.params.loctax.ct.house_values = hvals
     rparams.params.othertaxes = othvals 
+    rparams.params.indirect.VAT = VAT
     summary = summarise_frames!(results, rparams.settings)
     nc = summary.income_summary[1][1,:net_cost]
     return round( nc - rparams.base_cost, digits=0 )

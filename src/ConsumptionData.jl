@@ -35,7 +35,7 @@ export
     DEFAULT_EXEMPT,
     DEFAULT_REDUCED_RATE, 
     DEFAULT_STANDARD_RATE, 
-    DEFAULT_ZERO_RATED, 
+    DEFAULT_ZERO_RATE, 
     find_consumption_for_hh!, 
     init,
     uprate_expenditure
@@ -122,7 +122,7 @@ end
 const DEFAULT_EXEMPT = default_exempt()
 const DEFAULT_EXEMPT_RATE = 0.08 # FIXME wild guess
 
-function default_zero_rated()::Set{Symbol}
+function default_zero_rate()::Set{Symbol}
     s = Set([
         :bus_boat_and_train,
         :air_travel,
@@ -138,7 +138,7 @@ function default_zero_rated()::Set{Symbol}
     # talking books & audio for the deaf, contraceptives on prescription
 end
 
-const DEFAULT_ZERO_RATED = default_zero_rated()
+const DEFAULT_ZERO_RATE = default_zero_rate()
 
 function default_reduced_rate()::Set{Symbol}
     s = Set([:domestic_fuel_electric,
@@ -156,7 +156,7 @@ const DEFAULT_REDUCED_RATE = default_reduced_rate()
 function default_standard_rate()::Set{Symbol}
     non_standard = union( 
         default_exempt(), 
-        default_zero_rated(), 
+        default_zero_rate(), 
         default_reduced_rate())
     s = setdiff( LFS_CATEGORIES, non_standard )
     @assert union(  s, non_standard ) == LFS_CATEGORIES
@@ -229,20 +229,6 @@ function init( settings :: Settings; reset = false )
         IND_MATCHING = CSV.File( "$(settings.data_dir)/$(settings.indirect_matching_dataframe).tab") |> DataFrame
         EXPENDITURE_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
         FACTOR_COST_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
-        # coerce coicop int cols to floats
-        #=
-        nms = names( EXPENDITURE_DATASET )
-        for n in nms
-            if( match( r"^c[0-9]+[a-z]*$",  n ) !== nothing) || # coicop disagregates so c1234x, for example - CIOCP code
-                ( match( r"^p6[0-9]+[a-z]*$",  n ) !== nothing) || 
-                ( match( r"^c[0-9a-z]+$",  n ) !== nothing)
-                sym = Symbol(n)
-                EXPENDITURE_DATASET[!,sym] = Float64.(EXPENDITURE_DATASET[:,sym])
-                FACTOR_COST_DATASET[!,sym] = Float64.(EXPENDITURE_DATASET[:,sym])
-
-            end
-        end        
-        =#
         println( EXPENDITURE_DATASET[1:2,:])
         uprate_expenditure(  settings )
     end

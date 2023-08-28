@@ -55,6 +55,6 @@ end
 @testset "Indirect Parameters" begin
     println( "default_exempt = $(DEFAULT_EXEMPT)")
     println( "default_reduced_rate = $(DEFAULT_REDUCED_RATE)")
-    println( "default_zero_rated = $(DEFAULT_ZERO_RATED)")
+    println( "default_zero_rated = $(DEFAULT_ZERO_RATE)")
     println( "default_standard_rate = $(DEFAULT_STANDARD_RATE)")
 end

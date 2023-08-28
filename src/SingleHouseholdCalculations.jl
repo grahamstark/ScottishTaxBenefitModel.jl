@@ -46,6 +46,8 @@ using .NonMeansTestedBenefits:
 using .IncomeTaxCalculations: 
     calc_income_tax!
 
+using .IndirectTaxes: calc_indirect_tax!
+
 using .NationalInsuranceCalculations: 
     calculate_national_insurance!
 
@@ -220,7 +222,9 @@ function do_one_calc(
     end
     
     calculate_other_taxes!( hres, hh, sys.othertaxes )
-
+    if settings.do_indirect_tax_calculations
+        calc_indirect_tax!( hres, hh, sys.indirect )
+    end
     aggregate!( hh, hres )
     return hres
 end

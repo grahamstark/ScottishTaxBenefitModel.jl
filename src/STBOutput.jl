@@ -16,7 +16,8 @@ using .GeneralTaxComponents:
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
-    IndividualResult
+    IndividualResult,
+    total
 
 using .STBIncomes
 
@@ -85,6 +86,7 @@ const EXTRA_INC_COLS = 10
             means_tested_benefits = zeros(RT,n),
             other_benefits = zeros(RT,n),
             scottish_income_tax = zeros(RT,n),
+            indirect_taxes = zeros(RT,n),
             num_children = zeros(RT,n)
         )
     end
@@ -134,6 +136,13 @@ const EXTRA_INC_COLS = 10
         frame.sickness_illness = zeros( n )    
         frame.scottish_benefits = zeros( n )    
         frame.pension_relief_at_source = zeros( n )
+        frame.VED = zeros(n)
+        frame.fuel_duty = zeros(n)
+        frame.VAT = zeros(n)
+        frame.excise_beer = zeros(n)
+        frame.excise_cider = zeros(n)
+        frame.excise_wine = zeros(n)
+        frame.excise_tobacco = zeros(n)
         frame.net_cost = zeros( n )
         # add some crosstab fields ... 
         frame.id = fill( id, n )
@@ -262,6 +271,7 @@ const EXTRA_INC_COLS = 10
         # hr.eq_scale = hres.eq_scale
         hr.eq_bhc_net_income = hres.eq_bhc_net_income
         hr.eq_ahc_net_income = hres.eq_ahc_net_income
+        hr.indirect_taxes = total( hres.indirect )
         hr.num_children = num_children( hh )
     end
 
@@ -424,7 +434,9 @@ const EXTRA_INC_COLS = 10
         ir.sickness_illness = isum( pres.income, SICKNESS_ILLNESS )
         ir.scottish_benefits = isum( pres.income, SCOTTISH_BENEFITS )
         ir.pension_relief_at_source = pres.it.pension_relief_at_source
-                
+        
+    
+
         ir.tenure = hh.tenure
         ir.data_year = hh.data_year
         ir.region = hh.region
@@ -499,6 +511,7 @@ const EXTRA_INC_COLS = 10
                 pfno = get_slot_for_person( pid, hh.data_year )
                 # pfbu += 1
                 from_child_record = pid in bus[buno].children
+                incrow = frames.income[sysno][pfno,:]
                 fill_pers_frame_row!(
                     frames.indiv[sysno][pfno,:],
                     hh,
@@ -506,12 +519,21 @@ const EXTRA_INC_COLS = 10
                     hres.bus[buno].pers[pid],
                     from_child_record )
                 fill_inc_frame_row!(
-                    frames.income[sysno][pfno,:],
+                    incrow,
                     hh,
                     pers,
                     hres.bus[buno].pers[pid],
                     from_child_record )
-                    
+                if pers.is_hrp # record VAT etc. once per hh
+                    incrow.VED = hres.indirect.VED 
+                    incrow.fuel_duty = hres.indirect.fuel_duty
+                    incrow.VAT = hres.indirect.VAT
+                    incrow.excise_beer = hres.indirect.excise_beer
+                    incrow.excise_cider = hres.indirect.excise_cider
+                    incrow.excise_wine = hres.indirect.excise_wine
+                    incrow.excise_tobacco = hres.indirect.excise_tobacco        
+                end
+                            
             end # person loop
         end # bu loop
     end

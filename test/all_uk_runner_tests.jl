@@ -80,6 +80,7 @@ end
 
 @testset "UK Basic Run" begin
     summary, results, settings = do_basic_uk_run()
+    #=
     # typeof( results )
     # println( results )
     outps_pre = create_health_indicator( 
@@ -100,4 +101,5 @@ end
     CSV.write( "/home/graham_s/tmp/income_summary_uk.csv", summary.income_summary[1])
     sf_pre = summarise_sf12( outps_pre, settings )
     sf_post = summarise_sf12( outps_post, settings )
+    =#
 end

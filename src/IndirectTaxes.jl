@@ -1,11 +1,9 @@
 #=
     
-This module holds both the data and calculations for indirect tax calculations. Quickie pro tem thing
+This module holds calculations for indirect tax calculations. Quickie pro tem thing
 for Northumberland, but you know how that goes..
 
-TODO move the declarations to a Seperate module/ModelHousehold module.
 TODO add mapping for example households.
-TODO all uprating is nom gdp for now.
 
 =#
 
@@ -23,17 +21,26 @@ using .RunSettings
 using .STBParameters
 using .Uprating
 
-function calc_indirect_tax!(  hres :: HouseholdResult, hh :: Household, sys :: IndirectTaxSystem )
-    
-                # FIXME 
-                if sym in DEFAULT_STANDARD_RATE
-                    r[sym] /= 1.2
-                elseif sym in DEFAULT_REDUCED_RATE
-                    r[sym] /= 1.05
-                elseif sym in DEFAULT_EXEMPT
-                    r[sym] /= 1.08
-                end
-    
+export calc_indirect_tax!, calc_vat
+
+function calc_vat( hh :: Household{T}, sys :: IndirectTaxSystem{T} ) :: T where T <: Real
+    vat = 0.0
+    for s in sys.VAT.standard_rate_goods 
+        vat += hh.factor_costs[s]*sys.VAT.standard_rate
+    end
+    for s in sys.VAT.reduced_rate_goods 
+        vat += hh.factor_costs[s]*sys.VAT.reduced_rate
+    end
+    for s in sys.VAT.exempt_goods 
+        vat += hh.factor_costs[s]*sys.VAT.assumed_exempt_rate
+    end
+    return vat
+end
+
+function calc_indirect_tax!(  hres :: HouseholdResult{T}, hh :: Household{T}, sys{T} :: IndirectTaxSystem ) where T <: Real
+
+    hres.indirect.VAT = calc_vat( hh, sys )
+          
     
 end
 

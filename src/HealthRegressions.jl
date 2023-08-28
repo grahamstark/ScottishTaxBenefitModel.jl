@@ -19,7 +19,7 @@ using .Utils: make_start_stops
 export get_death_prob,
     get_sf6d,
     summarise_sf12,
-    create_health_indicator,
+    # create_health_indicator,
     do_health_regressions!,
     rm2 # fixme move this
 
