@@ -80,7 +80,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     npptrate = rparams.params.loctax.ppt.rate
     hvals = deepcopy(rparams.params.loctax.ct.house_values)
     othvals = deepcopy(rparams.params.othertaxes )
-    VAT = deepcopy(rparams.params.indirect.VAT )
+    vat = deepcopy(rparams.params.indirect.vat )
 
     if rparams.target in [eq_it, eq_it_ni]
         rparams.params.it.non_savings_rates .+= x
@@ -116,16 +116,16 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     end
 
     if rparams.target == eq_all_vat
-        rparams.params.indirect.VAT.standard_rate += x
-        rparams.params.indirect.VAT.reduced_rate += x
+        rparams.params.indirect.vat.standard_rate += x
+        rparams.params.indirect.vat.reduced_rate += x
         # FIXME wild guess
-        rparams.params.indirect.VAT.assumed_exempt_rate += x*0.5
+        rparams.params.indirect.vat.assumed_exempt_rate += x*0.5
     end
 
     if rparams.target == eq_std_vat
-        rparams.params.indirect.VAT.standard_rate += x
-        # FIXME wild guess at % of VAT in exempt goods
-        rparams.params.indirect.VAT.assumed_exempt_rate += x*0.4
+        rparams.params.indirect.vat.standard_rate += x
+        # FIXME wild guess at % of vat in exempt goods
+        rparams.params.indirect.vat.assumed_exempt_rate += x*0.4
     end
 
     # TODO check sensible ni rates    
@@ -137,7 +137,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.loctax.ppt.rate = npptrate
     rparams.params.loctax.ct.house_values = hvals
     rparams.params.othertaxes = othvals 
-    rparams.params.indirect.VAT = VAT
+    rparams.params.indirect.vat = vat
     summary = summarise_frames!(results, rparams.settings)
     nc = summary.income_summary[1][1,:net_cost]
     return round( nc - rparams.base_cost, digits=0 )

@@ -32,8 +32,8 @@ end
 
 @testset "test load indirect" begin
     settings = get_all_uk_settings_2023()
-    Uprating.load_prices( settings )
-    ConsumptionData.init( settings, reset=true )
+    # Uprating.load_prices( settings )
+    # ConsumptionData.init( settings, reset=true )
     println( settings.indirect_method )
     obs[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
     # force initialisation so we're not mixing uk and scot datasets

@@ -46,8 +46,8 @@ export
     idiff,
     irdiff
 
-# count of the aggregates added to the income_frame - total benefits and so on
-const EXTRA_INC_COLS = 10
+# count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
+const EXTRA_INC_COLS = 17
 
 
     #=
