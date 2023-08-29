@@ -145,6 +145,7 @@ end
     println( "net_cost=$net_cost" )
     println( "taxrates $(sys.indirect.vat.standard_rate*100.0)%")
     println("ubi summary")
-    CSV.write( "ubi_summary.income_summary_wealth.csv", ubi_summary.income_summary[1] )
+    CSV.write( "base_eq_summary.csv", summary.income_summary[1] )    
+    CSV.write( "ubi_summary.income_summary_vat.csv", ubi_summary.income_summary[1] )
     # pretty_table( ubi_summary.income_summary[1][1,:] )
 end
