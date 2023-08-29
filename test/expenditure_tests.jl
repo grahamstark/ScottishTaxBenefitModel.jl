@@ -26,7 +26,7 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
 using .Expenditure
 using StatsBase
 
-settings = Settings()
+settings = Settings() # get_all_uk_settings_2023()
 
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
@@ -51,10 +51,13 @@ end
         settings.do_marginal_rates = false
         settings.dump_frames = false
         sys = [get_system(year=2022, scotland=true), get_system( year=2022,scotland=true )]
-        nhhs,npeople = init_data()
-        share = zeros( nhhs,2 )
-        for hno in 1:nhhs
+        settings.num_households, settings.num_people, nhh2 = 
+            FRSHouseholdGetter.initialise( settings; reset=true )
+        println(sys[1])
+        share = zeros( nhh2,2 )
+        for hno in 1:nhh2
             hh = get_household(hno)
+            # println(hh)
             # dup but can't be helped
             intermed =  make_intermediate( 
                 hh, 

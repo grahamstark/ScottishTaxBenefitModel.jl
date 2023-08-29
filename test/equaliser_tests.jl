@@ -10,6 +10,7 @@ using .STBParameters
 using .STBIncomes
 using .ExampleHelpers
 using .Monitor: Progress
+using .RunSettings
 using .TheEqualiser
 using .STBOutput
 using PrettyTables
@@ -17,20 +18,7 @@ using CSV
 using .GeneralTaxComponents:
     WEEKS_PER_YEAR
 
-function load_system()::TaxBenefitSystem
-	sys = load_file( joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021_22.jl" ))
-	#
-	# Note that as of Budget21 removing these doesn't actually happen till May 2022.
-	#
-	load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021-uplift-removed.jl"))
-	# uc taper to 55
-	load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "budget_2021_uc_changes.jl"))
-	weeklyise!( sys )
-	return sys
-end
-
-
-settings = Settings()
+settings = get_all_uk_settings_2023()
 settings.do_marginal_rates = false
 settings.poverty_line=100.0 # arbit
 
@@ -42,24 +30,24 @@ of = on(obs) do p
     println(p)
 
     tot += p.step
-    println(tot)
+    # println(tot)
 end
 
-@testset "Eq UBI Tests" begin
-    base = load_system()
-    sys = load_system()
+@testset "Eq UBI with income tax Tests" begin
+    base = get_system(year=2023, scotland=false )
+    sys = get_system(year=2023, scotland=false )
     sys.ubi.abolished = false
     sys.it.personal_allowance = 0.0
     settings.num_households, settings.num_people, nhh2 = 
-                FRSHouseholdGetter.initialise( settings; reset=true )
+        FRSHouseholdGetter.initialise( settings; reset=true )
     make_ubi_pre_adjustments!( sys )
     base_res = do_one_run(
         settings,
         [base],
         obs )
     summary = summarise_frames!(base_res,settings)
-    base_cost = summary.income_summary[1][1,:net_cost]
-    
+    base_cost = summary.income_summary[1][1,:net_inc_indirect]
+    println( "base cost is $base_cost")
     eq = equalise( 
         eq_it, 
         sys, 
@@ -67,12 +55,13 @@ end
         base_cost, 
         obs )
     sys.it.non_savings_rates .+= eq
+    println( "got it rate change of $eq")
     ubi_res = do_one_run(
         settings,
         [sys],
         obs )
     ubi_summary = summarise_frames!(ubi_res,settings)
-    ubi_cost = ubi_summary.income_summary[1][1,:net_cost]
+    ubi_cost = ubi_summary.income_summary[1][1,:net_inc_indirect]
     println( "needs tax rise of $eq")
     net_cost = ubi_cost - base_cost
     println( "net_cost=$net_cost" )
@@ -84,8 +73,8 @@ end
 end
 
 @testset "Eq UBI With Wealth Tests" begin
-    base = load_system()
-    sys = load_system()
+    base = get_system(year=2023, scotland=false )
+    sys = get_system(year=2023, scotland=false )
     sys.ubi.abolished = false
     sys.it.personal_allowance = 0.0
     make_ubi_pre_adjustments!( sys )
@@ -94,7 +83,7 @@ end
         [base],
         obs )
     summary = summarise_frames!(base_res,settings)
-    base_cost = summary.income_summary[1][1,:net_cost]
+    base_cost = summary.income_summary[1][1,:net_inc_indirect]
     
     eq = equalise( 
         eq_wealth_tax, 
@@ -103,12 +92,15 @@ end
         base_cost, 
         obs )
     sys.othertaxes.wealth_tax = eq
+    println( "VAT change is $eq")
     ubi_res = do_one_run(
         settings,
         [sys],
         obs )
+
+    
     ubi_summary = summarise_frames!(ubi_res,settings)
-    ubi_cost = ubi_summary.income_summary[1][1,:net_cost]
+    ubi_cost = ubi_summary.income_summary[1][1,:net_inc_indirect]
    
     println( "needs tax rise of $eq")
     net_cost = ubi_cost - base_cost
@@ -118,4 +110,41 @@ end
     CSV.write( "ubi_summary.income_summary_wealth.csv", ubi_summary.income_summary[1] )
     # pretty_table( ubi_summary.income_summary[1][1,:] )
 
+end
+
+@testset "Eq UBI With VAT" begin
+    base = get_system(year=2023, scotland=false )
+    sys = get_system(year=2023, scotland=false )
+    sys.ubi.abolished = false
+    sys.it.personal_allowance = 0.0
+    make_ubi_pre_adjustments!( sys )
+    base_res = do_one_run(
+        settings,
+        [base],
+        obs )
+    summary = summarise_frames!(base_res,settings)
+    base_cost = summary.income_summary[1][1,:net_inc_indirect]
+    
+    eq = equalise( 
+        eq_all_vat, 
+        sys, 
+        settings, 
+        base_cost, 
+        obs )
+    sys.indirect.vat.standard_rate += eq
+    sys.indirect.vat.reduced_rate += eq
+    sys.indirect.vat.assumed_exempt_rate += eq*0.5
+    ubi_res = do_one_run(
+        settings,
+        [sys],
+        obs )
+    ubi_summary = summarise_frames!(ubi_res,settings)
+    ubi_cost = ubi_summary.income_summary[1][1,:net_inc_indirect]
+   
+    net_cost = ubi_cost - base_cost
+    println( "net_cost=$net_cost" )
+    println( "taxrates $(sys.indirect.vat.standard_rate*100.0)%")
+    println("ubi summary")
+    CSV.write( "ubi_summary.income_summary_wealth.csv", ubi_summary.income_summary[1] )
+    # pretty_table( ubi_summary.income_summary[1][1,:] )
 end

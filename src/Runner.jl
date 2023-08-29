@@ -92,7 +92,13 @@ module Runner
         observer[] =Progress( settings.uuid, "starting",0, 0, 0, settings.num_households )
         @time @threads for thread in 1:num_threads
             for hno in start[thread]:stop[thread]
+
                 hh = FRSHouseholdGetter.get_household( hno )
+                #=
+                if hno < 20
+                    println( "getting hh $hno hid=$(hh.hid) datayear=$(hh.data_year)")
+                end
+                =#
                 nation = nation_from_region( hh.region )
                 # println( "nation = $nation; included nations=$(settings.included_nations)")
                 if nation in settings.included_nations
@@ -123,7 +129,7 @@ module Runner
                                     # println( "wage set back to $(pers.income[wages]) metr is $(pres.metr)")
                                 end # working age
                             end # people
-                        end
+                        end # mrs
                         if settings.do_replacement_rates
                             for (pid,pers) in hh.people
                                 if ( ! pers.is_standard_child ) && ( pers.age <= settings.mr_rr_upper_age )

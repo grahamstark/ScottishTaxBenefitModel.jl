@@ -47,7 +47,7 @@ export
     irdiff
 
 # count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
-const EXTRA_INC_COLS = 17
+const EXTRA_INC_COLS = 18
 
 
     #=
@@ -143,7 +143,9 @@ const EXTRA_INC_COLS = 17
         frame.excise_cider = zeros(n)
         frame.excise_wine = zeros(n)
         frame.excise_tobacco = zeros(n)
+        frame.total_indirect = zeros(n)
         frame.net_cost = zeros( n )
+        frame.net_inc_indirect = zeros( n )
         # add some crosstab fields ... 
         frame.id = fill( id, n )
         frame.data_year = zeros( Int, n )
@@ -394,7 +396,7 @@ const EXTRA_INC_COLS = 17
             for em in instances( Tenure_Type )
                 selected = incd.tenure .== em
                 out[row,col] =sum(  WEEKS_PER_YEAR .* incd[selected,col] .* incd[selected,:weight] ) # £mn          
-                row += 1
+                row += 1                
                 out[row,col] = sum((incd[selected,col] .> 0) .* incd[selected,:weight]) # Counts
                 row += 1
             end
@@ -404,9 +406,12 @@ const EXTRA_INC_COLS = 17
                 row += 1
                 out[row,col] = sum((incd[selected,col] .> 0) .* incd[selected,:weight]) # Counts
                 row += 1
-            end
-                
-        end
+            end                
+        end    
+        # note that the Count field for the next two is meaningless
+        out.total_indirect = out.VED + out.fuel_duty + out.VAT + out.excise_beer + out.excise_cider + out.excise_wine + 
+            out.excise_tobacco
+        out.net_inc_indirect = out.net_cost - out.total_indirect # 
         select!(out, Not([:pid,:hid,:weight])) # clear out pids 
         return out
     end
@@ -500,15 +505,27 @@ const EXTRA_INC_COLS = 17
         sysno  :: Integer,
         num_systems :: Integer  )
         hfno = get_slot_for_household( hh.hid, hh.data_year )
+        #=
+        if hh.hid < 20
+            println( "adding hh $(hh.hid) sysno=$sysno")
+        end
+        =#
         fill_hh_frame_row!( 
             frames.hh[sysno][hfno, :], hh, hres)
         nbus = length(hres.bus)
         np = length( hh.people )
         bus = get_benefit_units( hh )
-        pfbu = 0
+        npp = 0
         for buno in 1:nbus
             for( pid, pers ) in bus[buno].people
+                npp += 1
                 pfno = get_slot_for_person( pid, hh.data_year )
+                #=
+                if hh.hid < 0
+                    println( "pid=$pid data_year=$(hh.data_year) pfno=$pfno sysno=$sysno")
+                end
+                =#
+                @assert pfno > 0 "pfno non-positive for pid=$pid data_year=$(hh.data_year) pfno=$pnfo"
                 # pfbu += 1
                 from_child_record = pid in bus[buno].children
                 incrow = frames.income[sysno][pfno,:]
@@ -532,10 +549,10 @@ const EXTRA_INC_COLS = 17
                     incrow.excise_cider = hres.indirect.excise_cider
                     incrow.excise_wine = hres.indirect.excise_wine
                     incrow.excise_tobacco = hres.indirect.excise_tobacco        
-                end
-                            
+                end                            
             end # person loop
         end # bu loop
+        @assert np == npp "not all people allocated; actual people=$np allocated people $npp"
     end
 
     """

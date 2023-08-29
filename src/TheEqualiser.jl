@@ -62,6 +62,7 @@ mutable struct RunParameters{T<:AbstractFloat}
     params :: TaxBenefitSystem{T}
     settings :: Settings
 	base_cost :: T
+    iterations :: Int 
     target :: EqTargets
     obs    :: Observable
 end
@@ -138,8 +139,11 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.loctax.ct.house_values = hvals
     rparams.params.othertaxes = othvals 
     rparams.params.indirect.vat = vat
+    rparams.iterations += 1
     summary = summarise_frames!(results, rparams.settings)
-    nc = summary.income_summary[1][1,:net_cost]
+    nc = summary.income_summary[1][1,:net_inc_indirect]
+    println( "nc = $nc rparams.base_cost=$(rparams.base_cost) iterations=$(rparams.iterations) delta=$x target=$(rparams.target)")
+    rparams.obs[]=Progress( rparams.settings.uuid, "equalising", rparams.iterations, 0, 0, 0 )
     return round( nc - rparams.base_cost, digits=0 )
 end
 
@@ -154,7 +158,7 @@ function equalise(
     base_cost :: T,
     observer :: Observable ) :: T where T<:AbstractFloat  
     zerorun = ZeroProblem( run, 0.0 ) # fixme guess at 0.0 ?
-    rparams = RunParameters( sys, settings, base_cost, target, observer )
+    rparams = RunParameters( sys, settings, base_cost, 0, target, observer )
     incch = solve( zerorun, rparams )
     #
     # TODO test incch is sensible 

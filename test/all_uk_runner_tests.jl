@@ -35,16 +35,6 @@ of = on(obs) do p
     println(tot)
 end
 
-function make_default_settings() :: Settings
-    # settings = Settings()
-    settings = get_all_uk_settings_2023()
-    settings.do_marginal_rates = false
-    settings.requested_threads = 4
-    settings.means_tested_routing = uc_full
-    settings.do_health_esimates = true
-    return settings
-  end
-
 const targets = [ :label,
     :income_tax,  :national_insurance,  :local_taxes,  :social_fund_loan_repayment,  
     :student_loan_repayments,  :care_insurance,  :child_benefit,  :state_pension,  
@@ -61,9 +51,9 @@ const targets = [ :label,
     :housing_benefit,  :free_school_meals,  :universal_credit,  :other_benefits]
 
 function do_basic_uk_run()
-    settings = make_default_settings()
+    settings = get_all_uk_settings_2023()
     settings.run_name="all-uk-run-$(date_string())"
-    sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=true)]
+    sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=false)]
     println( sys[1].ni)
     tot = 0
     # force reset of data to use UK dataset
