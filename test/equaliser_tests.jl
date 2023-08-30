@@ -116,7 +116,7 @@ end
     base = get_system(year=2023, scotland=false )
     sys = get_system(year=2023, scotland=false )
     sys.ubi.abolished = false
-    sys.it.personal_allowance = 0.0
+    # sys.it.personal_allowance = 0.0
     make_ubi_pre_adjustments!( sys )
     base_res = do_one_run(
         settings,

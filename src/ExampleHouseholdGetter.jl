@@ -19,6 +19,20 @@ EXAMPLE_HOUSEHOLDS = Dict{String,Household}()
 
 KEYMAP = Vector{AbstractString}()
 
+"""
+FIXME FIXME FIXME
+"""
+function find_consumption_for_example!( hh, settings )
+    sv_hid = hh.hid
+    sv_data_year = hh.data_year
+    hh.hid = 1
+    hh.data_year = 2020
+
+    find_consumption_for_hh!( hh, settings, 1 )
+
+    hh.hid = sv_hid
+    hh.data_year = sv_data_year
+end
 
 """
 return number of households available
@@ -42,8 +56,10 @@ function initialise(
         hhf = hh_dataset[hseq,:]
         push!( KEYMAP, hhf.name )
         println( "loading $(hhf.name) $(hhf.council)")
-        EXAMPLE_HOUSEHOLDS[hhf.name] = load_hhld_from_frame( 
+        hh = load_hhld_from_frame( 
             hseq, hhf, people_dataset, ExampleSource, settings )
+        find_consumption_for_example!( hh, settings )
+        EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
     end
     return KEYMAP
