@@ -10,6 +10,7 @@ using CSV
 using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold: Household
+using .ConsumptionData: find_consumption_for_hh!
 using .HouseholdFromFrame: load_hhld_from_frame
 using .RunSettings: Settings
 
