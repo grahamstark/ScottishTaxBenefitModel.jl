@@ -28,9 +28,7 @@ function find_consumption_for_example!( hh, settings )
     sv_data_year = hh.data_year
     hh.hid = 1
     hh.data_year = 2021
-    if settings.indirect_method == matching
-        find_consumption_for_hh!( hh, settings, 1 )
-    end
+    find_consumption_for_hh!( hh, settings, 1 )
     hh.hid = sv_hid
     hh.data_year = sv_data_year
 end
@@ -59,7 +57,9 @@ function initialise(
         println( "loading $(hhf.name) $(hhf.council)")
         hh = load_hhld_from_frame( 
             hseq, hhf, people_dataset, ExampleSource, settings )
-        find_consumption_for_example!( hh, settings )
+        if settings.indirect_method == matching
+            find_consumption_for_example!( hh, settings )
+        end
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
     end
