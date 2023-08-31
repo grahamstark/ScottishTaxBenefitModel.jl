@@ -12,7 +12,7 @@ using .Definitions
 using .ModelHousehold: Household
 using .ConsumptionData: find_consumption_for_hh!
 using .HouseholdFromFrame: load_hhld_from_frame
-using .RunSettings: Settings
+using .RunSettings
 
 export  initialise, get_household
 
@@ -27,10 +27,10 @@ function find_consumption_for_example!( hh, settings )
     sv_hid = hh.hid
     sv_data_year = hh.data_year
     hh.hid = 1
-    hh.data_year = 2020
-
-    find_consumption_for_hh!( hh, settings, 1 )
-
+    hh.data_year = 2021
+    if settings.indirect_method == matching
+        find_consumption_for_hh!( hh, settings, 1 )
+    end
     hh.hid = sv_hid
     hh.data_year = sv_data_year
 end

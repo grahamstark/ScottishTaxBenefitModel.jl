@@ -15,6 +15,7 @@ using .STBParameters
 using .Uprating
 using .Utils
 using .Monitor: Progress
+using .ExampleHouseholdGetter
 
 settings = Settings()
 
@@ -49,6 +50,16 @@ end
             println( hh.expenditure )
             println( hh.factor_costs )
         end
+    end
+end
+
+@testset "test examples consumption" begin
+    settings = get_all_uk_settings_2023() # so, with expenditure == matching jammed on
+    @test settings.indirect_method == matching
+    keys = ExampleHouseholdGetter.initialise( settings )
+    for k in keys
+        hh = ExampleHouseholdGetter.get_household( k )
+        @test ! isnothing(hh.expenditure)
     end
 end
 
