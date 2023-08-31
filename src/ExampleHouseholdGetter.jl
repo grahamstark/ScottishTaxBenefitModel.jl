@@ -28,7 +28,10 @@ function find_consumption_for_example!( hh, settings )
     sv_data_year = hh.data_year
     hh.hid = 1
     hh.data_year = 2021
+    println( "finding consumption for $sv_hid $sv_data_year")
     find_consumption_for_hh!( hh, settings, 1 )
+    @assert ! isnothing( hh.factor_costs )
+    @assert ! isnothing( hh.expenditure )
     hh.hid = sv_hid
     hh.data_year = sv_data_year
 end
