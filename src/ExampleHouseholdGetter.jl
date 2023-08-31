@@ -25,7 +25,8 @@ FIXME FIXME FIXME
 """
 function find_consumption_for_example!( hh, settings )
     if size(ConsumptionData.IND_MATCHING)[1] == 0
-        # lazy load matching data if we need it
+        # Lazy load matching data if we need to.
+        println( "initialising consumption data.")
         ConsumptionData.init(settings)
     end
     sv_hid = hh.hid

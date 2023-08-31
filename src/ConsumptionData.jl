@@ -190,6 +190,10 @@ Quick n dirty uprating using nominal gdp for everything for now. Factor costs ar
 function uprate_expenditure( settings :: Settings )
     ## TODO much more specific uprating factors - just nom_gdp for now
     ## TODO just add q into created dataset 
+    # more lazy loading - prices
+    if isnothing(Uprating.UPRATING_DATA)
+        Uprating.load_prices( settings )
+    end
     nms = names( EXPENDITURE_DATASET )
     nr = size(EXPENDITURE_DATASET)[1]
     for i in 1:nr 

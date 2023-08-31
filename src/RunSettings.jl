@@ -117,8 +117,12 @@ module RunSettings
         included_nations = [N_Scotland]
 
         indirect_method =  no_method 
-        indirect_matching_dataframe = ""
-        expenditure_dataset = ""
+        # indirect_matching_dataframe = ""
+        # expenditure_dataset = ""
+        # FIXME: note these are UK dataframes! 
+        indirect_matching_dataframe = "frs2020_lcf2018-20_matches_all_uk"
+        expenditure_dataset = "lcf_subset-2018-2020"
+
         wealth_method = no_method
         do_indirect_tax_calculations = false
     end
