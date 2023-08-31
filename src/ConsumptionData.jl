@@ -214,8 +214,7 @@ function uprate_expenditure( settings :: Settings )
                 f[sym] /= 1.05
             elseif sym in DEFAULT_STANDARD_RATE
                 f[sym] /= 1.20
-            end
-            
+            end           
             f[sym] = Uprating.uprate( f[sym], y, q, Uprating.upr_nominal_gdp )
         end
     end

@@ -24,6 +24,10 @@ KEYMAP = Vector{AbstractString}()
 FIXME FIXME FIXME
 """
 function find_consumption_for_example!( hh, settings )
+    if size(ConsumptionData.IND_MATCHING)[1] == 0
+        # lazy load matching data if we need it
+        ConsumptionData.init(settings)
+    end
     sv_hid = hh.hid
     sv_data_year = hh.data_year
     hh.hid = 1
