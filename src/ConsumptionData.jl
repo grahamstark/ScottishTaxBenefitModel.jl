@@ -222,7 +222,7 @@ function uprate_expenditure( settings :: Settings )
             elseif sym in DEFAULT_STANDARD_RATE
                 f[sym] /= 1.20
             end           
-            f[sym] = Uprating.uprate( f[sym], y, q, Uprating.upr_nominal_gdp )
+            f[sym] = Uprating.uprate( f[sym], y, q, Uprating.upr_nominal_gdp ) * EVIL_VAT_HACK
         end
     end
 end
@@ -236,7 +236,7 @@ function init( settings :: Settings; reset = false )
         EXPENDITURE_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
         FACTOR_COST_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
         println( EXPENDITURE_DATASET[1:2,:])
-        uprate_expenditure(  settings )
+        uprate_expenditure( settings )
     end
 end
 
