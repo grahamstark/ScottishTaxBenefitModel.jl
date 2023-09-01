@@ -184,6 +184,9 @@ function find_consumption_for_hh!( hh :: Household, settings :: Settings, which 
     @assert ! isnothing( hh.factor_costs )
 end
 
+# FIXME FIXME CHAOTIC EVIL this is the diff between actual 157bn and crude modelled VAT receipts of 102mb. 2022
+const EVIL_VAT_HACK = 157_546/102_758
+
 """
 Quick n dirty uprating using nominal gdp for everything for now. Factor costs are just ex VAT not excise duties.
 """
@@ -209,7 +212,7 @@ function uprate_expenditure( settings :: Settings )
         f.income =  Uprating.uprate( f.income, y, q, Uprating.upr_earnings )
         for n in LFS_CATEGORIES
             sym = Symbol(n)
-            r[sym] = Uprating.uprate( r[sym], y, q, Uprating.upr_nominal_gdp )
+            r[sym] = Uprating.uprate( r[sym], y, q, Uprating.upr_nominal_gdp ) * EVIL_VAT_HACK
             ### FIXME WE NEED EXCISE DUTIES HERE AND PARAMETERISE THESE NUMBERS. See GeneralTaxComponents.jl for
             ## proper factor cost calcs
             if sym in DEFAULT_EXEMPT

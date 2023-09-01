@@ -159,9 +159,7 @@ function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate
     if itype == upr_no_uprate
         return item
     end
-    
     global Uprate_Map
-    # global FROM_Y, FROM_Q
     colsym = Uprate_Map[itype]
     p = UPRATING_DATA[((UPRATING_DATA.year.==from_y).&(UPRATING_DATA.q.==from_q)), colsym][1]
     return item * p
