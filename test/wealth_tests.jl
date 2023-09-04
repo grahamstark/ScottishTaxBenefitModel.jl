@@ -22,7 +22,8 @@ using StatsBase
 
 @testset "Wealth Tax Examples" begin
     sys = get_system( year=2023, scotland=true )
-    sys.othertaxes.wealth_tax = 0.01
+    sys.wealth.rates = [0.01]
+    sys.wealth.thresholds = []
     hh = make_hh()
     println( INCOME_TAXES )
     t = [0,0,0.0,0.0,90_000.00]
@@ -31,7 +32,7 @@ using StatsBase
         hres = init_household_result( hh )
         calculate_other_taxes!( hres, hh, sys.othertaxes )
         aggregate!( hh, hres )
-        @test hres.income[OTHER_TAX] ≈ max(0,w-sys.othertaxes.wealth_allowance) *sys.othertaxes.wealth_tax
+        @test hres.income[OTHER_TAX] ≈ max(0,w-sys.wealth.allowance) *sys.wealth.rates[1]
         println( "hres.bhc_net_income=$(hres.bhc_net_income)" )
     end
 end
@@ -55,7 +56,8 @@ end
     # FIXME 2019->2023
     sys1 = get_system(year=2023, scotland=false)
     sys2 = deepcopy(sys1)
-    sys2.othertaxes.wealth_tax = 0.01/WEEKS_PER_YEAR
+    sys.wealth.rates = [0.01]
+    sys.wealth.thresholds = []
     sys = [sys1, sys2]    
     results = do_one_run( settings, sys, obs )
     outf = summarise_frames!( results, settings )

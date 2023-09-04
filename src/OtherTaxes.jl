@@ -14,9 +14,14 @@ Flat rate wealth tax, assigned soley to HH head.
 function calculate_wealth_tax!(     
     household_result :: HouseholdResult,
     hh               :: Household,
-    sys              :: OtherTaxesSys )
+    sys              :: WealthTax )
     hd = get_head( hh )
+    pres = household_result.bus[1].pers[ hd.pid ]
     wealth = 0.0
+    # to individual level 
+    if sys.wealth.abolished > 0
+        return
+    end
     if net_physical_wealth in sys.included_wealth 
         wealth += hh.net_physical_wealth
     end 
@@ -30,9 +35,11 @@ function calculate_wealth_tax!(
         wealth += hh.net_pension_wealth
     end 
 
-    wealth = max( 0.0, wealth - sys.wealth_allowance )
-    wt = wealth * sys.wealth_tax 
-    household_result.bus[1].pers[ hd.pid ].income[OTHER_TAX] += wt
+    wealth = max( 0.0, wealth - sys.allowance )
+    wtax = calctaxdue( taxable=wealth, rates=sys.rates, thresholds=sys.thresholds )
+    pres.wealth.total = wtax.due 
+    pres.wealth.weekly_equiv = pres.wealth.total * sys.weekly_rate
+    household_result.bus[1].pers[ hd.pid ].income[OTHER_TAX] += pres.wealth.weekly_equiv
 end
 
 """
@@ -65,10 +72,6 @@ function calculate_other_taxes!(
     household_result :: HouseholdResult,
     hh               :: Household,
     sys              :: OtherTaxesSys )
-    if sys.wealth_tax > 0
-        calculate_wealth_tax!(     
-            household_result, hh, sys )
-    end
     if sys.corporation_tax_changed
         calculate_corporation_tax!( household_result, hh, sys )
     end

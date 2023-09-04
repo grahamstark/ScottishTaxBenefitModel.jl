@@ -948,17 +948,30 @@ I	More than £424,000
     end
 
     @with_kw mutable struct OtherTaxesSys{RT<:Real}
-        wealth_tax :: RT = 0.0
-        wealth_allowance :: RT = 1_000_000.0
+        corporation_tax_changed = false
+        implicit_wage_tax :: RT = 0.0
+    end
+
+    # these are roughly the parameters 
+    @with_kw mutable struct WealthTaxSys{RT<:Real}
+        abolished :: Boolean = true
+        one_off :: Boolean = true
+        payment_years :: Int = 0
+        weekly_rate :: RT = zero(RT)
+        rates :: RateBands{RT} =  [zero(RT)]
+        thresholds :: RateBands{RT} =  [zero(RT)]
+        allowance :: RT = zero(RT)
         included_wealth = WealthSet([
             net_physical_wealth,
             net_financial_wealth,
             net_housing_wealth])
-            # see: https://www.wealthandpolicy.com/wp/EP8_TaxBase.pdf 
-            # for arguments for ignoring pensions. Pragmatic one is
-            # results look silly. net_pension_wealth])
-        corporation_tax_changed = false
-        implicit_wage_tax :: RT = 0.0
+    end
+
+    function weeklyise!( wealth :: WealthTaxSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+        wealth.weekly_rate = 0.0
+        if( wealth.payment_years > 0 ) && (!wealth.one_off)
+            wealth.weekly_rate = 1/(wealth.payment_years*wpy)
+        end
     end
 
     function weeklyise!( ubi :: UBISys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
@@ -975,7 +988,7 @@ I	More than £424,000
         othertaxes :: OtherTaxesSys; 
         wpm=WEEKS_PER_MONTH, 
         wpy=WEEKS_PER_YEAR )
-        othertaxes.wealth_tax /= 100.0
+        # othertaxes.wealth_tax /= 100.0
         othertaxes.implicit_wage_tax /= 100.0
     end
 
@@ -1022,6 +1035,7 @@ I	More than £424,000
         nmt_bens = NonMeansTestedSys{RT}()
         bencap = BenefitCapSys{RT}()
         ubi = UBISys{RT}()
+        wealth = WealthTaxSys{RT}()
         othertaxes = OtherTaxesSys{RT}()
         indirect = IndirectTaxSystem{RT}()
     end
@@ -1116,6 +1130,7 @@ I	More than £424,000
         weeklyise!( tb.bencap; wpm=wpm, wpy=wpy )
         weeklyise!( tb.ubi; wpm=wpm, wpy=wpy )
         weeklyise!( tb.othertaxes; wpm=wpm, wpy=wpy)
+        weeklyise!( tb.wealth; wpm=wpm, wpy=wpy)
         weeklyise!( tb.indirect; wpm=wpm, wpy=wpy )
     end
     

@@ -81,7 +81,7 @@ module Results
         ctr :: RT = zero(RT)
         recipient :: BigInt = -1
     end
-               
+        
     @with_kw mutable struct LMTIncomes{RT<:Real}
         gross_earnings :: RT = zero(RT)
         net_earnings   :: RT = zero(RT)
@@ -188,6 +188,11 @@ module Results
         it.excise_tobacco
     end
 
+    @with_kw  mutable struct WealthTaxResult{RT<:Real}
+        total_payable:: RT = zero(RT) 
+        weekly_equiv :: RT = zero(RT)
+    end
+       
     @with_kw mutable struct NIResult{RT<:Real}
         above_lower_earnings_limit :: Bool = false
         # total_ni :: RT = 0.0
@@ -242,6 +247,7 @@ module Results
        net_income :: RT = zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
+       wealth = WealthTaxResult{RT}()
        metr :: RT = -12345.0
        replacement_rate :: RT = zero(RT)
        income = STBIncomes.make_a( RT );
@@ -416,7 +422,12 @@ module Results
         end
         return t
     end
-    
+
+    function add_to!( wealth :: WealthTaxResult, wealth2 :: WealthTaxResult )
+        wealth.weekly_equiv += wealth2.weekly_equiv
+        wealth.total_payable += wealth2.total_payable
+    end
+
     function add_to!( ni :: NIResult, ni2 :: NIResult )
         # ni.above_lower_earnings_limit += ni2.above_lower_earnings_limit
         # ni.total_ni += ni2.total_ni
@@ -467,9 +478,11 @@ module Results
         pids = include_children ? keys( bu.pers ) : bu.adults
         it = ITResult{T}()
         ni = NIResult{T}()
+        wealth = WealthTaxResult{T}()
         for pid in pids
             add_to!( it, bu.pers[pid].it )
             add_to!( ni, bu.pers[pid].ni )
+            add_to!( wealth, bu.pers[pid].wealth )
         end
         return (it,ni)
     end

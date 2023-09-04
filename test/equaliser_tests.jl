@@ -91,7 +91,7 @@ end
         settings, 
         base_cost, 
         obs )
-    sys.othertaxes.wealth_tax = eq
+    sys.wealth.rates .+=  = eq
     println( "VAT change is $eq")
     ubi_res = do_one_run(
         settings,
@@ -105,7 +105,7 @@ end
     println( "needs tax rise of $eq")
     net_cost = ubi_cost - base_cost
     println( "net_cost=$net_cost" )
-    println( "taxrates $(sys.othertaxes.wealth_tax*WEEKS_PER_YEAR*100)%")
+    println( "taxrates $(sys.wealth.rates.*100)%")
     println("ubi summary")
     CSV.write( "ubi_summary.income_summary_wealth.csv", ubi_summary.income_summary[1] )
     # pretty_table( ubi_summary.income_summary[1][1,:] )

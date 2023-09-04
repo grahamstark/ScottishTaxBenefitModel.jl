@@ -81,6 +81,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     npptrate = rparams.params.loctax.ppt.rate
     hvals = deepcopy(rparams.params.loctax.ct.house_values)
     othvals = deepcopy(rparams.params.othertaxes )
+    wealth = deepcopy( rparams.params.wealth )
     vat = deepcopy(rparams.params.indirect.vat )
 
     if rparams.target in [eq_it, eq_it_ni]
@@ -110,7 +111,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     end
 
     if rparams.target == eq_wealth_tax
-        rparams.params.othertaxes.wealth_tax += x
+        rparams.params.wealth.rates .+= x
     end
     if rparams.target == eq_corporation_tax
         rparams.params.othertaxes.implicit_wage_tax += x
@@ -139,6 +140,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.loctax.ct.house_values = hvals
     rparams.params.othertaxes = othvals 
     rparams.params.indirect.vat = vat
+    rparams.params.wealth = wealth
     rparams.iterations += 1
     summary = summarise_frames!(results, rparams.settings)
     nc = summary.income_summary[1][1,:net_inc_indirect]

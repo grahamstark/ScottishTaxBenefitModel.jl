@@ -1991,56 +1991,12 @@ export WealthTypes,net_physical_wealth,net_financial_wealth,
 @enum WealthTypes net_physical_wealth net_financial_wealth net_housing_wealth net_pension_wealth
 WealthSet = Set{WealthTypes}
 
-# see https://www.gov.uk/guidance/rates-of-vat-on-different-goods-and-services
+export AggregationLevel, individual, benefit_unit, household 
 
-#== NOT USED
-export BroadConsumptionCategories,
-   BroadConsumptionSet,
-   sports,
-   sweets,
-   catered_foods, 
-   other_foods,
-   alcohol,
-   live_animals, 
-   sport_and_pe,
-   leisure_and_gambling, 
-   health_products,
-   education,
-   domestic_fuel,
-   water_and_sewage,
-   energy_saving_goods,
-   heating_equipment,
-   stationery,
-   books_and_newspapers,
-   childrens_clothers,
-   financial_services,
-   insurance,
-   all_other_goods
-
-@enum BroadConsumptionCategories begin 
-   sports 
-   sweets 
-   catered_foods 
-   other_foods
-   alcohol 
-   live_animals 
-   sport_and_pe
-   leisure_and_gambling 
-   health_products
-   education
-   domestic_fuel
-   water_and_sewage
-   energy_saving_goods
-   heating_equipment
-   stationery
-   books_and_newspapers
-   childrens_clothers
-   financial_services
-   insurance
-   all_other_goods
+@enum AggregationLevel begin
+   individual
+   benefit_unit
+   household 
 end
-
-const BroadConsumptionSet = Set{BroadConsumptionCategories}
-=#
 
 end # module
