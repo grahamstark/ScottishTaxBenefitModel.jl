@@ -682,7 +682,9 @@ const EXTRA_INC_COLS = 18
         ns = Symbol.(colnames)
         select!( sort!(vhh, col), ns... )
         # next one not needed?? 
-        vhh."Average Change(£s)" = combine(groupby( dhh, [col]),(:weighted_change=>sum))[:,2]
+        avch = combine( groupby( dhh, [col]),(:weighted_change=>sum))
+        sort!( avch, col )
+        vhh."Average Change(£s)" = avch[:,2]
         glf = coalesce.( vhh, 0.0)
         # add an average change column
         return glf
