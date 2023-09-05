@@ -91,7 +91,7 @@ end
         settings, 
         base_cost, 
         obs )
-    sys.wealth.rates .+=  = eq
+    sys.wealth.rates .+= eq
     println( "VAT change is $eq")
     ubi_res = do_one_run(
         settings,

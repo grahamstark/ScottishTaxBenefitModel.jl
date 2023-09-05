@@ -715,7 +715,7 @@ const EXTRA_INC_COLS = 18
             in_poverty = prehh.in_poverty,
             change = posthh[:, incomes_col] - prehh[:,incomes_col],
         )
-        dhh.weighted_change = dhh.change .* dhh.weight # for average gains 
+        dhh.weighted_change = (dhh.change .* dhh.weight) ./ sum( dhh.weight ) # for average gains 
         ten_gl = one_gain_lose( dhh, :tenure )
         dec_gl = one_gain_lose( dhh, :decile )
         children_gl = one_gain_lose( dhh, :num_children )
