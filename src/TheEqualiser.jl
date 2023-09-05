@@ -112,6 +112,8 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
 
     if rparams.target == eq_wealth_tax
         rparams.params.wealth.rates .+= x
+        # Make the weekly equivalent rate which is what actually generates the costs.
+        weeklyise!( rparams.params.wealth )
     end
     if rparams.target == eq_corporation_tax
         rparams.params.othertaxes.implicit_wage_tax += x

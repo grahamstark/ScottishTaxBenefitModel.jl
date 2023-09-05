@@ -19,7 +19,7 @@ function calculate_wealth_tax!(
     hd = get_head( hh )
     pres = household_result.bus[1].pers[ hd.pid ]
     wealth = 0.0
-    # to individual level 
+    # FIXME TODO to individual level 
     if sys.abolished > 0
         return
     end
