@@ -681,8 +681,9 @@ const EXTRA_INC_COLS = 18
         end
         ns = Symbol.(colnames)
         select!( sort!(vhh, col), ns... )
-        # next one not needed?? 
+        # average change column - sum of weighted changes (since they're already divided by total popn) 
         avch = combine( groupby( dhh, [col]),(:weighted_change=>sum))
+        # ... put av changes in the right order
         sort!( avch, col )
         vhh."Average Change(£s)" = avch[:,2]
         glf = coalesce.( vhh, 0.0)
