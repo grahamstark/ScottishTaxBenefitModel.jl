@@ -661,9 +661,16 @@ const EXTRA_INC_COLS = 18
         (; ten_gl, children_gl )
     end
 
+    """
+    Convoluted approach to making an IFS style Gain-Lose table
+    @param dhh - a little frame with a bunch of categories and a net-income field (change)
+    @param col - which of the symbols to build a gl table from.
+    @return gl table as a dataframe.
+    """
     function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
-
+        # add a column of strings - "Lose over £10" and so on - from the 'change' column
         dhh.gainlose = gl.(dhh.change)
+        # group by some column (decile, tenure, etc) and then 
         ghh = combine(groupby( dhh, [col,:gainlose] ),(:weight=>sum))
         colnames = [String(col), GL_COLNAMES...]
         vhh = unstack( ghh, :gainlose, :weight_sum )
@@ -674,7 +681,11 @@ const EXTRA_INC_COLS = 18
         end
         ns = Symbol.(colnames)
         select!( sort!(vhh, col), ns... )
-        return coalesce.( vhh, 0.0)
+        # next one not needed?? 
+        glf = coalesce.( vhh, 0.0)
+        # add an average change column
+        glf."Average Change(£s)" = combine(groupby( dhh, [col]),(:weighted_change=>mean))[:,2]
+        return glf
     end
 
     @enum PctDirection by_row by_col by_totals
@@ -702,9 +713,9 @@ const EXTRA_INC_COLS = 18
             hh_type = prehh.hh_type,
             num_children = prehh.num_children,            
             in_poverty = prehh.in_poverty,
-            change = posthh[:, incomes_col] - prehh[:,incomes_col]
+            change = posthh[:, incomes_col] - prehh[:,incomes_col],
         )
-
+        dhh.weighted_change = dhh.change .* dhh.weight # for average gains 
         ten_gl = one_gain_lose( dhh, :tenure )
         dec_gl = one_gain_lose( dhh, :decile )
         children_gl = one_gain_lose( dhh, :num_children )
