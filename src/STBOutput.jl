@@ -684,7 +684,7 @@ const EXTRA_INC_COLS = 18
         # next one not needed?? 
         glf = coalesce.( vhh, 0.0)
         # add an average change column
-        glf."Average Change(£s)" = combine(groupby( dhh, [col]),(:weighted_change=>mean))[:,2]
+        glf."Average Change(£s)" = combine(groupby( dhh, [col]),(:weighted_change=>sum))[:,2]
         return glf
     end
 
@@ -713,7 +713,7 @@ const EXTRA_INC_COLS = 18
             hh_type = prehh.hh_type,
             num_children = prehh.num_children,            
             in_poverty = prehh.in_poverty,
-            change = posthh[:, incomes_col] - prehh[:,incomes_col],
+            change = posthh[:, incomes_col] - prehh[:,incomes_col]
         )
         dhh.weighted_change = (dhh.change .* dhh.weight) ./ sum( dhh.weight ) # for average gains 
         ten_gl = one_gain_lose( dhh, :tenure )
