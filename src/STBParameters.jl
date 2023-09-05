@@ -36,7 +36,7 @@ module STBParameters
     export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
     export NonMeansTestedSys, MaternityAllowance, ChildLimits
     export BenefitCapSys, make_ubi_pre_adjustments!
-    export OtherTaxesSys, IndirectTaxSystem, VATSystem
+    export OtherTaxesSys, IndirectTaxSystem, VATSystem, WealthTaxSys
 
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
@@ -954,13 +954,14 @@ I	More than £424,000
 
     # these are roughly the parameters 
     @with_kw mutable struct WealthTaxSys{RT<:Real}
-        abolished :: Boolean = true
-        one_off :: Boolean = true
+        abolished :: Bool = true
+        one_off :: Bool = true
         payment_years :: Int = 0
         weekly_rate :: RT = zero(RT)
         rates :: RateBands{RT} =  [zero(RT)]
         thresholds :: RateBands{RT} =  [zero(RT)]
         allowance :: RT = zero(RT)
+        aggregation :: AggregationLevel = household
         included_wealth = WealthSet([
             net_physical_wealth,
             net_financial_wealth,
@@ -969,7 +970,7 @@ I	More than £424,000
 
     function weeklyise!( wealth :: WealthTaxSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         wealth.weekly_rate = 0.0
-        if( wealth.payment_years > 0 ) && (!wealth.one_off)
+        if( wealth.payment_years > 0 ) && (wealth.one_off)
             wealth.weekly_rate = 1/(wealth.payment_years*wpy)
         end
     end

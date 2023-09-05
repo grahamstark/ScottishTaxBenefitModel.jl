@@ -85,7 +85,7 @@ using .ScottishBenefits:
 
 using .UBI: calc_UBI!, make_ubi_post_adjustments!
 
-using .OtherTaxes: calculate_other_taxes!
+using .OtherTaxes: calculate_other_taxes!, calculate_wealth_tax!
 
 export do_one_calc
 
@@ -219,6 +219,9 @@ function do_one_calc(
     end
     if ! sys.ubi.abolished
         make_ubi_post_adjustments!( hres, sys.ubi )
+    end
+    if ! sys.wealth.abolished
+        calculate_wealth_tax!( hres, hh, sys.wealth )
     end
     
     calculate_other_taxes!( hres, hh, sys.othertaxes )

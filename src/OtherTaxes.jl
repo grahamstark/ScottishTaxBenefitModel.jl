@@ -2,11 +2,12 @@ module OtherTaxes
 
 using ScottishTaxBenefitModel
 using .Definitions
+using .GeneralTaxComponents: calctaxdue
 using .ModelHousehold
 using .Results
 using .STBParameters
 using .STBIncomes 
-export calculate_other_taxes!
+export calculate_other_taxes!, calculate_wealth_tax!
 
 """
 Flat rate wealth tax, assigned soley to HH head.
@@ -14,12 +15,12 @@ Flat rate wealth tax, assigned soley to HH head.
 function calculate_wealth_tax!(     
     household_result :: HouseholdResult,
     hh               :: Household,
-    sys              :: WealthTax )
+    sys              :: WealthTaxSys )
     hd = get_head( hh )
     pres = household_result.bus[1].pers[ hd.pid ]
     wealth = 0.0
     # to individual level 
-    if sys.wealth.abolished > 0
+    if sys.abolished > 0
         return
     end
     if net_physical_wealth in sys.included_wealth 
@@ -34,11 +35,11 @@ function calculate_wealth_tax!(
     if net_pension_wealth in sys.included_wealth 
         wealth += hh.net_pension_wealth
     end 
-
+    # println( "hh $(hh.hid); got wealth as $wealth")
     wealth = max( 0.0, wealth - sys.allowance )
     wtax = calctaxdue( taxable=wealth, rates=sys.rates, thresholds=sys.thresholds )
-    pres.wealth.total = wtax.due 
-    pres.wealth.weekly_equiv = pres.wealth.total * sys.weekly_rate
+    pres.wealth.total_payable = wtax.due 
+    pres.wealth.weekly_equiv = pres.wealth.total_payable * sys.weekly_rate
     household_result.bus[1].pers[ hd.pid ].income[OTHER_TAX] += pres.wealth.weekly_equiv
 end
 
