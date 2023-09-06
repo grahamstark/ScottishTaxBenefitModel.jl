@@ -7,8 +7,10 @@
 # - write up, so why not just Engel curves?
 #
 using ScottishTaxBenefitModel
-using .Uprating,
+using .Definitions,
+      .Uprating,
       .RunSettings
+
 
 using CSV,
       DataFrames,
@@ -1086,6 +1088,10 @@ function frs_tenuremap( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
+function model_tenuremap(  t :: TenureType ) :: Vector{Int}
+    return frs_tenuremap( Int( t ) )
+end
+
 #=
  lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
  lcf     | 2020 | dvhh   | A121          | 1     | Local authority rented unfurn | Local_authority_rented_unfurn
@@ -1171,6 +1177,12 @@ function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
+function model_regionmap(  reg :: Standard_Region ) :: Vector{Int}
+    return frs_regionmap( Int( reg ))
+end
+
+
+
 """
  lcf     | 2020 | dvhh            | Gorx          | 1     | North East                | North_East
  lcf     | 2020 | dvhh            | Gorx          | 2     | North West and Merseyside | North_West_and_Merseyside
@@ -1237,14 +1249,94 @@ function composition_map( comp :: Int, mappings; default::Int ) Vector{Int}
     return out
 end
 
-function lcf_composition_map( a062 :: Int ) Vector{Int}
+function lcf_composition_map( a062 :: Int ) :: Vector{Int}
     mappings = (lcf1=[1],lcf2=[2],lcf3=[3,4],lcf4=[5,6],lcf5=[7,8],lcf6=[18,23,26,28],lcf7=[9,10],lcf8=[11,12],lcf9=[13,14,15,16,17],lcf10=[19,24,20,21,22,25,27,29,30])
     return composition_map( a062,  mappings, default=9998 )
 end
 
-function frs_composition_map( hhcomps :: Int ) Vector{Int}
+function frs_composition_map( hhcomps :: Int ) :: Vector{Int}
     mappings=(frs1=[1,3],frs2=[2,4],frs3=[9],frs4=[10],frs5=[5,6,7],frs6=[8],frs7=[12],frs8=[13],frs9=[14],frs10=[11,15,16,17])
     return composition_map( hhcomps,  mappings, default=9999 )
+end
+
+## Move to Intermediate 
+function model_composition_map( hh :: Household ) :: Vector{Int}
+    num_male_pens = 0
+    num_female_pens = 0
+    num_male_npens = 0
+    num_female_npens = 0
+    num_children = 0
+    for (k,p) in hh.people 
+        if p.from_child_record
+            num_children += 1
+        elseif p.sex == Male
+            if p.age >= 66
+                num_male_pens += 1
+            else 
+                num_male_npens += 1
+            end
+        else
+            if p.age >= 65
+                num_female_pens += 1
+            else 
+                num_female_npens += 1
+            end
+        end
+    end
+    c = -1
+    num_adults = num_male_npens + num_male_pens + num_female_npens + num_female_pens
+    num_penss = num_male_pens + num_female_pens
+    if num_adults == 1
+        if num_children == 0
+            c = if num_male_pens == 1
+                1
+            elseif num_female_pens == 1
+                2
+            elseif num_male_npens == 1
+                3
+            elseif num_female_npens == 1
+                4
+            end
+        else
+            c = if num_children == 1
+                9
+            elseif num_children == 2
+                10
+            elseif num_children >= 3
+                11
+            end
+        end
+    elseif num_adults == 2
+        if num_children == 0
+            c = if num_pens == 0
+                7
+            elseif num_pens == 1
+                6
+            elseif num_pens == 2
+                5
+            end
+        else
+            c = if num_children == 1
+                12
+            elseif num_children == 2
+                13
+            elseif num_children >= 3 
+                14
+            end
+        end
+    elseif num_adults >= 3
+        c = if num_children == 0
+            8
+        elseif num_children == 1
+            15
+        elseif num_children == 2
+            16
+        elseif num_children >= 3
+            17
+        end
+    end
+    @assert c in 1:17
+    return frs_composition_map( c )
 end
 
 
