@@ -94,8 +94,8 @@ Make a new dataframe with the difference between the fields between
 start_col and end_col and other fields just copied 
 diff is difference df2 - df1, Frames should have identical other cols.
 """
-function df_diff( df1, df2 :: DataFrame, start_col::Int, end_col :: Int  ) :: DataFrame
-   argch@eck size( df1 ) == size( df2 )
+function df_diff( df1 :: DataFrame, df2 :: DataFrame, start_col :: Int, end_col :: Int ) :: DataFrame
+   @argcheck size( df1 ) == size( df2 )
    ## maybe check that the non diffed fields are all the same too.. 
    d = copy(df1)
    d[:,start_col:end_col] = df2[:,start_col:end_col] .- df1[:,start_col:end_col]

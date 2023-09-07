@@ -11,6 +11,7 @@ module MatchingLibs
 #
 using ScottishTaxBenefitModel
 using .Definitions,
+      .ModelHousehold,
       .Uprating,
       .RunSettings
 
@@ -967,7 +968,7 @@ function frs_tenuremap( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
-function model_tenuremap(  t :: TenureType ) :: Vector{Int}
+function model_tenuremap(  t :: Tenure_Type ) :: Vector{Int}
     return frs_tenuremap( Int( t ) )
 end
 

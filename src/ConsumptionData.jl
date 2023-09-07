@@ -169,7 +169,7 @@ const DEFAULT_STANDARD_RATE = default_standard_rate()
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
-function find_consumption_for_hh!( hh :: Household, case :: Int, dataset :: Int )
+function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int )
     # println( "find_consumption_for_hh! matching to case $case datayear $datayear")
     hh.expenditure = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
     hh.factor_costs = FACTOR_COST_DATASET[(FACTOR_COST_DATASET.case .== case).&(FACTOR_COST_DATASET.datayear.==datayear),:][1,:]
