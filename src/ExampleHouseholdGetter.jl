@@ -24,7 +24,7 @@ KEYMAP = Vector{AbstractString}()
 
 function find_consumption_for_example!( hh, settings )
     @argcheck settings.indirect_method == matching
-    c = MatchingLibs.match_recip_row( hh1, ConsumptionData.EXPENDITURE_DATASET, MatchingLibs.example_lcf_match )[1]
+    c = MatchingLibs.match_recip_row( hh, ConsumptionData.EXPENDITURE_DATASET, MatchingLibs.example_lcf_match )[1]
     find_consumption_for_hh!( hh, c.case, c.datayear )
 end
 
