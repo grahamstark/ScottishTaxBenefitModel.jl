@@ -6,6 +6,7 @@ using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
 using Parameters
 using JSON3
+import Base.sum
 
 export 
    Employment_Status,  # mapped from empstat
@@ -1227,6 +1228,38 @@ end
 
 Incomes_Dict = Dict{Incomes_Type,T} where T<:Real
 Incomes_Set = Set{Incomes_Type}
+
+
+export sum 
+
+function Base.sum( i :: Incomes_Dict{T}, which :: Incomes_Set ) :: T where T <: Number
+   z = zero(T)
+   t = intersect( which, keys(i))
+   for k in t
+      v += i[k]
+  end
+  v
+end
+
+function ran( start :: Incomes_Type, stop :: Incomes_Type ) :: Incomes_Set
+   s = Incomes_Set()
+   for k in instances(Incomes_Type)
+       if k >= from 
+           push!(s,k)
+           if k == to
+               break
+           end
+       end
+   end
+   s
+end
+
+function Base.sum( i :: Incomes_Dict{T}; start :: Incomes_Type, stop :: Incomes_Type ) :: T where T <: Number
+   z = zero(T)
+   s = rand( start, stop )
+   return sum( i, s )
+end
+
 
 const Expenses = Incomes_Set([
    permanent_health_insurance,

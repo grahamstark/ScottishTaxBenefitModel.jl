@@ -169,6 +169,18 @@ const DEFAULT_STANDARD_RATE = default_standard_rate()
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
+function find_consumption_for_hh!( hh :: Household, case :: Int, dataset :: Int )
+    # println( "find_consumption_for_hh! matching to case $case datayear $datayear")
+    hh.expenditure = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
+    hh.factor_costs = FACTOR_COST_DATASET[(FACTOR_COST_DATASET.case .== case).&(FACTOR_COST_DATASET.datayear.==datayear),:][1,:]
+    @assert ! isnothing( hh.expenditure )
+    @assert ! isnothing( hh.factor_costs )
+end
+
+"""
+Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
+'which' best, 2nd best etc match (<=20)
+"""
 function find_consumption_for_hh!( hh :: Household, settings :: Settings, which :: Int )
     @argcheck settings.indirect_method == matching
     @argcheck which <= 20
@@ -177,11 +189,7 @@ function find_consumption_for_hh!( hh :: Household, settings :: Settings, which 
     lcf_datayear_sym = Symbol( "lcf_datayear_$(which)")
     case = match[lcf_case_sym]
     datayear = match[lcf_datayear_sym]
-    # println( "find_consumption_for_hh! matching to case $case datayear $datayear")
-    hh.expenditure = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
-    hh.factor_costs = FACTOR_COST_DATASET[(FACTOR_COST_DATASET.case .== case).&(FACTOR_COST_DATASET.datayear.==datayear),:][1,:]
-    @assert ! isnothing( hh.expenditure )
-    @assert ! isnothing( hh.factor_costs )
+    find_consumption_for_hh!( hh, case, datayear )
 end
 
 # FIXME FIXME CHAOTIC EVIL this is the diff between actual 157bn and crude modelled VAT receipts of 102mb. 2022

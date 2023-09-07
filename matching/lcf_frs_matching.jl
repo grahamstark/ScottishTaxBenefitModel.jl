@@ -78,6 +78,11 @@ function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
         datayear = lcf.datayear, 
         month = lcf.a055, 
         year= lcf.year,
+        a121 = lcf.a121,
+        gorx = lcf.gorx,
+        a065p  = lcf.a065p,
+        a062 = lcf.a062,
+
         any_wages = lcf.any_wages,
         any_pension_income = lcf.any_pension_income,
         any_selfemp = lcf.any_selfemp,
@@ -1487,6 +1492,36 @@ function frs_age_hrp( hhagegr4 :: Int ) :: Vector{Int}
     out
 end
 
+function model_age_hrp( age :: Int )
+    return if age < 20
+        1
+    elseif age < 25
+        2
+    elseif age < 30
+        3
+    elseif age < 35
+        4
+    elseif age < 40
+        5
+    elseif age < 45
+        6
+    elseif age < 50
+        7
+    elseif age < 55
+        8
+    elseif age < 60
+        9
+    elseif age < 65
+        10
+    elseif age < 70
+        11
+    elseif age < 75
+        12
+    elseif age >= 75
+        13
+    end
+end
+
 #=
 	Value = 3.0	Label =  15 but under 20 yrs
 	Value = 4.0	Label =  20 but under 25 yrs
@@ -1597,6 +1632,54 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     return t,incdiff
 end
 
+function example_lcf_match( hh :: Household, lcf :: DataFrameRow ) :: Tuple
+    t = 0.0
+    t += score( lcf_tenuremap( lcf.a121 ), model_tenuremap( hh.tenure ))
+    t += score( lcf_regionmap( lcf.gorx ), model_regionmap( model_region ))
+    # !!! both next missing in 2020 LCF FUCKKK 
+    # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
+    # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
+    t += score( lcf_age_hrp(  lcf.a065p ), frs_age_hrp( frs.hhagegr4 ))
+    t += score( lcf_composition_map( lcf.a062 ), frs_composition_map( frs.hhcomps ))
+    any_wages = false
+    any_selfemp = false
+    any_pension_income = false 
+    has_female_adult = false
+    hrp = get_head( hh )
+    income = 0.0
+    for (pid,pers) in hh.people
+        if get(pers.income,wages,0) > 0
+            any_wages = true
+        end
+        if get(pers.income,self_employment_income,0) > 0
+            any_selfemp = true
+        end
+        if (get(pers.income,private_pensions,0) > 0) || pers.age >= 66
+            any_pension_income = true
+        end
+        if (! pers.is_standard_child) && (pers.sex == Female )
+            has_female_adult = true
+        end
+        income += sum( pers.income, start=wages, stop=alimony_and_child_support_received ) # FIXME
+    end
+    t += lcf.any_wages == any_wages ? 1 : 0
+    t += lcf.any_pension_income == any_pension_income ? 1 : 0
+    t += lcf.any_selfemp == any_selfemp ? 1 : 0
+    t += lcf.hrp_unemployed == hrp.employment_status == Unemployed ? 1 : 0
+    t += lcf.hrp_non_white == hrp.ethnic_group !== White ? 1 : 0
+    # t += lcf.datayear == frs.datayear ? 0.5 : 0 # - a little on same year FIXME use date range
+    # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
+    t += Int(lcf.has_female_adult) == Int(has_female_adult) ? 1 : 0
+    t += score( lcf.num_children, num_children(hh) )
+    t += score( lcf.num_people, num_people(hh) )
+    # fixme should we include this at all?
+    incdiff = compare_income( lcf.income, income )
+    t += 10.0*incdiff
+    return t,incdiff
+
+
+end
+
 islessscore( l1::LCFLocation, l2::LCFLocation ) = l1.score < l2.score
 islessincdiff( l1::LCFLocation, l2::LCFLocation ) = l1.incdiff < l2.incdiff
 
@@ -1604,7 +1687,7 @@ islessincdiff( l1::LCFLocation, l2::LCFLocation ) = l1.incdiff < l2.incdiff
 Match one row in the FRS (recip) with all possible lcf matches (donor). Intended to be general
 but isn't really any more. FIXME: pass in a saving function so we're not tied to case/datayear.
 """
-function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: Function ) :: Vector{LCFLocation}
+function match_recip_row( recip, donor :: DataFrame, matcher :: Function ) :: Vector{LCFLocation}
     drows, dcols = size(donor)
     i = 0
     similar = Vector{LCFLocation}( undef, drows )
@@ -1619,6 +1702,8 @@ function match_recip_row( recip :: DataFrameRow, donor :: DataFrame, matcher :: 
     similar = sort( similar; lt=islessincdiff, rev=true )[1:NUM_SAMPLES]
     return similar
 end
+
+
 
 """
 Create a dataframe for storing all the matches. 
@@ -1671,6 +1756,11 @@ function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function ):
         end
     end
     return df
+end
+
+function map_example( example :: Household, donor :: DataFrame, matcher::Function )::LCFLocation
+    matches = map_recip_row( example, donor, matcher )
+    return matches[1]
 end
 
 """
