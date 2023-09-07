@@ -61,6 +61,9 @@ export HouseholdFromFrame
 include( "ConsumptionData.jl")
 export ConsumptionData
 
+include( "MatchingLibs.jl")
+export MatchingLibs
+
 include("ExampleHouseholdGetter.jl" )
 export ExampleHouseholdGetter
 
