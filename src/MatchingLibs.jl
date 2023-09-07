@@ -1165,7 +1165,7 @@ function model_composition_map( hh :: Household ) :: Vector{Int}
     end
     c = -1
     num_adults = num_male_npens + num_male_pens + num_female_npens + num_female_pens
-    num_penss = num_male_pens + num_female_pens
+    num_pens = num_male_pens + num_female_pens
     if num_adults == 1
         if num_children == 0
             c = if num_male_pens == 1

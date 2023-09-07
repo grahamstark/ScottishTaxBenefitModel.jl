@@ -41,6 +41,10 @@ function initialise(
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
+    # lazy load cons data if needs be
+    if settings.indirect_method == matching
+        ConsumptionData.init( settings ) 
+    end
     KEYMAP = Vector{AbstractString}()
     hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab", delim='\t' ) |> DataFrame
     people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab", delim='\t' ) |> DataFrame
