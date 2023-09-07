@@ -75,7 +75,7 @@ end
 """
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
-function make_lfs_subset( lfs :: DataFrame ) :: DataFrame
+function make_lfs_subset( lcf :: DataFrame ) :: DataFrame
     out = DataFrame( 
         case = lcf.case, 
         datayear = lcf.datayear, 
@@ -1147,7 +1147,7 @@ function model_composition_map( hh :: Household ) :: Vector{Int}
     num_female_npens = 0
     num_children = 0
     for (k,p) in hh.people 
-        if p.from_child_record
+    if p.is_standard_child
             num_children += 1
         elseif p.sex == Male
             if p.age >= 66
@@ -1367,7 +1367,7 @@ function frs_age_hrp( hhagegr4 :: Int ) :: Vector{Int}
     out
 end
 
-function model_age_hrp( age :: Int )
+function model_age_grp( age :: Int )
     return if age < 20
         1
     elseif age < 25
@@ -1508,19 +1508,19 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
 end
 
 function example_lcf_match( hh :: Household, lcf :: DataFrameRow ) :: Tuple
+    hrp = get_head( hh )
     t = 0.0
     t += score( lcf_tenuremap( lcf.a121 ), model_tenuremap( hh.tenure ))
-    t += score( lcf_regionmap( lcf.gorx ), model_regionmap( model_region ))
+    t += score( lcf_regionmap( lcf.gorx ), model_regionmap( hh.region ))
     # !!! both next missing in 2020 LCF FUCKKK 
     # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
     # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
-    t += score( lcf_age_hrp(  lcf.a065p ), frs_age_hrp( frs.hhagegr4 ))
-    t += score( lcf_composition_map( lcf.a062 ), frs_composition_map( frs.hhcomps ))
+    t += score( lcf_age_hrp(  lcf.a065p ), frs_age_hrp(model_age_grp( hrp.age )))
+    t += score( lcf_composition_map( lcf.a062 ), model_composition_map( hh ))
     any_wages = false
     any_selfemp = false
     any_pension_income = false 
     has_female_adult = false
-    hrp = get_head( hh )
     income = 0.0
     for (pid,pers) in hh.people
         if get(pers.income,wages,0) > 0

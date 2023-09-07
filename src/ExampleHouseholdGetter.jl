@@ -6,12 +6,14 @@ module ExampleHouseholdGetter
 #
 using DataFrames
 using CSV
+using ArgCheck
 
 using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold: Household
 using .ConsumptionData: find_consumption_for_hh!
 using .HouseholdFromFrame: load_hhld_from_frame
+using .MatchingLibs
 using .RunSettings
 
 export  initialise, get_household
@@ -20,25 +22,10 @@ EXAMPLE_HOUSEHOLDS = Dict{String,Household}()
 
 KEYMAP = Vector{AbstractString}()
 
-"""
-FIXME FIXME FIXME
-"""
 function find_consumption_for_example!( hh, settings )
-    if size(ConsumptionData.IND_MATCHING)[1] == 0
-        # Lazy load matching data if we need to.
-        println( "initialising consumption data.")
-        ConsumptionData.init(settings)
-    end
-    sv_hid = hh.hid
-    sv_data_year = hh.data_year
-    hh.hid = 1
-    hh.data_year = 2021
-    println( "finding consumption for $sv_hid $sv_data_year")
-    find_consumption_for_hh!( hh, settings, 1 )
-    @assert ! isnothing( hh.factor_costs )
-    @assert ! isnothing( hh.expenditure )
-    hh.hid = sv_hid
-    hh.data_year = sv_data_year
+    @argcheck settings.indirect_method == matching
+    c = MatchingLibs.match_recip_row( hh1, ConsumptionData.EXPENDITURE_DATASET, MatchingLibs.example_lcf_match )[1]
+    find_consumption_for_hh!( hh, c.case, c.datayear )
 end
 
 """

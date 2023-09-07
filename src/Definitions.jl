@@ -1233,7 +1233,7 @@ Incomes_Set = Set{Incomes_Type}
 export sum 
 
 function Base.sum( i :: Incomes_Dict{T}, which :: Incomes_Set ) :: T where T <: Number
-   z = zero(T)
+   v = zero(T)
    t = intersect( which, keys(i))
    for k in t
       v += i[k]
@@ -1244,9 +1244,9 @@ end
 function ran( start :: Incomes_Type, stop :: Incomes_Type ) :: Incomes_Set
    s = Incomes_Set()
    for k in instances(Incomes_Type)
-       if k >= from 
+       if k >= start
            push!(s,k)
-           if k == to
+           if k == stop
                break
            end
        end
@@ -1256,7 +1256,7 @@ end
 
 function Base.sum( i :: Incomes_Dict{T}; start :: Incomes_Type, stop :: Incomes_Type ) :: T where T <: Number
    z = zero(T)
-   s = rand( start, stop )
+   s = ran( start, stop )
    return sum( i, s )
 end
 
