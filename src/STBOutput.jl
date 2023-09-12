@@ -581,21 +581,22 @@ const EXTRA_INC_COLS = 18
     end
 
     const GL_COLNAMES = [
-        "Lose over £10",
-        "Lose £1-9.99",
+        "Lose £10.01+",
+        "Lose £1.01-£10",
         "No Change",
-        "Gain £1-9.99",
-        "Gain over £10"
+        "Gain £1.01-£10",
+        "Gain £10.01+"
     ] 
 
-    function gl( v :: Number ) :: String
-        return if v < -10.0
+    function gl( vf :: Number ) :: String
+        v = round(vf; digits=2)
+        return if v <= -10.01
             GL_COLNAMES[1]
-        elseif v < -1.0
+        elseif v <= -1.01
             GL_COLNAMES[2]
-        elseif v > 10.0
+        elseif v >= 10.01
             GL_COLNAMES[5]
-        elseif v > 1
+        elseif v >= 1.01
             GL_COLNAMES[4]
         else
             GL_COLNAMES[3]
@@ -682,10 +683,12 @@ const EXTRA_INC_COLS = 18
         ns = Symbol.(colnames)
         select!( sort!(vhh, col), ns... )
         # average change column - sum of weighted changes (since they're already divided by total popn) 
-        avch = combine( groupby( dhh, [col]),(:weighted_change=>sum))
+        gavch = combine( groupby( dhh, [col]),(:weighted_change=>sum), (:weight=>sum)) # total change for each group
+        gavch.avch = gavch.weighted_change_sum ./ gavch.weight_sum # => average change for each group
         # ... put av changes in the right order
-        sort!( avch, col )
-        vhh."Average Change(£s)" = avch[:,2]
+        sort!( gavch, col )
+        vhh."Average Change(£s)" = gavch.avch
+        # remove missing: Do we need this?
         glf = coalesce.( vhh, 0.0)
         # add an average change column
         return glf
@@ -718,7 +721,7 @@ const EXTRA_INC_COLS = 18
             in_poverty = prehh.in_poverty,
             change = posthh[:, incomes_col] - prehh[:,incomes_col]
         )
-        dhh.weighted_change = (dhh.change .* dhh.weight) ./ sum( dhh.weight ) # for average gains 
+        dhh.weighted_change = (dhh.change .* dhh.weight) # for average gains 
         ten_gl = one_gain_lose( dhh, :tenure )
         dec_gl = one_gain_lose( dhh, :decile )
         children_gl = one_gain_lose( dhh, :num_children )
