@@ -147,6 +147,8 @@ module Runner
             dump_frames( settings, frames )
         end
         observer[]= Progress( settings.uuid, "do-one-run-end", -99, -99, -99, -99 )
+        # FIXME. This should not be needed, but see: https://github.com/JuliaLang/julia/issues/50658 and the out-of-memory issues with the pppc server.
+        GC.gc()
         return frames
     end # do one run
 

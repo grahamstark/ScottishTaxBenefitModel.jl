@@ -164,6 +164,8 @@ function equalise(
     zerorun = ZeroProblem( run, 0.0 ) # fixme guess at 0.0 ?
     rparams = RunParameters( sys, settings, base_cost, 0, target, observer )
     incch = solve( zerorun, rparams )
+    # FIXME. This should not be needed, but see: https://github.com/JuliaLang/julia/issues/50658
+    GC.gc()
     #
     # TODO test incch is sensible 
     return incch
