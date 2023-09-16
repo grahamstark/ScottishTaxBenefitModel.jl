@@ -12,4 +12,11 @@ using Test
     @test ogl."Average Change(£s)" ≈ [5.2,4.0]
     @test sum( ogl."No Change") == 0
     @test sum( ogl."Gain £1.01-£10" ) == sum(d.weight)
+
+    d.change = [-20,-10,0,9,88]
+    ogl = STBOutput.one_gain_lose( d, :i )
+    @test sum( ogl."No Change") == 200
+    @test sum( ogl."Lose £10.01+") == 200
+    @test sum( ogl."Gain £10.01+") == 100
+
 end
