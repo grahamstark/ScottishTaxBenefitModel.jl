@@ -20,3 +20,9 @@ using Test
     @test sum( ogl."Gain £10.01+") == 100
 
 end
+
+@testset "gain/lose on real data" begin
+    if
+
+
+end
