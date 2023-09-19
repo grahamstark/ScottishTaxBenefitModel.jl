@@ -3,6 +3,7 @@ using .STBOutput
 using DataFrames
 using Test
 
+
 @testset "basic gain lose tests" begin
     
     d = DataFrame( weight=[200,300,200,100,100],i=[1,1,2,2,2],change=[10,2,4,5,3])
@@ -21,8 +22,33 @@ using Test
 
 end
 
+settings = get_all_uk_settings_2023()
+settings.do_marginal_rates = false
+settings.poverty_line=100.0 # arbit
+
+# observer = Observer(Progress("",0,0,0))
+tot = 0
+obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+of = on(obs) do p
+    global tot
+    println(p)
+
+    tot += p.step
+    # println(tot)
+end
+
+function avs(x::AbstractMatrix):Real
+    s = 0
+    nr,nc = size(x)
+    for i in 2:nr
+        s += sum(x[i,2:nc-1])*x[i,nc]
+    end
+    s *= 1000*365.25/7
+end
+
+
 @testset "gain/lose on real data" begin
-    if
+
 
 
 end
