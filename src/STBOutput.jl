@@ -712,7 +712,9 @@ const EXTRA_INC_COLS = 18
         dhh = DataFrame( 
             hid = prehh.hid,
             data_year  = prehh.data_year,
-            weight = prehh.weighted_people,
+            weighted_people = prehh.weighted_people,
+            weight = prehh.weight,
+            change_bhc = posthh[:, bhc_net_income] - prehh[:,bhc_net_income],
             tenure = prehh.tenure, 
             region = prehh.region,
             decile = prehh.decile,
@@ -721,7 +723,8 @@ const EXTRA_INC_COLS = 18
             in_poverty = prehh.in_poverty,
             change = posthh[:, incomes_col] - prehh[:,incomes_col]
         )
-        dhh.weighted_change = (dhh.change .* dhh.weight) # for average gains 
+        dhh.weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
+    
         ten_gl = one_gain_lose( dhh, :tenure )
         dec_gl = one_gain_lose( dhh, :decile )
         children_gl = one_gain_lose( dhh, :num_children )
