@@ -661,7 +661,6 @@ const EXTRA_INC_COLS = 18
         =#   
         (; ten_gl, children_gl )
     end
-
     """
     Convoluted approach to making an IFS style Gain-Lose table
     @param dhh - a little frame with a bunch of categories and a net-income field (change)
@@ -672,9 +671,9 @@ const EXTRA_INC_COLS = 18
         # add a column of strings - "Lose over £10" and so on - from the 'change' column
         dhh.gainlose = gl.(dhh.change)
         # group by some column (decile, tenure, etc) and then 
-        ghh = combine(groupby( dhh, [col,:gainlose] ),(:weight=>sum))
+        ghh = combine(groupby( dhh, [col,:gainlose] ),(:weighted_people=>sum))
         colnames = [String(col), GL_COLNAMES...]
-        vhh = unstack( ghh, :gainlose, :weight_sum )
+        vhh = unstack( ghh, :gainlose, :weighted_people_sum )
         n = size( vhh )[1]
         missn = setdiff( colnames, names(vhh))
         for m in missn
@@ -683,11 +682,13 @@ const EXTRA_INC_COLS = 18
         ns = Symbol.(colnames)
         select!( sort!(vhh, col), ns... )
         # average change column - sum of weighted changes (since they're already divided by total popn) 
-        gavch = combine( groupby( dhh, [col]),(:weighted_change=>sum), (:weight=>sum)) # total change for each group
-        gavch.avch = gavch.weighted_change_sum ./ gavch.weight_sum # => average change for each group
+        gavch = combine( groupby( dhh, [col]),(:weighted_change=>sum), (:weighted_people=>sum), (:weight=>sum), (:change_bhc=>sum )) # total change for each group
+        gavch.avch = gavch.weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group
+        gavch.total_transfer = gavch.weight_sum.*WEEKS_PER_YEAR.*gavch.change_bhc_sum./1_000_000
         # ... put av changes in the right order
         sort!( gavch, col )
-        vhh."Average Change(£s)" = gavch.avch
+        vhh."Average Change(£pw)" = gavch.avch
+        vhh."Total Transfer £m" = gavch.total_transfer
         # remove missing: Do we need this?
         glf = coalesce.( vhh, 0.0)
         # add an average change column
