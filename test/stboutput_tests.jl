@@ -4,24 +4,6 @@ using DataFrames
 using Test
 
 
-@testset "basic gain lose tests" begin
-    
-    d = DataFrame( weight=[200,300,200,100,100],i=[1,1,2,2,2],change=[10,2,4,5,3])
-    d.weighted_change = d.weight.*d.change
-    ogl = STBOutput.one_gain_lose( d, :i )
-
-    @test ogl."Average Change(£s)" ≈ [5.2,4.0]
-    @test sum( ogl."No Change") == 0
-    @test sum( ogl."Gain £1.01-£10" ) == sum(d.weight)
-
-    d.change = [-20,-10,0,9,88]
-    ogl = STBOutput.one_gain_lose( d, :i )
-    @test sum( ogl."No Change") == 200
-    @test sum( ogl."Lose £10.01+") == 200
-    @test sum( ogl."Gain £10.01+") == 100
-
-end
-
 settings = get_all_uk_settings_2023()
 settings.do_marginal_rates = false
 settings.poverty_line=100.0 # arbit
@@ -35,6 +17,26 @@ of = on(obs) do p
 
     tot += p.step
     # println(tot)
+end
+
+@testset "basic gain lose tests" begin
+
+    w = [200,300,200,100,100]
+    d = DataFrame( weight=w./2,i=[1,1,2,2,2],change=[10,2,4,5,3],change_bhc=[5,6,7,8,9],weighted_people=w)
+    d.weighted_change = d.weighted_people.*d.change
+    ogl = STBOutput.one_gain_lose( d, :i )
+    println(ogl)
+    @test ogl."Total Transfer £m" ≈ [(5+6)*250*WEEKS_PER_YEAR/1_000_000, 24*200*WEEKS_PER_YEAR/1_000_000]
+    @test ogl."Average Change(£pw)" ≈ [5.2,4.0]
+    @test sum( ogl."No Change") == 0
+    @test sum( ogl."Gain £1.01-£10" ) == sum(d.weighted_people)
+
+    d.change = [-20,-10,0,9,88]
+    ogl = STBOutput.one_gain_lose( d, :i )
+    @test sum( ogl."No Change") == 200
+    @test sum( ogl."Lose £10.01+") == 200
+    @test sum( ogl."Gain £10.01+") == 100
+    println(ogl)
 end
 
 function avs(x::AbstractMatrix):Real
