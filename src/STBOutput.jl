@@ -724,7 +724,7 @@ const EXTRA_INC_COLS = 18
             region = prehh.region,
             decile = prehh.decile,
             hh_type = prehh.hh_type,
-            num_children = prehh.num_children,            
+            num_children = Int.(prehh.num_children),            
             in_poverty = prehh.in_poverty,
             change = posthh[:, incomes_col] - prehh[:,incomes_col])
         dhh.people_weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
@@ -757,7 +757,7 @@ const EXTRA_INC_COLS = 18
             end
         end
 
-        popn = sum( dhh.weight )
+        popn = sum( dhh.weighted_people )
         nc = popn - gainers - losers
         return (;
             ten_gl, 
