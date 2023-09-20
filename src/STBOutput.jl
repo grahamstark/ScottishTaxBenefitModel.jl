@@ -681,10 +681,14 @@ const EXTRA_INC_COLS = 18
         end
         ns = Symbol.(colnames)
         select!( sort!(vhh, col), ns... )
-        # average change column - sum of weighted changes (since they're already divided by total popn) 
-        gavch = combine( groupby( dhh, [col]),(:weighted_change=>sum), (:weighted_people=>sum), (:weight=>sum), (:change_bhc=>sum )) # total change for each group
-        gavch.avch = gavch.weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group
-        gavch.total_transfer = gavch.weight_sum.*WEEKS_PER_YEAR.*gavch.change_bhc_sum./1_000_000
+        # average change table, grouped by col 
+        gavch = combine( groupby( dhh, [col]),
+            (:weighted_change=>sum), # changes in selected income var * hhweight * people count
+            (:weighted_people=>sum), # hh weight * people count
+            (:weight=>sum),          # sum of hh weights
+            (:change_bhc=>sum ))     # sum of bhc changes 
+        gavch.avch = gavch.weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group per person
+        gavch.total_transfer = gavch.weight_sum.*WEEKS_PER_YEAR.*gavch.change_bhc_sum./1_000_000 # total moved to/from that group £spa
         # ... put av changes in the right order
         sort!( gavch, col )
         vhh."Average Change(£pw)" = gavch.avch
@@ -722,8 +726,7 @@ const EXTRA_INC_COLS = 18
             hh_type = prehh.hh_type,
             num_children = prehh.num_children,            
             in_poverty = prehh.in_poverty,
-            change = posthh[:, incomes_col] - prehh[:,incomes_col]
-        )
+            change = posthh[:, incomes_col] - prehh[:,incomes_col])
         dhh.weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
     
         ten_gl = one_gain_lose( dhh, :tenure )

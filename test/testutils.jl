@@ -8,7 +8,8 @@ using .STBParameters:
     make_ubi_pre_adjustments!,
     load_file,
     load_file!
-
+using Observables
+using .Monitor: Progress
 import .Results: init_benefit_unit_result, BenefitUnitResult
 using .ModelHousehold: 
    BenefitUnit, 
@@ -20,11 +21,15 @@ using .ModelHousehold:
    num_adults, 
    num_children,
    make_eq_scales!
+using .Utils:date_string
+using .Runner: do_one_run
 
 using .Definitions
 import .ExampleHouseholdGetter
+using .STBOutput: make_poverty_line, summarise_inc_frame, 
+    dump_frames, summarise_frames!, make_gain_lose
 
-using .RunSettings: Settings
+using .RunSettings: Settings, get_all_uk_settings_2023
 
 using .ExampleHelpers
 
@@ -181,4 +186,40 @@ to be sure the test will still work in some later year?
 function age_now( age :: Int ) :: Int
   yd = (Date(now()) - TEST_BASE_DATE).value ÷ 365 # leap years; no function for this
   return age + Int(yd)
+end
+
+# Observer as a global.
+tot = 0
+defsettings = get_all_uk_settings_2023()
+    
+# observer = Observer(Progress("",0,0,0))
+obs = Observable( Progress(defsettings.uuid,"",0,0,0,0))
+of = on(obs) do p
+    global tot
+    println(p)
+
+    tot += p.step
+    println(tot)
+end
+
+function do_basic_run( settings :: Settings, sys :: Vector; reset :: Bool ) :: Tuple
+   global tot
+   tot = 0
+   # force reset of data to use UK dataset
+   settings.num_households, settings.num_people, nhh2 = 
+       FRSHouseholdGetter.initialise( settings; reset=reset )
+   results = do_one_run( settings, sys, obs )
+   h1 = results.hh[1]
+   settings.poverty_line = make_poverty_line( results.hh[1], settings )
+   dump_frames( settings, results )
+   println( "poverty line = $(settings.poverty_line)")
+   summary = summarise_frames!( results, settings )
+   return (summary, results, settings )
+end
+
+function do_basic_uk_run( ; reset = true )::Tuple
+   settings = get_all_uk_settings_2023()
+   settings.run_name="all-uk-run-$(date_string())"
+   sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=false)]
+   return do_basic_run( settings, sys, reset = reset )
 end

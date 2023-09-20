@@ -22,18 +22,6 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
 BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
-tot = 0
-defsettings = get_all_uk_settings_2023()
-    
-# observer = Observer(Progress("",0,0,0))
-obs = Observable( Progress(defsettings.uuid,"",0,0,0,0))
-of = on(obs) do p
-    global tot
-    println(p)
-
-    tot += p.step
-    println(tot)
-end
 
 const targets = [ :label,
     :income_tax,  :national_insurance,  :local_taxes,  :social_fund_loan_repayment,  
@@ -49,24 +37,6 @@ const targets = [ :label,
     :non_contrib_employment_and_support_allowance,  :income_support,  :pension_credit,  
     :savings_credit,  :non_contrib_jobseekers_allowance,  
     :housing_benefit,  :free_school_meals,  :universal_credit,  :other_benefits]
-
-function do_basic_uk_run()
-    settings = get_all_uk_settings_2023()
-    settings.run_name="all-uk-run-$(date_string())"
-    sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=false)]
-    println( sys[1].ni)
-    tot = 0
-    # force reset of data to use UK dataset
-    settings.num_households, settings.num_people, nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=true )
-    results = do_one_run( settings, sys, obs )
-    h1 = results.hh[1]
-    settings.poverty_line = make_poverty_line( results.hh[1], settings )
-    dump_frames( settings, results )
-    println( "poverty line = $(settings.poverty_line)")
-    summary = summarise_frames!( results, settings )   
-    return (summary, results, settings )
-end
 
 @testset "UK Basic Run" begin
     summary, results, settings = do_basic_uk_run()
