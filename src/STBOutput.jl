@@ -691,8 +691,8 @@ const EXTRA_INC_COLS = 18
         gavch.total_transfer = WEEKS_PER_YEAR.*gavch.weighted_bhc_change_sum./1_000_000 # total moved to/from that group £spa
         # ... put av changes in the right order
         sort!( gavch, col )
-        vhh."Average Change(£pw)" = gavch.avch
-        vhh."Total Transfer £m" = gavch.total_transfer
+        vhh.avch = gavch.avch
+        vhh.total_transfer = gavch.total_transfer
         # remove missing: Do we need this?
         glf = coalesce.( vhh, 0.0)
         # add an average change column
