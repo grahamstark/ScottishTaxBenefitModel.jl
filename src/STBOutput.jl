@@ -732,6 +732,7 @@ const EXTRA_INC_COLS = 18
         dec_gl = one_gain_lose( dhh, :decile )
         children_gl = one_gain_lose( dhh, :num_children )
         hhtype_gl = one_gain_lose( dhh, :hh_type )
+        reg_gl = one_gain_lose( dhh, :region )
         # FIXME this is vvv problematic
         poverty_gl = one_gain_lose( dhh, :in_poverty )
         # some overall changes - easier way?
@@ -763,7 +764,8 @@ const EXTRA_INC_COLS = 18
             ten_gl, 
             dec_gl,
             children_gl,
-            hhtype_gl,            
+            hhtype_gl,    
+            reg_gl, # careful for Scotland only        
             ex_gainers=ex_gainers[1:n_gainers], 
             ex_losers=ex_losers[1:n_losers],
             ex_ncs=ex_ncs[1:n_ncs], 
