@@ -30,22 +30,32 @@ of = on(obs) do p
 end
 
 @testset "basic gain lose tests" begin
-
+    change = [10,2,4,5,3]
+    change_bhc = [5,6,7,8,9]
     w = [200,300,200,100,100]
-    d = DataFrame( weight=w./2,i=[1,1,2,2,2],change=[10,2,4,5,3],change_bhc=[5,6,7,8,9],weighted_people=w)
-    d.weighted_change = d.weighted_people.*d.change
+    people = [2,2,2,2,2]
+    weighted_people = w .* people
+    weighted_bhc_change = w .* change_bhc
+    people_weighted_change = weighted_people .* change
+    d = DataFrame( 
+        weight                 = w,
+        change                 = change,
+        i                      = [1,1,2,2,2],
+        people_weighted_change = people_weighted_change,
+        weighted_bhc_change    = weighted_bhc_change,
+        weighted_people        = weighted_people )
     ogl = STBOutput.one_gain_lose( d, :i )
     println(ogl)
-    @test ogl."Total Transfer £m" ≈ [(5+6)*250*WEEKS_PER_YEAR/1_000_000, 24*200*WEEKS_PER_YEAR/1_000_000]
+    @test ogl."Total Transfer £m" ≈ [sum(weighted_bhc_change[1:2])*WEEKS_PER_YEAR/1_000_000, sum(weighted_bhc_change[3:5])*WEEKS_PER_YEAR/1_000_000]
     @test ogl."Average Change(£pw)" ≈ [5.2,4.0]
     @test sum( ogl."No Change") == 0
     @test sum( ogl."Gain £1.01-£10" ) == sum(d.weighted_people)
 
     d.change = [-20,-10,0,9,88]
     ogl = STBOutput.one_gain_lose( d, :i )
-    @test sum( ogl."No Change") == 200
-    @test sum( ogl."Lose £10.01+") == 200
-    @test sum( ogl."Gain £10.01+") == 100
+    @test sum( ogl."No Change") == 400
+    @test sum( ogl."Lose £10.01+") == 400
+    @test sum( ogl."Gain £10.01+") == 200
     println(ogl)
 end
 

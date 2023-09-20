@@ -683,12 +683,12 @@ const EXTRA_INC_COLS = 18
         select!( sort!(vhh, col), ns... )
         # average change table, grouped by col 
         gavch = combine( groupby( dhh, [col]),
-            (:weighted_change=>sum), # changes in selected income var * hhweight * people count
+            (:people_weighted_change=>sum), # changes in selected income var * hhweight * people count
             (:weighted_people=>sum), # hh weight * people count
             (:weight=>sum),          # sum of hh weights
-            (:change_bhc=>sum ))     # sum of bhc changes 
-        gavch.avch = gavch.weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group per person
-        gavch.total_transfer = gavch.weight_sum.*WEEKS_PER_YEAR.*gavch.change_bhc_sum./1_000_000 # total moved to/from that group £spa
+            (:weighted_bhc_change=>sum ))     # sum of bhc changes 
+        gavch.avch = gavch.people_weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group per person
+        gavch.total_transfer = WEEKS_PER_YEAR.*gavch.weighted_bhc_change_sum./1_000_000 # total moved to/from that group £spa
         # ... put av changes in the right order
         sort!( gavch, col )
         vhh."Average Change(£pw)" = gavch.avch
@@ -719,7 +719,7 @@ const EXTRA_INC_COLS = 18
             data_year  = prehh.data_year,
             weighted_people = prehh.weighted_people,
             weight = prehh.weight,
-            change_bhc = posthh.bhc_net_income - prehh.bhc_net_income,
+            weighted_bhc_change = prehh.weight.*(posthh.bhc_net_income - prehh.bhc_net_income),
             tenure = prehh.tenure, 
             region = prehh.region,
             decile = prehh.decile,
@@ -727,8 +727,7 @@ const EXTRA_INC_COLS = 18
             num_children = prehh.num_children,            
             in_poverty = prehh.in_poverty,
             change = posthh[:, incomes_col] - prehh[:,incomes_col])
-        dhh.weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
-    
+        dhh.people_weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
         ten_gl = one_gain_lose( dhh, :tenure )
         dec_gl = one_gain_lose( dhh, :decile )
         children_gl = one_gain_lose( dhh, :num_children )
