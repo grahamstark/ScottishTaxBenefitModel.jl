@@ -735,8 +735,8 @@ const EXTRA_INC_COLS = 18
         # FIXME this is vvv problematic
         poverty_gl = one_gain_lose( dhh, :in_poverty )
         # some overall changes - easier way?
-        gainers = sum( dhh[dhh.change .> GL_MIN, :weight] )
-        losers = sum( dhh[dhh.change .< -GL_MIN, :weight] )
+        gainers = sum( dhh[dhh.change .> GL_MIN, :weighted_people] )
+        losers = sum( dhh[dhh.change .< -GL_MIN, :weighted_people] )
         # sample gain/lose
         ex_gainers = Array{OneIndex}(undef,MAX_EXAMPLES)
         n_gainers = 0
