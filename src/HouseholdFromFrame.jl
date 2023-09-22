@@ -7,6 +7,7 @@ module HouseholdFromFrame
 #
 
 using DataFrames
+using StatsBase
 # using CSVFiles
 
 using ScottishTaxBenefitModel

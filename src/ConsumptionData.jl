@@ -37,6 +37,7 @@ export
     DEFAULT_STANDARD_RATE, 
     DEFAULT_ZERO_RATE, 
     find_consumption_for_hh!, 
+    impute_co2_emissions,
     init,
     uprate_expenditure
 
@@ -102,6 +103,7 @@ function all_other( sets... ) :: Set{Symbol}
 end
 
 
+
 function default_exempt()
     s = Set([:insurance,
         :gambling,
@@ -117,6 +119,48 @@ function default_exempt()
     @assert issubset(s, LFS_CATEGORIES )
     return s
     # sports from charities
+end
+
+const CO2BY_DECILE = [
+    0.674,
+    0.679,
+    0.789,
+    0.866,
+    0.956,
+    1.033,
+    1.133,
+    1.220,
+    1.275,
+    1.440 ] ./ WEEKS_PER_YEAR
+#=
+    1 .674 .020 .633 .714
+    2 .679 .019 .641 .718
+    3 .789 .021 .747 .831
+    4 .866 .025 .811 .922
+    5 .956 .025 .901 1.012
+    6 1.033 .018 .997 1.069
+    7 1.133 .020 1.091 1.175
+    8 1.220 .031 1.147 1.293
+    9 1.275 .033 1.196 1.353
+    10 1.440 .026 1.384 1.496
+=#
+
+"""
+From: https://www.jrf.org.uk/report/distribution-uk-household-co2-emissions
+    7. Appendices
+    Table A1: The distribution of total household CO 2 emissions from all
+    sources – means, standard errors and confidence intervals (metric tons)
+    Mean SE 95%CI lo 95%CI hi
+    OECD
+    equivilised net
+    household
+    disposable
+    income
+    bs but whau=t do you do?
+"""
+function impute_co2_emissions(equiv_decile::Int)::Real
+    #   Mean SE 95%CI lo 95%CI hi
+    return CO2BY_DECILE[equiv_decile]
 end
 
 const DEFAULT_EXEMPT = default_exempt()
