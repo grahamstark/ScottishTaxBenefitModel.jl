@@ -94,7 +94,7 @@ end # testset
         year = hh.interview_year 
         month = hh.interview_month
         yp = year - 2014
-        # println( "on year $year month $month yp=$yp hno=$hno")
+        println( "on year $year month $month yp=$yp hno=$hno")
         for (pid,pers) in hh.people # just unweighted counts
             dr = pips_dlas[yp,:]
             pips_dlas[yp,:year] = year

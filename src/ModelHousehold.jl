@@ -209,6 +209,8 @@ mutable struct Household{RT<:Real}
     net_housing_wealth :: RT
     net_pension_wealth :: RT
     original_gross_income :: RT
+    original_income_decile :: Int
+    equiv_original_income_decile :: Int
     # FIXME make a proper consumption structure here rather than just an lcf dump.
     expenditure :: Union{Nothing,DataFrameRow}
     factor_costs :: Union{Nothing,DataFrameRow}

@@ -46,8 +46,8 @@ end
         weighted_people        = weighted_people )
     ogl = STBOutput.one_gain_lose( d, :i )
     println(ogl)
-    @test ogl."Total Transfer £m" ≈ [sum(weighted_bhc_change[1:2])*WEEKS_PER_YEAR/1_000_000, sum(weighted_bhc_change[3:5])*WEEKS_PER_YEAR/1_000_000]
-    @test ogl."Average Change(£pw)" ≈ [5.2,4.0]
+    @test ogl.total_transfer ≈ [sum(weighted_bhc_change[1:2])*WEEKS_PER_YEAR/1_000_000, sum(weighted_bhc_change[3:5])*WEEKS_PER_YEAR/1_000_000]
+    @test ogl.avch ≈ [5.2,4.0]
     @test sum( ogl."No Change") == 0
     @test sum( ogl."Gain £1.01-£10" ) == sum(d.weighted_people)
 

@@ -21,8 +21,13 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
         num_children=[1,2,3],
         in_poverty=[1,2,3],
         income=[1,2,3], 
+        weight=[1,1,1],
+        bhc_net_income=[1,2,3],
         weighted_people=[1,1,1]);
-    post = DataFrame( hid=[1,2,3], datayear=[1,1,1], income=[3,2,1], weighted_people=[1,1,1]);
+    post = deepcopy( pre )
+    post.income=[3,2,1]
+    post.bhc_net_income=[3,2,1]
+
     gl = make_gain_lose( pre, post, :income )
     @test gl.gainers == 1
     @test gl.losers == 1

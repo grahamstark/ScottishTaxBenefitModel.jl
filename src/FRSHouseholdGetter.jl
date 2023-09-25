@@ -8,6 +8,7 @@ module FRSHouseholdGetter
 
     using CSV
     using DataFrames: DataFrame
+    using StatsBase
     
     using ScottishTaxBenefitModel
     
@@ -27,6 +28,8 @@ module FRSHouseholdGetter
         generate_weights
 
     using .Uprating: load_prices
+
+    using .Utils:get_quantiles
 
     using .ConsumptionData
 
@@ -76,6 +79,51 @@ module FRSHouseholdGetter
     
     mutable struct RegWrapper # I don't understand why I need 'mutable' here, but..
         data :: DataFrame
+    end
+
+
+
+    """
+    Insert into data a pair of basic deciles in the hh data based on actual pre-model income and eq scale
+    """
+    function fill_in_deciles!()
+        nhhs = MODEL_HOUSEHOLDS.dimensions[1]
+        inc = zeros(nhhs)
+        eqinc = zeros(nhhs)
+        w = zeros(nhhs)
+        for hno in 1:nhhs
+            hh = get_household(hno)
+            inc[hno] = hh.original_gross_income
+            eqinc[hno] = hh.original_gross_income / hh.equivalence_scales.oecd_bhc 
+            w[hno] = hh.weight
+        end
+        # HACK HACK HACK - need to add gross inc to Scottish subset and uprate it
+        if sum( inc ) ≈ 0
+            return
+        end
+        wt = Weights(w)
+        # FIXME duplication here
+        incbreaks = quantile(inc,wt,[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9])
+        incdecs = get_quantiles( inc, incbreaks )
+        eqbreaks = quantile(eqinc,wt,[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9])
+        eqdecs = get_quantiles( eqinc, eqbreaks )
+        for hno in 1:nhhs
+            hh = get_household(hno)
+            hh.original_income_decile = incdecs[hno]
+            hh.equiv_original_income_decile = eqdecs[hno]
+        end
+        # idiot check - 10 deciles each roughtly the same
+        deccheck = zeros(10)
+        for hno in 1:nhhs   
+            hh = get_household(hno)        
+            dec = hh.original_income_decile
+            @assert dec in 1:10
+            deccheck[dec] += hh.weight
+        end
+        println( deccheck )
+        for dc in deccheck
+            @assert isapprox(deccheck[1], dc, atol=40_000 ) "Well, this seems fucked up $(dc) diff $(dc - deccheck[1])."
+        end 
     end
 
     # fixme I don't see how to make this a constant 
@@ -148,7 +196,7 @@ module FRSHouseholdGetter
             nhhlds
 
         REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
-
+        fill_in_deciles!()
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
 

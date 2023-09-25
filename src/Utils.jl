@@ -31,6 +31,7 @@ export
    extract_digits,
    get_if_set,
    get_project_path,
+   get_quantiles,
    has_non_z, 
    haskeys,
    index_of_field, 
@@ -54,6 +55,29 @@ export
    to_md_table,
    todays_date, 
    uprate_struct!
+
+
+"""
+Given a vector of (e.g.) incomes size n and a series of m quintile breaks, create m ints with qualile numbers 1:n+1
+"""
+function get_quantiles( inc::Vector, breaks::Vector )::Vector{Int}
+   nbs = size(breaks)[1]
+   nhhs = size(inc)[1]
+   quints = zeros(Int,nhhs)
+   for hno in 1:nhhs
+         q = nbs+1
+         for d in 1:nbs
+            if inc[hno] <= breaks[d]
+               q = d
+               break
+            end
+         end    
+         quints[hno] = q
+   end
+   return quints
+end
+
+
 
 """
 DataFrames `rename` throws an exception if the thing being renamed doesn't exist, but it's 
