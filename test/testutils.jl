@@ -38,7 +38,7 @@ using DataFrames,CSV, Dates
 #
 # full dataset is available .. 
 # 
-const IS_LOCAL = isdir("/mnt/data/frs/")
+const IS_LOCAL = true # isdir("/mnt/data/frs/")
 
 # pids for example people
 # see make_pid 

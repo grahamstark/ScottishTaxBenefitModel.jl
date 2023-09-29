@@ -38,10 +38,12 @@ function load_data_path( ; default :: String, which::Symbol ) :: String
       return default
    end
    jfile = JSON3.read( jpath )
-   if ! haskey( jfile, which )
+   prefix = Sys.iswindows() ? "windows" : "unix"
+   whichp = Symbol("$(prefix)-$(which)")
+   if ! haskey( jfile, whichp )
       return default
    end
-   return jfile[which]
+   return jfile[whichp]
 end
 
 const MODEL_NAME       = "Scottish Tax Benefit Model" 
