@@ -54,9 +54,13 @@ The Model is written in the Julia [@Julia] language. Julia is well worth a look 
 
 As mentioned, the questions in the conjoint survey largely determine the direction of the microsimulation modelling.
 
-There is quite a lot of ambiguity in some of the questions: a wealth tax or carbon levy could be implemented in many different ways, for instance. We make what we hope are reasonable assumptions for these cases, but for the microsimulation to be fully consistent with the conjoint survey we'd have to know what was in the mind of the respondents. 
+There is ambiguity in some of the questions: a wealth tax or carbon levy could be implemented in many different ways, for instance. We make what we hope are reasonable assumptions for these cases, but for the microsimulation to be fully consistent with the conjoint survey we'd have to know what was in the mind of the respondents. 
 
-The outcome questions - poverty, inequality, health and so on - are phrased as changes -  "50% fewer cases" for mental health, "Increased by 50%" for poverty and so on. A particularly tricky question arising from this is establishing a baseline for comparison. In reporting the microsimulation results, it's 
+The outcome questions - poverty, inequality, health and so on - are phrased as changes -  "50% fewer cases" for mental health, "Increased by 50%" for poverty and so on. A particularly tricky question arising from this is establishing a baseline for comparison. As discussed below the conjoint survey had no 'keep things as they are' option for the tax and benefit instruments, so we have two options:
+1. using a tax-benefit system some way from the current one as baseline and assuming that the outcome changes represent changes in poverty, health, etc. from that point, rather than changes from the actual current situation; or
+2. using the current system as the baseline - but if we do that the default output will have significant deviations for the outcome variables.
+
+We opted for 1) on the grounds that it makes the conjoint popularity output much easier to understand. So the model starts from some distance from where we currently are.
 
 
 #### Income Tax Taxes
