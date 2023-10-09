@@ -55,9 +55,9 @@ However, the clean design makes it much easier to add these things as needed; fo
 
 As is conventional in UK modelling, Scotben uses the Family Resources Survey as its principle dataset. The original scope of the model is Scotland, but the present project is UK-wide [^FN-GB-NI]. In many respects a UK scope actually simplifies things because much of the difficulty in a Scotland-specific model is in pooling multiple years of data and constructing suitable sample weights, whereas here we can use a single 2021/22 FRS dataset and the pre-calculated weights. On the other hand, we have to model taxes and benefits that differ between the Nations of the UK - in the event, Northern Ireland was dropped from the analysis because we were unable to model the NI property-based local tax in the time we had available. To capture the effects of the various Conjoint options, FRS data has to be augmented with several other sources: we discuss these below.
 
-By default 
+The Model is written in the Julia [@Julia] language. Julia is well worth a look for anyone looking to start a new microsimulation project. It aims to bridge the gap between statistics packages such as Stata and high-level programming languages like Fortran or Python. While not without its problems, it largely succeeds in this: many of the regressions reported below are written Julia [^FN-JU-GLM], while the main modelling code has the expressiveness and type-safety of the Pascal-like languages used in the TAXBEN2 family.
 
-The Model is written in the Julia [@Julia] language. Julia is well worth a look for anyone looking to start a new microsimulation project. It aims to bridge the gap between statistics packages such as Stata and high-level programming languages like Fortran or Python. While not without its problems, it largely succeeds in this: many of the regressions reported below are written Julia [^FN-JU-GLM], while the main modelling code has the expressiveness and type-safety of the Pascal-like languages used in the TAXBEN2 family.  
+The modular design and the abundance of high-quality 3rd party Julia libraries made adding a Web based model user interface extremely easy; we return to this briefly below.
 
 ### Integrating The Conjoint Analysis
 
@@ -72,6 +72,18 @@ The outcome questions - poverty, inequality, health and so on - are phrased as c
 
 We opted for 1) on the grounds that it makes the conjoint popularity output much easier to understand. So the model starts from some distance from where we currently are.
 
+### The model flow TODO 
+
+1. User selects instruments - tax rates etc. 
+2. Model calculates consequences - net fiscal position, gainers/losers. 
+3. Health calculations based on net income changes (one way - income -> health) 
+4. Conjoint popularity based in all three.
+
+### Components
+
+We turn now to how we .. 
+
+One slightly testing aspect of developing PPPC is that simple seeming options from the questionnaire can represent pretty major pieces of modelling. For example, one of the of the options in the Conjoint questionnaire for paying for changes is 'Tax on wealth'; that sounds simple enough (and it's one button in the user-interface), but it requires a lot of modelling work and strong assumptions. 
 
 #### Income Tax Taxes[^FN-UK-IT]
 
@@ -125,7 +137,7 @@ For the eligibility, means-testing and citizenship options, it seemed plausible 
 
 #### Value Added Tax
 
-### Carbon Taxes 
+#### Carbon Taxes 
 
 ### The Equaliser
 
