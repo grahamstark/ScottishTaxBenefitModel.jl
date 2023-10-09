@@ -44,12 +44,12 @@ A key point is that the microsimulation work began *after* the conjoint analysis
 
 The analysis uses a heavily adapted version of Scotben [@SB-GITHUB], a microsimulation model of Scotland written in the Julia programming language. The model is fully open source [^FN-GIT-SB]. This section briefly discusses this model; for more, the primary source is of course the Github repository; there is also a model development blog [^FN-SB-BLOG], and two online presentations, one from the 2022 Online IMA conference [^FN-SB-PRES]. 
 
-Scotben is a conventionally structured static tax-benefit model, in the family of models branching out from the Institute for Fiscal Studies TAXBEN2 [@TAXBEN2] (two fof the present authors, Reed and Stark, were developers of TAXBEN2). Emphasis is put on modularity and careful encapuslation of the key data structures: households, tax systems and so on [^FN-SB-MODULES]. Scotben is developed "Test First" [^FN-TEST-FIRST]: tests of the functionality in a module ("unit tests") are written before development of the module itself, and we write only ythe code needed to pass the tests [^FN-SB-IT-TESTS]. Modularity and test-driven development are excellent investments. The modular organisation makes it easy to bolt together variants of the model for different purposes [^FN-TB-EXAMPLES] and continually running test suite during development minimises the chances of introducing new errors. The development phase of the PPPC model took just 6 weeks in total. 
+Scotben is a conventionally structured static tax-benefit model, in the family of models branching out from the Institute for Fiscal Studies TAXBEN2 [@TAXBEN2] (two fof the present authors, Reed and Stark, were developers of TAXBEN2). Emphasis is put on modularity and careful encapsulation of the key data structures: households, tax systems and so on [^FN-SB-MODULES]. Scotben is developed "Test First" [^FN-TEST-FIRST]: tests of the functionality in a module ("unit tests") are written before development of the module itself, and we write only the code needed to pass the tests [^FN-SB-IT-TESTS]. Modularity and test-driven development are excellent investments. The modular organisation makes it easy to bolt together variants of the model for different purposes [^FN-TB-EXAMPLES] and continually running test suite during development minimises the chances of introducing new errors. The development phase of the PPPC model took just 6 weeks in total. 
 
 By 'static' here, we of course mean:
 
 1. the model is single-period; and
-2. that there are no behavoural adjustments: benefits are fully taken up, taxes not avioded, and there are no labour supply responses.
+2. that there are no behavioural adjustments: benefits are fully taken up, taxes not avoided, and there are no labour supply responses.
 
 However, the clean design makes it much easier to add these things as needed; for example, we can map complete budget constraints more accurately than rival models, in just a few lines of code [^FN-TB-BC]
 
@@ -66,6 +66,7 @@ As mentioned, the questions in the conjoint survey largely determine the directi
 There is ambiguity in some of the questions: a wealth tax or carbon levy could be implemented in many different ways, for instance. We make what we hope are reasonable assumptions for these cases, but for the microsimulation to be fully consistent with the conjoint survey we'd have to know what was in the mind of the respondents. 
 
 The outcome questions - poverty, inequality, health and so on - are phrased as changes -  "50% fewer cases" for mental health, "Increased by 50%" for poverty and so on. A particularly tricky question arising from this is establishing a baseline for comparison. As discussed below the conjoint survey had no 'keep things as they are' option for the tax and benefit instruments, so we have two options:
+
 1. using a tax-benefit system some way from the current one as baseline and assuming that the outcome changes represent changes in poverty, health, etc. from that point, rather than changes from the actual current situation; or
 2. using the current system as the baseline - but if we do that the default output will have significant deviations for the outcome variables.
 
@@ -86,7 +87,7 @@ and so on. The first of these are the current non Scottish UK income tax rates; 
 The benefit questions in the conjoint survey are about a hypothetical UBI. The questions of the form: 
 
     * Child - £0; Adult - £63; Pensioner - £190
-    * Child - £0; Adult - £63; Pensioner - £190
+    * Child - £95; Adult - £230; Pensioner - £230
 
 There also questions about eligibility e.g:
 
@@ -98,10 +99,20 @@ Means-testing e.g:
     * People with any or no amount of income are entitled to the full benefit
     * Only those with incomes less than £20k are entitled to the full benefit
 
-And cizenship:
+And citizenship:
     
     * Citizens, permanent residents and anyone residing in the UK for more than six months are entitled
     * Only citizens and permanent residents are entitled
+
+It's unclear how this proposed UBI system should interact with the existing tax and benefit system, especially bearing in mind that the question is not how an expert believes they should interact, but what was most likely in the mind of the respondents. 
+
+The ultimate ambition of many UBI advocates is that the UBI system sweeps away the all the current means-tested and conditional benefits but replacing all benefits with the above produces huge changes in incomes, especially for those on lower incomes due to the abolition of means-tested benefits. Instead, we follow our recent analysis [@Johnson-Read] and assume:
+
+1. means-tested benefits are retained [^FN-UC-TRANSITION];
+2. most other benefits, including the state pension and Child Benefit, are abolished and replaced by the UBI payments above. (Disability benefits are retained).
+
+The least generous options: Child - £0; Adult - £63; Pensioner - £190 are taken as the base values. Compared to the actual current system, this means that we're starting from a social security system that's considerably more expensive (because of the adult payments), but where pensioners are usually slightly worse off (£190 vs £203.85 [@statepen]) and where families with large numbers of children not on means-tested benefits are worse off, since the UBI payments to children is zero in the default case and the payments to adults are not always enough to compensate. We don't adjust taxes to meet these extra base costs.
+
 
 #### The Baseline
 
