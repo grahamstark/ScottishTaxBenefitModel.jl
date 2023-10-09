@@ -42,11 +42,20 @@ A key point is that the microsimulation work began *after* the conjoint analysis
 
 ### The Base Model
 
-The analysis uses a heavily adapted version of Scotben [@scotben_github], a microsimulation model of Scotland written in the Julia programming language. The model is fully open source [^FN-GIT-SB]. This section briefly discusses this model; for more, the primary source is of course the Github repository; there is also a model development blog [^FN-SB-BLOG], and two online presentations, one from the 2022 Online IMA conference [*FN-SB-PRES]. 
+The analysis uses a heavily adapted version of Scotben [@SB-GITHUB], a microsimulation model of Scotland written in the Julia programming language. The model is fully open source [^FN-GIT-SB]. This section briefly discusses this model; for more, the primary source is of course the Github repository; there is also a model development blog [^FN-SB-BLOG], and two online presentations, one from the 2022 Online IMA conference [^FN-SB-PRES]. 
 
-Scotben is a conventionally structured tax-benefit model, in the family of models branching out from the Institute for Fiscal Studies TAXBEN2 [@TAXBEN2] (two fof the present authors, Reed and Stark, were developers of TAXBEN2). Emphasis is put on modularity and careful encapuslation of the key data structures: households, tax systems and so on [^FN-SB-MODULES]. Scotben is developed "Test First" [^FN-TEST-FIRST]: tests of the functionality in a module ("unit tests") are written before development of the module itself, and we write only ythe code needed to pass the tests [^FN-SB-IT-TESTS]. Modularity and test-driven development are excellent investments. The modular organisation makes it easy to bolt together variants of the model for different purposes [^FN-TB-EXAMPLES] and continually running test suite during development minimises the chances of introducing new errors. The development phase of the PPPC model took just 6 weeks in total. 
+Scotben is a conventionally structured static tax-benefit model, in the family of models branching out from the Institute for Fiscal Studies TAXBEN2 [@TAXBEN2] (two fof the present authors, Reed and Stark, were developers of TAXBEN2). Emphasis is put on modularity and careful encapuslation of the key data structures: households, tax systems and so on [^FN-SB-MODULES]. Scotben is developed "Test First" [^FN-TEST-FIRST]: tests of the functionality in a module ("unit tests") are written before development of the module itself, and we write only ythe code needed to pass the tests [^FN-SB-IT-TESTS]. Modularity and test-driven development are excellent investments. The modular organisation makes it easy to bolt together variants of the model for different purposes [^FN-TB-EXAMPLES] and continually running test suite during development minimises the chances of introducing new errors. The development phase of the PPPC model took just 6 weeks in total. 
+
+By 'static' here, we of course mean:
+
+1. the model is single-period; and
+2. that there are no behavoural adjustments: benefits are fully taken up, taxes not avioded, and there are no labour supply responses.
+
+However, the clean design makes it much easier to add these things as needed; for example, we can map complete budget constraints more accurately than rival models, in just a few lines of code [^FN-TB-BC]
 
 As is conventional in UK modelling, Scotben uses the Family Resources Survey as its principle dataset. The original scope of the model is Scotland, but the present project is UK-wide [^FN-GB-NI]. In many respects a UK scope actually simplifies things because much of the difficulty in a Scotland-specific model is in pooling multiple years of data and constructing suitable sample weights, whereas here we can use a single 2021/22 FRS dataset and the pre-calculated weights. On the other hand, we have to model taxes and benefits that differ between the Nations of the UK - in the event, Northern Ireland was dropped from the analysis because we were unable to model the NI property-based local tax in the time we had available. To capture the effects of the various Conjoint options, FRS data has to be augmented with several other sources: we discuss these below.
+
+By default 
 
 The Model is written in the Julia [@Julia] language. Julia is well worth a look for anyone looking to start a new microsimulation project. It aims to bridge the gap between statistics packages such as Stata and high-level programming languages like Fortran or Python. While not without its problems, it largely succeeds in this: many of the regressions reported below are written Julia [^FN-JU-GLM], while the main modelling code has the expressiveness and type-safety of the Pascal-like languages used in the TAXBEN2 family.  
 
@@ -63,21 +72,36 @@ The outcome questions - poverty, inequality, health and so on - are phrased as c
 We opted for 1) on the grounds that it makes the conjoint popularity output much easier to understand. So the model starts from some distance from where we currently are.
 
 
-#### Income Tax Taxes
+#### Income Tax Taxes[^FN-UK-IT]
 
 The conjoint analysis has a number of tax options of the form:
 
     * Basic rate - 20%; Higher rate - 40%; Additional rate - 45%
     * Basic rate - 30%; Higher rate - 50%; Additional rate - 60%
 
-and so on. The first of these is essentially the status-quo, except for in Scotland, where there are five rates; all other options in the survey represent rate increases. We assume the corresponding thresholds are as present. 
-#### Benefits
+and so on. The first of these are the current non Scottish UK income tax rates; all other options in the survey represent rate increases. We assume the corresponding thresholds are as present. Scotland, has its own 5 rate system - 19,20,21,41,46: for the reasons above we impose the "Rest of UK" 3 rate system as the baseline in Scotland too, so we start there from a position where Scottish low earners pay slightly more than in reality and high earners less. 
 
-For beneftits
+#### Benefits[^FN-UK-BEN]
 
-A tricky question is what to take for the baseline system. For benefits, the conjoint survey doesn't ask how people would feel about keeping things as they presently are. 
-All options 
+The benefit questions in the conjoint survey are about a hypothetical UBI. The questions of the form: 
 
+    * Child - £0; Adult - £63; Pensioner - £190
+    * Child - £0; Adult - £63; Pensioner - £190
+
+There also questions about eligibility e.g:
+
+    * People in and out of work are entitled
+    * Everyone is entitled but people of working age who are not disabled are required to look for work
+
+Means-testing e.g:
+   
+    * People with any or no amount of income are entitled to the full benefit
+    * Only those with incomes less than £20k are entitled to the full benefit
+
+And cizenship:
+    
+    * Citizens, permanent residents and anyone residing in the UK for more than six months are entitled
+    * Only citizens and permanent residents are entitled
 
 #### The Baseline
 
