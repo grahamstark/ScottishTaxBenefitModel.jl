@@ -96,7 +96,7 @@ and so on. The first of these are the current non Scottish UK income tax rates; 
 
 #### Benefits[^FN-UK-BEN]
 
-The benefit questions in the conjoint survey are about a hypothetical UBI. The questions of the form: 
+The benefit questions in the conjoint survey are about a hypothetical UBI. The questions take the form of groups of options for children, adults and pensioners, for example: 
 
     * Child - £0; Adult - £63; Pensioner - £190
     * Child - £95; Adult - £230; Pensioner - £230
@@ -118,12 +118,12 @@ And citizenship:
 
 It's unclear how this proposed UBI system should interact with the existing tax and benefit system, especially bearing in mind that the question is not how an expert believes they should interact, but what was most likely in the mind of the respondents. 
 
-The ultimate ambition of many UBI advocates is that the UBI system sweeps away the all the current means-tested and conditional benefits but replacing all benefits with the above produces huge changes in incomes, especially for those on lower incomes due to the abolition of means-tested benefits. Instead, we follow our recent analysis [@Johnson-Read] and assume:
+The ultimate ambition of many UBI advocates is that the UBI system sweeps away the all the current means-tested and conditional benefits but replacing all benefits with the above produces huge changes in incomes, especially for those on lower incomes due to the abolition of means-tested benefits. Instead, we follow our recent analysis [@Johnson-Reed] and assume:
 
 1. means-tested benefits are retained [^FN-UC-TRANSITION];
 2. most other benefits, including the state pension and Child Benefit, are abolished and replaced by the UBI payments above. (Disability benefits are retained).
 
-The least generous options: Child - £0; Adult - £63; Pensioner - £190 are taken as the base values. Compared to the actual current system, this means that we're starting from a social security system that's considerably more expensive (because of the adult payments), but where pensioners are usually slightly worse off (£190 vs £203.85 [@statepen]) and where families with large numbers of children not on means-tested benefits are worse off, since the UBI payments to children is zero in the default case and the payments to adults are not always enough to compensate. We don't adjust taxes to meet these extra base costs. TODO NUMBERS FOR THIS.
+The least generous set of options: Child - £0; Adult - £63; Pensioner - £190 are taken as the base values. Compared to the actual current system, this means that we're starting from a social security system that's considerably more expensive (because of the adult payments), but where pensioners are usually slightly worse off (£190 vs £203.85 [@statepen]) and where families with large numbers of children not on means-tested benefits are worse off, since the UBI payments to children is zero in the default case and the payments to adults are not always enough to compensate. We don't adjust taxes to meet these extra base costs. TODO NUMBERS FOR THIS.
 
 For the eligibility, means-testing and citizenship options, it seemed plausible that at least some of the respondents might be aware of the means and eligibility tests from existing benefits. Consequently, we model the eligibility rules that apply to the 'legacy' UK benefits - Working Tax Credit and Income Support/Employment Support that are in the process of being phased out and the means-tests are taken from the new Universal Credit. Note that these tests apply to 'benefit units' - essentially a nuclear family [^FN-CPAG-BUs], rather than to individuals. 
 
