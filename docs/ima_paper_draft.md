@@ -113,12 +113,11 @@ The ultimate ambition of many UBI advocates is that the UBI system sweeps away t
 
 The least generous options: Child - £0; Adult - £63; Pensioner - £190 are taken as the base values. Compared to the actual current system, this means that we're starting from a social security system that's considerably more expensive (because of the adult payments), but where pensioners are usually slightly worse off (£190 vs £203.85 [@statepen]) and where families with large numbers of children not on means-tested benefits are worse off, since the UBI payments to children is zero in the default case and the payments to adults are not always enough to compensate. We don't adjust taxes to meet these extra base costs. TODO NUMBERS FOR THIS.
 
-For the eligibility, means-testing and citizenship options, it seemed plausible that at least some of the respondents might be aware of the means and eligibility tests from existing benefits. so we model the eligibility rules are those that apply to the 'legacy' UK benefits - Working Tax Credit and Income Support/Employment Support that are in the process of being phased out and the means-tests are taken from the new Universal Credit. Note that these tests apply to 'benefit units' - essentially a nuclear family [^FN-CPAG-BUs], rather than to individuals. 
-
-
-#### The Baseline
+For the eligibility, means-testing and citizenship options, it seemed plausible that at least some of the respondents might be aware of the means and eligibility tests from existing benefits. Consequently, we model the eligibility rules that apply to the 'legacy' UK benefits - Working Tax Credit and Income Support/Employment Support that are in the process of being phased out and the means-tests are taken from the new Universal Credit. Note that these tests apply to 'benefit units' - essentially a nuclear family [^FN-CPAG-BUs], rather than to individuals. 
 
 #### A Wealth Tax
+
+
 
 #### Health Modelling
 
