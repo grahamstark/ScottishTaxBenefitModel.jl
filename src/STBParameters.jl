@@ -37,7 +37,7 @@ module STBParameters
     export NonMeansTestedSys, MaternityAllowance, ChildLimits
     export BenefitCapSys, make_ubi_pre_adjustments!
     export OtherTaxesSys, IndirectTaxSystem, VATSystem, WealthTaxSys
-    export DataAdjustments
+    export DataAdjustments, get_minimum_wage
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
     ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
@@ -1164,7 +1164,7 @@ I	More than £424,000
         weeklyise!( tb.othertaxes; wpm=wpm, wpy=wpy)
         weeklyise!( tb.wealth; wpm=wpm, wpy=wpy)
         weeklyise!( tb.indirect; wpm=wpm, wpy=wpy )
-        weeklyise!( adjustments )
+        weeklyise!( tb.adjustments )
     end
     
    """

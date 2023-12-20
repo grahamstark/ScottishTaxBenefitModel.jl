@@ -8,20 +8,9 @@ module SingleHouseholdCalculations
 using ScottishTaxBenefitModel
 
 using .Definitions
-
-using .RunSettings:
-    Settings
-
-using .Results: 
-    IndividualResult,
-    BenefitUnitResult,
-    HouseholdResult,
-    init_household_result,
-    aggregate!
-
-using .STBParameters: 
-    TaxBenefitSystem
-
+using .HouseholdAdjuster: 
+    adjusthh, 
+    apply_minumum_wage!
 using .ModelHousehold: 
     BenefitUnit, 
     BenefitUnits, 
@@ -36,6 +25,15 @@ using .ModelHousehold:
     get_spouse, 
     num_people,
     printpids
+using .Results: 
+    IndividualResult,
+    BenefitUnitResult,
+    HouseholdResult,
+    init_household_result,
+    aggregate!
+using .RunSettings: Settings
+using .STBParameters: 
+    TaxBenefitSystem
 
 # using .LegacyMeansTestedBenefits
 
@@ -93,11 +91,11 @@ export do_one_calc
 One complete calculation for a single household and tb system.
 """
 function do_one_calc( 
-    hh :: Household{T}, 
+    mhh :: Household{T}, 
     sys :: TaxBenefitSystem{T},
     settings :: Settings = Settings() ) :: HouseholdResult{T} where T
     # hh = deepcopy( mhh ) # for minwage and so on
-
+    hh :: Household = adjusthh( mhh, sys.adjustments )
     bus = get_benefit_units( hh )
     hres :: HouseholdResult{T} = init_household_result(hh)
     intermed = make_intermediate( 
@@ -105,6 +103,7 @@ function do_one_calc(
         sys.hours_limits, 
         sys.age_limits, 
         sys.child_limits )
+    apply_minumum_wage!( hres, hh, sys.minwage )
     
     hd :: BigInt = get_head( hh ).pid
     calc_pre_tax_non_means_tested!( 

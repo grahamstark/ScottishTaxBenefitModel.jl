@@ -73,9 +73,6 @@ export FRSHouseholdGetter
 include("STBParameters.jl" )
 export STBParameters
 
-include("HouseholdAdjuster.jl" )
-export HouseholdAdjuster
-
 include( "BenefitGenerosity.jl")
 export BenefitGenerosity
 
@@ -84,6 +81,9 @@ export Intermediate
 
 include( "Results.jl")
 export Results
+
+include("HouseholdAdjuster.jl" )
+export HouseholdAdjuster
 
 include( "NonMeansTestedBenefits.jl")
 export NonMeansTestedBenefits

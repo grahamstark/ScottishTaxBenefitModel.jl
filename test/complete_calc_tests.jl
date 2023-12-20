@@ -64,7 +64,8 @@ init_data()
     @test hh_to_hhr_mismatch( hh, hhr )
 
     sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
-
+    sys[1].minwage.abolished = true # wage_per_hour .= 0.0 # stop minimum wages messing up wages here
+    sys[2].minwage.abolished = true # .wage_per_hour .= 0.0 # stop minimum wages messing up wages here
     wage = [50_000.0, 40_000, 10_000,16_500]./WEEKS_PER_YEAR
     savings = [0.0, 3_000, 10_000,3_000]./WEEKS_PER_YEAR
     divs = [0.0, 5_000, 0.0, 0.0]./WEEKS_PER_YEAR

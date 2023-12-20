@@ -1,15 +1,18 @@
-using Test
-using ScottishTaxBenefitModel.Uprating
 using DataFrames
+using Test
+
 using ScottishTaxBenefitModel
-using .RunSettings: Settings, get_all_uk_settings_2023
-using .ModelHousehold
-using .STBParameters
-using .ExampleHouseholdGetter
-using .HouseholdAdjuster
-using .FRSHouseholdGetter
 using .Definitions
 using .ExampleHelpers
+using .ExampleHouseholdGetter
+using .FRSHouseholdGetter
+using .HouseholdAdjuster
+using .ModelHousehold
+using .Results
+using .RunSettings: Settings, get_all_uk_settings_2023
+using .STBIncomes
+using .STBParameters
+using .Uprating
 
 prfr = Uprating.load_prices( Settings() )
 
@@ -41,4 +44,23 @@ print( prfr )
             @test pers.income[Definitions.wages] ≈ hh.people[pid].income[Definitions.wages]*1.15
         end
     end
+end
+
+@testset "Minimum Wages " begin
+    sys = get_system( year=2023 )
+    hh = ExampleHouseholdGetter.get_household( "example_hh1" )  
+    head = get_head( hh )
+    println(head)
+    hres = init_household_result( hh )
+    apply_minumum_wage!( hres, hh, sys.minwage )
+    mw = get_minimum_wage( sys.minwage, head.age )
+    @assert hres.bus[1].pers[head.pid].income[WAGES] ≈ head.income[Definitions.wages]
+    head.income[Definitions.wages] = 100.0
+    apply_minumum_wage!( hres, hh, sys.minwage )
+    @assert hres.bus[1].pers[head.pid].income[WAGES] ≈ mw*head.usual_hours_worked
+    println( "set wage to $(hres.bus[1].pers[head.pid].income[WAGES]) hours $(head.usual_hours_worked) mw=$mw")
+    head.income[Definitions.self_employment_income] = 200
+    apply_minumum_wage!( hres, hh, sys.minwage )
+    @assert hres.bus[1].pers[head.pid].income[WAGES] ≈ (mw*head.usual_hours_worked/3) "wage is $(hres.bus[1].pers[head.pid].income[WAGES]) "
+    println( "set wage to $(hres.bus[1].pers[head.pid].income[WAGES]) hours $(head.usual_hours_worked) mw=$mw")
 end
