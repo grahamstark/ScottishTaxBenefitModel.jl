@@ -37,7 +37,7 @@ module STBParameters
     export NonMeansTestedSys, MaternityAllowance, ChildLimits
     export BenefitCapSys, make_ubi_pre_adjustments!
     export OtherTaxesSys, IndirectTaxSystem, VATSystem, WealthTaxSys
-
+    export DataAdjustments
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
     ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
@@ -1019,6 +1019,36 @@ I	More than £424,000
 
     end 
 
+    @with_kw mutable struct DataAdjustments{RT<:Real}
+        pct_income_changes = Incomes_Dict{RT}()
+        pct_housing = zeros(RT,8)
+        pct_wealth = zeros(RT,5)
+        employment_changes = zeros(RT,8) # numbers of people, holding total employment constant, 
+        # @assert sum employment_changes ≈ 0
+    end
+
+    function a_to_pct!( a :: AbstractArray )
+        for i in eachindex(a)
+            a[i] = 1 + a[i]/100.0
+        end 
+    end
+
+    function weeklyise!( dataj :: DataAdjustments )
+        for (k,v) in dataj.pct_income_changes
+            dataj.pct_income_changes[k] = 1.0 + dataj.pct_income_changes[k]/100
+        end
+        a_to_pct!( dataj.pct_housing )
+        a_to_pct!( dataj.pct_wealth )
+        # employment_changes = zeros(T,8) # numbers of people, holding total employment constant, 
+    end
+
+    function any_changes_needed( dataj :: DataAdjustments )::Bool
+        return (length( dataj.pct_income_changes) > 0) ||
+               any( a->!(a ≈ 1), dataj.pct_housing ) ||
+               any( a->!(a ≈ 1), dataj.pct_wealth ) ||
+               any( a->!(a ≈ 0), dataj.employment_changes )
+    end
+
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
         name :: String = "Scotland 2919/20"
         it   = IncomeTaxSys{RT}()
@@ -1039,6 +1069,7 @@ I	More than £424,000
         wealth = WealthTaxSys{RT}()
         othertaxes = OtherTaxesSys{RT}()
         indirect = IndirectTaxSystem{RT}()
+        adjustments = DataAdjustments{RT}()
     end
 
 
@@ -1133,6 +1164,7 @@ I	More than £424,000
         weeklyise!( tb.othertaxes; wpm=wpm, wpy=wpy)
         weeklyise!( tb.wealth; wpm=wpm, wpy=wpy)
         weeklyise!( tb.indirect; wpm=wpm, wpy=wpy )
+        weeklyise!( adjustments )
     end
     
    """

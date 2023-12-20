@@ -233,6 +233,8 @@ end
 const INC_ARRAY_SIZE = sz(Incomes)
 const IncomesArray = MVector{INC_ARRAY_SIZE,T} where T
 
+export IncomesArray
+
 Base.getindex( X::IncomesArray, s::Incomes ) = getindex(X,Int(s)+1) # enums without explicit numbers start at 0...
 Base.setindex!( X::IncomesArray, x, s::Incomes) = setindex!(X,x,Int(s)+1)
 
