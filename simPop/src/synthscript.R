@@ -113,9 +113,13 @@ hsizes <- merged |> count( newhhid )
 merged <- merged |> left_join( hsizes ) 
 
 glimpse( merged )
-minp <- specifyInput( data = merged, hhid="hid", weight="weight", hhsize="n", strata="interview_year" )
-simhh <- simStructure( data = minp, method="direct", basicHHvars=c("sex","age", "from_child_record"))
-simhh <- simCategorical( simhh, additional =c("employment_status", "tenure"), method="multinom", nr_cpus=1)
-# eusilcS
+# bug Error in df[[strata]] <- factor(1) : object of type 'closure' is not subsettable work around
+merged$the_dummy_factor <- as_factor(1)
+minp <- specifyInput( data = merged, hhid="hid", pid="pid", weight="weight", hhsize="n", strata="the_dummy_factor" )
+simhh <- simStructure( data = minp, method="direct", basicHHvars=c("sex","age"))
+simhh <- simCategorical( simhh, additional =c("employment_status", "tenure", "marital_status", "socio_economic_grouping"), method="multinom", nr_cpus=1)
+
 warnings()
+
+sim
 glimpse( simhh )

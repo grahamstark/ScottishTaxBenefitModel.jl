@@ -25,3 +25,4 @@ data/merging/*.csv
 docs/.sass-cache/*
 
 scotmat.csv
+.Rproj.user
