@@ -121,5 +121,8 @@ simhh <- simCategorical( simhh, additional =c("employment_status", "tenure", "ma
 
 warnings()
 
-sim
+simhh
+
 glimpse( simhh )
+
+class(simhh)
