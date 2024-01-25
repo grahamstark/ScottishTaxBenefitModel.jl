@@ -193,8 +193,9 @@ Results need to have been passed through summarise_frames.
 """
 function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :: Array{NamedTuple}
     # @assert something results
+    
     uk_data = get_regression_dataset() # alias
-    uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:]
+    uk_data_ads = copy(uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:])
     summaries = []
     #
     # extract variable names and regression coefficients as vectors - 
