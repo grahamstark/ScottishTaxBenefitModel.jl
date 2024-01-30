@@ -12,8 +12,8 @@ load 'conversion_constants.rb'
 
 # datasets = [  "frs", 'lcf', 'shs' ]
 # years = [2016,2017]
-datasets = [  "lcf" ]
-years = 2009..2020
+# datasets = [  "lcf" ]
+# years = 2009..2020
 
 
 #
@@ -64,6 +64,17 @@ def extractTableName( dataset, filename )
         elsif dataset == 'frs' && filename =~ /(.*)_ukda_data_dictionary/
                 return $1
         elsif dataset == 'was'
+
+        elsif dataset == 'shs' && filename =~ /shs2017_td_(.*)_public_ukda_data_dictionary/
+                return $1
+        elsif dataset == 'scjs' 
+                if filename =~ /scjs1920_nvf-main_y4_eul-safeguarded_[0-9]+_(.*)_ukda_data_dictionary/
+                        return $1
+                elseif filename =~ /.*cyber.*/
+                        return 'cyber'
+                else
+                        return 'main'
+                end
         end
 end
 
@@ -83,6 +94,10 @@ end
 # shs shs2017_td_home_school_public_ukda_data_dictionary.txt => td_home_school
 # frs govpay_ukda_data_dictionary.txt => govpay
 
+datasets = [  "shs" ]
+years = 2019..2021
+datasets = [  "scjs" ]
+years = 2017..2019
 
 datasets.each{
         |dataset|
