@@ -75,7 +75,8 @@ scjsraw.qdlegs = toca( scjsraw.qdlegs, Dict([
 	1 => "Never married and never registered a same-sex civil partnership",
 	2 => "Married or In a registered same-sex civil partnership",
 	3 => "Separated, but still legally married or Separated, but still legally in a same-sex civil partnership",
-	4 => "Divorced or Formerly in a same-sex civil partnership"]))
+	4 => "Divorced or Formerly in a same-sex civil partnership",
+    5 => "Widowed or Surviving partner from a same-sex civil partnership"]))
 
 scjsraw.iloclass = toca( scjsraw.iloclass, Dict([
     1 => "In employment",
@@ -87,7 +88,8 @@ scjsraw.qhstat = toca( scjsraw.qhstat, Dict([
     1 => "Very good",
 	2 => "Good",
 	3 => "Fair",
-	4 => "Bad"]))
+	4 => "Bad",
+    5 => "Very Bad"]))
 
 scjsraw.is_limited = (scjsraw.qlimit .== 1) .| (scjsraw.qlimit .== 2)
 scjsraw.is_carer = scjsraw.qcare .== 1
