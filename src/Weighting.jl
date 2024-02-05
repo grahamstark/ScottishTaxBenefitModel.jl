@@ -85,8 +85,8 @@ function generate_weights(
     weight_type :: DistanceFunctionType = constrained_chi_square,
     lower_multiple :: Real = 0.20, # these values can be narrowed somewhat, to around 0.25-4.7
     upper_multiple :: Real = 5,
-    household_total :: Real = NUM_HOUSEHOLDS_SCOTLAND_2022,
-    targets :: Vector = DEFAULT_TARGETS_SCOTLAND_2022,
+    household_total :: Real = NUM_HOUSEHOLDS_SCOTLAND_2024,
+    targets :: Vector = DEFAULT_TARGETS_SCOTLAND_2024,
     initialise_target_dataframe :: Function = initialise_target_dataframe_scotland_2022,
     make_target_row! :: Function = make_target_row_scotland_2022! ) :: Vector
 

@@ -90,8 +90,101 @@ const DEFAULT_TARGETS_SCOTLAND_2022 = [
     144_372.57,	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
     272_503.22 ]	#	90	% all in employment who are - 9: elementary occupations (SOC2010)
 
-    const NUM_HOUSEHOLDS_SCOTLAND_2022 = sum( DEFAULT_TARGETS_SCOTLAND_2022[42:48]) # 2_537_971
+const DEFAULT_TARGETS_SCOTLAND_2024 = [
+    1408430.3,	#	1	M- Total in employment- aged 16 from nomis summary + rescaled for popn projection 23-24
+    71322.0	,	#	2	M- Total unemployed- aged 16+
+    1339798.1	,	#	3	F- Total in employment- aged 16+
+    53188.2,	#	4	F- Total unemployed- aged 16+
+    378724.2,	#	5	private rented+rent free
+    286679.4,	#	6	housing association
+    321113.8,	#	7	las etc rented
+    120571.0,	#	8	M – 0 – 4 HOUSEHOLD ONLY
+    143142.0,	#	9	5 - 9
+    187641.0,	#	10	10 – 15
+    122899.0,	#	11	16 - 19
+    162897.0,	#	12	20 - 24
+    182486.0,	#	13	25 - 29
+    194149.0,	#	14	 30 - 34
+    185172.0,	#	15	 35 - 39
+    173430.0,	#	16	40 - 44
+    155635.0,	#	17	 45 - 49
+    172217.0,	#	18	 50 - 54
+    189532.0,	#	19	 55 - 59
+    183473.0,	#	20	 60 - 64
+    156400.0,	#	21	 65 - 69
+    129570.0,	#	22	 70 - 74
+    110300.0,	#	23	 75 - 79
+    115324.0,	#	24	80+
+    114627.0,	#	25	F – 0 - 4
+    134460.0,	#	26	5 - 9
+    178668.0,	#	27	10 – 15
+    117468.0,	#	28	16 - 19
+    159945.0,	#	29	20 - 24
+    174848.0,	#	30	25 - 29
+    193970.0,	#	31	 30 - 34
+    189220.0,	#	32	 35 - 39
+    181395.0,	#	33	40 - 44
+    162977.0,	#	34	 45 - 49
+    185804.0,	#	35	 50 - 54
+    204863.0,	#	36	 55 - 59
+    197751.0,	#	37	 60 - 64
+    170423.0,	#	38	 65 - 69
+    143887.0,	#	39	 70 - 74
+    128958.0,	#	40	 75 - 79
+    172775.0,	#	41	80+
+    481786.0,	#	42	 # 42 - 1 adult: male
+    459754.0,	#	43	 # 43 - 1 adult: female
+    816527.0,	#	44	 # 44 - 2 adults
+    157451.0,	#	45	 # 45 - 1 adult 1+ child
+    439260.0,	#	47	 # 47 - 2+ adults 1+ children
+    206824.0,	#	48	 # 48 - 3+ adults
+    80383.0,	#	49	CARERS
+    123909.0,	#	50	AA
+    334617.0,	#	51	PIP/DLA
+    115674.8,	#	52	 # S12000034 - 52 Aberdeenshire  
+    54958.9,	#	53	 # S12000041 - Angus  
+    41440.0,	#	54	 # S12000035 - Argyll and Bute  
+    251104.3,	#	55	 # S12000036 - City of Edinburgh  
+    24278.0,	#	56	 # S12000005 - Clackmannanshire  
+    70003.5,	#	57	 # S12000006 - Dumfries and Galloway  
+    71388.0,	#	58	 # S12000042 - Dundee City  
+    55842.2,	#	59	 # S12000008 - East Ayrshire  
+    47365.6,	#	60	 # S12000045 - East Dunbartonshire  
+    49124.4,	#	61	 # S12000010 - East Lothian  
+    40925.9,	#	62	 # S12000011 - East Renfrewshire  
+    75105.1,	#	63	 # S12000014 - Falkirk  
+    172314.1,	#	64	 # S12000047 - Fife  
+    303711.9,	#	65	 # S12000049 - Glasgow City  
+    112181.5,	#	66	 # S12000017 - Highland  
+    37075.6,	#	67	 # S12000018 - Inverclyde  
+    42978.9,	#	68	 # S12000019 - Midlothian  
+    44070.5,	#	69	 # S12000020 - Moray  
+    12694.0,	#	70	 # S12000013 - Na h-Eileanan Siar  
+    64239.7,	#	71	 # S12000021 - North Ayrshire  
+    155785.2,	#	72	 # S12000050 - North Lanarkshire  
+    10874.7,	#	73	 # S12000023 - Orkney Islands  
+    70834.6,	#	74	 # S12000048 - Perth and KinroS  
+    89297.6,	#	75	 # S12000038 - Renfrewshire  
+    55919.8,	#	76	 # S12000026 - Scottish Borders  
+    10644.4,	#	77	 # S12000027 - Shetland Islands  
+    53093.9,	#	78	 # S12000028 - South Ayrshire  
+    151251.1,	#	79	 # S12000029 - South Lanarkshire  
+    41377.4,	#	80	 # S12000030 - Stirling  
+    43224.2,	#	81	 # S12000039 - West Dunbartonshire  
+    82991.0,	#	82	 # S12000040 - West Lothian  
+    731595.2,	#	83	% all in employment who are - 2: professional occupations (SOC2010)
+    444765.6,	#	84	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
+    252245.9,	#	85	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
+    267228.8,	#	86	% all in employment who are - 5: skilled trades occupations (SOC2010)
+    228129.6,	#	87	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
+    194572.1,	#	88	% all in employment who are - 7: sales and customer service occupations (SOC2010)
+    133409.1,	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
+    286316.5	#	90	% all in employment who are - 9: elementary occupations (SOC2010)
+    ]
 
+    const NUM_HOUSEHOLDS_SCOTLAND_2022 = sum( DEFAULT_TARGETS_SCOTLAND_2022[42:48]) # 2_537_971
+    const NUM_HOUSEHOLDS_SCOTLAND_2024 = sum( DEFAULT_TARGETS_SCOTLAND_2024[42:48]) # 2_537_971
+    
     function initialise_target_dataframe_scotland_2022( n :: Integer ) :: DataFrame
         df = DataFrame(
             m_total_in_employment = zeros(n),
