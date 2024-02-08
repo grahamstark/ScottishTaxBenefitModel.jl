@@ -4,7 +4,16 @@ using Test
 
 using ScottishTaxBenefitModel
 using .STBParameters:
-    IncomeTaxSys,weeklyise!,annualise!,load_file,load_file!,TaxBenefitSystem
+    IncomeTaxSys,
+    weeklyise!,
+    annualise!,
+    load_file,
+    load_file!,
+    TaxBenefitSystem,
+    get_default_system_for_date, 
+    get_default_system_for_cal_year, 
+    get_default_system_for_fin_year
+
 using .Utils
 using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .ExampleHelpers
@@ -37,3 +46,14 @@ using .ExampleHelpers
     
 
 end # example 1
+
+@testset "Load complete defaults" begin
+
+    for y in 2020:2023
+        sys = get_default_system_for_fin_year( y )
+    end
+    for y in 2022:2023
+        sys = get_default_system_for_fin_year( y; scotland=false )
+    end
+
+end
