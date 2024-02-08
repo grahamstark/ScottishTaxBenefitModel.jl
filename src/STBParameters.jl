@@ -1030,6 +1030,9 @@ end
     # @assert sum employment_changes ≈ 0
 end
 
+"""
+e.g [10,20,30] -> [1.1,1.2,1.3] in-place.
+"""
 function a_to_pct!( a :: AbstractArray )
     for i in eachindex(a)
         a[i] = 1 + a[i]/100.0
@@ -1045,6 +1048,9 @@ function weeklyise!( dataj :: DataAdjustments )
     # employment_changes = zeros(T,8) # numbers of people, holding total employment constant, 
 end
 
+"""
+Are there any changes requested in the income adjustments?
+"""
 function any_changes_needed( dataj :: DataAdjustments )::Bool
     return (length( dataj.pct_income_changes) > 0) ||
             any( a->!(a ≈ 1), dataj.pct_housing ) ||
@@ -1075,7 +1081,11 @@ end
     adjustments = DataAdjustments{RT}()
 end
 
-
+"""
+If a basic income is set, apply the rules of the UB components - 
+add UB to benefitr incomes, make taxable, abolish mt benefits depending 
+on UB settings.
+"""
 function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
     if sys.ubi.ub_as_mt_income
         push!(sys.uc.other_income,BASIC_INCOME)
@@ -1192,7 +1202,6 @@ function load_file( sysname :: AbstractString, RT :: Type = Float64 ) :: TaxBene
     return sys
 end
 
-
 """
 Load a file `filename` and use it to modify the given parameter system. The file should contain
 entries like `sys.it.personal_allowance=999` but can also contain
@@ -1214,8 +1223,6 @@ function load_file!( psys :: TaxBenefitSystem{RT}, sysname :: AbstractString ) w
             end
         end
 end
-
-
 
 """
 return the full system for the given date, weeklyised
@@ -1252,7 +1259,7 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
         if ! scotland
             include( "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
         end
-        if date > Date( 2022, 7, 6 )
+        if date >= Date( 2022, 7, 6 )
             include( "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
         end
     elseif date in fy(2023)
@@ -1260,7 +1267,7 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
         if scotland 
             include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
         end
-        if date > Date(2024,1,5)
+        if date >= Date(2024,1,5)
             include( "$(MODEL_PARAMS_DIR)/ni_rates_jan_2024.jl" )
         end
     else
@@ -1269,8 +1276,8 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
         # else
         error( "system for $date hasn't been created yet")
     end
-    weeklyise!( sys )
     lsys = deepcopy( sys )
+    weeklyise!( lsys )
     sys = nothing
     return lsys
 end
@@ -1291,6 +1298,5 @@ function get_default_system_for_fin_year( finyear :: Integer; scotland = true, R
     println( "date $d")
     return get_default_system_for_date( d; scotland=scotland, RT = RT )
 end
-
 
 end # module
