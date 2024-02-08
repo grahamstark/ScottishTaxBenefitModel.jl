@@ -1,3 +1,4 @@
+sys.name *= " with July NI Changes"
 #
 # national insurance changes from 6th July 2022
 # see: https://www.gov.uk/government/publications/spring-statement-2022-factsheet-on-personal-tax/spring-statement-2022-personal-tax-factsheet

@@ -52,7 +52,7 @@ end # example 1
     for y in 2020:2023
         sys = get_default_system_for_fin_year( y )
     end
-    for y in 2022:2023
+    for y in 2020:2023
         sys = get_default_system_for_fin_year( y; scotland=false )
     end
 

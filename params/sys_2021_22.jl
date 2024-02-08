@@ -1,3 +1,4 @@
+sys.name = "Scotland System 2021/22"
 #
 # This is the benefit/tax credit/IT/MinWage/NI rates from April 2021
 #

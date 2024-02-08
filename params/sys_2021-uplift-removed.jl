@@ -1,3 +1,5 @@
+sys.name *= " with £20 uplift removed Oct 21"
+
 #
 # changes from 2021/2 files to remove the "20 uplift" from October 2021
 # See:

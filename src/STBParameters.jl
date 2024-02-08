@@ -835,11 +835,11 @@ I	More than £424,000
     
     function loadBRMAs( N :: Int, T :: Type, file :: String  ) :: Dict{Symbol,BRMA{N,T}}
         bd = CSV.File( file ) |> DataFrame
-        println( bd )
+        # println( bd )
         # FIXME infer N from bd
         dict = Dict{ Symbol, BRMA{ N, T }}() 
         for r in eachrow( bd )
-            println( r.bname )
+            # println( r.bname )
             obd = BRMA( String(r.bname), Symbol( r.bcode ), SVector{N,T}([r.bed_1,r.bed_2,r.bed_3,r.bed_4]), T(r.room) )
             dict[ Symbol( r.bcode ) ] = obd
         end
@@ -1053,7 +1053,7 @@ I	More than £424,000
     end
 
     @with_kw mutable struct TaxBenefitSystem{RT<:Real}
-        name :: String = "Scotland 2919/20"
+        name :: String = "Scotland System 2019/20"
         it   = IncomeTaxSys{RT}()
         ni   = NationalInsuranceSys{RT}()
         lmt  = LegacyMeansTestedBenefitSystem{RT}()
@@ -1144,7 +1144,7 @@ I	More than £424,000
     end
     
     function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        println( "weeklyise lmt wpm = $wpm wpy=$wpy")
+        # println( "weeklyise lmt wpm = $wpm wpy=$wpy")
         weeklyise!( lmt.working_tax_credit; wpm=wpm, wpy=wpy )
         weeklyise!( lmt.child_tax_credit; wpm=wpm, wpy=wpy )
         weeklyise!( lmt.savings_credit; wpm=wpm, wpy=wpy)
@@ -1153,7 +1153,7 @@ I	More than £424,000
     end
    
     function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-        println( "weeklyise tb wpm = $wpm wpy=$wpy")
+        # println( "weeklyise tb wpm = $wpm wpy=$wpy")
         
         weeklyise!( tb.it; wpm=wpm, wpy=wpy )
         weeklyise!( tb.ni; wpm=wpm, wpy=wpy )
@@ -1225,23 +1225,33 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
     # FIXME ALL THE NAMES HERE ARE INCONSISTENT. NO RUK FILES for early years.
     #
     sys = TaxBenefitSystem{RT}()
-    if date in fy( 2020 )
+    global sys
+    if date in fy( 2019 )
+        println( "on $date 2019")
+        # this is the default wired in to the parameters
+        if ! scotland 
+            include( "$(MODEL_PARAMS_DIR)/sys_2019_20_ruk.jl")
+        end
+    elseif date in fy( 2020 )
+        println( "on $date 2020")
         include( "$(MODEL_PARAMS_DIR)/sys_2020_21.jl")
         if ! scotland
             include( "$(MODEL_PARAMS_DIR)/sys_2020_21_ruk.jl")
         end
     elseif date in fy( 2021 )
+        println( "on $date 2021")
         include( "$(MODEL_PARAMS_DIR)/sys_2021_22.jl")
         if ! scotland # FIXME DOESN'T EXISTS
             include( "$(MODEL_PARAMS_DIR)/sys_2021_22_ruk.jl" )
         end
-        if date > Date( 2021, 10, 1 )
+        if date >= Date( 2021, 10, 1 )
             include( "$(MODEL_PARAMS_DIR)/sys_2021_uplift_removed.jl" )            
         end
-        if date > Date( 2021, 12, 1 )
+        if date >= Date( 2021, 12, 1 )
             include( "$(MODEL_PARAMS_DIR)/budget_2021_uc_changed.jl" )
         end
     elseif date in fy( 2022 ) # fixme the 2022 and 2023 have scot/eng different way around
+        println( "on $date 2022")
         include( "$(MODEL_PARAMS_DIR)/sys_2022-23.jl")
         if ! scotland
             include( "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
@@ -1250,6 +1260,7 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
             include( "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
         end
     elseif date in fy(2023)
+        println( "on $date 2023")
         include( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
         if scotland 
             include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
@@ -1280,6 +1291,7 @@ System as it was on the 1st day of the given financial year
 """
 function get_default_system_for_fin_year( finyear :: Integer; scotland = true, RT :: Type = Float64 )  :: TaxBenefitSystem
     d = Date( finyear, 4, 6 )
+    println( "date $d")
     return get_default_system_for_date( d; scotland=scotland, RT = RT )
 end
 

@@ -1,5 +1,6 @@
 #
 # April 2020 Benefit Rates: CAREFUL 
+sys.name = "Scotland System 2020/21"
 #
 sys.it.savings_rates   =  [0.0, 20.0, 40.0, 45.0]
 sys.it.savings_thresholds   =  [5_000.0, 37_500.0, 150_000.0]

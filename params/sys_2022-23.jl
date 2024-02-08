@@ -8,7 +8,7 @@
 # https://www.gov.scot/publications/scottish-income-tax-2022-2023/
 # https://www.gov.uk/government/publications/benefit-and-pension-rates-2022-to-2023
 #
-
+sys.name = "Scottish System 2022/23"
 
 sys.it.savings_rates = [0.0, 20.0, 40.0, 45.0]
 sys.it.savings_thresholds = [5_000.0, 37_700.0, 150_000.0]
