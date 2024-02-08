@@ -1270,7 +1270,9 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
         error( "system for $date hasn't been created yet")
     end
     weeklyise!( sys )
-    return sys
+    lsys = deepcopy( sys )
+    sys = nothing
+    return lsys
 end
 
 """
