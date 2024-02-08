@@ -6,7 +6,16 @@ module TimeSeriesUtils
 using Base: Integer
 using TimeSeries, Dates
 
-export fy, fy_array, get_birthdate, fyear, fy_from_date, fy_from_bits, parse_ons_date, ONS_MONTH_STRS
+export 
+    p_from_a, 
+    fy, 
+    fy_array, 
+    get_birthdate, 
+    fyear, 
+    fy_from_date, 
+    fy_from_bits, 
+    parse_ons_date, 
+    ONS_MONTH_STRS
 
 const ONS_MONTH_STRS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
 
@@ -34,6 +43,19 @@ financial year as an interval
 function fy(year::Integer)::StepRange
     return Date(year,04,06):Day(1):Date(year+1,04,05)
 end
+
+
+"""
+given an annual growth rate of a, what's the (say) quarterly equivalent
+a: (e.g.) 0.06 for 5% annual
+p: (e.g.) 12 for monthly
+
+"""
+function p_from_a( a :: T, p = 4 ) :: T where T <: AbstractFloat
+    return (1+a)^(1/p) - 1
+end
+
+
 
 """
 

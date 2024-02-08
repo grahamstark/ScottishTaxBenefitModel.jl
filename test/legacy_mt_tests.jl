@@ -1345,14 +1345,14 @@ end
 
     m_and_j= get_example(childless_couple_hh)
     maria = get_head( m_and_j )
-    maria.age = 66
+    maria.age = 67
     retire!( maria )
     maria.dla_self_care_type = high
     
     geoff = get_spouse( m_and_j )
     retire!( geoff )
     geoff.attendance_allowance_type = high
-    geoff.age = 67
+    geoff.age = 68
     geoff.assets[A_Stocks_Shares_Bonds_etc] = 11_500.0
 
     newpid = add_non_dependent!( m_and_j, 24, Female )

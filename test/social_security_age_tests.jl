@@ -28,15 +28,15 @@ sys = get_system( year=2019, scotland=true )
     # FIXME we need to jam a 'current' date on here or some of these will fail 
     # next financial year
     #
-    @test state_pension_age(sys.age_limits,Male) == 66
+    @test state_pension_age(sys.age_limits,Male) == 67
     
     @test state_pension_age(sys.age_limits,Female,2015) == 62
     @test state_pension_age(sys.age_limits,Female,2045) == 67
     @test state_pension_age(sys.age_limits,Female,2046) == 68
     @test state_pension_age(sys.age_limits,Male,2046) == 68
     
-    @test reached_state_pension_age(sys.age_limits,66,Male)
-    @test reached_state_pension_age(sys.age_limits,66,Female)
+    @test reached_state_pension_age(sys.age_limits,67,Male)
+    @test reached_state_pension_age(sys.age_limits,67,Female)
     @test ! reached_state_pension_age(sys.age_limits,62,Female, Date( 2022, 01, 01))
     # A person who's 67 now will have reached pension age 
     # by then.

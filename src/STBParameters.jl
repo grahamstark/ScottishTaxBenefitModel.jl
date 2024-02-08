@@ -38,6 +38,9 @@ module STBParameters
     export BenefitCapSys, make_ubi_pre_adjustments!
     export OtherTaxesSys, IndirectTaxSystem, VATSystem, WealthTaxSys
     export DataAdjustments, get_minimum_wage
+    export get_default_system_for_date, 
+        get_default_system_for_cal_year, 
+        get_default_system_for_fin_year
     const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
     ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
@@ -1211,5 +1214,69 @@ I	More than £424,000
                 end
             end
    end
+
+
+
+"""
+return the full system for the given date, weeklyised
+"""
+function get_default_system_for_date( date :: Date; scotland = true, RT :: Type = Float64 )::TaxBenefitSystem
+    sys = TaxBenefitSystem{RT}()
+    if date in fy( 2020 )
+        include( "$(MODEL_PARAMS_DIR)/sys_2020_21.jl")
+        if ! scotland
+            error( "UK doesn't exist yet for 2020/1")                        
+        end
+    elseif date in fy( 2021 )
+        include( "$(MODEL_PARAMS_DIR)/sys_2021_22.jl")
+        if ! scotland # FIXME DOESN'T EXISTS
+            error( "UK doesn't exist yet for 2021/2")
+            # include( "$(MODEL_PARAMS_DIR)/sys_2021_22_ruk.jl" )
+        end
+        if date > Date( 2021, 10, 1 )
+            include( "$(MODEL_PARAMS_DIR)/sys_2021_uplift_removed.jl" )
+        end
+    elseif date in fy( 2022 ) # fixme the 2022 and 2023 have scot/eng different way around
+        include( "$(MODEL_PARAMS_DIR)/sys_2022_23.jl")
+        if ! scotland
+            include( "$(MODEL_PARAMS_DIR)/sys_2022_23_ruk.jl" )
+        end
+        if date > Date( 2022, 7, 6 )
+            include( "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
+        end
+    elseif date in fy(2023)
+        include( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
+        if scotland 
+            include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
+        end
+        if date > Date(2024,1,5)
+            include( "$(MODEL_PARAMS_DIR)/ni_rates_jan_2024.jl" )
+        end
+    else
+        # if date in  fy(2024)
+        ## TODO
+        # else
+        error( "system for $date hasn't been created yet")
+    end
+    weeklyise!( sys )
+    return sys
+end
+
+"""
+System as it was on january 1st of the given year
+"""
+function get_default_system_for_cal_year( year :: Integer; scotland = true, RT :: Type = Float64 ) :: TaxBenefitSystem
+    d = Date( year, 1, 1 )
+    return get_system_for_date( d; scotland=scotland, RT = RT )
+end
+
+"""
+System as it was on the 1st day of the given financial year
+"""
+function get_default_system_for_fin_year( finyear :: Integer; scotland = true, RT :: Type = Float64 )  :: TaxBenefitSystem
+    d = Date( finyear, 4, 6 )
+    return get_system_for_date( d; scotland=scotland, RT = RT )
+end
+
 
 end # module

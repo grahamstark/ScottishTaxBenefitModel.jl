@@ -28,8 +28,8 @@ sys.it.non_savings_rates = [20.0,40.0,45.0]
 sys.it.non_savings_thresholds = [37_700, 125_140.0]
 sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
 
-sys.it.dividend_rates = [0.0, 7.5,32.5,42.5]
-sys.it.dividend_thresholds = [2_000.0, 37_700.0, 150_000.0] # FIXME this gets the right answers & follows Melville, but the 2k is called 'dividend allowance in HMRC docs'
+sys.it.dividend_rates = [0.0, 8.75,33.75,39.35]
+sys.it.dividend_thresholds = [1_000.0, 37_700.0, 150_000.0] # FIXME this gets the right answers & follows Melville, but the 2k is called 'dividend allowance in HMRC docs'
 sys.it.dividend_basic_rate = 2 # above this counts as higher 
 
 sys.it.personal_allowance   = 12_570.00

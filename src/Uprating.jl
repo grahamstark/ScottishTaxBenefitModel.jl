@@ -11,6 +11,7 @@ using CSV
 using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
+using .TimeSeriesUtils
 using .Utils
 
 
@@ -163,6 +164,18 @@ function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate
     colsym = Uprate_Map[itype]
     p = UPRATING_DATA[((UPRATING_DATA.year.==from_y).&(UPRATING_DATA.q.==from_q)), colsym][1]
     return item * p
+end
+
+"""
+FIXME Complete this
+Given (e.g.) some SFC annual growth rates `annual_changes`, extend a quarterly set of prices.
+"""
+function extend!( d :: DataFrame, annual_changes :: Dict{Symbol, Vector{Number} })
+    for (k,v) in annual_changes
+        for i in range(v)
+            qg = p_from_a( v[i], 4 )
+        end
+    end
 end
 
 end
