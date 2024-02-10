@@ -82,7 +82,7 @@ module RunSettings
         num_people :: Int = 0
         prices_file = "indexes.tab"
         to_y :: Int = 2023
-        to_q :: Int = 1
+        to_q :: Int = 9
         output_dir :: String = joinpath(tempdir(),"output")
         means_tested_routing :: MT_Routing = uc_full
         poverty_line :: Real = -1.0
@@ -139,7 +139,7 @@ module RunSettings
         settings.num_households :: Int = 0
         settings.num_people :: Int = 0
         settings.prices_file = "indexes-july-2023.tab"
-        settings.to_y :: Int = 2023
+        settings.to_y :: Int = 2024
         settings.to_q :: Int = 1
         settings.auto_weight = false
         settings.use_average_band_d = true

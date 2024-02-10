@@ -1,4 +1,6 @@
-
+"""
+Filename notwithstanding, this is also the 2024 target set
+"""
 const DEFAULT_TARGETS_SCOTLAND_2022 = [
     1_347_880.73,	#	1	M- Total in employment- aged 16+ July 2022 – see LFS\ headline indicators.xls m/f scottish tabs
     63_487.44,	#	2	M- Total unemployed- aged 16+
@@ -140,7 +142,7 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
     206824.0,	#	48	 # 48 - 3+ adults
     80383.0,	#	49	CARERS
     123909.0,	#	50	AA
-    334617.0,	#	51	PIP/DLA
+    548628.0,	#	51	PIP/DLA
     115674.8,	#	52	 # S12000034 - 52 Aberdeenshire  
     54958.9,	#	53	 # S12000041 - Angus  
     41440.0,	#	54	 # S12000035 - Argyll and Bute  
