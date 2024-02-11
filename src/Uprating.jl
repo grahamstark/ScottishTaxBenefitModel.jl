@@ -132,6 +132,7 @@ function load_prices( settings :: Settings, reload :: Bool = false )
     upr[!,:year] = zeros(Int64, nrows)
     upr[!,:q] = zeros(Int8, nrows) #zeros(Union{Int64,Missing},np)
     
+    
     # add year, quarter cols parsed from the 'YYYY QQ' field
     dp = r"([0-9]{4}) Q([1-4])"
     for i in 1:nrows
@@ -141,9 +142,11 @@ function load_prices( settings :: Settings, reload :: Bool = false )
             upr[i, :q] = parse(Int8, rc[2])
         end
     end
-
+    println( "upr=$upr")
     # Make all relative to the target y,q
+    println( "uprating to y=$(settings.to_y) q=$(settings.to_q)")
     pnew = findfirst((upr.year.== settings.to_y ) .& (upr.q.== settings.to_q ))
+    println( "pnew=$pnew")
     for col in 1:ncols
         baser = upr[pnew,col]
         println( "on col $col $(lcnames[col]); baser=$baser")

@@ -82,7 +82,7 @@ module RunSettings
         num_people :: Int = 0
         prices_file = "indexes.tab"
         to_y :: Int = 2023
-        to_q :: Int = 9
+        to_q :: Int = 3
         output_dir :: String = joinpath(tempdir(),"output")
         means_tested_routing :: MT_Routing = uc_full
         poverty_line :: Real = -1.0
