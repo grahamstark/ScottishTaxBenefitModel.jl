@@ -1,14 +1,17 @@
-using CSV,DataFrames,Statistics,Statshs_all_years sBase
-#
-# FIXME THIS IS A MESS AND NEEDS CLEANING UP. 
-# * MOVE PATHS and constants into a file.
-# * move tests to a tests file in `tests`
-# * move most code to a package in `src/`
-# 
+using CSV,DataFrames,Statistics,StatsBase
+#=
+ FIXME THIS IS A MESS AND NEEDS CLEANING UP. 
+ * MOVE PATHS and constants into a file.
+ * move tests to a tests file in `tests`
+ * move most code to a package in `src/`
+
+ 11/Feb/2024 updating but otherwise leave as-is.
+
+=# 
 include( "matching/matching_funcs.jl")
 
-frs_all_years_scot_he = create_frs( 2015:2019 )
-shs_all_years = create_shs( 2016:2019 ) 
+frs_all_years_scot_he = create_frs( 2015:2021 )
+shs_all_years = create_shs( 2016:2021 ) 
     
 donor,recip = create_donor_and_recip_datasets( frs_all_years_scot_he, shs_all_years )
 
@@ -123,13 +126,13 @@ for p in eachrow( target_pops )
     s += inv_freqs[p.code]*shs_hhn[p.code]
 end
 
-@assert s  ≈ 2537971.91652663 # FIXME needs updating every time
+# @assert s  ≈ 2537971.91652663 # FIXME needs updating every time
 
 add_in_las_to_recip!( recip, shs_all_years, shs_councils )
 
 # 2495622
 
- tot_hhlds_20 = 2537971.91652663 # FIXME just make this a sum
+tot_hhlds_20 = s # 2537971.91652663 # FIXME just make this a sum
 
 n = add_council_to_frs!(
     # ;

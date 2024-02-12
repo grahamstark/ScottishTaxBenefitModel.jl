@@ -14,8 +14,8 @@ const settings = Settings()
 #
 # UK wide with Scottish dummy
 #
-frshh = CSV.File("$(MODEL_DATA_DIR)/model_households.tab" ) |> DataFrame
-frspeople = CSV.File("$(MODEL_DATA_DIR)/model_people.tab") |> DataFrame
+frshh = CSV.File("$(MODEL_DATA_DIR)/model_households-2015-2021.tab" ) |> DataFrame
+frspeople = CSV.File("$(MODEL_DATA_DIR)/model_people-2015-2021.tab") |> DataFrame
 
 fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ], makeunique=true )
 

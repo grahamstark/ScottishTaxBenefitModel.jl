@@ -5,8 +5,8 @@ using .Definitions
 
 ADD_IN_MATCHING = true
 
-household_name = "model_households"
-people_name = "model_people"
+household_name = "model_households-2015-2021"
+people_name = "model_people-2015-2021"
 
 hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab", delim='\t' ) |> DataFrame
 people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab", delim='\t') |> DataFrame
@@ -28,5 +28,5 @@ if ADD_IN_MATCHING
     scottish_hhlds.bedrooms = shs_matches.bedrooms
 end
 
-CSV.write("$(MODEL_DATA_DIR)/model_households_scotland.tab", scottish_hhlds, delim = "\t")
-CSV.write("$(MODEL_DATA_DIR)/model_people_scotland.tab", scottish_people, delim = "\t")
+CSV.write("$(MODEL_DATA_DIR)/model_households_scotland-2015-2021.tab", scottish_hhlds, delim = "\t")
+CSV.write("$(MODEL_DATA_DIR)/model_people_scotland-2015-2021.tab", scottish_people, delim = "\t")

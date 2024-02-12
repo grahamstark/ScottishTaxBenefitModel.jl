@@ -199,6 +199,12 @@ function loadshs( year::Int )::DataFrame
     return shs
 end
 
+function renamec!( d::AbstractDataFrame,ft::Pair)
+    if columnindex(d,ft[1]) > 0
+      rename!( d, ft )
+    end
+end
+
 
 function loadfrs( year::Int, fname :: String ) :: DataFrame
 	ystr = "$(year)$(year+1)"
@@ -226,6 +232,7 @@ function create_frs( years :: UnitRange ) :: DataFrame
         hh = loadfrs( year, "househol" )
         shh = hh[(hh.gvtregn .== SCOTLAND),:]
         ad = loadfrs( year, "adult" )
+        renamec!( ad, :soc2020=>:soc2010 ) # SOC2010 and SOC2020 seem to be the same thing, at least top-level
         shhad=innerjoin( ad, shh, on=:sernum; makeunique=true )
         highest_income = make_highest_hh_income_marker( shhad )
         frs[i] = shhad[highest_income,:]

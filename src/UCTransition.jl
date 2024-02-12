@@ -32,10 +32,10 @@ const PROPS_ON_UC =
                 trans_jobseekers => 0.97 ),
         N_Scotland=>
             Dict(
-                trans_all => 0.70, 
-                trans_housing => 0.71,
-                trans_w_kids => 0.71,
-                trans_incapacity => 0.54,
+                trans_all => 0.71, 
+                trans_housing => 0.70,
+                trans_w_kids => 0.80,
+                trans_incapacity => 0.57,
                 trans_jobseekers => 0.97 ),
         N_Wales=>
             Dict(

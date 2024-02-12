@@ -74,8 +74,8 @@ module RunSettings
         auto_weight = true
  
         data_dir :: String = MODEL_DATA_DIR
-        household_name = "model_households_scotland"
-        people_name    = "model_people_scotland"
+        household_name = "model_households_scotland-2015-2021"
+        people_name    = "model_people_scotland-2015-2021"
         target_nation :: Nation = N_Scotland
         dump_frames :: Bool = false
         num_households :: Int = 0
