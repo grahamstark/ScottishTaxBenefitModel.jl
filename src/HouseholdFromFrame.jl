@@ -302,6 +302,10 @@ function map_person(
         else
             @assert ! ismissing( model_person.type_of_bereavement_allowance )
             bereavement_type = model_person.type_of_bereavement_allowance
+            # hack for 1 household: pid 120210849301 
+            if bereavement_type == -1
+                bereavement_type = 1
+            end
         end
     end
     relationships = Relationship_Dict()
@@ -396,6 +400,7 @@ function map_person(
         m2z(model_person.fuel_supplied),
         strtobi(model_person.onerand)
     )
+    # FIXME we need a seperate switch for make benefit ratios 
     if settings.benefit_generosity_estimates_available
         make_benefit_ratios!( 
             pers, hh.interview_year, hh.interview_month )

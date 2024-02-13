@@ -41,7 +41,9 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings = Settings()
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
-    sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
+    sys = [
+        get_default_system_for_fin_year(2019; scotland=false), 
+        get_default_system_for_fin_year( 2019; scotland=true )]
     tot = 0
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
@@ -58,7 +60,10 @@ end
 
 @testset "Extreme Income Changes from Flat tax" begin    
     settings = Settings()
-    sys = [get_system(year=2022, scotland=true), get_system( year=2022, scotland=true )]
+    sys = [
+        get_default_system_for_fin_year(2023; scotland=true), 
+        get_default_system_for_fin_year( 2023; scotland=true )]
+    
     settings.do_marginal_rates = false
     # flat tax - 
     @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )

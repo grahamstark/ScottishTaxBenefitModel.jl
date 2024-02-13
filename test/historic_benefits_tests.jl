@@ -7,6 +7,7 @@ using .Utils
 using .Randoms
 using .ExampleHelpers
 using .RunSettings: Settings
+using .FRSHouseholdGetter: get_interview_years
 
 ## NOTE this test has the 2019 OBR data and 2019Q4 as a target jammed on - will need
 ## changing with update versions
@@ -76,8 +77,12 @@ end # testset
     
 @testset "Run on actual Data" begin
     # just see if switcher roughly works on actual data
-    nhhs,npeople = init_data( reset=true )
-    nyears = 6
+    settings = Settings()
+
+    ## turn off doing the dla=>pip switch automatically
+    settings.benefit_generosity_estimates_available = false
+    nhhs,npeople = init_data( reset=true, settings=settings )
+    nyears = length(get_interview_years()) # FIXME this breaks if years are non-contigious
     pips_dlas = DataFrame(
         year = zeros( Int, nyears ),
         orig_dla_self_care = zeros( Int, nyears ),

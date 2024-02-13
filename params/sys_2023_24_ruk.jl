@@ -355,7 +355,7 @@ sys.loctax.ct.band_d = Dict(
 
 brmapath = joinpath(MODEL_DATA_DIR, "local", "brma-2023-2024-country-averages.csv")
 
-sys.hr.brmas = loadBRMAs( 4, T, brmapath )
+sys.hr.brmas = loadBRMAs( 4, Float64, brmapath )
 
 # here so it's always on 
 sys.scottish_child_payment.abolished = false

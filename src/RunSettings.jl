@@ -65,8 +65,10 @@ module RunSettings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name :: String = "default_run"
+        #= not used??
         start_year :: Int = 2015
-        end_year :: Int = 2019
+        end_year :: Int = 2021
+        =# 
         scotland_full :: Bool = true
         weighted :: Bool = false
         

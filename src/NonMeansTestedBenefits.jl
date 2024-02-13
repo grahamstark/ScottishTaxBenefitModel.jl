@@ -171,7 +171,7 @@ module NonMeansTestedBenefits
             end
         else
             # check we're not missing anyone
-            @assert ! haskey( pers.benefit_ratios, bereavement_allowance_or_widowed_parents_allowance_or_bereavement)
+            @assert ! haskey( pers.benefit_ratios, bereavement_allowance_or_widowed_parents_allowance_or_bereavement) "pid $(pers.pid) bereavement_type=$(pers.bereavement_type) not recognised ratios=$(pers.benefit_ratios)"
         end
         return wid
     end

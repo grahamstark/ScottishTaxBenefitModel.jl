@@ -117,7 +117,7 @@ for target in bens
     push!( main_out, v )
 end
 
-RegressionTables.regtable( main_out ...;  renderSettings = latexOutput("disability_regressions.tex"))
+RegressionTables.regtable( main_out ...;  render = LatexTable(), file="disability_regressions.tex" )
 RegressionTables.regtable( main_out ... )
 
 ##

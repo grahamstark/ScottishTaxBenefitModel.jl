@@ -97,7 +97,7 @@ function init_data(; reset :: Bool = false, settings = Settings() )
    nhh = get_num_households()
    num_people = -1
    if( nhh == 0 ) || reset 
-      @time nhh, num_people,nhh2 = initialise( settings )
+      @time nhh, num_people,nhh2 = initialise( settings; reset=reset )
    end
    (nhh,num_people)
 end

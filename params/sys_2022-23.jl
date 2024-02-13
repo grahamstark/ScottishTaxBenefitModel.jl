@@ -248,7 +248,7 @@ sys.hr.single_room_age = 35
 # These are unchanged in 3 years; see:
 # https://www.gov.scot/publications/local-housing-allowance-rates-2021-2022/
 #
-sys.hr.brmas = loadBRMAs( 4, T, DEFAULT_BRMA_2021 ) 
+sys.hr.brmas = loadBRMAs( 4, Float64, DEFAULT_BRMA_2021 ) 
 
 
 

@@ -35,9 +35,11 @@ module FRSHouseholdGetter
 
     export 
         initialise, 
+        get_data_years,
         get_household, 
         num_households, 
         get_household_of_person,
+        get_interview_years,
         get_regression_dataset, 
         get_people_slots_for_household,
         get_slot_for_person,
@@ -67,6 +69,8 @@ module FRSHouseholdGetter
         dimensions :: Vector{Int}  
         hh_map     :: Dict{OneIndex,HHPeople}   
         pers_map   :: Dict{OneIndex,OnePos}
+        data_years :: Vector{Int}
+        interview_years :: Vector{Int}
     end
     
     const MODEL_HOUSEHOLDS = 
@@ -75,7 +79,9 @@ module FRSHouseholdGetter
             zeros(Float64,0),
             zeros(Int,3),
             Dict{OneIndex,HHPeople}(),
-            Dict{OneIndex,Int}())
+            Dict{OneIndex,Int}(),
+            zeros(0),
+            zeros(0))
     
     mutable struct RegWrapper # I don't understand why I need 'mutable' here, but..
         data :: DataFrame
@@ -166,6 +172,7 @@ module FRSHouseholdGetter
             if settings.indirect_method == matching 
                 ConsumptionData.find_consumption_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
             end
+
             pseqs = []
             for pid in keys(hh.people)
                 pseq += 1
@@ -173,7 +180,12 @@ module FRSHouseholdGetter
                 MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = OnePos(hseq,pseq)
             end
             MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = HHPeople( hseq, pseqs)
-            
+            if ! (hh.data_year in MODEL_HOUSEHOLDS.data_years )
+                push!( MODEL_HOUSEHOLDS.data_years, hh.data_year )
+            end
+            if ! (hh.interview_year in MODEL_HOUSEHOLDS.interview_years )
+                push!( MODEL_HOUSEHOLDS.interview_years, hh.interview_year )
+            end
         end
         # default weighting using current Scotland settings; otherwise do manually
         if settings.auto_weight && settings.target_nation == N_Scotland
@@ -201,7 +213,21 @@ module FRSHouseholdGetter
     end
 
     function get_regression_dataset()::DataFrame
-        REG_DATA
+        return REG_DATA
+    end
+
+    """
+    A vector of the data years in the actual data e.g.2014,2020 ..
+    """
+    function get_data_years()::Vector{Integer}
+        return MODEL_HOUSEHOLDS.data_years
+    end
+
+    """
+    A vector of the interview years in the actual data e.g.2014,2020 ..
+    """
+    function get_interview_years()::Vector{Integer}
+        return MODEL_HOUSEHOLDS.interview_years
     end
 
     function get_household( pos :: Integer ) :: Household

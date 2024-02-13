@@ -24,6 +24,7 @@ donor,recip = create_donor_and_recip_datasets( frs_all_years_scot_he, shs_all_ye
 CSV.write( "data/merging/shs_all_years.tab", shs_all_years )
 CSV.write( "data/merging/frs_all_years_scot_he.tab", frs_all_years_scot_he )
 
+
 make_initial_match!( recip, donor )
 
 CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
@@ -104,7 +105,7 @@ n = match_up_unmatched!( recip, donor, final_targets_2, final_unmatched_2 )
 CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
 CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
 
-mhh = CSV.File( "data/model_households_scotland.tab"; delim='\t') |> DataFrame
+mhh = CSV.File( "data/model_households_scotland-2015-2021.tab"; delim='\t') |> DataFrame
 shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
 target_pops = CSV.File( "data/merging/hhlds_and_people_2022_nrs_estimates.csv" ) |> DataFrame
 shs_hhn = count_councils(shs_all_years, shs_councils )
@@ -129,6 +130,9 @@ end
 # @assert s  ≈ 2537971.91652663 # FIXME needs updating every time
 
 add_in_las_to_recip!( recip, shs_all_years, shs_councils )
+# final save
+CSV.write( "data/merging/shs_donor_data.tab", donor; quotestrings=true, delim='\t' )
+CSV.write( "data/merging/frs_shs_merging_indexes.tab", recip; quotestrings=true, delim='\t' )
 
 # 2495622
 
@@ -156,7 +160,12 @@ for r in eachrow(mhh)
     n[r.council] += 1
 end
 
-CSV.write( "data/model_households_scotland.tab", mhh; delim='\t') 
+#
+# FIXME 12/2/2024 jam 2021 bedrooms to 3 till we can map from SHS.
+#
+mhh[mhh.bedrooms .< 0,:bedrooms] .= 3
+CSV.write( "data/model_households_scotland-2015-2021.tab", mhh; delim='\t') 
+
 
 #
 # todo : add bedrooms bedroom6 frs capped at 6 hc4 shs

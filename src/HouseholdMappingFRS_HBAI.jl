@@ -568,10 +568,7 @@ function create_data(;start_year::Int, end_year::Int, hbai::String)
 
     model_households = initialise_household(0)
     model_people = initialise_person(0)
-    # start_year = 2015
-    # end_year = 2019
-    # hbai_year = 21 # hbai year counter; 1994/5 == 1 => 2015 == 22
-
+    
     for year in start_year:end_year
         hbai_year = year - 1993
         print("on year $year ")

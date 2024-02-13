@@ -1153,6 +1153,35 @@ function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
     end
 end
 
+
+
+@with_kw mutable struct OneLegalAidSys{RT}
+    abolished :: Bool = false
+    allowance :: RT = 66.15
+    scottish_supplement :: RT = 231.40 # per 6 months
+    hours :: Int = 35
+    gainful_employment_min :: RT = 123.0
+    earnings = IncomesSet([SELF_EMPLOYMENT_INCOME,WAGES])
+    deductions = IncomesSet([INCOME_TAX,NATIONAL_INSURANCE])
+    extra_people :: RT = 0
+    candidates = Set{OneIndex}()
+    slot :: Incomes = CARERS_ALLOWANCE
+end
+
+@with_kw mutable struct LegalAidSys{RT}
+    civil = OneLegalAidSys{RT}
+    aa    = OneLegalAidSys{RT}
+end
+
+
+"""
+express aa weekly and civil annually
+"""
+function weeklyise!( la :: LegalAidSys )
+
+end
+
+
 function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     # println( "weeklyise lmt wpm = $wpm wpy=$wpy")
     weeklyise!( lmt.working_tax_credit; wpm=wpm, wpy=wpy )
