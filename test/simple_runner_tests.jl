@@ -42,8 +42,8 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [
-        get_default_system_for_fin_year(2019; scotland=false), 
-        get_default_system_for_fin_year( 2019; scotland=true )]
+        get_default_system_for_fin_year(2023; scotland=true), 
+        get_default_system_for_fin_year( 2023; scotland=true )]
     tot = 0
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
@@ -54,7 +54,9 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     outf = summarise_frames!( results, settings )
     println( outf )
     gl = make_gain_lose( results.hh[1], results.hh[2], settings )
-    println(gl)
+    # println(gl)
+    # println( outf )
+    return (outf,gl)
 end 
 
 

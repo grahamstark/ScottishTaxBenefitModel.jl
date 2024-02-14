@@ -162,6 +162,17 @@ const EXTRA_INC_COLS = 18
         return frame
     end
 
+    function make_legal_aid_frame(  RT :: DataType, n :: Int; id = 1 ) :: DataFrame
+        return DataFrame(
+            eligible_households = zeros(n),
+            eligible_people = zeros(n),
+            passported_households = zeros(n),
+            passported_people = zeros(n),
+            payments = zeros(n),
+            contributions = zeros(n)
+        )
+    end
+
     """
     Change in the numeric fields of incomes 
     """

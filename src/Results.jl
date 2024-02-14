@@ -39,6 +39,7 @@ module Results
         LMTResults,
         LocalTaxes,
         NIResult, 
+        LegalAidResult,
 
         aggregate_tax,
         aggregate!,
@@ -57,6 +58,10 @@ module Results
         cap :: RT = zero(RT)
         cap_benefits :: RT = zero(RT)
         reduction :: RT = zero(RT)
+    end
+
+    @with_kw mutable struct LegalAidResult{RT<:Real}
+        thing = zero(RT)
     end
 
     @with_kw mutable struct UCResults{RT<:Real}
@@ -271,6 +276,7 @@ module Results
         pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` 
         adults = Pid_Array()
         route :: LegacyOrUC = legacy_bens
+        legalaid = LegalAidResult{RT}()
     end
 
     function to_string( br :: BenefitUnitResult, depth=1 )::String
