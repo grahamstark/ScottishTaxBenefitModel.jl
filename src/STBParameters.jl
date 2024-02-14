@@ -1058,6 +1058,8 @@ function any_changes_needed( dataj :: DataAdjustments )::Bool
             any( a->!(a ≈ 0), dataj.employment_changes )
 end
 
+include( "legal_aid_parameters.jl")
+
 @with_kw mutable struct TaxBenefitSystem{RT<:Real}
     name :: String = "Scotland System 2019/20"
     it   = IncomeTaxSys{RT}()
@@ -1079,6 +1081,7 @@ end
     othertaxes = OtherTaxesSys{RT}()
     indirect = IndirectTaxSystem{RT}()
     adjustments = DataAdjustments{RT}()
+    legalaid = ScottishLegalAidSys{RT}()
 end
 
 """
@@ -1154,34 +1157,6 @@ function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
 end
 
 
-
-@with_kw mutable struct OneLegalAidSys{RT}
-    abolished :: Bool = false
-    allowance :: RT = 66.15
-    scottish_supplement :: RT = 231.40 # per 6 months
-    hours :: Int = 35
-    gainful_employment_min :: RT = 123.0
-    earnings = IncomesSet([SELF_EMPLOYMENT_INCOME,WAGES])
-    deductions = IncomesSet([INCOME_TAX,NATIONAL_INSURANCE])
-    extra_people :: RT = 0
-    candidates = Set{OneIndex}()
-    slot :: Incomes = CARERS_ALLOWANCE
-end
-
-@with_kw mutable struct LegalAidSys{RT}
-    civil = OneLegalAidSys{RT}
-    aa    = OneLegalAidSys{RT}
-end
-
-
-"""
-express aa weekly and civil annually
-"""
-function weeklyise!( la :: LegalAidSys )
-
-end
-
-
 function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     # println( "weeklyise lmt wpm = $wpm wpy=$wpy")
     weeklyise!( lmt.working_tax_credit; wpm=wpm, wpy=wpy )
@@ -1192,8 +1167,6 @@ function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH,
 end
 
 function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-    # println( "weeklyise tb wpm = $wpm wpy=$wpy")
-    
     weeklyise!( tb.it; wpm=wpm, wpy=wpy )
     weeklyise!( tb.ni; wpm=wpm, wpy=wpy )
     weeklyise!( tb.lmt; wpm=wpm, wpy=wpy )
@@ -1207,6 +1180,7 @@ function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_
     weeklyise!( tb.wealth; wpm=wpm, wpy=wpy)
     weeklyise!( tb.indirect; wpm=wpm, wpy=wpy )
     weeklyise!( tb.adjustments )
+    weeklyise!( legalaid )
 end
 
 """
