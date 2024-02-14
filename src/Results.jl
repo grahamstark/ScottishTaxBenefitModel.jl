@@ -62,10 +62,14 @@ module Results
 
     @with_kw mutable struct OneLegalAidResult{RT<:Real}
         income = zero(RT)
-        outgoings = zero(RT)
+        housing = zero(RT)
+        work_expenses = zero(RT)
+        other_outgoings = zero(RT)
         wealth = zero(RT)
         passported = false
         eligible   = false
+        eligible_on_income = false
+        eligible_on_wealth = false
         income_contribution = zero(RT)
         income_contribution_pw = zero(RT)
         capital_contribution = zero(RT)

@@ -121,8 +121,8 @@ export OtherTaxes
 include( "IndirectTaxes.jl")
 export IndirectTaxes
 
-include( "LegalAidSys.jl")
-export LegalAidSys
+include( "LegalAidCalculations.jl")
+export LegalAidCalculations
 
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations

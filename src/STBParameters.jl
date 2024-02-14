@@ -38,6 +38,7 @@ export NonMeansTestedSys, MaternityAllowance, ChildLimits
 export BenefitCapSys, make_ubi_pre_adjustments!
 export OtherTaxesSys, IndirectTaxSystem, VATSystem, WealthTaxSys
 export DataAdjustments, get_minimum_wage
+export OneLegalAidSys, ScottishLegalAidSys, do_expense
 export get_default_system_for_date, 
     get_default_system_for_cal_year, 
     get_default_system_for_fin_year
@@ -1156,7 +1157,6 @@ function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
     end
 end
 
-
 function weeklyise!( lmt :: LegacyMeansTestedBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     # println( "weeklyise lmt wpm = $wpm wpy=$wpy")
     weeklyise!( lmt.working_tax_credit; wpm=wpm, wpy=wpy )
@@ -1180,7 +1180,7 @@ function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_
     weeklyise!( tb.wealth; wpm=wpm, wpy=wpy)
     weeklyise!( tb.indirect; wpm=wpm, wpy=wpy )
     weeklyise!( tb.adjustments )
-    weeklyise!( legalaid )
+    weeklyise!( tb.legalaid )
 end
 
 """
