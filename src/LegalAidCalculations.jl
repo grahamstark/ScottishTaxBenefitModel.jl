@@ -1,19 +1,29 @@
 module LegalAidCalculations
 
 using ScottishTaxBenefitModel
+
 using .ModelHousehold: 
     BenefitUnit,
     Household, 
     Person
 using .Definitions
-using .STBParameters:
-    LegalAidSys,
-    ScottishLegalAidSys
+
+using .GeneralTaxComponents: 
+    TaxResult, 
+    calctaxdue
+
 using .Results:
     HouseholdResult,
     LegalAidResult,
     OneLegalAidResult
+
 using .STBIncomes
+
+using .STBParameters:
+    LegalAidSys,
+    ScottishLegalAidSys
+    
+export calc_legal_aid!
 
 function make_ttw( pers :: Person ) 
     # FIXME
@@ -92,7 +102,32 @@ function calc_legal_aid!(
     civla.other_outgoings += do_expense( other, lasys.expenses.debt )
     civla.other_outgoings += do_expense( repayments, lasys.expenses.repayments )
     civla.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
+    civla.net_income = totinc
+    civla.outgoings = civla.housing + civla.childcare + civla.other_outgoings + civla.work_expenses
+    civla.disposable_income = max( 0.0, civla.net_income - civla.outgoings - civla.allowances )
 
+    civla.eligible_on_income = civla.disposable_income < contribution_limits[1]
+    wealth = 0.0
+    if net_physical_wealth in lasys.included_wealth 
+        wealth += hh.net_physical_wealth
+    end 
+    if net_financial_wealth in lasys.included_wealth 
+        wealth += hh.net_financial_wealth
+    end 
+    if net_housing_wealth in lasys.included_wealth 
+        wealth += hh.net_housing_wealth
+    end 
+    if net_pension_wealth in lasys.included_wealth 
+        wealth += hh.net_pension_wealth
+    end 
+    civla.eligible_on_wealth = wealth < lasys.capital_upper_limit 
+    if civla.eligible_on_wealth && civla.eligible_on_income
+        civla.capital_contribution = max( 0.0, wealth - lasys.capital_lower_limit )
+        civla.income_contribution = calctaxdue(
+            taxable=civla.disposable_income,
+            rates=lasys.contribution_rates,
+            thresholds=lasys.contribution_limits ).due
+    end
 end # calc_legal_aid!
 
 end # module
