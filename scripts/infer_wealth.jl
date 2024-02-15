@@ -139,6 +139,7 @@ function add_wealth_to_dataframes!(
         hh.net_financial_wealth + 
         hh.net_physical_wealth + 
         hh.net_pension_wealth
+    ex
  end # function add_wealth_to_dataframes!
 
 function comptable(
@@ -155,11 +156,11 @@ function comptable(
     
 end
 
-model_hhlds_path = joinpath( MODEL_DATA_DIR, "model_households-2021-2021.tab")
+model_hhlds_path = joinpath( MODEL_DATA_DIR, "model_households-2015-2021.tab")
 hh = CSV.File( model_hhlds_path ) |> DataFrame
-pers = CSV.File( joinpath( MODEL_DATA_DIR, "model_people-2021-2021.tab")) |> DataFrame
+pers = CSV.File( joinpath( MODEL_DATA_DIR, "model_people-2015-2021.tab")) |> DataFrame
 hhr = create_regression_dataframe( hh, pers )
-add_wealth_to_dataframes!( hhr, hh, final_regs )
+ex = add_wealth_to_dataframes!( hhr, hh, final_regs )
 
 io = IOBuffer()
 println( io, "Net Physical")
@@ -192,5 +193,5 @@ println( io, comptable(
 
 write( "docs/wealth_summary.txt", String(take!(io)) )
 
-CSV.write( model_hhlds_path, hh )
+CSV.write( model_hhlds_path, hh, delim='\t' )
  
