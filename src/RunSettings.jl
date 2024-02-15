@@ -127,6 +127,7 @@ module RunSettings
 
         wealth_method = no_method
         do_indirect_tax_calculations = false
+        do_legal_aid = true
     end
 
     """
@@ -156,6 +157,7 @@ module RunSettings
         settings.expenditure_dataset = "lcf_subset-2018-2020"
         settings.wealth_method=imputation
         settings.do_indirect_tax_calculations = true
+        settings.do_legal_aid = false
         return settings
     end
 
