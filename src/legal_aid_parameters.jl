@@ -189,7 +189,7 @@ function do_expense( v :: T, exp :: Expense{T}) :: T where T
     if exp.is_flat
         return exp.v
     end
-    return min( v, exp.max )*exp
+    return min( v, exp.max )*exp.v
 end
 
 

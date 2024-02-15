@@ -3,6 +3,9 @@ module LegalAidCalculations
 using ScottishTaxBenefitModel
 
 using .ModelHousehold: 
+    is_head,
+    is_spouse,
+    is_child,
     BenefitUnit,
     Household, 
     Person
@@ -13,6 +16,7 @@ using .GeneralTaxComponents:
     calctaxdue
 
 using .Results:
+    get_indiv_result,
     HouseholdResult,
     LegalAidResult,
     OneLegalAidResult
@@ -20,6 +24,7 @@ using .Results:
 using .STBIncomes
 
 using .STBParameters:
+    do_expense,
     OneLegalAidSys,
     ScottishLegalAidSys
 
@@ -55,13 +60,12 @@ function calc_legal_aid!(
         return
     end
     hh = household # alias
-    hr = household_result # alias
-    civla = hr.legalaid.civil # alias
+    hres = household_result # alias
+    civla = hres.legalaid.civil # alias
    
     
     totinc = 0.0
     repayments = 0.0
-    other = 0.0
     workexp = 0.0
     maintenance = 0.0
     hb = 0.0
@@ -82,18 +86,18 @@ function calc_legal_aid!(
         child_costs += pers.cost_of_childcare
         workexp += make_ttw( pers )
         repayments += make_repayments( pers )
-        if is_head( pers )
+        if pers.relationship_to_hoh == This_Person
             civla.allowances += lasys.living_allowance
-        elseif is_spouse( pers )
+        elseif pers.relationship_to_hoh == Spouse
             civla.allowances += lasys.partners_allowance
         elseif is_child( pers )
             civla.allowances += lasys.child_allowance
         else
             civla.allowances += lasys.other_dependants_allowance
         end
-        totinc += isum( income, lasys.incomes.included, lasys.incomes.deducted )
+        totinc += isum( income, lasys.incomes.included; deducted=lasys.incomes.deducted )
     end
-    housing = max( 0.0, hh.gross_rent - hb), lasys.expenses. +
+    housing = max( 0.0, hh.gross_rent - hb) +
               max( 0.0, ct - ctb ) +
               hh.mortgage_interest +
               hh.other_housing_charges
@@ -101,14 +105,13 @@ function calc_legal_aid!(
     civla.housing = do_expense( housing, lasys.expenses.housing )
     civla.childcare = do_expense( housing, lasys.expenses.childcare )
     civla.other_outgoings += do_expense( maintenance, lasys.expenses.maintenance )
-    civla.other_outgoings += do_expense( other, lasys.expenses.debt )
-    civla.other_outgoings += do_expense( repayments, lasys.expenses.repayments )
+    civla.other_outgoings += do_expense( repayments, lasys.expenses.debt_repayments )
     civla.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
     civla.net_income = totinc
     civla.outgoings = civla.housing + civla.childcare + civla.other_outgoings + civla.work_expenses
     civla.disposable_income = max( 0.0, civla.net_income - civla.outgoings - civla.allowances )
 
-    civla.eligible_on_income = civla.disposable_income < contribution_limits[1]
+    civla.eligible_on_income = civla.disposable_income < lasys.contribution_limits[1]
     wealth = 0.0
     if net_physical_wealth in lasys.included_wealth 
         wealth += hh.net_physical_wealth

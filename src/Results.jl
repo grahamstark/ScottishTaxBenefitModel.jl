@@ -63,6 +63,7 @@ module Results
     @with_kw mutable struct OneLegalAidResult{RT<:Real}
         net_income = zero(RT)
         disposable_income = zero(RT)
+        childcare = zero(RT)
         outgoings = zero(RT)
         housing = zero(RT)        
         work_expenses = zero(RT)
