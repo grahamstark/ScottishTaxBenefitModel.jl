@@ -86,17 +86,21 @@ function calc_legal_aid!(
         child_costs += pers.cost_of_childcare
         workexp += make_ttw( pers )
         repayments += make_repayments( pers )
+        println( "on person $(pers.pid) reltohoh = $(pers.relationship_to_hoh)")
         if pers.relationship_to_hoh == This_Person
             civla.allowances += lasys.living_allowance
         elseif pers.relationship_to_hoh == Spouse
             civla.allowances += lasys.partners_allowance
         elseif is_child( pers )
+            println( "adding child $(lasys.child_allowance)")
             civla.allowances += lasys.child_allowance
         else
             civla.allowances += lasys.other_dependants_allowance
         end
         totinc += isum( income, lasys.incomes.included; deducted=lasys.incomes.deducted )
+        println( "civla.allowances now $(civla.allowances)")
     end
+    println( "final civla.allowances = $(civla.allowances)")
     housing = max( 0.0, hh.gross_rent - hb) +
               max( 0.0, ct - ctb ) +
               hh.mortgage_interest +
@@ -111,7 +115,7 @@ function calc_legal_aid!(
     civla.outgoings = civla.housing + civla.childcare + civla.other_outgoings + civla.work_expenses
     civla.disposable_income = max( 0.0, civla.net_income - civla.outgoings - civla.allowances )
 
-    civla.eligible_on_income = civla.disposable_income < lasys.contribution_limits[1]
+    civla.eligible_on_income = civla.disposable_income < lasys.contribution_limits[end]
     wealth = 0.0
     if net_physical_wealth in lasys.included_wealth 
         wealth += hh.net_physical_wealth
@@ -126,7 +130,8 @@ function calc_legal_aid!(
         wealth += hh.net_pension_wealth
     end 
     civla.eligible_on_wealth = wealth < lasys.capital_upper_limit 
-    if civla.eligible_on_wealth && civla.eligible_on_income
+    civla.eligible = civla.eligible_on_wealth && civla.eligible_on_income
+    if civla.eligible
         civla.capital_contribution = max( 0.0, wealth - lasys.capital_lower_limit )
         civla.income_contribution = calctaxdue(
             taxable=civla.disposable_income,

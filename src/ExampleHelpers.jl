@@ -179,6 +179,7 @@ end
     np.pid = maximum( keys( hh.people ))+1
     np.age = age
     np.sex = sex
+    np.is_standard_child = true
     hh.people[ np.pid ] = np
     head.relationships[np.pid] = Parent
     spouse = get_spouse( hh )
@@ -236,7 +237,7 @@ end
       np.relationships[pid] = Parent
       ch.relationships[np.pid] = Son_or_daughter_incl_adopted
    end
-
+   np.relationship_to_hoh = Spouse
    # TODO fill in other relationships
 
    np.age = age

@@ -134,12 +134,12 @@ const DEFAULT_LA_INCOME = IncludedItems(
 
     living_allowance           = zero(RT)
     partners_allowance         = RT(2529)
-    other_dependants_allowance = RT(4074)
-    child_allowance            = RT(4074)
+    other_dependants_allowance = RT(4056)
+    child_allowance            = RT(4056)
     
     cont_type               = proportion
     contribution_rates :: RateBands{RT} =  [0.0,33.0,50.0,100.0]
-    contribution_limits :: RateBands{RT} =  [3_521.0, 11_544.0, 15_744, 26_329.0]
+    contribution_limits :: RateBands{RT} =  [3_521.0, 11_540.0, 15_743, 26_239.0]
         
         
     passported_benefits        = IncomesSet([
