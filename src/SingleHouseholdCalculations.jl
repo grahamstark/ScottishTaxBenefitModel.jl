@@ -69,7 +69,7 @@ using .LocalLevelCalculations:
 using .LegacyMeansTestedBenefits: 
     calc_legacy_means_tested_benefits!
 
-using LegalAidCalculations: calc_legal_aid!
+using .LegalAidCalculations: calc_legal_aid!
 
 using .UniversalCredit:
     calc_universal_credit!
@@ -230,7 +230,8 @@ function do_one_calc(
         calc_indirect_tax!( hres, hh, sys.indirect )
     end
     if settings.do_legal_aid
-        calc_legal_aid!( hres, hh, intermed, sys.legalaid )
+        calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+        # FIXME AA
     end
 
     aggregate!( hh, hres )

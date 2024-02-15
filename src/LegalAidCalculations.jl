@@ -20,9 +20,11 @@ using .Results:
 using .STBIncomes
 
 using .STBParameters:
-    LegalAidSys,
+    OneLegalAidSys,
     ScottishLegalAidSys
-    
+
+using .Intermediate: 
+    HHIntermed
 export calc_legal_aid!
 
 function make_ttw( pers :: Person ) 
