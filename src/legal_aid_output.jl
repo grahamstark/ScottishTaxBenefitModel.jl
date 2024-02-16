@@ -1,4 +1,10 @@
+#=
+Output routines for Legal Aid, split out for manageability.
+=#
 
+"""
+BU level output dataframe
+"""
 function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
     return DataFrame(
         hid       = zeros( BigInt, n ),
@@ -28,6 +34,9 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         disqualified_on_capital = zeros(RT,n))
 end
 
+"""
+Called once per benefit unit. See run example below.
+"""
 function fill_legal_aid_frame_row!( 
     hr   :: DataFrameRow, 
     hh   :: Household, 
@@ -57,10 +66,16 @@ function fill_legal_aid_frame_row!(
     hr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
     hr.capital_contribution = lr.capital_contribution > 0
     hr.income_contribution = lr.income_contribution > 0
-    hr.disqualified_on_income = ! lr.eligible_on_income
-    hr.disqualified_on_capital = ! lr.eligible_on_capital
+    if lr.passported 
+        hr.disqualified_on_income = false 
+        hr.disqualified_on_capital = false
+    else 
+        hr.disqualified_on_income = ! lr.eligible_on_income
+        hr.disqualified_on_capital = ! lr.eligible_on_capital
+    end
 end
 
+#=
 function larun()
     settings = Settings()
     tot = 0
@@ -93,6 +108,7 @@ function larun()
     end
     df[1:nbus,:]
 end
+=#
 
 const LA_BITS=[
     :total, 
@@ -104,6 +120,7 @@ const LA_BITS=[
     :capital_contribution,
     :disqualified_on_income,
     :disqualified_on_capital]
+
 const LA_LABELS = [
     "Total",
     "All Eligible",
@@ -114,6 +131,7 @@ const LA_LABELS = [
     "Capital Contribution",
     "Disqualified on Income",
     "Disqualified on Capital"]
+
 const TARGETS = [
     :employment_status,
     :tenure, 
@@ -124,6 +142,10 @@ const TARGETS = [
     :num_people,
     :with_children]
 
+"""
+Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
+return a dataframe (grouped?) with LA_BITS as colums and broken down values for one of TARGETS.
+"""
 function combine_one_legal_aid( df :: DataFrame, to_combine :: Symbol, weight_sym :: Symbol )::AbstractDataFrame
     wbits = []
     for l in LA_BITS
@@ -138,6 +160,10 @@ function combine_one_legal_aid( df :: DataFrame, to_combine :: Symbol, weight_sy
     outf
 end
 
+"""
+Call `combine_one_legal_aid` on all the `TARGETS`
+return a dictionary of (grouped?) dataframes 
+"""
 function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol ) :: Dict
     alltab = Dict()
     for t in TARGETS
@@ -148,6 +174,7 @@ function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol ) :: Dic
 end
 
 """
+Formatter for an all-counts dataframe.
 See PrettyTable documentation for formatter
 """
 function pt_fmt(val,row,col)
@@ -157,4 +184,18 @@ function pt_fmt(val,row,col)
     return Formatting.format(val,commas=true,precision=0)
 end
 
+#= example
 
+f = open( "somefile.md","w")
+for t in TARGETS
+           println(f, "### "*Utils.pretty(string(t))); println(f)
+           pretty_table(f,dd[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+           println(f)
+       end
+close(f)
+
+for t in TARGETS
+    println( Utils.pretty(string(t)))
+    pretty_table(dd[t],formatters=pt_fmt, backend = Val(:markdown), :cell_first_line_only=true)
+end
+=#
