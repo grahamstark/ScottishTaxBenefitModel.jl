@@ -296,6 +296,7 @@ module Results
         pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` 
         adults = Pid_Array()
         route :: LegacyOrUC = legacy_bens
+        legalaid = LegalAidResult{RT}()
     end
 
     function to_string( br :: BenefitUnitResult, depth=1 )::String
@@ -370,7 +371,6 @@ module Results
         # and adapt the get_benefit_units function 
         #
         bus = Vector{BenefitUnitResult{RT}}(undef,0)
-        legalaid = LegalAidResult{RT}()
     end
 
     function get_net_income( hres :: HouseholdResult; target :: TargetBCIncomes ) :: Real

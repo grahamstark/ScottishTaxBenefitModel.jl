@@ -7,13 +7,6 @@
 =#
 
 
-
-struct Expense{T}
-    is_flat :: Bool
-    v  :: T
-    max     :: T
-end
-
 @enum SystemType sys_civil sys_aa
 @enum ClaimType normalClaim  personalInjuryClaim
 @enum PensionerState pensioner  nonPensioner
@@ -184,13 +177,4 @@ function weeklyise!( sla :: ScottishLegalAidSys )
     weeklyise!( sla.civil )
     weeklyise!( sla.aa )
 end
-
-function do_expense( v :: T, exp :: Expense{T}) :: T where T
-    if exp.is_flat
-        return exp.v
-    end
-    return min( v, exp.max )*exp.v
-end
-
-
 

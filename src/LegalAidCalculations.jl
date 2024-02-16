@@ -3,6 +3,7 @@ module LegalAidCalculations
 using ScottishTaxBenefitModel
 
 using .ModelHousehold: 
+    get_benefit_units,
     is_head,
     is_spouse,
     is_child,
@@ -17,6 +18,7 @@ using .GeneralTaxComponents:
 
 using .Results:
     get_indiv_result,
+    BenefitUnitResult,
     HouseholdResult,
     LegalAidResult,
     OneLegalAidResult
@@ -29,7 +31,8 @@ using .STBParameters:
     ScottishLegalAidSys
 
 using .Intermediate: 
-    HHIntermed
+    HHIntermed,
+    MTIntermediate
 export calc_legal_aid!
 
 function make_ttw( pers :: Person ) 
@@ -49,21 +52,24 @@ function make_repayments( pers :: Person )
 end
 
 """
-Calculated solely at the HH level 
+Benefit unit level legal aid.
+
+FIXME capital and housing assigned to 1st bu only.
+FIXME ttw costs not even imputed.
 """
-function calc_legal_aid!(     
-    household_result :: HouseholdResult,
-    household        :: Household,
-    intermed         :: HHIntermed,
-    lasys            :: OneLegalAidSys )
-    if lasys.abolished
-        return
-    end
-    hh = household # alias
-    hres = household_result # alias
-    civla = hres.legalaid.civil # alias
-   
+function calc_legal_aid!(   
+    benefit_unit_result :: BenefitUnitResult,
+    household           :: Household, # for housing costs
+    benefit_unit        :: BenefitUnit,
+    buno                :: Integer,  
+    intermed            :: MTIntermediate,
+    lasys               :: OneLegalAidSys,
+    extra_nondeps       :: Integer )
     
+    bu = benefit_unit # alias
+    bres = benefit_unit_result # alias
+    civla = bres.legalaid.civil # alias
+        
     totinc = 0.0
     repayments = 0.0
     workexp = 0.0
@@ -72,13 +78,14 @@ function calc_legal_aid!(
     ct = 0.0
     ctb = 0.0
     child_costs = 0.0
-    for (pid,pers) in household.people
-        income = get_indiv_result( hres, pid ).income
+    for (pid,pers) in bu.people
+        income = bres.pers[pid].income
         # these are all actually the same number except living_allowance
         if any_positive( income, lasys.passported_benefits )
             civla.passported = true
             return
         end
+        # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway
         hb += income[HOUSING_BENEFIT]
         ctb += income[COUNCIL_TAX_BENEFIT]
         ct += income[LOCAL_TAXES]
@@ -86,49 +93,57 @@ function calc_legal_aid!(
         child_costs += pers.cost_of_childcare
         workexp += make_ttw( pers )
         repayments += make_repayments( pers )
-        println( "on person $(pers.pid) reltohoh = $(pers.relationship_to_hoh)")
         if pers.relationship_to_hoh == This_Person
             civla.allowances += lasys.living_allowance
         elseif pers.relationship_to_hoh == Spouse
             civla.allowances += lasys.partners_allowance
         elseif is_child( pers )
-            println( "adding child $(lasys.child_allowance)")
             civla.allowances += lasys.child_allowance
-        else
-            civla.allowances += lasys.other_dependants_allowance
         end
         totinc += isum( income, lasys.incomes.included; deducted=lasys.incomes.deducted )
-        println( "civla.allowances now $(civla.allowances)")
     end
-    println( "final civla.allowances = $(civla.allowances)")
-    housing = max( 0.0, hh.gross_rent - hb) +
-              max( 0.0, ct - ctb ) +
-              hh.mortgage_interest +
-              hh.other_housing_charges
-              #!!! insurance
-    civla.housing = do_expense( housing, lasys.expenses.housing )
-    civla.childcare = do_expense( housing, lasys.expenses.childcare )
+    civla.allowances +=  (extra_nondeps * lasys.other_dependants_allowance)
+    if buno == 1
+        housing = max( 0.0, household.gross_rent - hb) +
+                max( 0.0, ct - ctb ) +
+                household.mortgage_interest +
+                household.other_housing_charges
+                #!!! FIXME insurance
+        civla.housing = do_expense( housing, lasys.expenses.housing )
+    end
+    civla.childcare = do_expense( child_costs, lasys.expenses.childcare )
     civla.other_outgoings += do_expense( maintenance, lasys.expenses.maintenance )
     civla.other_outgoings += do_expense( repayments, lasys.expenses.debt_repayments )
     civla.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
     civla.net_income = totinc
-    civla.outgoings = civla.housing + civla.childcare + civla.other_outgoings + civla.work_expenses
-    civla.disposable_income = max( 0.0, civla.net_income - civla.outgoings - civla.allowances )
+    civla.outgoings = 
+        civla.housing + 
+        civla.childcare + 
+        civla.other_outgoings + 
+        civla.work_expenses
+    civla.disposable_income = max( 0.0, 
+        civla.net_income - 
+        civla.outgoings - 
+        civla.allowances )
 
     civla.eligible_on_income = civla.disposable_income < lasys.contribution_limits[end]
+
     wealth = 0.0
-    if net_physical_wealth in lasys.included_wealth 
-        wealth += hh.net_physical_wealth
-    end 
-    if net_financial_wealth in lasys.included_wealth 
-        wealth += hh.net_financial_wealth
-    end 
-    if net_housing_wealth in lasys.included_wealth 
-        wealth += hh.net_housing_wealth
-    end 
-    if net_pension_wealth in lasys.included_wealth 
-        wealth += hh.net_pension_wealth
-    end 
+    # FIXME individual level 
+    if buno == 1
+        if net_physical_wealth in lasys.included_wealth 
+            wealth += household.net_physical_wealth
+        end 
+        if net_financial_wealth in lasys.included_wealth 
+            wealth += household.net_financial_wealth
+        end 
+        if net_housing_wealth in lasys.included_wealth 
+            wealth += household.net_housing_wealth
+        end 
+        if net_pension_wealth in lasys.included_wealth 
+            wealth += household.net_pension_wealth
+        end 
+    end
     civla.eligible_on_wealth = wealth < lasys.capital_upper_limit 
     civla.eligible = civla.eligible_on_wealth && civla.eligible_on_income
     if civla.eligible
@@ -140,51 +155,35 @@ function calc_legal_aid!(
     end
 end # calc_legal_aid!
 
+"""
+Calculated solely at the HH level 
+"""
+function calc_legal_aid!(     
+    household_result :: HouseholdResult,
+    household        :: Household,
+    intermed         :: HHIntermed,
+    lasys            :: OneLegalAidSys )
+    if lasys.abolished
+        return
+    end
+    bus = get_benefit_units(household)
+    zero_income_bus = Set{Int}()
+    for buno in eachindex(bus)
+        if (buno > 1) && (household_result.bus[buno].net_income == 0.0)
+            push!(zero_income_bus, buno)
+        end
+    end
+    for buno in eachindex(bus)
+        nzbus =  buno == 1 ? length( zero_income_bus ) : 0
+        calc_legal_aid!(   
+            household_result.bus[buno], #ben_unit_result  :: BenefitUnitResult,
+            household,
+            bus[buno], 
+            buno,
+            intermed.buint[buno],
+            lasys,
+            nzbus )
+    end
+end # calc_legal_aid!
+
 end # module
-
-#=
-
-@with_kw mutable struct OneLegalAidResult{RT<:Real}
-        income = zero(RT)
-        housing = zero(RT)
-        work_expenses = zero(RT)
-        other_outgoings = zero(RT)
-        wealth = zero(RT)
-        passported = false
-        eligible   = false
-        eligible_on_income = false
-        eligible_on_wealth = false
-        income_contribution = zero(RT)
-        income_contribution_pw = zero(RT)
-        capital_contribution = zero(RT)
-        allowances = zero(RT)
-        disposable_income = zero(RT)
-end
-    
-gross_income_limit        = typemax(RT)
-incomes    :: IncludedItems = DEFAULT_LA_INCOME
-
-living_allowance           = zero(RT)
-partners_allowance         = RT(2529)
-other_dependants_allowance = RT(4074)
-child_allowance            = RT(4074)
-
-cont_type               = proportion
-contribution_rates :: RateBands{RT} =  [0.0,33.0,50.0,100.0]
-contribution_limits :: RateBands{RT} =  [3_521.0, 11_544.0, 15_744, 26_329.0]
-    
-    
-passported_benefits        = IncomesSet([
-    INCOME_SUPPORT, 
-    NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
-    NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
-    UNIVERSAL_CREDIT])
-
-pensioner_age_limit        = 60
-
-# capital from wealth tax
-included_wealth = WealthSet([net_financial_wealth])
-capital_lower_limit = RT(7_853.0)
-capital_upper_limit = RT(13_017.0)
-
-=#

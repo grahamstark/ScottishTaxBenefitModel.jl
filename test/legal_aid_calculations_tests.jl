@@ -1,3 +1,8 @@
+#=
+ Ist Spreadsheet Examples from calculator 
+ docs/legalaid/testcalcs.ods
+=#
+
 using Test
 using Dates
 
@@ -15,6 +20,10 @@ using .ModelHousehold:
     pers_is_carer,
     pers_is_disabled, 
     search
+using .STBParameters:
+    do_expense,
+    Expense,
+    ScottishLegalAidSys
 
 using .IncomeTaxCalculations: 
     calc_income_tax!
@@ -27,22 +36,21 @@ using .Intermediate:
     make_intermediate 
 
 using .Results: 
-    BenefitUnitResult,
-    OneLegalAidResult,    
+    get_indiv_result,
     init_household_result, 
     init_benefit_unit_result, 
     to_string
-
-using .Results: 
     BenefitUnitResult,
-    HouseholdResult,
     LegalAidResult,
+    HouseholdResult,
     OneLegalAidResult
 
 using .Utils: 
     eq_nearest_p,
     to_md_table    
 using .ExampleHelpers
+
+using .STBIncomes
 
 using .GeneralTaxComponents:
     WEEKS_PER_MONTH,
@@ -63,8 +71,16 @@ function blank_incomes!( hh, wage )
 
 end
 
-@testset "Ist Spreadsheet Examples from calculator" begin
+@testset "LA utils tests" begin
+    exp1 = Expense( false, 1.0, typemax(Float64))
+    exp2 = Expense( true, 12.0, typemax(Float64))
+    @test do_expense( 100, exp1 ) ≈ 100
+    @test do_expense( 100, exp2 ) ≈ 12
+end
+
+@testset "Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
     
+    # 1) single adult 25k no expenses 1k capital
     hh = make_hh( adults = 1 )
     blank_incomes!( hh, 25_000 )
     hh.gross_rent = 0.0
@@ -78,14 +94,15 @@ end
         sys.child_limits )
     hres = init_household_result( hh )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
-    println(sys.legalaid.civil)
-    cres = hres.legalaid.civil
-    println( cres )
+    cres = hres.bus[1].legalaid.civil
     @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,14004.77)
     @test to_nearest_p(cres.disposable_income*WEEKS_PER_YEAR,25_000)
+    @test to_nearest_p(cres.allowances*WEEKS_PER_YEAR,0.0)
     @test !cres.passported
     @test cres.eligible
-    # ROUNDING @test to_nearest_p(cres.allowances,0.0)
+
+    # 2) as above but married 
+
     add_spouse!( hh, 50, Female )
     intermed = make_intermediate( 
         hh,  
@@ -95,9 +112,17 @@ end
     blank_incomes!( hh, 25_000 )
     hres = init_household_result( hh )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
-    cres = hres.legalaid.civil
-    println( "With Spouse $cres" )
-    # println(hh)
+    cres = hres.bus[1].legalaid.civil
+
+    @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,11_475.77)
+    @test to_nearest_p( cres.capital_contribution, 0 )
+    @test to_nearest_p(cres.disposable_income*WEEKS_PER_YEAR,22_471)
+    @test to_nearest_p(cres.allowances*WEEKS_PER_YEAR,2_529)
+    @test !cres.passported
+    @test cres.eligible
+
+    # 3) 2 young children
+
     add_child!( hh, 12, Male )
     add_child!( hh, 10, Female )
     blank_incomes!( hh, 25_000 )
@@ -108,9 +133,16 @@ end
         sys.child_limits )
     hres = init_household_result( hh )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
-    cres = hres.legalaid.civil
-    println( "With Spouse + 2 children $cres" )
-    println(hh.people[320190000203].relationship_to_hoh)
+    cres = hres.bus[1].legalaid.civil
+    @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
+    @test to_nearest_p( cres.capital_contribution, 0 )
+    @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,14_359)
+    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test !cres.passported
+    @test cres.eligible
+
+    # 4) add 10k capital
+
     hh.net_financial_wealth = 10_000.0
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
@@ -120,8 +152,17 @@ end
         sys.child_limits )
     hres = init_household_result( hh )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
-    cres = hres.legalaid.civil
-    println( "With 10k capital + 2 children $cres" )
+    cres = hres.bus[1].legalaid.civil
+    
+    @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
+    @test to_nearest_p( cres.capital_contribution, 2147 )
+    @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,14_359)
+    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test !cres.passported
+    @test cres.eligible
+
+    # 5) 12k capital
+
     hh.net_financial_wealth = 12_000.0
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
@@ -131,14 +172,22 @@ end
         sys.child_limits )
     hres = init_household_result( hh )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
-    cres = hres.legalaid.civil
-    println( "With 12k capital + 2 children $cres" )
+    cres = hres.bus[1].legalaid.civil
     head = get_head(hh)
     hres = init_household_result( hh )
-    head.income[UNIVERSAL_CREDIT] = 1.0
+    @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
+    @test to_nearest_p( cres.capital_contribution, 4_147 )
+    @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,14_359)
+    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test !cres.passported
+    @test cres.eligible
     
+    # 6) passporting check 
+
+    headres = get_indiv_result( hres, head.pid )
+    headres.income[UNIVERSAL_CREDIT] = 1.0    
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
-    cres = hres.legalaid.civil
-    println( "With UC  + 2 children $cres" )
+    cres = hres.bus[1].legalaid.civil
+    @test cres.passported
 
 end

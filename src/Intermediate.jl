@@ -256,7 +256,7 @@ mutable struct MTIntermediate
 end
 
 
-struct HHIntermed
+struct HHIntermed # FIXME make this name consistent with MTIntermediate
     hhint :: MTIntermediate
     buint ::  Vector{MTIntermediate}
 end

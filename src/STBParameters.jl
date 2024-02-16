@@ -38,7 +38,7 @@ export NonMeansTestedSys, MaternityAllowance, ChildLimits
 export BenefitCapSys, make_ubi_pre_adjustments!
 export OtherTaxesSys, IndirectTaxSystem, VATSystem, WealthTaxSys
 export DataAdjustments, get_minimum_wage
-export OneLegalAidSys, ScottishLegalAidSys, do_expense
+export OneLegalAidSys, ScottishLegalAidSys, do_expense, Expense
 export get_default_system_for_date, 
     get_default_system_for_cal_year, 
     get_default_system_for_fin_year
@@ -46,6 +46,22 @@ const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
 ## TODO Use Unitful to have currency weekly monthly annual counts as annotations
 # using Unitful
+
+struct Expense{T}
+    is_flat :: Bool
+    v  :: T
+    max     :: T
+end
+
+"""
+Apply `v` as an expense. If exp.is_flat, return exp.v else min(v*exp.v,exp.max)
+"""
+function do_expense( v :: Number, exp :: Expense) :: Number
+    if exp.is_flat
+        return exp.v
+    end
+    return min( v, exp.max )*exp.v
+end
 
 function Default_Fuel_Dict_2020_21(t::Type):: Fuel_Type_Dict
     Fuel_Type_Dict{t}(

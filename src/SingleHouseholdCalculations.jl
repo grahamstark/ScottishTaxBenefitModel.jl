@@ -229,12 +229,11 @@ function do_one_calc(
     if settings.do_indirect_tax_calculations
         calc_indirect_tax!( hres, hh, sys.indirect )
     end
+    aggregate!( hh, hres )
     if settings.do_legal_aid
         calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
         # FIXME AA
     end
-
-    aggregate!( hh, hres )
     return hres
 end
 
