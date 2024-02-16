@@ -72,7 +72,7 @@ module Results
         passported = false
         eligible   = false
         eligible_on_income = false
-        eligible_on_wealth = false
+        eligible_on_capital = false
         income_contribution = zero(RT)
         income_contribution_pw = zero(RT)
         capital_contribution = zero(RT)

@@ -144,8 +144,8 @@ function calc_legal_aid!(
             wealth += household.net_pension_wealth
         end 
     end
-    civla.eligible_on_wealth = wealth < lasys.capital_upper_limit 
-    civla.eligible = civla.eligible_on_wealth && civla.eligible_on_income
+    civla.eligible_on_capital = wealth < lasys.capital_upper_limit 
+    civla.eligible = civla.eligible_on_capital && civla.eligible_on_income
     if civla.eligible
         civla.capital_contribution = max( 0.0, wealth - lasys.capital_lower_limit )
         civla.income_contribution = calctaxdue(
