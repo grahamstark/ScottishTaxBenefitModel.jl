@@ -80,6 +80,8 @@ end
 
 @testset "Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
     
+    # FIXME read the spreadsheet in and automate this.
+
     # 1) single adult 25k no expenses 1k capital
     hh = make_hh( adults = 1 )
     blank_incomes!( hh, 25_000 )
