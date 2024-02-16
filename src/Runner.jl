@@ -137,7 +137,7 @@ module Runner
                                 end # working age
                             end # people
                         end
-                        add_to_frames!( frames, hh, res,  sysno, num_systems )
+                        add_to_frames!( settings, frames, hh, res,  sysno, num_systems )
                     end # sysno
                 end # included in nations 
             end #household loop
