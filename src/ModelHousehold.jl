@@ -300,7 +300,6 @@ function uprate!( hh :: Household )
     for (pid,person) in hh.people
         uprate!( pid, hh.interview_year, hh.quarter, person )
     end
-
 end
 
 function oldest_person( people :: People_Dict ) :: NamedTuple

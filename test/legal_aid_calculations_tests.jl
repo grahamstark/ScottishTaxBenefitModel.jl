@@ -19,7 +19,9 @@ using .ModelHousehold:
     is_single,
     pers_is_carer,
     pers_is_disabled, 
-    search
+    search,
+    to_string
+
 using .STBParameters:
     do_expense,
     Expense,
@@ -55,9 +57,14 @@ using .STBIncomes
 using .GeneralTaxComponents:
     WEEKS_PER_MONTH,
     WEEKS_PER_YEAR
+
 using .LegalAidCalculations: calc_legal_aid!
 
+using .SingleHouseholdCalculations: do_one_calc
+
 using DataFrames, CSV
+using .Monitor: Progress
+using Observables
 
 sys = get_system( year=2023, scotland=true )
 
@@ -215,7 +222,7 @@ end
 
 end
 
-function make_la_frame( RT :: DataType, n :: Int ) :: DataFrame
+function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
     return DataFrame(
         hid       = zeros( BigInt, n ),
         sequence  = zeros( Int, n ),
@@ -234,13 +241,75 @@ function make_la_frame( RT :: DataType, n :: Int ) :: DataFrame
         any_pensioner = zeros(RT,n),
         qualified = zeros(RT,n),
         passported = zeros(RT,n),
-        contribution = zeros(RT,n),
+        any_contribution = zeros(RT,n),
+        income_contribution = zeros(RT,n),
+        capital_contribution = zeros(RT,n),
         disqualified_on_income = zeros(RT,n), 
         disqualified_on_capital = zeros(RT,n))
 end
 
-@testset "Create an output table" begin
-    df = make_la_frame( Float64, 1000 )
-    
+function fill_legal_aid_frame_row!( 
+    hr   :: DataFrameRow, 
+    hh   :: Household, 
+    hres :: HouseholdResult,
+    buno :: Int )
+    hr.hid = hh.hid
+    hr.sequence = hh.sequence
+    hr.data_year = hh.data_year
+    hr.weight = hh.weight
+    bu = get_benefit_units( hh )[buno]
+    nps = num_people( bu )
+    hr.num_people = nps
+    hr.weighted_people = hh.weight*nps
+    hr.tenure = hh.tenure
+    hr.region = hh.region
+    # hr.in_poverty
+    head = get_head( bu )
+    hr.ethnic_group = head.ethnic_group
+    hr.any_disabled = has_disabled_member( bu )
+    hr.with_children = num_chidren( bu ) > 0
+    lr = hres.bus[buno].legalaid
+    hr.qualified = lr.qualified
+    hr.passported = lr.passported
+    hr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
+    hr.capital_contribution = lr.capital_contribution > 0
+    hr.income_contribution = lr.income_contribution > 0
+    hr.disqualified_on_income = ! lr.eligible_on_income
+    hr.disqualified_on_capital = ! lr.eligible_on_capital
+end
 
+@testset "Create an output table" begin
+    settings = Settings()
+    tot = 0
+    obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+    of = on(obs) do p
+        println(p)
+        tot += p.step
+        println(tot)
+    end  
+
+
+    sys = [
+        get_default_system_for_fin_year(2023; scotland=true), 
+        get_default_system_for_fin_year( 2023; scotland=true )]
+    
+    settings.do_marginal_rates = false
+    @time settings.num_households, settings.num_people, nhh2 = initialise( settings, reset=false )
+    df = make_legal_aid_frame( Float64, settings.num_households*2 )
+    nbus = 0
+    println( "settings.num_households = $(settings.num_households)")
+    for hno in 1:settings.num_households
+        hh = get_household(hno)
+        rc = do_one_calc( hh, sys[1], settings )        
+        if(hno % 1000) == 0
+            println( ModelHousehold.to_string(hh) )
+            println( to_string(rc.bus[1]))
+            bus = get_benefit_units(hh)
+            for buno in 1:size(bus)[1]
+                nbus += 1
+                fill_legal_aid_frame_row!( df[nbus,:], hh, rc, buno ) 
+            end
+        end
+    end
+    println(df[1:nbus,:])
 end

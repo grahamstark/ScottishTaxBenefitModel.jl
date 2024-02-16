@@ -395,7 +395,8 @@ function create_household(
             hh_model[hhno, :water_and_sewerage] = safe_assign(hh.watsewrt)
         end
         # hh_model[hhno, :mortgage_payment]
-        hh_model[hhno, :mortgage_interest] = safe_assign( hh.mortint ) 
+        mit = safe_assign( hh.mortint )
+        hh_model[hhno, :mortgage_interest] = mit > 0 ? mit : missing 
 
         # TODO
         # years_outstanding_on_mortgage::Integer
