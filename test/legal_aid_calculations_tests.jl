@@ -57,6 +57,8 @@ using .GeneralTaxComponents:
     WEEKS_PER_YEAR
 using .LegalAidCalculations: calc_legal_aid!
 
+using DataFrames, CSV
+
 sys = get_system( year=2023, scotland=true )
 
 function blank_incomes!( hh, wage )
@@ -210,5 +212,35 @@ end
     @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
     @test !cres.passported
     @test cres.eligible
+
+end
+
+function make_la_frame( RT :: DataType, n :: Int ) :: DataFrame
+    return DataFrame(
+        hid       = zeros( BigInt, n ),
+        sequence  = zeros( Int, n ),
+        data_year  = zeros( Int, n ),        
+        weight    = zeros(RT,n),
+        weighted_people = zeros(RT,n),
+        hh_type   = zeros( Int, n ),
+        num_people = zeros( Int, n ),
+        tenure    = fill( Missing_Tenure_Type, n ),
+        region    = fill( Missing_Standard_Region, n ),
+        decile = zeros( Int, n ),
+        in_poverty = fill( false, n ),
+        ethnic_group = fill(Missing_Ethnic_Group, n ),
+        any_disabled = zeros(RT,n),
+        with_children = zeros(RT,n),
+        any_pensioner = zeros(RT,n),
+        qualified = zeros(RT,n),
+        passported = zeros(RT,n),
+        contribution = zeros(RT,n),
+        disqualified_on_income = zeros(RT,n), 
+        disqualified_on_capital = zeros(RT,n))
+end
+
+@testset "Create an output table" begin
+    df = make_la_frame( Float64, 1000 )
+    
 
 end
