@@ -49,7 +49,7 @@ const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
 struct Expense{T}
     is_flat :: Bool
-    v  :: T
+    v       :: T
     max     :: T
 end
 

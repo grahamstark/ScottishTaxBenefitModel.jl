@@ -190,4 +190,23 @@ end
     cres = hres.bus[1].legalaid.civil
     @test cres.passported
 
+    # plus 200pw housing
+    hh.gross_rent = 10_000/WEEKS_PER_YEAR
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    head = get_head(hh)
+    hres = init_household_result( hh )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    cres = hres.bus[1].legalaid.civil
+    
+    @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,276.54)
+    @test to_nearest_p( cres.capital_contribution, 4_147 )
+    @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,4_359.00  )
+    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test !cres.passported
+    @test cres.eligible
+
 end
