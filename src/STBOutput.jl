@@ -1,6 +1,17 @@
 module STBOutput
 
-using DataFrames: DataFrame, DataFrameRow, Not, select!, groupby, combine, unstack, sum
+using DataFrames: 
+    AbstractDataFrame,
+    DataFrame, 
+    DataFrameRow, 
+    Not, 
+    combine, 
+    groupby, 
+    rename!,
+    select!, 
+    sum,
+    unstack
+
 using PovertyAndInequalityMeasures
 using CSV
 using Formatting 
@@ -816,6 +827,7 @@ function summarise_frames!(
     metrs = []
     poverty_lines = []
     child_poverty = []
+    legalaid = []
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
 
     poverty_line = if settings.poverty_line_source == pl_from_settings
@@ -874,6 +886,13 @@ function summarise_frames!(
         )
         println( "child poverty")
         push!( child_poverty, cp )
+        legaldics = ( ; ) # named tuple with nothing
+        if settings.do_legal_aid
+            legalaid_bus = aggregate_all_legal_aid( frames.legalaid[sysno],:weight )
+            legalaid_people = aggregate_all_legal_aid( frames.legalaid[sysno],:weighted_people )
+            legaldics = (; legalaid_bus, legalaid_people )
+        end
+        push!( legalaid, legaldics )
     end   
     @time fill_in_deciles_and_poverty!(
         frames, 
@@ -901,7 +920,8 @@ function summarise_frames!(
         metrs, 
         child_poverty,
         gain_lose,
-        poverty_lines )
+        poverty_lines,
+        legalaid )
 end
 
 ## FIXME eventually, move this to DrWatson
@@ -924,6 +944,10 @@ function dump_frames(
         income_summary = summarise_inc_frame(frames.income[fno])
         fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.csv"
         CSV.write( fname, income_summary )
+        if settings.do_legal_aid
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_legal_aid.csv"
+            CSV.write( fname, frames.legalaid[fno] )
+        end
     end
 end
 

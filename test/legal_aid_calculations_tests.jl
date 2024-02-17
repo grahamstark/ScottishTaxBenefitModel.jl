@@ -68,6 +68,8 @@ using .LegalAidCalculations: calc_legal_aid!
 
 using .SingleHouseholdCalculations: do_one_calc
 
+using .STBOutput: LA_TARGETS
+
 using DataFrames, CSV
 using .Monitor: Progress
 using Observables
@@ -290,6 +292,7 @@ function fill_legal_aid_frame_row!(
     hr.disqualified_on_capital = ! lr.eligible_on_capital
 end
 
+#=
 function larun()
     settings = Settings()
     tot = 0
@@ -376,6 +379,30 @@ function aggregate_all( df :: DataFrame, weight_sym :: Symbol ) :: Dict
     alltab
 end
 
+=#
+
+
+function basic_run(  )
+    settings = Settings()
+    sys = [
+        get_default_system_for_fin_year(2023; scotland=true), 
+        get_default_system_for_fin_year( 2023; scotland=true )]
+    tot = 0
+    results = do_one_run( settings, sys, obs )
+    h1 = results.hh[1]
+    settings.poverty_line = make_poverty_line( results.hh[1], settings )
+    dump_frames( settings, results )
+    println( "poverty line = $(settings.poverty_line)")
+    outf = summarise_frames!( results, settings )
+    println( outf )
+    gl = make_gain_lose( results.hh[1], results.hh[2], settings )
+    # println(gl)
+    # println( outf )
+    return (outf,gl)
+end 
+
+
+
 """
 See PrettyTable documentation for formatter
 """
@@ -390,5 +417,16 @@ end
 
 
 @testset "Create an output table" begin
-    df = larun()
+    outf, gl = basic_run()
+    f = open( "la_tables_v1_bus.md","w")
+    for t in LA_TARGETS
+        println(f, "\n## "*Utils.pretty(string(t))); println(f)        
+        println(f, "\n### a) Benefit Units "); 
+        pretty_table(f,outf.legalaid[1].legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println(f, "\n### b) Individuals "); 
+        pretty_table(f,outf.legalaid[1].legalaid_people[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println(f)
+    end
+    close(f)
+
 end

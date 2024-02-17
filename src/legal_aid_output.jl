@@ -76,40 +76,7 @@ function fill_legal_aid_frame_row!(
     end
 end
 
-#=
-function larun()
-    settings = Settings()
-    tot = 0
-    obs = Observable( Progress(settings.uuid,"",0,0,0,0))
-    of = on(obs) do p
-        println(p)
-        tot += p.step
-        println(tot)
-    end  
-    sys = [
-        get_default_system_for_fin_year(2023; scotland=true), 
-        get_default_system_for_fin_year( 2023; scotland=true )]    
-    settings.do_marginal_rates = false
-    @time settings.num_households, settings.num_people, nhh2 = initialise( settings, reset=false )
-    df = make_legal_aid_frame( Float64, settings.num_households*2 )
-    nbus = 0
-    println( "settings.num_households = $(settings.num_households)")
-    for hno in 1:settings.num_households
-        hh = get_household(hno)
-        rc = do_one_calc( hh, sys[1], settings )        
-        if(hno % 1000) == 0
-            println( ModelHousehold.to_string(hh) )
-            println( Results.to_string(rc.bus[1]))
-        end
-        bus = get_benefit_units(hh)
-        for buno in 1:size(bus)[1]
-            nbus += 1
-            fill_legal_aid_frame_row!( df[nbus,:], hh, rc, buno ) 
-        end
-    end
-    df[1:nbus,:]
-end
-=#
+export LA_BITS, LA_LABELS, LA_TARGETS, aggregate_all_legal_aid
 
 const LA_BITS=[
     :total, 
@@ -133,7 +100,7 @@ const LA_LABELS = [
     "Disqualified on Income",
     "Disqualified on Capital"]
 
-const TARGETS = [
+const LA_TARGETS = [
     :employment_status,
     :tenure, 
     :ethnic_group, 
@@ -147,7 +114,7 @@ const TARGETS = [
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
 return a dataframe (grouped?) with LA_BITS as colums and broken down values for one of TARGETS.
 """
-function combine_one_legal_aid( df :: DataFrame, to_combine :: Symbol, weight_sym :: Symbol, wbits :: AbstractArray{Symbol} )::AbstractDataFrame
+function combine_one_legal_aid( df :: DataFrame, to_combine :: Symbol, weight_sym :: Symbol, wbits :: AbstractArray )::AbstractDataFrame
     gdf = groupby( df, to_combine )
     outf = combine( gdf, wbits .=>sum )
     labels = push!( [Utils.pretty(string(to_combine))], LA_LABELS... )
@@ -162,7 +129,7 @@ return a dictionary of (grouped?) dataframes
 function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol ) :: Dict
     alltab = Dict()
     # df is bu level & likely created with holes, so ...
-    df = df[df.hd .>0,:]
+    df = df[df.hid .>0,:]
     wbits = []
     # add weighted to la counts columns.
     for l in LA_BITS
@@ -170,7 +137,7 @@ function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol ) :: Dic
         df[:,psym] .= df[:,weight_sym].*df[:,l]
         push!( wbits, psym )
     end
-    for t in TARGETS
+    for t in LA_TARGETS
         gdp = combine_one_legal_aid( df, t, weight_sym, wbits )
         alltab[t] = gdp
     end
@@ -188,7 +155,9 @@ function pt_fmt(val,row,col)
     return Formatting.format(val,commas=true,precision=0)
 end
 
-#= example
+#= 
+
+Example
 
 f = open( "somefile.md","w")
 for t in TARGETS
