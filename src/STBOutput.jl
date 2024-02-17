@@ -248,8 +248,9 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
         push!(bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
         push!(hh, make_household_results_frame( T, settings.num_households ))
         push!(income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
+        push!( legalaid, make_legal_aid_frame( T, settings.num_people )) # num people is an exaggeration since bu level
     end
-    (hh=hh, bu=bu, indiv=indiv, income=income)
+    (; hh, bu, indiv, income, legalaid )
 end
 
         #= TODO CONCAT RUN OUTPUT
@@ -529,8 +530,10 @@ function add_to_frames!(
     bus = get_benefit_units( hh )
     npp = 0
     for buno in 1:nbus
+        bup = 0
         for( pid, pers ) in bus[buno].people
             npp += 1
+            bup += 1
             pfno = get_slot_for_person( pid, hh.data_year )
             #=
             if hh.hid < 0
@@ -561,9 +564,13 @@ function add_to_frames!(
                 incrow.excise_cider = hres.indirect.excise_cider
                 incrow.excise_wine = hres.indirect.excise_wine
                 incrow.excise_tobacco = hres.indirect.excise_tobacco        
-            end                            
+            end
+            if bup == 1
+                # this fills the bu frame with holes
+                fill_legal_aid_frame_row!( 
+                    frames.legalaid[sysno][pfno,:], hh, hres, buno )
+            end
         end # person loop
-
     end # bu loop
     @assert np == npp "not all people allocated; actual people=$np allocated people $npp"
 end

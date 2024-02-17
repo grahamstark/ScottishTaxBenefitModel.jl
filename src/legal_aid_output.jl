@@ -146,13 +146,7 @@ const TARGETS = [
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
 return a dataframe (grouped?) with LA_BITS as colums and broken down values for one of TARGETS.
 """
-function combine_one_legal_aid( df :: DataFrame, to_combine :: Symbol, weight_sym :: Symbol )::AbstractDataFrame
-    wbits = []
-    for l in LA_BITS
-        psym = Symbol( "wt_$(l)")
-        df[:,psym] .= df[:,weight_sym].*df[:,l]
-        push!( wbits, psym )
-    end
+function combine_one_legal_aid( df :: DataFrame, to_combine :: Symbol, weight_sym :: Symbol, wbits :: AbstractArray{Symbol} )::AbstractDataFrame
     gdf = groupby( df, to_combine )
     outf = combine( gdf, wbits .=>sum )
     labels = push!( [Utils.pretty(string(to_combine))], LA_LABELS... )
@@ -166,8 +160,17 @@ return a dictionary of (grouped?) dataframes
 """
 function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol ) :: Dict
     alltab = Dict()
+    # df is bu level & likely created with holes, so ...
+    df = df[df.hd .>0,:]
+    wbits = []
+    # add weighted to la counts columns.
+    for l in LA_BITS
+        psym = Symbol( "wt_$(l)")
+        df[:,psym] .= df[:,weight_sym].*df[:,l]
+        push!( wbits, psym )
+    end
     for t in TARGETS
-        gdp = combine_one_legal_aid( df, t, weight_sym )
+        gdp = combine_one_legal_aid( df, t, weight_sym, wbits )
         alltab[t] = gdp
     end
     return alltab
