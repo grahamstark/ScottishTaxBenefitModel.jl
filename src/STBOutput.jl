@@ -162,17 +162,6 @@ function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
     return frame
 end
 
-function make_legal_aid_frame(  RT :: DataType, n :: Int; id = 1 ) :: DataFrame
-    return DataFrame(
-        eligible_households = zeros(n),
-        eligible_people = zeros(n),
-        passported_households = zeros(n),
-        passported_people = zeros(n),
-        payments = zeros(n),
-        contributions = zeros(n)
-    )
-end
-
 """
 Change in the numeric fields of incomes 
 """
@@ -243,6 +232,7 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     bu = []
     hh = []
     income = []
+    legalaid = []
     for s in 1:num_systems
         push!(indiv, make_individual_results_frame( T, settings.num_people ))
         push!(bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start

@@ -42,6 +42,7 @@ function fill_legal_aid_frame_row!(
     hh   :: Household, 
     hres :: HouseholdResult,
     buno :: Int )
+    # println(names(hr))
     hr.hid = hh.hid
     hr.sequence = hh.sequence
     hr.data_year = hh.data_year
