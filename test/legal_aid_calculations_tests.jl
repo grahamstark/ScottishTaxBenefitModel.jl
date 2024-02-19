@@ -292,115 +292,6 @@ function fill_legal_aid_frame_row!(
     hr.disqualified_on_capital = ! lr.eligible_on_capital
 end
 
-#=
-function larun()
-    settings = Settings()
-    tot = 0
-    obs = Observable( Progress(settings.uuid,"",0,0,0,0))
-    of = on(obs) do p
-        println(p)
-        tot += p.step
-        println(tot)
-    end  
-    sys = [
-        get_default_system_for_fin_year(2023; scotland=true), 
-        get_default_system_for_fin_year( 2023; scotland=true )]    
-    settings.do_marginal_rates = false
-    @time settings.num_households, settings.num_people, nhh2 = initialise( settings, reset=false )
-    df = make_legal_aid_frame( Float64, settings.num_households*2 )
-    nbus = 0
-    println( "settings.num_households = $(settings.num_households)")
-    for hno in 1:settings.num_households
-        hh = get_household(hno)
-        rc = do_one_calc( hh, sys[1], settings )        
-        if(hno % 1000) == 0
-            println( ModelHousehold.to_string(hh) )
-            println( Results.to_string(rc.bus[1]))
-        end
-        bus = get_benefit_units(hh)
-        for buno in 1:size(bus)[1]
-            nbus += 1
-            fill_legal_aid_frame_row!( df[nbus,:], hh, rc, buno ) 
-        end
-    end
-    df[1:nbus,:]
-end
-
-const LA_BITS=[
-    :total, 
-    :all_eligible,
-    :passported,
-    :mt_eligible,
-    :any_contribution,
-    :income_contribution,
-    :capital_contribution,
-    :disqualified_on_income,
-    :disqualified_on_capital]
-const LA_LABELS = [
-    "Total",
-    "All Eligible",
-    "Passported",
-    "Eligible On Means Test",
-    "Any Contribution",
-    "Income Contribution",
-    "Capital Contribution",
-    "Disqualified on Income",
-    "Disqualified on Capital"]
-const TARGETS = [
-    :employment_status,
-    :tenure, 
-    :ethnic_group, 
-    :bu_number, 
-    :marital_status, 
-    :any_disabled,
-    :num_people,
-    :with_children]
-
-function one_combine( df :: DataFrame, to_combine :: Symbol, weight_sym :: Symbol )::AbstractDataFrame
-    wbits = []
-    for l in LA_BITS
-        psym = Symbol( "wt_$(l)")
-        df[:,psym] .= df[:,weight_sym].*df[:,l]
-        push!( wbits, psym )
-    end
-    gdf = groupby( df, to_combine )
-    outf = combine( gdf, wbits .=>sum )
-    labels = push!( [Utils.pretty(string(to_combine))], LA_LABELS... )
-    rename!( outf, labels )
-    outf
-end
-
-function aggregate_all( df :: DataFrame, weight_sym :: Symbol ) :: Dict
-    alltab = Dict()
-    for t in TARGETS
-        gdp = one_combine( df, t, weight_sym )
-        alltab[t] = gdp
-    end
-    alltab
-end
-
-=#
-
-
-function basic_run(  )
-    settings = Settings()
-    sys = [
-        get_default_system_for_fin_year(2023; scotland=true), 
-        get_default_system_for_fin_year( 2023; scotland=true )]
-    tot = 0
-    results = do_one_run( settings, sys, obs )
-    h1 = results.hh[1]
-    settings.poverty_line = make_poverty_line( results.hh[1], settings )
-    dump_frames( settings, results )
-    println( "poverty line = $(settings.poverty_line)")
-    outf = summarise_frames!( results, settings )
-    println( outf )
-    gl = make_gain_lose( results.hh[1], results.hh[2], settings )
-    # println(gl)
-    # println( outf )
-    return (outf,gl)
-end 
-
 
 
 """
@@ -412,9 +303,6 @@ function pt_fmt(val,row,col)
     end
     return Formatting.format(val,commas=true,precision=0)
 end
-
-
-
 
 @testset "Create an output table" begin
     outf, gl = basic_run()
@@ -428,5 +316,4 @@ end
         println(f)
     end
     close(f)
-
 end
