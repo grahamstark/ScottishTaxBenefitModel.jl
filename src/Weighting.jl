@@ -113,7 +113,7 @@ function generate_weights(
     # @assert rw.rc[:error] == 0 "non zero return code from weights gen $(rw.rc)"
     # weights = rw.weights
     weighted_popn = (weights' * data)'
-    # println( "weighted_popn = $weighted_popn" )
+    println( "weighted_popn = $weighted_popn" )
     @assert weighted_popn ≈ targets
 
     if weight_type in [constrained_chi_square, d_and_s_constrained ]

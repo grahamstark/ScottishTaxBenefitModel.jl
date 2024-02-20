@@ -76,7 +76,10 @@ module Results
         income_contribution = zero(RT)
         income_contribution_pw = zero(RT)
         capital_contribution = zero(RT)
-        allowances = zero(RT)
+        income_allowances = zero(RT)
+        capital = zero(RT)
+        disposable_capital = zero(RT)
+        capital_allowances = zero(RT)
     end
 
     @with_kw mutable struct LegalAidResult{RT<:Real}

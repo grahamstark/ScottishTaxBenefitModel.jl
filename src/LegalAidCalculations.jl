@@ -26,10 +26,15 @@ using .Results:
 using .STBIncomes
 
 using .STBParameters:
+    cont_proportion,
+    cont_fixed,
     do_expense,
+    sys_aa,
+    sys_civil, 
+    ContributionType, 
     OneLegalAidSys,
     ScottishLegalAidSys
-
+    
 using .Intermediate: 
     HHIntermed,
     MTIntermediate
@@ -51,6 +56,24 @@ function make_repayments( pers :: Person )
     return 0.0
 end
 
+
+function bandcalc( x :: Real, r :: Vector, t :: Vector,  cont_type :: ContributionType ) :: Real
+    if cont_type == cont_proportion
+        return calctaxdue(
+            taxable=x,
+            rates=r,
+            thresholds=t ).due
+    else
+        n = length( r )
+        for i in 1:n
+            if x < t[i]
+                return r[i]
+            end
+        end
+    end
+    return -1
+end
+
 """
 Benefit unit level legal aid.
 
@@ -68,8 +91,10 @@ function calc_legal_aid!(
     
     bu = benefit_unit # alias
     bres = benefit_unit_result # alias
-    civla = bres.legalaid.civil # alias
-        
+    onela = bres.legalaid.civil # alias
+    if lasys.systype == sys_aa  
+        onela = bres.legalaid.aa # alias
+    end
     totinc = 0.0
     repayments = 0.0
     workexp = 0.0
@@ -78,11 +103,13 @@ function calc_legal_aid!(
     ct = 0.0
     ctb = 0.0
     child_costs = 0.0
+    npeople = 1+extra_nondeps
+    age_oldest = -1
     for (pid,pers) in bu.people
         income = bres.pers[pid].income
         # these are all actually the same number except living_allowance
         if any_positive( income, lasys.passported_benefits )
-            civla.passported = true
+            onela.passported = true
             return
         end
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway
@@ -93,65 +120,91 @@ function calc_legal_aid!(
         child_costs += pers.cost_of_childcare
         workexp += make_ttw( pers )
         repayments += make_repayments( pers )
+        age_oldest = max( pers.age, age_oldest )
         if pers.relationship_to_hoh == This_Person
-            civla.allowances += lasys.living_allowance
+            onela.income_allowances += lasys.income_living_allowance
         elseif pers.relationship_to_hoh == Spouse
-            civla.allowances += lasys.partners_allowance
+            onela.income_allowances += lasys.income_partners_allowance
+            npeople += 1
         elseif is_child( pers )
-            civla.allowances += lasys.child_allowance
+            onela.income_allowances += lasys.income_child_allowance
+            npeople += 1
         end
         totinc += isum( income, lasys.incomes.included; deducted=lasys.incomes.deducted )
     end
-    civla.allowances +=  (extra_nondeps * lasys.other_dependants_allowance)
+
+    # aa capital allowances
+    if length(lasys.capital_allowances) > 0
+        for i in 1:npeople-1
+            onela.capital_allowances += lasys.capital_allowances[i]
+        end
+    end 
+
+    onela.income_allowances +=  (extra_nondeps * lasys.income_other_dependants_allowance)
+
     if buno == 1
         housing = max( 0.0, household.gross_rent - hb) +
                 max( 0.0, ct - ctb ) +
                 household.mortgage_interest +
                 household.other_housing_charges
                 #!!! FIXME insurance
-        civla.housing = do_expense( housing, lasys.expenses.housing )
+        onela.housing = do_expense( housing, lasys.expenses.housing )
     end
-    civla.childcare = do_expense( child_costs, lasys.expenses.childcare )
-    civla.other_outgoings += do_expense( maintenance, lasys.expenses.maintenance )
-    civla.other_outgoings += do_expense( repayments, lasys.expenses.debt_repayments )
-    civla.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
-    civla.net_income = totinc
-    civla.outgoings = 
-        civla.housing + 
-        civla.childcare + 
-        civla.other_outgoings + 
-        civla.work_expenses
-    civla.disposable_income = max( 0.0, 
-        civla.net_income - 
-        civla.outgoings - 
-        civla.allowances )
+    onela.childcare = do_expense( child_costs, lasys.expenses.childcare )
+    onela.other_outgoings += do_expense( maintenance, lasys.expenses.maintenance )
+    onela.other_outgoings += do_expense( repayments, lasys.expenses.debt_repayments )
+    onela.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
+    onela.net_income = totinc
+    onela.outgoings = 
+        onela.housing + 
+        onela.childcare + 
+        onela.other_outgoings + 
+        onela.work_expenses
+    onela.disposable_income = max( 0.0, 
+        onela.net_income - 
+        onela.outgoings - 
+        onela.income_allowances )
 
-    civla.eligible_on_income = civla.disposable_income < lasys.contribution_limits[end]
+    onela.eligible_on_income = onela.disposable_income < lasys.income_contribution_limits[end]
 
-    wealth = 0.0
     # FIXME individual level 
     if buno == 1
-        if net_physical_wealth in lasys.included_wealth 
-            wealth += household.net_physical_wealth
+        if net_physical_wealth in lasys.included_capital 
+            onela.capital += household.net_physical_wealth
         end 
-        if net_financial_wealth in lasys.included_wealth 
-            wealth += household.net_financial_wealth
+        if net_financial_wealth in lasys.included_capital 
+            onela.capital += household.net_financial_wealth
         end 
-        if net_housing_wealth in lasys.included_wealth 
-            wealth += household.net_housing_wealth
+        if net_housing_wealth in lasys.included_capital 
+            onela.capital += household.net_housing_wealth
         end 
-        if net_pension_wealth in lasys.included_wealth 
-            wealth += household.net_pension_wealth
+        if net_pension_wealth in lasys.included_capital 
+            onela.capital += household.net_pension_wealth
         end 
     end
-    civla.eligible_on_capital = wealth < lasys.capital_upper_limit 
-    civla.eligible = civla.eligible_on_capital && civla.eligible_on_income
-    if civla.eligible
-        civla.capital_contribution = max( 0.0, wealth - lasys.capital_lower_limit )
-        civla.income_contribution = calctaxdue(
-            taxable=civla.disposable_income,
-            rates=lasys.contribution_rates,
-            thresholds=lasys.contribution_limits ).due
+
+    if age_oldest >= lasys.pensioner_age_limit
+        onela.capital_allowances += bandcalc( 
+            onela.disposable_income,
+            lasys.capital_disregard_amounts,
+            lasys.capital_disregard_limits,
+            cont_fixed )
+    end
+
+    onela.disposable_capital = max( 0.0, onela.capital - onela.capital_allowances )
+    onela.eligible_on_capital = onela.disposable_capital < lasys.capital_contribution_limits[end]
+    onela.eligible = onela.eligible_on_capital && onela.eligible_on_income
+    if onela.eligible
+        onela.income_contribution = bandcalc( 
+            onela.disposable_income,
+            lasys.income_contribution_rates,
+            lasys.income_contribution_limits,
+            lasys.income_cont_type )
+        onela.capital_contribution = bandcalc( 
+            onela.disposable_capital,
+            lasys.capital_contribution_rates,   
+            lasys.capital_contribution_limits,
+            lasys.capital_cont_type )
     end
 end # calc_legal_aid!
 

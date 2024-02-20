@@ -36,7 +36,7 @@ of = on(obs) do p
     println(tot)
 end
 
-
+# FIXME DELETE THIS AND USE THE ONE IN testutils
 function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings = Settings()
     settings.means_tested_routing = mtrouting

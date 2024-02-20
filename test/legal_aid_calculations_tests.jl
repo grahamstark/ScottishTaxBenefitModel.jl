@@ -29,6 +29,8 @@ using .ModelHousehold:
     search,
     to_string
 
+using .RunSettings: Settings 
+
 using .STBParameters:
     do_expense,
     Expense,
@@ -76,14 +78,17 @@ using Observables
 
 sys = get_system( year=2023, scotland=true )
 
-function blank_incomes!( hh, wage )
+function blank_incomes!( hh, wage; annual=true )
     for( pid, pers ) in hh.people
         empty!(pers.income)
         pers.cost_of_childcare = 0.0
         # and others
     end
     hhead = get_head( hh )
-    income = wage/WEEKS_PER_YEAR
+    income = wage
+    if annual 
+        income /= WEEKS_PER_YEAR
+    end
     hhead.income[wages] = income 
 
 end
@@ -95,13 +100,116 @@ end
     @test do_expense( 100, exp2 ) ≈ 12
 end
 
-@testset "Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
+@testset "AA from spreadsheet" begin
+    hh = make_hh( adults = 1 )
+    head = get_head( hh )
+    head.age = 45
+    println( "hhage $(head.age)")
+    blank_incomes!( hh, 100; annual=false )
+    hh.gross_rent = 0.0
+    hh.net_housing_wealth = 0.0
+    hh.net_financial_wealth = 1_000.0
+    hh.net_pension_wealth = 0.0
+    hres = init_household_result( hh )
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    ares = hres.bus[1].legalaid.aa    
+    @test ares.eligible
+    @test to_nearest_p(ares.income_contribution,0)
+    @test to_nearest_p(ares.disposable_income,100)
+    @test to_nearest_p(ares.income_allowances,0.0)
+
+    blank_incomes!( hh, 120; annual=false )
+    hres = init_household_result( hh )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    ares = hres.bus[1].legalaid.aa
+    println( ares )
+
+    @test ares.eligible
+    @test to_nearest_p(ares.income_contribution,21.0)
+
+    hh.net_financial_wealth = 1_800.0
+    hres = init_household_result( hh )
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    ares = hres.bus[1].legalaid.aa    
+    @test ! ares.eligible
+    @test ! ares.eligible_on_capital 
+    @test ares.eligible_on_income 
+
+    hh.net_financial_wealth = 1_700.0
+    hres = init_household_result( hh )
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    ares = hres.bus[1].legalaid.aa    
+    @test ares.eligible
+    @test ares.eligible_on_capital 
+    @test ares.eligible_on_income 
+    @test to_nearest_p(ares.income_contribution,21.0)
+
+    #
+    # From: 
+    # https://www.slab.org.uk/app/uploads/2023/04/Civil-assistance-Keycard-2023-24-1.pdf
+    #
+    head = get_head( hh )
+    head.age = 65
+    hh.net_financial_wealth = 21_500 
+    blank_incomes!( hh, 20; annual=false )
+    hres = init_household_result( hh )
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    ares = hres.bus[1].legalaid.aa    
+    @test ares.disposable_capital ≈ 1_500 
+    @test ares.capital_allowances ≈ 20_000
+    @test ares.eligible
+    @test ares.eligible_on_capital 
+    @test ares.eligible_on_income 
+    @test to_nearest_p(ares.income_contribution,0.0)
+
+    hh.net_financial_wealth = 25_000 
+    blank_incomes!( hh, 20; annual=false )
+    hres = init_household_result( hh )
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    ares = hres.bus[1].legalaid.aa    
+    @test ares.disposable_capital ≈ 5_000 
+    @test ares.capital_allowances ≈ 20_000
+    @test ! ares.eligible
+    @test ! ares.eligible_on_capital 
+    @test ares.eligible_on_income 
+    @test to_nearest_p(ares.income_contribution,0.0)
+
+
+    println( get_head( hh ))
+end
+
+@testset "Civil Legal Aid: Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
     
     # FIXME read the spreadsheet in and automate this.
 
     # 1) single adult 25k no expenses 1k capital
     hh = make_hh( adults = 1 )
-    blank_incomes!( hh, 25_000 )
+    blank_incomes!( hh, 25_000)
     hh.gross_rent = 0.0
     hh.net_housing_wealth = 0.0
     hh.net_financial_wealth = 1_000.0
@@ -116,7 +224,7 @@ end
     cres = hres.bus[1].legalaid.civil
     @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,14004.77)
     @test to_nearest_p(cres.disposable_income*WEEKS_PER_YEAR,25_000)
-    @test to_nearest_p(cres.allowances*WEEKS_PER_YEAR,0.0)
+    @test to_nearest_p(cres.income_allowances*WEEKS_PER_YEAR,0.0)
     @test !cres.passported
     @test cres.eligible
 
@@ -136,7 +244,7 @@ end
     @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,11_475.77)
     @test to_nearest_p( cres.capital_contribution, 0 )
     @test to_nearest_p(cres.disposable_income*WEEKS_PER_YEAR,22_471)
-    @test to_nearest_p(cres.allowances*WEEKS_PER_YEAR,2_529)
+    @test to_nearest_p(cres.income_allowances*WEEKS_PER_YEAR,2_529)
     @test !cres.passported
     @test cres.eligible
 
@@ -156,7 +264,7 @@ end
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
     @test to_nearest_p( cres.capital_contribution, 0 )
     @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,14_359)
-    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test to_nearest_p( cres.income_allowances*WEEKS_PER_YEAR,10_641)
     @test !cres.passported
     @test cres.eligible
 
@@ -176,7 +284,7 @@ end
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
     @test to_nearest_p( cres.capital_contribution, 2147 )
     @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,14_359)
-    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test to_nearest_p( cres.income_allowances*WEEKS_PER_YEAR,10_641)
     @test !cres.passported
     @test cres.eligible
 
@@ -197,7 +305,7 @@ end
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
     @test to_nearest_p( cres.capital_contribution, 4_147 )
     @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,14_359)
-    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test to_nearest_p( cres.income_allowances*WEEKS_PER_YEAR,10_641)
     @test !cres.passported
     @test cres.eligible
     
@@ -224,75 +332,13 @@ end
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,276.54)
     @test to_nearest_p( cres.capital_contribution, 4_147 )
     @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,4_359.00  )
-    @test to_nearest_p( cres.allowances*WEEKS_PER_YEAR,10_641)
+    @test to_nearest_p( cres.income_allowances*WEEKS_PER_YEAR,10_641)
     @test !cres.passported
     @test cres.eligible
+    println( head )
+    println( cres )
 
 end
-
-function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
-    return DataFrame(
-        hid       = zeros( BigInt, n ),
-        sequence  = zeros( Int, n ),
-        data_year  = zeros( Int, n ),        
-        weight    = zeros(RT,n),
-        weighted_people = zeros(RT,n),
-        total = ones(RT,n),
-        bu_number = zeros( Int, n ),
-        num_people = zeros( Int, n ),
-        tenure    = fill( Missing_Tenure_Type, n ),
-        marital_status = fill( Missing_Marital_Status, n ),
-        employment_status = fill(Missing_ILO_Employment, n ),
-        decile = zeros( Int, n ),
-        in_poverty = fill( false, n ),
-        ethnic_group = fill(Missing_Ethnic_Group, n ),
-        any_disabled = fill(false,n),
-        with_children = fill(false,n),
-        any_pensioner = fill(false,n),
-        all_eligible = zeros(RT,n),
-        mt_eligible = zeros(RT,n),
-        passported = zeros(RT,n),
-        any_contribution = zeros(RT,n),
-        income_contribution = zeros(RT,n),
-        capital_contribution = zeros(RT,n),
-        disqualified_on_income = zeros(RT,n), 
-        disqualified_on_capital = zeros(RT,n))
-end
-
-function fill_legal_aid_frame_row!( 
-    hr   :: DataFrameRow, 
-    hh   :: Household, 
-    hres :: HouseholdResult,
-    buno :: Int )
-    hr.hid = hh.hid
-    hr.sequence = hh.sequence
-    hr.data_year = hh.data_year
-    hr.weight = hh.weight
-    bu = get_benefit_units( hh )[buno]
-    nps = num_people( bu )
-    hr.num_people = nps
-    hr.bu_number = buno
-    hr.weighted_people = hh.weight*nps
-    hr.tenure = hh.tenure
-    # hr.in_poverty
-    head = get_head( bu )
-    hr.ethnic_group = head.ethnic_group
-    hr.employment_status = head.employment_status
-    hr.marital_status = head.marital_status
-    hr.any_disabled = has_disabled_member( bu )
-    hr.with_children = num_children( bu ) > 0
-    lr = hres.bus[buno].legalaid.civil
-    hr.all_eligible = lr.eligible | lr.passported
-    hr.mt_eligible = lr.eligible
-    hr.passported = lr.passported
-    hr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
-    hr.capital_contribution = lr.capital_contribution > 0
-    hr.income_contribution = lr.income_contribution > 0
-    hr.disqualified_on_income = ! lr.eligible_on_income
-    hr.disqualified_on_capital = ! lr.eligible_on_capital
-end
-
-
 
 """
 See PrettyTable documentation for formatter
@@ -305,7 +351,10 @@ function pt_fmt(val,row,col)
 end
 
 @testset "Create an output table" begin
-    outf, gl = basic_run()
+    settings = Settings()
+    sys.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
+
+    outf, gl = do_basic_run( settings, [sys]; reset=false )
     f = open( "la_tables_v1_bus.md","w")
     for t in LA_TARGETS
         println(f, "\n## "*Utils.pretty(string(t))); println(f)        

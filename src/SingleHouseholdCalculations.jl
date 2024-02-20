@@ -232,6 +232,7 @@ function do_one_calc(
     aggregate!( hh, hres )
     if settings.do_legal_aid
         calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+        calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
         # FIXME AA
     end
     return hres
