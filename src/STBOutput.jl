@@ -831,7 +831,7 @@ function summarise_frames!(
     metrs = []
     poverty_lines = []
     child_poverty = []
-    civil_legalaid = []
+    legalaid = []
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
 
     poverty_line = if settings.poverty_line_source == pl_from_settings
@@ -951,8 +951,10 @@ function dump_frames(
         fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.csv"
         CSV.write( fname, income_summary )
         if settings.do_legal_aid
-            fname = "$(settings.output_dir)/$(fbase)_$(fno)_legal_aid.csv"
-            CSV.write( fname, frames.legalaid[fno] )
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_civil_legal_aid.csv"
+            CSV.write( fname, frames.civil_legalaid[fno] )
+            fname = "$(settings.output_dir)/$(fbase)_$(fno)_aa_legal_aid.csv"
+            CSV.write( fname, frames.aa_legalaid[fno] )
         end
     end
 end
