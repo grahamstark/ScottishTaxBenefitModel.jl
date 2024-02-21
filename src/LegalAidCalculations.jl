@@ -182,7 +182,7 @@ function calc_legal_aid!(
             onela.capital += household.net_pension_wealth
         end 
     end
-
+    # println( "onela.disposable_income = $(onela.disposable_income)")
     if age_oldest >= lasys.pensioner_age_limit
         onela.capital_allowances += bandcalc( 
             onela.disposable_income,

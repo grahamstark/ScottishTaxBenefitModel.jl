@@ -152,7 +152,7 @@ function default_aa_sys( year::Integer, RT )::OneLegalAidSys
         aa.income_partners_allowance         = RT(48.50) # note: these are civil /52 but rounded weirdly
         aa.income_other_dependants_allowance = RT(77.78)
         aa.income_child_allowance            = RT(77.78)
-        aa.capital_contribution_rates=  [100.0]
+        aa.capital_contribution_rates=  [0.0]
         aa.capital_contribution_limits =  [1716.0]
         # there's got to be some rational explanation for this ...
         # this is just a weird way of saying 'everything above £105, with £7..
@@ -166,6 +166,7 @@ function default_aa_sys( year::Integer, RT )::OneLegalAidSys
         aa.capital_disregard_limits :: RateBands{RT} =  [10,22,34,46,105]
         aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_0000,10_000,5_000]
         # allowances are all zero
+        aa.expenses.housing = Expense( false, zero(RT), typemax(RT))
         aa.expenses.debt_repayments = Expense( false, zero(RT), typemax(RT))
         aa.expenses.childcare = Expense( false, zero(RT), typemax(RT))
         aa.expenses.work_expenses = Expense( false, zero(RT), typemax(RT))

@@ -159,14 +159,35 @@ end
     @test ares.eligible_on_income 
     @test to_nearest_p(ares.income_contribution,21.0)
 
+    add_spouse!( hh, 50, Female )
+    blank_incomes!( hh, 130; annual=false )
+    hres = init_household_result( hh )
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    ares = hres.bus[1].legalaid.aa    
+    @test ares.eligible
+    @test ares.eligible_on_capital 
+    @test ares.eligible_on_income 
+    @test ares.capital_allowances ≈ 335
+    @test ares.income_allowances ≈ 48.50
+    @test ares.disposable_capital ≈ 1365.0
+    @test ares.income_contribution ≈ 0.0
+    println( ares )
+
     #
     # From: 
     # https://www.slab.org.uk/app/uploads/2023/04/Civil-assistance-Keycard-2023-24-1.pdf
     #
+    hh = make_hh( adults = 1 )
     head = get_head( hh )
     head.age = 65
     hh.net_financial_wealth = 21_500 
     blank_incomes!( hh, 20; annual=false )
+    println( "total hh after blank $(hh)" )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
         hh,  
@@ -181,6 +202,7 @@ end
     @test ares.eligible_on_capital 
     @test ares.eligible_on_income 
     @test to_nearest_p(ares.income_contribution,0.0)
+    println( "ares pen $ares")
 
     hh.net_financial_wealth = 25_000 
     blank_incomes!( hh, 20; annual=false )
