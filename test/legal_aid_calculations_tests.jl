@@ -377,13 +377,20 @@ end
     sys.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
 
     outf, gl = do_basic_run( settings, [sys]; reset=false )
-    f = open( "la_tables_v1_bus.md","w")
+    f = open( "la_tables_v1_civil_and_aa.md","w")
     for t in LA_TARGETS
-        println(f, "\n## "*Utils.pretty(string(t))); println(f)        
-        println(f, "\n### a) Benefit Units "); 
-        pretty_table(f,outf.legalaid[1].legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
-        println(f, "\n### b) Individuals "); 
-        pretty_table(f,outf.legalaid[1].legalaid_people[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println(f,"## Civil Legal Aid")
+        println(f, "\n### "*Utils.pretty(string(t))); println(f)        
+        println(f, "\n#### a) Benefit Units "); 
+        pretty_table(f,outf.legalaid[1].civil_legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println(f, "\n#### b) Individuals "); 
+        pretty_table(f,outf.legalaid[1].civil_legalaid_people[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println(f,"## Advice and Assistance")
+        println(f, "\n### "*Utils.pretty(string(t))); println(f)        
+        println(f, "\n#### a) Benefit Units "); 
+        pretty_table(f,outf.legalaid[1].aa_legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println(f, "\n#### b) Individuals "); 
+        pretty_table(f,outf.legalaid[1].aa_legalaid_people[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f)
     end
     close(f)

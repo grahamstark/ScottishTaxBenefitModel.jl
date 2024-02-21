@@ -41,7 +41,8 @@ function fill_legal_aid_frame_row!(
     hr   :: DataFrameRow, 
     hh   :: Household, 
     hres :: HouseholdResult,
-    buno :: Int )
+    buno :: Int;
+    is_civil :: Bool )
     # println(names(hr))
     hr.hid = hh.hid
     hr.sequence = hh.sequence
@@ -60,7 +61,9 @@ function fill_legal_aid_frame_row!(
     hr.marital_status = head.marital_status
     hr.any_disabled = has_disabled_member( bu )
     hr.with_children = num_children( bu ) > 0
-    lr = hres.bus[buno].legalaid.civil
+    
+    lr = is_civil ? hres.bus[buno].legalaid.civil : hres.bus[buno].legalaid.aa
+    
     hr.all_eligible = lr.eligible | lr.passported
     hr.mt_eligible = lr.eligible
     hr.passported = lr.passported

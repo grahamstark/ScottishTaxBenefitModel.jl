@@ -243,15 +243,17 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     bu = []
     hh = []
     income = []
-    legalaid = []
+    civil_legalaid = []
+    aa_legalaid = []
     for s in 1:num_systems
-        push!(indiv, make_individual_results_frame( T, settings.num_people ))
-        push!(bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
-        push!(hh, make_household_results_frame( T, settings.num_households ))
-        push!(income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
-        push!( legalaid, make_legal_aid_frame( T, settings.num_people )) # num people is an exaggeration since bu level
+        push!( indiv, make_individual_results_frame( T, settings.num_people ))
+        push!( bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
+        push!( hh, make_household_results_frame( T, settings.num_households ))
+        push!( income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
+        push!( civil_legalaid, make_legal_aid_frame( T, settings.num_people )) # num people is an exaggeration since bu level
+        push!( aa_legalaid, make_legal_aid_frame( T, settings.num_people )) # num people is an exaggeration since bu level
     end
-    (; hh, bu, indiv, income, legalaid )
+    (; hh, bu, indiv, income, civil_legalaid, aa_legalaid )
 end
 
         #= TODO CONCAT RUN OUTPUT
@@ -569,8 +571,10 @@ function add_to_frames!(
             if bup == 1
                 # this fills the bu frame with holes
                 fill_legal_aid_frame_row!( 
-                    frames.legalaid[sysno][pfno,:], hh, hres, buno )
-            end
+                    frames.civil_legalaid[sysno][pfno,:], hh, hres, buno; is_civil=true )
+                fill_legal_aid_frame_row!( 
+                    frames.aa_legalaid[sysno][pfno,:], hh, hres, buno; is_civil=false )
+                end
         end # person loop
     end # bu loop
     @assert np == npp "not all people allocated; actual people=$np allocated people $npp"
@@ -827,7 +831,7 @@ function summarise_frames!(
     metrs = []
     poverty_lines = []
     child_poverty = []
-    legalaid = []
+    civil_legalaid = []
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
 
     poverty_line = if settings.poverty_line_source == pl_from_settings
@@ -888,9 +892,11 @@ function summarise_frames!(
         push!( child_poverty, cp )
         legaldics = ( ; ) # named tuple with nothing
         if settings.do_legal_aid
-            legalaid_bus = aggregate_all_legal_aid( frames.legalaid[sysno],:weight )
-            legalaid_people = aggregate_all_legal_aid( frames.legalaid[sysno],:weighted_people )
-            legaldics = (; legalaid_bus, legalaid_people )
+            civil_legalaid_bus = aggregate_all_legal_aid( frames.civil_legalaid[sysno],:weight )
+            civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid[sysno],:weighted_people )
+            aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid[sysno],:weight )
+            aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid[sysno],:weighted_people )
+            legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )
         end
         push!( legalaid, legaldics )
     end   
