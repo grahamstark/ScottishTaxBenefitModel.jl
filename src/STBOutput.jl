@@ -14,7 +14,7 @@ using DataFrames:
 
 using PovertyAndInequalityMeasures
 using CSV
-using Formatting 
+using Format
 
 using StatsBase
 using ScottishTaxBenefitModel

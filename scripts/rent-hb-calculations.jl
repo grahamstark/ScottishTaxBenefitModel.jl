@@ -1,6 +1,6 @@
 using DataFrames
 using CSV
-using Formatting
+using Format
 using Observables
 
 using ScottishTaxBenefitModel

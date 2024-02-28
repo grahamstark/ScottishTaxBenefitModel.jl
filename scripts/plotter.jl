@@ -1,5 +1,5 @@
 using CSV, DataFrames
-using Formatting
+using Format
 using StatsBase
 using PrettyTables
 using CairoMakie
@@ -190,7 +190,7 @@ end
 
 
 function fmt(v::Number) 
-    return Formatting.format(v, commas=true, precision=0)
+    return Format.format(v, commas=true, precision=0)
 end
 
 function get_sett()

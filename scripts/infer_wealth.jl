@@ -15,7 +15,7 @@ using CSV
 using DataFrames
 using Distributions 
 using DataStructures
-using Formatting
+using Format
 using GLM
 using Random
 using RegressionTables

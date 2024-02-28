@@ -10,10 +10,13 @@ using BudgetConstraints
 using ArgCheck
 using Base: Integer, String, Bool
 using Base.Unicode
+using CategoricalArrays
 using CSV
 using DataFrames
 using Dates
 using Printf
+using StatsBase
+
 
 export 
    @exported_enum, 
@@ -40,6 +43,7 @@ export
    isordered,
    loadtoframe, 
    make_start_stops,
+   make_crosstab,
    mult_dict!, 
    mult, 
    md_format,
@@ -53,9 +57,79 @@ export
    renameif!,
    riskyhash,
    to_md_table,
+   to_categorical,
    todays_date, 
    uprate_struct!
 
+"""
+crosstab rows vs cols of a categorical arrays using the given weights.
+FIXME has a horrible hack for missing values.
+"""
+function make_crosstab( rows :: CategoricalArray, cols :: CategoricalArray, weights :: AbstractWeights = Weights(ones(length(rows))) ) :: Tuple
+   @argcheck length(rows) == length(cols) == length( weights )
+
+   # find first with hack for missing values. Must be better way...
+   function fwm( needle, haystack ) :: Int
+      needle = ismissing(needle) ? "Missing" : needle
+      ri = findfirst( x->x==needle, haystack )
+      @assert ! ismissing(ri) "couldn't match $needle in $haystack"
+      ri
+   end
+
+   # levels with a 'missing' pushed on the end if needs be
+   function makelevels( v :: CategoricalArray )
+      l = levels( v,skipmissing=false )
+      if any( ismissing.(l))
+         l[ismissing.(l)] .= "Missing"
+      end
+      l, length(l)
+   end
+
+   rl,nr = makelevels( rows )
+   cl,nc = makelevels( cols )
+   m = zeros( nr, nc )
+
+   for r in eachindex( rows )
+      rv = rows[r]
+      cv = cols[r]
+      ri = fwm( rv, rl )
+      ci = fwm( cv, cl )
+      println( "rv=$rv cv==$cv ri=$ri ci=$ci")
+      m[ri,ci] += weights[r]
+   end
+   m, pretty.(rl), pretty.(cl) 
+
+end
+
+"""
+map a, which is some kind of 1d collection (typically a col from a dataframe), 
+to a categorical array using the contents of Dictionary `d`
+for the mapping. Missings, Nothings, and integer values < 0 are all mapped to `missing`.
+"""
+function to_categorical( a :: Any, d :: Dict )::CategoricalArray
+
+   function is1( a :: Nothing, d :: Dict )::Missing
+      return missing
+   end
+   
+   function is1( a :: Missing, d :: Dict )::Missing
+      return missing
+   end
+   
+   function is1( a :: AbstractString, d :: Dict )
+      return is1( tryparse( Int, a ), d )
+   end
+   
+   function is1( a :: Integer, d :: Dict )
+      if a < 0
+         return missing
+      end
+      return get(d, a, "$a" )
+   end
+
+   categorical(map( x -> is1(x,d), a ))
+end
+   
 
 """
 Given a vector of (e.g.) incomes size n and a series of m quintile breaks, create m ints with qualile numbers 1:n+1

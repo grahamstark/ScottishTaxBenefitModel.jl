@@ -18,22 +18,18 @@ function is1( a :: Integer, d :: Dict )
 	return get(d, a, "$a" )
 end
 
-function toca( a, d :: Dict )::CategoricalArray
-	categorical(map( x -> is1(x,d), a ))
-end
-
 # 
 function isonestr( s :: AbstractString ) :: Bool
     s .== "1"
 end
 	
-scjsraw.tabnssec = toca( scjsraw.tabnssec, Dict([
+scjsraw.tabnssec = to_categorical( scjsraw.tabnssec, Dict([
 	1 => "Manage & Prof.",
 	2 => "Intermediate",
 	3 => "Routine & Man.",
 	4 => "NW & LTUE"]))
 
-scjsraw.qdgen = toca( scjsraw.qdgen, Dict([
+scjsraw.qdgen = to_categorical( scjsraw.qdgen, Dict([
 	1 => "Male",
 	2 => "Female"]))
 
@@ -71,20 +67,20 @@ scjsraw.age = map( x->agemp(x), scjsraw.qdage2 )
 
 scjsraw.agesq = scjsraw.age.^2
 
-scjsraw.qdlegs = toca( scjsraw.qdlegs, Dict([
+scjsraw.qdlegs = to_categorical( scjsraw.qdlegs, Dict([
 	1 => "Never married and never registered a same-sex civil partnership",
 	2 => "Married or In a registered same-sex civil partnership",
 	3 => "Separated, but still legally married or Separated, but still legally in a same-sex civil partnership",
 	4 => "Divorced or Formerly in a same-sex civil partnership",
     5 => "Widowed or Surviving partner from a same-sex civil partnership"]))
 
-scjsraw.iloclass = toca( scjsraw.iloclass, Dict([
+scjsraw.iloclass = to_categorical( scjsraw.iloclass, Dict([
     1 => "In employment",
 	2 => "ILO unemployed",
 	3 => "Inactive"]))
 	
 
-scjsraw.qhstat = toca( scjsraw.qhstat, Dict([
+scjsraw.qhstat = to_categorical( scjsraw.qhstat, Dict([
     1 => "Very good",
 	2 => "Good",
 	3 => "Fair",
@@ -98,7 +94,7 @@ scjsraw.has_condition = scjsraw.qcondit .== 1
 #    QCARE 1
 
 
-scjsraw.qdeth3 = toca( scjsraw.qdeth3, Dict([
+scjsraw.qdeth3 = to_categorical( scjsraw.qdeth3, Dict([
     1 => "White – Scottish",
 	2 => "White – British",
 	3 => "White – Other",
@@ -130,19 +126,19 @@ end
 
 scjsraw.hhinc = map( x->incmp(x), scjsraw.qdinc2 )
 
-scjsraw.tenure = toca( scjsraw.tenure, Dict([
+scjsraw.tenure = to_categorical( scjsraw.tenure, Dict([
 	1 => "Owner occupied",
 	2 => "Social rented",
 	3 => "Private rented",
 	4 => "Other"]))
  
-scjsraw.acctype = toca( scjsraw.acctype, Dict([
+scjsraw.acctype = to_categorical( scjsraw.acctype, Dict([
     1 => "Detached/ semi house",
 	2 => "Terraced house",
 	3 => "Flat/maisonette",
 	4 => "Other"]))
 
-scjsraw.hhcomp = toca( scjsraw.hhcomp, Dict([
+scjsraw.hhcomp = to_categorical( scjsraw.hhcomp, Dict([
     1 => "Single adult",
 	2 => "Single parent",
 	3 => "Single pensioner",
@@ -152,14 +148,14 @@ scjsraw.hhcomp = toca( scjsraw.hhcomp, Dict([
 	7 => "Large adult",
 	8 => "Older smaller"]))
 
-scjsraw.simd_quint = toca( scjsraw.simd_quint, Dict([
+scjsraw.simd_quint = to_categorical( scjsraw.simd_quint, Dict([
     1 => "Quintile 1",
 	2 => "Quintile 2",
 	3 => "Quintile 3",
 	4 => "Quintile 4",
 	5 => "Quintile 5"]))
 
-scjsraw.taburbrur = toca( scjsraw.taburbrur, Dict([
+scjsraw.taburbrur = to_categorical( scjsraw.taburbrur, Dict([
     1 => "Urban",
 	2 => "Rural"]))
 	

@@ -1,5 +1,5 @@
 using CSV, DataFrames
-using Formatting
+using Format
 using StatsBase
 using PrettyTables
 using CairoMakie
@@ -202,7 +202,7 @@ function setct!( sys, value )
 end
 
 function fmt(v::Number) 
-    return Formatting.format(v, commas=true, precision=0)
+    return Format.format(v, commas=true, precision=0)
 end
 
 function get_sett()
@@ -477,9 +477,9 @@ function do_equalising_runs()
         =#
 
         #=
-        revenues[(revenues.code.==code),:local_income_tax] .= Formatting.format(100.0*itchange, precision=2 )
+        revenues[(revenues.code.==code),:local_income_tax] .= Format.format(100.0*itchange, precision=2 )
         revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
-        revenues[(revenues.code.==code),:proportional_property_tax] .= Formatting.format(ppt_sys.loctax.ppt.rate*100*WEEKS_PER_YEAR, precision=3)
+        revenues[(revenues.code.==code),:proportional_property_tax] .= Format.format(ppt_sys.loctax.ppt.rate*100*WEEKS_PER_YEAR, precision=3)
         revenues[(revenues.code.==code),:revalued_housing_band_d].= fmt(rev_banddchange*WEEKS_PER_YEAR)
         revenues[(revenues.code.==code),:revalued_housing_band_d_w_fairer_bands].= fmt(prog_rev_banddchange*WEEKS_PER_YEAR)
         =#
@@ -663,7 +663,7 @@ end
 
 # output formatters
 countfmt = (v, i, j) -> fmt(v)
-pctfmt = (v, i, j) -> Formatting.format(v, precision=2)
+pctfmt = (v, i, j) Format.format(v, precision=2)
 
 function how_we_doing_fmt(val, row, col )
     if col == 1 # name col
@@ -676,7 +676,7 @@ end
 function gl_fmt(val, row, col )
     if col == 1 # name col
         if typeof(val) <: AbstractFloat
-            return Formatting.format(val, precision=0)
+            return Format.format(val, precision=0)
         else 
             return pretty("$val")
         end
@@ -689,7 +689,7 @@ function headline_fmt(val, row, col )
     if col == 1
        return val
     elseif col in (2,4)
-       return Formatting.format(val, precision=2)
+       return Format.format(val, precision=2)
     end 
     return fmt(val)
 end

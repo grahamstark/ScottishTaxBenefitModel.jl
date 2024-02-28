@@ -208,6 +208,14 @@ function calc_legal_aid!(
     end
 end # calc_legal_aid!
 
+
+
+function get_problem_prob( pers :: Person ) :: NamedTuple
+
+
+end
+
+
 """
 Calculated solely at the HH level 
 """

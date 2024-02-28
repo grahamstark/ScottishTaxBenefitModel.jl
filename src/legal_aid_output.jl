@@ -155,7 +155,7 @@ function pt_fmt(val,row,col)
     if col == 1
       return Utils.pretty(string(val))
     end
-    return Formatting.format(val,commas=true,precision=0)
+    return Format.format(val,commas=true,precision=0)
 end
 
 #= 

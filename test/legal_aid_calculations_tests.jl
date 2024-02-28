@@ -5,7 +5,7 @@
 
 using Test
 using Dates
-using Formatting
+using Format
 using PrettyTables 
 
 using ScottishTaxBenefitModel
@@ -369,7 +369,7 @@ function pt_fmt(val,row,col)
     if col == 1
       return Utils.pretty(string(val))
     end
-    return Formatting.format(val,commas=true,precision=0)
+    return Format.format(val,commas=true,precision=0)
 end
 
 @testset "Create an output table" begin
@@ -379,14 +379,13 @@ end
     outf, gl = do_basic_run( settings, [sys]; reset=false )
     f = open( "la_tables_v1_civil_and_aa.md","w")
     for t in LA_TARGETS
-        println(f,"## Civil Legal Aid")
-        println(f, "\n### "*Utils.pretty(string(t))); println(f)        
+        println(f, "\n## "*Utils.pretty(string(t))); println(f)        
+        println(f,"### Civil Legal Aid")
         println(f, "\n#### a) Benefit Units "); 
         pretty_table(f,outf.legalaid[1].civil_legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f, "\n#### b) Individuals "); 
         pretty_table(f,outf.legalaid[1].civil_legalaid_people[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
-        println(f,"## Advice and Assistance")
-        println(f, "\n### "*Utils.pretty(string(t))); println(f)        
+        println(f,"### Advice and Assistance")
         println(f, "\n#### a) Benefit Units "); 
         pretty_table(f,outf.legalaid[1].aa_legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f, "\n#### b) Individuals "); 
