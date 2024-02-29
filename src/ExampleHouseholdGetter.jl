@@ -41,6 +41,7 @@ function initialise(
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
+    println( "DEF_MODEL_DATA_DIR=|$(Definitions.DEF_MODEL_DATA_DIR)| MODEL_DATA_DIR=|$MODEL_DATA_DIR|")
     # lazy load cons data if needs be
     if settings.indirect_method == matching
         ConsumptionData.init( settings ) 
