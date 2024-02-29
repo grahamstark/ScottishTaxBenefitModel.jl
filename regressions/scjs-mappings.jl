@@ -63,6 +63,20 @@ function agemp( age :: Int ) :: Real
     end    
 end
 
+scjsraw.is_limited = (scjsraw.qlimit .== 1) .| (scjsraw.qlimit .== 2)
+scjsraw.is_carer = scjsraw.qcare .== 1
+scjsraw.has_condition = scjsraw.qcondit .== 1
+scjsraw.divorced_or_separated = (scjsraw.qdlegs .== 3) .| (scjsraw.qdlegs .== 4)
+scjsraw.health_good_or_better = (scjsraw.qhstat .== 1) .| (scjsraw.qhstat .== 2) 
+#
+# 2nd
+#
+scjsraw.non_white = scjsraw.qdeth3 .== 4
+scjsraw.lives_in_flat = scjsraw.acctype .== 3
+scjsraw.single_parent = scjsraw.hhcomp .== 2
+scjsraw.out_of_labour_market = scjsraw.iloclass .== 3
+
+
 scjsraw.age = map( x->agemp(x), scjsraw.qdage2 )
 
 scjsraw.agesq = scjsraw.age.^2
@@ -87,9 +101,6 @@ scjsraw.qhstat = to_categorical( scjsraw.qhstat, Dict([
 	4 => "Bad",
     5 => "Very Bad"]))
 
-scjsraw.is_limited = (scjsraw.qlimit .== 1) .| (scjsraw.qlimit .== 2)
-scjsraw.is_carer = scjsraw.qcare .== 1
-scjsraw.has_condition = scjsraw.qcondit .== 1
 #    DISAB 1
 #    QCARE 1
 
@@ -99,6 +110,7 @@ scjsraw.qdeth3 = to_categorical( scjsraw.qdeth3, Dict([
 	2 => "White – British",
 	3 => "White – Other",
 	4 => "Minority Ethnic"]))
+
 
 function incmp( inc :: Int )
     if inc ==  1
@@ -159,6 +171,8 @@ scjsraw.taburbrur = to_categorical( scjsraw.taburbrur, Dict([
     1 => "Urban",
 	2 => "Rural"]))
 	
+    
+
 scjsraw.q_school_leaving = scjsraw.qqual_01 .== 1 
 scjsraw.q_school_o_grade = scjsraw.qqual_02 .== 1
 scjsraw.q_gsvq_foundation = scjsraw.qqual_03 .== 1

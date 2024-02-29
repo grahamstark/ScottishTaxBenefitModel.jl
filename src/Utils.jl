@@ -64,8 +64,14 @@ export
 """
 crosstab rows vs cols of a categorical arrays using the given weights.
 FIXME has a horrible hack for missing values.
+   return the crosstab, prettyfied row labels, prettyified col labels
 """
-function make_crosstab( rows :: CategoricalArray, cols :: CategoricalArray, weights :: AbstractWeights = Weights(ones(length(rows))) ) :: Tuple
+function make_crosstab( 
+   rows :: AbstractCategoricalArray, 
+   cols :: AbstractCategoricalArray;
+   rowlevels :: AbstractVector{String} = fill("",0),
+   collevels :: AbstractVector{String} = fill("",0),
+   weights :: AbstractWeights = Weights(ones(length(rows))) ) :: Tuple
    @argcheck length(rows) == length(cols) == length( weights )
 
    # find first with hack for missing values. Must be better way...
@@ -84,21 +90,53 @@ function make_crosstab( rows :: CategoricalArray, cols :: CategoricalArray, weig
       end
       l, length(l)
    end
-
-   rl,nr = makelevels( rows )
-   cl,nc = makelevels( cols )
+   nr = length(rowlevels)
+   if nr == 0
+      rowlevels,nr = makelevels( rows )
+   end
+   nc = length(collevels)
+   if nc == 0
+      collevels,nc = makelevels( cols )
+   end
    m = zeros( nr, nc )
 
    for r in eachindex( rows )
       rv = rows[r]
       cv = cols[r]
-      ri = fwm( rv, rl )
-      ci = fwm( cv, cl )
-      println( "rv=$rv cv==$cv ri=$ri ci=$ci")
+      ri = fwm( rv, rowlevels )
+      ci = fwm( cv, collevels )
+      # println( "rv=$rv cv==$cv ri=$ri ci=$ci")
       m[ri,ci] += weights[r]
    end
-   m, pretty.(rl), pretty.(cl) 
+   m, pretty.(rowlevels), pretty.(collevels) 
+end
 
+"""
+Enumerated Type version
+return the crosstab, prettyfied row labels, prettyified col labels
+"""
+function make_crosstab( 
+   rows::AbstractVector{<:Enum}, 
+   cols::AbstractVector{<:Enum}; 
+   weights :: AbstractWeights = Weights(ones(length(rows))))
+   # just hack into Categorical version and use that
+   rv = CategoricalArray( string.(rows))
+   cv = CategoricalArray( string.(cols))
+   rl = collect(string.(instances(eltype(rows))))
+   cl = collect(string.(instances(eltype(cols))))
+   make_crosstab( rv, cv; rowlevels=rl, collevels=cl, weights=weights )
+end
+
+"""
+Does exactly that, with 1st col being rowlabels and names being col labels
+"""
+function matrix_to_frame( 
+   m :: AbstractMatrix, 
+   rowlabels :: AbstractVector{<:AbstractString}, 
+   collabels :: AbstractVector{<:AbstractString} ) :: DataFrame
+   d = DataFrame( m, collabels )
+   insertcols!( d, 1, :rowlabels=>rowlabels )
+   d
 end
 
 """

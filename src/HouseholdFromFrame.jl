@@ -223,6 +223,23 @@ function create_regression_dataframe(
     ## wealth for head only
     fm[fm.is_hrp.==0,[:net_housing_wealth,:net_pension_wealth,:net_financial_wealth,:net_physical_wealth]] .= 0.0
 
+    #
+    # added for legal aid, matching scjs - see scjs_mappings.jl, civil_problems-scjs.jl in regressions/
+    # 
+    fm.lives_in_flat = fm.purpose_build_flat .| fm.converted_flat
+    fm.non_white = fm.race_mx .| fm.race_as .| fm.race_bl .| fm.race_ot 
+    fm.is_carer = fm.rec_carers .| fm.is_informal_carer
+    fm.single_parent = (fm.num_children .> 0) .& (fm.num_adults .== 1) # FIXME this is hhld level 
+    fm.divorced_or_separated = in_vect( fm.marital_status, Separated, Divorced_or_Civil_Partnership_dissolved )
+    fm.out_of_labour_market = fm.inactive .| fm.unemployed .| fm.student .| fm.retired 
+    fm.is_limited = in_vect(fm.adls_are_reduced, reduced_a_lot, reduced_a_little ) .| (fm.has_long_standing_illness .== 1)
+    fm.health_good_or_better = in_vect( fm.health_status, Very_Good, Good )
+    fm.has_condition = coalesce.( fm.any_dis .| fm.adls_bad .| fm.adls_mid .| fm.is_limited, 0 )
+    fm.agesq = fm.age .^2
+    #
+    # 2nd
+    #
+
     return fm
 end
 

@@ -26,7 +26,8 @@ module Results
     using .STBIncomes
     using .RunSettings
     using .Utils:
-        to_md_table
+        to_md_table,
+        make_crosstab
 
     export
         BenefitUnitResult,
@@ -80,6 +81,7 @@ module Results
         capital = zero(RT)
         disposable_capital = zero(RT)
         capital_allowances = zero(RT)
+        entitlement :: LegalAidStatus = la_none
     end
 
     @with_kw mutable struct LegalAidResult{RT<:Real}

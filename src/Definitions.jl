@@ -89,6 +89,9 @@ end
 # FIXME TODO shorten enum names; capitalise consistently
 #
 
+export LegalAidStatus, la_none, la_passported, la_full, la_with_contribution 
+@enum LegalAidStatus la_none la_passported la_full la_with_contribution
+
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin
    missing_style = -1

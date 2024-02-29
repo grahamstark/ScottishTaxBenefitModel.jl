@@ -110,6 +110,7 @@ function calc_legal_aid!(
         # these are all actually the same number except living_allowance
         if any_positive( income, lasys.passported_benefits )
             onela.passported = true
+            onela.entitlement = la_passported
             return
         end
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway
@@ -206,6 +207,17 @@ function calc_legal_aid!(
             lasys.capital_contribution_limits,
             lasys.capital_cont_type )
     end
+
+    onela.entitlement = if (! onela.eligible)
+        la_none
+    elseif onela.passported # can't actually get here but leave in for completeness
+        la_passported
+    elseif (onela.income_contribution + onela.capital_contribution) > 0.0
+        la_with_contribution
+    else 
+        la_full
+    end
+
 end # calc_legal_aid!
 
 

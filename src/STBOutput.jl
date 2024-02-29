@@ -896,7 +896,7 @@ function summarise_frames!(
             civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid[sysno],:weighted_people )
             aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid[sysno],:weight )
             aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid[sysno],:weighted_people )
-            legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )
+            legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )            
         end
         push!( legalaid, legaldics )
     end   
@@ -916,6 +916,15 @@ function summarise_frames!(
         end
         println( "gain lose")
     end
+    legal_crosstabs = []
+    if settings.do_legal_aid
+        for sysno in 2:ns
+            civtab = la_crosstab( frames.civil_legalaid[1], frames.civil_legalaid[sysno] )
+            push!( legal_crosstabs, civtab )
+            aatab = la_crosstab( frames.aa_legalaid[1], frames.aa_legalaid[sysno] )
+            push!( legal_crosstabs, aatab )
+        end
+    end
 
     return ( ;
         quantiles, 
@@ -927,7 +936,8 @@ function summarise_frames!(
         child_poverty,
         gain_lose,
         poverty_lines,
-        legalaid )
+        legalaid,
+        legal_crosstabs )
 end
 
 ## FIXME eventually, move this to DrWatson

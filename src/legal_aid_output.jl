@@ -13,6 +13,7 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         weight    = zeros(RT,n),
         weighted_people = zeros(RT,n),
         total = ones(RT,n),
+        entitlement = fill( la_none, n ),
         bu_number = zeros( Int, n ),
         num_people = zeros( Int, n ),
         tenure    = fill( Missing_Tenure_Type, n ),
@@ -77,6 +78,7 @@ function fill_legal_aid_frame_row!(
         hr.disqualified_on_income = ! lr.eligible_on_income
         hr.disqualified_on_capital = ! lr.eligible_on_capital
     end
+    hr.entitlement = lr.entitlement
 end
 
 export LA_BITS, LA_LABELS, LA_TARGETS, aggregate_all_legal_aid
@@ -156,6 +158,13 @@ function pt_fmt(val,row,col)
       return Utils.pretty(string(val))
     end
     return Format.format(val,commas=true,precision=0)
+end
+
+function la_crosstab( pre :: DataFrame, post :: DataFrame ) :: AbstractMatrix
+    return make_crosstab( 
+        pre.entitlement, 
+        post.entitlement; 
+        weights=Weights(pre.weight) )[1] # discard the labels
 end
 
 #= 
