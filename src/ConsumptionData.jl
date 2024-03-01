@@ -279,6 +279,9 @@ function uprate_expenditure( settings :: Settings )
     end
 end
 
+"""
+FIXME DO FACTOR COSTS!!!!
+"""
 function init( settings :: Settings; reset = false )
     if(settings.indirect_method == matching) && (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
         global IND_MATCHING

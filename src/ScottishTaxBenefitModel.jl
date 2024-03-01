@@ -64,6 +64,9 @@ export ConsumptionData
 include( "MatchingLibs.jl")
 export MatchingLibs
 
+include( "LegalAidData.jl" )
+export LegalAidData
+
 include("ExampleHouseholdGetter.jl" )
 export ExampleHouseholdGetter
 

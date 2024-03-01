@@ -416,7 +416,7 @@ function map_person(
         m2z(model_person.company_car_contribution),
         m2z(model_person.fuel_supplied),
         strtobi(model_person.onerand),
-        nothing # legal aid added as needed 
+        nothing # legal aid added as needed FIXME? maybe make this 'other data'??
     )
     # FIXME we need a separate switch for make benefit ratios 
     if settings.benefit_generosity_estimates_available

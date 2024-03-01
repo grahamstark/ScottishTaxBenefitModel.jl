@@ -128,6 +128,7 @@ module RunSettings
         wealth_method = no_method
         do_indirect_tax_calculations = false
         do_legal_aid = true
+        legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
     end
 
     """
@@ -158,6 +159,7 @@ module RunSettings
         settings.wealth_method=imputation
         settings.do_indirect_tax_calculations = true
         settings.do_legal_aid = false
+        legal_aid_probs_data = ""
         return settings
     end
 
