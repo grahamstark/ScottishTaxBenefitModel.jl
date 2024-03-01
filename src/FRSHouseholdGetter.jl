@@ -159,7 +159,7 @@ module FRSHouseholdGetter
             ConsumptionData.init( settings )
         end
         if settings.do_legal_aid
-            LegalAidData.init( settings, reset )
+            LegalAidData.init( settings; reset = reset )
         end
         hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
         people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame

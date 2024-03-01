@@ -41,7 +41,7 @@ module Results
         LocalTaxes,
         NIResult, 
         LegalAidResult,
-
+        OneLegalAidResult,
         aggregate_tax,
         aggregate!,
         get_indiv_result,

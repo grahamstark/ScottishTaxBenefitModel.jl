@@ -26,6 +26,8 @@ using .GeneralTaxComponents:
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
+    OneLegalAidResult,
+    LegalAidResult,
     IndividualResult,
     total
 

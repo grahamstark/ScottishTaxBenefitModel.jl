@@ -22,8 +22,8 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         decile = zeros( Int, n ),
         in_poverty = fill( false, n ),
         ethnic_group = fill(Missing_Ethnic_Group, n ),
-        any_disabled = fill(false,n),
-        with_children = fill(false,n),
+        disabled = fill(false,n),
+        children = fill(false,n),
         any_pensioner = fill(false,n),
         all_eligible = zeros(RT,n),
         mt_eligible = zeros(RT,n),
@@ -32,7 +32,47 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         income_contribution = zeros(RT,n),
         capital_contribution = zeros(RT,n),
         disqualified_on_income = zeros(RT,n), 
-        disqualified_on_capital = zeros(RT,n))
+        disqualified_on_capital = zeros(RT,n)
+        
+        
+        )
+end
+
+"""
+called once per person 
+"""
+function fill_legal_aid_frame_row!( 
+    hr :: DataFrameRow,
+    hh :: Household,
+    buno :: Int;
+    pers :: Person,
+    lares :: OneLegalAidResult )
+    hr.hid = hh.hid
+    hr.sequence = hh.sequence
+    hr.data_year = hh.data_year
+    hr.weight = hh.weight
+    hr.num_people = 1
+    hr.bu_number = buno
+    hr.ethnic_group = head.ethnic_group
+    hr.employment_status = head.employment_status
+    hr.marital_status = head.marital_status
+    hr.disabled = is_disabled( pers )
+    hr.children = pers.from_child_record
+    hr.all_eligible = lr.eligible | lr.passported
+    hr.mt_eligible = lr.eligible
+    hr.passported = lr.passported
+    hr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
+    hr.capital_contribution = lr.capital_contribution > 0
+    hr.income_contribution = lr.income_contribution > 0
+    if lr.passported 
+        hr.disqualified_on_income = false 
+        hr.disqualified_on_capital = false
+    else 
+        hr.disqualified_on_income = ! lr.eligible_on_income
+        hr.disqualified_on_capital = ! lr.eligible_on_capital
+    end
+    hr.entitlement = lr.entitlement
+
 end
 
 """
@@ -60,8 +100,8 @@ function fill_legal_aid_frame_row!(
     hr.ethnic_group = head.ethnic_group
     hr.employment_status = head.employment_status
     hr.marital_status = head.marital_status
-    hr.any_disabled = has_disabled_member( bu )
-    hr.with_children = num_children( bu ) > 0
+    hr.disabled = has_disabled_member( bu )
+    hr.children = num_children( bu ) > 0
     
     lr = is_civil ? hres.bus[buno].legalaid.civil : hres.bus[buno].legalaid.aa
     
@@ -111,9 +151,9 @@ const LA_TARGETS = [
     :ethnic_group, 
     :bu_number, 
     :marital_status, 
-    :any_disabled,
+    :disabled,
     :num_people,
-    :with_children]
+    :children]
 
 """
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
