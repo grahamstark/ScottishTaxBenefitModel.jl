@@ -12,6 +12,7 @@ using CategoricalArrays
 using DataFrames
 using RegressionTables
 using StatsBase
+using Formats
 using Statistics
 using StatsModels
 using Colors
@@ -22,6 +23,14 @@ using .TimeSeriesUtils: parse_ons_date
 using .HouseholdFromFrame
 
 using .Utils
+
+function fp( m )
+	Format.format(m*100; precision=2 )*"%"
+end
+
+function fc( m )
+	Format.format(m; precision=0, commas=true )
+end
 
 """
 must be a standard way of broadcasting but ..
@@ -191,6 +200,7 @@ civil_probs = DataFrame(
 	hid=fm.hid, 
 	pid = fm.pid, 
 	pno = fm.pno, 
+	weight = fm.weight/7, # hack for checking
 	from_child_record=fm.from_child_record )
 
 
@@ -203,34 +213,35 @@ add_predicts!( civil_probs, "employment", r3_employment, fm )
 
 cpnc = civil_probs[civil_probs.from_child_record.==0,:]
 
-println( "DIVORCE")
-mean(cpnc.divorce_prediction)
-mean( scjsciv.civ_divorce  )
-mean( predict( r3_divorce ))
+function summarise( prefix::String, model, cpnc :: DataFrame, scjsciv :: DataFrame )
+	println( "## $(titlecase(prefix)) \n\n```\n" )
+	lower = cpnc[:,Symbol( "$(prefix)_lower")].*100
+	central = cpnc[:,Symbol( "$(prefix)_prediction")].*100
+	upper = cpnc[:,Symbol( "$(prefix)_upper")].*100
+	println( "### Imputed Probabilities on FRS Data (%s)\n")
+	println( "#### Lower Bound 95%")
+	println(summarystats( lower ))
+	println( "#### Central")
+	println(summarystats( central ))
+	println( "#### Upper Bound 95%")
+	println(summarystats( upper ))
+	mean_occurs = fp(mean( scjsciv[:,Symbol("civ_$(prefix)")]  ))
+	mean_predicted = fp(mean( predict( model )))
 
-println( "HOME exl. divorce")
-mean(cpnc.home_prediction)
-mean( scjsciv.civ_home )
-mean( predict( r3_home ))
+	popn_totals_lower = fc(sum( lower .* cpnc.weight ./ 100)) 
+	popn_totals_central = fc(sum( central .* cpnc.weight./ 100 )) 
+	popn_totals_upper = fc(sum( upper .* cpnc.weight ./ 100)) 
 
-println( "MONEY")
-mean(cpnc.money_prediction)
-mean( scjsciv.civ_money  )
-mean( predict( r3_money ))
+	println( "actual data: prop occurrences i data $mean_occurs mean prediction = $mean_predicted " )
+	println( "modelled total problems : lower $popn_totals_lower  central = $popn_totals_central upper $popn_totals_upper (per 3 years)")
+	println( "\n\n```")
+end
 
-println( "UNFAIRNESS excl. employment")
-mean(cpnc.unfairness_prediction)
-mean( scjsciv.civ_unfairness  )
-mean( predict( r3_unfairness ))
-
-println( "NEIGHBOURS")
-mean(cpnc.neighbours_prediction)
-mean( scjsciv.civ_neighbours  )
-mean( predict( r3_neighbours ))
-
-println( "EMPLOYMENT")
-mean(cpnc.employment_prediction)
-mean( scjsciv.civ_employment  )
-mean( predict( r3_employment ))
+summarise( "divorce", r3_divorce, cpnc, scjsciv)
+summarise( "home", r3_home, cpnc, scjsciv)
+summarise( "money", r3_money, cpnc, scjsciv)
+summarise( "unfairness", r3_unfairness, cpnc, scjsciv)
+summarise( "neighbours", r3_neighbours, cpnc, scjsciv)
+summarise( "employment" , r3_employment, cpnc, scjsciv)
 
 CSV.write( "data/civil-legal-aid-probs-scotland-2015-2012.tab",civil_probs; delim='\t' )

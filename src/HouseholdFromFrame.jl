@@ -415,9 +415,10 @@ function map_person(
         m2z(model_person.company_car_value),
         m2z(model_person.company_car_contribution),
         m2z(model_person.fuel_supplied),
-        strtobi(model_person.onerand)
+        strtobi(model_person.onerand),
+        nothing # legal aid added as needed 
     )
-    # FIXME we need a seperate switch for make benefit ratios 
+    # FIXME we need a separate switch for make benefit ratios 
     if settings.benefit_generosity_estimates_available
         make_benefit_ratios!( 
             pers, hh.interview_year, hh.interview_month )

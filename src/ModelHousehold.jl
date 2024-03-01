@@ -166,6 +166,7 @@ mutable struct Person{RT<:Real}
 
     onerand :: String
 
+    legal_aid_problem_probs :: Union{Nothing,DataFrameRow}
 
 end
 
