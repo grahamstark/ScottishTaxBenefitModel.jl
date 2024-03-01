@@ -186,7 +186,7 @@ scjsraw.q_other_post_school = scjsraw.qqual_10 .== 1
 scjsraw.q_other_he = scjsraw.qqual_11 .== 1
 scjsraw.q_none = scjsraw.qqual_12 .== 1
 
-# home
+# home, excl divorce
 scjsraw.civ_neighbours = isonestr.(scjsraw.cvjneig) # Problems with neighbours in last 3 years
 scjsraw.civ_child_contact = isonestr.(scjsraw.cvjchil) # problems to do with child contact, residence or maintenance in last 3 years
 scjsraw.civ_divorce = isonestr.(scjsraw.cvjrel2) # divorce, separation in last 3 years
@@ -195,8 +195,10 @@ scjsraw.civ_immigration =  isonestr.(scjsraw.cvjimm) #  immigration in last 3 ye
 scjsraw.civ_education =  isonestr.(scjsraw.cvjsch) #  education of your children in last 3 years
 scjsraw.civ_family = isonestr.(scjsraw.cvjpar) #  problems or disputes concerning your home, family or living arrangements: behaviour of a partner, ex-partner or other person who is harassing you in last 3 years
 scjsraw.civ_home = scjsraw.civ_neighbours .| scjsraw.civ_child_contact .| 
-    scjsraw.civ_divorce .| scjsraw.civ_housing .| scjsraw.civ_immigration .|
+    scjsraw.civ_housing .| scjsraw.civ_immigration .|
     scjsraw.civ_education .| scjsraw.civ_family 
+
+# scjsraw.civ_divorce .| 
 
 # health 
 scjsraw.civ_injury = isonestr.(scjsraw.cvjinj) # problems concerning your health and well-being: injury because of an accident in last 3 years
@@ -208,8 +210,8 @@ scjsraw.civ_money_debt = isonestr.(scjsraw.cvjmon) #  problems concerning your m
 scjsraw.civ_benefit =  isonestr.(scjsraw.cvjben) #  benefit problems in last 3 years
 scjsraw.civ_faulty_goods = isonestr.(scjsraw.cvjfau) # faulty goods or services in last 3 yea
 scjsraw.civ_money = scjsraw.civ_money_debt .| scjsraw.civ_benefit .| scjsraw.civ_faulty_goods 
-# unfairness
+# unfairness, excl employment
 scjsraw.civ_discrimination = isonestr.(scjsraw.cvjdisc) # problems concerning someone treating you unfairly: discrimination in last 3 years
 scjsraw.civ_police = isonestr.(scjsraw.cvjpol) # : unfair treatment by the police in last 3 years
 scjsraw.civ_employment = isonestr.(scjsraw.cvjemp) # employment in last 3 years
-scjsraw.civ_unfairness = scjsraw.civ_discrimination .| scjsraw.civ_police .| scjsraw.civ_employment
+scjsraw.civ_unfairness = scjsraw.civ_discrimination # .| scjsraw.civ_police .| scjsraw.civ_employment
