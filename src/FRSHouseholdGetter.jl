@@ -31,6 +31,8 @@ module FRSHouseholdGetter
 
     using .Utils:get_quantiles
 
+    using .LegalAidData
+
     using .ConsumptionData
 
     export 
@@ -156,6 +158,9 @@ module FRSHouseholdGetter
         if settings.indirect_method == matching 
             ConsumptionData.init( settings )
         end
+        if settings.do_legal_aid
+            LegalAidData.init( settings, reset )
+        end
         hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
         people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
         npeople = size( people_dataset)[1]
@@ -182,6 +187,9 @@ module FRSHouseholdGetter
             MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = HHPeople( hseq, pseqs)
             if ! (hh.data_year in MODEL_HOUSEHOLDS.data_years )
                 push!( MODEL_HOUSEHOLDS.data_years, hh.data_year )
+            end
+            if settings.do_legal_aid
+                LegalAidData.add_la_probs!( hh )
             end
             if ! (hh.interview_year in MODEL_HOUSEHOLDS.interview_years )
                 push!( MODEL_HOUSEHOLDS.interview_years, hh.interview_year )

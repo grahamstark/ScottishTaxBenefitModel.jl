@@ -8,6 +8,8 @@ using CSV,DataFrames
 using ScottishTaxBenefitModel
 using .RunSettings
 
+export add_la_probs!
+
 LA_PROB_DATA = DataFrame()
 
 function add_la_probs!( hh :: ModelHousehold )
