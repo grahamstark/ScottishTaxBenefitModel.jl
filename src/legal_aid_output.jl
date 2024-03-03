@@ -1,3 +1,5 @@
+module LegalAidOutput 
+
 #=
 Output routines for Legal Aid, split out for manageability.
 =#
@@ -239,6 +241,7 @@ function la_crosstab( pre :: DataFrame, post :: DataFrame ) :: AbstractMatrix
 end
 
 mutable struct LegalOutput
+    num_systems :: Int
     data :: Vector{DataFrame}
     breakdown :: Vector{AbstractDict}
     crosstab :: Vector{AbstractMatrix}
@@ -266,7 +269,7 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer, is_bu :: Boo
             push!(crosstabs, fill(T,4,4))
         end
     end
-    LegalOutput( datas, breakdowns, crosstabs )
+    LegalOutput( num_systems, datas, breakdowns, crosstabs )
 end
 
 function AllLegalOutput( T; num_systems::Integer, num_people::Integer )
@@ -278,14 +281,20 @@ function AllLegalOutput( T; num_systems::Integer, num_people::Integer )
 end
 
 function summarise_la_output!( la :: LegalOutput )
-    civil_legalaid_bus = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weight )
-    civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weighted_people )
-    aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weight )
-    aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weighted_people )
-    legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )            
+    for sysno in 1:la.num_systems
+        la.breakdown[sysno] = aggregate_all_legal_aid( la.civil_bu[sysno].data,:weight )
+        if sysno > 1
+            la.crosstab[sysno-1] = la_crosstab( la.data[sysno], la.data[sysno] )
+        end
+    end
+    la.data = nothing
 end
 
+function summarise_la_output!( la :: AllLegalOutput )
+    summarise_la_output!( la.civil_bu )
+    summarise_la_output!( la.civil_bu )
+    summarise_la_output!( la.aa_bu )
+    summarise_la_output!( la.aa_pers )
+end
 
-
-
-
+end
