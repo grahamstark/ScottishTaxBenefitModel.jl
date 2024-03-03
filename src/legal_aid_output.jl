@@ -5,7 +5,7 @@ Output routines for Legal Aid, split out for manageability.
 """
 BU level output dataframe
 """
-function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
+function make_legal_aid_frame_bu( RT :: DataType, n :: Int ) :: DataFrame
     return DataFrame(
         hid       = zeros( BigInt, n ),
         sequence  = zeros( Int, n ),
@@ -15,7 +15,6 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         total = ones(RT,n),
         entitlement = fill( la_none, n ),
         bu_number = zeros( Int, n ),
-        num_people = zeros( Int, n ),
         tenure    = fill( Missing_Tenure_Type, n ),
         marital_status = fill( Missing_Marital_Status, n ),
         employment_status = fill(Missing_ILO_Employment, n ),
@@ -32,47 +31,78 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         income_contribution = zeros(RT,n),
         capital_contribution = zeros(RT,n),
         disqualified_on_income = zeros(RT,n), 
-        disqualified_on_capital = zeros(RT,n)
-        
-        
-        )
+        disqualified_on_capital = zeros(RT,n))
 end
+
+function make_legal_aid_frame_pers( RT :: DataType, n :: Int ) :: DataFrame
+    return DataFrame(
+        hid       = zeros( BigInt, n ),
+        sequence  = zeros( Int, n ),
+        weight    = zeros(RT,n),
+        pid       = zeros( BigInt, n ),
+        data_year  = zeros( Int, n ),        
+        total = ones(RT,n),
+        entitlement = fill( la_none, n ),
+        bu_number = zeros( Int, n ),
+        tenure    = fill( Missing_Tenure_Type, n ),
+        marital_status = fill( Missing_Marital_Status, n ),
+        employment_status = fill(Missing_ILO_Employment, n ),
+        decile = zeros( Int, n ),
+        in_poverty = fill( false, n ),
+        ethnic_group = fill(Missing_Ethnic_Group, n ),
+        disabled = fill(false,n),
+        is_child = fill(false,n),
+        is_pensioner = fill(false,n),
+        all_eligible = zeros(RT,n),
+        mt_eligible = zeros(RT,n),
+        passported = zeros(RT,n),
+        any_contribution = zeros(RT,n),
+        income_contribution = zeros(RT,n),
+        capital_contribution = zeros(RT,n),
+        disqualified_on_income = zeros(RT,n), 
+        disqualified_on_capital = zeros(RT,n))
+end
+
+function add_problem_probabilities( results :: DataFrame, probs :: DataFrame )
+    rightjoin( results, probs; on = [:hid, :data_year, :pid ])
+end
+
 
 """
 called once per person 
 """
 function fill_legal_aid_frame_row!( 
-    hr :: DataFrameRow,
+    pr :: DataFrameRow,
     hh :: Household,
     buno :: Int;
     pers :: Person,
     lares :: OneLegalAidResult )
-    hr.hid = hh.hid
-    hr.sequence = hh.sequence
-    hr.data_year = hh.data_year
-    hr.weight = hh.weight
-    hr.num_people = 1
-    hr.bu_number = buno
-    hr.ethnic_group = head.ethnic_group
-    hr.employment_status = head.employment_status
-    hr.marital_status = head.marital_status
-    hr.disabled = is_disabled( pers )
-    hr.children = pers.from_child_record
-    hr.all_eligible = lr.eligible | lr.passported
-    hr.mt_eligible = lr.eligible
-    hr.passported = lr.passported
-    hr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
-    hr.capital_contribution = lr.capital_contribution > 0
-    hr.income_contribution = lr.income_contribution > 0
+    pr.hid = hh.hid
+    pr.pid = pers.pid
+    pr.pno = pers.pno
+    pr.sequence = hh.sequence
+    pr.data_year = hh.data_year
+    pr.weight = hh.weight
+    pr.bu_number = buno
+    pr.ethnic_group = pers.ethnic_group
+    pr.employment_status = pers.employment_status
+    pr.marital_status = pers.marital_status
+    pr.disabled = is_disabled( pers )
+    pr.is_child = pers.from_child_record
+    pr.all_eligible = lr.eligible | lr.passported
+    pr.mt_eligible = lr.eligible
+    pr.passported = lr.passported
+    pr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
+    pr.capital_contribution = lr.capital_contribution > 0
+    pr.income_contribution = lr.income_contribution > 0
     if lr.passported 
-        hr.disqualified_on_income = false 
-        hr.disqualified_on_capital = false
+        pr.disqualified_on_income = false 
+        pr.disqualified_on_capital = false
     else 
-        hr.disqualified_on_income = ! lr.eligible_on_income
-        hr.disqualified_on_capital = ! lr.eligible_on_capital
+        pr.disqualified_on_income = ! lr.eligible_on_income
+        pr.disqualified_on_capital = ! lr.eligible_on_capital
     end
-    hr.entitlement = lr.entitlement
-
+    pr.entitlement = lr.entitlement
 end
 
 """
@@ -102,6 +132,7 @@ function fill_legal_aid_frame_row!(
     hr.marital_status = head.marital_status
     hr.disabled = has_disabled_member( bu )
     hr.children = num_children( bu ) > 0
+    hr.any_pensioner = search( bu.people, ge_age, 65 )
     
     lr = is_civil ? hres.bus[buno].legalaid.civil : hres.bus[buno].legalaid.aa
     
@@ -207,20 +238,54 @@ function la_crosstab( pre :: DataFrame, post :: DataFrame ) :: AbstractMatrix
         weights=Weights(pre.weight) )[1] # discard the labels
 end
 
-#= 
-
-Example
-
-f = open( "somefile.md","w")
-for t in TARGETS
-           println(f, "### "*Utils.pretty(string(t))); println(f)
-           pretty_table(f,dd[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
-           println(f)
-       end
-close(f)
-
-for t in TARGETS
-    println( Utils.pretty(string(t)))
-    pretty_table(dd[t],formatters=pt_fmt, backend = Val(:markdown), :cell_first_line_only=true)
+mutable struct LegalOutput
+    data :: Vector{DataFrame}
+    breakdown :: Vector{AbstractDict}
+    crosstab :: Vector{AbstractMatrix}
 end
-=#
+
+mutable struct AllLegalOutput
+    aa_bu :: LegalOutput
+    civil_bu :: LegalOutput
+    aa_pers :: LegalOutput
+    civil_pers :: LegalOutput
+end
+
+function LegalOutput( T; num_systems::Integer, num_people::Integer, is_bu :: Bool )
+    datas = Vector{DataFrame}(undef,0)
+    breakdowns = Vector{Dict}(undef,0)
+    crosstabs = Vector{Matrix}(undef,0)
+    for sysno in 1:num_systems
+        if is_bu
+            push!( datas, make_legal_aid_frame_bu( T, num_people ))
+        else
+            push!( datas, make_legal_aid_frame_pers( T, num_people ))
+        end
+        push!( breakdowns, Dict())
+        if sysno < num_systems
+            push!(crosstabs, fill(T,4,4))
+        end
+    end
+    LegalOutput( datas, breakdowns, crosstabs )
+end
+
+function AllLegalOutput( T; num_systems::Integer, num_people::Integer )
+    AllLegalOutput( 
+        LegalOutput( T; num_systems=num_systems, num_people=num_people, is_bu=true ),
+        LegalOutput( T; num_systems=num_systems, num_people=num_people, is_bu=true),
+        LegalOutput( T; num_systems=num_systems, num_people=num_people, is_bu=false),
+        LegalOutput( T; num_systems=num_systems, num_people=num_people, is_bu=false))
+end
+
+function summarise_la_output!( la :: LegalOutput )
+    civil_legalaid_bus = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weight )
+    civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weighted_people )
+    aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weight )
+    aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weighted_people )
+    legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )            
+end
+
+
+
+
+

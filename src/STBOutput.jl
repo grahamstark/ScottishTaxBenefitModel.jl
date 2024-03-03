@@ -245,17 +245,19 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     bu = []
     hh = []
     income = []
-    civil_legalaid = []
-    aa_legalaid = []
+    civil_legalaid_pers = []
+    aa_legalaid_bu = []
     for s in 1:num_systems
         push!( indiv, make_individual_results_frame( T, settings.num_people ))
         push!( bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
         push!( hh, make_household_results_frame( T, settings.num_households ))
         push!( income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
-        push!( civil_legalaid, make_legal_aid_frame( T, settings.num_people )) # num people is an exaggeration since bu level
-        push!( aa_legalaid, make_legal_aid_frame( T, settings.num_people )) # num people is an exaggeration since bu level
+        push!( civil_legalaid_pers, make_legal_aid_frame_bu( T, settings.num_people )) # num people is an exaggeration since bu level
+        push!( civil_legalaid_bu, make_legal_aid_frame_pers( T, settings.num_people )) # num people is an exaggeration since bu level
+        push!( aa_legalaid_pers, make_legal_aid_frame_pers( T, settings.num_people )) # num people is an exaggeration since bu level
+        push!( aa_legalaid_bu, make_legal_aid_frame_bu( T, settings.num_people )) # num people is an exaggeration since bu level
     end
-    (; hh, bu, indiv, income, civil_legalaid, aa_legalaid )
+    (; hh, bu, indiv, income, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
 end
 
         #= TODO CONCAT RUN OUTPUT
@@ -573,9 +575,9 @@ function add_to_frames!(
             if bup == 1
                 # this fills the bu frame with holes
                 fill_legal_aid_frame_row!( 
-                    frames.civil_legalaid[sysno][pfno,:], hh, hres, buno; is_civil=true )
+                    frames.civil_legalaid_bu[sysno][pfno,:], hh, hres, buno; is_civil=true )
                 fill_legal_aid_frame_row!( 
-                    frames.aa_legalaid[sysno][pfno,:], hh, hres, buno; is_civil=false )
+                    frames.aa_legalaid_bu[sysno][pfno,:], hh, hres, buno; is_civil=false )
                 end
         end # person loop
     end # bu loop
@@ -834,6 +836,9 @@ function summarise_frames!(
     poverty_lines = []
     child_poverty = []
     legalaid = []
+    if settings.do_legal_aid
+
+    end
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
 
     poverty_line = if settings.poverty_line_source == pl_from_settings
@@ -894,10 +899,10 @@ function summarise_frames!(
         push!( child_poverty, cp )
         legaldics = ( ; ) # named tuple with nothing
         if settings.do_legal_aid
-            civil_legalaid_bus = aggregate_all_legal_aid( frames.civil_legalaid[sysno],:weight )
-            civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid[sysno],:weighted_people )
-            aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid[sysno],:weight )
-            aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid[sysno],:weighted_people )
+            civil_legalaid_bus = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weight )
+            civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weighted_people )
+            aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weight )
+            aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weighted_people )
             legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )            
         end
         push!( legalaid, legaldics )
@@ -921,9 +926,9 @@ function summarise_frames!(
     legal_crosstabs = []
     if settings.do_legal_aid
         for sysno in 2:ns
-            civtab = la_crosstab( frames.civil_legalaid[1], frames.civil_legalaid[sysno] )
+            civtab = la_crosstab( frames.civil_legalaid_bu[1], frames.civil_legalaid_bu[sysno] )
             push!( legal_crosstabs, civtab )
-            aatab = la_crosstab( frames.aa_legalaid[1], frames.aa_legalaid[sysno] )
+            aatab = la_crosstab( frames.aa_legalaid_bu[1], frames.aa_legalaid_bu[sysno] )
             push!( legal_crosstabs, aatab )
         end
     end
