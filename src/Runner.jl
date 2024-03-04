@@ -138,6 +138,9 @@ module Runner
                             end # people
                         end
                         add_to_frames!( settings, frames, hh, res,  sysno, num_systems )
+                        if settings.do_legal_aid
+                            
+                        end
                     end # sysno
                 end # included in nations 
             end #household loop

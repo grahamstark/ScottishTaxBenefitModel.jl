@@ -42,6 +42,8 @@ using .FRSHouseholdGetter:
     
 using .RunSettings
 
+using .LegalAidOutput
+
 using .SimplePovertyCounts: 
     GroupPoverty,
     calc_child_poverty
@@ -234,6 +236,10 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     bu = []
     hh = []
     income = []
+    legalaid = nothing
+    if settings.do_legal_aid
+        legalaid = LegalAidOutput.LegalOutput(T, num_systems, num_people )
+    end
     #=
     civil_legalaid_pers = []
     aa_legalaid_bu = []
@@ -250,7 +256,7 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
         push!( aa_legalaid_bu, make_legal_aid_frame_bu( T, settings.num_people )) # num people is an exaggeration since bu level
         =#
     end
-    (; hh, bu, indiv, income ) #, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
+    (; hh, bu, indiv, income, legalaid ) #, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
 end
 
         #= TODO CONCAT RUN OUTPUT
@@ -574,7 +580,11 @@ function add_to_frames!(
                 end
         end # person loop
     end # bu loop
+
     @assert np == npp "not all people allocated; actual people=$np allocated people $npp"
+    if settings.do_legal_aid
+        LegalAidOutput.add_to_frames( frames.legalaid, settings, hh, hres, sysno )
+    end
 end
 
 """
@@ -827,13 +837,8 @@ function summarise_frames!(
     quantiles = []
     metrs = []
     poverty_lines = []
-    child_poverty = []
-    legalaid = []
-    if settings.do_legal_aid
-
-    end
+    child_poverty = [] 
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
-
     poverty_line = if settings.poverty_line_source == pl_from_settings
         settings.poverty_line
     elseif settings.poverty_line_source == pl_first_sys
@@ -890,15 +895,6 @@ function summarise_frames!(
         )
         println( "child poverty")
         push!( child_poverty, cp )
-        legaldics = ( ; ) # named tuple with nothing
-        if settings.do_legal_aid
-            civil_legalaid_bus = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weight )
-            civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weighted_people )
-            aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weight )
-            aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weighted_people )
-            legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )            
-        end
-        push!( legalaid, legaldics )
     end   
     @time fill_in_deciles_and_poverty!(
         frames, 
@@ -915,17 +911,10 @@ function summarise_frames!(
                     income_measure )) 
         end
         println( "gain lose")
-    end
-    legal_crosstabs = []
+    end    
     if settings.do_legal_aid
-        for sysno in 2:ns
-            civtab = la_crosstab( frames.civil_legalaid_bu[1], frames.civil_legalaid_bu[sysno] )
-            push!( legal_crosstabs, civtab )
-            aatab = la_crosstab( frames.aa_legalaid_bu[1], frames.aa_legalaid_bu[sysno] )
-            push!( legal_crosstabs, aatab )
-        end
+        LegalAidOutput.summarise_la_output!(frames.legalaid)
     end
-
     return ( ;
         quantiles, 
         deciles, 
@@ -936,8 +925,7 @@ function summarise_frames!(
         child_poverty,
         gain_lose,
         poverty_lines,
-        legalaid,
-        legal_crosstabs )
+        legalaid = frames.legalaid )
 end
 
 ## FIXME eventually, move this to DrWatson
