@@ -381,28 +381,28 @@ end
     sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
     sys2 = deepcopy( sys1 )
     entstrs = collect(pretty.(string.(instances( LegalAidStatus ))))
-    outf, gl = do_basic_run( settings, [sys1,sys2]; reset=true )
+    outf, gl = do_basic_run( settings, [sys1,sys2]; reset=false )
     f = open( "la_tables_v1_civil_and_aa.md","w")
     for t in LA_TARGETS
         println(f, "\n## "*Utils.pretty(string(t))); println(f)        
         println(f,"### Civil Legal Aid")
         println(f, "\n#### a) Benefit Units "); 
-        pretty_table(f,outf.legalaid[1].civil_legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid[1].civil.breakdown_bu[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f, "\n#### b) Individuals "); 
-        pretty_table(f,outf.legalaid[1].civil_legalaid_people[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid[1].civil.breakdown_pers[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f,"### Advice and Assistance")
         println(f, "\n#### a) Benefit Units "); 
-        pretty_table(f,outf.legalaid[1].aa_legalaid_bus[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid[1].aa.breakdown_bu[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f, "\n#### b) Individuals "); 
-        pretty_table(f,outf.legalaid[1].aa_legalaid_people[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid[1].aa.breakdown_pers[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f)
     end
     
     println( f, "### cross table civil entitlement")
-    pc = matrix_to_frame( outf.legal_crosstabs[1], entstrs, entstrs )
+    pc = matrix_to_frame( outf.legalaid[1].civil.crosstab_bu, entstrs, entstrs )
     pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
     println( f, "### cross table AA entitlement")
-    pa =  matrix_to_frame( outf.legal_crosstabs[2], entstrs, entstrs )
+    pa =  matrix_to_frame( outf.legalaid[1].aa.crosstab_bu, entstrs, entstrs )
     pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
 
 

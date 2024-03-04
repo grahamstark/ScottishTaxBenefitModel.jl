@@ -238,7 +238,7 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     income = []
     legalaid = nothing
     if settings.do_legal_aid
-        legalaid = LegalAidOutput.LegalOutput(T, num_systems, num_people )
+        legalaid = LegalAidOutput.LegalOutput(T, num_systems, settings.num_people )
     end
     #=
     civil_legalaid_pers = []
