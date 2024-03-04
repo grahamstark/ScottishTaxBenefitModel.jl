@@ -70,6 +70,8 @@ using .GeneralTaxComponents:
     WEEKS_PER_YEAR
 
 using .LegalAidCalculations: calc_legal_aid!
+using .LegalAidData
+using .LegalAidOutput
 
 using .SingleHouseholdCalculations: do_one_calc
 
@@ -380,32 +382,43 @@ end
     sys1 = deepcopy(sys)
     sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
     sys2 = deepcopy( sys1 )
+    sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
     entstrs = collect(pretty.(string.(instances( LegalAidStatus ))))
     outf, gl = do_basic_run( settings, [sys1,sys2]; reset=false )
-    f = open( "la_tables_v1_civil_and_aa.md","w")
+    f = open( "tmp/la_tables_v3_civil_and_aa.md","w")
+    sysno = 1
     for t in LA_TARGETS
         println(f, "\n## "*Utils.pretty(string(t))); println(f)        
         println(f,"### Civil Legal Aid")
         println(f, "\n#### a) Benefit Units "); 
-        pretty_table(f,outf.legalaid[1].civil.breakdown_bu[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid.civil.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f, "\n#### b) Individuals "); 
-        pretty_table(f,outf.legalaid[1].civil.breakdown_pers[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid.civil.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f,"### Advice and Assistance")
         println(f, "\n#### a) Benefit Units "); 
-        pretty_table(f,outf.legalaid[1].aa.breakdown_bu[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid.aa.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f, "\n#### b) Individuals "); 
-        pretty_table(f,outf.legalaid[1].aa.breakdown_pers[t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,outf.legalaid.aa.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println(f)
     end
-    
+    close(f)
+
+    f = open( "tmp/la_crosstabs_v3_civil_and_aa.md","w")
     println( f, "### cross table civil entitlement")
-    pc = matrix_to_frame( outf.legalaid[1].civil.crosstab_bu, entstrs, entstrs )
+    pc = matrix_to_frame( outf.legalaid.civil.crosstab_bu[sysno], entstrs, entstrs )
     pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
     println( f, "### cross table AA entitlement")
-    pa =  matrix_to_frame( outf.legalaid[1].aa.crosstab_bu, entstrs, entstrs )
+    pa =  matrix_to_frame( outf.legalaid.aa.crosstab_bu[sysno], entstrs, entstrs )
     pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
 
-
+    for p in LegalAidData.PROBLEM_TYPES
+        for est in LegalAidData.ESTIMATE_TYPES
+            println( f, "\n## Personal Level Problem $p estimate $(est) \n\n")
+            k = "$(p)-$(est)"
+            pa =  matrix_to_frame( outf.legalaid.civil.crosstab_pers[sysno][k], entstrs, entstrs )
+            pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        end
+    end
 
     close(f)
 

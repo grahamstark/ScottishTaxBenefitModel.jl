@@ -9,10 +9,22 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .ModelHousehold
 
-export add_la_probs!
+export LA_PROB_DATA, PROBLEM_TYPES
 
 LA_PROB_DATA = DataFrame()
 
+const PROBLEM_TYPES = 
+    ["no_problem",
+    "divorce",
+    "home",
+    "money",
+    "unfairness",
+    "neighbours",
+    "employment"]
+
+const ESTIMATE_TYPES = ["lower","prediction","upper"]
+
+# NOT NEEDED
 function add_la_probs!( hh :: Household )
     global LA_PROB_DATA
     la_hhdata = LA_PROB_DATA[ (LA_PROB_DATA.data_year .== hh.data_year) .& (LA_PROB_DATA.hid.==hh.hid),: ]

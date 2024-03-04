@@ -9,13 +9,15 @@ using CSV,
       StatsBase
 
 using ScottishTaxBenefitModel
-# FIXME explicit imports, sort
-using .ModelHousehold,
-    .Results,
-    .Definitions,
+# FIXME explicit imports
+using .Definitions,
+    .FRSHouseholdGetter,
     .LegalAidData,
+    .ModelHousehold,
+    .Results,
     .RunSettings,
-    .FRSHouseholdGetter
+    .Utils 
+
 export AllLegalOutput, LegalOutput, summarise_la_output!
 
 mutable struct LegalOutput
@@ -24,7 +26,7 @@ mutable struct LegalOutput
     breakdown_bu :: Vector{AbstractDict}
     breakdown_pers :: Vector{AbstractDict}
     crosstab_bu :: Vector{AbstractMatrix}
-    crosstab_pers :: Vector{AbstractMatrix}
+    crosstab_pers :: Vector{Dict{String,AbstractMatrix}}
 end
 
 mutable struct AllLegalOutput
@@ -69,8 +71,9 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         disqualified_on_capital = zeros(RT,n))
 end
 
-function add_problem_probabilities( results :: DataFrame, probs :: DataFrame )
-    rightjoin( results, probs; on = [:hid, :data_year, :pid ])
+function add_problem_probabilities( results :: DataFrame )
+    r = innerjoin( results, LegalAidData.LA_PROB_DATA; on = [:hid, :data_year, :pid ], makeunique=true)
+    return r[ r.from_child_record .!= 1,:]
 end
 
 
@@ -257,23 +260,37 @@ function pt_fmt(val,row,col)
     return Format.format(val,commas=true,precision=0)
 end
 
-function la_crosstab( pre :: DataFrame, post :: DataFrame ) :: AbstractMatrix
+function la_crosstab( pre :: DataFrame, post :: DataFrame, problem="no_problem", estimate="prediction" ) :: AbstractMatrix
+    weights = Weights(pre.weight) 
+    if problem != "no_problem"
+        col = Symbol( "$(problem)_$estimate")
+        weights = Weights( pre[:,col] .* pre.weight)
+    end
+        
     return make_crosstab( 
         pre.entitlement, 
         post.entitlement; 
-        weights=Weights(pre.weight) )[1] # discard the labels
+        weights=weights )[1] # discard the labels
 end
 
 function summarise_la_output!( la :: LegalOutput )
+    # base data 
+    data1 = add_problem_probabilities( la.data[1] )
+    budata1 = data1[data1.is_bu_head, : ] 
     for sysno in 1:la.num_systems
-        data = la.data[sysno]
+        data = add_problem_probabilities( la.data[sysno] )
         budata = data[data.is_bu_head,:] 
         la.breakdown_pers[sysno] = aggregate_all_legal_aid( data,:weight )
-        la_breakdown_bu[sysno]  = aggregate_all_legal_aid( budata,:weight )
+        la.breakdown_bu[sysno]  = aggregate_all_legal_aid( budata,:weight )
         if sysno > 1
-            la.crosstab_pers[sysno-1] = la_crosstab( data, la.data[1] )
-            la.crosstab_bu[sysno-1] = la_crosstab( budata, la.data[1][la.data[1].is_bu_head, : ] )
-        end
+            for p in LegalAidData.PROBLEM_TYPES
+                for est in LegalAidData.ESTIMATE_TYPES
+                    k = "$(p)-$(est)"
+                    la.crosstab_pers[sysno-1][k] = la_crosstab( data, data1, p, est )
+                end # estimates          
+            end # problems
+            la.crosstab_bu[sysno-1] = la_crosstab( budata, budata1 )
+        end # sysno > 1
     end
 end
 
@@ -297,13 +314,13 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
     breakdown_bu = Vector{Dict}(undef,0)
     breakdown_pers = Vector{Dict}(undef,0)
     crosstab_bu = Vector{Matrix}(undef,0)
-    crosstab_pers = Vector{Matrix}(undef,0)
+    crosstab_pers = Vector{Dict{String,Matrix}}(undef,0)
     for sysno in 1:num_systems
         push!( datas, make_legal_aid_frame( T, num_people ))
         push!( breakdown_pers, Dict())
         push!( breakdown_bu, Dict())
         if sysno < num_systems
-            push!(crosstab_pers, fill(T,4,4))
+            push!(crosstab_pers, Dict()) # fill(T,4,4))
             push!(crosstab_bu, fill(T,4,4))
         end
     end
