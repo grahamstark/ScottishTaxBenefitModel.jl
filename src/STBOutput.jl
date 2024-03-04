@@ -238,7 +238,7 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     income = []
     legalaid = nothing
     if settings.do_legal_aid
-        legalaid = LegalAidOutput.LegalOutput(T, num_systems, settings.num_people )
+        legalaid = LegalAidOutput.AllLegalOutput(T; num_systems=num_systems, num_people=settings.num_people )
     end
     #=
     civil_legalaid_pers = []
@@ -571,19 +571,12 @@ function add_to_frames!(
                 incrow.excise_wine = hres.indirect.excise_wine
                 incrow.excise_tobacco = hres.indirect.excise_tobacco        
             end
-            if bup == 1
-                # this fills the bu frame with holes
-                fill_legal_aid_frame_row!( 
-                    frames.civil_legalaid_bu[sysno][pfno,:], hh, hres, buno; is_civil=true )
-                fill_legal_aid_frame_row!( 
-                    frames.aa_legalaid_bu[sysno][pfno,:], hh, hres, buno; is_civil=false )
-                end
         end # person loop
     end # bu loop
 
     @assert np == npp "not all people allocated; actual people=$np allocated people $npp"
     if settings.do_legal_aid
-        LegalAidOutput.add_to_frames( frames.legalaid, settings, hh, hres, sysno )
+        LegalAidOutput.add_to_frames!( frames.legalaid, settings, hh, hres, sysno )
     end
 end
 

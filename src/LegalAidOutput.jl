@@ -9,12 +9,13 @@ using CSV,
       StatsBase
 
 using ScottishTaxBenefitModel
+# FIXME explicit imports, sort
 using .ModelHousehold,
     .Results,
     .Definitions,
     .LegalAidData,
-    .RunSettings
-
+    .RunSettings,
+    .FRSHouseholdGetter
 export AllLegalOutput, LegalOutput, summarise_la_output!
 
 mutable struct LegalOutput
@@ -40,6 +41,7 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         data_year  = zeros( Int, n ),        
         total = ones(RT,n),
         entitlement = fill( la_none, n ),
+        pno   = zeros( Int, n ),
         bu_number = zeros( Int, n ),
         is_hh_head = fill( false, n ),
         is_bu_head = fill( false, n ),
@@ -54,8 +56,8 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         num_children = zeros(Int,n),
         num_pensioners = zeros(Int,n),
         num_bus = zeros(Int,n),
-        bu_size = zeros(Int,n),
-        hh_size = zeros(Int,n),
+        num_people_in_bu = zeros(Int,n),
+        num_people_in_hh = zeros(Int,n),
         is_pensioner = fill(false,n),
         all_eligible = zeros(RT,n),
         mt_eligible = zeros(RT,n),
@@ -77,7 +79,7 @@ called once per person
 """
 function fill_legal_aid_frame_row!( 
     pr :: DataFrameRow,
-    lares :: OneLegalAidResult,
+    lr :: OneLegalAidResult,
     hh :: Household,
     pers :: Person
     ;
@@ -87,26 +89,26 @@ function fill_legal_aid_frame_row!(
     num_pensioners :: Int,
     num_children   :: Int,
     num_bus :: Int,
-    bu_size :: Int )
+    num_people_in_bu :: Int )
 
     pr.hid = hh.hid
     pr.pid = pers.pid
     pr.pno = pers.pno
     pr.is_hh_head = is_hh_head
-    pr.is_bu_head = is_bu_head,
+    pr.is_bu_head = is_bu_head
     pr.sequence = hh.sequence
     pr.data_year = hh.data_year
     pr.weight = hh.weight
     pr.bu_number = buno
-    pr.bu_size = bu_size
-    pr.hh_size = num_people(hh)
+    pr.num_people_in_bu = num_people_in_bu
+    pr.num_people_in_hh = num_people(hh)
     pr.num_pensioners = num_pensioners
     pr.num_children = num_children
     pr.num_bus = num_bus
     pr.ethnic_group = pers.ethnic_group
     pr.employment_status = pers.employment_status
     pr.marital_status = pers.marital_status
-    pr.disabled = is_disabled( pers )
+    pr.disabled = pers_is_disabled( pers )
     pr.is_child = pers.is_standard_child
     pr.all_eligible = lr.eligible | lr.passported
     pr.mt_eligible = lr.eligible
@@ -136,9 +138,15 @@ function add_to_frames!(
     npp = 0
     for buno in 1:nbus
         bup = 0
+        bu = bus[buno]
+        num_pensioners = ModelHousehold.count( bu.people, ge_age, 65 ) # ?? why qual ??
+        ncs = num_children( bu )
+        num_people_in_bu = num_people( bu )
         for( pid, pers ) in bus[buno].people
             npp += 1
             bup += 1
+            is_hh_head = hh.head_of_household == pers.pid
+            is_bu_head = is_head( bu, pers )
             pfno = get_slot_for_person( pid, hh.data_year )
             fill_legal_aid_frame_row!( 
                 lout.civil.data[sysno][pfno,:],
@@ -146,26 +154,26 @@ function add_to_frames!(
                 hh,
                 pers
                 ;
-                is_hh_head = is_head( hh, pers ),
-                is_bu_head = is_head( bus[buno], pers ),
+                is_hh_head = is_hh_head,
+                is_bu_head = is_bu_head,
                 buno = buno,
-                num_pensioners = count( bu.people, ge_age, 65 ), # not exactly
-                num_children  = num_children( bu ),
+                num_pensioners = num_pensioners, # not exactly
+                num_children  = ncs,
                 num_bus = nbus,
-                bu_size = num_people( bu ))
+                num_people_in_bu = num_people_in_bu)
             fill_legal_aid_frame_row!( 
                 lout.aa.data[sysno][pfno,:],
                 hres.bus[buno].legalaid.aa,
                 hh,
                 pers
                 ;
-                is_hh_head = is_head( hh, pers ),
-                is_bu_head = is_head( bus[buno], pers ),
+                is_hh_head = is_hh_head,
+                is_bu_head = is_bu_head,
                 buno = buno,
-                num_pensioners = count( bu.people, ge_age, 65 ), # not exactly
-                num_children  = num_children( bu ),
+                num_pensioners = num_pensioners,
+                num_children  = ncs,
                 num_bus = nbus,
-                bu_size = num_people( bu ))
+                num_people_in_bu = num_people_in_bu)
             end
     end
 end
@@ -201,8 +209,8 @@ const LA_TARGETS = [
     :bu_number, 
     :marital_status, 
     :disabled,
-    :num_people,
-    :children]
+    :num_people_in_bu,
+    :num_children]
 
 """
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
@@ -291,15 +299,15 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
     crosstab_bu = Vector{Matrix}(undef,0)
     crosstab_pers = Vector{Matrix}(undef,0)
     for sysno in 1:num_systems
-        push!( data, make_legal_aid_frame( T, num_people ))
-        push!( breakdowns_pers, Dict())
-        push!( breakdowns_bu, Dict())
+        push!( datas, make_legal_aid_frame( T, num_people ))
+        push!( breakdown_pers, Dict())
+        push!( breakdown_bu, Dict())
         if sysno < num_systems
-            push!(crosstabs_pers, fill(T,4,4))
-            push!(crosstabs_bu, fill(T,4,4))
+            push!(crosstab_pers, fill(T,4,4))
+            push!(crosstab_bu, fill(T,4,4))
         end
     end
-    LegalOutput( num_systems, datas, breakdowns_bu, breakdowns_pers, crosstabs_bu, crosstabs_pers )
+    LegalOutput( num_systems, datas, breakdown_bu, breakdown_pers, crosstab_bu, crosstab_pers )
 end
 
 function AllLegalOutput( T; num_systems::Integer, num_people::Integer )
