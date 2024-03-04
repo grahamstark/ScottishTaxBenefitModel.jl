@@ -142,6 +142,9 @@ export SimplePovertyCounts
 # pro. tem include("WebModelLibs.jl" )
 # export WebModelLibs
 
+include( "LegalAidOutput.jl")
+export LegalAidOutput
+
 include( "STBOutput.jl")
 export STBOutput
 

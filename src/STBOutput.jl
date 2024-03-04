@@ -61,17 +61,6 @@ export
 # count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
 const EXTRA_INC_COLS = 18
 
-include( "legal_aid_output.jl")
-
-    #=
-    struct FrameStarts
-        hh :: Integer
-        bu :: Integer
-        pers :: Integer
-        income :: Integer
-    end
-    =#
-
 function make_household_results_frame( n :: Int ) :: DataFrame
     make_household_results_frame( Float64, n )
 end
@@ -245,19 +234,23 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     bu = []
     hh = []
     income = []
+    #=
     civil_legalaid_pers = []
     aa_legalaid_bu = []
+    =#
     for s in 1:num_systems
         push!( indiv, make_individual_results_frame( T, settings.num_people ))
         push!( bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
         push!( hh, make_household_results_frame( T, settings.num_households ))
         push!( income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
+        #=
         push!( civil_legalaid_pers, make_legal_aid_frame_bu( T, settings.num_people )) # num people is an exaggeration since bu level
         push!( civil_legalaid_bu, make_legal_aid_frame_pers( T, settings.num_people )) # num people is an exaggeration since bu level
         push!( aa_legalaid_pers, make_legal_aid_frame_pers( T, settings.num_people )) # num people is an exaggeration since bu level
         push!( aa_legalaid_bu, make_legal_aid_frame_bu( T, settings.num_people )) # num people is an exaggeration since bu level
+        =#
     end
-    (; hh, bu, indiv, income, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
+    (; hh, bu, indiv, income ) #, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
 end
 
         #= TODO CONCAT RUN OUTPUT
@@ -967,12 +960,6 @@ function dump_frames(
         income_summary = summarise_inc_frame(frames.income[fno])
         fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.csv"
         CSV.write( fname, income_summary )
-        if settings.do_legal_aid
-            fname = "$(settings.output_dir)/$(fbase)_$(fno)_civil_legal_aid.csv"
-            CSV.write( fname, frames.civil_legalaid[fno] )
-            fname = "$(settings.output_dir)/$(fbase)_$(fno)_aa_legal_aid.csv"
-            CSV.write( fname, frames.aa_legalaid[fno] )
-        end
     end
 end
 
