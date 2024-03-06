@@ -7,6 +7,8 @@ using Test
 using Dates
 using Format
 using PrettyTables 
+using Base.Threads
+using ChunkSplitters
 
 using ScottishTaxBenefitModel
 
@@ -97,6 +99,11 @@ function blank_incomes!( hh, wage; annual=true )
     hhead.income[wages] = income 
 
 end
+
+sys1 = deepcopy(sys)
+sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
+sys2 = deepcopy( sys1 )
+sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
 
 @testset "LA utils tests" begin
     exp1 = Expense( false, 1.0, typemax(Float64))
@@ -379,10 +386,6 @@ end
 
 @testset "Create an output table" begin
     settings = Settings()
-    sys1 = deepcopy(sys)
-    sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
-    sys2 = deepcopy( sys1 )
-    sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
     entstrs = collect(pretty.(string.(instances( LegalAidStatus ))))
     outf, gl = do_basic_run( settings, [sys1,sys2]; reset=false )
     f = open( "tmp/la_tables_v3_civil_and_aa.md","w")
@@ -421,8 +424,44 @@ end
     end
 
     close(f)
+end
 
-    
+function f1()
+    settings = Settings()
+    settings.export_full_results = true
+    settings.do_legal_aid = false
+    systems = [sys1, sys2]
+    settings.requested_threads = 6
+    settings.num_households, settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=false )
+    @time results = do_one_run( settings, systems, obs )
+    num_threads = min( nthreads(), settings.requested_threads )
+    println( "num_threads $num_threads")
+    chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
+    settings.do_legal_aid = true
+    @time @threads for thread in 1:num_threads
+        for hno in chunks[thread][1]
+            base_res = results.full_results[1,hno]
+            hh = FRSHouseholdGetter.get_household( hno )
+            intermed = make_intermediate( 
+                hh, 
+                sys1.hours_limits, 
+                sys1.age_limits, 
+                sys1.child_limits )
+        
+            if settings.do_legal_aid
+                for sys in systems 
+                    calc_legal_aid!( base_res, hh, intermed, sys.legalaid.civil )
+                    calc_legal_aid!( base_res, hh, intermed, sys.legalaid.aa )
+                end
+                # FIXME AA
+            end
+        end
+    end
+end 
 
+@testset "fastrun" begin
+
+    f1()
 
 end

@@ -78,10 +78,10 @@ module Runner
                 BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" )  
             end     
         end
-        full_results = nothing
+        full_results = Array{HouseholdResult}(undef,0,0)
         # fixme if we have one are threads OK? I think yes
         if settings.export_full_results
-            full_results = Array{HouseholdResult}(undef,num_sytems,settings.num_households)
+            full_results = Array{HouseholdResult}(undef,num_systems,settings.num_households)
         end
         # vary generosity of disability benefits
         if settings.benefit_generosity_estimates_available
@@ -142,8 +142,8 @@ module Runner
                             end # people
                         end
                         add_to_frames!( settings, frames, hh, res,  sysno, num_systems )
-                        if results.export_full_results
-                            full_results[sysno][hno] = res
+                        if settings.export_full_results
+                            full_results[sysno,hno] = res
                         end
                     end # sysno
                 end # included in nations 
@@ -156,7 +156,7 @@ module Runner
         observer[]= Progress( settings.uuid, "do-one-run-end", -99, -99, -99, -99 )
         # FIXME. This should not be needed, but see: https://github.com/JuliaLang/julia/issues/50658 and the out-of-memory issues with the pppc server.
         GC.gc()
-        if results.export_full_results
+        if settings.export_full_results
             frames = (; frames..., full_results )
         end
         return frames
