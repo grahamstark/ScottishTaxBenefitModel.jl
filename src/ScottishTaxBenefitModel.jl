@@ -163,4 +163,7 @@ export Affordability
 include( "HealthRegressions.jl")
 export HealthRegressions
 
+include( "LegalAidRunner.jl")
+export LegalAidRunner
+
 end

@@ -6,6 +6,8 @@ module LegalAidOutput
 
 using CSV,
       DataFrames,
+      Format,
+      PrettyTables,
       StatsBase
 
 using ScottishTaxBenefitModel
@@ -215,6 +217,8 @@ const LA_TARGETS = [
     :num_people_in_bu,
     :num_children]
 
+const ENTITLEMENT_STRS = collect(pretty.(string.(instances( LegalAidStatus ))))
+
 """
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
 return a dataframe (grouped?) with LA_BITS as colums and broken down values for one of TARGETS.
@@ -299,6 +303,17 @@ function summarise_la_output!( la :: AllLegalOutput )
     summarise_la_output!( la.aa )
 end
 
+#=
+mutable struct LegalOutput
+    num_systems :: Int
+    data :: Vector{DataFrame}
+    breakdown_bu :: Vector{AbstractDict}
+    breakdown_pers :: Vector{AbstractDict}
+    crosstab_bu :: Vector{AbstractMatrix}
+    crosstab_pers :: Vector{Dict{String,AbstractMatrix}}
+end
+=#
+## FIXME FIX THIS 
 function dump_frames( la :: AllLegalOutput, settings :: Settings )
     for sysno in 1:la.aa_bu.num_systems
         fname = "$(settings.output_dir)/$(fbase)_$(sysno)_legal_aid_civil.csv"
@@ -307,6 +322,49 @@ function dump_frames( la :: AllLegalOutput, settings :: Settings )
         CSV.write( fname, la.aa.data[sysno] )
     end
 end
+
+function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_systems :: Integer )
+    for sysno in 1:num_systems 
+        f = open( "$(settings.output_dir)/main_la_tables-$(sysno).md","w")
+        for t in LA_TARGETS
+            println(f, "\n## "*Utils.pretty(string(t))); println(f)        
+            println(f,"### Civil Legal Aid")
+            println(f, "\n#### a) Benefit Units "); 
+            pretty_table(f,laout.civil.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f, "\n#### b) Individuals "); 
+            pretty_table(f,laout.civil.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f,"### Advice and Assistance")
+            println(f, "\n#### a) Benefit Units "); 
+            pretty_table(f,laout.aa.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f, "\n#### b) Individuals "); 
+            pretty_table(f,laout.aa.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f)
+        end
+        close(f)
+    end
+    
+    f = open( "$(settings.output_dir)/la_crosstabs.md","w")
+    println( f, "# cross table civil entitlement")
+    for sysno in 2:num_systems 
+        ctno = sysno - 1 # since table 1 is 2 vs 1 and so on
+        println( f, "##  System $sysno vs System 1  Benefit Unit Level" )
+        pc = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println( f, "### cross table AA entitlement")
+        pa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        for p in LegalAidData.PROBLEM_TYPES
+            for est in LegalAidData.ESTIMATE_TYPES
+                println( f, "\n### System $sysno vs system 1: Personal Level Problem $p estimate $(est) \n\n")
+                k = "$(p)-$(est)"
+                pa =  Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno][k], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+                pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            end
+        end
+    end # systems
+    close(f)
+end
+
 
 
 function LegalOutput( T; num_systems::Integer, num_people::Integer )
