@@ -475,7 +475,7 @@ end
     tot = 0
     settings = Settings()
     settings.export_full_results = true
-    settings.do_legal_aid = false
+    settings.do_legal_aid = true
     settings.requested_threads = 6
     systems = [sys1, sys2]
     f1( settings, systems, obs )
@@ -487,7 +487,7 @@ end
     tot = 0
     settings = Settings()
     settings.export_full_results = true
-    settings.do_legal_aid = false
+    settings.do_legal_aid = true
     settings.requested_threads = 6
     settings.num_households = FRSHouseholdGetter.get_num_households()
     settings.num_people =  FRSHouseholdGetter.get_num_people()

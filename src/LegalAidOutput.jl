@@ -183,7 +183,7 @@ function add_to_frames!(
     end
 end
 
-export LA_BITS, LA_LABELS, LA_TARGETS, aggregate_all_legal_aid
+export LA_BITS, LA_LABELS, LA_TARGETS, aggregate_all_legal_aid, crosstab_to_df
 
 const LA_BITS=[
     :total, 
@@ -365,6 +365,9 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_system
     close(f)
 end
 
+function crosstab_to_df( ct :: Matrix ) :: DataFrame
+    Utils.matrix_to_frame( ct, ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+end
 
 
 function LegalOutput( T; num_systems::Integer, num_people::Integer )

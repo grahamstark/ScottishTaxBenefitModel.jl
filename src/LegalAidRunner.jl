@@ -67,7 +67,6 @@ function do_one_run(
     println( "num_threads $num_threads")
     println( "num_households $(settings.num_households)")
     chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
-    settings.do_legal_aid = true
     lout = 
         LegalAidOutput.AllLegalOutput(
             T; 
@@ -85,17 +84,15 @@ function do_one_run(
                 systems[1].hours_limits, 
                 systems[1].age_limits, 
                 systems[1].child_limits )            
-            if settings.do_legal_aid
-                for sysno in 1:num_systems 
-                    calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
-                    calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
-                    LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
-                end
+            
+            for sysno in 1:num_systems 
+                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
+                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
+                LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
             end
-        end # hhlds in each chunk 
+x        end # hhlds in each chunk 
     end # threads
     LegalAidOutput.summarise_la_output!( lout )
-    # LegalAidOutput.dump_tables( lout, settings, num_systems )
     return lout
 end 
 
