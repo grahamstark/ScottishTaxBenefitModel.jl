@@ -273,4 +273,8 @@ module FRSHouseholdGetter
         return size( MODEL_HOUSEHOLDS.hhlds )[1]
     end
 
+    function get_num_people()::Integer
+        return MODEL_HOUSEHOLDS.dimensions[2]
+    end
+
 end # module

@@ -12,44 +12,60 @@ using .Intermediate:
     MTIntermediate, 
     apply_2_child_policy,
     make_intermediate 
-using .LegalAidCalculations: calc_legal_aid!
-using .LegalAidData
-using .LegalAidOutput
-using RunSettings:Settings
+using .RunSettings:Settings
 using .Results: 
     HouseholdResult,
     OneLegalAidResult   
 using .Monitor: Progress
-using FRSHouseholdGetter: get_household
+using .FRSHouseholdGetter: get_household
+using .STBParameters: TaxBenefitSystem
+
+using .LegalAidCalculations: calc_legal_aid!
+using .LegalAidData
+using .LegalAidOutput
+using .Runner
 
 # speed wrapper trick
-struct ResultsWrapper 
-    results :: Array{HouseholdResult}
+mutable struct ResultsWrapper 
+    results :: Matrix{HouseholdResult}
 end
 
-const RESULTS = 
-    ResultsWrapper( Array{HouseholdResult}(undef,0,0))
+RESULTS = 
+    ResultsWrapper( Matrix{HouseholdResult}(undef,0,0))
 
 function intialise( 
     settings :: Settings,
     systems  :: Vector{TaxBenefitSystem{T}},
-    observer :: Observable  )
-    RESULTS.results = do_one_run( settings, systems, observer )
+    observer :: Observable  ) where T
+    settings.export_full_results = true
+    rs = Runner.do_one_run( settings, systems, observer )
+    RESULTS.results = rs.full_results
+    #=
+    rsize = size( fres )
+    resize!( RESULTS.results, rsize )
+    for (sysno,hno) in indexes( fres )
+        push!(RESULTS.results, fres[sysno,:])
+    end
+    =#
 end
 
 function do_one_run( 
     settings :: Settings, 
     systems  :: Vector{TaxBenefitSystem{T}},
     observer :: Observable;
-    reset = false ) :: AllLegalOutput where T
+    reset_data = false,
+    reset_results = false ) :: AllLegalOutput where T
 
-    if(size( RESULTS.results )[1] == 0) || reset
+    if(FRSHouseholdGetter.get_num_households() == 0) || reset_data
+        settings.num_households, settings.num_people = FRSHouseholdGetter.initialse( settings )
+    end
+    if( size( RESULTS.results )[1] <= 1) || reset_results
         intialise( settings, systems, observer )
     end
-
     num_systems = length( systems )
     num_threads = min( nthreads(), settings.requested_threads )
     println( "num_threads $num_threads")
+    println( "num_households $(settings.num_households)")
     chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
     settings.do_legal_aid = true
     lout = 
@@ -57,12 +73,12 @@ function do_one_run(
             T; 
             num_systems=num_systems, 
             num_people=settings.num_people )
-    @time @threads for thread in 1:num_threads
+    @threads for thread in 1:num_threads
         for hno in chunks[thread][1]
             if hno % 500 == 0
                 observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
             end
-            res = RESULTS.results.full_results[:,hno]
+            res = RESULTS.results[:,hno]
             hh = get_household( hno )
             intermed = make_intermediate( 
                 hh, 
@@ -83,4 +99,4 @@ function do_one_run(
     return lout
 end 
 
-end
+end # module

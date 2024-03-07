@@ -74,6 +74,7 @@ using .GeneralTaxComponents:
 using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData
 using .LegalAidOutput
+using .LegalAidRunner
 
 using .SingleHouseholdCalculations: do_one_calc
 
@@ -427,54 +428,69 @@ end
 function f1( settings :: Settings, 
     systems  :: Vector{TaxBenefitSystem{T}},
     observer :: Observable ) :: AllLegalOutput where T
-num_systems = length( systems )
-settings.num_households, settings.num_people, nhh2 = 
-FRSHouseholdGetter.initialise( settings; reset=false )
-@time results = do_one_run( settings, systems, obs )
-num_threads = min( nthreads(), settings.requested_threads )
-println( "num_threads $num_threads")
-chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
-settings.do_legal_aid = true
-lout = 
-LegalAidOutput.AllLegalOutput(
-   T; 
-   num_systems=num_systems, num_people=settings.num_people )
-@time begin
-@threads for thread in 1:num_threads
-   for hno in chunks[thread][1]
-       if hno % 100 == 0
-           observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
-       end
-       res = results.full_results[:,hno]
-       hh = FRSHouseholdGetter.get_household( hno )
-       intermed = make_intermediate( 
-           hh, 
-           systems[1].hours_limits, 
-           systems[1].age_limits, 
-           systems[1].child_limits )            
-       if settings.do_legal_aid
-           for sysno in 1:num_systems 
-               calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
-               calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
-               LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
-           end
-       end
+    num_systems = length( systems )
+    settings.num_households, settings.num_people, nhh2 = 
+    FRSHouseholdGetter.initialise( settings; reset=false )
+    @time results = do_one_run( settings, systems, obs )
+    num_threads = min( nthreads(), settings.requested_threads )
+    println( "num_threads $num_threads")
+    chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
+    settings.do_legal_aid = true
+    lout = 
+    LegalAidOutput.AllLegalOutput(
+    T; 
+    num_systems=num_systems, num_people=settings.num_people )
+    @time begin
+    @threads for thread in 1:num_threads
+    for hno in chunks[thread][1]
+        if hno % 100 == 0
+            observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
+        end
+        res = results.full_results[:,hno]
+        hh = FRSHouseholdGetter.get_household( hno )
+        intermed = make_intermediate( 
+            hh, 
+            systems[1].hours_limits, 
+            systems[1].age_limits, 
+            systems[1].child_limits )            
+        if settings.do_legal_aid
+            for sysno in 1:num_systems 
+                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
+                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
+                LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
+            end
+        end
 
-   end # hhlds in each chunk 
-end # threads
-LegalAidOutput.summarise_la_output!( lout )
-# LegalAidOutput.dump_tables( lout, settings, num_systems )
-end # timing block
-lout
+    end # hhlds in each chunk 
+    end # threads
+    LegalAidOutput.summarise_la_output!( lout )
+    # LegalAidOutput.dump_tables( lout, settings, num_systems )
+    end # timing block
+    lout
 end 
 
-@testset "fastrun" begin
 
+@testset "fastrun" begin
+    global tot
+    tot = 0
     settings = Settings()
     settings.export_full_results = true
     settings.do_legal_aid = false
     settings.requested_threads = 6
     systems = [sys1, sys2]
     f1( settings, systems, obs )
+end
 
+
+@testset "using LegalAidRunner" begin
+    global tot
+    tot = 0
+    settings = Settings()
+    settings.export_full_results = true
+    settings.do_legal_aid = false
+    settings.requested_threads = 6
+    settings.num_households = FRSHouseholdGetter.get_num_households()
+    settings.num_people =  FRSHouseholdGetter.get_num_people()
+    systems = [sys1, sys2]
+    @time LegalAidRunner.do_one_run( settings, systems, obs )     
 end

@@ -207,7 +207,6 @@ obs = Observable( Progress(defsettings.uuid,"",0,0,0,0))
 of = on(obs) do p
     global tot
     println(p)
-
     tot += p.step
     println(tot)
 end
@@ -230,6 +229,7 @@ end
 function do_basic_uk_run( ; reset = true )::Tuple
    settings = get_all_uk_settings_2023()
    settings.run_name="all-uk-run-$(date_string())"
+   settings.requested_threads = 4
    sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=false)]
    return do_basic_run( settings, sys, reset = reset )
 end
