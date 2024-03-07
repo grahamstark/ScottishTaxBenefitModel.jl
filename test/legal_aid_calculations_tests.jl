@@ -102,7 +102,7 @@ end
 sys1 = deepcopy(sys)
 sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
 sys2 = deepcopy( sys1 )
-sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
+# sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
 
 @testset "LA utils tests" begin
     exp1 = Expense( false, 1.0, typemax(Float64))
@@ -491,6 +491,8 @@ end
     settings.requested_threads = 6
     settings.num_households = FRSHouseholdGetter.get_num_households()
     settings.num_people =  FRSHouseholdGetter.get_num_people()
+    sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
-    @time LegalAidRunner.do_one_run( settings, systems, obs )     
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    LegalAidOutput.dump_tables( laout, settings, 2 )
 end

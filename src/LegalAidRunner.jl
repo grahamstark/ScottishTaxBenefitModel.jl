@@ -90,7 +90,7 @@ function do_one_run(
                 calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
                 LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
             end
-x        end # hhlds in each chunk 
+        end # hhlds in each chunk 
     end # threads
     LegalAidOutput.summarise_la_output!( lout )
     return lout

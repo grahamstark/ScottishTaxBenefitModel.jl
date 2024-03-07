@@ -325,7 +325,9 @@ end
 
 function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_systems :: Integer )
     for sysno in 1:num_systems 
-        f = open( "$(settings.output_dir)/main_la_tables-$(sysno).md","w")
+        outfname = "$(settings.output_dir)/main_la_tables-$(sysno).md"
+        println( "writing to $outfname")
+        f = open( outfname,"w")
         for t in LA_TARGETS
             println(f, "\n## "*Utils.pretty(string(t))); println(f)        
             println(f,"### Civil Legal Aid")

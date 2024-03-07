@@ -48,9 +48,6 @@ begin
     settings.do_legal_aid = true
     settings.requested_threads = 6
 	settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings; reset=true )
-	sys1 = STBParameters.get_default_system_for_fin_year( 2023, scotland=true )    
-	sys2 = STBParameters.get_default_system_for_fin_year( 2023, scotland=true )
-	systems = [sys1, sys2]
 	# Observer as a global.
 	tot = 0
 	# observer = Observer(Progress("",0,0,0))
@@ -86,12 +83,20 @@ end
 
 
 # ╔═╡ 5744c924-5eb4-4369-a85f-833fb2b9bb92
+# ╠═╡ show_logs = false
 begin 
-	pa = 2529
 	# allout = run( pa )
-	sys2.legalaid.civil.income_partners_allowance = pa/52
-	allout = LegalAidRunner.do_one_run( settings, [sys1,sys2], obs )
-	crosstab_to_df(allout.civil.crosstab_pers[1]["no_problem-prediction"])
+	function run(settings, pa)
+		sys1 = STBParameters.get_default_system_for_fin_year( 2023, scotland=true )   
+		sys2 = STBParameters.get_default_system_for_fin_year( 2023, scotland=true )
+		sys2.legalaid.civil.income_partners_allowance = pa/52
+		allout = LegalAidRunner.do_one_run( settings, [sys1,sys2], obs )
+		return allout.civil.crosstab_pers[1]
+		return crosstab_to_df(allout.civil.crosstab_pers[1]["no_problem-prediction"])
+	end
+
+	pa = 2529
+	run( settings, pa)
 	# allout.civil.crosstab_pers[1]["no_problem-prediction"]
 end
 
