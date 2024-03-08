@@ -43,6 +43,7 @@ begin
 	#
 	# Set things up
 	#
+	
 	settings = Settings()
 	settings.export_full_results = true
     settings.do_legal_aid = true
@@ -85,17 +86,16 @@ end
 # ╔═╡ 5744c924-5eb4-4369-a85f-833fb2b9bb92
 # ╠═╡ show_logs = false
 begin 
-	# allout = run( pa )
 	function run(settings, pa)
 		sys1 = STBParameters.get_default_system_for_fin_year( 2023, scotland=true )   
-		sys2 = STBParameters.get_default_system_for_fin_year( 2023, scotland=true )
-		sys2.legalaid.civil.income_partners_allowance = pa/52
+		sys2 = deepcopy(sys1) #STBParameters.get_default_system_for_fin_year( 2023, scotland=true )
+		sys2.legalaid.civil.income_other_dependants_allowance = pa/GeneralTaxComponents.WEEKS_PER_YEAR
 		allout = LegalAidRunner.do_one_run( settings, [sys1,sys2], obs )
-		return allout.civil.crosstab_pers[1]
+		#return allout.civil.crosstab_pers[1]
 		return crosstab_to_df(allout.civil.crosstab_pers[1]["no_problem-prediction"])
 	end
 
-	pa = 2529
+	pa = 1220
 	run( settings, pa)
 	# allout.civil.crosstab_pers[1]["no_problem-prediction"]
 end
@@ -128,7 +128,7 @@ begin
 end
 
 # ╔═╡ Cell order:
-# ╟─389df7e4-dcbc-11ee-121e-41c9d691391b
+# ╠═389df7e4-dcbc-11ee-121e-41c9d691391b
 # ╠═cf733630-889c-4fbb-b0ac-eacaeb9002d0
 # ╠═e490b3ab-3887-4e06-9e09-dc691534a886
 # ╠═9652fcf5-60fb-40d9-8f1c-d90f70dd015a
