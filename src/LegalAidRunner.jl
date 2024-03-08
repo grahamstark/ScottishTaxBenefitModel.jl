@@ -38,15 +38,9 @@ function intialise(
     systems  :: Vector{TaxBenefitSystem{T}},
     observer :: Observable  ) where T
     settings.export_full_results = true
+    settings.do_legal_aid = false    
     rs = Runner.do_one_run( settings, systems, observer )
     RESULTS.results = rs.full_results
-    #=
-    rsize = size( fres )
-    resize!( RESULTS.results, rsize )
-    for (sysno,hno) in indexes( fres )
-        push!(RESULTS.results, fres[sysno,:])
-    end
-    =#
 end
 
 function do_one_run( 
