@@ -86,7 +86,7 @@ module RunSettings
         to_y :: Int = 2023
         to_q :: Int = 3
         output_dir :: String = joinpath(tempdir(),"output")
-        means_tested_routing :: MT_Routing = uc_full
+        means_tested_routing :: MT_Routing = modelled_phase_in
         poverty_line :: Real = -1.0
         poverty_line_source :: PovertyLineSource = pl_first_sys
         ineq_income_measure  :: IneqIncomeMeasure = eq_bhc_net_income
