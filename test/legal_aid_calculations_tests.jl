@@ -486,6 +486,7 @@ end
     global tot
     tot = 0
     settings = Settings()
+    settings.run_name = "Local Legal Aid Runner Test"
     settings.export_full_results = true
     settings.do_legal_aid = true
     settings.requested_threads = 6
@@ -495,4 +496,5 @@ end
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
+    LegalAidOutput.dump_frames( laout, settings )
 end

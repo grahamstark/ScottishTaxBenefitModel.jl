@@ -312,21 +312,31 @@ mutable struct LegalOutput
     crosstab_bu :: Vector{AbstractMatrix}
     crosstab_pers :: Vector{Dict{String,AbstractMatrix}}
 end
+
+mutable struct AllLegalOutput
+    aa :: LegalOutput
+    civil :: LegalOutput
+end
 =#
-## FIXME FIX THIS 
+"""
+
+"""
 function dump_frames( la :: AllLegalOutput, settings :: Settings )
+    runname = Utils.basiccensor(settings.run_name)
     for sysno in 1:la.aa_bu.num_systems
-        fname = "$(settings.output_dir)/$(fbase)_$(sysno)_legal_aid_civil.csv"
+        fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_civil.csv"
         CSV.write( fname, la.civil.data[sysno] )
-        fname = "$(settings.output_dir)/$(fbase)_$(sysno)_legal_aid_aa.csv"
+        fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_aa.csv"
         CSV.write( fname, la.aa.data[sysno] )
     end
 end
 
 function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_systems :: Integer )
+    runname = Utils.basiccensor(settings.run_name)
     for sysno in 1:num_systems 
-        outfname = "$(settings.output_dir)/main_la_tables-$(sysno).md"
+        outfname = "$(settings.output_dir)/$(runname)-main_la_tables-$(sysno).md"
         println( "writing to $outfname")
+        println( f, "# Run : $(run.run_name) - Main Tables")
         f = open( outfname,"w")
         for t in LA_TARGETS
             println(f, "\n## "*Utils.pretty(string(t))); println(f)        
@@ -345,8 +355,8 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_system
         close(f)
     end
     
-    f = open( "$(settings.output_dir)/la_crosstabs.md","w")
-    println( f, "# cross table civil entitlement")
+    f = open( "$(settings.output_dir)/$(runname)-la_crosstabs.md","w")
+    println( f, "# Run : $(run.run_name) - Cross Table Civil Entitlement")
     for sysno in 2:num_systems 
         ctno = sysno - 1 # since table 1 is 2 vs 1 and so on
         println( f, "##  System $sysno vs System 1  Benefit Unit Level" )
