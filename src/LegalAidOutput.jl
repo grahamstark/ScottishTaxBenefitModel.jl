@@ -321,9 +321,9 @@ end
 """
 
 """
-function dump_frames( la :: AllLegalOutput, settings :: Settings )
+function dump_frames( la :: AllLegalOutput, settings :: Settings, num_systems::Integer )
     runname = Utils.basiccensor(settings.run_name)
-    for sysno in 1:la.aa_bu.num_systems
+    for sysno in 1:num_systems
         fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_civil.csv"
         CSV.write( fname, la.civil.data[sysno] )
         fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_aa.csv"
@@ -336,8 +336,8 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_system
     for sysno in 1:num_systems 
         outfname = "$(settings.output_dir)/$(runname)-main_la_tables-$(sysno).md"
         println( "writing to $outfname")
-        println( f, "# Run : $(run.run_name) - Main Tables")
         f = open( outfname,"w")
+        println( f, "# Run : $(settings.run_name) - Main Tables")
         for t in LA_TARGETS
             println(f, "\n## "*Utils.pretty(string(t))); println(f)        
             println(f,"### Civil Legal Aid")
@@ -356,7 +356,7 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_system
     end
     
     f = open( "$(settings.output_dir)/$(runname)-la_crosstabs.md","w")
-    println( f, "# Run : $(run.run_name) - Cross Table Civil Entitlement")
+    println( f, "# Run : $(settings.run_name) - Cross Table Civil Entitlement")
     for sysno in 2:num_systems 
         ctno = sysno - 1 # since table 1 is 2 vs 1 and so on
         println( f, "##  System $sysno vs System 1  Benefit Unit Level" )

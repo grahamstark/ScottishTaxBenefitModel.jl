@@ -496,5 +496,5 @@ end
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
-    LegalAidOutput.dump_frames( laout, settings )
+    LegalAidOutput.dump_frames( laout, settings, 2 )
 end
