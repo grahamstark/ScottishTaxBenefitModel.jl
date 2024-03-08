@@ -57,7 +57,7 @@ function do_one_run(
     reset_results = false ) :: AllLegalOutput where T
 
     if(FRSHouseholdGetter.get_num_households() == 0) || reset_data
-        settings.num_households, settings.num_people = FRSHouseholdGetter.initialse( settings )
+        settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
     end
     if( size( RESULTS.results )[1] <= 1) || reset_results
         intialise( settings, systems, observer )
