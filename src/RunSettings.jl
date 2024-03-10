@@ -3,11 +3,13 @@ module RunSettings
     # This module contains things needed to control one run e.g. the output destination, number of households to use andd so on.
     #
     using Parameters
+    using Preferences 
+    using UUIDs
+    using SurveyDataWeighting
     
     using ScottishTaxBenefitModel
     using .Definitions
-    using UUIDs
-    using SurveyDataWeighting
+
 
     export 
         Settings,
