@@ -143,6 +143,16 @@ const DEFAULT_LA_INCOME = IncludedItems(
     capital_disregard_amounts = zeros(RT,0)
 end
 
+"""
+# fixme we need default Civil sys as well
+"""
+
+function default_civil_sys( year::Integer, RT )::OneLegalAidSys
+    if year == 2023
+        return OneLegalAidSys{RT}()
+    end
+end
+
 function default_aa_sys( year::Integer, RT )::OneLegalAidSys
     @assert year in [2023] "no sys yet for $year"
     aa = OneLegalAidSys{RT}()
