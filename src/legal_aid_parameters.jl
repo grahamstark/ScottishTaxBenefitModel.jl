@@ -18,13 +18,20 @@ export PensionerState, pensioner, nonPensioner
 export ContributionType, cont_proportion, cont_fixed
 @enum ContributionType cont_proportion cont_fixed
 
+"""
+needed because json (inf) isn't supported and typemax(somefloattype) == Inf
+"""
+function inplaceoftypemax(T)
+    return T(99999999999)
+end
+
 @with_kw mutable struct Expenses{T}
-    housing               = Expense( false, one(T), typemax(T))
-    debt_repayments       = Expense( false, one(T), typemax(T))
-    childcare             = Expense( false, one(T), typemax(T))
-    work_expenses         = Expense( false, one(T), typemax(T))
-    maintenance           = Expense( false, one(T), typemax(T))
-    repayments            = Expense( false, one(T), typemax(T))
+    housing               = Expense( false, one(T), inplaceoftypemax(T))
+    debt_repayments       = Expense( false, one(T), inplaceoftypemax(T))
+    childcare             = Expense( false, one(T), inplaceoftypemax(T))
+    work_expenses         = Expense( false, one(T), inplaceoftypemax(T))
+    maintenance           = Expense( false, one(T), inplaceoftypemax(T))
+    repayments            = Expense( false, one(T), inplaceoftypemax(T))
 end
 
 const DEFAULT_LA_INCOME = IncludedItems(
@@ -117,7 +124,7 @@ const DEFAULT_LA_INCOME = IncludedItems(
     abolished = false
     title = ""
     systype = sys_civil
-    gross_income_limit        = typemax(RT)
+    gross_income_limit        = inplaceoftypemax(RT)
     incomes    :: IncludedItems = DEFAULT_LA_INCOME
     income_living_allowance           = zero(RT)
     income_partners_allowance         = RT(2529)
@@ -176,12 +183,12 @@ function default_aa_sys( year::Integer, RT )::OneLegalAidSys
         aa.capital_disregard_limits :: RateBands{RT} =  [10,22,34,46,105]
         aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_0000,10_000,5_000]
         # allowances are all zero
-        aa.expenses.housing = Expense( false, zero(RT), typemax(RT))
-        aa.expenses.debt_repayments = Expense( false, zero(RT), typemax(RT))
-        aa.expenses.childcare = Expense( false, zero(RT), typemax(RT))
-        aa.expenses.work_expenses = Expense( false, zero(RT), typemax(RT))
-        aa.expenses.maintenance = Expense( false, zero(RT), typemax(RT))
-        aa.expenses.repayments = Expense( false, zero(RT), typemax(RT))
+        aa.expenses.housing = Expense( false, zero(RT), inplaceoftypemax(RT))
+        aa.expenses.debt_repayments = Expense( false, zero(RT), inplaceoftypemax(RT))
+        aa.expenses.childcare = Expense( false, zero(RT), inplaceoftypemax(RT))
+        aa.expenses.work_expenses = Expense( false, zero(RT), inplaceoftypemax(RT))
+        aa.expenses.maintenance = Expense( false, zero(RT), inplaceoftypemax(RT))
+        aa.expenses.repayments = Expense( false, zero(RT), inplaceoftypemax(RT))
     end
     aa
 end
