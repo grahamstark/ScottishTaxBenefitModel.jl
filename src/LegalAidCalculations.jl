@@ -91,10 +91,8 @@ function calc_legal_aid!(
     
     bu = benefit_unit # alias
     bres = benefit_unit_result # alias
-    onela = bres.legalaid.civil # alias
-    if lasys.systype == sys_aa  
-        onela = bres.legalaid.aa # alias
-    end
+    onela = OneLegalAidResult{Float64}() # FIXME float 64
+
     totinc = 0.0
     repayments = 0.0
     workexp = 0.0
@@ -111,6 +109,11 @@ function calc_legal_aid!(
         if any_positive( income, lasys.passported_benefits )
             onela.passported = true
             onela.entitlement = la_passported
+            if lasys.systype == sys_aa  
+                bres.legalaid.aa = onela # alias
+            else 
+                bres.legalaid.civil = onela # alias
+            end        
             return
         end
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway
@@ -216,6 +219,11 @@ function calc_legal_aid!(
         la_with_contribution
     else 
         la_full
+    end
+    if lasys.systype == sys_aa  
+        bres.legalaid.aa = onela # alias
+    else 
+        bres.legalaid.civil = onela # alias
     end
 
 end # calc_legal_aid!

@@ -217,7 +217,13 @@ const LA_TARGETS = [
     :num_people_in_bu,
     :num_children]
 
-const ENTITLEMENT_STRS = collect(pretty.(string.(instances( LegalAidStatus ))))
+function make_entitlement_strs()
+    s = collect(pretty.(string.(instances( LegalAidStatus ))))
+    push!(s,"Totals")
+    return s
+end
+
+const ENTITLEMENT_STRS = make_entitlement_strs()
 
 """
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
@@ -277,6 +283,39 @@ function la_crosstab( pre :: DataFrame, post :: DataFrame, problem="no_problem",
         weights=weights )[1] # discard the labels
 end
 
+"""
+Fixed silly Crosstab with entitlement wired in because my general crosstab is 
+breaking in a way I can't work out.
+pre is the row, post is the col, cells above the diagonal represent gains, below losses.
+"""
+function crappycrosstab( 
+    pre :: DataFrame, 
+    post :: DataFrame, 
+    problem="no_problem", 
+    estimate="prediction"  ) :: Matrix
+    m = zeros(4,4)
+    s1 = size( pre )
+    s2 = size( post )
+    @assert s1 == s2
+    num_rows = s1[1]
+    weights = Weights(pre.weight) 
+    # @assert pre.weight .≈ post.weight
+    if problem != "no_problem"
+        col = Symbol( "$(problem)_$estimate")
+        weights = Weights( pre[:,col] .* pre.weight)
+    end
+    for r in 1:num_rows
+        prer = pre[r,:]
+        postr = post[r,:]
+        @assert (prer.pid == postr.pid) && (prer.data_year == postr.data_year) && (prer.weight ≈ postr.weight )
+        prev = Int( prer.entitlement )+1
+        postv = Int( postr.entitlement )+1
+        # pre is the row post is the col. Julia arrays are row first, then col
+        m[postv,prev] += weights[r]
+    end
+    return m
+end
+
 function summarise_la_output!( la :: LegalOutput )
     # base data 
     data1 = add_problem_probabilities( la.data[1] )
@@ -290,10 +329,11 @@ function summarise_la_output!( la :: LegalOutput )
             for p in LegalAidData.PROBLEM_TYPES
                 for est in LegalAidData.ESTIMATE_TYPES
                     k = "$(p)-$(est)"
-                    la.crosstab_pers[sysno-1][k] = la_crosstab( data, data1, p, est )
+                    # FIXME fancy crosstab is breaking:: More unitests
+                    la.crosstab_pers[sysno-1][k] = la_crosstab( data1, data, p, est )
                 end # estimates          
             end # problems
-            la.crosstab_bu[sysno-1] = la_crosstab( budata, budata1 )
+            la.crosstab_bu[sysno-1] = la_crosstab( budata1, budata )
         end # sysno > 1
     end
 end

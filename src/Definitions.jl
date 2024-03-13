@@ -91,7 +91,7 @@ end
 #
 
 export LegalAidStatus, la_none, la_passported, la_full, la_with_contribution 
-@enum LegalAidStatus la_none la_with_contribution la_full la_passported 
+@enum LegalAidStatus la_passported la_full la_with_contribution la_none   
 
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin

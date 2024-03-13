@@ -71,7 +71,8 @@ function make_crosstab(
    cols :: AbstractCategoricalArray;
    rowlevels :: AbstractVector{String} = fill("",0),
    collevels :: AbstractVector{String} = fill("",0),
-   weights :: AbstractWeights = Weights(ones(length(rows))) ) :: Tuple
+   weights :: AbstractWeights = Weights(ones(length(rows))),
+   add_totals = true ) :: Tuple
    @argcheck length(rows) == length(cols) == length( weights )
 
    # find first with hack for missing values. Must be better way...
@@ -98,6 +99,12 @@ function make_crosstab(
    if nc == 0
       collevels,nc = makelevels( cols )
    end
+   if add_totals
+      nr += 1
+      nc += 1
+      push!( rowlevels,"Total")
+      push!( collevels,"Total")
+   end
    m = zeros( nr, nc )
 
    for r in eachindex( rows )
@@ -107,6 +114,15 @@ function make_crosstab(
       ci = fwm( cv, collevels )
       # println( "rv=$rv cv==$cv ri=$ri ci=$ci")
       m[ri,ci] += weights[r]
+   end
+   if add_totals
+      for c in 1:nc-1
+         m[nr,c] = sum( m[1:nr-1,c])
+      end
+      for r in 1:nr-1
+         m[r,nc] = sum( m[r,1:nc-1])
+      end
+      m[nr,nc] = sum(m[1:nr-1,1:nc-1])
    end
    m, pretty.(rowlevels), pretty.(collevels) 
 end
