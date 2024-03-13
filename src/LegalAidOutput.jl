@@ -272,8 +272,8 @@ function la_crosstab( pre :: DataFrame, post :: DataFrame, problem="no_problem",
     end
         
     return make_crosstab( 
-        pre.entitlement, 
-        post.entitlement; 
+        post.entitlement,
+        pre.entitlement;
         weights=weights )[1] # discard the labels
 end
 
@@ -303,21 +303,6 @@ function summarise_la_output!( la :: AllLegalOutput )
     summarise_la_output!( la.aa )
 end
 
-#=
-mutable struct LegalOutput
-    num_systems :: Int
-    data :: Vector{DataFrame}
-    breakdown_bu :: Vector{AbstractDict}
-    breakdown_pers :: Vector{AbstractDict}
-    crosstab_bu :: Vector{AbstractMatrix}
-    crosstab_pers :: Vector{Dict{String,AbstractMatrix}}
-end
-
-mutable struct AllLegalOutput
-    aa :: LegalOutput
-    civil :: LegalOutput
-end
-=#
 """
 
 """

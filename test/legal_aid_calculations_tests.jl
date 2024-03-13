@@ -425,75 +425,26 @@ end
     close(f)
 end
 
-function f1( settings :: Settings, 
-    systems  :: Vector{TaxBenefitSystem{T}},
-    observer :: Observable ) :: AllLegalOutput where T
-    num_systems = length( systems )
-    settings.num_households, settings.num_people, nhh2 = 
-    FRSHouseholdGetter.initialise( settings; reset=false )
-    @time results = do_one_run( settings, systems, obs )
-    num_threads = min( nthreads(), settings.requested_threads )
-    println( "num_threads $num_threads")
-    chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
-    settings.do_legal_aid = true
-    lout = 
-    LegalAidOutput.AllLegalOutput(
-    T; 
-    num_systems=num_systems, num_people=settings.num_people )
-    @time begin
-    @threads for thread in 1:num_threads
-    for hno in chunks[thread][1]
-        if hno % 100 == 0
-            observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
-        end
-        res = results.full_results[:,hno]
-        hh = FRSHouseholdGetter.get_household( hno )
-        intermed = make_intermediate( 
-            hh, 
-            systems[1].hours_limits, 
-            systems[1].age_limits, 
-            systems[1].child_limits )            
-        if settings.do_legal_aid
-            for sysno in 1:num_systems 
-                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
-                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
-                LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
-            end
-        end
-
-    end # hhlds in each chunk 
-    end # threads
-    LegalAidOutput.summarise_la_output!( lout )
-    # LegalAidOutput.dump_tables( lout, settings, num_systems )
-    end # timing block
-    lout
-end 
-
-
-@testset "fastrun" begin
-    global tot
-    tot = 0
-    settings = Settings()
-    settings.export_full_results = true
-    settings.do_legal_aid = true
-    settings.requested_threads = 6
-    systems = [sys1, sys2]
-    f1( settings, systems, obs )
-end
-
-
 @testset "using LegalAidRunner" begin
     global tot
     tot = 0
     settings = Settings()
-    settings.run_name = "Local Legal Aid Runner Test"
+    settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
-    settings.requested_threads = 6
+    settings.requested_threads = 4
     settings.num_households = FRSHouseholdGetter.get_num_households()
     settings.num_people =  FRSHouseholdGetter.get_num_people()
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    LegalAidOutput.dump_tables( laout, settings, 2 )
+    LegalAidOutput.dump_frames( laout, settings, 2 )
+
+    settings.run_name = "Local Legal Aid Runner Test - all allowances zero"
+    sys2.legalaid.civil.income_partners_allowance = 0.0
+    sys2.legalaid.civil.income_other_dependants_allowance = 0.0
+    sys2.legalaid.civil.income_child_allowance = 0.0
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
