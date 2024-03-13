@@ -13,7 +13,9 @@ export ClaimType, normalClaim,  personalInjuryClaim
 @enum PensionerState pensioner  nonPensioner
 export PensionerState, pensioner, nonPensioner
 @enum Income_Or_Capital income capital
+export Income_Or_Capital, income, capital
 @enum Net_Or_Gross net gross
+export Net_Or_Gross, net, gross
 @enum Assessment_Period weekly monthly annualHistoric annualForward
 export ContributionType, cont_proportion, cont_fixed
 @enum ContributionType cont_proportion cont_fixed
