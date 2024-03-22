@@ -120,15 +120,15 @@ module RunSettings
         use_average_band_d = false
         included_nations = [N_Scotland]
 
-        indirect_method =  no_method 
+        indirect_method =  matching 
         # indirect_matching_dataframe = ""
         # expenditure_dataset = ""
         # FIXME: note these are UK dataframes! 
-        indirect_matching_dataframe = "frs2020_lcf2018-20_matches_all_uk"
+        indirect_matching_dataframe = "lcf-frs-scotland-only-matches-2015-2021.csv"
         expenditure_dataset = "lcf_subset-2018-2020"
 
-        wealth_method = no_method
-        do_indirect_tax_calculations = false
+        wealth_method = imputation
+        do_indirect_tax_calculations = true
         do_legal_aid = true
         legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
         export_full_results = false

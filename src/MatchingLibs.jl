@@ -21,7 +21,7 @@ using CSV,
       Measures,
       StatsBase
 
-export make_lfs_subset, map_example, load, map_all
+export make_lfs_subset, map_example, load, map_all, frs_lcf_match_row
 
 struct LCFLocation
     case :: Int
@@ -39,6 +39,8 @@ function load( path::String, datayear :: Int )::Tuple
     rows,cols = size(d)
     return rows,cols,d
 end
+
+export TOPCODE, within, load, uprate_incomes!, checkdiffs
 
 const NUM_SAMPLES = 20
 

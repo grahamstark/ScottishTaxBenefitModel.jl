@@ -436,11 +436,6 @@ function create_household(
     hh_model[1:hhno, :]
 end
 
-function loadfrs(which::AbstractString, year::Integer)::DataFrame
-    filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"
-    loadtoframe(filename)
-end
-
 function create_data(;start_year::Int, end_year::Int)
     for year in start_year:end_year
             print("on year $year ")

@@ -82,6 +82,7 @@ export
     search,
     set_wage!,
     to_string, 
+    total_assets,
     uprate!
 
 mutable struct Person{RT<:Real}
@@ -465,6 +466,27 @@ function allocate_to_bus( T::Type, bua :: BUAllocation ) :: BenefitUnits
     end
     bus
 end
+
+function total_assets( pers :: Person{T} )::T where T
+    sum( values( pers.assets ))
+end
+
+function total_assets( bu :: BenefitUnit )
+    s = 0.0
+    for( pid, pers ) in bu.people
+        s += total_assets( pers.assets )
+    end
+    s
+end
+
+function total_assets( hh :: Household{T}) :: T where T
+    s = zero(T)
+    for( pid, pers ) in hh.people
+        s += total_assets( pers )
+    end
+    s
+end
+
 
 function get_benefit_units(
     hh :: Household{T},

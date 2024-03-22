@@ -19,6 +19,11 @@ const L_HBAI_DIR="/mnt/data/hbai/"
 const L_FRS_DIR="/mnt/data/frs/"
 
 
+function loadfrs(which::AbstractString, year::Integer)::DataFrame
+    filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"
+    loadtoframe(filename)
+end
+
 
 function is_in_hbai(
     hbai_res :: DataFrame,
@@ -404,7 +409,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         asset_unit_or_investment_trusts = Vector{Union{Real,Missing}}(missing, n),
         asset_stocks_shares_bonds_etc = Vector{Union{Real,Missing}}(missing, n),
         asset_pep = Vector{Union{Real,Missing}}(missing, n),
-        asset_national_savings_capital_bonds = Vector{Union{Real,Missing}}(missing, n),
+        asset_national_savings_capital_bonds = Vecto{Union{Real,Missing}}(missing, n),
         asset_index_linked_national_savings_certificates = Vector{Union{Real,Missing}}(
             missing,
             n

@@ -12,6 +12,8 @@ using .Definitions,
       .Uprating,
       .RunSettings
 
+using .GeneralTaxComponents: WEEKS_PER_YEAR, WEEKS_PER_MONTH
+using .Utils: loadtoframe
 
 using CSV,
       DataFrames,
@@ -22,17 +24,14 @@ using CSV,
     
 const NUM_SAMPLES = 20
 
+const TOPCODE = MatchingLibs.TOPCODE
+
+include( "$(Definitions.SRC_DIR)/frs_hbai_creation_libs.jl")
+
 
 Uprating.load_prices( Settings() )
 
-
-"""
-Load 2020/21 FRS and add some matching fields
-"""
-function loadfrs()::Tuple
-    frsrows,frscols,frshh = load( "/mnt/data/frs/2021/tab/househol.tab",2021)
-    farows,facols,frsad = load( "/mnt/data/frs/2021/tab/adult.tab", 2021)
-    frs_hh_pp = innerjoin( frshh, frsad, on=[:sernum,:datayear], makeunique=true )
+function add_some_frs_fields!( frshh :: DataFrame, frs_hh_pp :: DataFrame )
     frshh.any_wages .= frshh.hearns .> 0    
     frshh.any_pension_income .= frshh.hpeninc .> 0    
     frshh.any_selfemp .= frshh.hseinc .!= 0     
@@ -42,15 +41,47 @@ function loadfrs()::Tuple
     # LCF case ids of non white HRPs - convoluted; see: 
     # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
     frshh.num_people = frshh.adulth + frshh.num_children
-    frshh.income = within.( frshh.hhinc, min=0, max=TOPCODE )    
+    frshh.income = within.( frshh.hhinc, min=0, max=MatchingLibs.TOPCODE )    
     # not possible in lcf???
     frshh.any_disabled = (frshh.diswhha1 + frshh.diswhhc1) .> 0 #DISWHHA1 DISWHHC1    
     frshh.has_female_adult .= 0
     frs_femalepids = frs_hh_pp[(frs_hh_pp.sex .== 2),:sernum]
     frshh[frshh.sernum .∈ (frs_femalepids,),:has_female_adult] .= 1
+end
+
+"""
+Load 2020/21 FRS and add some matching fields
+"""
+function loadfrs()::Tuple
+    frsrows,frscols,frshh = load( "/mnt/data/frs/2021/tab/househol.tab",2021)
+    farows,facols,frsad = load( "/mnt/data/frs/2021/tab/adult.tab", 2021)
+    frs_hh_pp = innerjoin( frshh, frsad, on=[:sernum,:datayear], makeunique=true )
+    add_some_frs_fields!( frshh, frs_hh_pp )
     return frshh,frspers,frs_hh_pp
 end
 # fcrows,fccols,frsch = load( "/mnt/data/frs/2021/tab/child.tab", 2021 )
+
+"""
+Scottish Version on Pooled data
+"""
+function load_scottish_frss( startyear::Int, endyear :: Int )::NamedTuple
+    frshh = DataFrame()
+    frs_hh_pp = DataFrame()
+    frspers = DataFrame()
+    for year in startyear:endyear
+        lhh = loadfrs( "househol", year )
+        lhh = lhh[ lhh.gvtregn.== 299999999, :] # SCOTLAND
+        lhh.datayear .= year
+        lad = loadfrs( "adult", year )
+        lad.datayear .= year
+        l_hh_pp = innerjoin( lhh, lad, on=[:sernum,:datayear], makeunique=true )
+        add_some_frs_fields!( lhh, l_hh_pp )
+        frshh = vcat( frshh, lhh; cols=:union )
+        frspers = vcat( frspers, lad; cols=:union )
+        frs_hh_pp = vcat( frs_hh_pp, l_hh_pp, cols=:union )
+    end
+    (; frshh, frspers, frs_hh_pp )
+end
 
 """
 Load 2018/9 - 2020/1 LCFs and add some matching fields.
