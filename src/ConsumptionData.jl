@@ -287,9 +287,9 @@ function init( settings :: Settings; reset = false )
         global IND_MATCHING
         global EXPENDITURE_DATASET
         global FACTOR_COST_DATASET
-        IND_MATCHING = CSV.File( joinpath( settings.data_dir, settings.indirect_matching_dataframe )) |> DataFrame
-        EXPENDITURE_DATASET = CSV.File( joinpath( settings.data_dir, settings.expenditure_dataset)) |> DataFrame
-        FACTOR_COST_DATASET = CSV.File( joinpath( settings.data_dir, settings.expenditure_dataset)) |> DataFrame
+        IND_MATCHING = CSV.File( joinpath( settings.data_dir, "$(settings.indirect_matching_dataframe).tab" )) |> DataFrame
+        EXPENDITURE_DATASET = CSV.File( joinpath( settings.data_dir, settings.expenditure_dataset * ".tab")) |> DataFrame
+        FACTOR_COST_DATASET = CSV.File( joinpath( settings.data_dir, settings.expenditure_dataset * ".tab" )) |> DataFrame
         println( EXPENDITURE_DATASET[1:2,:])
         uprate_expenditure( settings )
     end
