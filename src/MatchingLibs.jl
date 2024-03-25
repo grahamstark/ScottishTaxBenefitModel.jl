@@ -266,6 +266,8 @@ function make_lfs_subset( lcf :: DataFrame ) :: DataFrame
 
     out.total_expenditure = lcf.p630tp
 
+
+
     checkdiffs( "total spending",
         out.sweets_and_icecream + 
         out.other_food_and_beverages + 
@@ -321,6 +323,9 @@ function make_lfs_subset( lcf :: DataFrame ) :: DataFrame
         out.gambling + 
         out.non_consumption, 
         lcf.p630tp )
+
+    out.repayments = 
+        lcf.b237 + lcf.b238 + lcf.ck5316t + lcf.cc6211c 
 
     return out
 

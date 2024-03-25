@@ -164,6 +164,10 @@ mutable struct Person{RT<:Real}
     company_car_contribution :: RT
     fuel_supplied :: RT
 
+    work_expenses  :: RT 
+    travel_to_work :: RT 
+    debt_repayments :: RT 
+    wealth_and_assets :: RT
 
     onerand :: String
 

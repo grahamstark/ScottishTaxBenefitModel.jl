@@ -124,7 +124,7 @@ module RunSettings
         # indirect_matching_dataframe = ""
         # expenditure_dataset = ""
         # FIXME: note these are UK dataframes! 
-        indirect_matching_dataframe = "lcf-frs-scotland-only-matches-2015-2021.csv"
+        indirect_matching_dataframe = "lcf-frs-scotland-only-matches-2015-2021"
         expenditure_dataset = "lcf_subset-2018-2020"
 
         wealth_method = imputation

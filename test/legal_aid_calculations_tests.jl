@@ -392,8 +392,8 @@ end
     settings.export_full_results = true
     settings.do_legal_aid = true
     settings.requested_threads = 4
-    settings.num_households = FRSHouseholdGetter.get_num_households()
-    settings.num_people = FRSHouseholdGetter.get_num_people()
+    settings.num_households,  settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true )
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )

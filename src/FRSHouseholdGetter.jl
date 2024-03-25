@@ -156,7 +156,7 @@ module FRSHouseholdGetter
         end
         load_prices( settings )
         if settings.indirect_method == matching 
-            ConsumptionData.init( settings )
+            ConsumptionData.init( settings; reset = reset )
         end
         if settings.do_legal_aid
             LegalAidData.init( settings; reset = reset )

@@ -415,6 +415,12 @@ function map_person(
         m2z(model_person.company_car_value),
         m2z(model_person.company_car_contribution),
         m2z(model_person.fuel_supplied),
+
+        m2z( model_person.work_expenses ),
+        m2z( model_person.travel_to_work ),
+        m2z( model_person.debt_repayments ),
+        m2z( model_person.wealth_and_assets ),
+
         strtobi(model_person.onerand),
         nothing # legal aid added as needed FIXME? maybe make this 'other data'??
     )
