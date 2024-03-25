@@ -221,6 +221,33 @@ function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int
     @assert ! isnothing( hh.factor_costs )
 end
 
+function impute_stuff_from_consumption!( hh :: Household, settings :: Settings )
+    head = get_head( hh )
+    head.debt_repayments = hh.expenditure[:repayments]
+    working = 0
+    for (pid,pers) in hh.people
+        if is_working(pers.employment_status)
+            working += 1
+        end
+    end
+    if working > 0
+        trans = sum(hh.expenditure[[
+            :bus_boat_and_train, 
+            :air_travel, 
+            :petrol,
+            :diesel,
+            :other_motor_oils, 
+            :other_transport  # COMPLETELY MADE UP
+        ]] * 0.8/working     
+        for (pid,pers) in hh.people
+            if is_working(pers.employment_status)
+                pers.travel_to_work = trans
+            end
+        end
+    end
+end
+
+
 """
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)

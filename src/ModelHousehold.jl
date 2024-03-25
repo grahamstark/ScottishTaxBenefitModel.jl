@@ -65,6 +65,7 @@ export
     is_severe_disability, 
     is_single, 
     is_spouse,
+    is_wprking,
     isless,
     le_age, 
     make_benefit_unit, 
@@ -698,10 +699,19 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
     return false
 end
 
+
 function empl_status_in( pers :: Person, statuses ...)
     return pers.employment_status in statuses
 end
 
+
+function is_wprking( pers :: Person )
+    return employment_status_in( pers, 
+        Full_time_Employee,
+        Part_time_Employee,
+        Full_time_Self_Employed,
+        Part_time_Self_Employed )
+end
 
 
 le_age( pers :: Person, age ... ) = pers.age <= age[1] 
