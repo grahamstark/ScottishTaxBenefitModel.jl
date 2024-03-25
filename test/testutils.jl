@@ -185,7 +185,11 @@ in a @test macro.
 function compare_w_2_m( uspw::Real, thempm::Real, ps :: Real = 1 ) :: Bool
    uspm = uspw*PWPM
    thempw = thempm/PWPM
-   @assert to_nearest_p(uspw,thempw,ps) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
+   try 
+      diff = to_nearest_p( uspw, thempw, ps )
+   catch e
+      throw( ErrorException("us $(uspw)pw ($(uspm)pm) != $(thempm)pm $e"))
+   end
    return true
 end
 

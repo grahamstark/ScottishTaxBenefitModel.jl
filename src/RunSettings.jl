@@ -128,7 +128,7 @@ module RunSettings
         expenditure_dataset = "lcf_subset-2018-2020"
 
         wealth_method = imputation
-        do_indirect_tax_calculations = true
+        do_indirect_tax_calculations = false
         do_legal_aid = true
         legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
         export_full_results = false

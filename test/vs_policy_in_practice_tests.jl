@@ -57,6 +57,7 @@ settings = Settings()
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
+    
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     
     println(  "CTC", hres.bus[1].pers[head.pid].income[LOCAL_TAXES])
