@@ -123,12 +123,9 @@ function calc_legal_aid!(
         ct += income[LOCAL_TAXES]
         maintenance += income[ALIMONY_AND_CHILD_SUPPORT_PAID]
         child_costs += pers.cost_of_childcare
-        
         workexp += pers.work_expenses # make_ttw( pers )
         repayments += pers.debt_repayments #  make_repayments( pers )
         ttw += pers.travel_to_work
-
-
         age_oldest = max( pers.age, age_oldest )
         if pers.relationship_to_hoh == This_Person
             onela.income_allowances += lasys.income_living_allowance

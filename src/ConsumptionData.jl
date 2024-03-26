@@ -250,12 +250,11 @@ function impute_stuff_from_consumption!( hh :: Household, settings :: Settings )
     if working > 0
         trans = sum(hh.expenditure[[
             :bus_boat_and_train, 
-            :air_travel, 
             :petrol,
             :diesel,
             :other_motor_oils, 
             :other_transport  # COMPLETELY MADE UP
-        ]]) * 0.8/working     
+        ]]) * 0.5/working     
         for (pid,pers) in hh.people
             if is_working( pers.employment_status )
                 pers.travel_to_work = trans

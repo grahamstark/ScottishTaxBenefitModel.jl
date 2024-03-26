@@ -100,7 +100,7 @@ function blank_incomes!( hh, wage; annual=true )
 end
 
 sys1 = deepcopy(sys)
-sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
+sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth, net_physical_wealth ])
 sys2 = deepcopy( sys1 )
 # sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
 
@@ -392,6 +392,7 @@ end
     settings.export_full_results = true
     settings.do_legal_aid = true
     settings.requested_threads = 4
+    #  settings.impute_fields_from_consumption = false
     settings.num_households,  settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
     sys2 = deepcopy(sys1)
