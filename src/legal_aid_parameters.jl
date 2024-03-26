@@ -150,6 +150,7 @@ const DEFAULT_LA_INCOME = IncludedItems(
     capital_contribution_limits :: RateBands{RT} =  [7_853.0, 13_017.0]
     capital_disregard_limits = zeros(RT,0)
     capital_disregard_amounts = zeros(RT,0)
+    use_inferred_capital = true
 end
 
 """

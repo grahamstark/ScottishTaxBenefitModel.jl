@@ -395,16 +395,20 @@ end
     #  settings.impute_fields_from_consumption = false
     settings.num_households,  settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
+    
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
 
-    settings.run_name = "Local Legal Aid Runner Test - all allowances zero"
+    settings.run_name = "Local Legal Aid Runner Test - FRS Native Capital"
+    sys2.legalaid.civil.use_inferred_capital = false
+    #=
     sys2.legalaid.civil.income_partners_allowance = 0.0
     sys2.legalaid.civil.income_other_dependants_allowance = 0.0
     sys2.legalaid.civil.income_child_allowance = 0.0
+    =#
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )

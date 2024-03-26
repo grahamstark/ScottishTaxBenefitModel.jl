@@ -4,6 +4,8 @@ using ScottishTaxBenefitModel
 
 using .ModelHousehold: 
     get_benefit_units,
+    get_head,
+    get_spouse,
     is_head,
     is_spouse,
     is_child,
@@ -174,19 +176,30 @@ function calc_legal_aid!(
     onela.eligible_on_income = onela.disposable_income < lasys.income_contribution_limits[end]
 
     # FIXME individual level 
-    if buno == 1
-        if net_physical_wealth in lasys.included_capital 
-            onela.capital += household.net_physical_wealth
-        end 
-        if net_financial_wealth in lasys.included_capital 
-            onela.capital += household.net_financial_wealth
-        end 
-        if net_housing_wealth in lasys.included_capital 
-            onela.capital += household.net_housing_wealth
-        end 
-        if net_pension_wealth in lasys.included_capital 
-            onela.capital += household.net_pension_wealth
-        end 
+    if lasys.use_inferred_capital 
+        if buno == 1
+            if net_physical_wealth in lasys.included_capital 
+                onela.capital += household.net_physical_wealth
+            end 
+            if net_financial_wealth in lasys.included_capital 
+                onela.capital += household.net_financial_wealth
+            end 
+            if net_housing_wealth in lasys.included_capital 
+                onela.capital += household.net_housing_wealth
+            end 
+            if net_pension_wealth in lasys.included_capital 
+                onela.capital += household.net_pension_wealth
+            end 
+        end
+    else
+        if  net_physical_wealth in lasys.included_capital
+            head = get_head( bu )
+            onela.capital += head.wealth_and_assets
+            spouse = get_spouse( bu )
+            if ! isnothing( spouse )
+                onela.capital += spouse.wealth_and_assets
+            end
+        end
     end
     # println( "onela.disposable_income = $(onela.disposable_income)")
     if age_oldest >= lasys.pensioner_age_limit
