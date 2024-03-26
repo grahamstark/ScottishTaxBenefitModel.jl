@@ -15,13 +15,16 @@ using .Definitions,
       .Uprating,
       .RunSettings
 
-
 using CSV,
       DataFrames,
       Measures,
       StatsBase
 
-export make_lfs_subset, map_example, load, map_all, frs_lcf_match_row
+export make_lcf_subset, 
+      map_example, 
+      load, 
+      map_all, 
+      frs_lcf_match_row
 
 struct LCFLocation
     case :: Int
@@ -77,7 +80,7 @@ end
 """
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
-function make_lfs_subset( lcf :: DataFrame ) :: DataFrame
+function make_lcf_subset( lcf :: DataFrame ) :: DataFrame
     out = DataFrame( 
         case = lcf.case, 
         datayear = lcf.datayear, 

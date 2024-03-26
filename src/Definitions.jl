@@ -185,6 +185,8 @@ export Full_time_Employee,
        Temporarily_sick_or_injured,
        Other_Inactive
 export Missing_ILO_Employment
+export is_employee,
+       is_working
 
 @enum ILO_Employment begin  # mapped from empstati
    Missing_ILO_Employment = -1
@@ -199,6 +201,22 @@ export Missing_ILO_Employment
    Permanently_sick_or_disabled = 9
    Temporarily_sick_or_injured = 10
    Other_Inactive = 11
+end
+
+
+
+function is_working( employment_status :: ILO_Employment )
+   return employment_status in [ 
+       Full_time_Employee,
+       Part_time_Employee,
+       Full_time_Self_Employed,
+       Part_time_Self_Employed ]
+end
+
+function is_employee( employment_status :: ILO_Employment )
+   return employment_status in [ 
+       Full_time_Employee,
+       Part_time_Employee ]
 end
 
 

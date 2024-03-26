@@ -120,7 +120,8 @@ module RunSettings
         use_average_band_d = false
         included_nations = [N_Scotland]
 
-        indirect_method =  matching 
+        indirect_method = matching 
+        impute_fields_from_consumption = true
         # indirect_matching_dataframe = ""
         # expenditure_dataset = ""
         # FIXME: note these are UK dataframes! 

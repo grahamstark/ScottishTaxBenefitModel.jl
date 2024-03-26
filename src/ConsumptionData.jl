@@ -221,15 +221,32 @@ function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int
     @assert ! isnothing( hh.factor_costs )
 end
 
+"""
+allocate
+"""
 function impute_stuff_from_consumption!( hh :: Household, settings :: Settings )
     head = get_head( hh )
     head.debt_repayments = hh.expenditure[:repayments]
+
     working = 0
+    employees = 0
     for (pid,pers) in hh.people
-        if is_working(pers.employment_status)
+        if is_working(pers.employment_status )
             working += 1
         end
+        if is_employee( pers.employment_status )
+            employees += 1
+        end
     end
+    #
+    # Note it's possible that there 
+    # are no employees on both sides of the FRS/LCF
+    # matches. 
+    # 80% of transport costs allocated equally
+    # amongst everyone in the hh who works.
+    # FIXME the is_working stuff should be lists of pids
+    # in ModelHousehold
+    #
     if working > 0
         trans = sum(hh.expenditure[[
             :bus_boat_and_train, 
@@ -238,12 +255,23 @@ function impute_stuff_from_consumption!( hh :: Household, settings :: Settings )
             :diesel,
             :other_motor_oils, 
             :other_transport  # COMPLETELY MADE UP
-        ]] * 0.8/working     
+        ]]) * 0.8/working     
         for (pid,pers) in hh.people
-            if is_working(pers.employment_status)
+            if is_working( pers.employment_status )
                 pers.travel_to_work = trans
             end
         end
+    end
+    if employees > 0
+        # MAD, Wild guess 
+        workexp = (hh.expenditure.trade_union_subs +
+        hh.expenditure.other_clothing_and_footwear*0.2)/employees
+        for (pid,pers) in hh.people
+            if is_employee( pers.employment_status )
+                pers.work_expenses = workexp
+            end
+        end
+
     end
 end
 

@@ -65,7 +65,6 @@ export
     is_severe_disability, 
     is_single, 
     is_spouse,
-    is_wprking,
     isless,
     le_age, 
     make_benefit_unit, 
@@ -705,7 +704,7 @@ function empl_status_in( pers :: Person, statuses ...)
 end
 
 
-function is_wprking( pers :: Person )
+function is_working( pers :: Person )
     return employment_status_in( pers, 
         Full_time_Employee,
         Part_time_Employee,
@@ -713,6 +712,11 @@ function is_wprking( pers :: Person )
         Part_time_Self_Employed )
 end
 
+function is_employee( pers :: Person )
+    return employment_status_in( pers, 
+        Full_time_Employee,
+        Part_time_Employee )
+end
 
 le_age( pers :: Person, age ... ) = pers.age <= age[1] 
 
@@ -779,6 +783,8 @@ function on_mt_benefits( pers :: Person ) :: Bool
     end
     return false
 end
+
+## FIXME make these below return lists of PIDs
 
 function on_mt_benefits( bu :: BenefitUnit ) :: Bool
     return search( bu, on_mt_benefits )
