@@ -62,6 +62,8 @@ function load_costs( filename::String )::DataFrame
     cost
 end
 
+# psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
+
 # NOT NEEDED
 function add_la_probs!( hh :: Household )
     global LA_PROB_DATA
