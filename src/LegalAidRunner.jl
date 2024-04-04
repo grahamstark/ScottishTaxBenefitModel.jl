@@ -90,21 +90,38 @@ function do_one_run(
     return lout
 end 
 
-
+"""
+This is the base of the costs model
+"""
 function create_base_propensities( 
     settings :: Settings, 
     systems  :: Vector{TaxBenefitSystem{T}},
-    observer :: Observable )
+    observer :: Observable ) :: DataFrame
     outp = do_one_run( settings, systems, observer, reset_data=true, reset_results=true )
     bp = out.breakdown_pers[1]
     rename!( pb, [:entitlement=>:la_status]) # match names in the actual output
-    out = DataFrame( )
+    n = 100
+    out = DataFrame( 
+        hsm = fill("",n ), 
+        age2 = fill("",n), 
+        sex = fill(Male,n),
+        case_freq = zeros(n), 
+        popn = zeros(n),        
+        la_status = fill( la_none, n ),
+        cost_max = zeros(n), 
+        cost_mean = zeros(n), 
+        cost_median = zeros(n), 
+        cost_min = zeros(n), 
+        cost_nmiss = zeros(n), 
+        cost_nobs = zeros(n), 
+        cost_q25 = zeros(n), 
+        cost_q75 = zeros(n))
+    i = 0
     bp_grp_ns = groupby(bp, [:age2, :sex])
     bp_grp1 = bp
     bp_grp2 = groupby(bp, [:la_status])
     bp_grp3 = groupby(bp, [:la_status, :sex])
     bp_grp4 = groupby(bp, [:la_status, :age2, :sex])
-
 end
 
 end # module
