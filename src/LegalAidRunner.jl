@@ -82,12 +82,29 @@ function do_one_run(
             for sysno in 1:num_systems 
                 calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
                 calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
-                LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
+                LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno )
             end
         end # hhlds in each chunk 
     end # threads
     LegalAidOutput.summarise_la_output!( lout )
     return lout
 end 
+
+
+function create_base_propensities( 
+    settings :: Settings, 
+    systems  :: Vector{TaxBenefitSystem{T}},
+    observer :: Observable )
+    outp = do_one_run( settings, systems, observer, reset_data=true, reset_results=true )
+    bp = out.breakdown_pers[1]
+    rename!( pb, [:entitlement=>:la_status]) # match names in the actual output
+    out = DataFrame( )
+    bp_grp_ns = groupby(bp, [:age2, :sex])
+    bp_grp1 = bp
+    bp_grp2 = groupby(bp, [:la_status])
+    bp_grp3 = groupby(bp, [:la_status, :sex])
+    bp_grp4 = groupby(bp, [:la_status, :age2, :sex])
+
+end
 
 end # module

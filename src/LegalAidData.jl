@@ -10,7 +10,22 @@ using .RunSettings
 using .Definitions
 using .ModelHousehold
 
-export LA_PROB_DATA, PROBLEM_TYPES
+export 
+    agestr2, 
+    CIVIL_AWARDS_GRP_NS,
+    CIVIL_AWARDS_GRP1,
+    CIVIL_AWARDS_GRP2,
+    CIVIL_AWARDS_GRP3,
+    CIVIL_AWARDS_GRP4,
+    CIVIL_AWARDS, 
+    CIVIL_COSTS_GRP_NS,
+    CIVIL_COSTS_GRP1,
+    CIVIL_COSTS_GRP2,
+    CIVIL_COSTS_GRP3,
+    CIVIL_COSTS_GRP4,
+    CIVIL_COSTS, 
+    LA_PROB_DATA, 
+    PROBLEM_TYPES
 
 LA_PROB_DATA = DataFrame()
 
@@ -162,16 +177,32 @@ Dict{Union{Missing, InlineStrings.String7}, Int64} with 3 entries:
 
 =#
 
+#=
+k = sort(keys(LegalAidData.CIVIL_COSTS_GRP_NS))
+for kk in k
+         if haskey( LegalAidData.CIVIL_COSTS_GRP_NS, kk )
+             v = LegalAidData.CIVIL_COSTS_GRP_NS[kk]
+             @show kk    
+             @show summarystats(v.totalpaidincvat)
+         end
+       end
+
+
+=#
+
 const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "civil-legal-aid-case-costs.tab" ))
 const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "civil-applications.tab" ))
-const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
-const CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
-const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
-const CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
-const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
-const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
-const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm])
+const CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
 const CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
+const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
+const CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
+const CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
+const CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
+const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm])
+const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
+const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
+const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
+
 #= 
   psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
   k=(hsm = "Discrimination", age_banded = "5 - 9", consolidatedsex = "Male")
@@ -222,15 +253,37 @@ function agestr( age :: Int ) :: String
     end
 end
 
-function get_awards( hsm :: String, age :: Int, sex :: Sex )
-    k = (hsm=hsm, age_banded=agestr(age), consolidatedsex=string(sex))
-    CIVIL_AWARDS_GRP[k]
+function agestr2( age :: Int ) :: String
+    age2( agestr( age ))
 end
 
-function get_costs( hsm :: String, age :: Int, sex :: Sex )
-    k = (highersubject=hsm, age_banded=agestr(age), sex=string(sex))
-    CIVIL_COSTS_GRP[k]
+function make_key(; 
+    la_status :: Union{LegalAidStatus,Nothing}=nothing, 
+    hsm :: Union{String,Nothing}=nothing, 
+    age :: Union{Int,Nothing}=nothing, 
+    sex :: Union{Sex,Nothing}=nothing ) :: NamedTuple
+    k = []
+    v = []
+    if ! isnothing( la_status )
+        push!(k, :la_status)
+        push!(v, la_status )
+    end
+    if ! isnothing( hsm )
+        push!(k, :hsm)
+        push!(v, hsm )
+    end
+    if ! isnothing( age )
+        push!(k, :age)
+        push!(v, age2(agestr(age)) )
+    end
+    if ! isnothing( sex )
+        push!(k, :sex)
+        push!(v, sex )
+    end
+    k = NamedTuple(zip(k,v))
+    return k
 end
+
 
 
 

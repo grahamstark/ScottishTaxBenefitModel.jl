@@ -57,6 +57,10 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         ethnic_group = fill(Missing_Ethnic_Group, n ),
         disabled = fill(false,n),
         is_child = fill(false,n),
+        age = zeros(n),
+        age2 = fill("",n), # age as a string to match 
+        sex = fill( Male, n ),
+
         num_children = zeros(Int,n),
         num_pensioners = zeros(Int,n),
         num_bus = zeros(Int,n),
@@ -115,6 +119,9 @@ function fill_legal_aid_frame_row!(
     pr.marital_status = pers.marital_status
     pr.disabled = pers_is_disabled( pers )
     pr.is_child = pers.is_standard_child
+    pr.age = pers.age,
+    pr.age2 = agestr2( pers.age ),
+    pr.sex = pers.sex,
     pr.all_eligible = lr.eligible | lr.passported
     pr.mt_eligible = lr.eligible
     pr.passported = lr.passported
@@ -433,128 +440,3 @@ end
     
 
 end # module
-
-#=
-"""
-Called once per benefit unit. See run example below.
-"""
-function fill_legal_aid_frame_row!( 
-    hr   :: DataFrameRow, 
-    hh   :: Household, 
-    hres :: HouseholdResult,
-    buno :: Int;
-    is_civil :: Bool )
-    # println(names(hr))
-    hr.hid = hh.hid
-    hr.sequence = hh.sequence
-    hr.data_year = hh.data_year
-    hr.weight = hh.weight
-    bu = get_benefit_units( hh )[buno]
-    nps = num_people( bu )
-    hr.num_people = nps
-    hr.bu_number = buno
-    hr.weighted_people = hh.weight*nps
-    hr.tenure = hh.tenure
-    # hr.in_poverty
-    head = get_head( bu )
-    hr.ethnic_group = head.ethnic_group
-    hr.employment_status = head.employment_status
-    hr.marital_status = head.marital_status
-    hr.disabled = has_disabled_member( bu )
-    hr.children = num_children( bu ) > 0
-    hr.any_pensioner = search( bu.people, ge_age, 65 )
-    
-    lr = is_civil ? hres.bus[buno].legalaid.civil : hres.bus[buno].legalaid.aa
-    
-    hr.all_eligible = lr.eligible | lr.passported
-    hr.mt_eligible = lr.eligible
-    hr.passported = lr.passported
-    hr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
-    hr.capital_contribution = lr.capital_contribution > 0
-    hr.income_contribution = lr.income_contribution > 0
-    if lr.passported 
-        hr.disqualified_on_income = false 
-        hr.disqualified_on_capital = false
-    else 
-        hr.disqualified_on_income = ! lr.eligible_on_income
-        hr.disqualified_on_capital = ! lr.eligible_on_capital
-    end
-    hr.entitlement = lr.entitlement
-end
-=#
-
-#=
-function aggregate_to_bu( persf :: DataFrame ) :: DataFrame
-    buf = copy( persf )
-    bgroups = groupby( buf, [:hno,:buno])
-    for bg in bgroups
-       nkids = sum( bg.is_child )
-       npens = sum( bg.is_pensioner )
-       target = (buf.hid .== bg.hid).&(buf.buno .== bg.buno) .& (buf.is_bu_head .== true)
-       @assert length( target ) == 1
-       # buf[target,:]
-    end
-end
-=#
-
-
-#=
-function make_legal_aid_frame_bu( RT :: DataType, n :: Int ) :: DataFrame
-    return DataFrame(
-        hid       = zeros( BigInt, n ),
-        sequence  = zeros( Int, n ),
-        data_year  = zeros( Int, n ),        
-        weight    = zeros(RT,n),
-        weighted_people = zeros(RT,n),
-        total = ones(RT,n),
-        entitlement = fill( la_none, n ),
-        bu_number = zeros( Int, n ),
-        tenure    = fill( Missing_Tenure_Type, n ),
-        marital_status = fill( Missing_Marital_Status, n ),
-        employment_status = fill(Missing_ILO_Employment, n ),
-        decile = zeros( Int, n ),
-        in_poverty = fill( false, n ),
-        ethnic_group = fill(Missing_Ethnic_Group, n ),
-        disabled = fill(false,n),
-        children = fill(false,n),
-        any_pensioner = fill(false,n),
-        all_eligible = zeros(RT,n),
-        mt_eligible = zeros(RT,n),
-        passported = zeros(RT,n),
-        any_contribution = zeros(RT,n),
-        income_contribution = zeros(RT,n),
-        capital_contribution = zeros(RT,n),
-        disqualified_on_income = zeros(RT,n), 
-        disqualified_on_capital = zeros(RT,n))
-end
-=#
-
-
-#=
-    legalaid = []
-    if settings.do_legal_aid
-
-    end
-
-    legal_crosstabs = []
-    if settings.do_legal_aid
-        for sysno in 2:ns
-            civtab = la_crosstab( frames.civil_legalaid_bu[1], frames.civil_legalaid_bu[sysno] )
-            push!( legal_crosstabs, civtab )
-            aatab = la_crosstab( frames.aa_legalaid_bu[1], frames.aa_legalaid_bu[sysno] )
-            push!( legal_crosstabs, aatab )
-        end
-    end
-
-
-        legaldics = ( ; ) # named tuple with nothing
-        if settings.do_legal_aid
-            civil_legalaid_bus = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weight )
-            civil_legalaid_people = aggregate_all_legal_aid( frames.civil_legalaid_bu[sysno],:weighted_people )
-            aa_legalaid_bus = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weight )
-            aa_legalaid_people = aggregate_all_legal_aid( frames.aa_legalaid_bu[sysno],:weighted_people )
-            legaldics = (; civil_legalaid_bus, civil_legalaid_people, aa_legalaid_bus, aa_legalaid_people,  )            
-        end
-        push!( legalaid, legaldics )
-
-=#
