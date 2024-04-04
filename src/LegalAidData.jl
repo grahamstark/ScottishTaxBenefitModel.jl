@@ -25,6 +25,32 @@ const PROBLEM_TYPES =
 
 const ESTIMATE_TYPES = ["lower","prediction","upper"]
 
+function age2( ages  )::String
+    return if ismissing( ages )
+        "35-64"
+    elseif ages in ["0 - 4"
+        "5 - 9"
+        "10 - 14"]
+        "0-14"
+    elseif ages in [
+        "15 - 19"
+        "20 - 24"
+        "25 - 29"
+        "30 - 34"]
+        "15-34"
+    elseif ages in [
+        "35 - 39"
+        "40 - 44"
+        "45 - 49"
+        "50 - 54"
+        "55 - 59"
+        "60 - 64"]
+        "35-64"
+    else
+        "65+"
+    end
+end
+
 function load_awards( filename::String )::DataFrame
     awards = CSV.File( filename; missingstring=["#NULL!","","-"] )|>DataFrame
     nrows,ncols = size( awards )
@@ -40,7 +66,39 @@ function load_awards( filename::String )::DataFrame
         :whichform]
         awards[:,t] = CategoricalArray( awards[:,t] )
     end
-    rename!( awards, [:consolidatedsex=>:sex,:age_banded=>:age])
+    rename!( awards, [:consolidatedsex=>:sex,
+        :age_banded=>:age, 
+        :passportedbenefitsmeans1=>:passported,
+        :totalmaxconform2=>:maxcon])
+    awards.passported = .! ismissing.( awards.passported )
+    awards.la_status = fill( la_none, nrows )
+    awards.age2 = age2.( awards.age )
+    # NOTE this skips over Adults with incapacity
+    for r in 1:nrows
+        a = awards[r,:]
+        # @show a
+        if a.passported # form 1
+            awards[r,:la_status] = la_passported
+        elseif a.whichform == "2" # form 2 == means-test
+            if (a.hsm == "Adults with incapacity") || # kill all abandoned cases
+               (ismissing( a.meansstatusc_i )) ||
+               (a.meansstatusc_i in ["ABANDONED","CONTINUED"]) || 
+               (a.statustextform2 == "ABANDONED")
+                ;
+            else
+                if a.maxcon > 0
+                    awards[r,:la_status] = la_with_contribution 
+                else
+                    awards[r,:la_status] = la_full 
+                end
+            end
+        end
+        # 38% of recorded sex is male, so: fill in missing sex 38% male
+        # FIXME maybe by type?
+        if ismissing(a.sex)
+            a.sex = rand() <= 0.382 ? "Male" : "Female"
+        end
+    end
     awards
 end
 
@@ -62,13 +120,58 @@ function load_costs( filename::String )::DataFrame
     rename!( cost, [:highersubject=>:hsm,:age_banded=>:age])
     cost.passported = .! ismissing.( cost.passported )
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )
+    cost.la_status = fill( la_none, nrows )
+    cost.age2 = age2.( cost.age )
+    for r in 1:nrows
+        a = cost[r,:]
+        # @show a
+        if a.passported # form 1
+            cost[r,:la_status] = la_passported
+        elseif a.whichform == "2" # form 2 == means-test
+            if (a.hsm == "Adults with incapacity")
+                ;
+            else
+                if a.maxcon > 0
+                    cost[r,:la_status] = la_with_contribution 
+                else
+                    cost[r,:la_status] = la_full 
+                end
+            end
+        end
+        # 38% of recorded sex is male, so: 
+        # FIXME maybe by type?
+        if ismissing(a.sex)
+            a.sex = rand() <= 0.382 ? "Male" : "Female"
+        end
+    end
     cost
 end
 
+#=
+ulia> StatsBase.countmap( LegalAidData.CIVIL_COSTS.sex )
+Dict{Union{Missing, InlineStrings.String7}, Int64} with 3 entries:
+  String7("Female") => 7190
+  String7("Male")   => 4436
+  missing           => 169
+
+julia> StatsBase.countmap( LegalAidData.CIVIL_AWARDS.sex )
+Dict{Union{Missing, InlineStrings.String7}, Int64} with 3 entries:
+  String7("Female") => 8917
+  String7("Male")   => 5595
+  missing           => 1169
+
+=#
+
 const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "civil-legal-aid-case-costs.tab" ))
-const CIVIL_COSTS_GRP = groupby(CIVIL_COSTS, [:hsm,:age,:sex])
 const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "civil-applications.tab" ))
-const CIVIL_AWARDS_GRP = groupby(CIVIL_AWARDS, [:hsm,:age,:sex])
+const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
+const CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
+const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
+const CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
+const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
+const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
+const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm])
+const CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
 #= 
   psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
   k=(hsm = "Discrimination", age_banded = "5 - 9", consolidatedsex = "Male")
