@@ -7,6 +7,7 @@ using CSV,DataFrames,CategoricalArrays
 
 using ScottishTaxBenefitModel
 using .RunSettings
+using .Definitions
 using .ModelHousehold
 
 export LA_PROB_DATA, PROBLEM_TYPES
@@ -39,6 +40,7 @@ function load_awards( filename::String )::DataFrame
         :whichform]
         awards[:,t] = CategoricalArray( awards[:,t] )
     end
+    rename!( awards, [:consolidatedsex=>:sex,:age_banded=>:age])
     awards
 end
 
@@ -57,12 +59,77 @@ function load_costs( filename::String )::DataFrame
         :whichform ]
         cost[:,t] = CategoricalArray( cost[:,t] )
     end
+    rename!( cost, [:highersubject=>:hsm,:age_banded=>:age])
     cost.passported = .! ismissing.( cost.passported )
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )
     cost
 end
 
-# psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
+const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "civil-legal-aid-case-costs.tab" ))
+const CIVIL_COSTS_GRP = groupby(CIVIL_COSTS, [:hsm,:age,:sex])
+const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "civil-applications.tab" ))
+const CIVIL_AWARDS_GRP = groupby(CIVIL_AWARDS, [:hsm,:age,:sex])
+#= 
+  psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
+  k=(hsm = "Discrimination", age_banded = "5 - 9", consolidatedsex = "Male")
+  psa[k]
+  haskey(psa,k)
+  for( k, v ) in pairs( psa )
+   println( "k=$k ")
+  end
+=#
+
+function agestr( age :: Int ) :: String
+    return if age < 5
+        "0 - 4"
+    elseif age < 10
+        "5 - 9"
+    elseif age < 15
+        "10 - 14"
+    elseif age < 20
+        "15 - 19"
+    elseif age < 25
+        "20 - 24"
+    elseif age < 30
+        "25 - 29"
+    elseif age < 35
+        "30 - 34"
+    elseif age < 40
+        "35 - 39"
+    elseif age < 45
+        "40 - 44"
+    elseif age < 50
+        "45 - 49"
+    elseif age < 55
+        "50 - 54"
+    elseif age < 60
+        "55 - 59"
+    elseif age < 65
+        "60 - 64"
+    elseif age < 70
+        "65 - 69"
+    elseif age < 75
+        "70 - 74"
+    elseif age < 80
+        "75 - 79"
+    elseif age < 85
+        "80 - 84"
+    elseif age >= 85
+        "85 and above"
+    end
+end
+
+function get_awards( hsm :: String, age :: Int, sex :: Sex )
+    k = (hsm=hsm, age_banded=agestr(age), consolidatedsex=string(sex))
+    CIVIL_AWARDS_GRP[k]
+end
+
+function get_costs( hsm :: String, age :: Int, sex :: Sex )
+    k = (highersubject=hsm, age_banded=agestr(age), sex=string(sex))
+    CIVIL_COSTS_GRP[k]
+end
+
+
 
 # NOT NEEDED
 function add_la_probs!( hh :: Household )

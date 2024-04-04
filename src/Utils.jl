@@ -52,6 +52,7 @@ export
    nearz, 
    not_zero_or_missing, 
    operate_on_struct!, 
+   one_of_matches,
    pretty, 
    qstrtodict, 
    renameif!,
@@ -943,6 +944,18 @@ function riskyhash( things :: AbstractVector )
       h = riskyhash( f, h )
    end
    h
+end
+
+"""
+There doesn't seem to be anything like this in standard. Use like:
+d.xx = one_of_matches.( d.y, "THING1", "THING2" )
+"""
+function one_of_matches( x::Any, things... )::Bool
+   return if x ∈ things
+      true
+   else        
+      false
+   end
 end
 
 end # module
