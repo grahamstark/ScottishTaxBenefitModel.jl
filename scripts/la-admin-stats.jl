@@ -139,18 +139,18 @@ end
 begin
 	cby = groupby( CIVIL_COSTS, :effectiveyear)
 	for( ck, cc ) in pairs( cby )
-		cost = sum( cc.totalpaidincvat )
-		cases = length( cc.totalpaidincvat )
+		cost = sum( cc.totalpaid )
+		cases = length( cc.totalpaid )
 		println( "year = $(ck.effectiveyear) cost £$(fm(cost)) cases $(fm(cases))" )
 	end
-	fm(sum( CIVIL_COSTS.totalpaidincvat)), length( CIVIL_COSTS.totalpaidincvat)
+	fm(sum( CIVIL_COSTS.totalpaid)), length( CIVIL_COSTS.totalpaid)
 end
 
 # ╔═╡ 9b57683e-eb7c-40d2-8c4d-777e37eefc52
 begin
 	f = Figure()
 	ax = Axis(f[1,1])
-	cv = CIVIL_COSTS.totalpaidincvat
+	cv = CIVIL_COSTS.totalpaid
 	hist!(ax, (log.(cv[cv.>0])))
 	f
 end

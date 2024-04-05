@@ -2,9 +2,12 @@ module LegalAidRunner
 #
 # stand alone threaded runner that just does legal aid
 #
-using Base.Threads
+using Base.Threads 
+
 using ChunkSplitters
+using DataFrames
 using Observables
+using StatsBase
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -92,15 +95,13 @@ end
 
 """
 This is the base of the costs model
+bp = out.breakdown_pers[1]
+
 """
-function create_base_propensities( 
-    settings :: Settings, 
-    systems  :: Vector{TaxBenefitSystem{T}},
-    observer :: Observable ) :: DataFrame
-    outp = do_one_run( settings, systems, observer, reset_data=true, reset_results=true )
-    bp = out.breakdown_pers[1]
-    rename!( pb, [:entitlement=>:la_status]) # match names in the actual output
-    n = 100
+function create_base_propensities( bp :: DataFrame ) :: DataFrame
+    bp.la_status = bp.entitlement # match names in the actual output
+    bp_grp = groupby(bp, [:la_status, :age2, :sex])
+    n = size( bp_grp )[1]*length(CIVIL_SUBJECTS)
     out = DataFrame( 
         hsm = fill("",n ), 
         age2 = fill("",n), 
@@ -108,20 +109,60 @@ function create_base_propensities(
         case_freq = zeros(n), 
         popn = zeros(n),        
         la_status = fill( la_none, n ),
-        cost_max = zeros(n), 
-        cost_mean = zeros(n), 
-        cost_median = zeros(n), 
-        cost_min = zeros(n), 
-        cost_nmiss = zeros(n), 
-        cost_nobs = zeros(n), 
-        cost_q25 = zeros(n), 
-        cost_q75 = zeros(n))
+        costs_max = zeros(n), 
+        costs_mean = zeros(n), 
+        costs_median = zeros(n), 
+        costs_min = zeros(n), 
+        costs_nmiss = zeros(n), 
+        costs_nobs = zeros(n), 
+        costs_q25 = zeros(n), 
+        costs_q75 = zeros(n))
     i = 0
-    bp_grp_ns = groupby(bp, [:age2, :sex])
+    for (k,v) in pairs( bp_grp )
+        for hsm in CIVIL_SUBJECTS
+            i += 1
+            lout = out[i,:]
+            lout.popn = sum( v.weight )
+            lout.sex = k.sex
+            lout.age2 = k.age2
+            lout.hsm = hsm
+            lout.la_status = k.la_status
+            # now, look up corresponding costs data: first make a key to disagg grouped dataframe
+            costk = make_key( 
+                la_status = k.la_status, 
+                hsm = hsm,
+                age = k.age2,
+                sex = k.sex )
+            @show costk
+            # then look up & fill if there are records for the costs for that combo 
+            # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
+            if haskey( CIVIL_COSTS_GRP4, costk ) 
+                cv = CIVIL_COSTS_GRP4[costk] 
+                r = summarystats( cv.totalpaid )
+                lout.costs_max = r.max     
+                lout.costs_mean = r.mean
+                lout.costs_median = r.median  
+                lout.costs_min = r.min
+                lout.costs_nmiss = r.nmiss   
+                lout.costs_nobs = r.nobs
+                lout.costs_q25 = r.q25     
+                lout.costs_q75 = r.q75
+                lout.case_freq = r.nobs / lout.popn 
+            end
+        end # each subject
+    end
+    #=
+    
+    fill in subviews 
+
     bp_grp1 = bp
     bp_grp2 = groupby(bp, [:la_status])
     bp_grp3 = groupby(bp, [:la_status, :sex])
     bp_grp4 = groupby(bp, [:la_status, :age2, :sex])
+
+    =#
+    sort!( out, [:hsm,:la_status,:sex, :age2])
+    return out
 end
 
 end # module

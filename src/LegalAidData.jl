@@ -1,9 +1,10 @@
 #
+# This model contains 
 # FIXME maybe amalgamate into an "ExtraData" module??
 # 
 module LegalAidData
 
-using CSV,DataFrames,CategoricalArrays
+using CSV,DataFrames,CategoricalArrays,StatsBase
 
 using ScottishTaxBenefitModel
 using .RunSettings
@@ -12,6 +13,8 @@ using .ModelHousehold
 
 export 
     agestr2, 
+    gcounts,
+    make_key,
     CIVIL_AWARDS_GRP_NS,
     CIVIL_AWARDS_GRP1,
     CIVIL_AWARDS_GRP2,
@@ -24,6 +27,8 @@ export
     CIVIL_COSTS_GRP3,
     CIVIL_COSTS_GRP4,
     CIVIL_COSTS, 
+    AA_COSTS,
+    CIVIL_SUBJECTS,
     LA_PROB_DATA, 
     PROBLEM_TYPES
 
@@ -40,26 +45,27 @@ const PROBLEM_TYPES =
 
 const ESTIMATE_TYPES = ["lower","prediction","upper"]
 
-function age2( ages  )::String
-    return if ismissing( ages )
+function age2( age )::String
+    ages = ismissing(age) ? "" : replace( age, " "=>"" )
+    return if ages == ""
         "35-64"
     elseif ages in ["0 - 4"
-        "5 - 9"
-        "10 - 14"]
+        "5-9"
+        "10-14"]
         "0-14"
     elseif ages in [
-        "15 - 19"
-        "20 - 24"
-        "25 - 29"
-        "30 - 34"]
+        "15-19"
+        "20-24"
+        "25-29"
+        "30-34"]
         "15-34"
     elseif ages in [
-        "35 - 39"
-        "40 - 44"
-        "45 - 49"
-        "50 - 54"
-        "55 - 59"
-        "60 - 64"]
+        "35-39"
+        "40-44"
+        "45-49"
+        "50-54"
+        "55-59"
+        "60-64"]
         "35-64"
     else
         "65+"
@@ -117,6 +123,44 @@ function load_awards( filename::String )::DataFrame
     awards
 end
 
+function load_aa_costs( filename::String )::DataFrame
+    cost = CSV.File( filename; missingstring=["#NULL!","","-"] )|>DataFrame
+    nrows,ncols = size( cost )
+    rename!( cost, lowercase.( names(cost)))
+    for t in [
+        :highersubject,
+        :aidtype,
+        :appcode,
+        :highersubject,
+        :sex ]
+        cost[:,t] = CategoricalArray( cost[:,t] )
+    end
+    rename!( cost, [
+        :highersubject=>:hsm,
+        :age_banded=>:age, 
+        :ap_contribution=>:maxcon, 
+        :passport_ben=>:passported])
+    cost.passported = cost.passported .== "Y"
+    cost.maxcon = coalesce.(cost.maxcon, 0.0 )    
+    cost.age2 = age2.( cost.age )    
+    cost.la_status = fill( la_none, nrows )
+    for r in 1:nrows
+        a = cost[r,:]
+        a.la_status = if a.passported 
+            la_passported 
+        elseif a.maxcon > 0
+            la_with_contribution
+        else
+            la_full
+        end
+        if ismissing(a.sex) || (a.sex == "Prefer_Not__To_Say")
+            a.sex = rand() <= 0.47335001563966217 ? "Male" : "Female"
+        end
+    end
+    cost.sex = titlecase.(cost.sex)
+    cost
+end
+
 function load_costs( filename::String )::DataFrame
     cost = CSV.File( filename; missingstring=["#NULL!","","-"] )|>DataFrame
     nrows,ncols = size( cost )
@@ -132,7 +176,7 @@ function load_costs( filename::String )::DataFrame
         :whichform ]
         cost[:,t] = CategoricalArray( cost[:,t] )
     end
-    rename!( cost, [:highersubject=>:hsm,:age_banded=>:age])
+    rename!( cost, [:highersubject=>:hsm,:age_banded=>:age,:totalpaidincvat=>:totalpaid])
     cost.passported = .! ismissing.( cost.passported )
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )
     cost.la_status = fill( la_none, nrows )
@@ -183,7 +227,7 @@ for kk in k
          if haskey( LegalAidData.CIVIL_COSTS_GRP_NS, kk )
              v = LegalAidData.CIVIL_COSTS_GRP_NS[kk]
              @show kk    
-             @show summarystats(v.totalpaidincvat)
+             @show summarystats(v.totalpaid)
          end
        end
 
@@ -191,6 +235,7 @@ for kk in k
 =#
 
 const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "civil-legal-aid-case-costs.tab" ))
+const AA_COSTS = load_aa_costs( joinpath(MODEL_DATA_DIR, "aa-case-costs.tab" ))
 const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "civil-applications.tab" ))
 const CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
 const CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
@@ -202,7 +247,7 @@ const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm])
 const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
 const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
 const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
-
+const CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
 #= 
   psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
   k=(hsm = "Discrimination", age_banded = "5 - 9", consolidatedsex = "Male")
@@ -212,6 +257,17 @@ const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
    println( "k=$k ")
   end
 =#
+
+function gcounts( gdf :: GroupedDataFrame )
+    kk = sort(keys(gdf))
+    for k in kk
+        if haskey( gdf, k )
+            @show k
+            @show size(gdf[k])[1]
+            @show summarystats(gdf[k].totalpaid)
+        end
+    end
+end
 
 function agestr( age :: Int ) :: String
     return if age < 5
@@ -260,25 +316,29 @@ end
 function make_key(; 
     la_status :: Union{LegalAidStatus,Nothing}=nothing, 
     hsm :: Union{String,Nothing}=nothing, 
-    age :: Union{Int,Nothing}=nothing, 
+    age :: Union{String,Int,Nothing}=nothing, 
     sex :: Union{Sex,Nothing}=nothing ) :: NamedTuple
     k = []
     v = []
-    if ! isnothing( la_status )
-        push!(k, :la_status)
-        push!(v, la_status )
-    end
     if ! isnothing( hsm )
         push!(k, :hsm)
         push!(v, hsm )
     end
+    if ! isnothing( la_status )
+        push!(k, :la_status)
+        push!(v, la_status )
+    end
     if ! isnothing( age )
-        push!(k, :age)
-        push!(v, age2(agestr(age)) )
+        push!(k, :age2)
+        if typeof(age) == String
+            push!(v, age )
+        else
+            push!(v, age2(agestr(age)) )
+        end
     end
     if ! isnothing( sex )
         push!(k, :sex)
-        push!(v, sex )
+        push!(v, string.(sex) )
     end
     k = NamedTuple(zip(k,v))
     return k

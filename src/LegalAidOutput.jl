@@ -119,9 +119,9 @@ function fill_legal_aid_frame_row!(
     pr.marital_status = pers.marital_status
     pr.disabled = pers_is_disabled( pers )
     pr.is_child = pers.is_standard_child
-    pr.age = pers.age,
-    pr.age2 = agestr2( pers.age ),
-    pr.sex = pers.sex,
+    pr.age = pers.age
+    pr.age2 = agestr2( pers.age )
+    pr.sex = pers.sex
     pr.all_eligible = lr.eligible | lr.passported
     pr.mt_eligible = lr.eligible
     pr.passported = lr.passported

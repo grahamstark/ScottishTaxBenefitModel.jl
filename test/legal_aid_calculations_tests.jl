@@ -391,14 +391,16 @@ end
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
-    settings.requested_threads = 4
+    settings.requested_threads = 1
     #  settings.impute_fields_from_consumption = false
     settings.num_households,  settings.num_people, nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=true )
+        FRSHouseholdGetter.initialise( settings; reset=false )
     
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    println( "run complete")
+    propensities = LegalAidRunner.create_base_propensities( laout.civil.data[1])
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
 
@@ -412,5 +414,8 @@ end
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
+
     # println(LAUtils.BASE_SYS,legalaid)
+    pfname = "$(settings.output_dir)/legal_aid_civil_propensities.csv"
+    CSV.write( pfname, propensities )
 end
