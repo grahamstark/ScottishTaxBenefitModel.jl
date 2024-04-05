@@ -153,11 +153,12 @@ function load_aa_costs( filename::String )::DataFrame
         else
             la_full
         end
-        if ismissing(a.sex) || (a.sex == "Prefer_Not__To_Say")
+        if ismissing(a.sex) || ( match( r".*Prefer.*", titlecase(a.sex) ) !== nothing )
             a.sex = rand() <= 0.47335001563966217 ? "Male" : "Female"
         end
     end
     cost.sex = titlecase.(cost.sex)
+    
     cost
 end
 

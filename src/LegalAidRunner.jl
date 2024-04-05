@@ -8,6 +8,7 @@ using ChunkSplitters
 using DataFrames
 using Observables
 using StatsBase
+using CategoricalArrays
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -95,13 +96,18 @@ end
 
 """
 This is the base of the costs model
-bp = out.breakdown_pers[1]
+entitlement = out.civil.data[1]  or out.aa
 
 """
-function create_base_propensities( bp :: DataFrame ) :: DataFrame
-    bp.la_status = bp.entitlement # match names in the actual output
-    bp_grp = groupby(bp, [:la_status, :age2, :sex])
-    n = size( bp_grp )[1]*length(CIVIL_SUBJECTS)
+function create_base_propensities( 
+    entitlement :: DataFrame,
+    costs :: DataFrame ) :: DataFrame
+    subjects = levels( costs.hsm )
+    entitlement.la_status = entitlement.entitlement # match names in the actual output
+    entitlement_grp = groupby(entitlement, [:la_status, :age2, :sex])
+    costs_grp4 = groupby( costs, [:hsm, :la_status, :age2, :sex])
+    # make a dataframe class by types of claim, la entitlement, age & sex
+    n = size( entitlement_grp )[1]*length(subjects) 
     out = DataFrame( 
         hsm = fill("",n ), 
         age2 = fill("",n), 
@@ -118,8 +124,9 @@ function create_base_propensities( bp :: DataFrame ) :: DataFrame
         costs_q25 = zeros(n), 
         costs_q75 = zeros(n))
     i = 0
-    for (k,v) in pairs( bp_grp )
-        for hsm in CIVIL_SUBJECTS
+    
+    for (k,v) in pairs( entitlement_grp )
+        for hsm in subjects
             i += 1
             lout = out[i,:]
             lout.popn = sum( v.weight )
@@ -136,8 +143,8 @@ function create_base_propensities( bp :: DataFrame ) :: DataFrame
             @show costk
             # then look up & fill if there are records for the costs for that combo 
             # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
-            if haskey( CIVIL_COSTS_GRP4, costk ) 
-                cv = CIVIL_COSTS_GRP4[costk] 
+            if haskey( costs_grp4, costk ) 
+                cv = costs_grp4[costk] 
                 r = summarystats( cv.totalpaid )
                 lout.costs_max = r.max     
                 lout.costs_mean = r.mean
@@ -151,16 +158,6 @@ function create_base_propensities( bp :: DataFrame ) :: DataFrame
             end
         end # each subject
     end
-    #=
-    
-    fill in subviews 
-
-    bp_grp1 = bp
-    bp_grp2 = groupby(bp, [:la_status])
-    bp_grp3 = groupby(bp, [:la_status, :sex])
-    bp_grp4 = groupby(bp, [:la_status, :age2, :sex])
-
-    =#
     sort!( out, [:hsm,:la_status,:sex, :age2])
     return out
 end
