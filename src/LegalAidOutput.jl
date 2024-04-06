@@ -277,7 +277,11 @@ function pt_fmt(val,row,col)
     return Format.format(val,commas=true,precision=0)
 end
 
-function la_crosstab( pre :: DataFrame, post :: DataFrame, problem="no_problem", estimate="prediction" ) :: AbstractMatrix
+function la_crosstab( 
+    pre :: DataFrame, 
+    post :: DataFrame, 
+    problem="no_problem", 
+    estimate="prediction" ) :: AbstractMatrix
     weights = Weights(pre.weight) 
     if problem != "no_problem"
         col = Symbol( "$(problem)_$estimate")
@@ -323,7 +327,10 @@ function crappycrosstab(
     return m
 end
 
-function summarise_la_output!( la :: LegalOutput )
+function summarise_la_output!( 
+    la :: LegalOutput,
+    civil_propensities :: DataFrame,
+    aa_propensities :: DataFrame )
     # base data 
     data1 = add_problem_probabilities( la.data[1] )
     budata1 = data1[data1.is_bu_head, : ] 
@@ -340,14 +347,18 @@ function summarise_la_output!( la :: LegalOutput )
                     la.crosstab_pers[sysno-1][k] = la_crosstab( data1, data, p, est )
                 end # estimates          
             end # problems
+
             la.crosstab_bu[sysno-1] = la_crosstab( budata1, budata )
         end # sysno > 1
     end
 end
 
-function summarise_la_output!( la :: AllLegalOutput )
-    summarise_la_output!( la.civil )
-    summarise_la_output!( la.aa )
+function summarise_la_output!( 
+    la :: AllLegalOutput,
+    civil_propensities :: DataFrame,
+    aa_propensities :: DataFrame )
+    summarise_la_output!( la.civil, civil_propensities, aa_propensities )
+    summarise_la_output!( la.aa, civil_propensities, aa_propensities )
 end
 
 """

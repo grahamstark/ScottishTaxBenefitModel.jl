@@ -32,7 +32,7 @@ using .Results:
     total
 
 using .STBIncomes
-
+using .LegalAidOutput
 using .ModelHousehold
 
 using .FRSHouseholdGetter: 
@@ -906,7 +906,10 @@ function summarise_frames!(
         println( "gain lose")
     end    
     if settings.do_legal_aid
-        LegalAidOutput.summarise_la_output!(frames.legalaid)
+        LegalAidOutput.summarise_la_output!(
+            frames.legalaid,
+            LegalAidResults.RESULTS.civil_propensities,
+            LegalAidResults.RESULTS.aa_propensities )
     end
     return ( ;
         quantiles, 

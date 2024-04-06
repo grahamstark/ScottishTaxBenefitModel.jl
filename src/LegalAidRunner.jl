@@ -32,10 +32,15 @@ using .Runner
 # speed wrapper trick
 mutable struct ResultsWrapper 
     results :: Matrix{HouseholdResult}
+    civil_propensities :: DataFrame
+    aa_propensities :: DataFrame
 end
 
 RESULTS = 
-    ResultsWrapper( Matrix{HouseholdResult}(undef,0,0))
+    ResultsWrapper( 
+        Matrix{HouseholdResult}(undef,0,0),
+        DataFrame(),
+        DataFrame())
 
 function intialise( 
     settings :: Settings,
@@ -44,7 +49,15 @@ function intialise(
     settings.export_full_results = true
     settings.do_legal_aid = false    
     rs = Runner.do_one_run( settings, systems, observer )
+
     RESULTS.results = rs.full_results
+
+    # create takeup propensities
+    settings.do_legal_aid = true
+    laresults = do_one_run( settings, systems, observer )
+    RESULTS.civil_propensities = create_base_propensities( laresults.civil.data[1], LegalAidData.CIVIL_COSTS )
+    RESULTS.aa_propensities = create_base_propensities( laresults.aa.data[1], LegalAidData.AA_COSTS )
+    
 end
 
 function do_one_run( 
@@ -90,7 +103,10 @@ function do_one_run(
             end
         end # hhlds in each chunk 
     end # threads
-    LegalAidOutput.summarise_la_output!( lout )
+    LegalAidOutput.summarise_la_output!( 
+        lout,
+        RESULTS.civil_propensities,
+        RESULTS.aa_propensities )
     return lout
 end 
 

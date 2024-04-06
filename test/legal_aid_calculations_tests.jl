@@ -419,8 +419,12 @@ end
     println( "run complete")
     civil_propensities = LegalAidRunner.create_base_propensities( laout.civil.data[1], LegalAidData.CIVIL_COSTS )
     aa_propensities = LegalAidRunner.create_base_propensities( laout.aa.data[1], LegalAidData.AA_COSTS )
+
     test_costs( "Civil", civil_propensities, LegalAidData.CIVIL_COSTS )
     test_costs( "AA", aa_propensities, LegalAidData.AA_COSTS )
+    test_costs( "Civil#actualbase", LegalAidRunner.RESULTS.civil_propensities, LegalAidData.CIVIL_COSTS )
+    test_costs( "AA#actualbase", LegalAidRunner.RESULTS.aa_propensities, LegalAidData.AA_COSTS )
+
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
 
