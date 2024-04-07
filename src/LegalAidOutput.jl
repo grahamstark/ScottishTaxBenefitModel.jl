@@ -77,9 +77,25 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         disqualified_on_capital = zeros(RT,n))
 end
 
-function add_problem_probabilities( results :: DataFrame )
-    r = innerjoin( results, LegalAidData.LA_PROB_DATA; on = [:hid, :data_year, :pid ], makeunique=true)
-    return r[ r.from_child_record .!= 1,:]
+"""
+
+"""
+function merge_in_probs_and_props( 
+    results :: DataFrame,
+    problem_probs :: DataFrame,
+    propensities :: DataFrame )
+    r = innerjoin( 
+        results, 
+        problem_probs,
+        LegalAidData.LA_PROB_DATA; 
+        on = [:hid, :data_year, :pid ], 
+        makeunique=true)
+    r = innerjoin( 
+        r, 
+        propensities;
+        on = [:age2=>:age2,:sex=>:sex,:entitlement=>:la_status ],
+        makeunique=true) # unique shouldn't be needed here??
+    return r #[ r.from_child_record .!= 1,:]
 end
 
 
@@ -344,13 +360,18 @@ end
 
 function summarise_la_output!( 
     la :: LegalOutput,
-    civil_propensities :: DataFrame,
-    aa_propensities :: DataFrame )
+    propensities :: DataFrame )
     # base data 
-    data1 = add_problem_probabilities( la.data[1] )
+    data1 = merge_in_probs_and_props( 
+        la.data[1], 
+        LegalAidData.LA_PROB_DATA,
+        propensities )
     budata1 = data1[data1.is_bu_head, : ] 
     for sysno in 1:la.num_systems
-        data = add_problem_probabilities( la.data[sysno] )
+        data = merge_in_probs_and_props( 
+            la.data[sysno], 
+            LegalAidData.LA_PROB_DATA,
+            propensities )
         budata = data[data.is_bu_head,:] 
         la.breakdown_pers[sysno] = aggregate_all_legal_aid( data,:weight )
         la.breakdown_bu[sysno]  = aggregate_all_legal_aid( budata,:weight )
@@ -372,8 +393,8 @@ function summarise_la_output!(
     la :: AllLegalOutput,
     civil_propensities :: DataFrame,
     aa_propensities :: DataFrame )
-    summarise_la_output!( la.civil, civil_propensities, aa_propensities )
-    summarise_la_output!( la.aa, civil_propensities, aa_propensities )
+    summarise_la_output!( la.civil, civil_propensities )
+    summarise_la_output!( la.aa, aa_propensities )
 end
 
 """

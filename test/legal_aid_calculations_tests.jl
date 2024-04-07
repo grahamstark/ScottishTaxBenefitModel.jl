@@ -425,9 +425,9 @@ end
    
     # println(LAUtils.BASE_SYS,legalaid)
     pfname = "$(settings.output_dir)/legal_aid_civil_propensities.tab"
-    CSV.write( pfname, civil_propensities; delim='\t' )
+    CSV.write( pfname, LegalAidRunner.RESULTS.civil_propensities; delim='\t' )
     pfname = "$(settings.output_dir)/legal_aid_aa_propensities.tab"
-    CSV.write( pfname, aa_propensities; delim='\t' )
+    CSV.write( pfname, LegalAidRunner.RESULTS.aa_propensities; delim='\t' )
 
     test_costs( "Civil", 
         civil_propensities, LegalAidData.CIVIL_COSTS )

@@ -78,7 +78,10 @@ function do_one_run(
     num_threads = min( nthreads(), settings.requested_threads )
     println( "num_threads $num_threads")
     println( "num_households $(settings.num_households)")
-    chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
+    chunks = ChunkSplitters.chunks(
+        1:settings.num_households, 
+        num_threads, 
+        :batch )
     lout = 
         LegalAidOutput.AllLegalOutput(
             T; 
@@ -87,7 +90,13 @@ function do_one_run(
     @threads for thread in 1:num_threads
         for hno in chunks[thread][1]
             if hno % 500 == 0
-                observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
+                observer[] =Progress( 
+                    settings.uuid, 
+                    "run",
+                    thread, 
+                    hno, 
+                    100, 
+                    settings.num_households )
             end
             res = RESULTS.results[:,hno]
             hh = get_household( hno )
@@ -95,12 +104,24 @@ function do_one_run(
                 hh, 
                 systems[1].hours_limits, 
                 systems[1].age_limits, 
-                systems[1].child_limits )            
-            
+                systems[1].child_limits )    
             for sysno in 1:num_systems 
-                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
-                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
-                LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno )
+                calc_legal_aid!( 
+                    res[sysno], 
+                    hh, 
+                    intermed, 
+                    systems[sysno].legalaid.civil )
+                calc_legal_aid!( 
+                    res[sysno], 
+                    hh, 
+                    intermed, 
+                    systems[sysno].legalaid.aa )
+                LegalAidOutput.add_to_frames!( 
+                    lout, 
+                    settings, 
+                    hh, 
+                    res[sysno], 
+                    sysno )
             end
         end # hhlds in each chunk 
     end # threads
@@ -123,9 +144,12 @@ function create_base_propensities(
     function rn( s :: AbstractString ) :: String
         matches = match(r"(.*)_1",s)
         if ! isnothing(matches)
-           return matches[1]*"_cases"
+           return matches[1]*"_prop"
         end
-        return s
+        if s in ["hsm", "age2", "sex", "popn", "case_freq", "la_status" ]        
+            return s
+        end
+        return s*"_cost"
      end
 
     subjects = levels( costs.hsm )    
@@ -220,7 +244,7 @@ function create_base_propensities(
     sort!( out, [:hsm,:la_status,:sex, :age2])
     av_costs_by_type = unstack(out[!,[:hsm,:sex,:age2,:popn,:la_status,:costs_mean]],:hsm,:costs_mean)
     rename!( av_costs_by_type, Utils.basiccensor.(names(av_costs_by_type)))
-    cases_by_type = unstack(out[!,[:hsm,:sex,:age2,:la_status,:popn]],:hsm,:popn)
+    cases_by_type = unstack(out[!,[:hsm,:sex,:age2,:la_status,:popn,:case_freq]],:hsm,:case_freq)
     rename!( cases_by_type, Utils.basiccensor.(names(cases_by_type)))
     cost_and_count = hcat( av_costs_by_type, cases_by_type, makeunique=true )
     rename!( rn, cost_and_count )
