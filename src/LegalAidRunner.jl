@@ -56,8 +56,7 @@ function intialise(
     # create takeup propensities
     settings.do_legal_aid = true
     laresults = do_one_run( settings, systems, observer )
-    RESULTS.civil_propensities = create_wide_propensities( laresults.civil.data[1], LegalAidData.CIVIL_COSTS )
-    RESULTS.aa_propensities = create_wide_propensities( laresults.aa.data[1], LegalAidData.AA_COSTS )
+    println( "initialise; at create wide propensities ")
     
 end
 
@@ -72,6 +71,7 @@ function do_one_run(
         settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
     end
     if( size( RESULTS.results )[1] <= 1) || reset_results
+        println( "entering initialise")
         intialise( settings, systems, observer )
     end
     num_systems = length( systems )
@@ -125,6 +125,13 @@ function do_one_run(
             end
         end # hhlds in each chunk 
     end # threads
+
+    # Propensity Initialisation needs to be done at the end since we need base results.
+    if (size( RESULTS.civil_propensities )[1] <= 1) || reset_results
+        RESULTS.civil_propensities = create_wide_propensities( lout.civil.data[1], LegalAidData.CIVIL_COSTS )
+        RESULTS.aa_propensities = create_wide_propensities( lout.aa.data[1], LegalAidData.AA_COSTS )
+    end
+    # @show RESULTS.civil_propensities
     LegalAidOutput.summarise_la_output!( 
         lout,
         RESULTS.civil_propensities,
@@ -194,7 +201,7 @@ function create_base_propensities(
                 hsm = hsm,
                 age = k.age2,
                 sex = k.sex )
-            @show costk
+            # @show costk
             # then look up & fill if there are records for the costs for that combo 
             # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
             if haskey( costs_grp4, costk ) 
@@ -224,7 +231,7 @@ function create_base_propensities(
             la_status = k.la_status, 
             age = k.age2,
             sex = k.sex )
-        @show costk
+        # @show costk
         # then look up & fill if there are records for the costs for that combo 
         # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
         if haskey( costs_grp3, costk ) 
@@ -248,6 +255,8 @@ function create_base_propensities(
     rename!( cases_by_type, Utils.basiccensor.(names(cases_by_type)))
     cost_and_count = hcat( av_costs_by_type, cases_by_type, makeunique=true )
     rename!( rn, cost_and_count )
+    println( "create_base_propensities cost_and_count=")
+    # @show cost_and_count
     return (; cost_and_count, long_data=out )
 end
 

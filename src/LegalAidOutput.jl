@@ -90,6 +90,8 @@ function merge_in_probs_and_props(
         LegalAidData.LA_PROB_DATA; 
         on = [:hid, :data_year, :pid ], 
         makeunique=true)
+    # @show names(r)
+    # @show names(propensities)
     r = innerjoin( 
         r, 
         propensities;
