@@ -361,7 +361,6 @@ end
     hres = init_household_result( hh )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
     cres = hres.bus[1].legalaid.civil
-    
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,276.54)
     @test to_nearest_p( cres.capital_contribution, 4_147 )
     @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,4_359.00  )
@@ -370,7 +369,6 @@ end
     @test cres.eligible
     println( head )
     println( cres )
-
 end
 
 """
@@ -389,7 +387,6 @@ function test_costs(
     propensities :: DataFrame,
     costs :: DataFrame  )
     prop_grp = groupby( propensities, [:hsm])
-
     cost_grp = groupby( costs, [:hsm])
     for (k,v) in pairs( prop_grp )
         if k.hsm != "aa_total"
@@ -412,42 +409,31 @@ end
     settings.export_full_results = true
     settings.do_legal_aid = true
     settings.requested_threads = 4
-    #  settings.impute_fields_from_consumption = false
     settings.num_households,  settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=false )
-    
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     println( "run complete")
-    civil_propensities = LegalAidRunner.create_base_propensities( laout.civil.data[1], LegalAidData.CIVIL_COSTS ).long_data
-    aa_propensities = LegalAidRunner.create_base_propensities( laout.aa.data[1], LegalAidData.AA_COSTS ).long_data
-   
-    # println(LAUtils.BASE_SYS,legalaid)
+    civil_propensities = LegalAidRunner.create_base_propensities( 
+        laout.civil.data[1], 
+        LegalAidData.CIVIL_COSTS ).long_data
+    aa_propensities = LegalAidRunner.create_base_propensities( 
+        laout.aa.data[1], 
+        LegalAidData.AA_COSTS ).long_data
     pfname = "$(settings.output_dir)/legal_aid_civil_propensities.tab"
     CSV.write( pfname, LegalAidRunner.RESULTS.civil_propensities; delim='\t' )
     pfname = "$(settings.output_dir)/legal_aid_aa_propensities.tab"
     CSV.write( pfname, LegalAidRunner.RESULTS.aa_propensities; delim='\t' )
-
     test_costs( "Civil", 
         civil_propensities, LegalAidData.CIVIL_COSTS )
     test_costs( "AA", 
         aa_propensities, LegalAidData.AA_COSTS )
-    # test_costs( "Civil#actualbase", LegalAidRunner.RESULTS.civil_propensities.long_data, LegalAidData.CIVIL_COSTS )
-    # test_costs( "AA#actualbase", LegalAidRunner.RESULTS.aa_propensities.long_data, LegalAidData.AA_COSTS )
-
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
-
     settings.run_name = "Local Legal Aid Runner Test - FRS Native Capital"
     sys2.legalaid.civil.use_inferred_capital = false
-    #=
-    sys2.legalaid.civil.income_partners_allowance = 0.0
-    sys2.legalaid.civil.income_other_dependants_allowance = 0.0
-    sys2.legalaid.civil.income_child_allowance = 0.0
-    =#
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
-
 end
