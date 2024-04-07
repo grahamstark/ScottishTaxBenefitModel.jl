@@ -267,18 +267,25 @@ function combine_one_legal_aid(
     outf
 end
 
+function combine_costs(
+    df :: DataFrame,
+    to_combine :: Symbol,
+    weighted_cols :: AbstractArray ):: AbstractDataFrame
+
+end
+
 """
 Call `combine_one_legal_aid` on all the `TARGETS`
 return a dictionary of grouped dataframes 
 """
-function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol ) :: Dict
+function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol, target_columns :: AbstractVector ) :: Dict
     # in case there are holes in the dataframe, for example when created at BU levels.
     df = df[df.hid .>0,:]
     weighted_cols = []
     # Make summing easier by add weighted columms to la counts columns.
     # LA_BITS are the column headers: numbers of cases, numbers of those
     # eligible and so on. So for eligibble (1/0), add wt_eligible, and so on.
-    for l in LA_BITS
+    for l in target_columns
         psym = Symbol( "wt_$(l)")
         df[:,psym] .= df[:,weight_sym].*df[:,l]
         push!( weighted_cols, psym )
@@ -310,6 +317,21 @@ function pt_fmt(val,row,col)
     return Format.format(val,commas=true,precision=0)
 end
 
+function cost_item_names( 
+    wideds ::AbstractDataFrame )::NamedTuple
+    costs=[]
+    props=[]
+    labels=[]
+    for i in sort(names(wideds))
+      m = match( r"(.*)_cost", i )
+      if ! isnothing(m)
+        push!( costs, Symbol( "$(m[1])_cost" ))
+        push!( props, Symbol( "$(m[1])_prop" )) 
+        push!( labels, pretty( m[1] ))
+    end; end
+    (;costs, props, labels)
+ end
+
 function la_crosstab( 
     pre :: DataFrame, 
     post :: DataFrame, 
@@ -332,6 +354,7 @@ Fixed silly Crosstab with entitlement wired in because my general crosstab is
 breaking in a way I can't work out.
 pre is the row, post is the col, cells above the diagonal represent gains, below losses.
 """
+#=
 function crappycrosstab( 
     pre :: DataFrame, 
     post :: DataFrame, 
@@ -359,6 +382,7 @@ function crappycrosstab(
     end
     return m
 end
+=#
 
 function summarise_la_output!( 
     la :: LegalOutput,
@@ -375,8 +399,8 @@ function summarise_la_output!(
             LegalAidData.LA_PROB_DATA,
             propensities )
         budata = data[data.is_bu_head,:] 
-        la.breakdown_pers[sysno] = aggregate_all_legal_aid( data,:weight )
-        la.breakdown_bu[sysno]  = aggregate_all_legal_aid( budata,:weight )
+        la.breakdown_pers[sysno] = aggregate_all_legal_aid( data,:weight, LA_BITS )
+        la.breakdown_bu[sysno]  = aggregate_all_legal_aid( budata,:weight, LA_BITS )
         if sysno > 1
             for p in LegalAidData.PROBLEM_TYPES
                 for est in LegalAidData.ESTIMATE_TYPES
