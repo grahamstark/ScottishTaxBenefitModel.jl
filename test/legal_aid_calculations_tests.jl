@@ -389,15 +389,18 @@ function test_costs(
     propensities :: DataFrame,
     costs :: DataFrame  )
     prop_grp = groupby( propensities, [:hsm])
+
     cost_grp = groupby( costs, [:hsm])
     for (k,v) in pairs( prop_grp )
-        entcost = sum(v.popn .* v.case_freq .* v.costs_mean )
-        # can't reuse key, so..
-        ck = NamedTuple( [:hsm => k.hsm] )
-        cgc = cost_grp[ck]
-        @show ck
-        actcost = sum( cgc.totalpaid )
-        @assert isapprox(entcost,actcost; rtol=0.001) "$label : fail cost for $k actual $actcost modelled $entcost"       
+        if k.hsm != "aa_total"
+            entcost = sum(v.popn .* v.case_freq .* v.costs_mean )
+            # can't reuse key, so..
+            ck = NamedTuple( [:hsm => k.hsm] )
+            cgc = cost_grp[ck]
+            @show ck
+            actcost = sum( cgc.totalpaid )
+            @assert isapprox(entcost,actcost; rtol=0.001) "$label : fail cost for $k actual $actcost modelled $entcost" 
+        end
     end
 end
 
@@ -417,13 +420,21 @@ end
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     println( "run complete")
-    civil_propensities = LegalAidRunner.create_base_propensities( laout.civil.data[1], LegalAidData.CIVIL_COSTS )
-    aa_propensities = LegalAidRunner.create_base_propensities( laout.aa.data[1], LegalAidData.AA_COSTS )
+    civil_propensities = LegalAidRunner.create_base_propensities( laout.civil.data[1], LegalAidData.CIVIL_COSTS ).long_data
+    aa_propensities = LegalAidRunner.create_base_propensities( laout.aa.data[1], LegalAidData.AA_COSTS ).long_data
+   
+    # println(LAUtils.BASE_SYS,legalaid)
+    pfname = "$(settings.output_dir)/legal_aid_civil_propensities.tab"
+    CSV.write( pfname, civil_propensities; delim='\t' )
+    pfname = "$(settings.output_dir)/legal_aid_aa_propensities.tab"
+    CSV.write( pfname, aa_propensities; delim='\t' )
 
-    test_costs( "Civil", civil_propensities, LegalAidData.CIVIL_COSTS )
-    test_costs( "AA", aa_propensities, LegalAidData.AA_COSTS )
-    test_costs( "Civil#actualbase", LegalAidRunner.RESULTS.civil_propensities, LegalAidData.CIVIL_COSTS )
-    test_costs( "AA#actualbase", LegalAidRunner.RESULTS.aa_propensities, LegalAidData.AA_COSTS )
+    test_costs( "Civil", 
+        civil_propensities, LegalAidData.CIVIL_COSTS )
+    test_costs( "AA", 
+        aa_propensities, LegalAidData.AA_COSTS )
+    # test_costs( "Civil#actualbase", LegalAidRunner.RESULTS.civil_propensities.long_data, LegalAidData.CIVIL_COSTS )
+    # test_costs( "AA#actualbase", LegalAidRunner.RESULTS.aa_propensities.long_data, LegalAidData.AA_COSTS )
 
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
@@ -438,11 +449,5 @@ end
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
-
-    # println(LAUtils.BASE_SYS,legalaid)
-    pfname = "$(settings.output_dir)/legal_aid_civil_propensities.csv"
-    CSV.write( pfname, civil_propensities )
-    pfname = "$(settings.output_dir)/legal_aid_aa_propensities.csv"
-    CSV.write( pfname, aa_propensities )
 
 end

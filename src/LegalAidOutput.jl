@@ -234,37 +234,52 @@ const ENTITLEMENT_STRS = make_entitlement_strs()
 
 """
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
-return a dataframe (grouped?) with LA_BITS as colums and broken down values for one of TARGETS.
+return a dataframe (grouped?) with LA_BITS as columns and broken down values for one of TARGETS.
 """
-function combine_one_legal_aid( df :: DataFrame, to_combine :: Symbol, weight_sym :: Symbol, wbits :: AbstractArray )::AbstractDataFrame
+function combine_one_legal_aid( 
+    df :: DataFrame, 
+    to_combine :: Symbol, 
+    weighted_cols :: AbstractArray )::AbstractDataFrame
     gdf = groupby( df, to_combine )
-    outf = combine( gdf, wbits .=>sum )
+    outf = combine( gdf, weighted_cols .=>sum )
+    # column names: add `Tenure`, 'Employment' or whatever as the 1st entry
     labels = push!( [Utils.pretty(string(to_combine))], LA_LABELS... )
+    # .. then rename the columns to these 
     rename!( outf, labels )
     outf
 end
 
 """
 Call `combine_one_legal_aid` on all the `TARGETS`
-return a dictionary of (grouped?) dataframes 
+return a dictionary of grouped dataframes 
 """
 function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol ) :: Dict
-    alltab = Dict()
-    # df is bu level & likely created with holes, so ...
+    # in case there are holes in the dataframe, for example when created at BU levels.
     df = df[df.hid .>0,:]
-    wbits = []
-    # add weighted to la counts columns.
+    weighted_cols = []
+    # Make summing easier by add weighted columms to la counts columns.
+    # LA_BITS are the column headers: numbers of cases, numbers of those
+    # eligible and so on. So for eligibble (1/0), add wt_eligible, and so on.
     for l in LA_BITS
         psym = Symbol( "wt_$(l)")
         df[:,psym] .= df[:,weight_sym].*df[:,l]
-        push!( wbits, psym )
+        push!( weighted_cols, psym )
     end
+    # Make a dictionary of tables of la results, broken dowb by tenure, employment,
+    # etc.
+    # pass one thing from LA_TARGETS (tenure, employment etc) as a grouping
+    # variable to the combine function.
+    alltab = Dict()
     for t in LA_TARGETS
-        gdp = combine_one_legal_aid( df, t, weight_sym, wbits )
+        gdp = combine_one_legal_aid( df, t, weighted_cols )
         alltab[t] = gdp
     end
     return alltab
 end
+
+"""
+
+"""
 
 """
 Formatter for an all-counts dataframe.
@@ -367,10 +382,10 @@ end
 function dump_frames( la :: AllLegalOutput, settings :: Settings, num_systems::Integer )
     runname = Utils.basiccensor(settings.run_name)
     for sysno in 1:num_systems
-        fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_civil.csv"
-        CSV.write( fname, la.civil.data[sysno] )
-        fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_aa.csv"
-        CSV.write( fname, la.aa.data[sysno] )
+        fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_civil.tab"
+        CSV.write( fname, la.civil.data[sysno]; delim='\t' )
+        fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_aa.tab"
+        CSV.write( fname, la.aa.data[sysno]; delim='\t' )
     end
 end
 
