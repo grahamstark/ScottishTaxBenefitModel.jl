@@ -27,6 +27,8 @@ mutable struct LegalOutput
     data :: Vector{DataFrame}
     breakdown_bu :: Vector{AbstractDict}
     breakdown_pers :: Vector{AbstractDict}
+    cases_pers :: Vector{AbstractDict}
+    costs_pers :: Vector{AbstractDict}
     crosstab_bu :: Vector{AbstractMatrix}
     crosstab_pers :: Vector{Dict{String,AbstractMatrix}}
 end
@@ -97,7 +99,7 @@ function merge_in_probs_and_props(
         propensities;
         on = [:age2=>:age2,:sex=>:sex,:entitlement=>:la_status ],
         makeunique=true) # unique shouldn't be needed here??
-    return r #[ r.from_child_record .!= 1,:]
+    return r #[ r.from_child_record .!= 1,:] - we're adding children now
 end
 
 
@@ -124,6 +126,7 @@ function fill_legal_aid_frame_row!(
     pr.is_hh_head = is_hh_head
     pr.is_bu_head = is_bu_head
     pr.sequence = hh.sequence
+    pr.tenure = hh.tenure
     pr.data_year = hh.data_year
     pr.weight = hh.weight
     pr.bu_number = buno
@@ -257,11 +260,12 @@ return a dataframe (grouped?) with LA_BITS as columns and broken down values for
 function combine_one_legal_aid( 
     df :: DataFrame, 
     to_combine :: Symbol, 
-    weighted_cols :: AbstractArray )::AbstractDataFrame
+    weighted_cols :: AbstractArray,
+    labels :: AbstractArray )::AbstractDataFrame
     gdf = groupby( df, to_combine )
     outf = combine( gdf, weighted_cols .=>sum )
     # column names: add `Tenure`, 'Employment' or whatever as the 1st entry
-    labels = push!( [Utils.pretty(string(to_combine))], LA_LABELS... )
+    labels = push!( [Utils.pretty(string(to_combine))], labels... )
     # .. then rename the columns to these 
     rename!( outf, labels )
     outf
@@ -276,18 +280,30 @@ end
 
 """
 Call `combine_one_legal_aid` on all the `TARGETS`
+
 return a dictionary of grouped dataframes 
 """
-function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol, target_columns :: AbstractVector ) :: Dict
+function aggregate_all_legal_aid( 
+    df :: DataFrame, 
+    weight_sym :: Symbol, 
+    target_columns :: AbstractVector,
+    labels :: AbstractVector,
+    target_costs :: AbstractVector = [] ) :: Dict
     # in case there are holes in the dataframe, for example when created at BU levels.
     df = df[df.hid .>0,:]
     weighted_cols = []
     # Make summing easier by add weighted columms to la counts columns.
     # LA_BITS are the column headers: numbers of cases, numbers of those
     # eligible and so on. So for eligibble (1/0), add wt_eligible, and so on.
-    for l in target_columns
-        psym = Symbol( "wt_$(l)")
-        df[:,psym] .= df[:,weight_sym].*df[:,l]
+    for i in eachindex(target_columns)
+        tc = target_columns[i]
+        psym = Symbol( "wt_$(tc)")
+        if length(target_costs) > 0
+            tcost = target_costs[i]
+            df[:,psym] .= df[:,weight_sym].*df[:,tc].*df[:,tcost]
+        else
+            df[:,psym] .= df[:,weight_sym].*df[:,tc]
+        end
         push!( weighted_cols, psym )
     end
     # Make a dictionary of tables of la results, broken dowb by tenure, employment,
@@ -296,7 +312,7 @@ function aggregate_all_legal_aid( df :: DataFrame, weight_sym :: Symbol, target_
     # variable to the combine function.
     alltab = Dict()
     for t in LA_TARGETS
-        gdp = combine_one_legal_aid( df, t, weighted_cols )
+        gdp = combine_one_legal_aid( df, t, weighted_cols, labels )
         alltab[t] = gdp
     end
     return alltab
@@ -399,8 +415,25 @@ function summarise_la_output!(
             LegalAidData.LA_PROB_DATA,
             propensities )
         budata = data[data.is_bu_head,:] 
-        la.breakdown_pers[sysno] = aggregate_all_legal_aid( data,:weight, LA_BITS )
-        la.breakdown_bu[sysno]  = aggregate_all_legal_aid( budata,:weight, LA_BITS )
+        la.breakdown_pers[sysno] = aggregate_all_legal_aid( 
+            data, 
+            :weight, 
+            LA_BITS, 
+            LA_LABELS )
+        la.breakdown_bu[sysno]  = aggregate_all_legal_aid( budata, :weight, LA_BITS, LA_LABELS )
+        cost_items = cost_item_names( data )
+        la.cases_pers[sysno] = aggregate_all_legal_aid( 
+            data, 
+            :weight, 
+            cost_items.props, 
+            cost_items.labels )
+        la.costs_pers[sysno] = aggregate_all_legal_aid( 
+                data, 
+                :weight, 
+                cost_items.props, 
+                cost_items.labels,
+                cost_items.costs )
+        
         if sysno > 1
             for p in LegalAidData.PROBLEM_TYPES
                 for est in LegalAidData.ESTIMATE_TYPES
@@ -450,11 +483,21 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_system
             pretty_table(f,laout.civil.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
             println(f, "\n#### b) Individuals "); 
             pretty_table(f,laout.civil.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f, "\n#### c) Individuals - cases "); 
+            pretty_table(f,laout.civil.cases_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f, "\n#### d) Individuals - costs "); 
+            pretty_table(f,laout.civil.costs_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+           
+            
             println(f,"### Advice and Assistance")
             println(f, "\n#### a) Benefit Units "); 
             pretty_table(f,laout.aa.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
             println(f, "\n#### b) Individuals "); 
             pretty_table(f,laout.aa.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f, "\n#### c) Individuals - cases "); 
+            pretty_table(f,laout.aa.cases_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            println(f, "\n#### c) Individuals - costs "); 
+            pretty_table(f,laout.aa.costs_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
             println(f)
         end
         close(f)
@@ -491,18 +534,31 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
     datas = Vector{DataFrame}(undef,0)
     breakdown_bu = Vector{Dict}(undef,0)
     breakdown_pers = Vector{Dict}(undef,0)
+    cases_pers = Vector{Dict}(undef,0)
+    costs_pers = Vector{Dict}(undef,0)
     crosstab_bu = Vector{Matrix}(undef,0)
     crosstab_pers = Vector{Dict{String,Matrix}}(undef,0)
     for sysno in 1:num_systems
         push!( datas, make_legal_aid_frame( T, num_people ))
         push!( breakdown_pers, Dict())
         push!( breakdown_bu, Dict())
+        push!( cases_pers, Dict())
+        push!( costs_pers, Dict())
+        push!( breakdown_bu, Dict())
         if sysno < num_systems
             push!(crosstab_pers, Dict()) # fill(T,4,4))
             push!(crosstab_bu, fill(T,4,4))
         end
     end
-    LegalOutput( num_systems, datas, breakdown_bu, breakdown_pers, crosstab_bu, crosstab_pers )
+    LegalOutput( 
+        num_systems, 
+        datas, 
+        breakdown_bu, 
+        breakdown_pers, 
+        cases_pers, 
+        costs_pers, 
+        crosstab_bu, 
+        crosstab_pers )
 end
 
 function AllLegalOutput( T; num_systems::Integer, num_people::Integer )
