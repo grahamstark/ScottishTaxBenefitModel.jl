@@ -25,7 +25,7 @@
 * SCOTLAND: 
 
 """
-function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem )
+function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.name = "rUK System 2023/24"
   sys.it.savings_rates = [10.0, 20.0, 40.0, 45.0]
   sys.it.savings_thresholds = [5_000.0, 37_700.0, 125_000.0]

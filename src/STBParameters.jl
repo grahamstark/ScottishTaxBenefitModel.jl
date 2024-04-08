@@ -1246,10 +1246,28 @@ function load_file!( psys :: TaxBenefitSystem{RT}, sysname :: AbstractString ) w
 end
 =#
 
+include( "$(MODEL_PARAMS_DIR)/sys_2019_20_ruk.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2020_21.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2021_22.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2020_21_ruk.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2021_22_ruk.jl" )
+include( "$(MODEL_PARAMS_DIR)/sys_2021-uplift-removed.jl" )  
+include( "$(MODEL_PARAMS_DIR)/budget_2021_uc_changes.jl" )
+include( "$(MODEL_PARAMS_DIR)/sys_2022-23.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
+include( "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
+include( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
+include( "$(MODEL_PARAMS_DIR)/ni_rates_jan_2024.jl" )
+
 """
 return the full system for the given date, weeklyised
 """
-function get_default_system_for_date( date :: Date; scotland = true, RT :: Type = Float64 )::TaxBenefitSystem
+function get_default_system_for_date( 
+    date :: Date; scotland = true, 
+    RT :: Type = Float64,
+    wpm=WEEKS_PER_MONTH, 
+    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
     #
     # FIXME ALL THE NAMES HERE ARE INCONSISTENT. NO RUK FILES for early years.
     #
@@ -1257,51 +1275,38 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
     if date in fy( 2019 )
         # this is the default wired in to the parameters
         if ! scotland 
-            include( "$(MODEL_PARAMS_DIR)/sys_2019_20_ruk.jl")
             load_sys_2019_20_ruk!( sys )
         end
     elseif date in fy( 2020 )
-        include( "$(MODEL_PARAMS_DIR)/sys_2020_21.jl")
         load_sys_2020_21!( sys )
         if ! scotland
-            include( "$(MODEL_PARAMS_DIR)/sys_2020_21_ruk.jl")
             load_sys_2020_21_ruk!( sys )
         end
     elseif date in fy( 2021 )
-        include( "$(MODEL_PARAMS_DIR)/sys_2021_22.jl")
         load_sys_2021_22!( sys )
         if ! scotland 
-            include( "$(MODEL_PARAMS_DIR)/sys_2021_22_ruk.jl" )
-            load_sys_2021_22_ruk( sys )
+            load_sys_2021_22_ruk!( sys )
         end
         if date >= Date( 2021, 10, 1 )
-            include( "$(MODEL_PARAMS_DIR)/sys_2021_uplift_removed.jl" )  
             load_sys_2021_uplift_removed!( sys )          
         end
         if date >= Date( 2021, 12, 1 )
-            include( "$(MODEL_PARAMS_DIR)/budget_2021_uc_changes.jl" )
             load_budget_2021_uc_changes!( sys )
         end
     elseif date in fy( 2022 ) # fixme the 2022 and 2023 have scot/eng different way around
-        include( "$(MODEL_PARAMS_DIR)/sys_2022-23.jl")
         load_sys_2022_23!( sys )
         if ! scotland
-            include( "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
             load_sys_2022_23_ruk!( sys )
         end
         if date >= Date( 2022, 7, 6 )
-            include( "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
             load_sys_2022_23_july_ni!( sys )
         end
     elseif date in fy(2023)
-        include( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
         load_sys_2023_24_ruk!( sys )
         if scotland 
-            include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
             load_sys_2023_24_scotland!( sys )
         end
         if date >= Date(2024,1,5)
-            include( "$(MODEL_PARAMS_DIR)/ni_rates_jan_2024.jl" )
             load_ni_rates_jan_2024!( sys )
         end
     else
@@ -1310,25 +1315,35 @@ function get_default_system_for_date( date :: Date; scotland = true, RT :: Type 
         # else
         error( "system for $date hasn't been created yet")
     end
-    weeklyise!( sys )
+    weeklyise!( sys; wpm=wpm, wpy=wpy )
     return sys
 end
 
 """
 System as it was on january 1st of the given year
 """
-function get_default_system_for_cal_year( year :: Integer; scotland = true, RT :: Type = Float64 ) :: TaxBenefitSystem
+function get_default_system_for_cal_year( 
+    year :: Integer; 
+    scotland = true, 
+    RT :: Type = Float64,
+    wpm=WEEKS_PER_MONTH, 
+    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
     d = Date( year, 1, 1 )
-    return get_default_system_for_date( d; scotland=scotland, RT = RT )
+    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy )
 end
 
 """
 System as it was on the 1st day of the given financial year
 """
-function get_default_system_for_fin_year( finyear :: Integer; scotland = true, RT :: Type = Float64 )  :: TaxBenefitSystem
+function get_default_system_for_fin_year( 
+    finyear :: Integer; 
+    scotland = true, 
+    RT :: Type = Float64,
+    wpm=WEEKS_PER_MONTH, 
+    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
     d = Date( finyear, 4, 6 )
     println( "date $d")
-    return get_default_system_for_date( d; scotland=scotland, RT = RT )
+    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy )
 end
 
 end # module

@@ -1,7 +1,7 @@
 """
 # April 2020 Benefit Rates: CAREFUL 
 """
-function load_sys_2020_21!( sys :: TaxBenefitSystem )
+function load_sys_2020_21!( sys :: TaxBenefitSystem{T} ) where T
 
     sys.name = "Scotland System 2020/21"
     #

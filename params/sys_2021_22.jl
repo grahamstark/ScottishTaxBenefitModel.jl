@@ -1,7 +1,7 @@
 """
 2021/2 system Scotland
 """
-function load_sys_2021_22!( sys :: TaxBenefitSystem )
+function load_sys_2021_22!( sys :: TaxBenefitSystem{T} ) where T
     sys.name = "Scotland System 2021/22"
     #
     # This is the benefit/tax credit/IT/MinWage/NI rates from April 2021

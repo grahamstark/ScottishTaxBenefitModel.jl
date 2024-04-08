@@ -16,12 +16,13 @@ using .RunSettings
 using .Utils
 using .ExampleHelpers
 
-sys21_22 = get_default_system_for_date( Date( 2021, 10, 1 ))
-
-sys21_22.minwage.abolished = true # so we can experiment with low wages
 wpm=PWPM
 wpy=52
-weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
+sys21_22 = get_default_system_for_date( Date( 2021, 10, 1 ); wpm=PWPM, wpy=52 )
+
+sys21_22.minwage.abolished = true # so we can experiment with low wages
+
+# weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
 println(  "weeklyise start wpm=$wpm wpy=$wpy")
 
 settings = Settings()

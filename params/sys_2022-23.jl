@@ -10,7 +10,7 @@
 * https://www.gov.uk/government/publications/benefit-and-pension-rates-2022-to-2023
 
 """
-function load_sys_2022_23!( sys :: TaxBenefitSystem )
+function load_sys_2022_23!( sys :: TaxBenefitSystem{T} ) where T
   sys.name = "Scottish System 2022/23"
 
   sys.it.savings_rates = [0.0, 20.0, 40.0, 45.0]
