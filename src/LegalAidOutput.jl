@@ -38,6 +38,157 @@ mutable struct AllLegalOutput
     civil :: LegalOutput
 end
 
+mutable struct PropensitiesWrapper 
+    civil_propensities :: DataFrame
+    aa_propensities :: DataFrame
+end
+
+PROPENSITIES = PropensitiesWrapper(
+        DataFrame(),
+        DataFrame())
+
+
+function create_propensities( lout :: LegalAidOutput.AllLegalOutput; reset_results = false )
+    if (size( PROPENSITIES.civil_propensities )[1] <= 1) || reset_results
+        PROPENSITIES.civil_propensities = create_wide_propensities( 
+            lout.civil.data[1], 
+            LegalAidData.CIVIL_COSTS )
+        PROPENSITIES.aa_propensities = create_wide_propensities( 
+            lout.aa.data[1], 
+            LegalAidData.AA_COSTS )
+    end
+end
+        
+
+"""
+This is the base of the costs model
+entitlement = out.civil.data[1]  or out.aa
+
+"""
+function create_base_propensities( 
+    entitlement :: DataFrame,
+    costs :: DataFrame ) :: NamedTuple
+
+    function rn( s :: AbstractString ) :: String
+        matches = match(r"(.*)_1",s)
+        if ! isnothing(matches)
+           return matches[1]*"_prop"
+        end
+        if s in ["hsm", "age2", "sex", "popn", "case_freq", "la_status" ]        
+            return s
+        end
+        return s*"_cost"
+     end
+
+    subjects = levels( costs.hsm )    
+    entitlement.la_status = entitlement.entitlement # match names in the actual output
+    # so this is the calculated entitlements, individual level, grouped by entitlement, age & sex
+    entitlement_grp = groupby(entitlement, [:la_status, :age2, :sex])
+    # and these are the SLAB costs, grouped by same and also by problem type (hsm = Higher Subject)
+    costs_grp4 = groupby( costs, [:hsm, :la_status, :age2, :sex])
+    # .. and without the subject to get a quick and dirty way to get total costs
+    costs_grp3 = groupby( costs, [:la_status, :age2, :sex])
+    # make a dataframe class by types of claim, la entitlement, age & sex
+    n = size( entitlement_grp )[1]*(1+length(subjects)) 
+    out = DataFrame( 
+        hsm = fill("",n ), 
+        age2 = fill("",n), 
+        sex = fill(Male,n),
+        case_freq = zeros(n), 
+        popn = zeros(n),        
+        la_status = fill( la_none, n ),
+        costs_max = zeros(n), 
+        costs_mean = zeros(n), 
+        costs_median = zeros(n), 
+        costs_min = zeros(n), 
+        costs_nmiss = zeros(n), 
+        costs_nobs = zeros(n), 
+        costs_q25 = zeros(n), 
+        costs_q75 = zeros(n))
+    i = 0
+    
+    for (k,v) in pairs( entitlement_grp )
+        for hsm in subjects
+            i += 1
+            lout = out[i,:]
+            lout.popn = sum( v.weight )
+            lout.sex = k.sex
+            lout.age2 = k.age2
+            lout.hsm = hsm
+            lout.la_status = k.la_status
+            # now, look up corresponding costs data: first make a key to disagg grouped dataframe
+            costk = make_key( 
+                la_status = k.la_status, 
+                hsm = hsm,
+                age = k.age2,
+                sex = k.sex )
+            # @show costk
+            # then look up & fill if there are records for the costs for that combo 
+            # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
+            if haskey( costs_grp4, costk ) 
+                cv = costs_grp4[costk] 
+                r = summarystats( cv.totalpaid )
+                lout.costs_max = r.max     
+                lout.costs_mean = r.mean
+                lout.costs_median = r.median  
+                lout.costs_min = r.min
+                lout.costs_nmiss = r.nmiss   
+                lout.costs_nobs = r.nobs
+                lout.costs_q25 = r.q25     
+                lout.costs_q75 = r.q75
+                lout.case_freq = r.nobs / lout.popn 
+            end
+        end # each subject
+        # total 
+        i += 1
+        lout = out[i,:]
+        lout.popn = sum( v.weight )
+        lout.sex = k.sex
+        lout.age2 = k.age2
+        lout.hsm = "aa_total"
+        lout.la_status = k.la_status
+        # now, look up corresponding costs data: first make a key to disagg grouped dataframe
+        costk = make_key( 
+            la_status = k.la_status, 
+            age = k.age2,
+            sex = k.sex )
+        # @show costk
+        # then look up & fill if there are records for the costs for that combo 
+        # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
+        if haskey( costs_grp3, costk ) 
+            cv = costs_grp3[costk] 
+            r = summarystats( cv.totalpaid )
+            lout.costs_max = r.max     
+            lout.costs_mean = r.mean
+            lout.costs_median = r.median  
+            lout.costs_min = r.min
+            lout.costs_nmiss = r.nmiss   
+            lout.costs_nobs = r.nobs
+            lout.costs_q25 = r.q25     
+            lout.costs_q75 = r.q75
+            lout.case_freq = r.nobs / lout.popn 
+        end
+    end
+    sort!( out, [:hsm,:la_status,:sex, :age2])
+    av_costs_by_type = unstack(out[!,[:hsm,:sex,:age2,:popn,:la_status,:costs_mean]],:hsm,:costs_mean)
+    rename!( av_costs_by_type, Utils.basiccensor.(names(av_costs_by_type)))
+    cases_by_type = unstack(out[!,[:hsm,:sex,:age2,:la_status,:popn,:case_freq]],:hsm,:case_freq)
+    rename!( cases_by_type, Utils.basiccensor.(names(cases_by_type)))
+    cost_and_count = hcat( av_costs_by_type, cases_by_type, makeunique=true )
+    rename!( rn, cost_and_count )
+    # println( "create_base_propensities cost_and_count=")
+    # @show cost_and_count
+    return (; cost_and_count, long_data=out )
+end
+
+function create_wide_propensities(
+    entitlement :: DataFrame,
+    costs :: DataFrame ) :: DataFrame
+    return create_base_propensities( 
+        entitlement, costs ).cost_and_count
+end
+
+
 function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
     return DataFrame(
         hid       = zeros( BigInt, n ),
@@ -449,11 +600,9 @@ function summarise_la_output!(
 end
 
 function summarise_la_output!( 
-    la :: AllLegalOutput,
-    civil_propensities :: DataFrame,
-    aa_propensities :: DataFrame )
-    summarise_la_output!( la.civil, civil_propensities )
-    summarise_la_output!( la.aa, aa_propensities )
+    la :: AllLegalOutput )
+    summarise_la_output!( la.civil, PROPENSITIES.civil_propensities )
+    summarise_la_output!( la.aa, PROPENSITIES.aa_propensities )
 end
 
 """
