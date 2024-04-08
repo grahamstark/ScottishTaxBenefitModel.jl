@@ -33,6 +33,7 @@ using .Results:
 
 using .STBIncomes
 using .LegalAidOutput
+using .LegalAidRunner
 using .ModelHousehold
 
 using .FRSHouseholdGetter: 
@@ -906,10 +907,11 @@ function summarise_frames!(
         println( "gain lose")
     end    
     if settings.do_legal_aid
+        LegalAidRunner.create_propensities( frames.legalaid )
         LegalAidOutput.summarise_la_output!(
             frames.legalaid,
-            LegalAidResults.RESULTS.civil_propensities,
-            LegalAidResults.RESULTS.aa_propensities )
+            LegalAidRunner.RESULTS.civil_propensities,
+            LegalAidRunner.RESULTS.aa_propensities )
     end
     return ( ;
         quantiles, 

@@ -139,6 +139,13 @@ function do_one_run(
     return lout
 end 
 
+function create_propensities( lout :: LegalAidOutput.AllLegalOutput; reset_results = false )
+    if (size( RESULTS.civil_propensities )[1] <= 1) || reset_results
+        RESULTS.civil_propensities = create_wide_propensities( lout.civil.data[1], LegalAidData.CIVIL_COSTS )
+        RESULTS.aa_propensities = create_wide_propensities( lout.aa.data[1], LegalAidData.AA_COSTS )
+    end
+end
+
 """
 This is the base of the costs model
 entitlement = out.civil.data[1]  or out.aa
