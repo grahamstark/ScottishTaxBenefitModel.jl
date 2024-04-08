@@ -262,7 +262,7 @@ function create_base_propensities(
     rename!( cases_by_type, Utils.basiccensor.(names(cases_by_type)))
     cost_and_count = hcat( av_costs_by_type, cases_by_type, makeunique=true )
     rename!( rn, cost_and_count )
-    println( "create_base_propensities cost_and_count=")
+    # println( "create_base_propensities cost_and_count=")
     # @show cost_and_count
     return (; cost_and_count, long_data=out )
 end
