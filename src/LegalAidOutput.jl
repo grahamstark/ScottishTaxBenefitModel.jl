@@ -127,7 +127,7 @@ function create_base_propensities(
             # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
             if haskey( costs_grp4, costk ) 
                 cv = costs_grp4[costk] 
-                r = summarystats( cv.totalpaid )
+                r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
                 lout.costs_max = r.max     
                 lout.costs_mean = r.mean
                 lout.costs_median = r.median  
