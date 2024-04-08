@@ -52,11 +52,15 @@ function screen_obs()::Observable
 end
 
 function load_system(; scotland = false )::TaxBenefitSystem
-    sys = load_file( joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2023_24_ruk.jl"))
+    # sys = load_file( joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2023_24_ruk.jl"))
+    sys = get_default_system_for_date( FY_2023, scotland=scotland )
+    #=
     if scotland 
-        load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2023_24_scotland.jl"))
+
+        # load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2023_24_scotland.jl"))
     end
     weeklyise!( sys )
+    =#
     return sys
 end
 
