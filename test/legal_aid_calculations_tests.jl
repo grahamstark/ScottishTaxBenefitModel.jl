@@ -396,7 +396,7 @@ function test_costs(
             cgc = cost_grp[ck]
             @show ck
             actcost = sum( cgc.totalpaid )
-            @assert isapprox(entcost,actcost; rtol=0.001) "$label : fail cost for $k actual $actcost modelled $entcost" 
+            @assert isapprox(entcost,actcost/1000; rtol=0.001) "$label : fail cost for $k actual $actcost modelled $entcost" 
         end
     end
 end

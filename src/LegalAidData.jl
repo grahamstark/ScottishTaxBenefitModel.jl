@@ -72,6 +72,40 @@ function age2( age )::String
     end
 end
 
+
+
+function group_cases( fcase :: AbstractString )
+    return if fcase in [
+    "Residence"
+    "Divorce/separation"
+    "Adults with incapacity"
+    "Family/matrimonial - other"
+    "Contact/parentage"]
+    fcase
+    else
+        "Other"
+    end
+end
+
+#=
+"Medical negligence"
+"Immigration and asylum"
+
+"Other"
+"Reparation"
+"Protective order"
+"Housing/recovery of heritable property"
+"Property/monetary"
+"Appeals - other"
+"Debt"
+"Appeals - family"
+"Judicial review"
+"Discrimination"
+"Breach of contract"
+"Fatal accident inquiries"
+=#
+
+
 function load_awards( filename::String )::DataFrame
     awards = CSV.File( filename; missingstring=["#NULL!","","-"] )|>DataFrame
     nrows,ncols = size( awards )
@@ -88,12 +122,14 @@ function load_awards( filename::String )::DataFrame
         awards[:,t] = CategoricalArray( awards[:,t] )
     end
     rename!( awards, [:consolidatedsex=>:sex,
+        :hsm => :hsm_full,
         :age_banded=>:age, 
         :passportedbenefitsmeans1=>:passported,
         :totalmaxconform2=>:maxcon])
     awards.passported = .! ismissing.( awards.passported )
     awards.la_status = fill( la_none, nrows )
     awards.age2 = age2.( awards.age )
+    awards.hsm = CategoricalArray( group_cases.(awards.hsm_full))
     # NOTE this skips over Adults with incapacity
     for r in 1:nrows
         a = awards[r,:]
@@ -120,6 +156,7 @@ function load_awards( filename::String )::DataFrame
             a.sex = rand() <= 0.382 ? "Male" : "Female"
         end
     end
+
     awards
 end
 
@@ -136,10 +173,11 @@ function load_aa_costs( filename::String )::DataFrame
         cost[:,t] = CategoricalArray( cost[:,t] )
     end
     rename!( cost, [
-        :highersubject=>:hsm,
+        :highersubject=>:hsm_full,
         :age_banded=>:age, 
         :ap_contribution=>:maxcon, 
-        :passport_ben=>:passported])
+        :passport_ben=>:passported])    
+    cost.hsm = CategoricalArray( group_cases.(cost.hsm_full))
     cost.passported = cost.passported .== "Y"
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )    
     cost.age2 = age2.( cost.age )    
@@ -158,7 +196,6 @@ function load_aa_costs( filename::String )::DataFrame
         end
     end
     cost.sex = titlecase.(cost.sex)
-    
     cost
 end
 
@@ -177,7 +214,11 @@ function load_costs( filename::String )::DataFrame
         :whichform ]
         cost[:,t] = CategoricalArray( cost[:,t] )
     end
-    rename!( cost, [:highersubject=>:hsm,:age_banded=>:age,:totalpaidincvat=>:totalpaid])
+    rename!( cost, [
+        :highersubject=>:hsm_full,
+        :age_banded=>:age,
+        :totalpaidincvat=>:totalpaid])
+    cost.hsm = CategoricalArray( group_cases.(cost.hsm_full))
     cost.passported = .! ismissing.( cost.passported )
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )
     cost.la_status = fill( la_none, nrows )
