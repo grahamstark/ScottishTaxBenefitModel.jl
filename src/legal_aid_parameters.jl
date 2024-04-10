@@ -186,7 +186,6 @@ function default_aa_sys( year::Integer, RT )::OneLegalAidSys
         aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_0000,10_000,5_000]
         # allowances are all zero
         aa.expenses.housing = Expense( false, zero(RT), inplaceoftypemax(RT))
-        aa.expenses.debt_repayments = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.childcare = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.work_expenses = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.maintenance = Expense( false, zero(RT), inplaceoftypemax(RT))
