@@ -29,7 +29,6 @@ end
 
 @with_kw mutable struct Expenses{T}
     housing               = Expense( false, one(T), inplaceoftypemax(T))
-    debt_repayments       = Expense( false, one(T), inplaceoftypemax(T))
     childcare             = Expense( false, one(T), inplaceoftypemax(T))
     work_expenses         = Expense( false, one(T), inplaceoftypemax(T))
     maintenance           = Expense( false, one(T), inplaceoftypemax(T))
