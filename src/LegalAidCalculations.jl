@@ -160,7 +160,7 @@ function calc_legal_aid!(
     end
     onela.childcare = do_expense( child_costs, lasys.expenses.childcare )
     onela.other_outgoings += do_expense( maintenance, lasys.expenses.maintenance )
-    onela.other_outgoings += do_expense( repayments, lasys.expenses.debt_repayments )
+    onela.other_outgoings += do_expense( repayments, lasys.expenses.repayments )
     onela.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
     onela.net_income = totinc
     onela.outgoings = 
