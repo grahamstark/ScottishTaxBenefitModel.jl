@@ -116,8 +116,15 @@
 [^FN_ADRS]: see [https://adrs-global.com](https://adrs-global.com)
 [^FN_FGT]: see [@haughton_handbook_2009], ¶ 2 for a discussion
 [^FN_SEN_POV]: [@haughton_handbook_2009], ¶ 2
-[^FN_WREN_LEWIS]: see [@lewis_but_2017] for a discussion in the context of the UK's austerity programme.
+[^FN_WREN_LEWIS]: see [@wren-lewis_but_2017] for a discussion in the context of the UK's austerity programme.
 [^FN_POLL_TAX]: see [@bbc_radio_4_our_2006] for a discussion of the original English Poll Tax and the "Peasant's Revolt", and [@besley_fiscal_1997] for a discussion of the Community Charge, the ill-fated local tax introduced in 1987.
 [^FN_VAT]: see [@commission_questions_2011] for European Commission advocacy for the extension of VAT, and also [@kay_john_fewer_2012].
 [^FN_SPREADSHEETS]: see [@panko_what_2008] for a review of evidence on spreadsheet errors, and [@eurosprig_spreadsheet_2019] for a compendium of major known mistakes.
 [^FN_IGOTM]: [@brice_using_2015].
+[^FN_SFC_FORE][@scottish_fiscal_commission_how_2018]
+[^FN-BLOG] https://stb-blog.virtual-worlds.scot
+[^FN-TEST-FIRST][@google_inc_introducing_nodate]
+[^FN_BCS] https://stb.virtual-worlds.scot/bcd/
+[^FN_UBI] https://stb.virtual-worlds.scot/ubi/
+[^FN_SCOTBUDG] https://stb.virtual-worlds.scot/scotbudg/
+[^FN_TRIPLEPC] https://triplepc.northumbria.ac.uk; a paper on TriplePC is forthcoming in the International Journal of Microsimulation [@stark_public_2024]
