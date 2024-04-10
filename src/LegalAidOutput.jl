@@ -184,7 +184,8 @@ function create_base_propensities(
     # Hack for adults_with_incapacity, since these are effectively outside 
     # of the means-test. Make a uniform takeup and cost so we always 
     # get the same output regardless of entitlements when weighred up.
-    awi = costs[ costs.hsm .== "adults_with_incapacity", :] 
+    awi = costs[ costs.hsm .== "Adults with incapacity", :] 
+    @assert size( awi )[1] > 0
     awicost = sum( awi.totalpaid )
     awicount = length( awi.totalpaid )
     popn = sum( entitlement.weight )
