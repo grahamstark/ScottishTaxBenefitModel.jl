@@ -80,7 +80,7 @@ function create_base_propensities(
         return s*"_cost"
      end
 
-    subjects = levels( costs.hsm )    
+    subjects = levels( costs.hsm )   # divorce and so on 
     entitlement.la_status = entitlement.entitlement # match names in the actual output
     # so this is the calculated entitlements, individual level, grouped by entitlement, age & sex
     entitlement_grp = groupby(entitlement, [:la_status, :age2, :sex])
@@ -108,7 +108,7 @@ function create_base_propensities(
     i = 0
     
     for (k,v) in pairs( entitlement_grp )
-        for hsm in subjects
+        for hsm in subjects # divorce ... 
             i += 1
             lout = out[i,:]
             lout.popn = sum( v.weight )
@@ -171,11 +171,26 @@ function create_base_propensities(
     end
     sort!( out, [:hsm,:la_status,:sex, :age2])
     av_costs_by_type = unstack(out[!,[:hsm,:sex,:age2,:popn,:la_status,:costs_mean]],:hsm,:costs_mean)
+
+
     rename!( av_costs_by_type, Utils.basiccensor.(names(av_costs_by_type)))
     cases_by_type = unstack(out[!,[:hsm,:sex,:age2,:la_status,:popn,:case_freq]],:hsm,:case_freq)
     rename!( cases_by_type, Utils.basiccensor.(names(cases_by_type)))
+    # join the av costs and propensities together
     cost_and_count = hcat( av_costs_by_type, cases_by_type, makeunique=true )
+    # fix the auto renaming: _1 => _cases and so on
     rename!( rn, cost_and_count )
+
+    # Hack for adults_with_incapacity, since these are effectively outside 
+    # of the means-test. Make a uniform takeup and cost so we always 
+    # get the same output regardless of entitlements when weighred up.
+    awi = costs[ costs.hsm .== "adults_with_incapacity", :] 
+    awicost = sum( awi.totalpaid )
+    awicount = length( awi.totalpaid )
+    popn = sum( entitlement.weight )
+    cost_and_count.adults_with_incapacity_cost .= awicost/awicount
+    cost_and_count.adults_with_incapacity_prop .= awicount/popn
+
     # println( "create_base_propensities cost_and_count=")
     # @show cost_and_count
     return (; cost_and_count, long_data=out )
