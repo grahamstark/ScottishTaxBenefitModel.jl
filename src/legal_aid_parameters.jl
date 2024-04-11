@@ -208,7 +208,7 @@ function weeklyise( ex :: Expense{T}; wpy = WEEKS_PER_YEAR ) :: Expense{T} where
             max /= wpy
         end
     else
-        max /= 100 
+        v /= 100 
     end
     return Expense( ex.is_flat, v, max )
 end
