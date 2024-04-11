@@ -28,11 +28,11 @@ function inplaceoftypemax(T)
 end
 
 @with_kw mutable struct Expenses{T}
-    housing               = Expense( false, one(T), inplaceoftypemax(T))
-    childcare             = Expense( false, one(T), inplaceoftypemax(T))
-    work_expenses         = Expense( false, one(T), inplaceoftypemax(T))
-    maintenance           = Expense( false, one(T), inplaceoftypemax(T))
-    repayments            = Expense( false, one(T), inplaceoftypemax(T))
+    housing               = Expense( false, T(100), inplaceoftypemax(T))
+    childcare             = Expense( false, T(100), inplaceoftypemax(T))
+    work_expenses         = Expense( false, T(100), inplaceoftypemax(T))
+    maintenance           = Expense( false, T(100), inplaceoftypemax(T))
+    repayments            = Expense( false, T(100), inplaceoftypemax(T))
 end
 
 const DEFAULT_LA_INCOME = IncludedItems(
@@ -199,6 +199,28 @@ end
     aa    = default_aa_sys( 2023, RT )
 end
 
+function weeklyise( ex :: Expense{T}; wpy = WEEKS_PER_YEAR ) :: Expense{T} where T
+    max = ex.max
+    v = ex.v
+    if ex.is_flat
+        v /= wpy
+        if max < inplaceoftypemax(T)
+            max /= wpy
+        end
+    else
+        max /= 100 
+    end
+    return Expense( ex.is_flat, v, max )
+end
+
+function weeklyise!( ex :: Expenses; wpy = WEEKS_PER_YEAR )
+    ex.housing = weeklyise( ex.housing )
+    ex.childcare = weeklyise( ex.childcare )
+    ex.work_expenses = weeklyise( ex.work_expenses )
+    ex.maintenance = weeklyise( ex.maintenance )
+    ex.repayments = weeklyise( ex.repayments )
+end
+
 """
 express aa weekly and civil annually
 """
@@ -206,6 +228,7 @@ function weeklyise!( la :: OneLegalAidSys )
     if la.systype == sys_aa
         # la.income_contribution_rates ./= 100
         # la.capital_contribution_rates ./= 100
+        weeklyise!(la.expenses; wpy=1.0 )
         return 
     else
         la.income_living_allowance /= WEEKS_PER_YEAR
@@ -216,7 +239,7 @@ function weeklyise!( la :: OneLegalAidSys )
         la.income_contribution_limits ./= WEEKS_PER_YEAR
         la.capital_contribution_rates ./= 100.0
         # la.capital_contribution_limits ./= WEEKS_PER_YEAR
-        
+        weeklyise!(la.expenses; wpy=WEEKS_PER_YEAR )
     end
 end
 
