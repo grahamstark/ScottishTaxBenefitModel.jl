@@ -255,13 +255,12 @@ function merge_in_probs_and_props(
     propensities :: DataFrame )
     r = innerjoin( 
         results, 
-        problem_probs,
-        LegalAidData.LA_PROB_DATA; 
+        problem_probs; 
         on = [:hid, :data_year, :pid ], 
         makeunique=true)
     # @show names(r)
     # @show names(propensities)
-    r = innerjoin( 
+    r = leftjoin( 
         r, 
         propensities;
         on = [:age2=>:age2,:sex=>:sex,:entitlement=>:la_status ],

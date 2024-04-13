@@ -108,7 +108,6 @@ function calc_legal_aid!(
     age_oldest = -1
     for (pid,pers) in bu.people
         income = bres.pers[pid].income
-        # these are all actually the same number except living_allowance
         if any_positive( income, lasys.passported_benefits )
             onela.passported = true
             onela.entitlement = la_passported
