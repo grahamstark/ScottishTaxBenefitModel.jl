@@ -33,10 +33,7 @@ using .ModelHousehold:
 
 using .RunSettings: Settings 
 
-using .STBParameters:
-    do_expense,
-    Expense,
-    ScottishLegalAidSys
+using .STBParameters
 
 using .IncomeTaxCalculations: 
     calc_income_tax!
@@ -401,9 +398,7 @@ function test_costs(
     end
 end
 
-@testset "using LegalAidRunner" begin
-    global tot
-    tot = 0
+function lasettings()
     settings = Settings()
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
@@ -411,6 +406,13 @@ end
     settings.requested_threads = 4
     settings.num_households,  settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=false )
+    return settings
+end
+
+@testset "using LegalAidRunner" begin
+    global tot
+    tot = 0
+    settings = lasettings()
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
@@ -436,5 +438,15 @@ end
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_tables( laout, settings, 2 )
     LegalAidOutput.dump_frames( laout, settings, 2 )
+end
+
+@testset "Track down weird capital crosstab" begin
+    settings = lasettings()
+    settings.requested_threads = 4
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.aa.passported_benefits = IncomesSet([])
+    systems = [sys1, sys2]
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+
 end
 

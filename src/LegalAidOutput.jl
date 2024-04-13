@@ -374,9 +374,9 @@ function add_to_frames!(
                 num_children  = ncs,
                 num_bus = nbus,
                 num_people_in_bu = num_people_in_bu)
-            end
-    end
-end
+        end # people in bu
+    end # bus
+end # function 
 
 export LA_BITS, LA_LABELS, LA_TARGETS, aggregate_all_legal_aid, crosstab_to_df
 
