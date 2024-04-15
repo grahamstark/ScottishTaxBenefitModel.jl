@@ -447,6 +447,14 @@ end
     sys2.legalaid.aa.passported_benefits = IncomesSet([])
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
-
+    examples = laout.aa.crosstab_pers_examples[1]
+    @show examples
+    for hid in examples[3,1]
+        
+        hh,res = LegalAidRunner.calculate_one( hid, [sys1, sys2 ] )
+        @show hh
+        @show res[1]
+        @show res[2]
+    end
 end
 

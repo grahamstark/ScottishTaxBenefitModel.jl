@@ -56,6 +56,36 @@ function intialise(
     
 end
 
+"""
+Hacked version for examples.
+returns an array of full results, and the household
+"""
+function calculate_one( 
+    hno :: Int, 
+    systems  :: Vector{TaxBenefitSystem{T}} )::Tuple where T
+    res = RESULTS.results[:,hno]
+    hh = get_household( hno )
+    intermed = make_intermediate( 
+        hh, 
+        systems[1].hours_limits, 
+        systems[1].age_limits, 
+        systems[1].child_limits )   
+    num_systems = length( systems )
+    for sysno in 1:num_systems 
+        calc_legal_aid!( 
+            res[sysno], 
+            hh, 
+            intermed, 
+            systems[sysno].legalaid.civil )
+        calc_legal_aid!( 
+            res[sysno], 
+            hh, 
+            intermed, 
+            systems[sysno].legalaid.aa )
+    end
+    return hh,res
+end
+
 function do_one_run( 
     settings :: Settings, 
     systems  :: Vector{TaxBenefitSystem{T}},
