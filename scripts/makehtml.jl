@@ -121,6 +121,45 @@ HHS= [
     "onerand :: String",
     "equivalence_scales :: EQScales{RT}"]
 
+LEGAL=[
+"net_income = zero(RT)",
+"disposable_income = zero(RT)",
+"childcare = zero(RT)",
+"outgoings = zero(RT)",
+"housing = zero(RT)        ",
+"work_expenses = zero(RT)",
+"other_outgoings = zero(RT)",
+"wealth = zero(RT)",
+"passported = false",
+"eligible   = false",
+"eligible_on_income = false",
+"eligible_on_capital = false",
+"income_contribution = zero(RT)",
+"income_contribution_pw = zero(RT)",
+"capital_contribution = zero(RT)",
+"income_allowances = zero(RT)",
+"capital = zero(RT)",
+"disposable_capital = zero(RT)",
+"capital_allowances = zero(RT)",
+"entitlement :: LegalAidStatus = la_none"]
+
+function make_results_table( items :: AbstractArray )
+    s = "s = \"<table class='table table-sm'>\"\n"
+    s *= "s *= \"<thead><caption>Money Amounts in £s pw</caption></thead>\"\n"
+    s *= "s *= \"<tbody>\"\n"
+    s *= "s *= \"<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>\"\n"
+    for p in items
+        m = match(r"(.*) *:: *(.*) *\#*.*", p )
+        if ! isnothing(m)
+            name = strip(m[1])
+            s *= "df = format_diff( \"name\", pre.$(name), post.$(name))"
+            s *= "s *= diff_row( df )"
+        end
+    end
+    s *= "s *= \"</tbody>\"\n"
+    s *= "s *= \"</table>\"\n"
+end
+
 function maketable( items :: AbstractArray, prefix )
     s = "s = \"<table class='table table-sm'>\"\n"
     s *= "s *= \"<thead><caption>Money Amounts in £s pw</caption></thead>\"\n"
@@ -150,3 +189,5 @@ end
 
 println( maketable(HHS, "hh"))
 println( maketable(PERS, "pers"))
+
+println( make_results_table( LEGAL ))

@@ -103,8 +103,10 @@ end
 Format a pair of numbers
 @return bootstrap colo[u]r value, before value after value, all formatted to prec, commas
 """
-function format_diff(; before :: Number, after :: Number, up_is_good = 0, prec=2,commas=true ) :: NamedTuple
+function format_diff(; name::String, before :: Number, after :: Number, up_is_good = 0, prec=2,commas=true ) :: NamedTuple
     change = round(after - before, digits=6)
+    skipthis = (before ≈ 0) && (after ≈ 0)
+
     colour = ""
     if (up_is_good !== 0) && (! (change ≈ 0))
         if change > 0
@@ -119,8 +121,60 @@ function format_diff(; before :: Number, after :: Number, up_is_good = 0, prec=2
     end 
     before_s = format(before, commas=commas, precision=prec)
     after_s = format(after, commas=commas, precision=prec)    
-    (; colour, ds, before_s, after_s )
+    (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
 end
+
+function format_diff(; name::String, before :: Bool, after :: Bool, up_is_good = 0 ) :: NamedTuple
+    skipthis = (! before ) && (! after )
+    change = after != before
+    colour = ""
+    if (up_is_good !== 0) && change
+        if after
+            colour = up_is_good == 1 ? "text-success" : "text-danger"
+        else
+            colour = up_is_good == 1 ? "text-danger" : "text-success"
+        end # neg diff   
+    end # non zero diff
+    ds = if before == after
+        ""
+    elseif before 
+        "-"
+    else 
+        "+"
+    end 
+    before_s = "$before"
+    after_s = "$after"
+    (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
+end
+
+function format_diff(; name :: String, before :: Enum, after :: Enum, up_is_good = 0 )
+    skipthis = false
+    change = after != before
+    colour = ""
+
+    if (up_is_good !== 0) && change
+        if after > before
+            colour = up_is_good == 1 ? "text-success" : "text-danger"
+        else
+            colour = up_is_good == 1 ? "text-danger" : "text-success"
+        end # neg diff   
+    end # non zero diff
+    ds = if before == after
+        ""
+    elseif before > after
+        "-"
+    else 
+        "+"
+    end 
+    before_s = "$before"
+    after_s = "$after"
+    (; name, colour, ds, before_s, after_s, skipthis )
+end
+
+function format_diff(; name :: String, before :: Any, after :: Any, up_is_good = 0 )
+    (; name=pretty(name), colour="", ds="", before_s="$before", after_s="$after", skipthis=false )
+end
+
 
 
 function frame_to_table(
@@ -261,6 +315,17 @@ function non_null_row( k, val, v )
     return "<tr><th>$k</th><td>$val</td></tr>"
 end
 
+function diff_row( fmtd :: NamedTuple, row_style="" )
+    if fmtd.skipthis
+        return ""
+    end
+    # (; name=pretty(name), colour="", ds="", before_s="$before", after_s="$after", skipthis=false )
+    return "<tr $row_style><th class='text-left'>$(fmtd.name)</th>
+                  <td style='text-align:right'>$(fmtd.before_s)</td>
+                  <td style='text-align:right'>$(fmtd.after_s)</td>
+                  <td style='text-align:right' class='$(fmtd.colour)'>$(fmtd.ds)</td>
+                </tr>"
+end
 
 function format_results( one_result :: HouseholdResult )::String
     return to_html_table( one_result )
