@@ -118,6 +118,9 @@ function calc_legal_aid!(
             end        
             return
         end
+    end
+    for (pid,pers) in bu.people
+        income = bres.pers[pid].income
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway
         hb += income[HOUSING_BENEFIT]
         ctb += income[COUNCIL_TAX_BENEFIT]
@@ -138,7 +141,7 @@ function calc_legal_aid!(
             npeople += 1
         end
         totinc += isum( income, lasys.incomes.included; deducted=lasys.incomes.deducted )
-    end
+    end # people in bu
 
     # aa capital allowances
     if length(lasys.capital_allowances) > 0
