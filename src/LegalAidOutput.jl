@@ -528,7 +528,8 @@ function la_crosstab(
     return make_crosstab( 
         post.entitlement,
         pre.entitlement;
-        weights=weights )[1] # discard the labels
+        weights=weights,
+        do_examples = true )[1] # discard the labels
 end
 
 """

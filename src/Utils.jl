@@ -65,7 +65,7 @@ export
 """
 crosstab rows vs cols of a categorical arrays using the given weights.
 FIXME has a horrible hack for missing values.
-   return the crosstab, prettyfied row labels, prettyified col labels
+   return the crosstab, prettyfied row labels, prettyified col labels, matrix of positions of examples
 """
 function make_crosstab( 
    rows :: AbstractCategoricalArray, 
@@ -73,7 +73,8 @@ function make_crosstab(
    rowlevels :: AbstractVector{String} = fill("",0),
    collevels :: AbstractVector{String} = fill("",0),
    weights :: AbstractWeights = Weights(ones(length(rows))),
-   add_totals = true ) :: Tuple
+   add_totals = true,
+   do_examples = false ) :: Tuple
    @argcheck length(rows) == length(cols) == length( weights )
 
    # find first with hack for missing values. Must be better way...
@@ -92,6 +93,7 @@ function make_crosstab(
       end
       l, length(l)
    end
+   
    nr = length(rowlevels)
    if nr == 0
       rowlevels,nr = makelevels( rows )
@@ -107,7 +109,16 @@ function make_crosstab(
       push!( collevels,"Total")
    end
    m = zeros( nr, nc )
-
+   examples = nothing
+   max_examples = 10 # param!!
+   if do_examples
+      examples = Array{Vector{Int}}(undef,nr,nc)
+      for r in 1:nr
+         for c in 1:nc
+            examples[r,c] = Int[]
+         end
+      end
+   end
    for r in eachindex( rows )
       rv = rows[r]
       cv = cols[r]
@@ -115,6 +126,11 @@ function make_crosstab(
       ci = fwm( cv, collevels )
       # println( "rv=$rv cv==$cv ri=$ri ci=$ci")
       m[ri,ci] += weights[r]
+      if do_examples 
+         if length(examples[ri,ci] < max_examples
+            push!( examples[ri,ci], r )
+         end
+      end
    end
    if add_totals
       for c in 1:nc-1
@@ -125,7 +141,7 @@ function make_crosstab(
       end
       m[nr,nc] = sum(m[1:nr-1,1:nc-1])
    end
-   m, pretty.(rowlevels), pretty.(collevels) 
+   m, pretty.(rowlevels), pretty.(collevels), examples
 end
 
 """
@@ -135,13 +151,22 @@ return the crosstab, prettyfied row labels, prettyified col labels
 function make_crosstab( 
    rows::AbstractVector{<:Enum}, 
    cols::AbstractVector{<:Enum}; 
-   weights :: AbstractWeights = Weights(ones(length(rows))))
+   weights :: AbstractWeights = Weights(ones(length(rows))),
+   add_totals = true,
+   do_examples = false)
    # just hack into Categorical version and use that
    rv = CategoricalArray( string.(rows))
    cv = CategoricalArray( string.(cols))
    rl = collect(string.(instances(eltype(rows))))
    cl = collect(string.(instances(eltype(cols))))
-   make_crosstab( rv, cv; rowlevels=rl, collevels=cl, weights=weights )
+   make_crosstab( 
+      rv, 
+      cv; 
+      rowlevels=rl, 
+      collevels=cl, 
+      weights=weights,
+      add_totals = add_totals,
+      do_examples = do_examples )
 end
 
 """
