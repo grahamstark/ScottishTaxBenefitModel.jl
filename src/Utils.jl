@@ -127,7 +127,7 @@ function make_crosstab(
       # println( "rv=$rv cv==$cv ri=$ri ci=$ci")
       m[ri,ci] += weights[r]
       if do_examples 
-         if length(examples[ri,ci] < max_examples
+         if length(examples[ri,ci]) < max_examples
             push!( examples[ri,ci], r )
          end
       end
