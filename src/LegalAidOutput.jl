@@ -30,7 +30,9 @@ mutable struct LegalOutput
     cases_pers :: Vector{AbstractDict}
     costs_pers :: Vector{AbstractDict}
     crosstab_bu :: Vector{AbstractMatrix}
-    crosstab_pers :: Vector{Dict{String,AbstractMatrix}}
+    crosstab_bu_examples :: Vector{AbstractMatrix}
+    crosstab_pers :: Vector{AbstractMatrix} # Vector{Dict{String,AbstractMatrix}}
+    crosstab_pers_examples :: Vector{AbstractMatrix}
 end
 
 mutable struct AllLegalOutput
@@ -518,7 +520,7 @@ function la_crosstab(
     pre :: DataFrame, 
     post :: DataFrame, 
     problem="no_problem", 
-    estimate="prediction" ) :: AbstractMatrix
+    estimate="prediction" ) :: Tuple
     weights = Weights(pre.weight) 
     if problem != "no_problem"
         col = Symbol( "$(problem)_$estimate")
@@ -529,7 +531,7 @@ function la_crosstab(
         post.entitlement,
         pre.entitlement;
         weights=weights,
-        do_examples = true )[[1,4]] # discard the labels
+        max_examples = 10 )[[1,4]] # discard the labels
 end
 
 """
@@ -611,7 +613,10 @@ function summarise_la_output!(
                 end # estimates          
             end # problems
             =#
-            la.crosstab_bu[sysno-1] = la_crosstab( budata1, budata )
+            la.crosstab_pers[sysno-1], la.crosstab_pers_examples[sysno-1] = 
+                la_crosstab( data1, data )
+            la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
+                la_crosstab( budata1, budata )
         end # sysno > 1
     end
 end
@@ -678,7 +683,16 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_system
         pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
         println( f, "### cross table AA entitlement")
         pa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "##  System $sysno vs System 1 Personal Level" )
+        pc = Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println( f, "### cross table AA entitlement - Personal Level")
+        pa =  Utils.matrix_to_frame( laout.aa.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        #=
         for p in LegalAidData.PROBLEM_TYPES
             for est in LegalAidData.ESTIMATE_TYPES
                 println( f, "\n### System $sysno vs system 1: Personal Level Problem $p estimate $(est) \n\n")
@@ -687,6 +701,7 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_system
                 pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
             end
         end
+        =#
     end # systems
     close(f)
 end
@@ -695,15 +710,16 @@ function crosstab_to_df( ct :: Matrix ) :: DataFrame
     Utils.matrix_to_frame( ct, ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
 end
 
-
 function LegalOutput( T; num_systems::Integer, num_people::Integer )
     datas = Vector{DataFrame}(undef,0)
     breakdown_bu = Vector{Dict}(undef,0)
     breakdown_pers = Vector{Dict}(undef,0)
     cases_pers = Vector{Dict}(undef,0)
-    costs_pers = Vector{Dict}(undef,0)
+    costs_pers = Vector{Dict}(undef,0) # Vector{Matrix}(undef,0) # 
     crosstab_bu = Vector{Matrix}(undef,0)
-    crosstab_pers = Vector{Dict{String,Matrix}}(undef,0)
+    crosstab_bu_examples = Vector{Matrix}(undef,0)
+    crosstab_pers = Vector{Matrix}(undef,0) # Vector{Dict{String,Matrix}}(undef,0)
+    crosstab_pers_examples = Vector{Matrix}(undef,0)
     for sysno in 1:num_systems
         push!( datas, make_legal_aid_frame( T, num_people ))
         push!( breakdown_pers, Dict())
@@ -712,8 +728,10 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         push!( costs_pers, Dict())
         push!( breakdown_bu, Dict())
         if sysno < num_systems
-            push!(crosstab_pers, Dict()) # fill(T,4,4))
+            push!(crosstab_pers, fill(T,4,4)) # Dict()) # )
+            push!( crosstab_pers_examples, fill(Int[],4,4))    
             push!(crosstab_bu, fill(T,4,4))
+            push!( crosstab_bu_examples, fill(Int[],4,4))    
         end
     end
     LegalOutput( 
@@ -724,7 +742,9 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         cases_pers, 
         costs_pers, 
         crosstab_bu, 
-        crosstab_pers )
+        crosstab_bu_examples,
+        crosstab_pers,
+        crosstab_pers_examples )
 end
 
 function AllLegalOutput( T; num_systems::Integer, num_people::Integer )

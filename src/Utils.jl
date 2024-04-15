@@ -62,6 +62,8 @@ export
    todays_date, 
    uprate_struct!
 
+   
+
 """
 crosstab rows vs cols of a categorical arrays using the given weights.
 FIXME has a horrible hack for missing values.
@@ -74,7 +76,7 @@ function make_crosstab(
    collevels :: AbstractVector{String} = fill("",0),
    weights :: AbstractWeights = Weights(ones(length(rows))),
    add_totals = true,
-   do_examples = false ) :: Tuple
+   max_examples = 0 ) :: Tuple
    @argcheck length(rows) == length(cols) == length( weights )
 
    # find first with hack for missing values. Must be better way...
@@ -110,8 +112,7 @@ function make_crosstab(
    end
    m = zeros( nr, nc )
    examples = nothing
-   max_examples = 10 # param!!
-   if do_examples
+   if max_examples > 0
       examples = Array{Vector{Int}}(undef,nr,nc)
       for r in 1:nr
          for c in 1:nc
@@ -126,10 +127,8 @@ function make_crosstab(
       ci = fwm( cv, collevels )
       # println( "rv=$rv cv==$cv ri=$ri ci=$ci")
       m[ri,ci] += weights[r]
-      if do_examples 
-         if length(examples[ri,ci]) < max_examples
-            push!( examples[ri,ci], r )
-         end
+      if max_examples > length(examples[ri,ci])
+         push!( examples[ri,ci], r )
       end
    end
    if add_totals
@@ -153,7 +152,7 @@ function make_crosstab(
    cols::AbstractVector{<:Enum}; 
    weights :: AbstractWeights = Weights(ones(length(rows))),
    add_totals = true,
-   do_examples = false)
+   max_examples = 0 )
    # just hack into Categorical version and use that
    rv = CategoricalArray( string.(rows))
    cv = CategoricalArray( string.(cols))
@@ -166,7 +165,7 @@ function make_crosstab(
       collevels=cl, 
       weights=weights,
       add_totals = add_totals,
-      do_examples = do_examples )
+      max_examples = max_examples )
 end
 
 """
