@@ -29,4 +29,6 @@ using .HTMLLibs
         @show HTMLLibs.format_household( hh )
         @show HTMLLibs.format_person( head )
     end
+    lares = LegalAidResult{Float64}()
+    @show HTMLLibs.format( lares, lares )
 end

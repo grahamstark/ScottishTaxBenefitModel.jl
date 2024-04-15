@@ -149,11 +149,15 @@ function make_results_table( items :: AbstractArray )
     s *= "s *= \"<tbody>\"\n"
     s *= "s *= \"<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>\"\n"
     for p in items
-        m = match(r"(.*) *:: *(.*) *\#*.*", p )
+        m = match(r"(.*) * [:=]+ *(.*) *\#*.*", p )
         if ! isnothing(m)
             name = strip(m[1])
-            s *= "df = format_diff( \"name\", pre.$(name), post.$(name))"
-            s *= "s *= diff_row( df )"
+            n = match(r"(.*) * :: + *(.*) *\#*.*", m[1] )
+            if ! isnothing(n)
+                name = n[1]
+            end
+            s *= "df = format_diff( \"$name\", pre.$(name), post.$(name))\n"
+            s *= "s *= diff_row( df )\n"
         end
     end
     s *= "s *= \"</tbody>\"\n"

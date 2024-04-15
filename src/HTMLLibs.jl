@@ -103,7 +103,7 @@ end
 Format a pair of numbers
 @return bootstrap colo[u]r value, before value after value, all formatted to prec, commas
 """
-function format_diff(; name::String, before :: Number, after :: Number, up_is_good = 0, prec=2,commas=true ) :: NamedTuple
+function format_diff( name::String, before :: Number, after :: Number; up_is_good = 0, prec=2,commas=true ) :: NamedTuple
     change = round(after - before, digits=6)
     skipthis = (before ≈ 0) && (after ≈ 0)
 
@@ -115,16 +115,16 @@ function format_diff(; name::String, before :: Number, after :: Number, up_is_go
             colour = up_is_good == 1 ? "text-danger" : "text-success"
         end # neg diff   
     end # non zero diff
-    ds = change ≈ 0 ? "-" : format(change, commas=true, precision=prec )
+    ds = change ≈ 0 ? "-" : Format.format(change, commas=true, precision=prec )
     if ds != "-" && change > 0
         ds = "+$(ds)"
     end 
-    before_s = format(before, commas=commas, precision=prec)
-    after_s = format(after, commas=commas, precision=prec)    
+    before_s = Format.format(before; commas=commas, precision=prec)
+    after_s = Format.format(after; commas=commas, precision=prec)    
     (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
 end
 
-function format_diff(; name::String, before :: Bool, after :: Bool, up_is_good = 0 ) :: NamedTuple
+function format_diff( name::String, before :: Bool, after :: Bool; up_is_good = 0 ) :: NamedTuple
     skipthis = (! before ) && (! after )
     change = after != before
     colour = ""
@@ -147,7 +147,7 @@ function format_diff(; name::String, before :: Bool, after :: Bool, up_is_good =
     (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
 end
 
-function format_diff(; name :: String, before :: Enum, after :: Enum, up_is_good = 0 )
+function format_diff(name :: String, before :: Enum, after :: Enum; up_is_good = 0 )
     skipthis = false
     change = after != before
     colour = ""
@@ -316,6 +316,7 @@ function non_null_row( k, val, v )
 end
 
 function diff_row( fmtd :: NamedTuple, row_style="" )
+    @show fmtd
     if fmtd.skipthis
         return ""
     end
@@ -574,5 +575,62 @@ function format_household( hh :: Household; short=false )::String
     return s;
 end
 
+function format( pre :: OneLegalAidResult, post :: OneLegalAidResult)
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( name="net_income", before=pre.net_income, after=post.net_income)
+    s *= diff_row( df )
+    df = format_diff( name="disposable_income", before=pre.disposable_income, after=post.disposable_income)
+    s *= diff_row( df )
+    df = format_diff( name="childcare", before=pre.childcare, after=post.childcare)
+    s *= diff_row( df )
+    df = format_diff( name="outgoings", before=pre.outgoings, after=post.outgoings)
+    s *= diff_row( df )
+    df = format_diff( name="housing", before=pre.housing, after=post.housing)
+    s *= diff_row( df )
+    df = format_diff( name="work_expenses", before=pre.work_expenses, after=post.work_expenses)
+    s *= diff_row( df )
+    df = format_diff( name="other_outgoings", before=pre.other_outgoings, after=post.other_outgoings)
+    s *= diff_row( df )
+    df = format_diff( name="wealth", before=pre.wealth, after=post.wealth)
+    s *= diff_row( df )
+    df = format_diff( name="passported", before=pre.passported, after=post.passported)
+    s *= diff_row( df )
+    df = format_diff( name="eligible", before=pre.eligible, after=post.eligible)
+    s *= diff_row( df )
+    df = format_diff( name="eligible_on_income", before=pre.eligible_on_income, after=post.eligible_on_income)
+    s *= diff_row( df )
+    df = format_diff( name="eligible_on_capital", before=pre.eligible_on_capital, after=post.eligible_on_capital)
+    s *= diff_row( df )
+    df = format_diff( name="income_contribution", before=pre.income_contribution, after=post.income_contribution)
+    s *= diff_row( df )
+    df = format_diff( name="income_contribution_pw", before=pre.income_contribution_pw, after=post.income_contribution_pw)
+    s *= diff_row( df )
+    df = format_diff( name="capital_contribution", before=pre.capital_contribution, after=post.capital_contribution)
+    s *= diff_row( df )
+    df = format_diff( name="income_allowances", before=pre.income_allowances, after=post.income_allowances)
+    s *= diff_row( df )
+    df = format_diff( name="capital", before=pre.capital, after=post.capital)
+    s *= diff_row( df )
+    df = format_diff( name="disposable_capital", before=pre.disposable_capital, after=post.disposable_capital)
+    s *= diff_row( df )
+    df = format_diff( name="capital_allowances", before=pre.capital_allowances, after=post.capital_allowances)
+    s *= diff_row( df )
+    df = format_diff( name="entitlement", before=pre.entitlement, after=post.entitlement)
+    s *= diff_row( df )
+    s *= "</tbody>\n"
+    s *= "</table>\n"
+    return s
+end # la format
+
+function format( pre::LegalAidResult, post::LegalAidResult )
+    s = "<h3>Civil</h3>\n"
+    s *= format( pre.civil, post.civil )
+    s = "<h3>A&amp;A</h3>\n"
+    s *= format( pre.aa, post.aa )
+    return s
+end
 
 end # module
