@@ -529,7 +529,7 @@ function la_crosstab(
         post.entitlement,
         pre.entitlement;
         weights=weights,
-        do_examples = true )[1] # discard the labels
+        do_examples = true )[[1,4]] # discard the labels
 end
 
 """
@@ -602,6 +602,7 @@ function summarise_la_output!(
                 cost_items.costs )
         
         if sysno > 1
+            #=
             for p in LegalAidData.PROBLEM_TYPES
                 for est in LegalAidData.ESTIMATE_TYPES
                     k = "$(p)-$(est)"
@@ -609,7 +610,7 @@ function summarise_la_output!(
                     la.crosstab_pers[sysno-1][k] = la_crosstab( data1, data, p, est )
                 end # estimates          
             end # problems
-
+            =#
             la.crosstab_bu[sysno-1] = la_crosstab( budata1, budata )
         end # sysno > 1
     end
