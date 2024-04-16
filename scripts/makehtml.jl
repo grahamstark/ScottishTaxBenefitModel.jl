@@ -269,6 +269,12 @@ NI = [
 "    assumed_gross_wage :: RT = 0.0",
 ]
 
+BCAP = [
+"cap :: RT",
+"cap_benefits :: RT",
+"reduction :: RT"
+]
+
 IT = [
 "taxable_income :: RT = 0.0",
 "adjusted_net_income :: RT = 0.0",
@@ -441,5 +447,6 @@ println( "HR")
 println(make_results_table( HR ))
 println( "HH")
 println(make_results_table( HH ))
-
+println( "BCAP")
+println(make_results_table( BCAP ))
 

@@ -4,6 +4,7 @@ Bootstrap-style HTML
 """
 module HTMLLibs
 
+using Parameters: @with_kw
 using Format
 using DataFrames 
 
@@ -12,6 +13,19 @@ using .Results
 using .Definitions
 using .ModelHousehold
 using .Utils
+using .STBIncomes
+using .RunSettings
+
+export PrintControls
+
+@with_kw mutable struct PrintControls
+    include_children = true
+    include_legacy   = true
+    short_version    = false
+    include_legal_aid = true
+    include_wealth = false
+    include_indirect = false
+end
 
 const ARROWS_3 = Dict([
     "nonsig"          => "&#x25CF;",
@@ -35,11 +49,13 @@ function xfmt( a )
     Format.format( a; precision=2, commas=true )
 end
 
+
+
 """
 @return number, formatted 2dp, class for gain-lose, string for arrow 
 """
 function format_and_class( change :: Real ) :: Tuple
-    gnum = format( abs(change), commas=true, precision=2 )
+    gnum = Format.format( abs(change), commas=true, precision=2 )
     glclass = "";
     glstr = ""
     if change > 20.0
@@ -68,42 +84,11 @@ function format_and_class( change :: Real ) :: Tuple
     ( gnum, glclass, glstr )
 end
 
-
-function frame_to_table(
-    df :: DataFrame;
-    up_is_good :: Vector{Int},
-    prec :: Int = 2, 
-    caption :: String = "",
-    totals_col :: Int = -1 )
-    table = "<table class='table table-sm'>"
-    table *= "<thead>
-        <tr>
-            <th></th><th style='text-align:right'>Baseline Policy</th><th style='text-align:right'>Your Policy</th><th style='text-align:right'>Change</th>            
-        </tr>
-        </thead>"
-    table *= "<caption>$caption</caption>"
-    i = 0
-    for r in eachrow( df )
-        i += 1
-        xfmtd = format_diff( before=r.Before, after=r.After, up_is_good=up_is_good[i], prec=prec )
-        row_style = i == totals_col ? "class='text-bold table-info' " : ""
-        row = "<tr $row_style><th class='text-left'>$(r.Item)</th>
-                  <td style='text-align:right'>$(fmtd.before_s)</td>
-                  <td style='text-align:right'>$(fmtd.after_s)</td>
-                  <td style='text-align:right' class='$(fmtd.colour)'>$(fmtd.ds)</td>
-                </tr>"
-        table *= row
-    end
-    table *= "</tbody></table>"
-    return table
-end
-
-
 """
 Format a pair of numbers
 @return bootstrap colo[u]r value, before value after value, all formatted to prec, commas
 """
-function format_diff( name::String, before :: Number, after :: Number; up_is_good = 0, prec=2,commas=true ) :: NamedTuple
+function format_diff( name::String, before :: Number, after :: Number; up_is_good = 1, prec=2,commas=true ) :: NamedTuple
     change = round(after - before, digits=6)
     skipthis = (before ≈ 0) && (after ≈ 0)
 
@@ -124,7 +109,7 @@ function format_diff( name::String, before :: Number, after :: Number; up_is_goo
     (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
 end
 
-function format_diff( name::String, before :: Bool, after :: Bool; up_is_good = 0 ) :: NamedTuple
+function format_diff( name::String, before :: Bool, after :: Bool; up_is_good = 1 ) :: NamedTuple
     skipthis = (! before ) && (! after )
     change = after != before
     colour = ""
@@ -147,7 +132,7 @@ function format_diff( name::String, before :: Bool, after :: Bool; up_is_good = 
     (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
 end
 
-function format_diff(name :: String, before :: Enum, after :: Enum; up_is_good = 0 )
+function format_diff(name :: String, before :: Enum, after :: Enum; up_is_good = 1 )
     skipthis = false
     change = after != before
     colour = ""
@@ -171,11 +156,9 @@ function format_diff(name :: String, before :: Enum, after :: Enum; up_is_good =
     (; name, colour, ds, before_s, after_s, skipthis )
 end
 
-function format_diff(; name :: String, before :: Any, after :: Any, up_is_good = 0 )
+function format_diff(; name :: String, before :: Any, after :: Any, up_is_good = 1 )
     (; name=pretty(name), colour="", ds="", before_s="$before", after_s="$after", skipthis=false )
 end
-
-
 
 function frame_to_table(
     df :: DataFrame;
@@ -193,7 +176,7 @@ function frame_to_table(
     i = 0
     for r in eachrow( df )
         i += 1
-        fmtd = format_diff( before=r.Before, after=r.After, up_is_good=up_is_good[i], prec=prec )
+        fmtd = format_diff( r.Item, r.Before, r.After; up_is_good=up_is_good[i], prec=prec )
         row_style = i == totals_col ? "class='text-bold table-info' " : ""
         row = "<tr $row_style><th class='text-left'>$(r.Item)</th>
                   <td style='text-align:right'>$(fmtd.before_s)</td>
@@ -575,8 +558,40 @@ function format_household( hh :: Household; short=false )::String
     return s;
 end
 
-function format( pre :: OneLegalAidResult, post :: OneLegalAidResult)
+function format( pre::IncomesArray, post::IncomesArray )::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    for i in instances(Incomes)
+        df = format_diff( "$i", pre[i], post[i] )
+        s *= diff_row( df )
+    end
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+end
 
+
+function format( pre::LMTPremiaSet, post::LMTPremiaSet)::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    for i in instances(LMTPremia)
+        prep = i in pre
+        postp = i in post
+        df = format_diff( "$i", prep, postp )
+        s *= diff_row( df )
+    end
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+
+end
+
+
+function format( pre :: OneLegalAidResult, post :: OneLegalAidResult)
     s = "<table class='table table-sm'>"
     s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
     s *= "<tbody>"
@@ -740,7 +755,7 @@ function format( pre::LMTCanApplyFor, post::LMTCanApplyFor)
     return s
 end
 
-function format( pre:: LMTResult, post::LMTResult )
+function format( pre:: LMTResults, post::LMTResults )
     s = "<table class='table table-sm'>"
     s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
     s *= "<tbody>"
@@ -751,21 +766,11 @@ function format( pre:: LMTResult, post::LMTResult )
     s *= diff_row( df )
     df = format_diff( "mig_recipient", pre.mig_recipient, post.mig_recipient)
     s *= diff_row( df )
-    df = format_diff( "# total_benefits", pre.# total_benefits, post.# total_benefits)
-    s *= diff_row( df )
-    df = format_diff( "# FIXME rename premia", pre.# FIXME rename premia, post.# FIXME rename premia)
-    s *= diff_row( df )
     df = format_diff( "mig_premia", pre.mig_premia, post.mig_premia)
     s *= diff_row( df )
     df = format_diff( "mig_allowances", pre.mig_allowances, post.mig_allowances)
     s *= diff_row( df )
-    df = format_diff( "mig_incomes", pre.mig_incomes, post.mig_incomes)
-    s *= diff_row( df )
-    df = format_diff( "sc_incomes", pre.sc_incomes, post.sc_incomes)
-    s *= diff_row( df )
     df = format_diff( "ctc_elements", pre.ctc_elements, post.ctc_elements)
-    s *= diff_row( df )
-    df = format_diff( "wtc_income ", pre.wtc_income , post.wtc_income )
     s *= diff_row( df )
     df = format_diff( "wtc_elements", pre.wtc_elements, post.wtc_elements)
     s *= diff_row( df )
@@ -785,8 +790,6 @@ function format( pre:: LMTResult, post::LMTResult )
     s *= diff_row( df )
     df = format_diff( "hb_allowances", pre.hb_allowances, post.hb_allowances)
     s *= diff_row( df )
-    df = format_diff( "hb_incomes", pre.hb_incomes, post.hb_incomes)
-    s *= diff_row( df )
     df = format_diff( "hb_eligible_rent", pre.hb_eligible_rent, post.hb_eligible_rent)
     s *= diff_row( df )
     df = format_diff( "hb_recipient", pre.hb_recipient, post.hb_recipient)
@@ -799,8 +802,6 @@ function format( pre:: LMTResult, post::LMTResult )
     s *= diff_row( df )
     df = format_diff( "ctr_allowances", pre.ctr_allowances, post.ctr_allowances)
     s *= diff_row( df )
-    df = format_diff( "ctr_incomes", pre.ctr_incomes, post.ctr_incomes)
-    s *= diff_row( df )
     df = format_diff( "ctr_eligible_amount", pre.ctr_eligible_amount, post.ctr_eligible_amount)
     s *= diff_row( df )
     df = format_diff( "ctr_recipient", pre.ctr_recipient, post.ctr_recipient)
@@ -809,17 +810,314 @@ function format( pre:: LMTResult, post::LMTResult )
     s *= diff_row( df )
     df = format_diff( "pc_allowances", pre.pc_allowances, post.pc_allowances)
     s *= diff_row( df )
-    df = format_diff( "pc_incomes", pre.pc_incomes, post.pc_incomes)
-    s *= diff_row( df )
     df = format_diff( "pc_recipient", pre.pc_recipient, post.pc_recipient)
     s *= diff_row( df )
-    df = format_diff( "premia", pre.premia, post.premia)
+    df = format_diff( "wtc_income", pre.wtc_income , post.wtc_income )
     s *= diff_row( df )
-    df = format_diff( "can_apply_for", pre.can_apply_for, post.can_apply_for)
+
+    s *= "</tbody>\n"
+    s *= "</table>\n"
+
+    s *= "<h4>MIG Incomes</h4>\n"
+    s *= format( pre.mig_incomes, post.mig_incomes)
+    
+
+    s *= "<h4>Housing Benefit Incomes</h4>\n"
+    s *= format( pre.hb_incomes, post.hb_incomes)
+
+    s *= "<h4>Child Tax Credit Incomes</h4>\n"
+    s *= format( pre.ctr_incomes, post.ctr_incomes)
+    
+    s *= "<h4>Pension Credit Incomes</h4>\n"
+    s *= format( pre.pc_incomes, post.pc_incomes)
+
+    s *= "<h4>Savings Credit Incomes (Unused?)</h4>\n"
+    s *= format( pre.sc_incomes, post.sc_incomes)
+
+    s *= "<h4>Premia</h4>\n"
+    s *= format( pre.premia, post.premia)
+    
+    s *= "<h4>Benefits BU Can Apply For</h4>\n"
+    s *= format( pre.can_apply_for, post.can_apply_for)
+    return s
+end
+
+function format( pre:: IndirectTaxResult , post :: IndirectTaxResult ) :: String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "VED", pre.VED, post.VED)
+    s *= diff_row( df )
+    df = format_diff( "fuel_duty", pre.fuel_duty, post.fuel_duty)
+    s *= diff_row( df )
+    df = format_diff( "VAT", pre.VAT, post.VAT)
+    s *= diff_row( df )
+    df = format_diff( "excise_beer", pre.excise_beer, post.excise_beer)
+    s *= diff_row( df )
+    df = format_diff( "excise_cider", pre.excise_cider, post.excise_cider)
+    s *= diff_row( df )
+    df = format_diff( "excise_wine", pre.excise_wine, post.excise_wine)
+    s *= diff_row( df )
+    df = format_diff( "excise_tobacco", pre.excise_tobacco, post.excise_tobacco)
     s *= diff_row( df )
     s *= "</tbody>"
     s *= "</table>"
     return s
 end
 
-end # module
+function format( pre::BenefitCapResults, post::BenefitCapResults )::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "cap", pre.cap, post.cap)
+    s *= diff_row( df )
+    df = format_diff( "cap_benefits", pre.cap_benefits, post.cap_benefits)
+    s *= diff_row( df )
+    df = format_diff( "reduction", pre.reduction, post.reduction)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+end
+
+function format( pre::WealthTaxResult, post::WealthTaxResult )::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "total_payable", pre.total_payable, post.total_payable )
+    s *= diff_row( df )
+    df = format_diff( "weekly_equiv", pre.weekly_equiv, post.weekly_equiv)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+end
+
+function format( pre::NIResult, post::NIResult )::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "above_lower_earnings_limit", pre.above_lower_earnings_limit, post.above_lower_earnings_limit)
+    s *= diff_row( df )
+    df = format_diff( "class_1_primary", pre.class_1_primary, post.class_1_primary   )
+    s *= diff_row( df )
+    df = format_diff( "class_1_secondary", pre.class_1_secondary, post.class_1_secondary )
+    s *= diff_row( df )
+    df = format_diff( "class_2", pre.class_2, post.class_2  )
+    s *= diff_row( df )
+    df = format_diff( "class_3", pre.class_3, post.class_3  )
+    s *= diff_row( df )
+    df = format_diff( "class_4", pre.class_4, post.class_4  )
+    s *= diff_row( df )
+    df = format_diff( "assumed_gross_wage", pre.assumed_gross_wage, post.assumed_gross_wage)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    return s    
+end
+
+function format( pre :: ITResult, post::ITResult)::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "taxable_income", pre.taxable_income, post.taxable_income)
+    s *= diff_row( df )
+    df = format_diff( "adjusted_net_income", pre.adjusted_net_income, post.adjusted_net_income)
+    s *= diff_row( df )
+    df = format_diff( "total_income", pre.total_income, post.total_income)
+    s *= diff_row( df )
+    df = format_diff( "allowance  ", pre.allowance  , post.allowance  )
+    s *= diff_row( df )
+    df = format_diff( "non_savings_tax", pre.non_savings_tax, post.non_savings_tax)
+    s *= diff_row( df )
+    df = format_diff( "non_savings_band", pre.non_savings_band, post.non_savings_band)
+    s *= diff_row( df )
+    df = format_diff( "non_savings_income", pre.non_savings_income, post.non_savings_income)
+    s *= diff_row( df )
+    df = format_diff( "non_savings_taxable", pre.non_savings_taxable, post.non_savings_taxable)
+    s *= diff_row( df )
+    df = format_diff( "savings_tax", pre.savings_tax, post.savings_tax)
+    s *= diff_row( df )
+    df = format_diff( "savings_band", pre.savings_band, post.savings_band)
+    s *= diff_row( df )
+    df = format_diff( "savings_income", pre.savings_income, post.savings_income)
+    s *= diff_row( df )
+    df = format_diff( "savings_taxable", pre.savings_taxable, post.savings_taxable)
+    s *= diff_row( df )
+    df = format_diff( "dividends_tax", pre.dividends_tax, post.dividends_tax)
+    s *= diff_row( df )
+    df = format_diff( "dividend_band", pre.dividend_band, post.dividend_band)
+    s *= diff_row( df )
+    df = format_diff( "dividends_income", pre.dividends_income, post.dividends_income)
+    s *= diff_row( df )
+    df = format_diff( "dividends_taxable", pre.dividends_taxable, post.dividends_taxable)
+    s *= diff_row( df )
+    df = format_diff( "unused_allowance", pre.unused_allowance, post.unused_allowance)
+    s *= diff_row( df )
+    df = format_diff( "mca", pre.mca, post.mca)
+    s *= diff_row( df )
+    df = format_diff( "transferred_allowance", pre.transferred_allowance, post.transferred_allowance)
+    s *= diff_row( df )
+    df = format_diff( "pension_eligible_for_relief", pre.pension_eligible_for_relief, post.pension_eligible_for_relief)
+    s *= diff_row( df )
+    df = format_diff( "pension_relief_at_source", pre.pension_relief_at_source, post.pension_relief_at_source)
+    s *= diff_row( df )
+    df = format_diff( "personal_savings_allowance", pre.personal_savings_allowance, post.personal_savings_allowance)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    #=
+    df = format_diff( "non_savings_thresholds", pre.non_savings_thresholds, post.non_savings_thresholds)
+    s *= diff_row( df )
+    df = format_diff( "savings_thresholds ", pre.savings_thresholds , post.savings_thresholds )
+    s *= diff_row( df )
+    df = format_diff( "dividend_thresholds", pre.dividend_thresholds, post.dividend_thresholds)
+    s *= diff_row( df )
+    df = format_diff( "savings_rates ", pre.savings_rates , post.savings_rates )
+    s *= diff_row( df )
+    df = format_diff( "dividend_rates", pre.dividend_rates, post.dividend_rates)
+    s *= diff_row( df )
+
+    =#
+    return s 
+end 
+
+function format( pre::IndividualResult, post::IndividualResult )::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "net_income", pre.net_income, post.net_income)
+    s *= diff_row( df )
+    df = format_diff( "metr", pre.metr, post.metr)
+    s *= diff_row( df )
+    df = format_diff( "replacement_rate", pre.replacement_rate, post.replacement_rate)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    s *= "<h4>Individual Incomes</h4>"
+    s *= format( pre.income, post.income )
+
+    s *= "<h4>National Insurance</h4>"
+    s *= format( pre.ni, post.ni)
+
+    s *= "<h4>Income Tax</h4>"
+    s *= format( pre.it, post.it)
+    
+    s *= "<h4>Hypothetical Wealth Tax</h4>"
+    s *= format( pre.wealth, post.wealth)
+
+    return s
+end 
+
+function format( pre::HousingResult, post::HousingResult)::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "allowed_rooms", pre.allowed_rooms, post.allowed_rooms)
+    s *= diff_row( df )
+    df = format_diff( "excess_rooms", pre.excess_rooms, post.excess_rooms)
+    s *= diff_row( df )
+    df = format_diff( "allowed_rent", pre.allowed_rent, post.allowed_rent)
+    s *= diff_row( df )
+    df = format_diff( "gross_rent", pre.gross_rent, post.gross_rent)
+    s *= diff_row( df )
+    df = format_diff( "rooms_rent_reduction", pre.rooms_rent_reduction, post.rooms_rent_reduction)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    return s
+end
+
+function format( pre::BenefitUnitResult, post::BenefitUnitResult )::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "net_income   ", pre.net_income   , post.net_income   )
+    s *= diff_row( df )
+    df = format_diff( "eq_net_income", pre.eq_net_income, post.eq_net_income)
+    s *= diff_row( df )
+    df = format_diff( "route", pre.route, post.route)
+    s *= diff_row( df )
+    df = format_diff( "other_benefits ", pre.other_benefits , post.other_benefits )    
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+
+    s *= "<h4>Benefit Unit Incomes</h4>"
+    df = format( pre.income, post.income)
+
+    s *= "<h4>Legacy Means Tested Benefits </h4>"
+    s *= format( pre.legacy_mtbens, post.legacy_mtbens)
+    
+    s *= "<h4>Universal Credit</h4>"
+    s *= format( pre.uc, post.uc)
+    
+    s *= "<h4>Benefit Cap</h4>"
+    s *= format( pre.bencap, post.bencap)
+    
+    s *= "<h4>Legal Aid</h4>"
+    s *= format( pre.legalaid, post.legalaid)    
+    return s;
+    #=
+    df = format_diff( "pers", pre.pers, post.pers)
+    s *= diff_row( df )
+    df = format_diff( "adults", pre.adults, post.adults)
+    s *= diff_row( df )
+    =#
+end
+
+function format( pre::HouseholdResult, post::HouseholdResult )::String
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "bhc_net_income", pre.bhc_net_income, post.bhc_net_income)
+    s *= diff_row( df )
+    df = format_diff( "eq_bhc_net_income", pre.eq_bhc_net_income, post.eq_bhc_net_income)
+    s *= diff_row( df )
+    df = format_diff( "ahc_net_income", pre.ahc_net_income, post.ahc_net_income)
+    s *= diff_row( df )
+    df = format_diff( "eq_ahc_net_income", pre.eq_ahc_net_income, post.eq_ahc_net_income)
+    s *= diff_row( df )
+    df = format_diff( "net_housing_costs", pre.net_housing_costs, post.net_housing_costs)
+    s *= "</tbody>"
+    s *= "</table>"
+    s *= "<h4>Household Incomes</h4>"
+    s *= format( pre.income, post.income)
+
+    s *= "<h4>Housing Restrictions</h4>"
+    s *= format( pre.housing, post.housing )
+
+    s *= "<h4>Indirect Taxes</h4>"
+    s *= format( pre.indirect, post.indirect )
+    return s
+end
+
+function format( 
+    hh :: Household,
+    pre :: HouseholdResult, 
+    post :: HouseholdResult;
+    settings :: Settings,
+    print :: PrintControls )::String
+    s = format_household( hh )
+    s *= format( pre, post ) # just hh level stuff
+    for bn in eachindex(pre.bus) # note this assumes same bu structure pre and post
+        brpre = pre.bus[bn]
+        brpost = post.bus[bn]
+        s *= format( brpre, brpost )
+        for pid in sort(collect(keys(brpre.pers)))
+            s *= format_person( hh.people[pid])
+            s *= format( brpre.pers[pid], brpost.pers[pid])
+        end
+    end
+    return s;
+end
+
+end # module 

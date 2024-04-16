@@ -30,18 +30,22 @@ module Results
         make_crosstab
 
     export
+        BenefitCapResults,
         BenefitUnitResult,
         HouseholdResult,
         HousingResult,
+        IndirectTaxResult,
         IndividualResult,
         ITResult,
+        LegalAidResult,
         LMTCanApplyFor,
         LMTIncomes,
         LMTResults,
         LocalTaxes,
         NIResult, 
-        LegalAidResult,
         OneLegalAidResult,
+        UCResults,
+        WealthTaxResult,
         aggregate_tax,
         aggregate!,
         get_indiv_result,
@@ -273,7 +277,6 @@ module Results
     end
     
     @with_kw mutable struct IndividualResult{RT<:Real}
-       
        net_income :: RT = zero(RT)
        ni = NIResult{RT}()
        it = ITResult{RT}()
