@@ -82,7 +82,7 @@ const HEADER = """
     println( "writing to $outfname")
     f = open( outfname,"w")
     s = HEADER
-    for hno in 1:5
+    for hno in 1:50
         hh = FRSHouseholdGetter.get_household( hno )
         pre = do_one_calc( hh, sys1 )
         post = do_one_calc( hh, sys2 )

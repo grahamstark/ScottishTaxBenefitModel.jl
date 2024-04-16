@@ -88,9 +88,9 @@ end
 Format a pair of numbers
 @return bootstrap colo[u]r value, before value after value, all formatted to prec, commas
 """
-function format_diff( name::String, before :: Number, after :: Number; up_is_good = 1, prec=2,commas=true ) :: NamedTuple
+function format_diff( name::String, before :: Number, after :: Number; up_is_good = 1, prec=2,commas=true, always_print=false ) :: NamedTuple
     change = round(after - before, digits=6)
-    skipthis = (before ≈ 0) && (after ≈ 0)
+    skipthis = (! always_print) && (before ≈ 0) && (after ≈ 0)
 
     colour = ""
     if (up_is_good !== 0) && (! (change ≈ 0))
@@ -109,8 +109,8 @@ function format_diff( name::String, before :: Number, after :: Number; up_is_goo
     (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
 end
 
-function format_diff( name::String, before :: Bool, after :: Bool; up_is_good = 1 ) :: NamedTuple
-    skipthis = (! before ) && (! after )
+function format_diff( name::String, before :: Bool, after :: Bool; up_is_good = 1, always_print=false ) :: NamedTuple
+    skipthis = (! always_print) && (! before ) && (! after )
     change = after != before
     colour = ""
     if (up_is_good !== 0) && change
@@ -132,7 +132,7 @@ function format_diff( name::String, before :: Bool, after :: Bool; up_is_good = 
     (; name=pretty(name), colour, ds, before_s, after_s, skipthis )
 end
 
-function format_diff(name :: String, before :: Enum, after :: Enum; up_is_good = 1 )
+function format_diff(name :: String, before :: Enum, after :: Enum; up_is_good = 1, always_print=false )
     skipthis = false
     change = after != before
     colour = ""
@@ -642,9 +642,9 @@ function format( pre :: OneLegalAidResult, post :: OneLegalAidResult)
 end # la format
 
 function format( pre::LegalAidResult, post::LegalAidResult )
-    s = "<h3>Civil</h3>\n"
+    s = "<h4>Civil</h4>\n"
     s *= format( pre.civil, post.civil )
-    s = "<h3>A&amp;A</h3>\n"
+    s *= "<h4>A&amp;A</h4>\n"
     s *= format( pre.aa, post.aa )
     return s
 end
@@ -1132,7 +1132,7 @@ function format(
     for bn in eachindex(pre.bus) # note this assumes same bu structure pre and post
         brpre = pre.bus[bn]
         brpost = post.bus[bn]
-        s *= "<h3>Benefit Unit $bn</h3>"
+        s *= "<h2>Benefit Unit $bn</h2>"
         s *= format( brpre, brpost; 
             settings=settings, print=print )
         for pid in sort(collect(keys(brpre.pers)))
