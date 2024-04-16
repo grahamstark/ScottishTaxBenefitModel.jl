@@ -129,13 +129,13 @@ end
 function get_uk_system(; year = 2023 ) :: TaxBenefitSystem
    sys = nothing
    if year == 2023
-      sys = get_default_system_for_fin_year( 2023 )
+      sys = get_default_system_for_fin_year( 2023, scotland=false )
       return sys
    end
 end
 
-function get_system( ; year, scotland = true )  :: TaxBenefitSystem
-   sys = get_default_system_for_fin_year( year , scotland=scotland )      
+function get_system( ; year, scotland = true ) :: TaxBenefitSystem
+   sys = get_default_system_for_fin_year( year; scotland=scotland )      
    return sys
 end
 

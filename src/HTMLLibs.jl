@@ -20,11 +20,11 @@ export PrintControls
 
 @with_kw mutable struct PrintControls
     include_children = true
-    include_legacy   = true
+    include_legacy   = false
     short_version    = false
     include_legal_aid = true
-    include_wealth = false
-    include_indirect = false
+    include_wealth_tax = false
+    include_indirect_tax = false
 end
 
 const ARROWS_3 = Dict([
@@ -549,12 +549,12 @@ function format_household( hh :: Household; short=false )::String
     s *= "</tbody>"
     s *= "</table>"
     
-    
+    #=
     for (pid, pers) in hh.people
         s *= "<h3>Person $pid</h3>\n"
         s *= format_person( pers )
     end
-
+    =#
     return s;
 end
 
@@ -987,7 +987,11 @@ function format( pre :: ITResult, post::ITResult)::String
     return s 
 end 
 
-function format( pre::IndividualResult, post::IndividualResult )::String
+function format( 
+    pre::IndividualResult, 
+    post::IndividualResult;
+    settings :: Settings,
+    print :: PrintControls  )::String
     s = "<table class='table table-sm'>"
     s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
     s *= "<tbody>"
@@ -1009,9 +1013,10 @@ function format( pre::IndividualResult, post::IndividualResult )::String
     s *= "<h4>Income Tax</h4>"
     s *= format( pre.it, post.it)
     
-    s *= "<h4>Hypothetical Wealth Tax</h4>"
-    s *= format( pre.wealth, post.wealth)
-
+    if print.include_wealth_tax
+        s *= "<h4>Hypothetical Wealth Tax</h4>"
+        s *= format( pre.wealth, post.wealth)
+    end
     return s
 end 
 
@@ -1034,7 +1039,11 @@ function format( pre::HousingResult, post::HousingResult)::String
     return s
 end
 
-function format( pre::BenefitUnitResult, post::BenefitUnitResult )::String
+function format( 
+    pre::BenefitUnitResult, 
+    post::BenefitUnitResult;
+    settings :: Settings,
+    print :: PrintControls )::String
     s = "<table class='table table-sm'>"
     s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
     s *= "<tbody>"
@@ -1053,17 +1062,21 @@ function format( pre::BenefitUnitResult, post::BenefitUnitResult )::String
     s *= "<h4>Benefit Unit Incomes</h4>"
     df = format( pre.income, post.income)
 
-    s *= "<h4>Legacy Means Tested Benefits </h4>"
-    s *= format( pre.legacy_mtbens, post.legacy_mtbens)
-    
+    if print.include_legacy && (settings.means_tested_routing != uc_full )
+        s *= "<h4>Legacy Means Tested Benefits </h4>"
+        s *= format( pre.legacy_mtbens, post.legacy_mtbens)
+    end
+
     s *= "<h4>Universal Credit</h4>"
     s *= format( pre.uc, post.uc)
     
     s *= "<h4>Benefit Cap</h4>"
     s *= format( pre.bencap, post.bencap)
     
-    s *= "<h4>Legal Aid</h4>"
-    s *= format( pre.legalaid, post.legalaid)    
+    if print.include_legal_aid
+        s *= "<h4>Legal Aid</h4>"
+        s *= format( pre.legalaid, post.legalaid)    
+    end
     return s;
     #=
     df = format_diff( "pers", pre.pers, post.pers)
@@ -1073,7 +1086,11 @@ function format( pre::BenefitUnitResult, post::BenefitUnitResult )::String
     =#
 end
 
-function format( pre::HouseholdResult, post::HouseholdResult )::String
+function format( 
+    pre::HouseholdResult, 
+    post::HouseholdResult;
+    settings :: Settings,
+    print :: PrintControls )::String
     s = "<table class='table table-sm'>"
     s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
     s *= "<tbody>"
@@ -1092,11 +1109,14 @@ function format( pre::HouseholdResult, post::HouseholdResult )::String
     s *= "<h4>Household Incomes</h4>"
     s *= format( pre.income, post.income)
 
-    s *= "<h4>Housing Restrictions</h4>"
-    s *= format( pre.housing, post.housing )
-
-    s *= "<h4>Indirect Taxes</h4>"
-    s *= format( pre.indirect, post.indirect )
+    if ! print.short_version
+        s *= "<h4>Housing Restrictions</h4>"
+        s *= format( pre.housing, post.housing )
+    end
+    if print.include_indirect_tax
+        s *= "<h4>Indirect Taxes</h4>"
+        s *= format( pre.indirect, post.indirect )
+    end
     return s
 end
 
@@ -1107,14 +1127,21 @@ function format(
     settings :: Settings,
     print :: PrintControls )::String
     s = format_household( hh )
-    s *= format( pre, post ) # just hh level stuff
+    s *= format( pre, post;
+         settings=settings, print=print ) # just hh level stuff
     for bn in eachindex(pre.bus) # note this assumes same bu structure pre and post
         brpre = pre.bus[bn]
         brpost = post.bus[bn]
-        s *= format( brpre, brpost )
+        s *= "<h3>Benefit Unit $bn</h3>"
+        s *= format( brpre, brpost; 
+            settings=settings, print=print )
         for pid in sort(collect(keys(brpre.pers)))
+            s *= "<h3>Person Number $pid</h3>"
             s *= format_person( hh.people[pid])
-            s *= format( brpre.pers[pid], brpost.pers[pid])
+            s *= "<h3>Results for Person Number $pid</h3>"            
+            s *= format( 
+                brpre.pers[pid], brpost.pers[pid]; 
+                settings=settings, print=print )
         end
     end
     return s;
