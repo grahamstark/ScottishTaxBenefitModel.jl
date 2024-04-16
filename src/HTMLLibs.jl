@@ -576,52 +576,53 @@ function format_household( hh :: Household; short=false )::String
 end
 
 function format( pre :: OneLegalAidResult, post :: OneLegalAidResult)
+
     s = "<table class='table table-sm'>"
     s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
     s *= "<tbody>"
     s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
-    df = format_diff( name="net_income", before=pre.net_income, after=post.net_income)
+    df = format_diff( "net_income", pre.net_income, post.net_income)
     s *= diff_row( df )
-    df = format_diff( name="disposable_income", before=pre.disposable_income, after=post.disposable_income)
+    df = format_diff( "disposable_income", pre.disposable_income, post.disposable_income)
     s *= diff_row( df )
-    df = format_diff( name="childcare", before=pre.childcare, after=post.childcare)
+    df = format_diff( "childcare", pre.childcare, post.childcare)
     s *= diff_row( df )
-    df = format_diff( name="outgoings", before=pre.outgoings, after=post.outgoings)
+    df = format_diff( "outgoings", pre.outgoings, post.outgoings)
     s *= diff_row( df )
-    df = format_diff( name="housing", before=pre.housing, after=post.housing)
+    df = format_diff( "housing", pre.housing, post.housing)
     s *= diff_row( df )
-    df = format_diff( name="work_expenses", before=pre.work_expenses, after=post.work_expenses)
+    df = format_diff( "work_expenses", pre.work_expenses, post.work_expenses)
     s *= diff_row( df )
-    df = format_diff( name="other_outgoings", before=pre.other_outgoings, after=post.other_outgoings)
+    df = format_diff( "other_outgoings", pre.other_outgoings, post.other_outgoings)
     s *= diff_row( df )
-    df = format_diff( name="wealth", before=pre.wealth, after=post.wealth)
+    df = format_diff( "wealth", pre.wealth, post.wealth)
     s *= diff_row( df )
-    df = format_diff( name="passported", before=pre.passported, after=post.passported)
+    df = format_diff( "passported", pre.passported, post.passported)
     s *= diff_row( df )
-    df = format_diff( name="eligible", before=pre.eligible, after=post.eligible)
+    df = format_diff( "eligible", pre.eligible, post.eligible)
     s *= diff_row( df )
-    df = format_diff( name="eligible_on_income", before=pre.eligible_on_income, after=post.eligible_on_income)
+    df = format_diff( "eligible_on_income", pre.eligible_on_income, post.eligible_on_income)
     s *= diff_row( df )
-    df = format_diff( name="eligible_on_capital", before=pre.eligible_on_capital, after=post.eligible_on_capital)
+    df = format_diff( "eligible_on_capital", pre.eligible_on_capital, post.eligible_on_capital)
     s *= diff_row( df )
-    df = format_diff( name="income_contribution", before=pre.income_contribution, after=post.income_contribution)
+    df = format_diff( "income_contribution", pre.income_contribution, post.income_contribution)
     s *= diff_row( df )
-    df = format_diff( name="income_contribution_pw", before=pre.income_contribution_pw, after=post.income_contribution_pw)
+    df = format_diff( "income_contribution_pw", pre.income_contribution_pw, post.income_contribution_pw)
     s *= diff_row( df )
-    df = format_diff( name="capital_contribution", before=pre.capital_contribution, after=post.capital_contribution)
+    df = format_diff( "capital_contribution", pre.capital_contribution, post.capital_contribution)
     s *= diff_row( df )
-    df = format_diff( name="income_allowances", before=pre.income_allowances, after=post.income_allowances)
+    df = format_diff( "income_allowances", pre.income_allowances, post.income_allowances)
     s *= diff_row( df )
-    df = format_diff( name="capital", before=pre.capital, after=post.capital)
+    df = format_diff( "capital", pre.capital, post.capital)
     s *= diff_row( df )
-    df = format_diff( name="disposable_capital", before=pre.disposable_capital, after=post.disposable_capital)
+    df = format_diff( "disposable_capital", pre.disposable_capital, post.disposable_capital)
     s *= diff_row( df )
-    df = format_diff( name="capital_allowances", before=pre.capital_allowances, after=post.capital_allowances)
+    df = format_diff( "capital_allowances", pre.capital_allowances, post.capital_allowances)
     s *= diff_row( df )
-    df = format_diff( name="entitlement", before=pre.entitlement, after=post.entitlement)
+    df = format_diff( "entitlement", pre.entitlement, post.entitlement)
     s *= diff_row( df )
-    s *= "</tbody>\n"
-    s *= "</table>\n"
+    s *= "</tbody>"
+    s *= "</table>"
     return s
 end # la format
 

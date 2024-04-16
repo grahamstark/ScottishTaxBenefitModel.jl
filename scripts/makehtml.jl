@@ -1,8 +1,8 @@
 using Base.Unicode
 
-"""
+""
 a_string_or_symbol_like_this => "A String Or Symbol Like This"
-"""
+""
 function cpretty(a)
    s = string(a)
    s = strip(lowercase(s))
@@ -121,6 +121,30 @@ HHS= [
     "onerand :: String",
     "equivalence_scales :: EQScales{RT}"]
 
+
+UC = [
+"basic_conditions_satisfied :: Bool = false",
+"disqualified_on_capital :: Bool = false",
+"work_allowance :: RT = zero(RT)",
+"earnings_before_allowances :: RT = zero(RT)",
+"earned_income :: RT = zero(RT)",
+"other_income :: RT = zero(RT)",
+"tariff_income :: RT = zero(RT)",
+"standard_allowance  :: RT = zero(RT)",
+"child_element ::  RT = zero(RT)",
+"limited_capacity_for_work_activity_element ::  RT = zero(RT)",
+"carer_element ::  RT = zero(RT)",
+"childcare_costs :: RT = zero(RT)",
+"housing_element :: RT = zero(RT)",
+"other_housing_costs :: RT = zero(RT)",
+"assets :: RT = zero(RT)",
+"maximum  :: RT = zero(RT)",
+"total_income :: RT = zero(RT)",
+"transitional_protection :: RT = zero(RT)",
+"ctr :: RT = zero(RT)",
+"recipient :: BigInt = -1"
+]
+
 LEGAL=[
 "net_income = zero(RT)",
 "disposable_income = zero(RT)",
@@ -142,6 +166,30 @@ LEGAL=[
 "disposable_capital = zero(RT)",
 "capital_allowances = zero(RT)",
 "entitlement :: LegalAidStatus = la_none"]
+
+LMT = [
+"gross_earnings :: RT = zero(RT)",
+"net_earnings   :: RT = zero(RT)",
+"other_income   :: RT = zero(RT)",
+"total_income   :: RT = zero(RT)",
+"disregard :: RT = zero(RT)",
+"childcare :: RT = zero(RT)",
+"capital :: RT = zero(RT)",
+"tariff_income :: RT = zero(RT)",
+"disqualified_on_capital :: Bool = false"]
+
+LMT_APPLY = [
+"ctc  :: Bool = false",
+"esa :: Bool = false",
+"hb  :: Bool = false",
+"is :: Bool = false",
+"jsa :: Bool = false",
+"pc  :: Bool = false",
+"sc  :: Bool = false",
+"wtc  :: Bool = false",
+"ctr :: Bool = false",
+
+]
 
 function make_results_table( items :: AbstractArray )
     s = "s = \"<table class='table table-sm'>\"\n"
@@ -194,4 +242,13 @@ end
 println( maketable(HHS, "hh"))
 println( maketable(PERS, "pers"))
 
+println("LEGAL")
 println( make_results_table( LEGAL ))
+println("UC")
+println( make_results_table( UC ))
+println( "LMT")
+println( make_results_table( LMT ))
+println( "LMT_APPLY")
+println(  make_results_table( LMT_APPLY ))
+
+
