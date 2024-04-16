@@ -634,4 +634,192 @@ function format( pre::LegalAidResult, post::LegalAidResult )
     return s
 end
 
+function format(  pre :: UCResults, post :: UCResults)
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "basic_conditions_satisfied", pre.basic_conditions_satisfied, post.basic_conditions_satisfied)
+    s *= diff_row( df )
+    df = format_diff( "disqualified_on_capital", pre.disqualified_on_capital, post.disqualified_on_capital)
+    s *= diff_row( df )
+    df = format_diff( "work_allowance", pre.work_allowance, post.work_allowance)
+    s *= diff_row( df )
+    df = format_diff( "earnings_before_allowances", pre.earnings_before_allowances, post.earnings_before_allowances)
+    s *= diff_row( df )
+    df = format_diff( "earned_income", pre.earned_income, post.earned_income)
+    s *= diff_row( df )
+    df = format_diff( "other_income", pre.other_income, post.other_income)
+    s *= diff_row( df )
+    df = format_diff( "tariff_income", pre.tariff_income, post.tariff_income)
+    s *= diff_row( df )
+    df = format_diff( "standard_allowance ", pre.standard_allowance , post.standard_allowance )
+    s *= diff_row( df )
+    df = format_diff( "child_element", pre.child_element, post.child_element)
+    s *= diff_row( df )
+    df = format_diff( "limited_capacity_for_work_activity_element", pre.limited_capacity_for_work_activity_element, post.limited_capacity_for_work_activity_element)
+    s *= diff_row( df )
+    df = format_diff( "carer_element", pre.carer_element, post.carer_element)
+    s *= diff_row( df )
+    df = format_diff( "childcare_costs", pre.childcare_costs, post.childcare_costs)
+    s *= diff_row( df )
+    df = format_diff( "housing_element", pre.housing_element, post.housing_element)
+    s *= diff_row( df )
+    df = format_diff( "other_housing_costs", pre.other_housing_costs, post.other_housing_costs)
+    s *= diff_row( df )
+    df = format_diff( "assets", pre.assets, post.assets)
+    s *= diff_row( df )
+    df = format_diff( "maximum ", pre.maximum , post.maximum )
+    s *= diff_row( df )
+    df = format_diff( "total_income", pre.total_income, post.total_income)
+    s *= diff_row( df )
+    df = format_diff( "transitional_protection", pre.transitional_protection, post.transitional_protection)
+    s *= diff_row( df )
+    df = format_diff( "ctr", pre.ctr, post.ctr)
+    s *= diff_row( df )
+    df = format_diff( "recipient", pre.recipient, post.recipient)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+end
+
+function format( pre::LMTIncomes, post::LMTIncomes)
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "gross_earnings", pre.gross_earnings, post.gross_earnings)
+    s *= diff_row( df )
+    df = format_diff( "net_earnings  ", pre.net_earnings  , post.net_earnings  )
+    s *= diff_row( df )
+    df = format_diff( "other_income  ", pre.other_income  , post.other_income  )
+    s *= diff_row( df )
+    df = format_diff( "total_income  ", pre.total_income  , post.total_income  )
+    s *= diff_row( df )
+    df = format_diff( "disregard", pre.disregard, post.disregard)
+    s *= diff_row( df )
+    df = format_diff( "childcare", pre.childcare, post.childcare)
+    s *= diff_row( df )
+    df = format_diff( "capital", pre.capital, post.capital)
+    s *= diff_row( df )
+    df = format_diff( "tariff_income", pre.tariff_income, post.tariff_income)
+    s *= diff_row( df )
+    df = format_diff( "disqualified_on_capital", pre.disqualified_on_capital, post.disqualified_on_capital)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+end
+
+function format( pre::LMTCanApplyFor, post::LMTCanApplyFor)
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "ctc ", pre.ctc , post.ctc )
+    s *= diff_row( df )
+    df = format_diff( "esa", pre.esa, post.esa)
+    s *= diff_row( df )
+    df = format_diff( "hb ", pre.hb , post.hb )
+    s *= diff_row( df )
+    df = format_diff( "is", pre.is, post.is)
+    s *= diff_row( df )
+    df = format_diff( "jsa", pre.jsa, post.jsa)
+    s *= diff_row( df )
+    df = format_diff( "pc ", pre.pc , post.pc )
+    s *= diff_row( df )
+    df = format_diff( "sc ", pre.sc , post.sc )
+    s *= diff_row( df )
+    df = format_diff( "wtc ", pre.wtc , post.wtc )
+    s *= diff_row( df )
+    df = format_diff( "ctr", pre.ctr, post.ctr)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+end
+
+function format( pre:: LMTResult, post::LMTResult )
+    s = "<table class='table table-sm'>"
+    s *= "<thead><caption>Money Amounts in £s pw</caption></thead>"
+    s *= "<tbody>"
+    s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
+    df = format_diff( "ndds", pre.ndds, post.ndds)
+    s *= diff_row( df )
+    df = format_diff( "mig ", pre.mig , post.mig )
+    s *= diff_row( df )
+    df = format_diff( "mig_recipient", pre.mig_recipient, post.mig_recipient)
+    s *= diff_row( df )
+    df = format_diff( "# total_benefits", pre.# total_benefits, post.# total_benefits)
+    s *= diff_row( df )
+    df = format_diff( "# FIXME rename premia", pre.# FIXME rename premia, post.# FIXME rename premia)
+    s *= diff_row( df )
+    df = format_diff( "mig_premia", pre.mig_premia, post.mig_premia)
+    s *= diff_row( df )
+    df = format_diff( "mig_allowances", pre.mig_allowances, post.mig_allowances)
+    s *= diff_row( df )
+    df = format_diff( "mig_incomes", pre.mig_incomes, post.mig_incomes)
+    s *= diff_row( df )
+    df = format_diff( "sc_incomes", pre.sc_incomes, post.sc_incomes)
+    s *= diff_row( df )
+    df = format_diff( "ctc_elements", pre.ctc_elements, post.ctc_elements)
+    s *= diff_row( df )
+    df = format_diff( "wtc_income ", pre.wtc_income , post.wtc_income )
+    s *= diff_row( df )
+    df = format_diff( "wtc_elements", pre.wtc_elements, post.wtc_elements)
+    s *= diff_row( df )
+    df = format_diff( "wtc_ctc_threshold", pre.wtc_ctc_threshold, post.wtc_ctc_threshold)
+    s *= diff_row( df )
+    df = format_diff( "wtc_ctc_tapered_excess", pre.wtc_ctc_tapered_excess, post.wtc_ctc_tapered_excess)
+    s *= diff_row( df )
+    df = format_diff( "wtc_recipient", pre.wtc_recipient, post.wtc_recipient)
+    s *= diff_row( df )
+    df = format_diff( "cost_of_childcare", pre.cost_of_childcare, post.cost_of_childcare)
+    s *= diff_row( df )
+    df = format_diff( "hb_passported", pre.hb_passported, post.hb_passported)
+    s *= diff_row( df )
+    df = format_diff( "other_housing_costs", pre.other_housing_costs, post.other_housing_costs)
+    s *= diff_row( df )
+    df = format_diff( "hb_premia", pre.hb_premia, post.hb_premia)
+    s *= diff_row( df )
+    df = format_diff( "hb_allowances", pre.hb_allowances, post.hb_allowances)
+    s *= diff_row( df )
+    df = format_diff( "hb_incomes", pre.hb_incomes, post.hb_incomes)
+    s *= diff_row( df )
+    df = format_diff( "hb_eligible_rent", pre.hb_eligible_rent, post.hb_eligible_rent)
+    s *= diff_row( df )
+    df = format_diff( "hb_recipient", pre.hb_recipient, post.hb_recipient)
+    s *= diff_row( df )
+    df = format_diff( "ctr", pre.ctr, post.ctr)
+    s *= diff_row( df )
+    df = format_diff( "ctr_passported", pre.ctr_passported, post.ctr_passported)
+    s *= diff_row( df )
+    df = format_diff( "ctr_premia", pre.ctr_premia, post.ctr_premia)
+    s *= diff_row( df )
+    df = format_diff( "ctr_allowances", pre.ctr_allowances, post.ctr_allowances)
+    s *= diff_row( df )
+    df = format_diff( "ctr_incomes", pre.ctr_incomes, post.ctr_incomes)
+    s *= diff_row( df )
+    df = format_diff( "ctr_eligible_amount", pre.ctr_eligible_amount, post.ctr_eligible_amount)
+    s *= diff_row( df )
+    df = format_diff( "ctr_recipient", pre.ctr_recipient, post.ctr_recipient)
+    s *= diff_row( df )
+    df = format_diff( "pc_premia", pre.pc_premia, post.pc_premia)
+    s *= diff_row( df )
+    df = format_diff( "pc_allowances", pre.pc_allowances, post.pc_allowances)
+    s *= diff_row( df )
+    df = format_diff( "pc_incomes", pre.pc_incomes, post.pc_incomes)
+    s *= diff_row( df )
+    df = format_diff( "pc_recipient", pre.pc_recipient, post.pc_recipient)
+    s *= diff_row( df )
+    df = format_diff( "premia", pre.premia, post.premia)
+    s *= diff_row( df )
+    df = format_diff( "can_apply_for", pre.can_apply_for, post.can_apply_for)
+    s *= diff_row( df )
+    s *= "</tbody>"
+    s *= "</table>"
+    return s
+end
+
 end # module

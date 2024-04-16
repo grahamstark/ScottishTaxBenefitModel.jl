@@ -1,8 +1,8 @@
 using Base.Unicode
 
-""
+"""
 a_string_or_symbol_like_this => "A String Or Symbol Like This"
-""
+"""
 function cpretty(a)
    s = string(a)
    s = strip(lowercase(s))
@@ -99,7 +99,6 @@ HHS= [
     "rent_includes_water_and_sewerage::Bool",
     "other_housing_charges::RT ",
     "gross_housing_costs::RT",
-    # "# total_income::RT",
     "total_wealth::RT",
     "house_value::RT",
     "weight::RT",
@@ -188,7 +187,176 @@ LMT_APPLY = [
 "sc  :: Bool = false",
 "wtc  :: Bool = false",
 "ctr :: Bool = false",
+]
 
+LMT_INCS=[
+"gross_earnings :: RT = zero(RT)",
+"net_earnings   :: RT = zero(RT)",
+"other_income   :: RT = zero(RT)",
+"total_income   :: RT = zero(RT)",
+"disregard :: RT = zero(RT)",
+"childcare :: RT = zero(RT)",
+"capital :: RT = zero(RT)",
+"tariff_income :: RT = zero(RT)",
+"disqualified_on_capital :: Bool = false"
+]
+
+LMT_RES = [
+"ndds :: RT = zero(RT)",
+"mig  :: RT = zero(RT)",
+"mig_recipient :: BigInt = -1",
+"# total_benefits :: RT = zero(RT) #  hb and ctr",
+"# FIXME better name than MIG here",
+"# FIXME rename premia => premium everywhere here",
+"mig_premia :: RT = zero(RT)",
+"mig_allowances :: RT = zero(RT)",
+"mig_incomes = LMTIncomes{RT}()",
+"sc_incomes = LMTIncomes{RT}()",
+"ctc_elements :: RT = zero(RT)   ",
+"wtc_income  :: RT = zero(RT)",
+"wtc_elements :: RT = zero(RT)",
+"wtc_ctc_threshold :: RT = zero(RT)",
+"wtc_ctc_tapered_excess :: RT = zero(RT)",
+"wtc_recipient :: BigInt = -1",
+"cost_of_childcare :: RT = zero(RT)",
+"hb_passported :: Bool = false",
+"# TODO FIXME",
+"other_housing_costs :: RT = zero(RT)",
+"hb_premia :: RT = zero(RT)",
+"hb_allowances :: RT = zero(RT)",
+"hb_incomes = LMTIncomes{RT}()",
+"hb_eligible_rent :: RT = zero(RT)",
+"hb_recipient :: BigInt = -1",
+"ctr :: RT = zero(RT)",
+"ctr_passported :: Bool = false",
+"ctr_premia :: RT = zero(RT)",
+"ctr_allowances :: RT = zero(RT)",
+"ctr_incomes = LMTIncomes{RT}()",
+"ctr_eligible_amount :: RT = zero(RT)",
+"ctr_recipient :: BigInt = -1",
+"pc_premia :: RT = zero(RT)",
+"pc_allowances :: RT = zero(RT)",
+"pc_incomes = LMTIncomes{RT}()",
+"pc_recipient :: BigInt = -1",
+"premia = LMTPremiaSet()",
+"can_apply_for = LMTCanApplyFor()",
+]        
+
+INDIR =[
+"    VED :: RT = 0.0",
+"    fuel_duty :: RT = 0.0",
+"    VAT :: RT = 0.0",
+"    excise_beer :: RT = 0.0",
+"    excise_cider :: RT = 0.0",
+"    excise_wine :: RT = 0.0",
+"    excise_tobacco :: RT = 0.0",
+"    # .. and so on",
+]
+
+WEALTH = [
+"    total_payable:: RT = zero(RT) ",
+"    weekly_equiv :: RT = zero(RT)",
+]
+
+NI = [
+"    above_lower_earnings_limit :: Bool = false",
+"    # total_ni :: RT = 0.0",
+"    class_1_primary    :: RT = 0.0",
+"    class_1_secondary  :: RT = 0.0",
+"    class_2   :: RT = 0.0",
+"    class_3   :: RT = 0.0",
+"    class_4   :: RT = 0.0",
+"    assumed_gross_wage :: RT = 0.0",
+]
+
+IT = [
+"taxable_income :: RT = 0.0",
+"adjusted_net_income :: RT = 0.0",
+"total_income :: RT = 0.0",
+"allowance   :: RT = 0.0",
+"",
+"non_savings_tax :: RT = 0.0",
+"non_savings_band :: Integer = 0",
+"non_savings_income :: RT = 0.0",
+"non_savings_taxable :: RT = 0.0",
+"",
+"savings_tax :: RT = 0.0",
+"savings_band :: Integer = 0",
+"savings_income :: RT = 0.0",
+"savings_taxable :: RT = 0.0",
+"",
+"dividends_tax :: RT = 0.0",
+"dividend_band :: Integer = 0",
+"dividends_income :: RT = 0.0",
+"dividends_taxable :: RT = 0.0",
+"",
+"unused_allowance :: RT = 0.0",
+"mca :: RT = 0.0",
+"transferred_allowance :: RT = 0.0",
+"pension_eligible_for_relief :: RT = 0.0",
+"pension_relief_at_source :: RT = 0.0",
+"",
+"non_savings_thresholds :: RateBands = zeros(RT,0)",
+"savings_thresholds  :: RateBands = zeros(RT,0)",
+"dividend_thresholds :: RateBands = zeros(RT,0)",
+"",
+"savings_rates  :: RateBands = zeros(RT,0)",
+"dividend_rates :: RateBands = zeros(RT,0)",
+"",
+"personal_savings_allowance :: RT = 0.0",
+]
+
+INDIV = [
+"net_income :: RT = zero(RT)",
+"ni = NIResult{RT}()",
+"it = ITResult{RT}()",
+"wealth = WealthTaxResult{RT}()",
+"metr :: RT = -12345.0",
+"replacement_rate :: RT = zero(RT)",
+"income = STBIncomes.make_a( RT );",
+]
+
+BU = [
+"    income = STBIncomes.make_a( RT )",
+"    net_income    :: RT = zero(RT)",
+"    eq_net_income :: RT = zero(RT)",
+"    legacy_mtbens = LMTResults{RT}()",
+"    uc = UCResults{RT}()",
+"    bencap = BenefitCapResults{RT}()",
+"    other_benefits  :: RT = zero(RT)",
+"    pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` ",
+"    adults = Pid_Array()",
+"    route :: LegacyOrUC = legacy_bens",
+"    legalaid = LegalAidResult{RT}()",
+]
+
+HR = [
+"allowed_rooms :: Int = 0",
+"excess_rooms :: Int = 0",
+"allowed_rent :: RT = zero(RT) # FIXME this name",
+"gross_rent :: RT = zero(RT)",
+"# might not just be gross-allowed if we model other deductions",
+"rooms_rent_reduction :: RT = zero(RT) # ",
+]
+
+HH = [
+"    income = STBIncomes.make_a( RT )",
+"         ",
+"    bhc_net_income :: RT = zero(RT)",
+"    eq_bhc_net_income :: RT = zero(RT)",
+"    ahc_net_income :: RT = zero(RT)        ",
+"    eq_ahc_net_income :: RT = zero(RT)",
+"    ",
+"    net_housing_costs :: RT = zero(RT)",
+"    housing = HousingResult{RT}()",
+"    indirect = IndirectTaxResult{RT}()",
+"    # FIXME note this is at the household level, which makes local income taxes, etc. akward. OK for now.",
+"    local_tax = LocalTaxes{RT}()",
+"    # ",
+"    # FIXME make this `people` to match the ModelHousehold",
+"    # and adapt the get_benefit_units function ",
+"    #",
+"    bus = Vector{BenefitUnitResult{RT}}(undef,0)",
 ]
 
 function make_results_table( items :: AbstractArray )
@@ -197,10 +365,10 @@ function make_results_table( items :: AbstractArray )
     s *= "s *= \"<tbody>\"\n"
     s *= "s *= \"<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>\"\n"
     for p in items
-        m = match(r"(.*) * [:=]+ *(.*) *\#*.*", p )
+        m = match(r" *(.*) * [:=]+ *(.*) *\#*.*", p )
         if ! isnothing(m)
             name = strip(m[1])
-            n = match(r"(.*) * :: + *(.*) *\#*.*", m[1] )
+            n = match(r" *(.*) * :: + *(.*) *\#*.*", m[1] )
             if ! isnothing(n)
                 name = n[1]
             end
@@ -244,11 +412,34 @@ println( maketable(PERS, "pers"))
 
 println("LEGAL")
 println( make_results_table( LEGAL ))
+
+
 println("UC")
 println( make_results_table( UC ))
 println( "LMT")
 println( make_results_table( LMT ))
 println( "LMT_APPLY")
 println(  make_results_table( LMT_APPLY ))
+
+println( "LMT_INCS")
+println(make_results_table( LMT_INCS ))
+println( "LMT_RES")
+println(make_results_table( LMT_RES ))
+println( "INDIR")
+println(make_results_table( INDIR ))
+println( "WEALTH ")
+println(make_results_table( WEALTH  ))
+println( "NI")
+println(make_results_table( NI ))
+println( "IT")
+println(make_results_table( IT ))
+println( "INDIV")
+println(make_results_table( INDIV ))
+println( "BU")
+println(make_results_table( BU ))
+println( "HR")
+println(make_results_table( HR ))
+println( "HH")
+println(make_results_table( HH ))
 
 
