@@ -248,12 +248,12 @@ module FRSHouseholdGetter
     end
 
     function get_household( hid :: BigInt, datayear :: Int ) :: Household
-        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ]
+        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ].hseq
         return get_household( pos )
     end
 
     function get_household( oi :: OneIndex ) :: Household
-        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ oi ]
+        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ oi ].hseq
         return get_household( pos )
     end
 
