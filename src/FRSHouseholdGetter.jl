@@ -45,7 +45,8 @@ module FRSHouseholdGetter
         get_regression_dataset, 
         get_people_slots_for_household,
         get_slot_for_person,
-        get_slot_for_household
+        get_slot_for_household,
+        SeqAndYear
     
     ## See scripts/performance/hhld_example.jl for the rationalle behind this wrapper
     # 
@@ -54,6 +55,11 @@ module FRSHouseholdGetter
     # array a type and declare a constant. This aviods type instability which can murder 
     # performance of the getter.
     #
+
+    struct SeqAndYear
+        id :: BigInt
+        data_year :: Int
+    end
 
     struct OnePos
         hseq :: Int

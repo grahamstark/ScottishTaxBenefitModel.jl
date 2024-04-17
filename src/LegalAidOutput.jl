@@ -61,7 +61,6 @@ function create_propensities( lout :: LegalAidOutput.AllLegalOutput; reset_resul
     end
 end
         
-
 """
 This is the base of the costs model
 entitlement = out.civil.data[1]  or out.aa
@@ -514,7 +513,7 @@ function cost_item_names(
         push!( labels, pretty( m[1] ))
     end; end
     (;costs, props, labels)
- end
+end
 
 function la_crosstab( 
     pre :: DataFrame, 
@@ -526,12 +525,29 @@ function la_crosstab(
         col = Symbol( "$(problem)_$estimate")
         weights = Weights( pre[:,col] .* pre.weight)
     end
-        
-    return make_crosstab( 
+    
+    crosstab, rowlabels, collabels, examples = make_crosstab( 
         post.entitlement,
         pre.entitlement;
         weights=weights,
-        max_examples = 10 )[[1,4]] # discard the labels
+        max_examples = 10 ) 
+    exs = size( examples )
+    # Convert example positions into hhseq/datayear pairs, so
+    # we can retrieve the hhld easily.
+    full_examples = Array{Vector{SeqAndYear}}(undef,exs[1],exs[2])
+    for r in 1:exs[1]
+        for c in 1:exs[2]
+            full_examples[r,c] = Vector{SeqAndYear}()
+            for i in examples[r,c]
+                prer = pre[i,:]
+                seqy = SeqAndYear( prer.hid, prer.data_year )
+                if ! (seqy in full_examples[r,c])
+                    push!( full_examples[r,c], seqy )
+                end
+            end
+        end
+    end
+    return crosstab, full_examples
 end
 
 """
