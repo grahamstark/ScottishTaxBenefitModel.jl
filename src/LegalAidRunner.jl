@@ -63,7 +63,7 @@ returns an array of full results, and the household
 """
 #=
 function calculate_one( 
-    hpos :: SeqAndYear, 
+    hpos :: OneIndex, 
     systems  :: Vector{TaxBenefitSystem{T}} )::Tuple where T
     res = RESULTS.results[:,hno]
     hh = get_household( hpos.id, hpos.data_year )

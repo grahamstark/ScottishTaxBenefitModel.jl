@@ -534,13 +534,13 @@ function la_crosstab(
     exs = size( examples )
     # Convert example positions into hhseq/datayear pairs, so
     # we can retrieve the hhld easily.
-    full_examples = Array{Vector{SeqAndYear}}(undef,exs[1],exs[2])
+    full_examples = Array{Vector{OneIndex}}(undef,exs[1],exs[2])
     for r in 1:exs[1]
         for c in 1:exs[2]
-            full_examples[r,c] = Vector{SeqAndYear}()
+            full_examples[r,c] = Vector{OneIndex}()
             for i in examples[r,c]
                 prer = pre[i,:]
-                seqy = SeqAndYear( prer.hid, prer.data_year )
+                seqy = OneIndex( prer.hid, prer.data_year )
                 if ! (seqy in full_examples[r,c])
                     push!( full_examples[r,c], seqy )
                 end
