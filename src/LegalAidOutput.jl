@@ -8,7 +8,8 @@ using CSV,
       DataFrames,
       Format,
       PrettyTables,
-      StatsBase
+      StatsBase,
+      ArgCheck
 
 using ScottishTaxBenefitModel
 # FIXME explicit imports
@@ -254,7 +255,8 @@ function merge_in_probs_and_props(
     results :: DataFrame,
     problem_probs :: DataFrame,
     propensities :: DataFrame )
-    r = innerjoin( 
+    rsize = size( results )[1]
+    r = leftjoin( 
         results, 
         problem_probs; 
         on = [:hid, :data_year, :pid ], 
@@ -266,6 +268,10 @@ function merge_in_probs_and_props(
         propensities;
         on = [:age2=>:age2,:sex=>:sex,:entitlement=>:la_status ],
         makeunique=true) # unique shouldn't be needed here??
+    @assert size(r)[1] == rsize # no shorter
+    # Needed since leftjoin puts unmatched right at the end
+    # ?? bu_number prob not needed.
+    sort!( r, [:hid, :data_year, :pid, :bu_number ])
     return r #[ r.from_child_record .!= 1,:] - we're adding children now
 end
 
@@ -515,11 +521,39 @@ function cost_item_names(
     (;costs, props, labels)
 end
 
+function df_idiot_check( 
+    df1::AbstractDataFrame, 
+    df2::AbstractDataFrame,
+    cols = [:hid, :bu_number, :data_year, :pno])
+    sz1=size(df1)
+    sz2=size(df2)
+    @assert sz1 == sz2 "size mismatch $sz1 $sz2"
+    for c in cols
+        if ! all( df1[!,c] .== df2[!,c] )
+            CSV.write("tmp/df1-error.tab", df1; delim='\t' )
+            CSV.write("tmp/df2-error.tab", df2; delim='\t' )
+            n = 0
+            for i in 1:sz1[1]
+                preh = df1[i,c]
+                posth = df2[i,c]
+                if (preh !== posth) && (n < 20)
+                    n += 1
+                    println( "differ at pos $i preh=$preh posth=$posth")
+                end
+            end
+            @assert false "col mismatch $c"
+        end # some differ
+    end # each check col
+end
+
 function la_crosstab( 
     pre :: DataFrame, 
     post :: DataFrame, 
     problem="no_problem", 
     estimate="prediction" ) :: Tuple
+
+    
+    df_idiot_check(pre, post)
     weights = Weights(pre.weight) 
     if problem != "no_problem"
         col = Symbol( "$(problem)_$estimate")
@@ -639,7 +673,9 @@ end
 
 function summarise_la_output!( 
     la :: AllLegalOutput )
+    println( "summary: civil")
     summarise_la_output!( la.civil, PROPENSITIES.civil_propensities )
+    println( "summary: aa")
     summarise_la_output!( la.aa, PROPENSITIES.aa_propensities )
 end
 

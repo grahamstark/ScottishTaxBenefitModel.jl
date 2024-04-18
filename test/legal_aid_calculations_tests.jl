@@ -443,11 +443,16 @@ end
 @testset "Track down weird capital crosstab" begin
     settings = lasettings()
     settings.requested_threads = 4
+    settings.run_name = "aa bug check"
     sys2 = deepcopy(sys1)
     sys2.legalaid.aa.passported_benefits = IncomesSet([])
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     examples = laout.aa.crosstab_pers_examples[1]
+    LegalAidOutput.dump_frames( laout, settings, 1 )
+    LegalAidOutput.dump_frames( laout, settings, 2 )
+    LegalAidOutput.dump_tables( laout, settings, 1 )
+    LegalAidOutput.dump_tables( laout, settings, 2 )
     @show examples
     for hid in examples[3,1]
         
