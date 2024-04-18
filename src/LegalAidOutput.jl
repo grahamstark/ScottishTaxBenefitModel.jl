@@ -527,7 +527,7 @@ function df_idiot_check(
     cols = [:hid, :bu_number, :data_year, :pno])
     sz1=size(df1)
     sz2=size(df2)
-    @assert sz1 == sz2 "size mismatch $sz1 $sz2"
+    @assert sz1[1] == sz2[1] "size mismatch $sz1 $sz2"
     for c in cols
         if ! all( df1[!,c] .== df2[!,c] )
             CSV.write("tmp/df1-error.tab", df1; delim='\t' )
