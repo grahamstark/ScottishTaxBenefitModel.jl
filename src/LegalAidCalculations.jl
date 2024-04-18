@@ -127,9 +127,8 @@ function calc_legal_aid!(
         ct += income[LOCAL_TAXES]
         maintenance += income[ALIMONY_AND_CHILD_SUPPORT_PAID]
         child_costs += pers.cost_of_childcare
-        workexp += pers.work_expenses # make_ttw( pers )
+        workexp += pers.work_expenses + pers.travel_to_work
         repayments += pers.debt_repayments #  make_repayments( pers )
-        ttw += pers.travel_to_work
         age_oldest = max( pers.age, age_oldest )
         if pers.relationship_to_hoh == This_Person
             onela.income_allowances += lasys.income_living_allowance
@@ -161,14 +160,15 @@ function calc_legal_aid!(
         onela.housing = do_expense( housing, lasys.expenses.housing )
     end
     onela.childcare = do_expense( child_costs, lasys.expenses.childcare )
-    onela.other_outgoings += do_expense( maintenance, lasys.expenses.maintenance )
-    onela.other_outgoings += do_expense( repayments, lasys.expenses.repayments )
+    onela.maintenance += do_expense( maintenance, lasys.expenses.maintenance )
+    onela.repayments += do_expense( repayments, lasys.expenses.repayments )
     onela.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
     onela.net_income = totinc
     onela.outgoings = 
         onela.housing + 
         onela.childcare + 
-        onela.other_outgoings + 
+        onela.maintenance +
+        onela.repayments +
         onela.work_expenses
     onela.disposable_income = max( 0.0, 
         onela.net_income - 

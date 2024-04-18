@@ -72,8 +72,8 @@ module Results
         outgoings = zero(RT)
         housing = zero(RT)        
         work_expenses = zero(RT)
-        other_outgoings = zero(RT)
-        wealth = zero(RT)
+        repayments = zero(RT)
+        maintenance = zero(RT)
         passported = false
         eligible   = false
         eligible_on_income = false

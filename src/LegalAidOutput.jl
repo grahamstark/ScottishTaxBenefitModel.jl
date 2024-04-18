@@ -232,6 +232,16 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         age2 = fill("",n), # age as a string to match 
         sex = fill( Male, n ),
 
+        capital = zeros(n),
+        childcare = zeros(n),
+        housing = zeros(n),        
+        work_expenses = zeros(n),
+        repayments = zeros(n),
+        maintenance = zeros(n),
+        outgoings = zeros(n),
+        income_contribution_amt = zeros(n),
+        capital_contribution_amt = zeros(n),
+        
         num_children = zeros(Int,n),
         num_pensioners = zeros(Int,n),
         num_bus = zeros(Int,n),
@@ -246,6 +256,11 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         capital_contribution = zeros(RT,n),
         disqualified_on_income = zeros(RT,n), 
         disqualified_on_capital = zeros(RT,n))
+end
+
+function summarise_expenses( df :: DataFrame ) :: GroupedDataFrame
+    dfh = df[df.is_bu_head.==true,:]
+    groupby( dfh, [:entitlement] )
 end
 
 """
@@ -322,6 +337,18 @@ function fill_legal_aid_frame_row!(
     pr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
     pr.capital_contribution = lr.capital_contribution > 0
     pr.income_contribution = lr.income_contribution > 0
+
+    pr.income_contribution_amt = lr.income_contribution
+    pr.capital_contribution_amt = lr.capital_contribution
+    
+    pr.capital = lr.capital
+    pr.childcare = lr.childcare
+    pr.housing = lr.housing 
+    pr.work_expenses = lr.work_expenses
+    pr.repayments = lr.repayments
+    pr.maintenance = lr.maintenance
+    pr.outgoings = lr.outgoings
+
     if lr.passported 
         pr.disqualified_on_income = false 
         pr.disqualified_on_capital = false
@@ -521,6 +548,10 @@ function cost_item_names(
     (;costs, props, labels)
 end
 
+"""
+Are two dfs the same size, are the id fields in sync? 
+For crosstabbing. Throws an exception if not.
+"""
 function df_idiot_check( 
     df1::AbstractDataFrame, 
     df2::AbstractDataFrame,
@@ -551,8 +582,6 @@ function la_crosstab(
     post :: DataFrame, 
     problem="no_problem", 
     estimate="prediction" ) :: Tuple
-
-    
     df_idiot_check(pre, post)
     weights = Weights(pre.weight) 
     if problem != "no_problem"
@@ -682,7 +711,7 @@ end
 """
 
 """
-function dump_frames( la :: AllLegalOutput, settings :: Settings, num_systems::Integer )
+function dump_frames( la :: AllLegalOutput, settings :: Settings; num_systems::Integer )
     runname = Utils.basiccensor(settings.run_name)
     for sysno in 1:num_systems
         fname = "$(settings.output_dir)/$(runname)_$(sysno)_legal_aid_civil.tab"
@@ -692,7 +721,7 @@ function dump_frames( la :: AllLegalOutput, settings :: Settings, num_systems::I
     end
 end
 
-function dump_tables(  laout :: AllLegalOutput, settings :: Settings, num_systems :: Integer )
+function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_systems :: Integer )
     runname = Utils.basiccensor(settings.run_name)
     for sysno in 1:num_systems 
         outfname = "$(settings.output_dir)/$(runname)-main_la_tables-$(sysno).md"
