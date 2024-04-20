@@ -108,8 +108,12 @@ function to_categorical( a :: Any, d  )::CategoricalArray
    a = categorical(map( x -> is1(x,d), a ))
 end
    
-
+lcfh = CSV.File( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab")|>DataFrame
 lcf = CSV.File( "/mnt/data/lcf/2021/tab/lcfs_2020_rawper_ukanon_final.tab")|>DataFrame
+n = size(lcf)[1]
+leftjoin!(lcf,lcfh,on=[:case])
+@assert size(lcf)[1] == n
+
 lcnames = Symbol.(lowercase.(string.(names(lcf))))
 rename!( lcf, lcnames ) # jam lowercase names
 lcf = lcf[lcf.dvage6 .>1, :] # children
@@ -162,9 +166,16 @@ r4_pays_any_allow = glm( f4_pays_any_allow, lcf, Binomial(), ProbitLink())
 regtable(r1_pays_any_allow, r2_pays_any_allow, r3_pays_any_allow, r4_pays_any_allow )
 
 summarystats(lcf[lcf.pays_any_allow.==1,:total_pay_allow])
-hist = fit(Histogram,  log.(lcf[(lcf.total_pay_allow.>0) .& (lcf.total_pay_allow.< 1000),:total_pay_allow])) #; nbins=30 )
+hist = fit(Histogram,  log.(lcf[(lcf.total_pay_allow.>0) .& (lcf.total_pay_allow.< 1000),:total_pay_allow]), weight=:weighta) #; nbins=30 )
 allpay=lcf[(lcf.total_pay_allow.>0) .& (lcf.total_pay_allow.< 1000),:total_pay_allow]
 size(allpay)/size(lcf)[1] # 0.01095039633897197
+popn = sum(weighta)
+@chain lcf begin
+    @filter( allpay > 0 )
+    @summarize( 
+       mean_allpay = sum( allpay * weighta )/sum(weighta),
+       pct_allpay = 100*sum( weighta )/!!popn # double bang
+end
 
 #
 # Crude add in to my dataset
@@ -179,33 +190,25 @@ mpers.dvmrdf12 = to_categorical(mpers.marital_status, Dict([
     5 =>  "Separated",
     6 => "Divorced"]))
 
-mpers.dvage6 = categorical.( 
-    if mpers.age .<= 24
-        "16 to 24"
-    elseif mpers.age .<= 44
-        "25 to 44"
-    elseif mpers.age .<= 64
-        "45 to 64"
-    elseif mpers.age .<= 74
-        "65 to 74"
-    else
-        "75 Plus"
-    end 
-)
-  
 n = size(mpers)[1]
 
 mpers.dvage6 = fill("",n)
 rename!( mpers, :sex => :isex )
-pers.sex = fill("",n)
-
+pers.sex = to_categorical( pers.sex, Dict([1=>"Male", 2=>"Female"]))
+pers.dvilo3a = to_categorical(pers.employment_status,Dict([
+    1=>"In Employment",
+    2=>"In Employment",
+    3=>"In Employment",
+    4=>"In Employment",
+    5=>"ILO Unemployed",
+    6=>"Economically Inactive",
+    7=>"Economically Inactive",
+    8=>"Economically Inactive",
+    9=>"Economically Inactive",
+    10=>"Economically Inactive",
+    11=>"Economically Inactive"]))
 # fiish
 for r in eachrow(mpers)
-    r.sex = if r.sex == 1
-        "Male"
-    else
-        "Female"
-
     r.dvage6 = if r.age <= 24
             "16 to 24"
         elseif r.age <= 44
@@ -216,11 +219,8 @@ for r in eachrow(mpers)
             "65 to 74"
         else
             "75 Plus"
-        end 
-    
-        1=>"In Employment",
-        2=>"ILO Unemployed",
-        3=>"Economically Inactive"
+        end      
 end
+mpers.dvage6 = categorical(mpers.dvage6)
     
 
