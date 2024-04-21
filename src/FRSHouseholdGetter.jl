@@ -161,8 +161,8 @@ module FRSHouseholdGetter
         if settings.do_legal_aid
             LegalAidData.init( settings; reset = reset )
         end
-        hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
-        people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
+        hh_dataset = CSV.File( joinpath(settings.data_dir,settings.household_name*".tab" )) |> DataFrame
+        people_dataset = CSV.File( joinpath( settings.data_dir, settings.people_name*".tab")) |> DataFrame
         npeople = size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )
@@ -221,6 +221,23 @@ module FRSHouseholdGetter
         REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
         fill_in_deciles!()
         return (MODEL_HOUSEHOLDS.dimensions...,)
+    end
+
+    """
+    Save some of the bits that are generated internally.
+    FIXME: add an extract function
+    """
+    function extract_weights_and_deciles( 
+        settings :: Settings,
+        filename :: String  )
+        fname = joinpath(settings.output_dir, "$(filename).tab" )
+        f = open( fname, "w")
+        println( f, "hid\tdata_year\tweight\tdecile")
+        for hno in 1:settings.num_households
+            hh = get_household(hno)
+            println(f, hh.hid, '\t', hh.data_year, '\t', hh.weight, '\t', hh.equiv_original_income_decile)
+        end
+        close(f)
     end
 
     function get_regression_dataset()::DataFrame
