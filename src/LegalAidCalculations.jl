@@ -115,17 +115,16 @@ function calc_legal_aid!(
     npeople = 1+extra_nondeps
     age_oldest = -1
 
-    onela.extra_allowances = calc_premia(
+   prems, premset = calc_premia(
         Definitions.hb,
         bu,
         bres,
         intermed,
         lasys.premia,
         nmt_bens,
-        age_limits
-    )[1]
-
-
+        age_limits )
+    onela.extra_allowances = prems
+    @show prems
     for (pid,pers) in bu.people
         income = bres.pers[pid].income
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway

@@ -77,9 +77,12 @@ using .SingleHouseholdCalculations: do_one_calc
 
 using .STBOutput: LA_TARGETS
 
+using .HTMLLibs
+
 using DataFrames, CSV
 
 sys = get_system( year=2023, scotland=true )
+print = PrintControls()
 
 function blank_incomes!( hh, wage; annual=true )
     for( pid, pers ) in hh.people
@@ -234,7 +237,7 @@ end
 end
 
 @testset "Civil Legal Aid: Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
-    
+    settings = Settings()
     # FIXME read the spreadsheet in and automate this.
 
     # 1) single adult 25k no expenses 1k capital
@@ -366,6 +369,7 @@ end
     @test cres.eligible
     println( head )
     println( cres )
+    HTMLLibs.format( hh, hres, hres; settings=settings, print=PrintControls() )
 end
 
 """
@@ -470,13 +474,29 @@ end
     end
 end
 
-@testset "Extra Allowance Test" begin
     
+@testset "Expenses Test" begin
 
 end
 
-@testset "Expenses Test" begin
-    
+@testset "Extra Allowance Test" begin
+    settings = Settings()
+ 
+    hh = get_example(single_parent_hh)
+    sys3 = deepcopy(sys1)
+    sys3.legalaid.civil.premia.family_lone_parent = 100.0
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    pre = init_household_result( hh )
+    calc_legal_aid!( pre, hh, intermed, sys1.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    post = init_household_result( hh )
+    calc_legal_aid!( post, hh, intermed, sys3.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    @assert pre.bus[1].legalaid.civil.extra_allowances ≈ 0
+    @assert pre.bus[1].legalaid.civil.extra_allowances ≈ 100
+    @show format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
 
 end
 
