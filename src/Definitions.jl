@@ -87,11 +87,13 @@ export LegacyOrUC, legacy_bens, uc_bens
 end
 
 #
-# FIXME TODO shorten enum names; capitalise consistently
+# Legal Aid Stuff
 #
-
 export LegalAidStatus, la_none, la_passported, la_full, la_with_contribution 
 @enum LegalAidStatus la_passported la_full la_with_contribution la_none   
+
+export UCLimitType, uc_no_limit, uc_max_income, uc_min_payment 
+@enum UCLimitType uc_no_limit uc_max_income uc_min_payment
 
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin

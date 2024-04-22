@@ -188,6 +188,8 @@ end
     capital_disregard_amounts = zeros(RT,0)
     use_inferred_capital = true
     premia = zero_premia(RT)
+    uc_limit = zero(RT)
+    uc_limit_type :: UCLimitType = uc_no_limit
 end
 
 """

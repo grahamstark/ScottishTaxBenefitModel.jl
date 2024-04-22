@@ -109,22 +109,11 @@ function calc_legal_aid!(
     hb = 0.0
     ct = 0.0
     ctb = 0.0
+    uc = 0.0
+    uc_income = bres.total_income
     child_costs = 0.0
     npeople = 1+extra_nondeps
     age_oldest = -1
-    for (pid,pers) in bu.people
-        income = bres.pers[pid].income
-        if any_positive( income, lasys.passported_benefits )
-            onela.passported = true
-            onela.entitlement = la_passported
-            if lasys.systype == sys_aa  
-                bres.legalaid.aa = onela # alias
-            else 
-                bres.legalaid.civil = onela # alias
-            end        
-            return
-        end
-    end
 
     onela.extra_allowances = calc_premia(
         Definitions.hb,
@@ -143,6 +132,7 @@ function calc_legal_aid!(
         hb += income[HOUSING_BENEFIT]
         ctb += income[COUNCIL_TAX_BENEFIT]
         ct += income[LOCAL_TAXES]
+        uc += income[UNIVERSAL_CREDIT]
         maintenance += income[ALIMONY_AND_CHILD_SUPPORT_PAID]
         child_costs += pers.cost_of_childcare
         workexp += pers.work_expenses + pers.travel_to_work
@@ -245,11 +235,38 @@ function calc_legal_aid!(
             lasys.capital_contribution_limits,
             lasys.capital_cont_type )
     end
+    for (pid,pers) in bu.people
+        if any_positive( bres.pers[pid].income, lasys.passported_benefits )
+            onela.passported = true
+            #=
+            if lasys.systype == sys_aa  
+                bres.legalaid.aa = onela # alias
+            else 
+                bres.legalaid.civil = onela # alias
+            end        
+            =#
+            # return
+        end
+    end
+    if lasys.systype == sys_aa # turn off passported for AA if ineligible on capital - K's note.
+        if ! onela.eligible_on_capital
+            onela.passported = false # onela.passported
+        end
+    end
+    if lasys.uc_limit_type == uc_max_income
+        if totinc > lasys.uc_limit
+            onela.passported = false
+        end
+    elseif lasys.uc_limit_type == uc_min_payment
+        if uc < lasys.uc_limit
+            onela.passported = false
+        end
+    end
 
-    onela.entitlement = if (! onela.eligible)
-        la_none
-    elseif onela.passported # can't actually get here but leave in for completeness
+    onela.entitlement = if onela.passported 
         la_passported
+    elseif (! onela.eligible)
+        la_none
     elseif (onela.income_contribution + onela.capital_contribution) > 0.0
         la_with_contribution
     else 
