@@ -123,20 +123,39 @@ const DEFAULT_LA_INCOME = IncludedItems(
 
 function zero_premia( RT :: DataType ) :: Premia
     prems = Premia{RT}()
-    prems.family = 0.0
-    family_lone_parent = 0.0 # FIXME this is not used??
-    prems.disabled_child = 0.0
-    prems.carer_single = 0.0
-    prems.carer_couple = 0.0
-    prems.disability_single = 0.0
-    prems.disability_couple = 0.0
-    prems.enhanced_disability_child = 0.0
-    prems.enhanced_disability_single = 0.0
-    prems.enhanced_disability_couple = 0.0
-    prems.severe_disability_single = 0.0
-    prems.severe_disability_couple = 0.0
-    prems.pensioner_is = 0.0
+    prems.family = zero( RT )
+    prems.family_lone_parent = zero( RT ) # FIXME this is not used??
+    prems.disabled_child = zero( RT )
+    prems.carer_single = zero( RT )
+    prems.carer_couple = zero( RT )
+    prems.disability_single = zero( RT )
+    prems.disability_couple = zero( RT )
+    prems.enhanced_disability_child = zero( RT )
+    prems.enhanced_disability_single = zero( RT )
+    prems.enhanced_disability_couple = zero( RT )
+    prems.severe_disability_single = zero( RT )
+    prems.severe_disability_couple = zero( RT )
+    prems.pensioner_is = zero( RT )
     return prems
+end
+
+"""
+Since this isn't neeed in the main params - weekly anyway
+"""
+function weeklyise!( prems :: Premia; wpy = WEEKS_PER_YEAR )
+    prems.family /= wpy
+    prems.family_lone_parent /= wpy # FIXME this is not used??
+    prems.disabled_child /= wpy
+    prems.carer_single /= wpy
+    prems.carer_couple /= wpy
+    prems.disability_single /= wpy
+    prems.disability_couple /= wpy
+    prems.enhanced_disability_child /= wpy
+    prems.enhanced_disability_single /= wpy
+    prems.enhanced_disability_couple /= wpy
+    prems.severe_disability_single /= wpy
+    prems.severe_disability_couple /= wpy
+    prems.pensioner_is /= wpy
 end
 
 @with_kw mutable struct OneLegalAidSys{RT}

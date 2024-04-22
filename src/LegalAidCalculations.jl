@@ -37,6 +37,8 @@ using .STBParameters:
     sys_civil, 
     ContributionType, 
     OneLegalAidSys,
+    NonMeansTestedSys,
+    AgeLimits,
     ScottishLegalAidSys
     
 using .Intermediate: 
@@ -91,7 +93,7 @@ function calc_legal_aid!(
     buno                :: Integer,  
     intermed            :: MTIntermediate,
     lasys               :: OneLegalAidSys,
-    nmt                 :: NonMeansTestedSys,
+    nmt_bens             :: NonMeansTestedSys,
     age_limits          :: AgeLimits,
     extra_nondeps       :: Integer )
     
@@ -125,13 +127,14 @@ function calc_legal_aid!(
     end
 
     onela.extra_allowances = calc_premia(
-        housing_benefit,
+        Definitions.hb,
         bu,
         bres,
         intermed,
+        lasys.premia,
         nmt_bens,
         age_limits
-    )
+    )[1]
 
 
     for (pid,pers) in bu.people
@@ -276,7 +279,7 @@ function calc_legal_aid!(
     household        :: Household,
     intermed         :: HHIntermed,
     lasys            :: OneLegalAidSys,
-    nmt              :: NonMeansTestedSys,
+    nmt_bens         :: NonMeansTestedSys,
     age_limits       :: AgeLimits )
     if lasys.abolished
         return
@@ -297,7 +300,7 @@ function calc_legal_aid!(
             buno,
             intermed.buint[buno],
             lasys,
-            nmt,
+            nmt_bens,
             age_limits,
             nzbus )
     end

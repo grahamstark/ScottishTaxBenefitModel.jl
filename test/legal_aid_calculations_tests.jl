@@ -124,7 +124,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.eligible
     @test to_nearest_p(ares.income_contribution,0)

@@ -88,7 +88,7 @@ module Results
 
         uc_income = zero(RT)
         uc_entitlement = zero(RT)
-        extra_allowance = zero(RT)
+        extra_allowances = zero(RT)
 
         entitlement :: LegalAidStatus = la_none
     end

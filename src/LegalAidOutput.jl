@@ -346,7 +346,7 @@ function fill_legal_aid_frame_row!(
     pr.income_contribution_amt = lr.income_contribution
     pr.capital_contribution_amt = lr.capital_contribution
     
-    pr.uc_entitlement = lr.uc_entitlement,
+    pr.uc_entitlement = lr.uc_entitlement
     pr.uc_income = lr.uc_income
     pr.extra_allowances = lr.extra_allowances
 
