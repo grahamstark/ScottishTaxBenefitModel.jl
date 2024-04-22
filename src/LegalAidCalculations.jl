@@ -109,8 +109,8 @@ function calc_legal_aid!(
     hb = 0.0
     ct = 0.0
     ctb = 0.0
-    uc = 0.0
-    uc_income = bres.total_income
+    # FIXME NOT USED FOR UC TEST
+    onela.uc_income = bres.uc.total_income
     child_costs = 0.0
     npeople = 1+extra_nondeps
     age_oldest = -1
@@ -132,7 +132,7 @@ function calc_legal_aid!(
         hb += income[HOUSING_BENEFIT]
         ctb += income[COUNCIL_TAX_BENEFIT]
         ct += income[LOCAL_TAXES]
-        uc += income[UNIVERSAL_CREDIT]
+        onela.uc_entitlement += income[UNIVERSAL_CREDIT]
         maintenance += income[ALIMONY_AND_CHILD_SUPPORT_PAID]
         child_costs += pers.cost_of_childcare
         workexp += pers.work_expenses + pers.travel_to_work
@@ -258,7 +258,7 @@ function calc_legal_aid!(
             onela.passported = false
         end
     elseif lasys.uc_limit_type == uc_min_payment
-        if uc < lasys.uc_limit
+        if onela.uc_entitlement < lasys.uc_limit
             onela.passported = false
         end
     end

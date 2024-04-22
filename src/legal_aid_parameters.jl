@@ -271,6 +271,7 @@ function weeklyise!( la :: OneLegalAidSys )
         weeklyise!(la.expenses; wpy=1.0 )
         return 
     else
+        la.uc_limit /= WEEKS_PER_YEAR
         la.income_living_allowance /= WEEKS_PER_YEAR
         la.income_partners_allowance         /= WEEKS_PER_YEAR
         la.income_other_dependants_allowance /= WEEKS_PER_YEAR

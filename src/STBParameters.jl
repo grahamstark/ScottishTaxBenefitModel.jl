@@ -505,7 +505,7 @@ end
 
 @with_kw mutable struct Premia{ RT<:Real }
     family :: RT = 17.45
-    family_lone_parent = 22.00 # FIXME this is not used??
+    family_lone_parent = 0.0 # 22.00 # FIXME this is not used??
     disabled_child :: RT = 64.19
     carer_single :: RT = 36.85
     carer_couple :: RT = 73.70 # FIXME is this used?

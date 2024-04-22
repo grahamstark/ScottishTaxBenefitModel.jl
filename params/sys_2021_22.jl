@@ -89,7 +89,7 @@ function load_sys_2021_22!( sys :: TaxBenefitSystem{T} ) where T
     ## FIXME we can't turn off pension credit individually here..
 
     sys.lmt.premia.family = 17.65
-    sys.lmt.premia.family_lone_parent = 22.20 
+    sys.lmt.premia.family_lone_parent = 0.0 # 22.20 
     sys.lmt.premia.carer_single = 37.70
     sys.lmt.premia.carer_couple = 2*37.70 
     sys.lmt.premia.disabled_child = 65.94

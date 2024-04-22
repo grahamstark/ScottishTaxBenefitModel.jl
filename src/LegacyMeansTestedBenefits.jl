@@ -480,6 +480,13 @@ function calc_premia(
     premset = LMTPremiaSet()
     # disabled child premium
     num_ads = num_adults( bu )
+    # !!!!! CAREFUL lone_parent_premia DOESN'T EXIST ANYMORE and I'm unsure exactly what the 
+    # rules for lone parents were. prem_sys.family_lone_parent should always be
+    # zero in actual param files !!!
+    if intermed.is_sparent 
+        premium += prem_sys.family_lone_parent
+        union!( premset, [lone_parent_prem])
+    end
     if which_ben in [hb,ctr]
         if intermed.num_disabled_children > 0
             premium += intermed.num_disabled_children*prem_sys.disabled_child   
