@@ -232,6 +232,10 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         age2 = fill("",n), # age as a string to match 
         sex = fill( Male, n ),
 
+        uc_entitlement = zeros(n),
+        uc_income = zeros(n),
+        extra_allowances = zeros(n),
+
         capital = zeros(n),
         childcare = zeros(n),
         housing = zeros(n),        
@@ -239,6 +243,7 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         repayments = zeros(n),
         maintenance = zeros(n),
         outgoings = zeros(n),
+
         income_contribution_amt = zeros(n),
         capital_contribution_amt = zeros(n),
         
@@ -341,6 +346,10 @@ function fill_legal_aid_frame_row!(
     pr.income_contribution_amt = lr.income_contribution
     pr.capital_contribution_amt = lr.capital_contribution
     
+    pr.uc_entitlement = lr.uc_entitlement,
+    pr.uc_income = lr.uc_income
+    pr.extra_allowances = lr.extra_allowances
+
     pr.capital = lr.capital
     pr.childcare = lr.childcare
     pr.housing = lr.housing 

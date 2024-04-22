@@ -85,6 +85,11 @@ module Results
         capital = zero(RT)
         disposable_capital = zero(RT)
         capital_allowances = zero(RT)
+
+        uc_income = zero(RT)
+        uc_entitlement = zero(RT)
+        extra_allowance = zero(RT)
+
         entitlement :: LegalAidStatus = la_none
     end
 

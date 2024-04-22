@@ -121,6 +121,24 @@ const DEFAULT_LA_INCOME = IncludedItems(
         LOCAL_TAXES         
     ] )
 
+function zero_premia( RT :: DataType ) :: Premia
+    prems = Premia{RT}()
+    prems.family = 0.0
+    family_lone_parent = 0.0 # FIXME this is not used??
+    prems.disabled_child = 0.0
+    prems.carer_single = 0.0
+    prems.carer_couple = 0.0
+    prems.disability_single = 0.0
+    prems.disability_couple = 0.0
+    prems.enhanced_disability_child = 0.0
+    prems.enhanced_disability_single = 0.0
+    prems.enhanced_disability_couple = 0.0
+    prems.severe_disability_single = 0.0
+    prems.severe_disability_couple = 0.0
+    prems.pensioner_is = 0.0
+    return prems
+end
+
 @with_kw mutable struct OneLegalAidSys{RT}
     abolished = false
     title = ""
@@ -150,6 +168,7 @@ const DEFAULT_LA_INCOME = IncludedItems(
     capital_disregard_limits = zeros(RT,0)
     capital_disregard_amounts = zeros(RT,0)
     use_inferred_capital = true
+    premia = zero_premia(RT)
 end
 
 """
@@ -240,6 +259,7 @@ function weeklyise!( la :: OneLegalAidSys )
         la.capital_contribution_rates ./= 100.0
         # la.capital_contribution_limits ./= WEEKS_PER_YEAR
         weeklyise!(la.expenses; wpy=WEEKS_PER_YEAR )
+        weeklyise!(la.premia; wpy=WEEKS_PER_YEAR )
     end
 end
 

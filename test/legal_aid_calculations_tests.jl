@@ -133,7 +133,7 @@ end
 
     blank_incomes!( hh, 120; annual=false )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa
     println( ares )
 
@@ -147,7 +147,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ! ares.eligible
     @test ! ares.eligible_on_capital 
@@ -160,7 +160,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.eligible
     @test ares.eligible_on_capital 
@@ -175,7 +175,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.eligible
     @test ares.eligible_on_capital 
@@ -202,7 +202,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.disposable_capital ≈ 1_500 
     @test ares.capital_allowances ≈ 20_000
@@ -220,7 +220,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.disposable_capital ≈ 5_000 
     @test ares.capital_allowances ≈ 20_000
@@ -250,7 +250,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,14004.77)
     @test to_nearest_p(cres.disposable_income*WEEKS_PER_YEAR,25_000)
@@ -268,7 +268,7 @@ end
         sys.child_limits )
     blank_incomes!( hh, 25_000 )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
 
     @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,11_475.77)
@@ -289,7 +289,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
     @test to_nearest_p( cres.capital_contribution, 0 )
@@ -308,7 +308,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
@@ -328,7 +328,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     head = get_head(hh)
     hres = init_household_result( hh )
@@ -343,7 +343,7 @@ end
 
     headres = get_indiv_result( hres, head.pid )
     headres.income[UNIVERSAL_CREDIT] = 1.0    
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     @test cres.passported
 
@@ -356,7 +356,7 @@ end
         sys.child_limits )
     head = get_head(hh)
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,276.54)
     @test to_nearest_p( cres.capital_contribution, 4_147 )
@@ -468,5 +468,15 @@ end
         # @show res[1]
         # @show res[2]
     end
+end
+
+@testset "Extra Allowance Test" begin
+    
+
+end
+
+@testset "Expenses Test" begin
+    
+
 end
 

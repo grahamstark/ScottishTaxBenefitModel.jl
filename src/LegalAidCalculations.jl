@@ -18,6 +18,8 @@ using .GeneralTaxComponents:
     TaxResult, 
     calctaxdue
 
+using .LegacyMeansTestedBenefits: calc_premia
+
 using .Results:
     get_indiv_result,
     BenefitUnitResult,
@@ -89,6 +91,8 @@ function calc_legal_aid!(
     buno                :: Integer,  
     intermed            :: MTIntermediate,
     lasys               :: OneLegalAidSys,
+    nmt                 :: NonMeansTestedSys,
+    age_limits          :: AgeLimits,
     extra_nondeps       :: Integer )
     
     bu = benefit_unit # alias
@@ -119,6 +123,17 @@ function calc_legal_aid!(
             return
         end
     end
+
+    onela.extra_allowances = calc_premia(
+        housing_benefit,
+        bu,
+        bres,
+        intermed,
+        nmt_bens,
+        age_limits
+    )
+
+
     for (pid,pers) in bu.people
         income = bres.pers[pid].income
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway
@@ -173,7 +188,8 @@ function calc_legal_aid!(
     onela.disposable_income = max( 0.0, 
         onela.net_income - 
         onela.outgoings - 
-        onela.income_allowances )
+        onela.income_allowances - 
+        onela.extra_allowances )
 
     onela.eligible_on_income = onela.disposable_income < lasys.income_contribution_limits[end]
 
@@ -211,7 +227,6 @@ function calc_legal_aid!(
             lasys.capital_disregard_limits,
             cont_fixed )
     end
-
     onela.disposable_capital = max( 0.0, onela.capital - onela.capital_allowances )
     onela.eligible_on_capital = onela.disposable_capital < lasys.capital_contribution_limits[end]
     onela.eligible = onela.eligible_on_capital && onela.eligible_on_income
@@ -260,7 +275,9 @@ function calc_legal_aid!(
     household_result :: HouseholdResult,
     household        :: Household,
     intermed         :: HHIntermed,
-    lasys            :: OneLegalAidSys )
+    lasys            :: OneLegalAidSys,
+    nmt              :: NonMeansTestedSys,
+    age_limits       :: AgeLimits )
     if lasys.abolished
         return
     end
@@ -280,6 +297,8 @@ function calc_legal_aid!(
             buno,
             intermed.buint[buno],
             lasys,
+            nmt,
+            age_limits,
             nzbus )
     end
 end # calc_legal_aid!

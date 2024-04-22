@@ -457,8 +457,7 @@ end
 function qualifies_for_severe_disability_premium(
     pers     :: Person, 
     pres     :: IndividualResult,
-    prem_sys :: Premia,
-    nmt      :: NonMeansTestedSys ) :: Bool
+    prem_sys :: Premia ) :: Bool
     return qualifies_for_disability_premium( pers, pres, prem_sys ) &&
         any_positive( pres.income, 
             [PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
@@ -534,9 +533,7 @@ function calc_premia(
             nsev += qualifies_for_severe_disability_premium(
                 bu.people[pid],
                 bures.pers[pid],
-                prem_sys,
-                nmt
-            )
+                prem_sys )
         end
         if nsev == 1
             premium += prem_sys.severe_disability_single

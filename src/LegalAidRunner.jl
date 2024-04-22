@@ -139,12 +139,16 @@ function do_one_run(
                     res[sysno], 
                     hh, 
                     intermed, 
-                    systems[sysno].legalaid.civil )
+                    systems[sysno].legalaid.civil,
+                    systems[sysno].nmt_bens,
+                    systems[sysno].age_limits )
                 calc_legal_aid!( 
                     res[sysno], 
                     hh, 
                     intermed, 
-                    systems[sysno].legalaid.aa )
+                    systems[sysno].legalaid.aa,
+                    systems[sysno].nmt_bens,
+                    systems[sysno].age_limits )
                 LegalAidOutput.add_to_frames!( 
                     lout, 
                     settings, 
