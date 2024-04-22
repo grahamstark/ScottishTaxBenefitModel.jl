@@ -604,7 +604,7 @@ function format( pre :: OneLegalAidResult, post :: OneLegalAidResult)
     s *= diff_row( df )
     df = format_diff( "UC Entitlement", pre.uc_entitlement, post.uc_entitlement)
     s *= diff_row( df )
-    df = format_diff( "extra_allowance", pre.extra_allowance, post.extra_allowance)
+    df = format_diff( "extra_allowances", pre.extra_allowances, post.extra_allowances)
     s *= diff_row( df )
 
     df = format_diff( "childcare", pre.childcare, post.childcare)
