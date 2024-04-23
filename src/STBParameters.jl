@@ -504,7 +504,7 @@ end
 end
 
 @with_kw mutable struct Premia{ RT<:Real }
-    family :: RT = 17.45
+    family :: RT = 0.0 # since 2016 see CPAG 21/2 p 330 17.45
     family_lone_parent = 0.0 # 22.00 # FIXME this is not used??
     disabled_child :: RT = 64.19
     carer_single :: RT = 36.85

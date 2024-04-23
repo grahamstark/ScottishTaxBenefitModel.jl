@@ -483,9 +483,14 @@ function calc_premia(
     # !!!!! CAREFUL lone_parent_premia DOESN'T EXIST ANYMORE and I'm unsure exactly what the 
     # rules for lone parents were. prem_sys.family_lone_parent should always be
     # zero in actual param files !!!
-    if intermed.is_sparent 
+    if intermed.is_sparent && (prem_sys.family_lone_parent > 0)
         premium += prem_sys.family_lone_parent
-        union!( premset, [lone_parent_prem])
+        union!( premset, [lone_parent_premium])
+    end
+    # !!! Likewise family premium isn't actually used 
+    if intermed.has_children && (prem_sys.family > 0)
+        premium += prem_sys.family
+        union!( premset, [LMTPremia.family_premium])
     end
     if which_ben in [hb,ctr]
         if intermed.num_disabled_children > 0

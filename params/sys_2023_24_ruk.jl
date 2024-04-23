@@ -102,7 +102,7 @@ function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.lmt.pen_credit_abolished = false
   ## FIXME we can't turn off pension credit individually here..
 
-  sys.lmt.premia.family = 18.53
+  sys.lmt.premia.family = 0.0 # see cpag 21/2 p 330 18.53
   sys.lmt.premia.family_lone_parent = 0.0 # 22.20 
   sys.lmt.premia.carer_single = 42.75
   sys.lmt.premia.carer_couple = 2*42.75

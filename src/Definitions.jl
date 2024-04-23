@@ -1814,7 +1814,7 @@ export LMTBenefitType, esa, hb, ctr, is, jsa, pc, wtc, ctc, sc, LMTBenefitSet
    disability_single = 10
    disability_couple = 11
    pensioner_is = 12
-   lone_parent_prem = 13 # !! not a premium for many years
+   lone_parent_premium = 13 # !! not a premium for many years
 end  
 
 const LMTPremiaDict = Dict{LMTPremia,T} where T <:Real
@@ -1824,7 +1824,7 @@ export LMTPremia,LMTPremiaDict, LMTPremiaSet, disabled_child,
     severe_disability_single,severe_disability_couple,
     carer_single,carer_couple,enhanced_disability_child,
     enhanced_disability_single,enhanced_disability_couple,disability_single,disability_couple,
-    pensioner_is, lone_parent_prem
+    pensioner_is, lone_parent_premium, family_premium
 
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)
