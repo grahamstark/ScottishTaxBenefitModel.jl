@@ -240,19 +240,10 @@ function calc_legal_aid!(
     for (pid,pers) in bu.people
         if any_positive( bres.pers[pid].income, lasys.passported_benefits )
             onela.passported = true
-            if any_positive( bres.pers[pid].income, UNIVERSAL_CREDIT )
-                passported_on_uc = true
-            end
-            #=
-            if lasys.systype == sys_aa  
-                bres.legalaid.aa = onela # alias
-            else 
-                bres.legalaid.civil = onela # alias
-            end        
-            =#
-            # return
         end
-
+        if ( UNIVERSAL_CREDIT in lasys.passported_benefits ) && any_positive( bres.pers[pid].income, UNIVERSAL_CREDIT )
+            passported_on_uc = true
+        end
     end
     if lasys.systype == sys_aa # turn off passported for AA if ineligible on capital - K's note.
         if ! onela.eligible_on_capital

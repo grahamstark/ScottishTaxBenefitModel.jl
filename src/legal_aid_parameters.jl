@@ -59,42 +59,7 @@ const DEFAULT_LA_INCOME = IncludedItems(
         CRITICAL_ILLNESS_COVER,
         TRADE_UNION_SICK_OR_STRIKE_PAY,
         
-        CHILD_BENEFIT,
-        STATE_PENSION,
-        BEREAVEMENT_ALLOWANCE, 
-        ARMED_FORCES_COMPENSATION_SCHEME,
-        WAR_WIDOWS_PENSION,
-        SEVERE_DISABILITY_ALLOWANCE,
-        INDUSTRIAL_INJURY_BENEFIT,
-        INCAPACITY_BENEFIT,
-        EDUCATION_ALLOWANCES,
-        FOSTER_CARE_PAYMENTS,
-        MATERNITY_ALLOWANCE,
-        MATERNITY_GRANT,
-        FUNERAL_GRANT,
-        ANY_OTHER_NI_OR_STATE_BENEFIT,
-        FRIENDLY_SOCIETY_BENEFITS,
-        GOVERNMENT_TRAINING_ALLOWANCES,
-        CONTRIB_JOBSEEKERS_ALLOWANCE,
-        GUARDIANS_ALLOWANCE,
-        WIDOWS_PAYMENT,
-        WINTER_FUEL_PAYMENTS,
-        # legacy mt benefits
-        WORKING_TAX_CREDIT,
-        CHILD_TAX_CREDIT,
-         # ppt
-        # PENSION_CREDIT,
-        # SAVINGS_CREDIT 
-        # ppt
-        # HOUSING_BENEFIT, netted off housing         
-        FREE_SCHOOL_MEALS,
-        OTHER_BENEFITS,
-        STUDENT_GRANTS,
-        STUDENT_LOANS,
-        # COUNCIL_TAX_BENEFIT netted off ct
-        CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,   
-        DISCRESIONARY_HOUSING_PAYMENT,  # not just Scottish, but, hey..
-        UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE 
+
     ],
     [        
         INCOME_TAX,
@@ -128,8 +93,12 @@ const DISREGARDED_BENEFITS_CIVIL = [
     SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE,
     SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
     SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_MOBILITY,
-   
 ]
+
+const  DISREGARDED_BENEFITS_AA = DISREGARDED_BENEFITS_CIVIL
+
+
+
 
 function zero_premia( RT :: DataType ) :: Premia
     prems = Premia{RT}()
@@ -168,12 +137,24 @@ function weeklyise!( prems :: Premia; wpy = WEEKS_PER_YEAR )
     prems.pensioner_is /= wpy
 end
 
+function get_default_incomes( systype :: SystemType )::IncludedItems
+    incs = DEFAULT_LA_INCOME
+    union!(incs.included, BENEFITS)
+    if systype == sys_civil 
+        setdiff!( incs.included, DISREGARDED_BENEFITS_CIVIL )
+    else 
+        setdiff!( incs.included, DISREGARDED_BENEFITS_AA )
+    end
+    incs
+end
+
+
 @with_kw mutable struct OneLegalAidSys{RT}
     abolished = false
     title = ""
     systype = sys_civil
     gross_income_limit        = inplaceoftypemax(RT)
-    incomes    :: IncludedItems = DEFAULT_LA_INCOME
+    incomes    :: IncludedItems = get_default_incomes( sys_civil ) 
     income_living_allowance           = zero(RT)
     income_partners_allowance         = RT(2529)
     income_other_dependants_allowance = RT(4056)
@@ -215,6 +196,7 @@ end
 function default_aa_sys( year::Integer, RT )::OneLegalAidSys
     @assert year in [2023] "no sys yet for $year"
     aa = OneLegalAidSys{RT}()
+    aa.incomes = get_default_incomes( sys_aa ) 
     if year == 2023
         aa.systype = sys_aa
         aa.income_living_allowance           = zero(RT)
