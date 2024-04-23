@@ -145,6 +145,7 @@ function get_default_incomes( systype :: SystemType )::IncludedItems
     else 
         setdiff!( incs.included, DISREGARDED_BENEFITS_AA )
     end
+    @show incs.included
     incs
 end
 

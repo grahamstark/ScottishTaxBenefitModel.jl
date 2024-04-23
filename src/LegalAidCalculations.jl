@@ -241,7 +241,8 @@ function calc_legal_aid!(
         if any_positive( bres.pers[pid].income, lasys.passported_benefits )
             onela.passported = true
         end
-        if ( UNIVERSAL_CREDIT in lasys.passported_benefits ) && any_positive( bres.pers[pid].income, UNIVERSAL_CREDIT )
+        if ( UNIVERSAL_CREDIT in lasys.passported_benefits ) && 
+            any_positive( bres.pers[pid].income, [UNIVERSAL_CREDIT] )
             passported_on_uc = true
         end
     end
