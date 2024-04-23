@@ -489,12 +489,13 @@ end
 
 end
 
-@testset "Track down weird capital crosstab" begin
+@testset "sp premia" begin
     settings = lasettings()
     settings.requested_threads = 4
-    settings.run_name = "aa bug check"
+    settings.run_name = "sing par premia"
     sys2 = deepcopy(sys1)
-    sys2.legalaid.aa.passported_benefits = IncomesSet([])
+    sys2.legalaid.civil.premia.family_lone_parent = 2000.0/52
+
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     examples = laout.aa.crosstab_pers_examples[1]
@@ -503,10 +504,10 @@ end
     @show examples
     for hid in examples[3,1]
         
-        # hh,res = LegalAidRunner.calculate_one( hid, [sys1, sys2 ] )
-        # @show hh
-        # @show res[1]
-        # @show res[2]
+        hh,res = LegalAidRunner.calculate_one( hid, [sys1, sys2 ] )
+        @show hh
+        @show res[1]
+        @show res[2]
     end
 end
 
