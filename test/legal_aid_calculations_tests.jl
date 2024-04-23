@@ -23,9 +23,12 @@ using .ModelHousehold:
     get_head, 
     get_spouse, 
     has_disabled_member,
+    household_composition_1,
     is_single,
     num_people,
     num_children,
+    num_std_bus,
+
     pers_is_carer,
     pers_is_disabled, 
     search,
@@ -113,6 +116,9 @@ end
 
 @testset "AA from spreadsheet" begin
     hh = make_hh( adults = 1 )
+    @test num_std_bus(hh) == 1
+    @test household_composition_1(hh) == single_person
+
     head = get_head( hh )
     head.age = 45
     println( "hhage $(head.age)")

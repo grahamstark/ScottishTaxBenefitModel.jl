@@ -2060,4 +2060,16 @@ export AggregationLevel, individual, benefit_unit, household
    household 
 end
 
+export HouseholdComposition1,single_person,single_parent,couple_wo_children,couple_w_children,
+   mbus_wo_children, mbus_w_children
+
+@enum HouseholdComposition1 begin
+   single_person = 1
+   single_parent = 2 
+   couple_wo_children = 3 
+   couple_w_children = 4 
+   mbus_wo_children = 5 
+   mbus_w_children = 6
+end 
+
 end # module

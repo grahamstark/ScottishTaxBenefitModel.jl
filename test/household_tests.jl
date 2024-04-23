@@ -53,6 +53,7 @@ println( "num_households=$num_households, num_people=$(total_num_people)")
 
 @testset "ratio tests" begin
       hh = ExampleHouseholdGetter.get_household( "single_parent_1" )  
+      @test household_composition_1( hh ) == single_parent
       bu = get_benefit_units( hh )[1]
       head = get_head( bu )
       fy = fy_from_bits( hh.interview_year, hh.interview_month )
@@ -156,6 +157,7 @@ end
       printpids( hh.people ) 
       @test num_people( hh ) == 3
       @test is_lone_parent( hh )
+      @test household_composition_1(hh) == single_parent
       bus = get_benefit_units( hh )
       @test size(bus)[1] == 1
       bu = bus[1]
@@ -185,7 +187,7 @@ end
             hh = FRSHouseholdGetter.get_household( hhno )
             # println("people in HH")
             # printpids(hh.people)
-
+            hcomp = household_composition_1( hh )
             hhsize = size(collect(keys(hh.people)))[1]
             people_count += hhsize
             bus = get_benefit_units( hh )

@@ -221,6 +221,7 @@ function make_legal_aid_frame( RT :: DataType, n :: Int ) :: DataFrame
         is_hh_head = fill( false, n ),
         is_bu_head = fill( false, n ),
         tenure    = fill( Missing_Tenure_Type, n ),
+        household_composition = fill( single_person, n ),
         marital_status = fill( Missing_Marital_Status, n ),
         employment_status = fill(Missing_ILO_Employment, n ),
         decile = zeros( Int, n ),
@@ -320,6 +321,8 @@ function fill_legal_aid_frame_row!(
     pr.is_bu_head = is_bu_head
     pr.sequence = hh.sequence
     pr.tenure = hh.tenure
+    pr.household_composition = household_composition_1( hh )
+    pr.decile = hh.equiv_original_income_decile
     pr.data_year = hh.data_year
     pr.weight = hh.weight
     pr.bu_number = buno
@@ -446,6 +449,10 @@ const LA_LABELS = [
 
 const LA_TARGETS = [
     :employment_status,
+    :household_composition,
+    :sex,
+    :age2,
+    :decile,
     :tenure, 
     :ethnic_group, 
     :bu_number, 
