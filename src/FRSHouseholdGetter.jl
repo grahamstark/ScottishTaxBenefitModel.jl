@@ -127,7 +127,7 @@ module FRSHouseholdGetter
             hh = get_household(hno)        
             dec = hh.original_income_decile
             @assert dec in 1:10
-            deccheck[dec] += hh.weight
+            deccheck[dec] += hh.weight*num_people(hh) 
         end
         println( deccheck )
         for dc in deccheck
