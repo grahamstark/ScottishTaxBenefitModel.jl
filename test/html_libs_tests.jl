@@ -24,14 +24,14 @@ using .SingleHouseholdCalculations:do_one_calc
         FRSHouseholdGetter.initialise( settings; reset=false )
     for hno in 1:5
         hh = FRSHouseholdGetter.get_household( hno )
-        # @show HTMLLibs.format_household( hh )
+        # @debug HTMLLibs.format_household( hh )
         head = get_head( hh )
-        @show HTMLLibs.html_format( head.income )
-        @show HTMLLibs.format_household( hh )
-        @show HTMLLibs.format_person( head )
+        @debug HTMLLibs.html_format( head.income )
+        @debug HTMLLibs.format_household( hh )
+        @debug HTMLLibs.format_person( head )
     end
     lares = LegalAidResult{Float64}()
-    @show HTMLLibs.format( lares, lares )
+    @debug HTMLLibs.format( lares, lares )
 end
 
 const ROOT="https://lasim.virtual-worlds.scot/"

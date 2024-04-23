@@ -7,6 +7,7 @@ module HTMLLibs
 using Parameters: @with_kw
 using Format
 using DataFrames 
+using Logging
 
 using ScottishTaxBenefitModel
 using .Results
@@ -299,7 +300,7 @@ function non_null_row( k, val, v )
 end
 
 function diff_row( fmtd :: NamedTuple, row_style="" )
-    @show fmtd
+    @debug fmtd
     if fmtd.skipthis
         return ""
     end
