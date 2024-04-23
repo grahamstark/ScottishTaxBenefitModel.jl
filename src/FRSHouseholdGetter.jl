@@ -109,7 +109,7 @@ module FRSHouseholdGetter
         if sum( inc ) ≈ 0
             return
         end
-        wt = Weights(w)
+        wt = Weights(w)*get_num_people(hh)
         # FIXME duplication here
         incbreaks = quantile(inc,wt,[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9])
         incdecs = get_quantiles( inc, incbreaks )
