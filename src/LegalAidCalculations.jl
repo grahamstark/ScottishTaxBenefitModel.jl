@@ -124,7 +124,7 @@ function calc_legal_aid!(
         nmt_bens,
         age_limits )
     onela.extra_allowances = prems
-    @show prems
+    @show prems premset
     for (pid,pers) in bu.people
         income = bres.pers[pid].income
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway

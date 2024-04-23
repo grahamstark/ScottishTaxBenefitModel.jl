@@ -372,6 +372,40 @@ end
     HTMLLibs.format( hh, hres, hres; settings=settings, print=PrintControls() )
 end
 
+  
+@testset "Expenses Test" begin
+
+end
+
+@testset "Extra Allowance Test" begin
+    settings = Settings()
+ 
+    hh = get_example(single_parent_hh)
+    head = get_head(hh)
+    blank_incomes!( hh, 35_000 )
+    
+    sys3 = deepcopy(sys1)
+    sys3.legalaid.civil.premia.family_lone_parent = 100.0
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    pre = init_household_result( hh )
+    calc_legal_aid!( pre, hh, intermed, sys1.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    post = init_household_result( hh )
+    calc_legal_aid!( post, hh, intermed, sys3.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    r1 = pre.bus[1].legalaid.civil
+    r2 = post.bus[1].legalaid.civil
+    @assert r1.extra_allowances ≈ 0 "1 should be 0 was $(pre.bus[1].legalaid.civil.extra_allowances)"
+    @assert r2.extra_allowances ≈ 100 "2 should be 100 was $(post.bus[1].legalaid.civil.extra_allowances)"
+    @assert (r1.disposable_income - r2.disposable_income) ≈ 100 "inc should be 100 lower is r1=$(r1.disposable_income) r2=$(r2.disposable_income)"
+    @show HTMLLibs.format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
+
+end
+
+
+
 """
 See PrettyTable documentation for formatter
 """
@@ -401,6 +435,8 @@ function test_costs(
         end
     end
 end
+
+
 
 function lasettings()
     settings = Settings()
@@ -474,29 +510,4 @@ end
     end
 end
 
-    
-@testset "Expenses Test" begin
-
-end
-
-@testset "Extra Allowance Test" begin
-    settings = Settings()
- 
-    hh = get_example(single_parent_hh)
-    sys3 = deepcopy(sys1)
-    sys3.legalaid.civil.premia.family_lone_parent = 100.0
-    intermed = make_intermediate( 
-        hh,  
-        sys.hours_limits,
-        sys.age_limits,
-        sys.child_limits )
-    pre = init_household_result( hh )
-    calc_legal_aid!( pre, hh, intermed, sys1.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
-    post = init_household_result( hh )
-    calc_legal_aid!( post, hh, intermed, sys3.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
-    @assert pre.bus[1].legalaid.civil.extra_allowances ≈ 0
-    @assert pre.bus[1].legalaid.civil.extra_allowances ≈ 100
-    @show format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
-
-end
-
+  
