@@ -495,6 +495,7 @@ end
     settings.run_name = "sing par premia"
     sys2 = deepcopy(sys1)
     sys2.legalaid.civil.premia.family_lone_parent = 2000.0/52
+    sys2.legalaid.aa.premia.family_lone_parent = 2000.0/52
 
     systems = [sys1, sys2]
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
@@ -502,6 +503,7 @@ end
     LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
     LegalAidOutput.dump_tables( laout, settings; num_systems=2)
     @show examples
+    #=
     for hid in examples[3,1]
         
         hh,res = LegalAidRunner.calculate_one( hid, [sys1, sys2 ] )
@@ -509,6 +511,36 @@ end
         @show res[1]
         @show res[2]
     end
+    =#
 end
+
+
+@testset "uc limits" begin
+    settings = lasettings()
+    settings.requested_threads = 4
+    settings.run_name = "uc limits"
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.civil.uc_limit = 25.0 #/WEEKS_PER_YEAR
+    sys2.legalaid.aa.uc_limit = 25.0 #/WEEKS_PER_YEAR
+    sys2.legalaid.civil.uc_limit_type = uc_min_payment
+    sys2.legalaid.aa.uc_limit_type = uc_min_payment
+    systems = [sys1, sys2]
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    examples = laout.aa.crosstab_pers_examples[1]
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+    LegalAidOutput.dump_tables( laout, settings; num_systems=2)
+    @show examples
+    #=
+    for hid in examples[3,1]
+        
+        hh,res = LegalAidRunner.calculate_one( hid, [sys1, sys2 ] )
+        @show hh
+        @show res[1]
+        @show res[2]
+    end
+    =#
+end
+
+
 
   
