@@ -889,6 +889,7 @@ function household_composition_1( hh :: Household ) :: HouseholdComposition1
     @assert nads >= 1
     nkids = num_children( hh )
     nbus = num_std_bus( hh )
+    @assert (nads + nkids) == num_people(hh)
     @assert nbus in 1:12
     return if nbus > 1
         if nkids > 0

@@ -15,7 +15,8 @@ module FRSHouseholdGetter
     using .Definitions
     
     using .ModelHousehold: 
-        Household, 
+        Household,
+        num_people, 
         uprate!
 
     using .HouseholdFromFrame: 
@@ -103,13 +104,13 @@ module FRSHouseholdGetter
             hh = get_household(hno)
             inc[hno] = hh.original_gross_income
             eqinc[hno] = hh.original_gross_income / hh.equivalence_scales.oecd_bhc 
-            w[hno] = hh.weight
+            w[hno] = hh.weight*num_people(hh) # person level deciles
         end
         # HACK HACK HACK - need to add gross inc to Scottish subset and uprate it
         if sum( inc ) ≈ 0
             return
         end
-        wt = Weights(w)*get_num_people(hh)
+        wt = Weights(w)
         # FIXME duplication here
         incbreaks = quantile(inc,wt,[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9])
         incdecs = get_quantiles( inc, incbreaks )
