@@ -20,18 +20,19 @@ using .Utils
     @test sum(crosstab[1:end-1,1:end-1]) == n # skip totals
     @test alabels == blabels == ["A","B","C", "Total"]
 
-    crosstab2, alabels2, blabels2 = make_crosstab( a, b; weights=w, rowlevels=order, collevels=order )
+    crosstab2, alabels2, blabels2, examples = make_crosstab( a, b; weights=w, rowlevels=order, collevels=order, max_examples=3 )
     println( "crosstab2 $crosstab2")
     @test sum(crosstab2[1:end-1,1:end-1]) == n
     @test alabels2 == blabels2 == order
+    @show examples
 
     v1 = rand( instances(SomeEnum), n )
     v2 = rand( instances(SomeEnum), n )
-    crosstab3,  v1labels, v2labels = make_crosstab( v1, v2 )
+    crosstab3,  v1labels, v2labels, examples = make_crosstab( v1, v2 )
     println( "crosstab3 $crosstab3")
     @test sum(crosstab3[1:end-1,1:end-1]) == n
     @test v1labels == v2labels == ["Thing1","Thing2","Thing3", "Total"]
-    
+    @show examples
 end
 
 
