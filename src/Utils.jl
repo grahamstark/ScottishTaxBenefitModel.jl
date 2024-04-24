@@ -110,8 +110,8 @@ function make_crosstab(
       push!( rowlevels,"Total")
       push!( collevels,"Total")
    end
-   sort!(collevels)
-   sort!(rowlevels)
+ #  sort!(collevels)
+  # sort!(rowlevels)
    m = zeros( nr, nc )
    examples = nothing
    if max_examples > 0
