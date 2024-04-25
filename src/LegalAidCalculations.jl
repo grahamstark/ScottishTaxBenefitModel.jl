@@ -161,8 +161,11 @@ function calc_legal_aid!(
     onela.income_allowances +=  (extra_nondeps * lasys.income_other_dependants_allowance)
 
     if buno == 1
-        housing = max( 0.0, household.gross_rent - hb) +
-                max( 0.0, ct - ctb ) +
+        # gross housing costs and treating CTB HB as income
+        housing = household.gross_rent +
+            ct + 
+                # max( 0.0, household.gross_rent - hb) +
+                # max( 0.0, ct - ctb ) +
                 household.mortgage_interest +
                 household.other_housing_charges
                 #!!! FIXME insurance

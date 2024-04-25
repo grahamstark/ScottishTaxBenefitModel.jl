@@ -108,11 +108,10 @@ const  DISREGARDED_BENEFITS_AA = [
     DLA_SELF_CARE,
     DLA_MOBILITY,
     SEVERE_DISABILITY_ALLOWANCE,
-    STATE_PENSION 
+    STATE_PENSION,
+    HOUSING_BENEFIT,
+    COUNCIL_TAX_BENEFIT
 ]
-
-
-
 
 function zero_premia( RT :: DataType ) :: Premia
     prems = Premia{RT}()

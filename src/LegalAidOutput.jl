@@ -480,6 +480,7 @@ function combine_one_legal_aid(
     labels :: AbstractArray )::AbstractDataFrame
     gdf = groupby( df, to_combine )
     outf = combine( gdf, weighted_cols .=>sum )
+    sort!( df, to_combine )
     # column names: add `Tenure`, 'Employment' or whatever as the 1st entry
     labels = push!( [Utils.pretty(string(to_combine))], labels... )
     # .. then rename the columns to these 
@@ -684,7 +685,11 @@ function summarise_la_output!(
             :weight, 
             LA_BITS, 
             LA_LABELS )
-        la.breakdown_bu[sysno]  = aggregate_all_legal_aid( budata, :weight, LA_BITS, LA_LABELS )
+        la.breakdown_bu[sysno]  = aggregate_all_legal_aid( 
+            budata, 
+            :weight, 
+            LA_BITS, 
+            LA_LABELS )
         cost_items = cost_item_names( data )
         la.cases_pers[sysno] = aggregate_all_legal_aid( 
             data, 
