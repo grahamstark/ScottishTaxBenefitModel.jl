@@ -721,18 +721,19 @@ end # map_investment_income
 
 function map_alimony(frs_person::DataFrameRow, a_maint::DataFrame)::Real
     nmaints = size(a_maint)[1]
-    alimony = 0.0 # note: not including children
+    alimony_paid = 0.0 # note: not including children
+    alimony_recieved = 0.0 # note: not including children
     if frs_person.alimny == 1 # receives alimony
         if frs_person.alius == 2 # not usual
-            alimony = safe_inc(0.0, frs_person.aluamt)
+            alimony_recieved = safe_inc(0.0, frs_person.aluamt)
         else
-            alimony = safe_inc(0.0, frs_person.aliamt)
+            alimony_recieved = safe_inc(0.0, frs_person.aliamt)
         end
     end
     for c in 1:nmaints
-        alimony = safe_inc(alimony, a_maint[c, :mramt])
+        alimony_paid = safe_inc(alimony_paid, a_maint[c, :mramt])
     end
-    alimony
+    alimony_recieved, alimony_paid
 end
 
 function map_car_value( cv :: Integer ) :: Real

@@ -163,7 +163,7 @@ function calc_legal_aid!(
     if buno == 1
         # gross housing costs and treating CTB HB as income
         housing = household.gross_rent +
-            ct + 
+                ct + 
                 # max( 0.0, household.gross_rent - hb) +
                 # max( 0.0, ct - ctb ) +
                 household.mortgage_interest +

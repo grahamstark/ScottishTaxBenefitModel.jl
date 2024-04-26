@@ -599,6 +599,8 @@ function format( pre :: OneLegalAidResult, post :: OneLegalAidResult)
     s *= "<tr><th></th><th>Pre</th><th>Post</th><th>Change</th></tr>"
     df = format_diff( "net_income", pre.net_income, post.net_income)
     s *= diff_row( df )
+    df = format_diff( "gross_earnings", pre.gross_earnings, post.gross_earnings)
+    s *= diff_row( df )
     df = format_diff( "disposable_income", pre.disposable_income, post.disposable_income)
     s *= diff_row( df )
     df = format_diff( "UC Income", pre.uc_income, post.uc_income)
