@@ -485,6 +485,8 @@ function combine_one_legal_aid(
     labels = push!( [Utils.pretty(string(to_combine))], labels... )
     # .. then rename the columns to these 
     rename!( outf, labels )
+    @show outf
+    sort!( outf)
     return coalesce.(outf,0) # fix missings
 end
 
