@@ -497,6 +497,13 @@ function combine_costs(
 
 end
 
+function fixup_totals!( df :: DataFrame )
+    df[!,begin+1] .= 0.0
+    for r in eachrow( df )
+       r[begin+1] = sum( r[(begin+1):end]) 
+    end
+end
+
 """
 Call `combine_one_legal_aid` on all the `TARGETS`
 
@@ -507,7 +514,8 @@ function aggregate_all_legal_aid(
     weight_sym :: Symbol, 
     target_columns :: AbstractVector,
     labels :: AbstractVector,
-    target_costs :: AbstractVector = [] ) :: Dict
+    target_costs :: AbstractVector = [];
+    fixup_totals = false ) :: Dict
     # in case there are holes in the dataframe, for example when created at BU levels.
     df = df[df.hid .>0,:]
     weighted_cols = []
@@ -532,6 +540,9 @@ function aggregate_all_legal_aid(
     alltab = Dict()
     for t in LA_TARGETS
         gdp = combine_one_legal_aid( df, t, weighted_cols, labels )
+        if fixup_totals
+            fixup_totals!( gdp )
+        end
         alltab[t] = gdp
     end
     return alltab
@@ -693,17 +704,20 @@ function summarise_la_output!(
             LA_BITS, 
             LA_LABELS )
         cost_items = cost_item_names( data )
+
         la.cases_pers[sysno] = aggregate_all_legal_aid( 
             data, 
             :weight, 
             cost_items.props, 
-            cost_items.labels )
+            cost_items.labels;
+            fixup_totals=true )
         la.costs_pers[sysno] = aggregate_all_legal_aid( 
                 data, 
                 :weight, 
                 cost_items.props, 
                 cost_items.labels,
-                cost_items.costs )
+                cost_items.costs;
+                fixup_totals=true )
         
         if sysno > 1
             #=
