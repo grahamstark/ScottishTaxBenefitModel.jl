@@ -147,7 +147,7 @@ function create_base_propensities(
         lout.popn = sum( v.weight )
         lout.sex = k.sex
         lout.age2 = k.age2
-        lout.hsm = "aa_total"
+        lout.hsm = "total"
         lout.la_status = k.la_status
         # now, look up corresponding costs data: first make a key to disagg grouped dataframe
         costk = make_key( 
