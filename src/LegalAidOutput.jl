@@ -159,7 +159,7 @@ function create_base_propensities(
         # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
         if haskey( costs_grp3, costk ) 
             cv = costs_grp3[costk] 
-            r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
+            r = summarystats( cv.totalpaid  ) # in 000s
             lout.costs_max = r.max     
             lout.costs_mean = r.mean
             lout.costs_median = r.median  
@@ -191,7 +191,7 @@ function create_base_propensities(
     awicost = sum( awi.totalpaid )
     awicount = length( awi.totalpaid )
     popn = sum( entitlement.weight )
-    cost_and_count.adults_with_incapacity_cost .= awicost/awicount
+    cost_and_count.adults_with_incapacity_cost .= awicost/(awicount*1000) # in 000s
     cost_and_count.adults_with_incapacity_prop .= awicount/popn
 
     # println( "create_base_propensities cost_and_count=")
