@@ -73,7 +73,8 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
         for subject in subjects
             cost_col = Symbol( "$(subject)_cost")
             prop_col = Symbol( "$(subject)_prop")
-            if r[prop_col] == 0 && r.la_status == la_passported
+            if (r[prop_col] == 0) && (r.la_status == la_passported)
+                println( "fixing up $subject")
                 alt = props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
                         (props.age2 .== r.age2)), :]
@@ -81,13 +82,14 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
                 prop = cases/(r.popn+alt.popn[1])
                 r[prop_col] = prop
                 r[cost_col] = alt[1,cost_col]
+                println( "cost set to $(r[cost_col])")
                 props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
                         (props.age2 .== r.age2)), prop_col] .= prop
             end
         end # for
     end # for
-end
+end # func
 
 #=
 
