@@ -61,6 +61,62 @@ function create_propensities( lout :: LegalAidOutput.AllLegalOutput; reset_resul
             LegalAidData.AA_COSTS )
     end
 end
+
+
+"""
+Hacky hacky: reallocated some of the `la_full` props to `la_passported`
+where `la_passported` is zero. This fixes some problems where entitlement falls but costs go up.
+I'm tired and this is a mess.
+"""
+function fixup_props!( props :: DataFrame, subjects :: Vector )
+    for r in eachrow(props)
+        for subject in subjects
+            cost_col = Symbol( "$(subject)_cost")
+            prop_col = Symbol( "$(subject)_prop")
+            if r[prop_col] == 0 && r.la_status == la_passported
+                alt = props[ ((props.sex.== r.sex) .& 
+                        (props.la_status .== la_full) .&
+                        (props.age2 .== r.age2)), :]
+                cases = r.popn*alt[1,prop_col]
+                prop = cases/(r.popn+alt.popn[1])
+                r[prop_col] = prop
+                r[cost_col] = alt[1,cost_col]
+                props[ ((props.sex.== r.sex) .& 
+                        (props.la_status .== la_full) .&
+                        (props.age2 .== r.age2)), prop_col] .= prop
+            end
+        end # for
+    end # for
+end
+
+#=
+
+
+function fixup_props!( props :: DataFrame, subjects :: Vector )
+    for r in eachrow(props)
+        for subject in subjects
+            cost_col = Symbol( "$(subject)_cost")
+            prop_col = Symbol( "$(subject)_prop")
+            if r[prop_col] == 0 && r.la_status == "la_passported"
+                println( "fixing zero for $cost_col sex=$(r.sex) age2=$(r.age2)")
+                alt = props[ ((props.sex.== r.sex) .& 
+                        (props.la_status .== "la_full") .&
+                        (props.age2 .== r.age2)), :]
+                cases = alt.popn[1]*alt[1,prop_col]
+                prop = cases/(r.popn+alt.popn[1])
+                println( "subject $subject cases $cases prop $prop" )
+                r[prop_col] = prop
+                r[cost_col] = alt[1,cost_col]
+                props[ ((props.sex.== r.sex) .& 
+                        (props.la_status .== "la_full") .&
+                        (props.age2 .== r.age2)), prop_col] .= prop
+            end
+        end # for
+    end # for
+end
+
+
+=#
         
 """
 This is the base of the costs model
@@ -97,6 +153,8 @@ function create_base_propensities(
         age2 = fill("",n), 
         sex = fill(Male,n),
         case_freq = zeros(n), 
+        case_count = zeros(n), 
+        costs_total = zeros(n), 
         popn = zeros(n),        
         la_status = fill( la_none, n ),
         costs_max = zeros(n), 
@@ -130,6 +188,8 @@ function create_base_propensities(
             if haskey( costs_grp4, costk ) 
                 cv = costs_grp4[costk] 
                 r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
+                lout.case_count = size(cv)[1]
+                lout.costs_total = sum( cv.totalpaid )
                 lout.costs_max = r.max     
                 lout.costs_mean = r.mean
                 lout.costs_median = r.median  
@@ -196,6 +256,7 @@ function create_base_propensities(
 
     # println( "create_base_propensities cost_and_count=")
     # @show cost_and_count
+    fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
     return (; cost_and_count, long_data=out )
 end
 
