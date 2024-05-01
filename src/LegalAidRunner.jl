@@ -39,7 +39,7 @@ RESULTS =
     ResultsWrapper( 
         Matrix{HouseholdResult}(undef,0,0))
 
-function intialise( 
+function initialise( 
     settings :: Settings,
     systems  :: Vector{TaxBenefitSystem{T}},
     observer :: Observable  ) :: AllLegalOutput where T
@@ -102,7 +102,7 @@ function do_one_run(
     # FIXME potential for endless loop here?
     if( size( RESULTS.results )[1] <= 1) || reset_results
         println( "entering initialise")
-        intialise( settings, systems, observer )
+        initialise( settings, systems, observer )
     end
     num_systems = length( systems )
     num_threads = min( nthreads(), settings.requested_threads )
