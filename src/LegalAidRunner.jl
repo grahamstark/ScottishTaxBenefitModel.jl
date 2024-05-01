@@ -42,7 +42,7 @@ RESULTS =
 function intialise( 
     settings :: Settings,
     systems  :: Vector{TaxBenefitSystem{T}},
-    observer :: Observable  ) where T
+    observer :: Observable  ) :: AllLegalOutput where T
     settings.export_full_results = true
     settings.do_legal_aid = false    
     rs = Runner.do_one_run( settings, systems, observer )
@@ -53,7 +53,7 @@ function intialise(
     settings.do_legal_aid = true
     laresults = do_one_run( settings, systems, observer )
     println( "initialise; at create wide propensities ")
-    
+    return laresults
 end
 
 
@@ -99,6 +99,7 @@ function do_one_run(
     if(FRSHouseholdGetter.get_num_households() == 0) || reset_data
         settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
     end
+    # FIXME potential for endless loop here?
     if( size( RESULTS.results )[1] <= 1) || reset_results
         println( "entering initialise")
         intialise( settings, systems, observer )
