@@ -543,7 +543,7 @@ function make_post_consistent_with_pre!(;
     pre :: DataFrame,
     cost_items :: Vector,
     prop_items :: Vector )
-    @argcheck size(pre) == size(post)
+    @argcheck size(pre)[1] == size(post)[1]
     n = size(pre)[1]
     @show cost_items
     @show prop_items
