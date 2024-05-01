@@ -545,7 +545,8 @@ function make_post_consistent_with_pre!(;
     prop_items :: Vector )
     @argcheck size(pre) == size(post)
     n = size(pre)[1]
-    
+    @show cost_items
+    @show prop_items
     for i in 1:n
         r2 = post[i,:]
         r1 = pre[i,:]
@@ -553,7 +554,7 @@ function make_post_consistent_with_pre!(;
             r2[c] = r1[c] 
         end
         @assert (r1.hid == r2.hid) && (r1.pid == r2.pid) && (r1.data_year == r2.data_year)
-         if r2.entitlement > r1.entitlement 
+        if r2.entitlement > r1.entitlement 
             # *worse* entitlement post, since enum is passported,full...  
             # Always use lower take prop of pre/post
             for p in prop_items
@@ -562,7 +563,7 @@ function make_post_consistent_with_pre!(;
         elseif r2.entitlement < r1.entitlement
             for p in prop_items # improved; always use higher prop
                 r2[p] = max( r2[p], r1[p])
-           end
+            end
         end
     end
 end

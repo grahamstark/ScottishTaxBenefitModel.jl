@@ -9,6 +9,7 @@ using Format
 using PrettyTables 
 using Base.Threads
 using ChunkSplitters
+using ArgCheck
 
 using ScottishTaxBenefitModel
 
@@ -546,6 +547,72 @@ end
     end
     =#
 end
+
+"""
+Fixme turn this into something slightly generic.
+"""
+function nothing_increased_and_something_reduced(
+    ;
+    pre :: DataFrame,
+    post :: DataFrame,
+    label :: String )::String
+    @argcheck size(pre) == size(post)
+    @argcheck names(pre) == names(post)
+    out =""
+    nms = names(pre)
+    nrows, ncols = size( pre )
+    someimproved = false
+    someworse = false
+    for c in 2:ncols # skip label col at start
+        for r in 1:nrows
+            # these are costs so up is worse.
+            if pre[r,c] > (post[r,c]+0.00001)
+                someworse = true
+            elseif post[r,c] > (pre[r,c]+0.00001)
+                @show pre
+                @show post
+                out = "IMPROVEMENT for category $(pre[r,1]) type $(nms[c]) table $label"
+                break
+            end
+        end # rows
+    end # cols
+    if ! someworse
+        out = "NO Worseing for any field table $label"
+    end
+    return out
+end
+
+@testset "No Passporting - should always reduce costs and eligibility." begin
+    settings = lasettings()
+    settings.requested_threads = 4
+    settings.run_name = "No Passporting"
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.civil.passported_benefits=[]
+    sys2.legalaid.aa.passported_benefits=[]
+    systems = [sys1, sys2]
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+    LegalAidOutput.dump_tables( laout, settings; num_systems=2)
+
+    for t in LA_TARGETS
+        @test nothing_increased_and_something_reduced(
+            pre=laout.civil.cases_pers[1][t],
+            post=laout.civil.cases_pers[2][t],
+            label="Civil cases table $t" ) == ""
+        @test nothing_increased_and_something_reduced(
+            pre=laout.civil.costs_pers[1][t],
+            post=laout.civil.costs_pers[2][t],
+            label="Civil cost table $t" ) == ""
+        @test nothing_increased_and_something_reduced(
+            pre=laout.aa.cases_pers[1][t],
+            post=laout.aa.cases_pers[2][t],
+            label="AA count table $t" ) == ""
+        @test nothing_increased_and_something_reduced(
+            pre=laout.aa.costs_pers[1][t],
+            post=laout.aa.costs_pers[2][t],
+            label="AA cost table $t" ) == ""
+    end # breakdown loop
+end # testset
 
 
 
