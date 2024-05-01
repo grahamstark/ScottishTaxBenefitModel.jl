@@ -593,8 +593,10 @@ end
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
     LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
     LegalAidOutput.dump_tables( laout, settings; num_systems=2)
-
     for t in LA_TARGETS
+        println( setdiff( 
+            names( laout.civil.cases_pers[1][t]),
+            names( laout.civil.cases_pers[2][t])))
         @test nothing_increased_and_something_reduced(
             pre=laout.civil.cases_pers[1][t],
             post=laout.civil.cases_pers[2][t],

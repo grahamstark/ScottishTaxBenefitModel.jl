@@ -560,6 +560,7 @@ function make_post_consistent_with_pre!(;
             for p in prop_items
                  r2[p] = min( r2[p], r1[p])
             end
+            # println("worsened; ")
         elseif r2.entitlement < r1.entitlement
             for p in prop_items # improved; always use higher prop
                 r2[p] = max( r2[p], r1[p])
@@ -791,6 +792,7 @@ function summarise_la_output!(
             la.data[sysno], 
             LegalAidData.LA_PROB_DATA,
             propensities )
+        cost_items = cost_item_names( data )
         make_post_consistent_with_pre!(; 
             post = data, 
             pre  = data1,
@@ -807,8 +809,7 @@ function summarise_la_output!(
             :weight, 
             LA_BITS, 
             LA_LABELS )
-        cost_items = cost_item_names( data )
-
+        
         la.cases_pers[sysno] = aggregate_all_legal_aid( 
             data, 
             :weight, 
