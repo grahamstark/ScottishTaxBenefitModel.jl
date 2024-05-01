@@ -89,6 +89,7 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
             end
         end # for
     end # for
+    # if 
 end # func
 
 #=
@@ -533,6 +534,40 @@ end
 const ENTITLEMENT_STRS = make_entitlement_strs()
 
 """
+always use cost from pre.
+If state falls, use the propensity from the lower state and vice versa.  
+Together these should stop costs and takeup sometimes rising as elig is cut, and vice versa.
+"""
+function make_post_consistent_with_pre!(; 
+    post :: DataFrame, 
+    pre :: DataFrame,
+    cost_items :: Vector,
+    prop_items :: Vector )
+    @argcheck size(pre) == size(post)
+    n = size(pre)[1]
+    
+    for i in 1:n
+        r2 = post[i,:]
+        r1 = pre[i,:]
+        for c in cost_items # always use base cost
+            r2[c] = r1[c] 
+        end
+        @assert (r1.hid == r2.hid) && (r1.pid == r2.pid) && (r1.data_year == r2.data_year)
+         if r2.entitlement > r1.entitlement 
+            # *worse* entitlement post, since enum is passported,full...  
+            # Always use lower take prop of pre/post
+            for p in prop_items
+                 r2[p] = min( r2[p], r1[p])
+            end
+        elseif r2.entitlement < r1.entitlement
+            for p in prop_items # improved; always use higher prop
+                r2[p] = max( r2[p], r1[p])
+           end
+        end
+    end
+end
+
+"""
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
 return a dataframe (grouped?) with LA_BITS as columns and broken down values for one of TARGETS.
 """
@@ -755,6 +790,11 @@ function summarise_la_output!(
             la.data[sysno], 
             LegalAidData.LA_PROB_DATA,
             propensities )
+        make_post_consistent_with_pre!(; 
+            post = data, 
+            pre  = data1,
+            prop_items = cost_items.props, 
+            cost_items = cost_items.costs )
         budata = data[data.is_bu_head,:] 
         la.breakdown_pers[sysno] = aggregate_all_legal_aid( 
             data, 

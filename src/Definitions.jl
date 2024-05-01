@@ -87,7 +87,7 @@ export LegacyOrUC, legacy_bens, uc_bens
 end
 
 #
-# Legal Aid Stuff
+# Legal Aid Stuff. Note *lower* is better here.
 #
 export LegalAidStatus, la_none, la_passported, la_full, la_with_contribution 
 @enum LegalAidStatus la_passported la_full la_with_contribution la_none   
