@@ -16,17 +16,13 @@ using .RunSettings
 using .Utils
 using .ExampleHelpers
 
-sys21_22 = load_file( "../params/sys_2021_22.jl" )
-load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
-#
-# Note this was pre-2021/2 budget, so no UC taper to 55
-#
-# load_file!( sys21_22, "../params/budget_2021_uc_changes.jl")
-
-sys21_22.minwage.abolished = true # so we can experiment with low wages
 wpm=PWPM
 wpy=52
-weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
+sys21_22 = get_default_system_for_date( Date( 2021, 10, 1 ); wpm=PWPM, wpy=52 )
+
+sys21_22.minwage.abolished = true # so we can experiment with low wages
+
+# weeklyise!( sys21_22; wpy=wpy, wpm=wpm  )
 println(  "weeklyise start wpm=$wpm wpy=$wpy")
 
 settings = Settings()
@@ -57,6 +53,7 @@ settings = Settings()
 
     settings.means_tested_routing = lmt_full 
     hres = do_one_calc( hh, sys21_22, settings )
+    
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
     
     println(  "CTC", hres.bus[1].pers[head.pid].income[LOCAL_TAXES])

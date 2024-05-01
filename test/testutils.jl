@@ -9,8 +9,6 @@ using .STBParameters:
     get_default_system_for_date,
     get_default_system_for_cal_year,
     get_default_system_for_fin_year
-    # ,
-    # load_file!
 using Observables
 using .Monitor: Progress
 import .Results: init_benefit_unit_result, BenefitUnitResult
@@ -131,36 +129,13 @@ end
 function get_uk_system(; year = 2023 ) :: TaxBenefitSystem
    sys = nothing
    if year == 2023
-      # FIXME 
-      # load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
-      # weeklyise!(sys)
-      sys = get_default_system_for_fin_year( 2023 )
+      sys = get_default_system_for_fin_year( 2023, scotland=false )
       return sys
    end
 end
 
-function get_system( ; year, scotland = true )  :: TaxBenefitSystem
-   sys = get_default_system_for_fin_year( year , scotland=scotland )      
-   #=
-   sys = nothing
-   if year == 2022
-      # sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
-      if ! scotland
-         sys.scottish_child_payment.amount = 0.0
-         sys.scottish_child_payment.maximum_age = 0
-         sys.scottish_child_payment.qualifying_benefits = []
-         sys.nmt_bens.carers.scottish_supplement = 0.0
-      end
-   elseif year == 2023
-      sys = load_file( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
-      if scotland
-         load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
-      end
-   else
-      return getSystem( scotland=scotland )
-   end 
-   weeklyise!(sys)
-   =#
+function get_system( ; year, scotland = true ) :: TaxBenefitSystem
+   sys = get_default_system_for_fin_year( year; scotland=scotland )      
    return sys
 end
 
@@ -185,7 +160,11 @@ in a @test macro.
 function compare_w_2_m( uspw::Real, thempm::Real, ps :: Real = 1 ) :: Bool
    uspm = uspw*PWPM
    thempw = thempm/PWPM
-   @assert to_nearest_p(uspw,thempw,ps) "us $(uspw)pw ($(uspm)pm) != $(thempm)pm"
+   try 
+      diff = to_nearest_p( uspw, thempw, ps )
+   catch e
+      throw( ErrorException("us $(uspw)pw ($(uspm)pm) != $(thempm)pm $e"))
+   end
    return true
 end
 

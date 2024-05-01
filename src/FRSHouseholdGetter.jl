@@ -15,7 +15,8 @@ module FRSHouseholdGetter
     using .Definitions
     
     using .ModelHousehold: 
-        Household, 
+        Household,
+        num_people, 
         uprate!
 
     using .HouseholdFromFrame: 
@@ -103,7 +104,7 @@ module FRSHouseholdGetter
             hh = get_household(hno)
             inc[hno] = hh.original_gross_income
             eqinc[hno] = hh.original_gross_income / hh.equivalence_scales.oecd_bhc 
-            w[hno] = hh.weight
+            w[hno] = hh.weight*num_people(hh) # person level deciles
         end
         # HACK HACK HACK - need to add gross inc to Scottish subset and uprate it
         if sum( inc ) ≈ 0
@@ -126,7 +127,7 @@ module FRSHouseholdGetter
             hh = get_household(hno)        
             dec = hh.original_income_decile
             @assert dec in 1:10
-            deccheck[dec] += hh.weight
+            deccheck[dec] += hh.weight*num_people(hh) 
         end
         println( deccheck )
         for dc in deccheck
@@ -156,13 +157,13 @@ module FRSHouseholdGetter
         end
         load_prices( settings )
         if settings.indirect_method == matching 
-            ConsumptionData.init( settings )
+            ConsumptionData.init( settings; reset = reset )
         end
         if settings.do_legal_aid
             LegalAidData.init( settings; reset = reset )
         end
-        hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
-        people_dataset = CSV.File("$(settings.data_dir)/$(settings.people_name).tab") |> DataFrame
+        hh_dataset = CSV.File( joinpath(settings.data_dir,settings.household_name*".tab" )) |> DataFrame
+        people_dataset = CSV.File( joinpath( settings.data_dir, settings.people_name*".tab")) |> DataFrame
         npeople = size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )
@@ -176,6 +177,9 @@ module FRSHouseholdGetter
             uprate!( hh )
             if settings.indirect_method == matching 
                 ConsumptionData.find_consumption_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
+                if settings.impute_fields_from_consumption
+                    ConsumptionData.impute_stuff_from_consumption!(hh,settings)
+                end
             end
 
             pseqs = []
@@ -220,6 +224,23 @@ module FRSHouseholdGetter
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
 
+    """
+    Save some of the bits that are generated internally.
+    FIXME: add an extract function
+    """
+    function extract_weights_and_deciles( 
+        settings :: Settings,
+        filename :: String  )
+        fname = joinpath(settings.output_dir, "$(filename).tab" )
+        f = open( fname, "w")
+        println( f, "hid\tdata_year\tweight\tdecile")
+        for hno in 1:settings.num_households
+            hh = get_household(hno)
+            println(f, hh.hid, '\t', hh.data_year, '\t', hh.weight, '\t', hh.equiv_original_income_decile)
+        end
+        close(f)
+    end
+
     function get_regression_dataset()::DataFrame
         return REG_DATA
     end
@@ -245,7 +266,12 @@ module FRSHouseholdGetter
     end
 
     function get_household( hid :: BigInt, datayear :: Int ) :: Household
-        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ]
+        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ OneIndex( hid, datayear) ].hseq
+        return get_household( pos )
+    end
+
+    function get_household( oi :: OneIndex ) :: Household
+        pos :: Int = MODEL_HOUSEHOLDS.hh_map[ oi ].hseq
         return get_household( pos )
     end
 

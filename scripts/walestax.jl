@@ -22,6 +22,7 @@ using .Results:
     get_net_income,
     get_indiv_result,
     total
+using .TimeSeriesUtils: FY_2022
 using .TheEqualiser
 using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .Uprating: load_prices
@@ -160,11 +161,15 @@ function add_house_price( settings::Settings )
     rent_summary
 end
 
+"""
+FIXME check if the bands needs Weeklyised 05/04/2024
+"""
 function get_system( ; year = 2022 ) :: TaxBenefitSystem
     sys = nothing
     if year == 2022
-        sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
-        load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
+        sys = get_default_system_for_date( FY_2022, scotland=false )
+        # sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
+        # load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
         ## wales specific CT rels; see []??
         sys.loctax.ct.relativities = Dict{CT_Band,Float64}(
             Band_A=>240/360,
@@ -190,7 +195,7 @@ function get_system( ; year = 2022 ) :: TaxBenefitSystem
 
     end  # 2022
     sys.scottish_child_payment = 0.0
-    weeklyise!(sys)
+    # weeklyise!(sys)
     return sys
 end
 

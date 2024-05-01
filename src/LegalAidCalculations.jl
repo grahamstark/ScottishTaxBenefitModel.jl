@@ -1,9 +1,12 @@
 module LegalAidCalculations
 
 using ScottishTaxBenefitModel
+using Logging 
 
 using .ModelHousehold: 
     get_benefit_units,
+    get_head,
+    get_spouse,
     is_head,
     is_spouse,
     is_child,
@@ -15,6 +18,8 @@ using .Definitions
 using .GeneralTaxComponents: 
     TaxResult, 
     calctaxdue
+
+using .LegacyMeansTestedBenefits: calc_premia
 
 using .Results:
     get_indiv_result,
@@ -33,6 +38,8 @@ using .STBParameters:
     sys_civil, 
     ContributionType, 
     OneLegalAidSys,
+    NonMeansTestedSys,
+    AgeLimits,
     ScottishLegalAidSys
     
 using .Intermediate: 
@@ -87,6 +94,8 @@ function calc_legal_aid!(
     buno                :: Integer,  
     intermed            :: MTIntermediate,
     lasys               :: OneLegalAidSys,
+    nmt_bens             :: NonMeansTestedSys,
+    age_limits          :: AgeLimits,
     extra_nondeps       :: Integer )
     
     bu = benefit_unit # alias
@@ -97,33 +106,38 @@ function calc_legal_aid!(
     repayments = 0.0
     workexp = 0.0
     maintenance = 0.0
+    ttw = 0.0
     hb = 0.0
     ct = 0.0
     ctb = 0.0
+    # FIXME NOT USED FOR UC TEST
+    onela.uc_income = bres.uc.total_income
     child_costs = 0.0
     npeople = 1+extra_nondeps
     age_oldest = -1
+
+   prems, premset = calc_premia(
+        Definitions.hb,
+        bu,
+        bres,
+        intermed,
+        lasys.premia,
+        nmt_bens,
+        age_limits )
+    onela.extra_allowances = prems
+    @debug prems 
+    @debug premset
     for (pid,pers) in bu.people
         income = bres.pers[pid].income
-        # these are all actually the same number except living_allowance
-        if any_positive( income, lasys.passported_benefits )
-            onela.passported = true
-            onela.entitlement = la_passported
-            if lasys.systype == sys_aa  
-                bres.legalaid.aa = onela # alias
-            else 
-                bres.legalaid.civil = onela # alias
-            end        
-            return
-        end
         # CHECK next 3 - 2nd bus can't claim housing costs?? , but these should be zero anyway
         hb += income[HOUSING_BENEFIT]
         ctb += income[COUNCIL_TAX_BENEFIT]
         ct += income[LOCAL_TAXES]
+        onela.uc_entitlement += income[UNIVERSAL_CREDIT]
         maintenance += income[ALIMONY_AND_CHILD_SUPPORT_PAID]
         child_costs += pers.cost_of_childcare
-        workexp += make_ttw( pers )
-        repayments += make_repayments( pers )
+        workexp += pers.work_expenses + pers.travel_to_work
+        repayments += pers.debt_repayments #  make_repayments( pers )
         age_oldest = max( pers.age, age_oldest )
         if pers.relationship_to_hoh == This_Person
             onela.income_allowances += lasys.income_living_allowance
@@ -135,7 +149,7 @@ function calc_legal_aid!(
             npeople += 1
         end
         totinc += isum( income, lasys.incomes.included; deducted=lasys.incomes.deducted )
-    end
+    end # people in bu
 
     # aa capital allowances
     if length(lasys.capital_allowances) > 0
@@ -147,44 +161,60 @@ function calc_legal_aid!(
     onela.income_allowances +=  (extra_nondeps * lasys.income_other_dependants_allowance)
 
     if buno == 1
-        housing = max( 0.0, household.gross_rent - hb) +
-                max( 0.0, ct - ctb ) +
+        # gross housing costs and treating CTB HB as income
+        housing = household.gross_rent +
+                ct + 
+                # max( 0.0, household.gross_rent - hb) +
+                # max( 0.0, ct - ctb ) +
                 household.mortgage_interest +
                 household.other_housing_charges
                 #!!! FIXME insurance
         onela.housing = do_expense( housing, lasys.expenses.housing )
     end
     onela.childcare = do_expense( child_costs, lasys.expenses.childcare )
-    onela.other_outgoings += do_expense( maintenance, lasys.expenses.maintenance )
-    onela.other_outgoings += do_expense( repayments, lasys.expenses.debt_repayments )
+    onela.maintenance += do_expense( maintenance, lasys.expenses.maintenance )
+    onela.repayments += do_expense( repayments, lasys.expenses.repayments )
     onela.work_expenses = do_expense( workexp, lasys.expenses.work_expenses )
     onela.net_income = totinc
     onela.outgoings = 
         onela.housing + 
         onela.childcare + 
-        onela.other_outgoings + 
+        onela.maintenance +
+        onela.repayments +
         onela.work_expenses
     onela.disposable_income = max( 0.0, 
         onela.net_income - 
         onela.outgoings - 
-        onela.income_allowances )
+        onela.income_allowances - 
+        onela.extra_allowances )
 
     onela.eligible_on_income = onela.disposable_income < lasys.income_contribution_limits[end]
 
     # FIXME individual level 
-    if buno == 1
-        if net_physical_wealth in lasys.included_capital 
-            onela.capital += household.net_physical_wealth
-        end 
-        if net_financial_wealth in lasys.included_capital 
-            onela.capital += household.net_financial_wealth
-        end 
-        if net_housing_wealth in lasys.included_capital 
-            onela.capital += household.net_housing_wealth
-        end 
-        if net_pension_wealth in lasys.included_capital 
-            onela.capital += household.net_pension_wealth
-        end 
+    if lasys.use_inferred_capital 
+        if buno == 1
+            if net_physical_wealth in lasys.included_capital 
+                onela.capital += household.net_physical_wealth
+            end 
+            if net_financial_wealth in lasys.included_capital 
+                onela.capital += household.net_financial_wealth
+            end 
+            if net_housing_wealth in lasys.included_capital 
+                onela.capital += household.net_housing_wealth
+            end 
+            if net_pension_wealth in lasys.included_capital 
+                onela.capital += household.net_pension_wealth
+            end 
+        end
+    else
+        if  net_physical_wealth in lasys.included_capital
+            head = get_head( bu )
+            onela.capital += head.wealth_and_assets
+            spouse = get_spouse( bu )
+            if ! isnothing( spouse )
+                onela.capital += spouse.wealth_and_assets
+            end
+        end
     end
     # println( "onela.disposable_income = $(onela.disposable_income)")
     if age_oldest >= lasys.pensioner_age_limit
@@ -194,7 +224,6 @@ function calc_legal_aid!(
             lasys.capital_disregard_limits,
             cont_fixed )
     end
-
     onela.disposable_capital = max( 0.0, onela.capital - onela.capital_allowances )
     onela.eligible_on_capital = onela.disposable_capital < lasys.capital_contribution_limits[end]
     onela.eligible = onela.eligible_on_capital && onela.eligible_on_income
@@ -210,11 +239,36 @@ function calc_legal_aid!(
             lasys.capital_contribution_limits,
             lasys.capital_cont_type )
     end
-
-    onela.entitlement = if (! onela.eligible)
-        la_none
-    elseif onela.passported # can't actually get here but leave in for completeness
+    passported_on_uc = false
+    for (pid,pers) in bu.people
+        if any_positive( bres.pers[pid].income, lasys.passported_benefits )
+            onela.passported = true
+        end
+        if ( UNIVERSAL_CREDIT in lasys.passported_benefits ) && 
+            any_positive( bres.pers[pid].income, [UNIVERSAL_CREDIT] )
+            passported_on_uc = true
+        end
+    end
+    if lasys.systype == sys_aa # turn off passported for AA if ineligible on capital - K's note.
+        if ! onela.eligible_on_capital
+            onela.passported = false # onela.passported
+        end
+    end
+    if passported_on_uc 
+        if lasys.uc_limit_type == uc_max_income
+            if onela.net_income > lasys.uc_limit
+                onela.passported = false
+            end
+        elseif lasys.uc_limit_type == uc_min_payment
+            if onela.uc_entitlement < lasys.uc_limit
+                onela.passported = false
+            end
+        end
+    end # UC Passo[port ]
+    onela.entitlement = if onela.passported 
         la_passported
+    elseif (! onela.eligible)
+        la_none
     elseif (onela.income_contribution + onela.capital_contribution) > 0.0
         la_with_contribution
     else 
@@ -243,7 +297,9 @@ function calc_legal_aid!(
     household_result :: HouseholdResult,
     household        :: Household,
     intermed         :: HHIntermed,
-    lasys            :: OneLegalAidSys )
+    lasys            :: OneLegalAidSys,
+    nmt_bens         :: NonMeansTestedSys,
+    age_limits       :: AgeLimits )
     if lasys.abolished
         return
     end
@@ -263,6 +319,8 @@ function calc_legal_aid!(
             buno,
             intermed.buint[buno],
             lasys,
+            nmt_bens,
+            age_limits,
             nzbus )
     end
 end # calc_legal_aid!

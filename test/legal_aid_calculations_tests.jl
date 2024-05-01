@@ -9,6 +9,7 @@ using Format
 using PrettyTables 
 using Base.Threads
 using ChunkSplitters
+using ArgCheck
 
 using ScottishTaxBenefitModel
 
@@ -23,9 +24,12 @@ using .ModelHousehold:
     get_head, 
     get_spouse, 
     has_disabled_member,
+    household_composition_1,
     is_single,
     num_people,
     num_children,
+    num_std_bus,
+
     pers_is_carer,
     pers_is_disabled, 
     search,
@@ -33,10 +37,7 @@ using .ModelHousehold:
 
 using .RunSettings: Settings 
 
-using .STBParameters:
-    do_expense,
-    Expense,
-    ScottishLegalAidSys
+using .STBParameters
 
 using .IncomeTaxCalculations: 
     calc_income_tax!
@@ -80,9 +81,12 @@ using .SingleHouseholdCalculations: do_one_calc
 
 using .STBOutput: LA_TARGETS
 
+using .HTMLLibs
+
 using DataFrames, CSV
 
 sys = get_system( year=2023, scotland=true )
+print = PrintControls()
 
 function blank_incomes!( hh, wage; annual=true )
     for( pid, pers ) in hh.people
@@ -100,7 +104,7 @@ function blank_incomes!( hh, wage; annual=true )
 end
 
 sys1 = deepcopy(sys)
-sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth])
+sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth, net_physical_wealth ])
 sys2 = deepcopy( sys1 )
 # sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
 
@@ -113,6 +117,9 @@ end
 
 @testset "AA from spreadsheet" begin
     hh = make_hh( adults = 1 )
+    @test num_std_bus(hh) == 1
+    @test household_composition_1(hh) == single_person
+
     head = get_head( hh )
     head.age = 45
     println( "hhage $(head.age)")
@@ -127,7 +134,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.eligible
     @test to_nearest_p(ares.income_contribution,0)
@@ -136,7 +143,7 @@ end
 
     blank_incomes!( hh, 120; annual=false )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa
     println( ares )
 
@@ -150,7 +157,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ! ares.eligible
     @test ! ares.eligible_on_capital 
@@ -163,7 +170,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.eligible
     @test ares.eligible_on_capital 
@@ -178,7 +185,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.eligible
     @test ares.eligible_on_capital 
@@ -205,7 +212,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.disposable_capital ≈ 1_500 
     @test ares.capital_allowances ≈ 20_000
@@ -223,7 +230,7 @@ end
         sys.hours_limits,
         sys.age_limits,
         sys.child_limits )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
     @test ares.disposable_capital ≈ 5_000 
     @test ares.capital_allowances ≈ 20_000
@@ -237,7 +244,7 @@ end
 end
 
 @testset "Civil Legal Aid: Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
-    
+    settings = Settings()
     # FIXME read the spreadsheet in and automate this.
 
     # 1) single adult 25k no expenses 1k capital
@@ -253,7 +260,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,14004.77)
     @test to_nearest_p(cres.disposable_income*WEEKS_PER_YEAR,25_000)
@@ -271,7 +278,7 @@ end
         sys.child_limits )
     blank_incomes!( hh, 25_000 )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
 
     @test to_nearest_p(cres.income_contribution*WEEKS_PER_YEAR,11_475.77)
@@ -292,7 +299,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
     @test to_nearest_p( cres.capital_contribution, 0 )
@@ -311,7 +318,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,4055.77)
@@ -331,7 +338,7 @@ end
         sys.age_limits,
         sys.child_limits )
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     head = get_head(hh)
     hres = init_household_result( hh )
@@ -346,7 +353,7 @@ end
 
     headres = get_indiv_result( hres, head.pid )
     headres.income[UNIVERSAL_CREDIT] = 1.0    
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
     @test cres.passported
 
@@ -359,9 +366,8 @@ end
         sys.child_limits )
     head = get_head(hh)
     hres = init_household_result( hh )
-    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil )
+    calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
     cres = hres.bus[1].legalaid.civil
-    
     @test to_nearest_p( cres.income_contribution*WEEKS_PER_YEAR,276.54)
     @test to_nearest_p( cres.capital_contribution, 4_147 )
     @test to_nearest_p( cres.disposable_income*WEEKS_PER_YEAR,4_359.00  )
@@ -370,8 +376,42 @@ end
     @test cres.eligible
     println( head )
     println( cres )
+    HTMLLibs.format( hh, hres, hres; settings=settings, print=PrintControls() )
+end
+
+  
+@testset "Expenses Test" begin
 
 end
+
+@testset "Extra Allowance Test" begin
+    settings = Settings()
+ 
+    hh = get_example(single_parent_hh)
+    head = get_head(hh)
+    blank_incomes!( hh, 35_000 )
+    
+    sys3 = deepcopy(sys1)
+    sys3.legalaid.civil.premia.family_lone_parent = 100.0
+    intermed = make_intermediate( 
+        hh,  
+        sys.hours_limits,
+        sys.age_limits,
+        sys.child_limits )
+    pre = init_household_result( hh )
+    calc_legal_aid!( pre, hh, intermed, sys1.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    post = init_household_result( hh )
+    calc_legal_aid!( post, hh, intermed, sys3.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    r1 = pre.bus[1].legalaid.civil
+    r2 = post.bus[1].legalaid.civil
+    @assert r1.extra_allowances ≈ 0 "1 should be 0 was $(pre.bus[1].legalaid.civil.extra_allowances)"
+    @assert r2.extra_allowances ≈ 100 "2 should be 100 was $(post.bus[1].legalaid.civil.extra_allowances)"
+    @assert (r1.disposable_income - r2.disposable_income) ≈ 100 "inc should be 100 lower is r1=$(r1.disposable_income) r2=$(r2.disposable_income)"
+    @show HTMLLibs.format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
+
+end
+
+
 
 """
 See PrettyTable documentation for formatter
@@ -384,28 +424,198 @@ function pt_fmt(val,row,col)
 end
 
 
-@testset "using LegalAidRunner" begin
-    global tot
-    tot = 0
+function test_costs( 
+    label :: String,
+    propensities :: DataFrame,
+    costs :: DataFrame  )
+    prop_grp = groupby( propensities, [:hsm])
+    cost_grp = groupby( costs, [:hsm])
+    for (k,v) in pairs( prop_grp )
+        if k.hsm != "aa_total"
+            entcost = sum(v.popn .* v.case_freq .* v.costs_mean )
+            # can't reuse key, so..
+            ck = NamedTuple( [:hsm => k.hsm] )
+            cgc = cost_grp[ck]
+            @show ck
+            actcost = sum( cgc.totalpaid )
+            @assert isapprox(entcost,actcost/1000; rtol=0.001) "$label : fail cost for $k actual $actcost modelled $entcost" 
+        end
+    end
+end
+
+
+
+function lasettings()
     settings = Settings()
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
     settings.requested_threads = 4
-    settings.num_households = FRSHouseholdGetter.get_num_households()
-    settings.num_people = FRSHouseholdGetter.get_num_people()
+    settings.num_households,  settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=false )
+    return settings
+end
+
+@testset "using LegalAidRunner" begin
+    global tot
+    tot = 0
+    settings = lasettings()
+    settings.run_name = "Local Legal Aid Runner Test"
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
-    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
-    LegalAidOutput.dump_tables( laout, settings, 2 )
-    LegalAidOutput.dump_frames( laout, settings, 2 )
 
-    settings.run_name = "Local Legal Aid Runner Test - all allowances zero"
-    sys2.legalaid.civil.income_partners_allowance = 0.0
-    sys2.legalaid.civil.income_other_dependants_allowance = 0.0
-    sys2.legalaid.civil.income_child_allowance = 0.0
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
-    LegalAidOutput.dump_tables( laout, settings, 2 )
-    LegalAidOutput.dump_frames( laout, settings, 2 )
-    # println(LAUtils.BASE_SYS,legalaid)
+    println( "run complete")
+    civil_propensities = LegalAidOutput.create_base_propensities( 
+        laout.civil.data[1], 
+        LegalAidData.CIVIL_COSTS ).long_data
+    aa_propensities = LegalAidOutput.create_base_propensities( 
+        laout.aa.data[1], 
+        LegalAidData.AA_COSTS ).long_data
+    pfname = "$(settings.output_dir)/legal_aid_civil_propensities.tab"
+    CSV.write( pfname, LegalAidOutput.PROPENSITIES.civil_propensities; delim='\t' )
+    pfname = "$(settings.output_dir)/legal_aid_aa_propensities.tab"
+    CSV.write( pfname, LegalAidOutput.PROPENSITIES.aa_propensities; delim='\t' )
+    test_costs( "Civil", 
+        civil_propensities, LegalAidData.CIVIL_COSTS )
+    test_costs( "AA", 
+        aa_propensities, LegalAidData.AA_COSTS )
+    
 end
+
+@testset "inferred vs FRS capital" begin
+
+    sys2 = deepcopy(sys1)
+    systems = [sys1, sys2]
+    settings = lasettings()
+    settings.run_name = "Test of inferred capital 2 off"
+    sys2.legalaid.civil.use_inferred_capital = false
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    LegalAidOutput.dump_tables( laout, settings; num_systems=2 )
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+
+end
+
+@testset "sp premia" begin
+    settings = lasettings()
+    settings.requested_threads = 4
+    settings.run_name = "sing par premia"
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.civil.premia.family_lone_parent = 2000.0/52
+    sys2.legalaid.aa.premia.family_lone_parent = 2000.0/52
+
+    systems = [sys1, sys2]
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    examples = laout.aa.crosstab_pers_examples[1]
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+    LegalAidOutput.dump_tables( laout, settings; num_systems=2)
+    @show examples
+    #=
+    for hid in examples[3,1]
+        
+        hh,res = LegalAidRunner.calculate_one( hid, [sys1, sys2 ] )
+        @show hh
+        @show res[1]
+        @show res[2]
+    end
+    =#
+end
+
+
+@testset "uc limits" begin
+    settings = lasettings()
+    settings.requested_threads = 4
+    settings.run_name = "uc limits"
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.civil.uc_limit = 25.0 #/WEEKS_PER_YEAR
+    sys2.legalaid.aa.uc_limit = 25.0 #/WEEKS_PER_YEAR
+    sys2.legalaid.civil.uc_limit_type = uc_min_payment
+    sys2.legalaid.aa.uc_limit_type = uc_min_payment
+    systems = [sys1, sys2]
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    examples = laout.aa.crosstab_pers_examples[1]
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+    LegalAidOutput.dump_tables( laout, settings; num_systems=2)
+    @show examples
+    #=
+    for hid in examples[3,1]
+        
+        hh,res = LegalAidRunner.calculate_one( hid, [sys1, sys2 ] )
+        @show hh
+        @show res[1]
+        @show res[2]
+    end
+    =#
+end
+
+"""
+Fixme turn this into something slightly generic.
+"""
+function nothing_increased_and_something_reduced(
+    ;
+    pre :: DataFrame,
+    post :: DataFrame,
+    label :: String )::String
+    @argcheck size(pre) == size(post)
+    @argcheck names(pre) == names(post)
+    out =""
+    nms = names(pre)
+    nrows, ncols = size( pre )
+    someimproved = false
+    someworse = false
+    for c in 2:ncols # skip label col at start
+        for r in 1:nrows
+            # these are costs so up is worse.
+            if pre[r,c] > (post[r,c]+0.00001)
+                someworse = true
+            elseif post[r,c] > (pre[r,c]+0.00001)
+                @show pre
+                @show post
+                out = "IMPROVEMENT for category $(pre[r,1]) type $(nms[c]) table $label"
+                break
+            end
+        end # rows
+    end # cols
+    if ! someworse
+        out = "NO Worseing for any field table $label"
+    end
+    return out
+end
+
+@testset "No Passporting - should always reduce costs and eligibility." begin
+    settings = lasettings()
+    settings.requested_threads = 4
+    settings.run_name = "No Passporting"
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.civil.passported_benefits=[]
+    sys2.legalaid.aa.passported_benefits=[]
+    systems = [sys1, sys2]
+    @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+    LegalAidOutput.dump_tables( laout, settings; num_systems=2)
+    for t in LA_TARGETS
+        println( setdiff( 
+            names( laout.civil.cases_pers[1][t]),
+            names( laout.civil.cases_pers[2][t])))
+        @test nothing_increased_and_something_reduced(
+            pre=laout.civil.cases_pers[1][t],
+            post=laout.civil.cases_pers[2][t],
+            label="Civil cases table $t" ) == ""
+        @test nothing_increased_and_something_reduced(
+            pre=laout.civil.costs_pers[1][t],
+            post=laout.civil.costs_pers[2][t],
+            label="Civil cost table $t" ) == ""
+        @test nothing_increased_and_something_reduced(
+            pre=laout.aa.cases_pers[1][t],
+            post=laout.aa.cases_pers[2][t],
+            label="AA count table $t" ) == ""
+        @test nothing_increased_and_something_reduced(
+            pre=laout.aa.costs_pers[1][t],
+            post=laout.aa.costs_pers[2][t],
+            label="AA cost table $t" ) == ""
+    end # breakdown loop
+end # testset
+
+
+
+  

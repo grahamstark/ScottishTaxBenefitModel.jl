@@ -32,7 +32,7 @@ using .Results:
     total
 
 using .STBIncomes
-
+using .LegalAidOutput
 using .ModelHousehold
 
 using .FRSHouseholdGetter: 
@@ -41,8 +41,6 @@ using .FRSHouseholdGetter:
     get_slot_for_person
     
 using .RunSettings
-
-using .LegalAidOutput
 
 using .SimplePovertyCounts: 
     GroupPoverty,
@@ -906,7 +904,8 @@ function summarise_frames!(
         println( "gain lose")
     end    
     if settings.do_legal_aid
-        LegalAidOutput.summarise_la_output!(frames.legalaid)
+        LegalAidOutput.create_propensities( frames.legalaid )
+        LegalAidOutput.summarise_la_output!( frames.legalaid )
     end
     return ( ;
         quantiles, 

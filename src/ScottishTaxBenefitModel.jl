@@ -166,4 +166,7 @@ export HealthRegressions
 include( "LegalAidRunner.jl")
 export LegalAidRunner
 
+include( "HTMLLibs.jl")
+export HTMLLibs
+
 end

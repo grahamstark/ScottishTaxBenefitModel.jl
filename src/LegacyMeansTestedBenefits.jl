@@ -457,8 +457,7 @@ end
 function qualifies_for_severe_disability_premium(
     pers     :: Person, 
     pres     :: IndividualResult,
-    prem_sys :: Premia,
-    nmt      :: NonMeansTestedSys ) :: Bool
+    prem_sys :: Premia ) :: Bool
     return qualifies_for_disability_premium( pers, pres, prem_sys ) &&
         any_positive( pres.income, 
             [PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
@@ -481,6 +480,18 @@ function calc_premia(
     premset = LMTPremiaSet()
     # disabled child premium
     num_ads = num_adults( bu )
+    # !!!!! CAREFUL lone_parent_premia DOESN'T EXIST ANYMORE and I'm unsure exactly what the 
+    # rules for lone parents were. prem_sys.family_lone_parent should always be
+    # zero in actual param files !!!
+    if intermed.is_sparent && (prem_sys.family_lone_parent > 0)
+        premium += prem_sys.family_lone_parent
+        union!( premset, [lone_parent_premium])
+    end
+    # !!! Likewise family premium isn't actually used 
+    if intermed.has_children && (prem_sys.family > 0)
+        premium += prem_sys.family
+        union!( premset, [LMTPremia.family_premium])
+    end
     if which_ben in [hb,ctr]
         if intermed.num_disabled_children > 0
             premium += intermed.num_disabled_children*prem_sys.disabled_child   
@@ -534,9 +545,7 @@ function calc_premia(
             nsev += qualifies_for_severe_disability_premium(
                 bu.people[pid],
                 bures.pers[pid],
-                prem_sys,
-                nmt
-            )
+                prem_sys )
         end
         if nsev == 1
             premium += prem_sys.severe_disability_single

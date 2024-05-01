@@ -6,6 +6,7 @@
 using Test
 using DataFrames
 using PrettyTables
+using Dates
 
 using ScottishTaxBenefitModel
 using .ModelHousehold
@@ -51,11 +52,7 @@ function printbcs(
     pretty_table( bcu[!,COLS] )
 end
 
-sys21_22 = load_file( "../params/sys_2021_22.jl" )
-load_file!( sys21_22, "../params/sys_2021-uplift-removed.jl")
-load_file!( sys21_22, "../params/budget_2021_uc_changes.jl")
-println( "weeklyise start wpm=$PWPM wpy=52")
-weeklyise!( sys21_22; wpy=52, wpm=PWPM  )
+sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
 
 @testset "Single Pers bc" begin
 

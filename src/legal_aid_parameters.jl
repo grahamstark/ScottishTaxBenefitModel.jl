@@ -28,12 +28,11 @@ function inplaceoftypemax(T)
 end
 
 @with_kw mutable struct Expenses{T}
-    housing               = Expense( false, one(T), inplaceoftypemax(T))
-    debt_repayments       = Expense( false, one(T), inplaceoftypemax(T))
-    childcare             = Expense( false, one(T), inplaceoftypemax(T))
-    work_expenses         = Expense( false, one(T), inplaceoftypemax(T))
-    maintenance           = Expense( false, one(T), inplaceoftypemax(T))
-    repayments            = Expense( false, one(T), inplaceoftypemax(T))
+    housing               = Expense( false, T(100), inplaceoftypemax(T))
+    childcare             = Expense( false, T(100), inplaceoftypemax(T))
+    work_expenses         = Expense( false, T(100), inplaceoftypemax(T))
+    maintenance           = Expense( false, T(100), inplaceoftypemax(T))
+    repayments            = Expense( false, T(100), inplaceoftypemax(T))
 end
 
 const DEFAULT_LA_INCOME = IncludedItems(
@@ -60,74 +59,116 @@ const DEFAULT_LA_INCOME = IncludedItems(
         CRITICAL_ILLNESS_COVER,
         TRADE_UNION_SICK_OR_STRIKE_PAY,
         
-        CHILD_BENEFIT,
-        STATE_PENSION,
-        BEREAVEMENT_ALLOWANCE, 
-        ARMED_FORCES_COMPENSATION_SCHEME,
-        WAR_WIDOWS_PENSION,
-        SEVERE_DISABILITY_ALLOWANCE,
-        ATTENDANCE_ALLOWANCE,
-        CARERS_ALLOWANCE,
-        INDUSTRIAL_INJURY_BENEFIT,
-        INCAPACITY_BENEFIT,
-        PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
-        PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY,
-        DLA_SELF_CARE,
-        DLA_MOBILITY,
-        EDUCATION_ALLOWANCES,
-        FOSTER_CARE_PAYMENTS,
-        MATERNITY_ALLOWANCE,
-        MATERNITY_GRANT,
-        FUNERAL_GRANT,
-        ANY_OTHER_NI_OR_STATE_BENEFIT,
-        FRIENDLY_SOCIETY_BENEFITS,
-        GOVERNMENT_TRAINING_ALLOWANCES,
-        CONTRIB_JOBSEEKERS_ALLOWANCE,
-        GUARDIANS_ALLOWANCE,
-        WIDOWS_PAYMENT,
-        WINTER_FUEL_PAYMENTS,
-        # legacy mt benefits
-        WORKING_TAX_CREDIT,
-        CHILD_TAX_CREDIT,
-        NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, # ppt
-        INCOME_SUPPORT, # ppt
-        # PENSION_CREDIT,
-        # SAVINGS_CREDIT 
-        NON_CONTRIB_JOBSEEKERS_ALLOWANCE, # ppt
-        # HOUSING_BENEFIT, netted off housing 
-        
-        FREE_SCHOOL_MEALS,
-        UNIVERSAL_CREDIT, # ppt, but in case not
-        OTHER_BENEFITS,
-        STUDENT_GRANTS,
-        STUDENT_LOANS,
-        # COUNCIL_TAX_BENEFIT netted off ct
-        CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
-    
-        SCOTTISH_CHILD_PAYMENT, # should always be ppt
-        SCOTTISH_CARERS_SUPPLEMENT, # 
-    
-        DISCRESIONARY_HOUSING_PAYMENT,  # not just Scottish, but, hey..
-     
-        SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
-        SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_MOBILITY,
-        SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE,
-        SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
-        SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_MOBILITY,
-        UNEMPLOYMENT_OR_REDUNDANCY_INSURANCE 
+
     ],
     [        
         INCOME_TAX,
         NATIONAL_INSURANCE,
-        LOCAL_TAXES         
+        LOCAL_TAXES        
     ] )
+
+# https://www.slab.org.uk/solicitors/legal-aid-legislation/civil-legal-aid-regulations/the-civil-legal-aid-scotland-regulations-2002/#contS2
+const DISREGARDED_BENEFITS_CIVIL = [
+    # 5:
+    INCOME_SUPPORT,
+    NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
+    NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, # ppt
+    
+    PENSION_CREDIT,
+    SAVINGS_CREDIT,
+    
+    UNIVERSAL_CREDIT, # ppt, but in case not
+    # 7:
+    ATTENDANCE_ALLOWANCE,
+    CARERS_ALLOWANCE,        
+    SCOTTISH_CARERS_SUPPLEMENT,
+    SEVERE_DISABILITY_ALLOWANCE,
+    DLA_SELF_CARE,
+    DLA_MOBILITY,
+    PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+    PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY,
+    SCOTTISH_CHILD_PAYMENT, # should always be ppt
+    SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
+    SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_MOBILITY,
+    SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE,
+    SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
+    SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_MOBILITY,
+]
+
+# https://www.slab.org.uk/solicitors/legal-aid-legislation/advice-and-assistance/the-advice-and-assistance-scotland-regulations-1996/#contS2
+# #5
+const  DISREGARDED_BENEFITS_AA = [
+    PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
+    PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY,
+    SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
+    SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_MOBILITY,
+    SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE,
+    SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
+    SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_MOBILITY,
+    DLA_SELF_CARE,
+    DLA_MOBILITY,
+    SEVERE_DISABILITY_ALLOWANCE,
+    STATE_PENSION,
+    HOUSING_BENEFIT,
+    COUNCIL_TAX_BENEFIT
+]
+
+function zero_premia( RT :: DataType ) :: Premia
+    prems = Premia{RT}()
+    prems.family = zero( RT )
+    prems.family_lone_parent = zero( RT ) # FIXME this is not used??
+    prems.disabled_child = zero( RT )
+    prems.carer_single = zero( RT )
+    prems.carer_couple = zero( RT )
+    prems.disability_single = zero( RT )
+    prems.disability_couple = zero( RT )
+    prems.enhanced_disability_child = zero( RT )
+    prems.enhanced_disability_single = zero( RT )
+    prems.enhanced_disability_couple = zero( RT )
+    prems.severe_disability_single = zero( RT )
+    prems.severe_disability_couple = zero( RT )
+    prems.pensioner_is = zero( RT )
+    return prems
+end
+
+"""
+Since this isn't neeed in the main params - weekly anyway
+"""
+function weeklyise!( prems :: Premia; wpy = WEEKS_PER_YEAR )
+    prems.family /= wpy
+    prems.family_lone_parent /= wpy # FIXME this is not used??
+    prems.disabled_child /= wpy
+    prems.carer_single /= wpy
+    prems.carer_couple /= wpy
+    prems.disability_single /= wpy
+    prems.disability_couple /= wpy
+    prems.enhanced_disability_child /= wpy
+    prems.enhanced_disability_single /= wpy
+    prems.enhanced_disability_couple /= wpy
+    prems.severe_disability_single /= wpy
+    prems.severe_disability_couple /= wpy
+    prems.pensioner_is /= wpy
+end
+
+function get_default_incomes( systype :: SystemType )::IncludedItems
+    incs = DEFAULT_LA_INCOME
+    union!(incs.included, BENEFITS)
+    if systype == sys_civil 
+        setdiff!( incs.included, DISREGARDED_BENEFITS_CIVIL )
+    else 
+        setdiff!( incs.included, DISREGARDED_BENEFITS_AA )
+    end
+    @show incs.included
+    incs
+end
+
 
 @with_kw mutable struct OneLegalAidSys{RT}
     abolished = false
     title = ""
     systype = sys_civil
     gross_income_limit        = inplaceoftypemax(RT)
-    incomes    :: IncludedItems = DEFAULT_LA_INCOME
+    incomes    :: IncludedItems = get_default_incomes( sys_civil ) 
     income_living_allowance           = zero(RT)
     income_partners_allowance         = RT(2529)
     income_other_dependants_allowance = RT(4056)
@@ -150,6 +191,10 @@ const DEFAULT_LA_INCOME = IncludedItems(
     capital_contribution_limits :: RateBands{RT} =  [7_853.0, 13_017.0]
     capital_disregard_limits = zeros(RT,0)
     capital_disregard_amounts = zeros(RT,0)
+    use_inferred_capital = true
+    premia = zero_premia(RT)
+    uc_limit = zero(RT)
+    uc_limit_type :: UCLimitType = uc_no_limit
 end
 
 """
@@ -165,6 +210,7 @@ end
 function default_aa_sys( year::Integer, RT )::OneLegalAidSys
     @assert year in [2023] "no sys yet for $year"
     aa = OneLegalAidSys{RT}()
+    aa.incomes = get_default_incomes( sys_aa ) 
     if year == 2023
         aa.systype = sys_aa
         aa.income_living_allowance           = zero(RT)
@@ -186,7 +232,6 @@ function default_aa_sys( year::Integer, RT )::OneLegalAidSys
         aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_0000,10_000,5_000]
         # allowances are all zero
         aa.expenses.housing = Expense( false, zero(RT), inplaceoftypemax(RT))
-        aa.expenses.debt_repayments = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.childcare = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.work_expenses = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.maintenance = Expense( false, zero(RT), inplaceoftypemax(RT))
@@ -200,6 +245,28 @@ end
     aa    = default_aa_sys( 2023, RT )
 end
 
+function weeklyise( ex :: Expense{T}; wpy = WEEKS_PER_YEAR ) :: Expense{T} where T
+    max = ex.max
+    v = ex.v
+    if ex.is_flat
+        v /= wpy
+        if max < inplaceoftypemax(T)
+            max /= wpy
+        end
+    else
+        v /= 100 
+    end
+    return Expense( ex.is_flat, v, max )
+end
+
+function weeklyise!( ex :: Expenses; wpy = WEEKS_PER_YEAR )
+    ex.housing = weeklyise( ex.housing )
+    ex.childcare = weeklyise( ex.childcare )
+    ex.work_expenses = weeklyise( ex.work_expenses )
+    ex.maintenance = weeklyise( ex.maintenance )
+    ex.repayments = weeklyise( ex.repayments )
+end
+
 """
 express aa weekly and civil annually
 """
@@ -207,8 +274,10 @@ function weeklyise!( la :: OneLegalAidSys )
     if la.systype == sys_aa
         # la.income_contribution_rates ./= 100
         # la.capital_contribution_rates ./= 100
+        weeklyise!(la.expenses; wpy=1.0 )
         return 
     else
+        la.uc_limit /= WEEKS_PER_YEAR
         la.income_living_allowance /= WEEKS_PER_YEAR
         la.income_partners_allowance         /= WEEKS_PER_YEAR
         la.income_other_dependants_allowance /= WEEKS_PER_YEAR
@@ -217,7 +286,8 @@ function weeklyise!( la :: OneLegalAidSys )
         la.income_contribution_limits ./= WEEKS_PER_YEAR
         la.capital_contribution_rates ./= 100.0
         # la.capital_contribution_limits ./= WEEKS_PER_YEAR
-        
+        weeklyise!(la.expenses; wpy=WEEKS_PER_YEAR )
+        weeklyise!(la.premia; wpy=WEEKS_PER_YEAR )
     end
 end
 

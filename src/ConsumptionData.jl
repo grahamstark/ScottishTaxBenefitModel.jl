@@ -222,6 +222,60 @@ function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int
 end
 
 """
+allocate
+"""
+function impute_stuff_from_consumption!( hh :: Household, settings :: Settings )
+    head = get_head( hh )
+    head.debt_repayments = hh.expenditure[:repayments]
+
+    working = 0
+    employees = 0
+    for (pid,pers) in hh.people
+        if is_working(pers.employment_status )
+            working += 1
+        end
+        if is_employee( pers.employment_status )
+            employees += 1
+        end
+    end
+    #
+    # Note it's possible that there 
+    # are no employees on both sides of the FRS/LCF
+    # matches. 
+    # 80% of transport costs allocated equally
+    # amongst everyone in the hh who works.
+    # FIXME the is_working stuff should be lists of pids
+    # in ModelHousehold
+    #
+    if working > 0
+        trans = sum(hh.expenditure[[
+            :bus_boat_and_train, 
+            :petrol,
+            :diesel,
+            :other_motor_oils, 
+            :other_transport  # COMPLETELY MADE UP
+        ]]) * 0.5/working     
+        for (pid,pers) in hh.people
+            if is_working( pers.employment_status )
+                pers.travel_to_work = trans
+            end
+        end
+    end
+    if employees > 0
+        # MAD, Wild guess 
+        workexp = (hh.expenditure.trade_union_subs +
+        hh.expenditure.other_clothing_and_footwear*0.2)/employees
+        for (pid,pers) in hh.people
+            if is_employee( pers.employment_status )
+                pers.work_expenses = workexp
+            end
+        end
+
+    end
+end
+
+
+"""
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
@@ -287,9 +341,9 @@ function init( settings :: Settings; reset = false )
         global IND_MATCHING
         global EXPENDITURE_DATASET
         global FACTOR_COST_DATASET
-        IND_MATCHING = CSV.File( "$(settings.data_dir)/$(settings.indirect_matching_dataframe).tab") |> DataFrame
-        EXPENDITURE_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
-        FACTOR_COST_DATASET = CSV.File("$(settings.data_dir)/$(settings.expenditure_dataset).tab" ) |> DataFrame
+        IND_MATCHING = CSV.File( joinpath( settings.data_dir, "$(settings.indirect_matching_dataframe).tab" )) |> DataFrame
+        EXPENDITURE_DATASET = CSV.File( joinpath( settings.data_dir, settings.expenditure_dataset * ".tab")) |> DataFrame
+        FACTOR_COST_DATASET = CSV.File( joinpath( settings.data_dir, settings.expenditure_dataset * ".tab" )) |> DataFrame
         println( EXPENDITURE_DATASET[1:2,:])
         uprate_expenditure( settings )
     end

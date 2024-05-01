@@ -409,7 +409,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         asset_unit_or_investment_trusts = Vector{Union{Real,Missing}}(missing, n),
         asset_stocks_shares_bonds_etc = Vector{Union{Real,Missing}}(missing, n),
         asset_pep = Vector{Union{Real,Missing}}(missing, n),
-        asset_national_savings_capital_bonds = Vecto{Union{Real,Missing}}(missing, n),
+        asset_national_savings_capital_bonds = Vector{Union{Real,Missing}}(missing, n),
         asset_index_linked_national_savings_certificates = Vector{Union{Real,Missing}}(
             missing,
             n
@@ -473,6 +473,11 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         childcare_type = Vector{Union{Integer,Missing}}(missing, n),
         employer_provides_child_care = Vector{Union{Integer,Missing}}(missing, n),
 
+
+        work_expenses = zeros(n),
+        travel_to_work = zeros(n),
+        debt_repayments = zeros(n),
+        wealth_and_assets = zeros(n),
 
 
         company_car_fuel_type = Vector{Union{Integer,Missing}}(missing, n),
@@ -716,18 +721,19 @@ end # map_investment_income
 
 function map_alimony(frs_person::DataFrameRow, a_maint::DataFrame)::Real
     nmaints = size(a_maint)[1]
-    alimony = 0.0 # note: not including children
+    alimony_paid = 0.0 # note: not including children
+    alimony_recieved = 0.0 # note: not including children
     if frs_person.alimny == 1 # receives alimony
         if frs_person.alius == 2 # not usual
-            alimony = safe_inc(0.0, frs_person.aluamt)
+            alimony_recieved = safe_inc(0.0, frs_person.aluamt)
         else
-            alimony = safe_inc(0.0, frs_person.aliamt)
+            alimony_recieved = safe_inc(0.0, frs_person.aliamt)
         end
     end
     for c in 1:nmaints
-        alimony = safe_inc(alimony, a_maint[c, :mramt])
+        alimony_paid = safe_inc(alimony_paid, a_maint[c, :mramt])
     end
-    alimony
+    alimony_recieved, alimony_paid
 end
 
 function map_car_value( cv :: Integer ) :: Real

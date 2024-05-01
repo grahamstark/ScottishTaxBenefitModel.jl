@@ -58,6 +58,7 @@ export
     has_children, 
     has_disabled_member,
     has_income,
+    household_composition_1,
     interview_date, 
     is_child,
     is_head,
@@ -74,6 +75,7 @@ export
     num_carers,
     num_children, 
     num_people, 
+    num_std_bus,
     oldest_person, 
     on_mt_benefits,
     pers_is_carer, 
@@ -164,6 +166,10 @@ mutable struct Person{RT<:Real}
     company_car_contribution :: RT
     fuel_supplied :: RT
 
+    work_expenses  :: RT 
+    travel_to_work :: RT 
+    debt_repayments :: RT 
+    wealth_and_assets :: RT
 
     onerand :: String
 
@@ -498,6 +504,17 @@ function num_people( bu :: BenefitUnit )::Integer
     length( bu.people )
 end
 
+function num_std_bus( hh :: Household ) :: Int
+    mbu = -1
+    for (pid,pers) in hh.people
+        if pers.default_benefit_unit > mbu
+            mbu = pers.default_benefit_unit
+        end
+    end
+    @assert mbu > 0
+    return mbu
+end
+
 function num_adults( bu :: BenefitUnit )::Integer
     size( bu.adults )[1]
 end
@@ -694,11 +711,25 @@ function pers_is_disabled( pers :: Person, params ... ) :: Bool
     return false
 end
 
+
 function empl_status_in( pers :: Person, statuses ...)
     return pers.employment_status in statuses
 end
 
 
+function is_working( pers :: Person )
+    return employment_status_in( pers, 
+        Full_time_Employee,
+        Part_time_Employee,
+        Full_time_Self_Employed,
+        Part_time_Self_Employed )
+end
+
+function is_employee( pers :: Person )
+    return employment_status_in( pers, 
+        Full_time_Employee,
+        Part_time_Employee )
+end
 
 le_age( pers :: Person, age ... ) = pers.age <= age[1] 
 
@@ -765,6 +796,8 @@ function on_mt_benefits( pers :: Person ) :: Bool
     end
     return false
 end
+
+## FIXME make these below return lists of PIDs
 
 function on_mt_benefits( bu :: BenefitUnit ) :: Bool
     return search( bu, on_mt_benefits )
@@ -850,5 +883,36 @@ function age_then( pers :: Person, when :: Date = todays_date() ) :: Int
     Utils.age_then( pers.age, Dates.year( when ))
 end
 
+function household_composition_1( hh :: Household ) :: HouseholdComposition1
+    # hc = single_person
+    nads = num_adults( hh )
+    @assert nads >= 1
+    nkids = num_children( hh )
+    nbus = num_std_bus( hh )
+    @assert (nads + nkids) == num_people(hh)
+    @assert nbus in 1:12
+    return if nbus > 1
+        if nkids > 0
+            mbus_w_children
+        else
+            mbus_wo_children
+        end
+    else 
+        @assert nads in 1:2
+        if nads == 1
+            if nkids == 0
+                single_person
+            else
+                single_parent
+            end
+        else 
+            if nkids == 0
+                couple_wo_children
+            else
+                couple_w_children
+            end
+        end # 2 adults
+    end 
+end
 
 end # module

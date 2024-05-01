@@ -245,7 +245,8 @@ function create_adults(
             ) # overseas pensions
             # payments from charities, bbysitting ..
             # model_adult.income_other_income = safe_inc( model_adult.income_other_income, frs_person.[x]
-            model_adult.income_alimony_and_child_support_received = map_alimony(
+            model_adult.income_alimony_and_child_support_recieved,
+            model_adult.income_alimony_and_child_support_paid = map_alimony(
                 frs_person,
                 a_maint
             )

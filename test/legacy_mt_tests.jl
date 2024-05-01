@@ -1329,7 +1329,7 @@ end
         sys.hr )
     lmt = hhres.bus[1].legacy_mtbens
 
-    println( to_string( hhres ))
+    println( Results.to_string( hhres ))
 
     @test lmt.can_apply_for.pc
     @test ! lmt.can_apply_for.sc # needs to be > pension age in 2016 - test make age 80 or
@@ -1651,7 +1651,7 @@ end
         sys.nmt_bens,            
         sys.hr
     )
-    println( to_string(hhres))
+    println( Results.to_string(hhres))
     println( inctostr( hhres.bus[1].pers[tracy.pid].income ))
     @test hhres.bus[1].pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
     @test hhres.bus[1].pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ 0

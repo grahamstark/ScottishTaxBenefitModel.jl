@@ -1,0 +1,10 @@
+pandoc $1.md \
+       --filter pandoc-citeproc \
+       --standalone \
+       -f markdown \
+       -t odt \
+       -V papersize:a4 \
+       --data-dir=//home/graham_s/julia/vw/ScottishTaxBenefitModel/book/src/data/ \
+       --bibliography /home/graham_s/julia/vw/ScottishTaxBenefitModel/book/src/data/stb.bib \
+       --csl /home/graham_s/pandoc_data/chicago-note-bibliography.csl \
+       -o $1.odt

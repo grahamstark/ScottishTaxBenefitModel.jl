@@ -14,6 +14,7 @@ using .Weighting
 using .RunSettings
 using .STBParameters
 using .STBIncomes
+using .TimeSeriesUtils: FY_2022
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
@@ -150,8 +151,9 @@ end
 function get_system( ; year = 2022 ) :: TaxBenefitSystem
     sys = nothing
     if year == 2022
-        sys = load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
-        load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
+        sys = get_default_system_for_date( FY_2022, scotland=false )  
+        # load_file("$(MODEL_PARAMS_DIR)/sys_2022-23.jl" )
+        # load_file!( sys, "$(MODEL_PARAMS_DIR)/sys_2022-23_ruk.jl" )
         ## wales specific CT rels; see []??
         sys.loctax.ct.relativities = Dict{CT_Band,Float64}(
             Band_A=>240/360,

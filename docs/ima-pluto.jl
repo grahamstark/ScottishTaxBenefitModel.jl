@@ -70,14 +70,15 @@ begin
 	
 
 	function load_system()::TaxBenefitSystem
-		sys = load_file( joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021_22.jl" ))
+		sys = get_default_system_for_cal_year( 2021 )
+		# load_file( joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021_22.jl" ))
 		#
 		# Note that as of Budget21 removing these doesn't actually happen till May 2022.
 		#
-		load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021-uplift-removed.jl"))
+		# load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "sys_2021-uplift-removed.jl"))
 		# uc taper to 55
-		load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "budget_2021_uc_changes.jl"))
-		weeklyise!( sys )
+		# load_file!( sys, joinpath( Definitions.MODEL_PARAMS_DIR, "budget_2021_uc_changes.jl"))
+		# weeklyise!( sys )
 		return sys
 	end
 

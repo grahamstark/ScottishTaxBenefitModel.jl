@@ -2,9 +2,13 @@ module LegalAidRunner
 #
 # stand alone threaded runner that just does legal aid
 #
-using Base.Threads
+using Base.Threads 
+
 using ChunkSplitters
+using DataFrames
 using Observables
+using StatsBase
+using CategoricalArrays
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -24,6 +28,7 @@ using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData
 using .LegalAidOutput
 using .Runner
+using .Utils
 
 # speed wrapper trick
 mutable struct ResultsWrapper 
@@ -31,7 +36,8 @@ mutable struct ResultsWrapper
 end
 
 RESULTS = 
-    ResultsWrapper( Matrix{HouseholdResult}(undef,0,0))
+    ResultsWrapper( 
+        Matrix{HouseholdResult}(undef,0,0))
 
 function intialise( 
     settings :: Settings,
@@ -40,8 +46,48 @@ function intialise(
     settings.export_full_results = true
     settings.do_legal_aid = false    
     rs = Runner.do_one_run( settings, systems, observer )
+
     RESULTS.results = rs.full_results
+
+    # create takeup propensities
+    settings.do_legal_aid = true
+    laresults = do_one_run( settings, systems, observer )
+    println( "initialise; at create wide propensities ")
+    
 end
+
+
+"""
+Hacked version for examples.
+returns an array of full results, and the household
+"""
+#=
+function calculate_one( 
+    hpos :: OneIndex, 
+    systems  :: Vector{TaxBenefitSystem{T}} )::Tuple where T
+    res = RESULTS.results[:,hno]
+    hh = get_household( hpos.id, hpos.data_year )
+    intermed = make_intermediate( 
+        hh, 
+        systems[1].hours_limits, 
+        systems[1].age_limits, 
+        systems[1].child_limits )   
+    num_systems = length( systems )
+    for sysno in 1:num_systems 
+        calc_legal_aid!( 
+            res[sysno], 
+            hh, 
+            intermed, 
+            systems[sysno].legalaid.civil )
+        calc_legal_aid!( 
+            res[sysno], 
+            hh, 
+            intermed, 
+            systems[sysno].legalaid.aa )
+    end
+    return hh,res
+end
+=#
 
 function do_one_run( 
     settings :: Settings, 
@@ -54,13 +100,17 @@ function do_one_run(
         settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
     end
     if( size( RESULTS.results )[1] <= 1) || reset_results
+        println( "entering initialise")
         intialise( settings, systems, observer )
     end
     num_systems = length( systems )
     num_threads = min( nthreads(), settings.requested_threads )
     println( "num_threads $num_threads")
     println( "num_households $(settings.num_households)")
-    chunks = ChunkSplitters.chunks(1:settings.num_households, num_threads, :batch )
+    chunks = ChunkSplitters.chunks(
+        1:settings.num_households, 
+        num_threads, 
+        :batch )
     lout = 
         LegalAidOutput.AllLegalOutput(
             T; 
@@ -69,7 +119,13 @@ function do_one_run(
     @threads for thread in 1:num_threads
         for hno in chunks[thread][1]
             if hno % 500 == 0
-                observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
+                observer[] =Progress( 
+                    settings.uuid, 
+                    "run",
+                    thread, 
+                    hno, 
+                    100, 
+                    settings.num_households )
             end
             res = RESULTS.results[:,hno]
             hh = get_household( hno )
@@ -77,15 +133,34 @@ function do_one_run(
                 hh, 
                 systems[1].hours_limits, 
                 systems[1].age_limits, 
-                systems[1].child_limits )            
-            
+                systems[1].child_limits )    
             for sysno in 1:num_systems 
-                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.civil )
-                calc_legal_aid!( res[sysno], hh, intermed, systems[sysno].legalaid.aa )
-                LegalAidOutput.add_to_frames!( lout, settings, hh, res[sysno], sysno, )
+                calc_legal_aid!( 
+                    res[sysno], 
+                    hh, 
+                    intermed, 
+                    systems[sysno].legalaid.civil,
+                    systems[sysno].nmt_bens,
+                    systems[sysno].age_limits )
+                calc_legal_aid!( 
+                    res[sysno], 
+                    hh, 
+                    intermed, 
+                    systems[sysno].legalaid.aa,
+                    systems[sysno].nmt_bens,
+                    systems[sysno].age_limits )
+                LegalAidOutput.add_to_frames!( 
+                    lout, 
+                    settings, 
+                    hh, 
+                    res[sysno], 
+                    sysno )
             end
         end # hhlds in each chunk 
     end # threads
+    LegalAidOutput.create_propensities( lout; reset_results = reset_results )
+
+    # @show RESULTS.civil_propensities
     LegalAidOutput.summarise_la_output!( lout )
     return lout
 end 

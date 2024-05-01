@@ -87,11 +87,13 @@ export LegacyOrUC, legacy_bens, uc_bens
 end
 
 #
-# FIXME TODO shorten enum names; capitalise consistently
+# Legal Aid Stuff. Note *lower* is better here.
 #
-
 export LegalAidStatus, la_none, la_passported, la_full, la_with_contribution 
 @enum LegalAidStatus la_passported la_full la_with_contribution la_none   
+
+export UCLimitType, uc_no_limit, uc_max_income, uc_min_payment 
+@enum UCLimitType uc_no_limit uc_max_income uc_min_payment
 
 export old_style, new_style, OldOrNew
 @enum OldOrNew begin
@@ -185,6 +187,8 @@ export Full_time_Employee,
        Temporarily_sick_or_injured,
        Other_Inactive
 export Missing_ILO_Employment
+export is_employee,
+       is_working
 
 @enum ILO_Employment begin  # mapped from empstati
    Missing_ILO_Employment = -1
@@ -199,6 +203,22 @@ export Missing_ILO_Employment
    Permanently_sick_or_disabled = 9
    Temporarily_sick_or_injured = 10
    Other_Inactive = 11
+end
+
+
+
+function is_working( employment_status :: ILO_Employment )
+   return employment_status in [ 
+       Full_time_Employee,
+       Part_time_Employee,
+       Full_time_Self_Employed,
+       Part_time_Self_Employed ]
+end
+
+function is_employee( employment_status :: ILO_Employment )
+   return employment_status in [ 
+       Full_time_Employee,
+       Part_time_Employee ]
 end
 
 
@@ -1794,6 +1814,7 @@ export LMTBenefitType, esa, hb, ctr, is, jsa, pc, wtc, ctc, sc, LMTBenefitSet
    disability_single = 10
    disability_couple = 11
    pensioner_is = 12
+   lone_parent_premium = 13 # !! not a premium for many years
 end  
 
 const LMTPremiaDict = Dict{LMTPremia,T} where T <:Real
@@ -1802,7 +1823,8 @@ const LMTPremiaSet = Set{LMTPremia}
 export LMTPremia,LMTPremiaDict, LMTPremiaSet, disabled_child,
     severe_disability_single,severe_disability_couple,
     carer_single,carer_couple,enhanced_disability_child,
-    enhanced_disability_single,enhanced_disability_couple,disability_single,disability_couple,pensioner_is
+    enhanced_disability_single,enhanced_disability_couple,disability_single,disability_couple,
+    pensioner_is, lone_parent_premium, family_premium
 
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)
@@ -2037,5 +2059,17 @@ export AggregationLevel, individual, benefit_unit, household
    benefit_unit
    household 
 end
+
+export HouseholdComposition1,single_person,single_parent,couple_wo_children,couple_w_children,
+   mbus_wo_children, mbus_w_children
+
+@enum HouseholdComposition1 begin
+   single_person = 1
+   single_parent = 2 
+   couple_wo_children = 3 
+   couple_w_children = 4 
+   mbus_wo_children = 5 
+   mbus_w_children = 6
+end 
 
 end # module
