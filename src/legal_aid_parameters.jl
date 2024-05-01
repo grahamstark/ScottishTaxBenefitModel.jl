@@ -229,7 +229,7 @@ function default_aa_sys( year::Integer, RT )::OneLegalAidSys
         # this is not right; it's just 1st person 2nd ... 
         aa.capital_allowances         = RT.([335,200,fill(100,20)...])            
         aa.capital_disregard_limits :: RateBands{RT} =  [10,22,34,46,105]
-        aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_0000,10_000,5_000]
+        aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_000,10_000,5_000]
         # allowances are all zero
         aa.expenses.housing = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.childcare = Expense( false, zero(RT), inplaceoftypemax(RT))
