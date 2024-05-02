@@ -254,9 +254,12 @@ function calc_legal_aid!(
             onela.passported = false # onela.passported
         end
     end
-    if passported_on_uc 
+    if passported_on_uc # proposed uc non-passport
         if lasys.uc_limit_type == uc_max_income
-            if onela.net_income > lasys.uc_limit
+            # remove passport based on either uc
+            # earnings or assessed net income
+            ucinc = lasys.uc_use_earnings ? bres.uc.earned_income : onela.net_income
+            if ucinc > lasys.uc_limit
                 onela.passported = false
             end
         elseif lasys.uc_limit_type == uc_min_payment

@@ -195,6 +195,7 @@ end
     premia = zero_premia(RT)
     uc_limit = zero(RT)
     uc_limit_type :: UCLimitType = uc_no_limit
+    uc_use_earnings = false
 end
 
 """
