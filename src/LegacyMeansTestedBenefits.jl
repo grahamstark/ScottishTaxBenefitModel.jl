@@ -490,7 +490,9 @@ function calc_premia(
     # !!! Likewise family premium isn't actually used 
     if intermed.has_children && (prem_sys.family > 0)
         premium += prem_sys.family
-        union!( premset, [LMTPremia.family_premium])
+        @show premset
+        @show family_premium
+        union!( premset, [family_premium])
     end
     if which_ben in [hb,ctr]
         if intermed.num_disabled_children > 0
