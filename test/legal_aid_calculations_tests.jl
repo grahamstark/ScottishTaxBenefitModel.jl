@@ -409,6 +409,21 @@ end
     @assert (r1.disposable_income - r2.disposable_income) ≈ 100 "inc should be 100 lower is r1=$(r1.disposable_income) r2=$(r2.disposable_income)"
     @show HTMLLibs.format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
 
+    sys3.legalaid.civil.premia.family = 50
+    pre = init_household_result( hh )
+    calc_legal_aid!( pre, hh, intermed, sys1.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    post = init_household_result( hh )
+    calc_legal_aid!( post, hh, intermed, sys3.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    r1 = pre.bus[1].legalaid.civil
+    r2 = post.bus[1].legalaid.civil
+    @assert r1.extra_allowances ≈ 0 "1 should be 0 was $(pre.bus[1].legalaid.civil.extra_allowances)"
+    @assert r2.extra_allowances ≈ 150 "2 should be 100+50 was $(post.bus[1].legalaid.civil.extra_allowances)"
+    @assert (r1.disposable_income - r2.disposable_income) ≈ 150 "inc should be 100 lower is r1=$(r1.disposable_income) r2=$(r2.disposable_income)"
+    # @show HTMLLibs.format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
+
+end
+
+
 end
 
 
