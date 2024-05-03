@@ -119,6 +119,13 @@ function load3lcfs()::Tuple
     lcfhh,lcfpers,lcf_hh_pp
 end
 
+function insert_defaults_in_model_dataset(
+    dataset :: String,
+    matching :: String )
+    hhd = CSV.File( dataset ) |> DataFrame
+    mtch = CSV.File( matching ) |> DataFrame
+end
+
 
 #= to run this, so
 

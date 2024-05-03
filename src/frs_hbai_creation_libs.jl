@@ -552,6 +552,8 @@ function initialise_household(n::Integer)::DataFrame
         net_financial_wealth = zeros(n),
         net_housing_wealth = zeros(n),
         net_pension_wealth = zeros(n),
+        lcf_default_matched_case = zeros(n),
+        lcf_default_data_year = zeros(n),
         onerand = Vector{String}(undef,n)
     )
 end

@@ -213,7 +213,7 @@ const DEFAULT_STANDARD_RATE = default_standard_rate()
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
-function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int )
+function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int)
     # println( "find_consumption_for_hh! matching to case $case datayear $datayear")
     hh.expenditure = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
     hh.factor_costs = FACTOR_COST_DATASET[(FACTOR_COST_DATASET.case .== case).&(FACTOR_COST_DATASET.datayear.==datayear),:][1,:]
@@ -282,11 +282,15 @@ Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_ma
 function find_consumption_for_hh!( hh :: Household, settings :: Settings, which :: Int )
     @argcheck settings.indirect_method == matching
     @argcheck which <= 20
-    match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
-    lcf_case_sym = Symbol( "lcf_case_$(which)" )
-    lcf_datayear_sym = Symbol( "lcf_datayear_$(which)")
-    case = match[lcf_case_sym]
-    datayear = match[lcf_datayear_sym]
+    case = hh.lcf_default_matched_case = case
+    hh.lcf_default_data_year = datayear 
+    if which > 0      
+        match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
+        lcf_case_sym = Symbol( "lcf_case_$(which)" )
+        lcf_datayear_sym = Symbol( "lcf_datayear_$(which)")
+        case = match[lcf_case_sym]
+        datayear = match[lcf_datayear_sym]
+    end
     find_consumption_for_hh!( hh, case, datayear )
 end
 

@@ -475,6 +475,9 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         frs_hh.net_housing_wealth,
         frs_hh.net_pension_wealth,
         frs_hh.original_gross_income,
+        frs_hh.lcf_default_matched_case, 
+        frs_hh.lcf_default_data_year,
+    
         -1, # original_income_decile
         -1, # equiv_original_income_decile
         nothing, # Recorded expenditure; loaded afterwards as needed.
