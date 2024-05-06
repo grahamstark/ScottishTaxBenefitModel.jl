@@ -478,7 +478,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         travel_to_work = zeros(n),
         debt_repayments = zeros(n),
         wealth_and_assets = zeros(n),
-
+        totcap = zeros(n),
 
         company_car_fuel_type = Vector{Union{Integer,Missing}}(missing, n),
         company_car_value  = Vector{Union{Real,Missing}}(missing, n),
@@ -721,7 +721,7 @@ function map_investment_income!(model_adult::DataFrameRow, accounts::DataFrame)
     end # accounts loop
 end # map_investment_income
 
-function map_alimony(frs_person::DataFrameRow, a_maint::DataFrame)::Real
+function map_alimony(frs_person::DataFrameRow, a_maint::DataFrame)::Tuple
     nmaints = size(a_maint)[1]
     alimony_paid = 0.0 # note: not including children
     alimony_recieved = 0.0 # note: not including children
