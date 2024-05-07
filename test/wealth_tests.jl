@@ -107,3 +107,10 @@ end
         println( "hres.bhc_net_income=$(hres.bhc_net_income)" )
     end
 end
+
+@testset "Wealth Imputation Direct" begin
+    mps = CSV.File( "$(DATA_DIR)/model_people_scotland-2015-2021.tab")|>DataFrame
+    
+
+
+end

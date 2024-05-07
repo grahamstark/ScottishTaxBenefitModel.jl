@@ -170,7 +170,7 @@ mutable struct Person{RT<:Real}
     travel_to_work :: RT 
     debt_repayments :: RT 
     wealth_and_assets :: RT
-
+    totsav :: Int # FRS savings as bands
     onerand :: String
 
     legal_aid_problem_probs :: Union{Nothing,DataFrameRow}
@@ -228,20 +228,6 @@ mutable struct Household{RT<:Real}
     onerand :: String
     equivalence_scales :: EQScales{RT}
 end
-
-"""
-return 3 element vector 1=financial, 2=physical 3=housing 4=pension
-"""
-function get_wealth( hh :: Household{T}, method :: ExtraDataMethod ) :: Vector{T} where T
-    if method == imputation 
-        return [hh.net_financial_wealth, hh.net_physical_wealth, hh.net_housing_wealth, hh.pension_wealth]
-    elseif method == matching
-        @assert false "FRS matching not implemented yet for get_wealth"
-    elseif method == no_method
-        return [hh.]        
-    end
-end
-
 
 function to_string( hh :: Household ) :: String
     s = to_md_table( hh, exclude=[:people,:onerand])

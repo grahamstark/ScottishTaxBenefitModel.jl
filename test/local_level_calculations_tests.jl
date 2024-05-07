@@ -20,10 +20,12 @@ using .ExampleHelpers
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( year=2019, scotland=true )
+settings = Settings()
 
 rc = @timed begin
     num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )
 end
+
 
 @testset "LHA and assoc. mappings" begin
     # basic test/retrieve 
@@ -48,6 +50,8 @@ end
     
     # single_parent_hh single_hh childless_couple_hh
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -59,6 +63,8 @@ end
 
     np = add_child!( hh, 11, Female )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -69,6 +75,8 @@ end
     age = 4
     # base case: 2 children aged 2 and 5: different genders (sexes?)
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -79,6 +87,8 @@ end
     sys.hr.maximum_rooms = 5 # add 1 so we can test a bit more`
     np = add_child!( hh, 11, Female )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -88,6 +98,8 @@ end
     
     np = add_child!( hh, 11, Male )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -97,6 +109,8 @@ end
 
     np = add_child!( hh, 12, Male )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -106,6 +120,8 @@ end
     
     np = add_child!( hh, 13, Female )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -115,6 +131,8 @@ end
   
     np = add_child!( hh, 15, Female )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -129,6 +147,8 @@ end
         np = add_child!( hh, age, sex )
         oldnbeds = nbeds
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hh, 
             sys.hours_limits, 
             sys.age_limits,
@@ -141,6 +161,8 @@ end
     head = get_head( hh )
     head.age = 20
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -151,6 +173,8 @@ end
     head.age = 40
 
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -168,6 +192,8 @@ end
         hh.tenure = Private_Rented_Furnished
         hh.gross_rent = 300.0
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hh, 
             sys.hours_limits , 
             sys.age_limits,
@@ -273,6 +299,8 @@ end
                             council=:S12000049 ) # Glasgow
                     end
                     intermed = make_intermediate( 
+                        DEFAULT_NUM_TYPE,
+                        settings,
                         hh, 
                         sys.hours_limits , 
                         sys.age_limits,
@@ -310,6 +338,8 @@ end
             println( "on hhld $hhno")
         end
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hh, 
             sys.hours_limits , 
             sys.age_limits,
@@ -340,6 +370,8 @@ end
     for hhno in 1:num_households
         hh = FRSHouseholdGetter.get_household( hhno )
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hh, 
             sys.hours_limits , 
             sys.age_limits,
@@ -372,6 +404,8 @@ end
     println( "av per dwelling, before ctrebate $(trunc(value/dwellings))")
     hh = make_hh(adults=2, council=:S12000049)
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits,

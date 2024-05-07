@@ -420,7 +420,7 @@ function map_person(
         m2z( model_person.travel_to_work ),
         m2z( model_person.debt_repayments ),
         m2z( model_person.wealth_and_assets ),
-
+        model_person.totsav, # FIXME unedited FRS totsav field needs enum ??? 
         strtobi(model_person.onerand),
         nothing # legal aid added as needed FIXME? maybe make this 'other data'??
     )

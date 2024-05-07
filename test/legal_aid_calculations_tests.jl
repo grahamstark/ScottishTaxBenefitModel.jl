@@ -130,6 +130,8 @@ end
     hh.net_pension_wealth = 0.0
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -153,6 +155,8 @@ end
     hh.net_financial_wealth = 1_800.0
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -166,6 +170,8 @@ end
     hh.net_financial_wealth = 1_700.0
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -181,6 +187,8 @@ end
     blank_incomes!( hh, 130; annual=false )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -208,6 +216,8 @@ end
     println( "total hh after blank $(hh)" )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -226,6 +236,8 @@ end
     blank_incomes!( hh, 20; annual=false )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -255,6 +267,8 @@ end
     hh.net_financial_wealth = 1_000.0
     hh.net_pension_wealth = 0.0
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -272,6 +286,8 @@ end
 
     add_spouse!( hh, 50, Female )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -294,6 +310,8 @@ end
     add_child!( hh, 10, Female )
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -313,6 +331,8 @@ end
     hh.net_financial_wealth = 10_000.0
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -333,6 +353,8 @@ end
     hh.net_financial_wealth = 12_000.0
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -360,6 +382,8 @@ end
     # plus 200pw housing
     hh.gross_rent = 10_000/WEEKS_PER_YEAR
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -394,6 +418,8 @@ end
     sys3 = deepcopy(sys1)
     sys3.legalaid.civil.premia.family_lone_parent = 100.0
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,

@@ -131,6 +131,8 @@ function do_one_run(
             res = RESULTS.results[:,hno]
             hh = get_household( hno )
             intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,
                 hh, 
                 systems[1].hours_limits, 
                 systems[1].age_limits, 

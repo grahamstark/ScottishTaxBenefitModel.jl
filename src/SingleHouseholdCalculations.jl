@@ -101,6 +101,8 @@ function do_one_calc(
     bus = get_benefit_units( hh )
     hres :: HouseholdResult{T} = init_household_result(hh)
     intermed = make_intermediate( 
+        T,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits, 

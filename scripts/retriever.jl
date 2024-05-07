@@ -41,6 +41,8 @@ using .Results:
 using .SingleHouseholdCalculations: 
     do_one_calc
 
+using RunSettings
+
 include("$(PROJECT_DIR)/src/HouseholdMappingFRS_HBAI.jl")
 
 include( "../test/testutils.jl")
@@ -271,7 +273,9 @@ function get_data( hno, bits )::String
     mhh :: Household = FRSHouseholdGetter.get_household( hno )
     s = ModelHousehold.to_string( mhh )
     sys = get_system( year=2019, scotland=true)
-    intermed :: HHIntermed = make_intermediate(  
+    intermed :: HHIntermed = make_intermediate( 
+        Float64,
+        Settings(),
         mhh, 
         sys.lmt.hours_limits,
         sys.age_limits,

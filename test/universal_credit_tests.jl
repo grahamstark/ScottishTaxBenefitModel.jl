@@ -70,9 +70,11 @@ using .Definitions
 
 using .STBIncomes
 using .ExampleHelpers
+using .RunSettings
 
 ## FIXME don't need both
 sys = get_system( year=2019, scotland=true )
+settings = Settings()
 
 @testset "UC Example Shakedown Tests" begin
     #
@@ -93,6 +95,8 @@ sys = get_system( year=2019, scotland=true )
 
             bus = get_benefit_units( hh )
             intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,                
                 hh,  
                 sys.hours_limits,
                 sys.age_limits,
@@ -140,6 +144,8 @@ end
     disable_seriously!(j)
     blind!(j)
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -166,6 +172,8 @@ end
     println( hres.bus[1].uc )
     set_childrens_ages!( g_and_j, 10, 9 ) # so none qualify for 1st child extra
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -186,6 +194,8 @@ end
     g_and_j.gross_rent = 100.0
     g_and_j.tenure = Private_Rented_Unfurnished
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -208,6 +218,8 @@ end
     g_and_j.gross_rent = 0.0
     set_childrens_ages!( g_and_j, 3, 2 ) # so none qualify for 1st child extra
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -244,6 +256,8 @@ end
     bus = get_benefit_units( yph )
     # doesn't qualify in standard case
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -258,6 +272,8 @@ end
     # qualifies as carer
     carer!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -269,6 +285,8 @@ end
         ucs ) 
     uncarer!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -284,6 +302,8 @@ end
     @test num_people(bus[1]) == 2
     @test num_children(bus[1]) == 1
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -360,6 +380,8 @@ end
     bus = get_benefit_units( cpl )
     hres = init_household_result( cpl )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         cpl, 
         sys.hours_limits, 
         sys.age_limits,
@@ -414,6 +436,8 @@ run_full_tests = IS_LOCAL # && false
         for hno in 1:nhhs
             hh = get_household(hno)
             intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,                
                 hh,  
                 sys.hours_limits,
                 sys.age_limits,

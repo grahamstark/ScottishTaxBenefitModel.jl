@@ -42,17 +42,21 @@ using .Utils:
     eq_nearest_p,
     to_md_table
 
+using .RunSettings
 
 using .ExampleHelpers
 
 sys = get_system( year=2019, scotland=true )
-
+settings = Settings()
+    
 @testset "Benefit Cap Shakedown" begin
     examples = get_all_examples()
     hbs = collect(100:100:1000)
     for (hht,hh) in examples 
         bus = get_benefit_units( hh )
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hh,
             sys.hours_limits,
             sys.age_limits,

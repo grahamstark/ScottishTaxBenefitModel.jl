@@ -478,7 +478,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         travel_to_work = zeros(n),
         debt_repayments = zeros(n),
         wealth_and_assets = zeros(n),
-        totcap = zeros(n),
+        totsav= zeros(Int,n),
 
         company_car_fuel_type = Vector{Union{Integer,Missing}}(missing, n),
         company_car_value  = Vector{Union{Real,Missing}}(missing, n),
