@@ -207,7 +207,7 @@ function calc_incomes(
     """
     not even remotely right ... cpag 21
     """
-    
+    #=
     cap = 0.0
     for pid in bu.adults
         if bu.people[pid].over_20_k_saving
@@ -218,8 +218,9 @@ function calc_incomes(
             end
         end
     end
+    =#
     inc.other_income = other
-    inc.capital = cap
+    inc.capital = intermed.net_financial_wealth
     inc.gross_earnings = gross_earn
     inc.net_earnings = max(0.0, net_earn - disreg ) - inc.childcare
  
@@ -237,8 +238,8 @@ function calc_incomes(
         end
     end
     
-    inc.tariff_income = tariff_income(cap, capmin, tariff )
-    inc.disqualified_on_capital = cap > capmax
+    inc.tariff_income = tariff_income(inc.capital, capmin, tariff )
+    inc.disqualified_on_capital = inc.capital > capmax
     inc.total_income = inc.net_earnings + inc.other_income + inc.tariff_income    
     inc.disregard = disreg
     return inc

@@ -56,6 +56,8 @@ using .Utils:
 
 using .STBIncomes
 
+using .RunSettings: Settings
+
 export 
     MTIntermediate,     
     apply_2_child_policy,
@@ -347,7 +349,7 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.economically_active = sum.economically_active || add.economically_active
     sum.working_disabled = sum.working_disabled || add.working_disabled
 
-    sum.net_physical_wealth += net_physical_wealth
+    sum.net_physical_wealth += add.net_physical_wealth
     sum.net_financial_wealth += add.net_financial_wealth
     sum.net_housing_wealth += add.net_housing_wealth
     sum.net_pension_wealth += add.net_pension_wealth
@@ -434,22 +436,35 @@ end
 """
 return 3 element vector 1=financial, 2=physical 3=housing 4=pension
 """
-function get_wealth( 
-    hh        :: Household{T};
-    method    :: ExtraDataMethod,
-    agglevel  :: AggregationLevel ,
-    buno = 1,
-    pno =  ) :: Vector{T} where T
+function add_wealth!( 
+    intermed  :: MTIntermediate{T},
+    hh        :: Household{T},
+    bu        :: BenefitUnit,
+    buno      :: Int,
+    method    :: ExtraDataMethod ) where T
     if method == imputation 
-        @assert agglevel == household "This only makes sense at household level."
-        return [hh.net_financial_wealth, hh.net_physical_wealth, hh.net_housing_wealth, hh.pension_wealth]
+        if buno == 1 # use the regression hhld stuff from was & assign all to 1st bu 
+            intermed.net_financial_wealth = hh.net_financial_wealth
+            intermed.net_physical_wealth = hh.net_physical_wealth
+            intermed.net_housing_wealth  = hh.net_housing_wealth 
+            intermed.pension_wealth = hh.pension_wealth
+        end
     elseif method == matching
         @assert false "FRS matching not implemented yet for get_wealth"
     elseif method == no_method
-        @assert false "FRS matching not implemented yet for get_wealth"
-        # return [hh.wealth_and_assets]        
+        head = get_head( bu )
+        # println( "add_wealth! method=$method head.wealth_and_assets=$(head.wealth_and_assets)")
+        intermed.net_financial_wealth = head.wealth_and_assets
+        # nothing else set
     elseif method == other_method_1
-
+        head = get_head( bu )
+        cap = map_totsav(
+            head.totsav,
+            head.data_year,
+            head.wealth_and_assets,
+            head.onerand )
+        intermed.net_financial_wealth = cap
+        intermed.net_physical_wealth = cap*0.6 # average diff between financial and physical in WAS
     end
 end
 
@@ -687,6 +702,12 @@ function make_intermediate(
             age_limits, 
             child_limits,
             n ) 
+        add_wealth!( 
+            buint[buno], 
+            hh, 
+            bus[buno], 
+            buno, 
+            settings.wealth_method )
     end
     hhint = deepcopy( buint[1] )
     for buno in 2:n

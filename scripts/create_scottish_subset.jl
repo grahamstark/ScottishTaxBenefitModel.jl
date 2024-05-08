@@ -30,3 +30,13 @@ end
 
 CSV.write("$(MODEL_DATA_DIR)/model_households_scotland-2015-2021.tab", scottish_hhlds, delim = "\t")
 CSV.write("$(MODEL_DATA_DIR)/model_people_scotland-2015-2021.tab", scottish_people, delim = "\t")
+
+#
+# write a 1 year all UK dataset while we're at it.
+#
+latest_year = maximum( hh_dataset.data_year )
+uk_latest_hhlds = hh_dataset[(hh_dataset.data_year .== latest_year ),:]
+uk_latest_people = semijoin( people_dataset, uk_latest_hhlds,on=[:hid,:data_year])
+CSV.write("$(MODEL_DATA_DIR)/model_households-$(latest_year)-$(latest_year).tab", uk_latest_hhlds, delim = "\t")
+CSV.write("$(MODEL_DATA_DIR)/model_people-$(latest_year)-$(latest_year).tab", uk_latest_people, delim = "\t")
+

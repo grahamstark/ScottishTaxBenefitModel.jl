@@ -226,6 +226,8 @@ end
                             council=:S12000049 )
                     end
                     intermed = make_intermediate( 
+                        DEFAULT_NUM_TYPE,
+                        settings,            
                         hh, 
                         sys.hours_limits , 
                         sys.age_limits,

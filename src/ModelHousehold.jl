@@ -437,7 +437,7 @@ end
 # This creates a array of references to each person in the houshold, broken into
 # benefit units using the default FRS/EFS benefit unit number.
 #
-function allocate_to_bus( T::Type, bua :: BUAllocation ) :: BenefitUnits
+function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) :: BenefitUnits
     nbus = size(bua)[1]
     bus = BenefitUnits(undef, nbus)
     for i in 1:nbus
@@ -450,12 +450,17 @@ function allocate_to_bus( T::Type, bua :: BUAllocation ) :: BenefitUnits
         for p in 1:npeople
             person = bua[i][p]
             people[person.pid] = person
-            if p == 1
+            if person.pid == hh_head_pid
+                @assert i == 1 "head needs to be 1st BU $hh_head_pid"
+                head_pid = person.pid
+                push!( adults, head_pid )
+            elseif (p == 1) && (i>1)
                 head_pid = person.pid
                 push!( adults, head_pid )
             else
                 # println( "on bu $i person $p relationships $(person.relationships)")
-                reltohead = person.relationships[head_pid]
+                hp = (i == 1) ? hh_head_pid : head_pid
+                reltohead = person.relationships[hp]
                 if reltohead in [Spouse,Cohabitee,Civil_Partner]
                     spouse_pid = person.pid
                     push!( adults, spouse_pid )
@@ -498,7 +503,7 @@ end
 function get_benefit_units(
     hh :: Household{T},
     allocator :: Function=default_bu_allocation ) :: BenefitUnits where T
-    allocate_to_bus( T, allocator(hh))
+    allocate_to_bus( T, hh.head_of_household, allocator(hh))
 end
 
 function num_people( bu :: BenefitUnit )::Integer

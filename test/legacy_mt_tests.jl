@@ -1442,8 +1442,8 @@ end
     retire!( geoff )
     geoff.attendance_allowance_type = high
     geoff.age = 68
-    geoff.assets[A_Stocks_Shares_Bonds_etc] = 11_500.0
-
+    # geoff.assets[A_Stocks_Shares_Bonds_etc] = 11_500.0
+    maria.wealth_and_assets = 11_500.0
     newpid = add_non_dependent!( m_and_j, 24, Female )
     bus = get_benefit_units( m_and_j )
     @test size( bus )[1] == 2

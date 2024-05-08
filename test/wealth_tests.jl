@@ -109,7 +109,8 @@ end
 end
 
 @testset "Wealth Imputation Direct" begin
-    mps = CSV.File( "$(DATA_DIR)/model_people_scotland-2015-2021.tab")|>DataFrame
+    settings = Settings() # scotland
+    mps = CSV.File( joinpath( settings.data_dir, settings.people_name*".tab")) |>DataFrame
     
 
 

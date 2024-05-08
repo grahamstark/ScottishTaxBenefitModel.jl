@@ -119,7 +119,7 @@ end
     hh = make_hh( adults = 1 )
     @test num_std_bus(hh) == 1
     @test household_composition_1(hh) == single_person
-
+    settings = Settings()
     head = get_head( hh )
     head.age = 45
     println( "hhage $(head.age)")
