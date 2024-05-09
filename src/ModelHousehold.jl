@@ -93,6 +93,7 @@ mutable struct Person{RT<:Real}
     pno:: Int # person number in household
     is_hrp :: Bool
     default_benefit_unit:: Int
+    is_benefit_unit_head :: Bool 
     is_standard_child :: Bool
     age:: Int
 
@@ -362,10 +363,29 @@ function set_wage!( pers :: Person, gross :: Real, wage :: Real )
     # println( "made usual_hours_worked = $h gross=$gross wage=$wage pers.employment_status=$(pers.employment_status)")
 end
 
+#
+# Sort by age but with bu heads always first.
+#
+function sort_people_in_bus!( bua :: BUAllocation )
+    function comp2people( l::Person, r::Person )::Bool
+        r1 = r.age + (10000*(r.is_benefit_unit_head))
+        l1 = l.age + (10000*(l.is_benefit_unit_head))
+        return isless( r1, l1 )
+    end
+
+    for bu in bua
+        sort!( bu; lt=comp2people ) # (left,right)->isless(right.age,left.age))  
+        #=      
+        for p in bu
+            println( "hh.hid=$(hh.hid) buno $buno is_benefit_unit_head=$(p.is_benefit_unit_head) age=$(p.age)" )
+        end
+        =#
+    end
+end
 
 #
 # This creates a array of references to each person in the houshold, broken into
-# benefit units using the default FRS/EFS benefit unit number.
+# benefit units using the default FRS/EFS benefit unit number. 
 #
 function default_bu_allocation( hh :: Household ) :: BUAllocation
     bua = BUAllocation()
@@ -384,11 +404,8 @@ function default_bu_allocation( hh :: Household ) :: BUAllocation
         pp = bua[person.default_benefit_unit]
         push!( pp, person )
     end
-    ## sort people in each by pid
-    for buno in 1:nbus
-        sort!( bua[buno], lt=(left,right)->isless(right.age,left.age))
-    end
-    bua
+    # sort heads always first, then by age
+    return bua
 end
 
 """
@@ -440,26 +457,29 @@ end
 function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) :: BenefitUnits
     nbus = size(bua)[1]
     bus = BenefitUnits(undef, nbus)
-    for i in 1:nbus
+    # We have to have bu heads first, so...
+    sort_people_in_bus!( bua )
+    for buno in 1:nbus
         people = People_Dict{T}()
         head_pid :: BigInt = -1
         spouse_pid :: BigInt = -1
         children = Pid_Array()
         adults = Pid_Array()
-        npeople = size( bua[i])[1]
+        npeople = size( bua[buno])[1]
         for p in 1:npeople
-            person = bua[i][p]
+            person = bua[buno][p]
             people[person.pid] = person
             if person.pid == hh_head_pid
-                @assert i == 1 "head needs to be 1st BU $hh_head_pid"
+                @assert buno == 1 "head needs to be 1st BU $hh_head_pid"
                 head_pid = person.pid
                 push!( adults, head_pid )
-            elseif (p == 1) && (i>1)
+            elseif (p == 1) && (buno > 1)
                 head_pid = person.pid
                 push!( adults, head_pid )
             else
                 # println( "on bu $i person $p relationships $(person.relationships)")
-                hp = (i == 1) ? hh_head_pid : head_pid
+                @assert head_pid > 0 "head pid must be allocated; buno=$buno"
+                hp = (buno == 1) ? hh_head_pid : head_pid
                 reltohead = person.relationships[hp]
                 if reltohead in [Spouse,Cohabitee,Civil_Partner]
                     spouse_pid = person.pid
@@ -474,9 +494,19 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
             end
         end
         new_bu = BenefitUnit( people, head_pid, spouse_pid, adults, children )
-        bus[i] = new_bu
+        bus[buno] = new_bu
     end
-    bus
+    # Idiot checks for allocations; counts of people checked where this is called.
+    for buno in 1:nbus 
+        head = get_head( bus[buno])
+        if buno == 1
+            @assert head.pid == hh_head_pid "mismatched 1st bu head should be $hh_head is: $(head.pid)"
+        else
+            @assert (! ismissing( head )) "unallocated head for bu $buno"
+            @assert ! head.is_standard_child "head of bu seems to be child for bu $buno"
+        end
+    end
+    return bus
 end
 
 function total_assets( pers :: Person{T} )::T where T
@@ -503,11 +533,23 @@ end
 function get_benefit_units(
     hh :: Household{T},
     allocator :: Function=default_bu_allocation ) :: BenefitUnits where T
-    allocate_to_bus( T, hh.head_of_household, allocator(hh))
+    # println( "calling allocator on hh $(hh.hid)")
+    allocs = allocator(hh)
+    bus = allocate_to_bus( T, hh.head_of_household, allocs )
+    @assert num_people( bus ) == num_people( hh ) "some people lost/found in bu allocation; bu count=$(num_people( bus )) hh count=$(num_people( hh ))"
+    return bus
 end
 
 function num_people( bu :: BenefitUnit )::Integer
     length( bu.people )
+end
+
+function num_people( bus :: BenefitUnits ) :: Integer
+    nbus = 0
+    for bu in bus 
+        nbus += num_people(bu)
+    end
+    return nbus
 end
 
 function num_std_bus( hh :: Household ) :: Int

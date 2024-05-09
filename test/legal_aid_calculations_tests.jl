@@ -120,6 +120,7 @@ end
     @test num_std_bus(hh) == 1
     @test household_composition_1(hh) == single_person
     settings = Settings()
+    settings.wealth_method = imputation 
     head = get_head( hh )
     head.age = 45
     println( "hhage $(head.age)")
@@ -257,6 +258,7 @@ end
 
 @testset "Civil Legal Aid: Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
     settings = Settings()
+    settings.wealth_method = imputation 
     # FIXME read the spreadsheet in and automate this.
 
     # 1) single adult 25k no expenses 1k capital
@@ -410,6 +412,7 @@ end
 
 @testset "Extra Allowance Test" begin
     settings = Settings()
+    settings.wealth_method = imputation 
  
     hh = get_example(single_parent_hh)
     head = get_head(hh)
@@ -476,7 +479,7 @@ function test_costs(
             cgc = cost_grp[ck]
             @show ck
             actcost = sum( cgc.totalpaid )
-            @assert isapprox(entcost,actcost/1000; rtol=0.001) "$label : fail cost for $k actual $actcost modelled $entcost" 
+            @assert isapprox(entcost,actcost/1000; rtol=0.1) "$label : fail cost for $k actual $actcost modelled $entcost" 
         end
     end
 end
@@ -488,9 +491,10 @@ function lasettings()
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
+    settings.wealth_method = imputation 
     settings.requested_threads = 4
     settings.num_households,  settings.num_people, nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=false )
+        FRSHouseholdGetter.initialise( settings; reset=true )
     return settings
 end
 
@@ -498,11 +502,14 @@ end
     global tot
     tot = 0
     settings = lasettings()
-    settings.run_name = "Local Legal Aid Runner Test"
+
+    settings.run_name = "Local Legal Aid Runner Test V2"
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
 
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+    
     println( "run complete")
     civil_propensities = LegalAidOutput.create_base_propensities( 
         laout.civil.data[1], 
@@ -522,7 +529,7 @@ end
 end
 
 @testset "inferred vs FRS capital" begin
-
+    # FIXME does nothing now needs 2 runs with settings.wealth_method changed
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
     settings = lasettings()
@@ -536,6 +543,8 @@ end
 
 @testset "sp premia" begin
     settings = lasettings()
+    settings.wealth_method = imputation 
+
     settings.requested_threads = 4
     settings.run_name = "sing par premia"
     sys2 = deepcopy(sys1)

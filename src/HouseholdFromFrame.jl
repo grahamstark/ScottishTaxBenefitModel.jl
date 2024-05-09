@@ -348,6 +348,7 @@ function map_person(
         model_person.pno,  # Integer# person number in household
         safe_to_bool(model_person.is_hrp), 
         model_person.default_benefit_unit,  # Integer
+        safe_to_bool(model_person.is_bu_head),
         safe_to_bool(model_person.from_child_record), # Bool
         model_person.age,  # Integer
         Sex(model_person.sex),  # Sex

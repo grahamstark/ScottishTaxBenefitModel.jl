@@ -447,7 +447,7 @@ function add_wealth!(
             intermed.net_financial_wealth = hh.net_financial_wealth
             intermed.net_physical_wealth = hh.net_physical_wealth
             intermed.net_housing_wealth  = hh.net_housing_wealth 
-            intermed.pension_wealth = hh.pension_wealth
+            intermed.net_pension_wealth = hh.net_pension_wealth
         end
     elseif method == matching
         @assert false "FRS matching not implemented yet for get_wealth"

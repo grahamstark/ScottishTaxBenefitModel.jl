@@ -67,6 +67,8 @@ end
 Hacky hacky: reallocated some of the `la_full` props to `la_passported`
 where `la_passported` is zero. This fixes some problems where entitlement falls but costs go up.
 I'm tired and this is a mess.
+@param props 
+@param subjects a list of LA claim types
 """
 function fixup_props!( props :: DataFrame, subjects :: Vector )
     for r in eachrow(props)
@@ -75,14 +77,19 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
             prop_col = Symbol( "$(subject)_prop")
             if (r[prop_col] == 0) && (r.la_status == la_passported)
                 println( "fixing up $subject")
+                @show r
+                
                 alt = props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
                         (props.age2 .== r.age2)), :]
-                cases = r.popn*alt[1,prop_col]
-                prop = cases/(r.popn+alt.popn[1])
-                r[prop_col] = prop
-                r[cost_col] = alt[1,cost_col]
-                println( "cost set to $(r[cost_col])")
+                prop = 0.0
+                if size( alt )[1] == 1
+                    cases = r.popn*alt[1,prop_col]
+                    prop = cases/(r.popn+alt.popn[1])
+                    r[prop_col] = prop
+                    r[cost_col] = alt[1,cost_col]
+                    println( "cost set to $(r[cost_col])")
+                end
                 props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
                         (props.age2 .== r.age2)), prop_col] .= prop
@@ -93,8 +100,6 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
 end # func
 
 #=
-
-
 function fixup_props!( props :: DataFrame, subjects :: Vector )
     for r in eachrow(props)
         for subject in subjects
@@ -257,8 +262,8 @@ function create_base_propensities(
     cost_and_count.adults_with_incapacity_cost .= awicost/(awicount*1000) # in 000s
     cost_and_count.adults_with_incapacity_prop .= awicount/popn
 
-    # println( "create_base_propensities cost_and_count=")
-    # @show cost_and_count
+    println( "create_base_propensities cost_and_count=")
+    @show cost_and_count
     fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
     return (; cost_and_count, long_data=out )
 end
