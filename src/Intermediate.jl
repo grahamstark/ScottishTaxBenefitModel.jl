@@ -460,7 +460,7 @@ function add_wealth!(
         head = get_head( bu )
         cap = map_totsav(
             head.totsav,
-            head.data_year,
+            hh.data_year,
             head.wealth_and_assets,
             head.onerand )
         intermed.net_financial_wealth = cap
