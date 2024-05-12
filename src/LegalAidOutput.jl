@@ -19,7 +19,8 @@ using .Definitions,
     .ModelHousehold,
     .Results,
     .RunSettings,
-    .Utils 
+    .Utils,
+    .GeneralTaxComponents
 
 export AllLegalOutput, LegalOutput, summarise_la_output!
 
@@ -1024,7 +1025,7 @@ function make_summary_tab(
     post :: DataFrame,
     is_aa :: Bool;
     weight_sym = :weight )
-    @argcheck size(pre)==size(post)
+    @argcheck size(pre)[1]==size(post)[1]
     nrows,ncols = size(pre)    
     weeks = is_aa ? 1.0 : WEEKS_PER_YEAR
     is_aa = true
@@ -1047,6 +1048,7 @@ function make_summary_tab(
         max_contrib_po = 
             po.income_contribution_amt*weeks
             po.capital_contribution_amt
+        @show po
         for i in 1:tsize 
             tc = Symbol(prop_cols[i]*"_prop")
             tcost = Symbol(prop_cols[i]*"_cost")
