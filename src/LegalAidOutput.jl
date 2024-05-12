@@ -1048,7 +1048,7 @@ function make_summary_tab(
         max_contrib_po = 
             po.income_contribution_amt*weeks
             po.capital_contribution_amt
-        @show po
+        # @show po
         for i in 1:tsize 
             tc = Symbol(prop_cols[i]*"_prop")
             tcost = Symbol(prop_cols[i]*"_cost")
