@@ -34,6 +34,7 @@ mutable struct LegalOutput
     crosstab_bu_examples :: Vector{AbstractMatrix}
     crosstab_pers :: Vector{AbstractMatrix} # Vector{Dict{String,AbstractMatrix}}
     crosstab_pers_examples :: Vector{AbstractMatrix}
+    summary_tables :: Vector{AbstractDataFrame}
 end
 
 mutable struct AllLegalOutput
@@ -339,7 +340,10 @@ function summarise_expenses( df :: DataFrame ) :: GroupedDataFrame
 end
 
 """
-
+Add the propensities for each type of LA to the calculated entitlement data, matching on sex,age,entitlement type.
+results: df with calculated entitlements, contributions and demographics. See `make_legal_aid_frame` above.
+problem_probs: NOT NEEDED this is the file civil-legal-aid-probs-scotland-2015-2012 (should be '21') derived from the Scottish Crime and Justice Survey. It's not really used anymore.
+propensities: this is the probability of a person of some age/sex/entitlement status claiming each type of legal aid under either AA or Civil. See `create_propensities`/`create_base_propensities`.
 """
 function merge_in_probs_and_props( 
     results :: DataFrame,
@@ -610,6 +614,33 @@ function fixup_totals!( df :: DataFrame )
 end
 
 """
+cost_items - names of each:
+  - costs: la type costs columns
+  - props: la type propensities
+  - labels: pretty print label
+"""
+function make_summary_table( 
+    pre :: DataFrame, 
+    post :: DataFrame,
+    cost_items :: NamedTuple ) :: DataFrame
+    @argcheck size(pre) == size(post)
+    tab = DataFrame( 
+        labels=["Cases","Gross Cost","Contributions","Net Cost"],
+        pre=zeros(4),
+        post=zeros(4),
+        change=zeros(4))
+    nrows,ncols = size( pre )
+    ccc = LegalAidData.CIVIL_COST # alias
+    for i in 1:ncols
+        tab[2,3] += sample( 
+            ccc[
+                ccc.categorydescription.=="Contact", 
+                :totalpaid])
+    end
+    return tab
+end
+
+"""
 Call `combine_one_legal_aid` on all the `TARGETS`
 
 return a dictionary of grouped dataframes 
@@ -785,7 +816,8 @@ end
 
 function summarise_la_output!( 
     la :: LegalOutput,
-    propensities :: DataFrame )
+    propensities :: DataFrame, 
+    is_aa :: Bool )
     # base data 
     data1 = merge_in_probs_and_props( 
         la.data[1], 
@@ -843,6 +875,8 @@ function summarise_la_output!(
                 la_crosstab( data1, data )
             la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
                 la_crosstab( budata1, budata )
+
+            la.summary_tables[sysno-1] = make_summary_tab(data1, data, is_aa )
         end # sysno > 1
     end
 end
@@ -850,9 +884,9 @@ end
 function summarise_la_output!( 
     la :: AllLegalOutput )
     println( "summary: civil")
-    summarise_la_output!( la.civil, PROPENSITIES.civil_propensities )
+    summarise_la_output!( la.civil, PROPENSITIES.civil_propensities, false )
     println( "summary: aa")
-    summarise_la_output!( la.aa, PROPENSITIES.aa_propensities )
+    summarise_la_output!( la.aa, PROPENSITIES.aa_propensities, true )
 end
 
 """
@@ -906,9 +940,21 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
     println( f, "# Run : $(settings.run_name) - Cross Table Civil Entitlement")
     for sysno in 2:num_systems 
         ctno = sysno - 1 # since table 1 is 2 vs 1 and so on
+        println( f, "##  System $sysno vs System 1 Summary Table - CIVIL" )
+        pretty_table(
+            f, 
+            laout.civil.summary_tables[ctno], 
+            backend = Val(:markdown), 
+            cell_first_line_only=true)
         println( f, "##  System $sysno vs System 1  Benefit Unit Level" )
         pc = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
         pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println( f, "##  System $sysno vs System 1 Summary Table - AA" )
+        pretty_table(
+            f, 
+            laout.aa.summary_tables[ctno], 
+            backend = Val(:markdown), 
+            cell_first_line_only=true)
         println( f, "### cross table AA entitlement")
         pa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
         pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
@@ -938,6 +984,88 @@ function crosstab_to_df( ct :: Matrix ) :: DataFrame
     Utils.matrix_to_frame( ct, ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
 end
 
+"""
+FIXME not used as it's really slow
+"""
+function get_sample_case_cost( 
+    hsm:: AbstractString, 
+    # status::String, 
+    sex::AbstractString, 
+    age2::AbstractString,
+    contrib::Number,
+    is_aa :: Bool )::Number
+    costs = is_aa ? LegalAidData.CIVIL_COSTS : LegalAidData.AA_COSTS 
+    paid = costs[(costs.age2.==age2) .& (costs.sex.==sex) .& (costs.hsm_censored .== hsm ),:totalpaid]
+    npaid = size(paid)[1]
+    tot = 0.0
+    for i in 1:npaid
+        tot += min( contrib, paid[i])
+    end
+    println( "hsm $hsm npaid $npaid tot")
+    return npaid == 0 ? 0.0 : tot/npaid
+end
+
+function summary_frame()
+    return  DataFrame( 
+        labels=["Cases","Gross Cost","Contributions","Net Cost"],
+        pre=zeros(4),
+        post=zeros(4),
+        change=zeros(4))
+end
+
+
+"""
+pre: results with merged propensities
+post: results with merged propensities
+FIXME: clean this up drastically
+"""
+function make_summary_tab(
+    pre :: DataFrame,
+    post :: DataFrame,
+    is_aa :: Bool;
+    weight_sym = :weight )
+    @argcheck size(pre)==size(post)
+    nrows,ncols = size(pre)    
+    weeks = is_aa ? 1.0 : WEEKS_PER_YEAR
+    is_aa = true
+    tab = summary_frame()
+    prop_cols = [
+        "adults_with_incapacity",
+        "contact_or_parentage",
+        "family_or_matrimonial_other",
+        "other",
+        "residence"]
+    tsize = size(prop_cols)[1]
+    for row in 1:nrows
+        pr = pre[row,:]
+        po = post[row,:]
+        w = pr[weight_sym]
+        @assert w == po[weight_sym]
+        max_contrib_pr = 
+            pr.income_contribution_amt*weeks
+            pr.capital_contribution_amt
+        max_contrib_po = 
+            po.income_contribution_amt*weeks
+            po.capital_contribution_amt
+        for i in 1:tsize 
+            tc = Symbol(prop_cols[i]*"_prop")
+            tcost = Symbol(prop_cols[i]*"_cost")
+            tab[1,2] += w*pr[tc]
+            tab[1,3] += w*po[tc]
+            tab[2,2] += w*pr[tc]*pr[tcost]
+            tab[2,3] += w*po[tc]*pr[tcost]
+            # scase_pr = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_pr, is_aa )/1000.0
+            # scase_po = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_po, is_aa )/1000.0
+            tab[3,2] += w*pr[tc]*max_contrib_pr/1000 #*scase_pr # 
+            tab[3,3] += w*po[tc]*max_contrib_po/1000 # scase_po # 
+        end
+    end
+    tab[4,2] = tab[2,2] - tab[3,2]
+    tab[4,3] = tab[2,3] - tab[3,3]
+    tab[:,4] = tab[:,3] .- tab[:,2]
+    return tab
+end
+
 function LegalOutput( T; num_systems::Integer, num_people::Integer )
     datas = Vector{DataFrame}(undef,0)
     breakdown_bu = Vector{Dict}(undef,0)
@@ -948,6 +1076,7 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
     crosstab_bu_examples = Vector{Matrix}(undef,0)
     crosstab_pers = Vector{Matrix}(undef,0) # Vector{Dict{String,Matrix}}(undef,0)
     crosstab_pers_examples = Vector{Matrix}(undef,0)
+    summary_tables = Vector{DataFrame}(undef,0)
     for sysno in 1:num_systems
         push!( datas, make_legal_aid_frame( T, num_people ))
         push!( breakdown_pers, Dict())
@@ -960,6 +1089,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
             push!( crosstab_pers_examples, fill(Int[],4,4))    
             push!(crosstab_bu, fill(T,4,4))
             push!( crosstab_bu_examples, fill(Int[],4,4))    
+            push!(summary_tables, summary_frame());
+    
         end
     end
     LegalOutput( 
@@ -972,7 +1103,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         crosstab_bu, 
         crosstab_bu_examples,
         crosstab_pers,
-        crosstab_pers_examples )
+        crosstab_pers_examples,
+        summary_tables )
 end
 
 function AllLegalOutput( T; num_systems::Integer, num_people::Integer )

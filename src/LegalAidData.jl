@@ -10,6 +10,7 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
 using .ModelHousehold
+using .Utils:basiccensor
 
 export 
     agestr2, 
@@ -177,7 +178,9 @@ function load_aa_costs( filename::String )::DataFrame
         :age_banded=>:age, 
         :ap_contribution=>:maxcon, 
         :passport_ben=>:passported])    
-    cost.hsm = CategoricalArray( group_cases.(cost.hsm_full))
+    gcases = group_cases.(cost.hsm_full)    
+    cost.hsm = CategoricalArray( gcases )
+    cost.hsm_censored = CategoricalArray( basiccensor.(gcases))
     cost.passported = cost.passported .== "Y"
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )    
     cost.age2 = age2.( cost.age )    
@@ -218,7 +221,9 @@ function load_costs( filename::String )::DataFrame
         :highersubject=>:hsm_full,
         :age_banded=>:age,
         :totalpaidincvat=>:totalpaid])
-    cost.hsm = CategoricalArray( group_cases.(cost.hsm_full))
+    gcases = group_cases.(cost.hsm_full)
+    cost.hsm = CategoricalArray( gcases )
+    cost.hsm_censored = CategoricalArray( basiccensor.(gcases))
     cost.passported = .! ismissing.( cost.passported )
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )
     cost.la_status = fill( la_none, nrows )
