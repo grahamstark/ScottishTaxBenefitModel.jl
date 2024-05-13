@@ -877,8 +877,9 @@ function summarise_la_output!(
             la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
                 la_crosstab( budata1, budata )
 
-            la.summary_tables[sysno-1] = make_summary_tab(data1, data, is_aa )
+            la.summary_tables[sysno-1] = make_summary_tab( data1, data, is_aa )
         end # sysno > 1
+        la.data[sysno] = data  # save the whole ammended frame inc. matching     
     end
 end
 
@@ -950,6 +951,7 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
         println( f, "##  System $sysno vs System 1  Benefit Unit Level" )
         pc = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
         pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println( f, "\n\n\n")
         println( f, "##  System $sysno vs System 1 Summary Table - AA" )
         pretty_table(
             f, 

@@ -233,7 +233,7 @@ function load_costs( filename::String )::DataFrame
         # @show a
         if a.passported # form 1
             cost[r,:la_status] = la_passported
-        elseif a.whichform == "2" # form 2 == means-test
+        else # elseif a.whichform == "2" # form 2 == means-test
             if (a.hsm == "Adults with incapacity")
                 ;
             else
@@ -249,7 +249,8 @@ function load_costs( filename::String )::DataFrame
         if ismissing(a.sex)
             a.sex = rand() <= 0.382 ? "Male" : "Female"
         end
-    end
+        # @assert cost[r,:la_status] !== la_none
+    end # each rpw
     cost
 end
 
