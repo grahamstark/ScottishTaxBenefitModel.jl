@@ -1051,24 +1051,17 @@ function make_summary_tab(
         # @show po
         for i in 1:tsize 
             tc = Symbol(prop_cols[i]*"_prop")
-            if ismissing(po[tc])
-                @show po
-                println( "nothing for $tc ???")
+            if ! ismissing(po[tc])
+                tcost = Symbol(prop_cols[i]*"_cost")
+                tab[1,2] += w*pr[tc]
+                tab[1,3] += w*po[tc]
+                tab[2,2] += w*pr[tc]*pr[tcost]
+                tab[2,3] += w*po[tc]*pr[tcost]
+                # scase_pr = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_pr, is_aa )/1000.0
+                # scase_po = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_po, is_aa )/1000.0
+                tab[3,2] += w*pr[tc]*max_contrib_pr/1000 #*scase_pr # 
+                tab[3,3] += w*po[tc]*max_contrib_po/1000 # scase_po # 
             end
-        
-            if ismissing(tab[1,3])
-                @show po
-                println( "nothing for tab[1,3] ???")
-            end
-            tcost = Symbol(prop_cols[i]*"_cost")
-            tab[1,2] += w*pr[tc]
-            tab[1,3] += w*po[tc]
-            tab[2,2] += w*pr[tc]*pr[tcost]
-            tab[2,3] += w*po[tc]*pr[tcost]
-            # scase_pr = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_pr, is_aa )/1000.0
-            # scase_po = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_po, is_aa )/1000.0
-            tab[3,2] += w*pr[tc]*max_contrib_pr/1000 #*scase_pr # 
-            tab[3,3] += w*po[tc]*max_contrib_po/1000 # scase_po # 
         end
     end
     tab[4,2] = tab[2,2] - tab[3,2]
