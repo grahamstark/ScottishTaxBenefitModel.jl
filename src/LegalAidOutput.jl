@@ -1028,7 +1028,6 @@ function make_summary_tab(
     @argcheck size(pre)[1]==size(post)[1]
     nrows,ncols = size(pre)    
     weeks = is_aa ? 1.0 : WEEKS_PER_YEAR
-    is_aa = true
     tab = summary_frame()
     prop_cols = [
         "adults_with_incapacity",
@@ -1043,10 +1042,10 @@ function make_summary_tab(
         w = pr[weight_sym]
         @assert w == po[weight_sym]
         max_contrib_pr = 
-            pr.income_contribution_amt*weeks
+            pr.income_contribution_amt*weeks +
             pr.capital_contribution_amt
         max_contrib_po = 
-            po.income_contribution_amt*weeks
+            po.income_contribution_amt*weeks +
             po.capital_contribution_amt
         # @show po
         for i in 1:tsize 
