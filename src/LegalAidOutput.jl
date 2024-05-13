@@ -1051,6 +1051,15 @@ function make_summary_tab(
         # @show po
         for i in 1:tsize 
             tc = Symbol(prop_cols[i]*"_prop")
+            if ismissing(po[tc])
+                @show po
+                println( "nothing for $tc ???")
+            end
+        
+            if ismissing(tab[1,3])
+                @show po
+                println( "nothing for tab[1,3] ???")
+            end
             tcost = Symbol(prop_cols[i]*"_cost")
             tab[1,2] += w*pr[tc]
             tab[1,3] += w*po[tc]
