@@ -997,25 +997,26 @@ take some samples of actual cases of this type and compare them to a contributio
 
 """
 function get_sample_case_cost( 
-    hsm_censored:: AbstractString, 
-    contrib::Number,
-    is_aa :: Bool )::Number
+    hsm_censored :: AbstractString, 
+    contrib_pre  :: Number,
+    contrib_post :: Number,
+    is_aa :: Bool )::Tuple
     # costs dg grouped on case type (hsm, run through utils.basiccensor)
     costs = is_aa ? LegalAidData.AA_COSTS_GRP1 : LegalAidData.CIVIL_COSTS_GRP1
     paid = costs[(;hsm_censored=hsm_censored)].totalpaid
     npaid = size(paid)[1]
-    if npaid == 0 
-        return contrib
-    end
-    tot = 0.0    
+    tot_pre = 0.0    
+    tot_post = 0.0    
     nms = min( npaid, MAX_COST_SAMPLES )
     costs_sample = sample( paid, nms )
     for c in costs_sample
-        tot += min( contrib, c ) # pay at most the case cost
+        tot_pre += min( contrib_pre, c ) # pay at most the case cost
+        tot_post += min( contrib_post, c ) # pay at most the case cost
     end
-    avg = tot/nms
+    avg_pre = tot_pre/nms
+    avg_post = tot_post/nms
     # println( "contrib=$contrib is_aa=$is_aa hsm_censored $hsm_censored npaid $npaid tot $tot avg=$avg")
-    return avg
+    return avg_pre, avg_post
 end
 
 function summary_frame()
@@ -1071,13 +1072,10 @@ function make_summary_tab(
                 tab[1,3] += w*postres
                 tab[2,2] += w*pr[tc]*pr[tcost]
                 tab[2,3] += w*postres*postcost
-                if max_contrib_pr > 0
-                    scase_pr = get_sample_case_cost( prop_cols[i], max_contrib_pr, is_aa )/1000.0
-                    tab[3,2] += w*pr[tc]*scase_pr/1000 #*scase_pr # 
-                end
-                if max_contrib_po > 0
-                    scase_po = get_sample_case_cost( prop_cols[i], max_contrib_po, is_aa )/1000.0
-                    tab[3,3] += w*postres*scase_po/1000 # scase_po # 
+                if (max_contrib_pr > 0)||(max_contrib_po > 0)
+                    scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
+                    tab[3,2] += w*pr[tc]*scase_pr/1000.0 #*scase_pr # 
+                    tab[3,3] += w*postres*scase_po/1000.0 # scase_po # 
                 end                
             end
         end
