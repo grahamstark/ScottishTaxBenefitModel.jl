@@ -1034,9 +1034,10 @@ function make_summary_tab(
     prop_cols = [
         "adults_with_incapacity",
         "contact_or_parentage",
+        "divorce_or_separation",
         "family_or_matrimonial_other",
         "other",
-        "residence"]
+        "residence"]        
     tsize = size(prop_cols)[1]
     for row in 1:nrows
         pr = pre[row,:]
@@ -1052,17 +1053,19 @@ function make_summary_tab(
         # @show po
         for i in 1:tsize 
             tc = Symbol(prop_cols[i]*"_prop")
-            tcost = Symbol(prop_cols[i]*"_cost")
-            postres = coalesce( po[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
-            postcost = coalesce( po[tcost], 0.0 )
-            tab[1,2] += w*pr[tc]
-            tab[1,3] += w*postres
-            tab[2,2] += w*pr[tc]*pr[tcost]
-            tab[2,3] += w*postres*postcost
-            # scase_pr = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_pr, is_aa )/1000.0
-            # scase_po = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_po, is_aa )/1000.0
-            tab[3,2] += w*pr[tc]*max_contrib_pr/1000 #*scase_pr # 
-            tab[3,3] += w*postres*max_contrib_po/1000 # scase_po # 
+            if columnindex(po,tc) > 0 # col exists
+                tcost = Symbol(prop_cols[i]*"_cost")
+                postres = coalesce( po[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
+                postcost = coalesce( po[tcost], 0.0 )
+                tab[1,2] += w*pr[tc]
+                tab[1,3] += w*postres
+                tab[2,2] += w*pr[tc]*pr[tcost]
+                tab[2,3] += w*postres*postcost
+                # scase_pr = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_pr, is_aa )/1000.0
+                # scase_po = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_po, is_aa )/1000.0
+                tab[3,2] += w*pr[tc]*max_contrib_pr/1000 #*scase_pr # 
+                tab[3,3] += w*postres*max_contrib_po/1000 # scase_po # 
+            end
         end
     end
     tab[4,2] = tab[2,2] - tab[3,2]
