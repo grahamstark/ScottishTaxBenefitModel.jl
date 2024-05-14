@@ -178,11 +178,13 @@ end
     capital_cont_type = cont_proportion
     income_contribution_rates :: RateBands{RT} =  [0.0,33.0,50.0,100.0]
     income_contribution_limits :: RateBands{RT} =  [3_521.0, 11_540.0, 15_743, 26_239.0]        
+    #=
     passported_benefits        = IncomesSet([
         INCOME_SUPPORT, 
         NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
         NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
         UNIVERSAL_CREDIT])
+    =#
     pensioner_age_limit        = 9999
     # capital from wealth tax
     included_capital = WealthSet([net_financial_wealth,net_physical_wealth])
