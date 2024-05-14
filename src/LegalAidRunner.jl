@@ -51,7 +51,7 @@ function initialise(
 
     # create takeup propensities
     settings.do_legal_aid = true
-    laresults = do_one_run( settings, systems, observer; reset_results=true )
+    laresults = do_one_run( settings, systems, observer; reset_propensities = true )
     println( "initialise; at create wide propensities ")
     return laresults
 end
@@ -94,7 +94,8 @@ function do_one_run(
     systems  :: Vector{TaxBenefitSystem{T}},
     observer :: Observable;
     reset_data = false,
-    reset_results = false ) :: AllLegalOutput where T
+    reset_results = false,
+    reset_propensities = false ) :: AllLegalOutput where T
 
     if(FRSHouseholdGetter.get_num_households() == 0) || reset_data
         settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
@@ -161,7 +162,7 @@ function do_one_run(
             end
         end # hhlds in each chunk 
     end # threads
-    LegalAidOutput.create_propensities( lout; reset_results = reset_results )
+    LegalAidOutput.create_propensities( lout; reset_results = reset_propensities )
 
     # @show RESULTS.civil_propensities
     LegalAidOutput.summarise_la_output!( lout )
