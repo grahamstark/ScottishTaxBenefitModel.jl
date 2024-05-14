@@ -1065,7 +1065,7 @@ function make_summary_tab(
         # @show po
         for i in 1:tsize 
             tc = Symbol(prop_cols[i]*"_prop")
-            if(columnindex(po,tc) > 0) && columnindex(pr,tc) # col exists in both frames?
+            if( columnindex(po,tc) > 0 ) && ( columnindex(pr,tc) > 0 ) # col exists in both frames?
                 tcost = Symbol(prop_cols[i]*"_cost")
                 postres = coalesce( po[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
                 postcost = coalesce( po[tcost], 0.0 )

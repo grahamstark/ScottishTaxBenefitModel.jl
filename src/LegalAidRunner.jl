@@ -51,7 +51,7 @@ function initialise(
 
     # create takeup propensities
     settings.do_legal_aid = true
-    laresults = do_one_run( settings, systems, observer )
+    laresults = do_one_run( settings, systems, observer; reset_results=true )
     println( "initialise; at create wide propensities ")
     return laresults
 end
