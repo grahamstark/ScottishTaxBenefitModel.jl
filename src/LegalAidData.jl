@@ -291,7 +291,10 @@ const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
 const CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
 const CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
 const CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
-const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm])
+
+const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
+const AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
+
 const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
 const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
 const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])

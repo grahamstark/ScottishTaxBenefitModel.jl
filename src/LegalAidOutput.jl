@@ -987,25 +987,35 @@ function crosstab_to_df( ct :: Matrix ) :: DataFrame
     Utils.matrix_to_frame( ct, ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
 end
 
+
+const MAX_COST_SAMPLES = 5
 """
-FIXME not used as it's really slow
+take some samples of actual cases of this type and compare them to a contribution.
+# status::String, 
+# sex::AbstractString, 
+# age2::AbstractString,
+
 """
 function get_sample_case_cost( 
-    hsm:: AbstractString, 
-    # status::String, 
-    sex::AbstractString, 
-    age2::AbstractString,
+    hsm_censored:: AbstractString, 
     contrib::Number,
     is_aa :: Bool )::Number
-    costs = is_aa ? LegalAidData.CIVIL_COSTS : LegalAidData.AA_COSTS 
-    paid = costs[(costs.age2.==age2) .& (costs.sex.==sex) .& (costs.hsm_censored .== hsm ),:totalpaid]
+    # costs dg grouped on case type (hsm, run through utils.basiccensor)
+    costs = is_aa ? LegalAidData.AA_COSTS_GRP1 : LegalAidData.CIVIL_COSTS_GRP1
+    paid = costs[(;hsm_censored=hsm_censored)].totalpaid
     npaid = size(paid)[1]
-    tot = 0.0
-    for i in 1:npaid
-        tot += min( contrib, paid[i])
+    if npaid == 0 
+        return contrib
     end
-    println( "hsm $hsm npaid $npaid tot")
-    return npaid == 0 ? 0.0 : tot/npaid
+    tot = 0.0    
+    nms = min( npaid, MAX_COST_SAMPLES )
+    costs_sample = sample( paid, nms )
+    for c in costs_sample
+        tot += min( contrib, c ) # pay at most the case cost
+    end
+    avg = tot/nms
+    # println( "contrib=$contrib is_aa=$is_aa hsm_censored $hsm_censored npaid $npaid tot $tot avg=$avg")
+    return avg
 end
 
 function summary_frame()
@@ -1061,10 +1071,14 @@ function make_summary_tab(
                 tab[1,3] += w*postres
                 tab[2,2] += w*pr[tc]*pr[tcost]
                 tab[2,3] += w*postres*postcost
-                # scase_pr = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_pr, is_aa )/1000.0
-                # scase_po = get_sample_case_cost( prop_cols[i], pr.sex, pr.age2, max_contrib_po, is_aa )/1000.0
-                tab[3,2] += w*pr[tc]*max_contrib_pr/1000 #*scase_pr # 
-                tab[3,3] += w*postres*max_contrib_po/1000 # scase_po # 
+                if max_contrib_pr > 0
+                    scase_pr = get_sample_case_cost( prop_cols[i], max_contrib_pr, is_aa )/1000.0
+                    tab[3,2] += w*pr[tc]*scase_pr/1000 #*scase_pr # 
+                end
+                if max_contrib_po > 0
+                    scase_po = get_sample_case_cost( prop_cols[i], max_contrib_po, is_aa )/1000.0
+                    tab[3,3] += w*postres*scase_po/1000 # scase_po # 
+                end                
             end
         end
     end
