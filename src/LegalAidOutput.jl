@@ -256,13 +256,13 @@ function create_base_propensities(
     # Hack for adults_with_incapacity, since these are effectively outside 
     # of the means-test. Make a uniform takeup and cost so we always 
     # get the same output regardless of entitlements when weighred up.
-    awi = costs[ costs.hsm .== "Adults with incapacity", :] 
+    awi = costs[ costs.hsm .== "Adults with incapacity/Mental Health", :]
     @assert size( awi )[1] > 0
     awicost = sum( awi.totalpaid )
     awicount = length( awi.totalpaid )
     popn = sum( entitlement.weight )
-    cost_and_count.adults_with_incapacity_cost .= awicost/(awicount*1000) # in 000s
-    cost_and_count.adults_with_incapacity_prop .= awicount/popn
+    cost_and_count.adults_with_incapacity_or_mental_health_cost .= awicost/(awicount*1000) # in 000s
+    cost_and_count.adults_with_incapacity_or_mental_health_prop .= awicount/popn
 
     println( "create_base_propensities cost_and_count=")
     @show cost_and_count
@@ -582,14 +582,15 @@ end
 """
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
 return a dataframe (grouped?) with LA_BITS as columns and broken down values for one of TARGETS.
+`to_combine` is e.g. tenure, employment, etc. 
 """
 function combine_one_legal_aid( 
     df :: DataFrame, 
     to_combine :: Symbol, 
     weighted_cols :: AbstractArray,
     labels :: AbstractArray )::AbstractDataFrame
-    gdf = groupby( df, to_combine )
-    outf = combine( gdf, weighted_cols .=>sum )
+    gdf = groupby( df, to_combine ) # so, group by tenure, region, etc.
+    outf = combine( gdf, weighted_cols .=>sum ) # then the `combine step` - replace with a weighted sum of e.g. num entitled
     sort!( df, to_combine )
     # column names: add `Tenure`, 'Employment' or whatever as the 1st entry
     labels = push!( [Utils.pretty(string(to_combine))], labels... )
@@ -643,7 +644,7 @@ end
 
 """
 Call `combine_one_legal_aid` on all the `TARGETS`
-
+labels - e.g. 
 return a dictionary of grouped dataframes 
 """
 function aggregate_all_legal_aid( 
@@ -659,6 +660,7 @@ function aggregate_all_legal_aid(
     # Make summing easier by add weighted columms to la counts columns.
     # LA_BITS are the column headers: numbers of cases, numbers of those
     # eligible and so on. So for eligibble (1/0), add wt_eligible, and so on.
+    # FIXME I don't thing we actually need this if we have fancier 'combines' above - CHECK
     for i in eachindex(target_columns)
         tc = target_columns[i]
         psym = Symbol( "wt_$(tc)")
@@ -1044,7 +1046,7 @@ function make_summary_tab(
     weeks = is_aa ? 1.0 : WEEKS_PER_YEAR
     tab = summary_frame()
     prop_cols = [
-        "adults_with_incapacity",
+        "adults_with_incapacity_or_mental_health",
         "contact_or_parentage",
         "divorce_or_separation",
         "family_or_matrimonial_other",

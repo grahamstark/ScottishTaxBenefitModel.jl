@@ -289,8 +289,8 @@ function find_consumption_for_hh!( hh :: Household, settings :: Settings, which 
         case = match[lcf_case_sym]
         datayear = match[lcf_datayear_sym]
     else # FIXME NOT NEEDED
-        case = hh.lcf_default_matched_case
-        datayear = hh.lcf_default_data_year    
+        # case = hh.lcf_default_matched_case
+        # datayear = hh.lcf_default_data_year    
     end
     find_consumption_for_hh!( hh, case, datayear )
 end

@@ -79,10 +79,11 @@ function group_cases( fcase :: AbstractString )
     return if fcase in [
     "Residence"
     "Divorce/separation"
-    "Adults with incapacity"
     "Family/matrimonial - other"
     "Contact/parentage"]
     fcase
+    elseif fcase in ["Adults with incapacity", "Mental health" ]
+        "Adults with incapacity/Mental Health"
     else
         "Other"
     end

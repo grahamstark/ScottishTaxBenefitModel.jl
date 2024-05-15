@@ -221,8 +221,8 @@ mutable struct Household{RT<:Real}
     original_income_decile :: Int
     equiv_original_income_decile :: Int
     # FIXME make a proper consumption structure here rather than just an lcf dump.
-    lcf_default_matched_case :: Int 
-    lcf_default_data_year :: Int  
+    # lcf_default_matched_case :: Int 
+    # lcf_default_data_year :: Int  
     expenditure :: Union{Nothing,DataFrameRow}
     factor_costs :: Union{Nothing,DataFrameRow}
     people::People_Dict{RT}

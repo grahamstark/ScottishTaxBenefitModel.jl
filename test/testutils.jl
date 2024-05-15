@@ -212,3 +212,11 @@ function do_basic_uk_run( ; reset = true )::Tuple
    sys = [get_system(year=2023, scotland=false), get_system(year=2023, scotland=false)]
    return do_basic_run( settings, sys, reset = reset )
 end
+
+#
+# This needs to match the path in the default run settings.
+#
+tmpdir = joinpath( tempdir(), "output" )
+if ! isdir( tmpdir )
+   mkdir( tmpdir )
+end
