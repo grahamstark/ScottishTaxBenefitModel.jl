@@ -78,9 +78,6 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
             cost_col = Symbol( "$(subject)_cost")
             prop_col = Symbol( "$(subject)_prop")
             if (r[prop_col] == 0) && (r.la_status == la_passported)
-                println( "fixing up $subject")
-                @show r
-                
                 alt = props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
                         (props.age2 .== r.age2)), :]
@@ -90,7 +87,6 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
                     prop = cases/(r.popn+alt.popn[1])
                     r[prop_col] = prop
                     r[cost_col] = alt[1,cost_col]
-                    println( "cost set to $(r[cost_col])")
                 end
                 props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
@@ -192,7 +188,6 @@ function create_base_propensities(
                 hsm = hsm,
                 age = k.age2,
                 sex = k.sex )
-            # @show costk
             # then look up & fill if there are records for the costs for that combo 
             # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
             if haskey( costs_grp4, costk ) 
@@ -224,7 +219,6 @@ function create_base_propensities(
             la_status = k.la_status, 
             age = k.age2,
             sex = k.sex )
-        # @show costk
         # then look up & fill if there are records for the costs for that combo 
         # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
         if haskey( costs_grp3, costk ) 
@@ -264,8 +258,6 @@ function create_base_propensities(
     cost_and_count.adults_with_incapacity_or_mental_health_cost .= awicost/(awicount*1000) # in 000s
     cost_and_count.adults_with_incapacity_or_mental_health_prop .= awicount/popn
 
-    println( "create_base_propensities cost_and_count=")
-    @show cost_and_count
     fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
     return (; cost_and_count, long_data=out )
 end
@@ -356,8 +348,6 @@ function merge_in_probs_and_props(
         problem_probs; 
         on = [:hid, :data_year, :pid ], 
         makeunique=true)
-    # @show names(r)
-    # @show names(propensities)
     r = leftjoin( 
         r, 
         propensities;
@@ -555,8 +545,6 @@ function make_post_consistent_with_pre!(;
     prop_items :: Vector )
     @argcheck size(pre)[1] == size(post)[1]
     n = size(pre)[1]
-    @show cost_items
-    @show prop_items
     for i in 1:n
         r2 = post[i,:]
         r1 = pre[i,:]
@@ -570,7 +558,6 @@ function make_post_consistent_with_pre!(;
             for p in prop_items
                  r2[p] = min( r2[p], r1[p])
             end
-            # println("worsened; ")
         elseif r2.entitlement < r1.entitlement
             for p in prop_items # improved; always use higher prop
                 r2[p] = max( r2[p], r1[p])
@@ -596,7 +583,6 @@ function combine_one_legal_aid(
     labels = push!( [Utils.pretty(string(to_combine))], labels... )
     # .. then rename the columns to these 
     rename!( outf, labels )
-    # @show outf
     sort!( outf)
     return coalesce.(outf,0) # fix missings
 end
@@ -822,6 +808,7 @@ function summarise_la_output!(
     propensities :: DataFrame, 
     is_aa :: Bool )
     # base data 
+    println( "summarise_la_output! entered la.num_systems=$(la.num_systems)")
     data1 = merge_in_probs_and_props( 
         la.data[1], 
         LegalAidData.LA_PROB_DATA,
@@ -1064,7 +1051,6 @@ function make_summary_tab(
         max_contrib_po = 
             po.income_contribution_amt*weeks +
             po.capital_contribution_amt
-        # @show po
         for i in 1:tsize 
             tc = Symbol(prop_cols[i]*"_prop")
             if( columnindex(po,tc) > 0 ) && ( columnindex(pr,tc) > 0 ) # col exists in both frames?

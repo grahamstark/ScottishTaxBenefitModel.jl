@@ -233,9 +233,20 @@ function do_one_calc(
     end
     aggregate!( hh, hres )
     if settings.do_legal_aid
-        calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
-        calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )        
-        # FIXME AA
+        calc_legal_aid!( 
+            hres, 
+            hh, 
+            intermed, 
+            sys.legalaid.civil, 
+            sys.nmt_bens, 
+            sys.age_limits )
+        calc_legal_aid!( 
+            hres, 
+            hh, 
+            intermed, 
+            sys.legalaid.aa, 
+            sys.nmt_bens, 
+            sys.age_limits )        
     end
     return hres
 end

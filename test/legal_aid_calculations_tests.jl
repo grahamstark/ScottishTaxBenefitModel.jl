@@ -75,7 +75,7 @@ using .GeneralTaxComponents:
 using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData
 using .LegalAidOutput
-using .LegalAidRunner
+# using .LegalAidRunner
 
 using .SingleHouseholdCalculations: do_one_calc
 
@@ -85,8 +85,22 @@ using .HTMLLibs
 
 using DataFrames, CSV
 
+import .Runner
+
 sys = get_system( year=2023, scotland=true )
 print = PrintControls()
+
+function lasettings()
+    settings = Settings()
+    settings.run_name = "Local Legal Aid Runner Test - base case"
+    settings.export_full_results = true
+    settings.do_legal_aid = true
+    settings.wealth_method = imputation 
+    settings.requested_threads = 4
+    settings.num_households,  settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true )
+    return settings
+end
 
 function blank_incomes!( hh, wage; annual=true )
     for( pid, pers ) in hh.people
@@ -100,13 +114,28 @@ function blank_incomes!( hh, wage; annual=true )
         income /= WEEKS_PER_YEAR
     end
     hhead.income[wages] = income 
-
 end
 
 sys1 = deepcopy(sys)
 sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth, net_physical_wealth ])
 sys2 = deepcopy( sys1 )
 # sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
+
+@testset "Run From Standard Runner" begin
+    settings = lasettings()
+    settings.run_name="Test of LA running just in full model."
+    settings.requested_threads = 4
+    settings.wealth_method = other_method_1
+    settings.run_name = "Direct Run"
+    sys2 = deepcopy(sys1)
+    settings.do_legal_aid = true
+
+    results = Runner.do_one_run( settings, [sys1,sys2], obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_frames( outf.legalaid, settings; num_systems=2 )
+    # @show results.legalaid
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2)
+end
 
 @testset "LA utils tests" begin
     exp1 = Expense( false, 1.0, typemax(Float64))
@@ -404,7 +433,6 @@ end
     println( cres )
     HTMLLibs.format( hh, hres, hres; settings=settings, print=PrintControls() )
 end
-
   
 @testset "Expenses Test" begin
 
@@ -449,10 +477,7 @@ end
     @assert r2.extra_allowances ≈ 150 "2 should be 100+50 was $(post.bus[1].legalaid.civil.extra_allowances)"
     @assert (r1.disposable_income - r2.disposable_income) ≈ 150 "inc should be 100 lower is r1=$(r1.disposable_income) r2=$(r2.disposable_income)"
     @show HTMLLibs.format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
-
 end
-
-
 
 """
 See PrettyTable documentation for formatter
@@ -463,7 +488,6 @@ function pt_fmt(val,row,col)
     end
     return Format.format(val,commas=true,precision=0)
 end
-
 
 function test_costs( 
     label :: String,
@@ -484,20 +508,7 @@ function test_costs(
     end
 end
 
-
-
-function lasettings()
-    settings = Settings()
-    settings.run_name = "Local Legal Aid Runner Test - base case"
-    settings.export_full_results = true
-    settings.do_legal_aid = true
-    settings.wealth_method = imputation 
-    settings.requested_threads = 4
-    settings.num_households,  settings.num_people, nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=true )
-    return settings
-end
-
+#=
 @testset "using LegalAidRunner" begin
     global tot
     tot = 0
@@ -662,6 +673,7 @@ end
             label="AA cost table $t" ) == ""
     end # breakdown loop
 end # testset
+=#
 
 
 

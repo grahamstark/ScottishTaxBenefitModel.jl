@@ -236,37 +236,19 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
     income = []
     legalaid = nothing
     if settings.do_legal_aid
-        legalaid = LegalAidOutput.AllLegalOutput(T; num_systems=num_systems, num_people=settings.num_people )
+        legalaid = LegalAidOutput.AllLegalOutput(
+            T; 
+            num_systems=num_systems, 
+            num_people=settings.num_people )
     end
-    #=
-    civil_legalaid_pers = []
-    aa_legalaid_bu = []
-    =#
     for s in 1:num_systems
         push!( indiv, make_individual_results_frame( T, settings.num_people ))
         push!( bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
         push!( hh, make_household_results_frame( T, settings.num_households ))
         push!( income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
-        #=
-        push!( civil_legalaid_pers, make_legal_aid_frame_bu( T, settings.num_people )) # num people is an exaggeration since bu level
-        push!( civil_legalaid_bu, make_legal_aid_frame_pers( T, settings.num_people )) # num people is an exaggeration since bu level
-        push!( aa_legalaid_pers, make_legal_aid_frame_pers( T, settings.num_people )) # num people is an exaggeration since bu level
-        push!( aa_legalaid_bu, make_legal_aid_frame_bu( T, settings.num_people )) # num people is an exaggeration since bu level
-        =#
     end
     (; hh, bu, indiv, income, legalaid ) #, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
 end
-
-        #= TODO CONCAT RUN OUTPUT
-        pc_frames[code].quantiles = vcat( pc_frames[code].quantiles, sframes2.quantiles )
-        pc_frames[code].deciles = vcat( pc_frames[code].deciles, sframes2.deciles )
-        pc_frames[code].income_summary = vcat( pc_frames[code].income_summary, sframes2.income_summary )
-        pc_frames[code].poverty = vcat( pc_frames[code].poverty, sframes2.poverty )
-        pc_frames[code].inequality = vcat( pc_frames[code].inequality, sframes2.inequality )
-        pc_frames[code].metrs = vcat( pc_frames[code].metrs, sframes2.metrs )
-        pc_frames[code].child_poverty = vcat( pc_frames[code].child_poverty, sframes2.child_poverty )
-        pc_frames[code].poverty_line = vcat( pc_frames[code].poverty_line, sframes2.poverty_line )
-        =#
 
 
 function fill_hh_frame_row!( hr :: DataFrameRow, hh :: Household, hres :: HouseholdResult )
