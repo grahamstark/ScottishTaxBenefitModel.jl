@@ -852,15 +852,6 @@ function summarise_la_output!(
                 fixup_totals=true )
         
         if sysno > 1
-            #=
-            for p in LegalAidData.PROBLEM_TYPES
-                for est in LegalAidData.ESTIMATE_TYPES
-                    k = "$(p)-$(est)"
-                    # FIXME fancy crosstab is breaking:: More unitests
-                    la.crosstab_pers[sysno-1][k] = la_crosstab( data1, data, p, est )
-                end # estimates          
-            end # problems
-            =#
             la.crosstab_pers[sysno-1], la.crosstab_pers_examples[sysno-1] = 
                 la_crosstab( data1, data )
             la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
