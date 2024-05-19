@@ -2072,4 +2072,18 @@ export HouseholdComposition1,single_person,single_parent,couple_wo_children,coup
    mbus_w_children = 6
 end 
 
+export ExtraDataMethod, 
+   no_method,
+   imputation, 
+   matching,
+   other_method_1,
+   other_method_2,
+   other_method_3
+
+@enum ExtraDataMethod no_method imputation matching other_method_1 other_method_2 other_method_3
+
+
+export WhichBUAdult, ad_head, ad_spouse, ad_both 
+@enum WhichBUAdult ad_head ad_spouse ad_both 
+
 end # module

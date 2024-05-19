@@ -126,7 +126,10 @@ end
 
 function disqualified_on_capital( 
     benefit_unit :: BenefitUnit, 
+    intermed     :: MTIntermediate,
     uc           :: UniversalCreditSys ) :: Bool
+    return intermed.net_financial_wealth > uc.capital_max
+    #=
     cap = 0.0
     bu = benefit_unit # shortcut
     # FIXME we're doing this twice
@@ -139,7 +142,7 @@ function disqualified_on_capital(
             end
         end
     end
-    return cap > uc.capital_max
+    =#
 end
 
 function qualifiying_16_17_yo( 
@@ -357,10 +360,12 @@ end
 ## FIXME we need the extra capital var here benunit.Totsav
 function calc_tariff_income( 
     benefit_unit_result :: BenefitUnitResult,
+    intermed            :: MTIntermediate,
     benefit_unit :: BenefitUnit, 
     uc           :: UniversalCreditSys ) :: NamedTuple
     bu = benefit_unit # shortcut
     ucr = benefit_unit_result.uc # shortcut
+    #=
     cap = 0.0
     # FIXME we're doing this twice!
     for pid in bu.adults
@@ -368,17 +373,23 @@ function calc_tariff_income(
             cap += val
         end
     end
+    =#
+    cap = intermed.net_financial_wealth
     tincome = tariff_income( cap, uc.capital_min, uc.capital_tariff )
     (; cap, tincome )
  end
 
  function calc_tariff_income!( 
     benefit_unit_result :: BenefitUnitResult,
+    intermed            :: MTIntermediate,
     benefit_unit :: BenefitUnit, 
     uc           :: UniversalCreditSys )
     benefit_unit_result.uc.assets, 
     benefit_unit_result.uc.tariff_income = calc_tariff_income( 
-        benefit_unit_result, benefit_unit, uc )
+        benefit_unit_result, 
+        intermed,
+        benefit_unit, 
+        uc )
  end
 
 #
@@ -408,7 +419,7 @@ function calc_universal_credit!(
         return
     end
     bur.uc.basic_conditions_satisfied = true
-    if disqualified_on_capital( bu, uc )
+    if disqualified_on_capital( bu, intermed, uc )
         bur.uc.disqualified_on_capital = true
         return
     end
@@ -419,7 +430,7 @@ function calc_universal_credit!(
         calc_uc_child_costs!( bur.uc, bu, intermed, uc )
     end
     calc_uc_income!( bur, bu, intermed, uc, minwage )
-    calc_tariff_income!( bur, bu, uc )
+    calc_tariff_income!( bur, intermed, bu, uc )
     bur.uc.maximum = 
         bur.uc.standard_allowance + 
         bur.uc.limited_capacity_for_work_activity_element +

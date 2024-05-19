@@ -131,7 +131,8 @@ module FRSHouseholdGetter
         end
         println( deccheck )
         for dc in deccheck
-            @assert isapprox(deccheck[1], dc, atol=40_000 ) "Well, this seems fucked up $(dc) diff $(dc - deccheck[1])."
+            prop = dc/deccheck[1]
+            @assert isapprox( prop, 1, rtol=0.01 ) "Counts in Deciles seem very uneven: prop vs [1]=$(prop) abs diff $(dc - deccheck[1])."
         end 
     end
 

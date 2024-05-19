@@ -28,7 +28,7 @@
 function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.name = "rUK System 2023/24"
   sys.it.savings_rates = [10.0, 20.0, 40.0, 45.0]
-  sys.it.savings_thresholds = [5_000.0, 37_700.0, 125_000.0]
+  sys.it.savings_thresholds = [5_000.0, 37_700.0, 125_140.0]
   sys.it.savings_basic_rate = 2 # above this counts as higher rate
 
   sys.it.non_savings_rates = [20.0,40.0,45.0]
@@ -36,7 +36,7 @@ function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
 
   sys.it.dividend_rates = [0.0, 8.75,33.75,39.35]
-  sys.it.dividend_thresholds = [1_000.0, 37_700.0, 150_000.0] # FIXME this gets the right answers & follows Melville, but the 2k is called 'dividend allowance in HMRC docs'
+  sys.it.dividend_thresholds = [1_000.0, 37_700.0, 125_140.0] # FIXME this gets the right answers & follows Melville, but the 2k is called 'dividend allowance in HMRC docs'
   sys.it.dividend_basic_rate = 2 # above this counts as higher 
 
   sys.it.personal_allowance   = 12_570.00

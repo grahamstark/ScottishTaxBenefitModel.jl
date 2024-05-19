@@ -93,7 +93,13 @@ end
 @testset "Basic UBI Tests" begin
     
     for (hht,hh) in get_all_examples()
-        intermed = make_intermediate( hh, sys.hours_limits, sys.age_limits, sys.child_limits )
+        intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
+            hh, 
+            sys.hours_limits, 
+            sys.age_limits, 
+            sys.child_limits )
         for ent in instances( UBEntitlement )
             hres = init_household_result( hh )
             sys.ubi.entitlement = ent

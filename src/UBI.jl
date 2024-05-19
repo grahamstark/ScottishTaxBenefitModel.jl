@@ -152,7 +152,7 @@ function calc_UBI!(
                 uc_sys,
                 minwage )
             assets, tariff_income = calc_tariff_income( 
-                benefit_unit_result, benefit_unit, uc_sys )
+                benefit_unit_result, intermed, benefit_unit, uc_sys )
             total_income = other_income + earned_income/uc_sys.taper +
                 tariff_income
             excess = max(0.0, total_income - ubisys.income_limit)

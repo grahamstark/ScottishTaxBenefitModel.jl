@@ -99,8 +99,10 @@ function create_adults(
         if model_adult.is_bu_head == 1
             # see the note on capital in `docs/legalaid` - and 
             # assign BU total to head of bu
-            # totcap3 us is the only measure in all of 2015-2021 FRSs
+            # totsav3 us is the only measure in all of 2015-2021 FRSs
             model_adult.wealth_and_assets = frs_bu.totcapb3
+            # we'll also store the band 
+            model_adult.totsav= frs_bu.totsav
         end
         a_job = job[((job.sernum.==frs_person.sernum).&(job.benunit.==frs_person.benunit).&(job.person.==frs_person.person)), :]
         a_benunit = benunit[((frs_person.benunit .== benunit.benunit).&(frs_person.sernum.==benunit.sernum)),:]
@@ -171,10 +173,10 @@ function create_adults(
         ) # overseas pensions
         # payments from charities, bbysitting ..
         # model_adult.income_other_income = safe_inc( model_adult.income_other_income, frs_person.[x]
-        model_adult.income_alimony_and_child_support_received = map_alimony(
+        model_adult.income_alimony_and_child_support_received,
+        model_adult.income_alimony_and_child_support_paid = map_alimony(
             frs_person,
-            a_maint
-        )
+            a_maint )
 
         model_adult.income_odd_jobs = 0.0
         for o in 1:nojs

@@ -348,6 +348,7 @@ function map_person(
         model_person.pno,  # Integer# person number in household
         safe_to_bool(model_person.is_hrp), 
         model_person.default_benefit_unit,  # Integer
+        safe_to_bool(model_person.is_bu_head),
         safe_to_bool(model_person.from_child_record), # Bool
         model_person.age,  # Integer
         Sex(model_person.sex),  # Sex
@@ -420,7 +421,7 @@ function map_person(
         m2z( model_person.travel_to_work ),
         m2z( model_person.debt_repayments ),
         m2z( model_person.wealth_and_assets ),
-
+        model_person.totsav, # FIXME unedited FRS totsav field needs enum ??? 
         strtobi(model_person.onerand),
         nothing # legal aid added as needed FIXME? maybe make this 'other data'??
     )
@@ -475,6 +476,9 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         frs_hh.net_housing_wealth,
         frs_hh.net_pension_wealth,
         frs_hh.original_gross_income,
+        # frs_hh.lcf_default_matched_case, 
+        # frs_hh.lcf_default_data_year,
+    
         -1, # original_income_decile
         -1, # equiv_original_income_decile
         nothing, # Recorded expenditure; loaded afterwards as needed.

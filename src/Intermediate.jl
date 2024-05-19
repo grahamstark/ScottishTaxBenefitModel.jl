@@ -56,6 +56,8 @@ using .Utils:
 
 using .STBIncomes
 
+using .RunSettings: Settings
+
 export 
     MTIntermediate,     
     apply_2_child_policy,
@@ -206,7 +208,7 @@ end
 #
 # FIXME some names here need clarified
 #
-mutable struct MTIntermediate
+mutable struct MTIntermediate{RT<:Real}
 
     benefit_unit_number :: Int
     num_people :: Int
@@ -253,6 +255,12 @@ mutable struct MTIntermediate
     num_benefit_units :: Int
     nation :: Nation 
     all_student_bu :: Bool
+
+    net_physical_wealth :: RT
+    net_financial_wealth :: RT
+    net_housing_wealth :: RT
+    net_pension_wealth :: RT
+
 end
 
 
@@ -340,9 +348,129 @@ function aggregate!( sum :: MTIntermediate, add :: MTIntermediate )
     sum.has_children = sum.has_children || add.has_children
     sum.economically_active = sum.economically_active || add.economically_active
     sum.working_disabled = sum.working_disabled || add.working_disabled
+
+    sum.net_physical_wealth += add.net_physical_wealth
+    sum.net_financial_wealth += add.net_financial_wealth
+    sum.net_housing_wealth += add.net_housing_wealth
+    sum.net_pension_wealth += add.net_pension_wealth
+
+end
+
+
+#=
+frs     | 2018 | benunit | TOTSAV        | 10    | Does not wish to say        | Does_not_wish_to_say
+ frs     | 2018 | benunit | TOTSAV        | 2     | From 1,500 up to 3,000      | From_1_500_up_to_3_000
+ frs     | 2018 | benunit | TOTSAV        | 3     | From 3,000 up to 8,000      | From_3_000_up_to_8_000
+ frs     | 2018 | benunit | TOTSAV        | 4     | From 8,000 up to 20,000     | From_8_000_up_to_20_000
+ frs     | 2018 | benunit | TOTSAV        | 5     | From 20,000 up to 25,000    | From_20_000_up_to_25_000
+ frs     | 2018 | benunit | TOTSAV        | 6     | From 25,000 up to 30,000    | From_25_000_up_to_30_000
+ frs     | 2018 | benunit | TOTSAV        | 7     | From 30,000 up to 35,000    | From_30_000_up_to_35_000
+ frs     | 2018 | benunit | TOTSAV        | 8     | From 35,000 up to 40,000    | From_35_000_up_to_40_000
+ frs     | 2018 | benunit | TOTSAV        | 9     | Over 40,000                 | Over_40_000
+frs     | 2021 | benunit | TOTSAV        | 10    | Over £500,000               | Over_£500_000
+ frs     | 2021 | benunit | TOTSAV        | 11    | Does not wish to say        | Does_not_wish_to_say
+ frs     | 2021 | benunit | TOTSAV        | 2     | From £100 up to £1,500      | From_£100_up_to_£1_500
+ frs     | 2021 | benunit | TOTSAV        | 3     | From £1,500 up to £3,000    | From_£1_500_up_to_£3_000
+ frs     | 2021 | benunit | TOTSAV        | 4     | From £3,000 up to £6,000    | From_£3_000_up_to_£6_000
+ frs     | 2021 | benunit | TOTSAV        | 5     | From £6,000 up to £16,000   | From_£6_000_up_to_£16_000
+ frs     | 2021 | benunit | TOTSAV        | 6     | From £16,000 up to £30,000  | From_£16_000_up_to_£30_000
+ frs     | 2021 | benunit | TOTSAV        | 7     | From £30,000 up to £50,000  | From_£30_000_up_to_£50_000
+ frs     | 2021 | benunit | TOTSAV        | 8     | From £50,000 up to £200,000 | From_£50_000_up_to_£200_000
+ frs     | 2021 | benunit | TOTSAV        | 9     | From £200,000 to £500,000   | From_£200_000_to_£500_000
+
+
+ =#
+
+ function randi( onerand::String, range :: Integer; start=10, stop=15 ) 
+    parse(Int,onerand[10:15]) % range # semi random number between 0 and 4999
+end
+
+function map_totsav( totsav::Int, data_year :: Int, default :: Real, onerand::String ) :: Real
+    
+    function oneinrange( totsav::Int, starts::Vector, onerand::String )::Real
+        s = starts[totsav]
+        range = starts[totsav+1]-starts[totsav]
+        v = s + randi( onerand, range )
+        @assert v in s:(s+range) "v = $v ; out of range of $(s):$(s+range)"
+        return v
+    end
+
+    # if totsav == 0
+    #    return 0 # should only be called for 1st bu
+    # end
+    # @show totsav data_year default 
+    cap = -11.0
+    if data_year in 2015:2019
+        if totsav in [-1,1,10]
+            cap = default
+        elseif totsav == 9 # 40k and above
+            if default > 40_000
+                cap = default
+            else
+                cap = 50_000 # FIXME 
+            end
+        else
+            starts = [0,1_500,3_000,8_000,20_000,25_000,30_000,35_000,40_000]
+            cap = oneinrange( totsav, starts, onerand )
+        end    
+    elseif data_year >= 2020
+        if totsav in [-1,1, 11]
+            cap = default
+        elseif totsav == 10
+            if default > 500_000
+                cap = default
+            else
+                cap = 600_000
+            end
+        else
+            starts = [0,100,1_500,3_000,6_000,16_000,30_000,50_000,200_000,500_000]
+            cap = oneinrange( totsav, starts, onerand )
+        end
+    else
+        @assert false "can't map for totsav=$totsav; year $data_year"
+    end
+    @assert cap >= 0 "can't get to here totsav=$totsav; datayear=$data_year cap=$cap"
+    return max(default,cap)
+end
+
+"""
+return 3 element vector 1=financial, 2=physical 3=housing 4=pension
+"""
+function add_wealth!( 
+    intermed  :: MTIntermediate{T},
+    hh        :: Household{T},
+    bu        :: BenefitUnit,
+    buno      :: Int,
+    method    :: ExtraDataMethod ) where T
+    if method == imputation 
+        if buno == 1 # use the regression hhld stuff from was & assign all to 1st bu 
+            intermed.net_financial_wealth = hh.net_financial_wealth
+            intermed.net_physical_wealth = hh.net_physical_wealth
+            intermed.net_housing_wealth  = hh.net_housing_wealth 
+            intermed.net_pension_wealth = hh.net_pension_wealth
+        end
+    elseif method == matching
+        @assert false "FRS matching not implemented yet for get_wealth"
+    elseif method == no_method
+        head = get_head( bu )
+        # println( "add_wealth! method=$method head.wealth_and_assets=$(head.wealth_and_assets)")
+        intermed.net_financial_wealth = head.wealth_and_assets
+        # nothing else set
+    elseif method == other_method_1
+        head = get_head( bu )
+        cap = map_totsav(
+            head.totsav,
+            hh.data_year,
+            head.wealth_and_assets,
+            head.onerand )
+        intermed.net_financial_wealth = cap
+        intermed.net_physical_wealth = cap*0.6 # average diff between financial and physical in WAS
+    end
 end
 
 function make_intermediate(
+    T :: Type,
+    settings :: Settings,
     region :: Standard_Region,
     buno :: Int,
     bu   :: BenefitUnit, 
@@ -494,8 +622,14 @@ function make_intermediate(
     ## fixme parameterise this
     num_allowed_children :: Int = apply_2_child_policy( bu, child_limits )
     @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
-                                    
-    return MTIntermediate(
+          
+    
+    net_physical_wealth = zero(T)
+    net_financial_wealth = zero(T)
+    net_housing_wealth = zero(T)
+    net_pension_wealth = zero(T)
+
+    return MTIntermediate{T}(
         buno,
         num_people( bu ),
         age_youngest_adult,
@@ -538,11 +672,16 @@ function make_intermediate(
         is_working_disabled,
         num_benefit_units,
         nation,
-        all_student_bu
-    )
+        all_student_bu,
+        net_physical_wealth,
+        net_financial_wealth,
+        net_housing_wealth,
+        net_pension_wealth )
 end
 
 function make_intermediate( 
+    T :: Type,
+    settings :: Settings,
     hh   :: Household, 
     hrs  :: HoursLimits,
     age_limits :: AgeLimits,
@@ -554,6 +693,8 @@ function make_intermediate(
     buint = Vector{MTIntermediate}(undef,n)
     for buno in 1:n
         buint[buno] = make_intermediate( 
+            T,
+            settings,
             hh.region,
             buno, 
             bus[buno], 
@@ -561,6 +702,12 @@ function make_intermediate(
             age_limits, 
             child_limits,
             n ) 
+        add_wealth!( 
+            buint[buno], 
+            hh, 
+            bus[buno], 
+            buno, 
+            settings.wealth_method )
     end
     hhint = deepcopy( buint[1] )
     for buno in 2:n

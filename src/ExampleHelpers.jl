@@ -223,6 +223,7 @@ end
    buno :: Int = 1 ) :: BigInt
    
    np = deepcopy( SPARE_ADULT )
+   np.is_benefit_unit_head = false
    bus = get_benefit_units( hh )
    bu = bus[buno]
    nbus = size(bus)[1]
@@ -232,6 +233,7 @@ end
    np.pid = maximum( keys( hh.people ))+1
    np.relationships[head.pid] = Spouse
    head.relationships[np.pid] = Spouse
+
    for pid in bu.children
       ch = bu.people[pid]
       np.relationships[pid] = Parent

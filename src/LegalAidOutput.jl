@@ -19,7 +19,8 @@ using .Definitions,
     .ModelHousehold,
     .Results,
     .RunSettings,
-    .Utils 
+    .Utils,
+    .GeneralTaxComponents
 
 export AllLegalOutput, LegalOutput, summarise_la_output!
 
@@ -34,6 +35,7 @@ mutable struct LegalOutput
     crosstab_bu_examples :: Vector{AbstractMatrix}
     crosstab_pers :: Vector{AbstractMatrix} # Vector{Dict{String,AbstractMatrix}}
     crosstab_pers_examples :: Vector{AbstractMatrix}
+    summary_tables :: Vector{AbstractDataFrame}
 end
 
 mutable struct AllLegalOutput
@@ -67,6 +69,8 @@ end
 Hacky hacky: reallocated some of the `la_full` props to `la_passported`
 where `la_passported` is zero. This fixes some problems where entitlement falls but costs go up.
 I'm tired and this is a mess.
+@param props 
+@param subjects a list of LA claim types
 """
 function fixup_props!( props :: DataFrame, subjects :: Vector )
     for r in eachrow(props)
@@ -74,15 +78,16 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
             cost_col = Symbol( "$(subject)_cost")
             prop_col = Symbol( "$(subject)_prop")
             if (r[prop_col] == 0) && (r.la_status == la_passported)
-                println( "fixing up $subject")
                 alt = props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
                         (props.age2 .== r.age2)), :]
-                cases = r.popn*alt[1,prop_col]
-                prop = cases/(r.popn+alt.popn[1])
-                r[prop_col] = prop
-                r[cost_col] = alt[1,cost_col]
-                println( "cost set to $(r[cost_col])")
+                prop = 0.0
+                if size( alt )[1] == 1
+                    cases = r.popn*alt[1,prop_col]
+                    prop = cases/(r.popn+alt.popn[1])
+                    r[prop_col] = prop
+                    r[cost_col] = alt[1,cost_col]
+                end
                 props[ ((props.sex.== r.sex) .& 
                         (props.la_status .== la_full) .&
                         (props.age2 .== r.age2)), prop_col] .= prop
@@ -93,8 +98,6 @@ function fixup_props!( props :: DataFrame, subjects :: Vector )
 end # func
 
 #=
-
-
 function fixup_props!( props :: DataFrame, subjects :: Vector )
     for r in eachrow(props)
         for subject in subjects
@@ -185,7 +188,6 @@ function create_base_propensities(
                 hsm = hsm,
                 age = k.age2,
                 sex = k.sex )
-            # @show costk
             # then look up & fill if there are records for the costs for that combo 
             # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
             if haskey( costs_grp4, costk ) 
@@ -217,7 +219,6 @@ function create_base_propensities(
             la_status = k.la_status, 
             age = k.age2,
             sex = k.sex )
-        # @show costk
         # then look up & fill if there are records for the costs for that combo 
         # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
         if haskey( costs_grp3, costk ) 
@@ -249,16 +250,14 @@ function create_base_propensities(
     # Hack for adults_with_incapacity, since these are effectively outside 
     # of the means-test. Make a uniform takeup and cost so we always 
     # get the same output regardless of entitlements when weighred up.
-    awi = costs[ costs.hsm .== "Adults with incapacity", :] 
+    awi = costs[ costs.hsm .== "Adults with incapacity/Mental Health", :]
     @assert size( awi )[1] > 0
     awicost = sum( awi.totalpaid )
     awicount = length( awi.totalpaid )
     popn = sum( entitlement.weight )
-    cost_and_count.adults_with_incapacity_cost .= awicost/(awicount*1000) # in 000s
-    cost_and_count.adults_with_incapacity_prop .= awicount/popn
+    cost_and_count.adults_with_incapacity_or_mental_health_cost .= awicost/(awicount*1000) # in 000s
+    cost_and_count.adults_with_incapacity_or_mental_health_prop .= awicount/popn
 
-    # println( "create_base_propensities cost_and_count=")
-    # @show cost_and_count
     fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
     return (; cost_and_count, long_data=out )
 end
@@ -334,7 +333,10 @@ function summarise_expenses( df :: DataFrame ) :: GroupedDataFrame
 end
 
 """
-
+Add the propensities for each type of LA to the calculated entitlement data, matching on sex,age,entitlement type.
+results: df with calculated entitlements, contributions and demographics. See `make_legal_aid_frame` above.
+problem_probs: NOT NEEDED this is the file civil-legal-aid-probs-scotland-2015-2012 (should be '21') derived from the Scottish Crime and Justice Survey. It's not really used anymore.
+propensities: this is the probability of a person of some age/sex/entitlement status claiming each type of legal aid under either AA or Civil. See `create_propensities`/`create_base_propensities`.
 """
 function merge_in_probs_and_props( 
     results :: DataFrame,
@@ -346,8 +348,6 @@ function merge_in_probs_and_props(
         problem_probs; 
         on = [:hid, :data_year, :pid ], 
         makeunique=true)
-    # @show names(r)
-    # @show names(propensities)
     r = leftjoin( 
         r, 
         propensities;
@@ -545,8 +545,6 @@ function make_post_consistent_with_pre!(;
     prop_items :: Vector )
     @argcheck size(pre)[1] == size(post)[1]
     n = size(pre)[1]
-    @show cost_items
-    @show prop_items
     for i in 1:n
         r2 = post[i,:]
         r1 = pre[i,:]
@@ -560,7 +558,6 @@ function make_post_consistent_with_pre!(;
             for p in prop_items
                  r2[p] = min( r2[p], r1[p])
             end
-            # println("worsened; ")
         elseif r2.entitlement < r1.entitlement
             for p in prop_items # improved; always use higher prop
                 r2[p] = max( r2[p], r1[p])
@@ -572,20 +569,20 @@ end
 """
 Combine the legal aid dataframe on the column `to_combine`, using either `weight` or `weighted_people`
 return a dataframe (grouped?) with LA_BITS as columns and broken down values for one of TARGETS.
+`to_combine` is e.g. tenure, employment, etc. 
 """
 function combine_one_legal_aid( 
     df :: DataFrame, 
     to_combine :: Symbol, 
     weighted_cols :: AbstractArray,
     labels :: AbstractArray )::AbstractDataFrame
-    gdf = groupby( df, to_combine )
-    outf = combine( gdf, weighted_cols .=>sum )
+    gdf = groupby( df, to_combine ) # so, group by tenure, region, etc.
+    outf = combine( gdf, weighted_cols .=>sum ) # then the `combine step` - replace with a weighted sum of e.g. num entitled
     sort!( df, to_combine )
     # column names: add `Tenure`, 'Employment' or whatever as the 1st entry
     labels = push!( [Utils.pretty(string(to_combine))], labels... )
     # .. then rename the columns to these 
     rename!( outf, labels )
-    # @show outf
     sort!( outf)
     return coalesce.(outf,0) # fix missings
 end
@@ -605,8 +602,35 @@ function fixup_totals!( df :: DataFrame )
 end
 
 """
-Call `combine_one_legal_aid` on all the `TARGETS`
+cost_items - names of each:
+  - costs: la type costs columns
+  - props: la type propensities
+  - labels: pretty print label
+"""
+function make_summary_table( 
+    pre :: DataFrame, 
+    post :: DataFrame,
+    cost_items :: NamedTuple ) :: DataFrame
+    @argcheck size(pre) == size(post)
+    tab = DataFrame( 
+        labels=["Cases","Gross Cost","Contributions","Net Cost"],
+        pre=zeros(4),
+        post=zeros(4),
+        change=zeros(4))
+    nrows,ncols = size( pre )
+    ccc = LegalAidData.CIVIL_COST # alias
+    for i in 1:ncols
+        tab[2,3] += sample( 
+            ccc[
+                ccc.categorydescription.=="Contact", 
+                :totalpaid])
+    end
+    return tab
+end
 
+"""
+Call `combine_one_legal_aid` on all the `TARGETS`
+labels - e.g. 
 return a dictionary of grouped dataframes 
 """
 function aggregate_all_legal_aid( 
@@ -622,6 +646,7 @@ function aggregate_all_legal_aid(
     # Make summing easier by add weighted columms to la counts columns.
     # LA_BITS are the column headers: numbers of cases, numbers of those
     # eligible and so on. So for eligibble (1/0), add wt_eligible, and so on.
+    # FIXME I don't thing we actually need this if we have fancier 'combines' above - CHECK
     for i in eachindex(target_columns)
         tc = target_columns[i]
         psym = Symbol( "wt_$(tc)")
@@ -780,8 +805,10 @@ end
 
 function summarise_la_output!( 
     la :: LegalOutput,
-    propensities :: DataFrame )
+    propensities :: DataFrame, 
+    is_aa :: Bool )
     # base data 
+    println( "summarise_la_output! entered la.num_systems=$(la.num_systems)")
     data1 = merge_in_probs_and_props( 
         la.data[1], 
         LegalAidData.LA_PROB_DATA,
@@ -825,29 +852,23 @@ function summarise_la_output!(
                 fixup_totals=true )
         
         if sysno > 1
-            #=
-            for p in LegalAidData.PROBLEM_TYPES
-                for est in LegalAidData.ESTIMATE_TYPES
-                    k = "$(p)-$(est)"
-                    # FIXME fancy crosstab is breaking:: More unitests
-                    la.crosstab_pers[sysno-1][k] = la_crosstab( data1, data, p, est )
-                end # estimates          
-            end # problems
-            =#
             la.crosstab_pers[sysno-1], la.crosstab_pers_examples[sysno-1] = 
                 la_crosstab( data1, data )
             la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
                 la_crosstab( budata1, budata )
+
+            la.summary_tables[sysno-1] = make_summary_tab( data1, data, is_aa )
         end # sysno > 1
+        la.data[sysno] = data  # save the whole ammended frame inc. matching     
     end
 end
 
 function summarise_la_output!( 
     la :: AllLegalOutput )
     println( "summary: civil")
-    summarise_la_output!( la.civil, PROPENSITIES.civil_propensities )
+    summarise_la_output!( la.civil, PROPENSITIES.civil_propensities, false )
     println( "summary: aa")
-    summarise_la_output!( la.aa, PROPENSITIES.aa_propensities )
+    summarise_la_output!( la.aa, PROPENSITIES.aa_propensities, true )
 end
 
 """
@@ -901,9 +922,22 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
     println( f, "# Run : $(settings.run_name) - Cross Table Civil Entitlement")
     for sysno in 2:num_systems 
         ctno = sysno - 1 # since table 1 is 2 vs 1 and so on
+        println( f, "##  System $sysno vs System 1 Summary Table - CIVIL" )
+        pretty_table(
+            f, 
+            laout.civil.summary_tables[ctno], 
+            backend = Val(:markdown), 
+            cell_first_line_only=true)
         println( f, "##  System $sysno vs System 1  Benefit Unit Level" )
         pc = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
         pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        println( f, "\n\n\n")
+        println( f, "##  System $sysno vs System 1 Summary Table - AA" )
+        pretty_table(
+            f, 
+            laout.aa.summary_tables[ctno], 
+            backend = Val(:markdown), 
+            cell_first_line_only=true)
         println( f, "### cross table AA entitlement")
         pa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
         pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
@@ -933,6 +967,105 @@ function crosstab_to_df( ct :: Matrix ) :: DataFrame
     Utils.matrix_to_frame( ct, ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
 end
 
+
+const MAX_COST_SAMPLES = 5
+"""
+take some samples of actual cases of this type and compare them to a contribution.
+# status::String, 
+# sex::AbstractString, 
+# age2::AbstractString,
+
+"""
+function get_sample_case_cost( 
+    hsm_censored :: AbstractString, 
+    contrib_pre  :: Number,
+    contrib_post :: Number,
+    is_aa :: Bool )::Tuple
+    # costs dg grouped on case type (hsm, run through utils.basiccensor)
+    costs = is_aa ? LegalAidData.AA_COSTS_GRP1 : LegalAidData.CIVIL_COSTS_GRP1
+    paid = costs[(;hsm_censored=hsm_censored)].totalpaid
+    npaid = size(paid)[1]
+    tot_pre = 0.0    
+    tot_post = 0.0    
+    nms = min( npaid, MAX_COST_SAMPLES )
+    costs_sample = sample( paid, nms )
+    for c in costs_sample
+        tot_pre += min( contrib_pre, c ) # pay at most the case cost
+        tot_post += min( contrib_post, c ) # pay at most the case cost
+    end
+    avg_pre = tot_pre/nms
+    avg_post = tot_post/nms
+    # println( "contrib=$contrib is_aa=$is_aa hsm_censored $hsm_censored npaid $npaid tot $tot avg=$avg")
+    return avg_pre, avg_post
+end
+
+function summary_frame()
+    return  DataFrame( 
+        labels=["Cases","Gross Cost","Contributions","Net Cost"],
+        pre=zeros(4),
+        post=zeros(4),
+        change=zeros(4))
+end
+
+
+"""
+pre: results with merged propensities
+post: results with merged propensities
+FIXME: clean this up drastically
+"""
+function make_summary_tab(
+    pre :: DataFrame,
+    post :: DataFrame,
+    is_aa :: Bool;
+    weight_sym = :weight )
+    println( "make_summary_tab; is_aa $is_aa")
+    @argcheck size(pre)[1]==size(post)[1]
+    nrows,ncols = size(pre)    
+    weeks = is_aa ? 1.0 : WEEKS_PER_YEAR
+    tab = summary_frame()
+    prop_cols = [
+        "adults_with_incapacity_or_mental_health",
+        "contact_or_parentage",
+        "divorce_or_separation",
+        "family_or_matrimonial_other",
+        "other",
+        "residence"]        
+    tsize = size(prop_cols)[1]
+    for row in 1:nrows
+        pr = pre[row,:]
+        po = post[row,:]
+        w = pr[weight_sym]
+        @assert w == po[weight_sym]
+        max_contrib_pr = 
+            pr.income_contribution_amt*weeks +
+            pr.capital_contribution_amt
+        max_contrib_po = 
+            po.income_contribution_amt*weeks +
+            po.capital_contribution_amt
+        for i in 1:tsize 
+            tc = Symbol(prop_cols[i]*"_prop")
+            if( columnindex(po,tc) > 0 ) && ( columnindex(pr,tc) > 0 ) # col exists in both frames?
+                tcost = Symbol(prop_cols[i]*"_cost")
+                postres = coalesce( po[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
+                postcost = coalesce( po[tcost], 0.0 )
+                tab[1,2] += w*pr[tc]
+                tab[1,3] += w*postres
+                tab[2,2] += w*pr[tc]*pr[tcost]
+                tab[2,3] += w*postres*postcost
+                if (max_contrib_pr > 0)||(max_contrib_po > 0)
+                    scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
+                    tab[3,2] += w*pr[tc]*scase_pr/1000.0 #*scase_pr # 
+                    tab[3,3] += w*postres*scase_po/1000.0 # scase_po # 
+                end                
+            end
+        end
+    end
+    tab[4,2] = tab[2,2] - tab[3,2]
+    tab[4,3] = tab[2,3] - tab[3,3]
+    tab[:,4] = tab[:,3] .- tab[:,2]
+    return tab
+end
+
 function LegalOutput( T; num_systems::Integer, num_people::Integer )
     datas = Vector{DataFrame}(undef,0)
     breakdown_bu = Vector{Dict}(undef,0)
@@ -943,6 +1076,7 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
     crosstab_bu_examples = Vector{Matrix}(undef,0)
     crosstab_pers = Vector{Matrix}(undef,0) # Vector{Dict{String,Matrix}}(undef,0)
     crosstab_pers_examples = Vector{Matrix}(undef,0)
+    summary_tables = Vector{DataFrame}(undef,0)
     for sysno in 1:num_systems
         push!( datas, make_legal_aid_frame( T, num_people ))
         push!( breakdown_pers, Dict())
@@ -955,6 +1089,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
             push!( crosstab_pers_examples, fill(Int[],4,4))    
             push!(crosstab_bu, fill(T,4,4))
             push!( crosstab_bu_examples, fill(Int[],4,4))    
+            push!(summary_tables, summary_frame());
+    
         end
     end
     LegalOutput( 
@@ -967,7 +1103,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         crosstab_bu, 
         crosstab_bu_examples,
         crosstab_pers,
-        crosstab_pers_examples )
+        crosstab_pers_examples,
+        summary_tables )
 end
 
 function AllLegalOutput( T; num_systems::Integer, num_people::Integer )

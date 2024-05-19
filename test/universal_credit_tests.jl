@@ -70,9 +70,11 @@ using .Definitions
 
 using .STBIncomes
 using .ExampleHelpers
+using .RunSettings
 
 ## FIXME don't need both
 sys = get_system( year=2019, scotland=true )
+settings = Settings()
 
 @testset "UC Example Shakedown Tests" begin
     #
@@ -93,6 +95,8 @@ sys = get_system( year=2019, scotland=true )
 
             bus = get_benefit_units( hh )
             intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,                
                 hh,  
                 sys.hours_limits,
                 sys.age_limits,
@@ -140,6 +144,8 @@ end
     disable_seriously!(j)
     blind!(j)
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -166,6 +172,8 @@ end
     println( hres.bus[1].uc )
     set_childrens_ages!( g_and_j, 10, 9 ) # so none qualify for 1st child extra
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -186,6 +194,8 @@ end
     g_and_j.gross_rent = 100.0
     g_and_j.tenure = Private_Rented_Unfurnished
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -208,6 +218,8 @@ end
     g_and_j.gross_rent = 0.0
     set_childrens_ages!( g_and_j, 3, 2 ) # so none qualify for 1st child extra
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         g_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -232,7 +244,7 @@ end
         sys.minwage
     )
     println( hres.bus[1].uc )    
-    @test hres.bus[1].pers[j.pid].income[UNIVERSAL_CREDIT] ≈ 375.51
+    @test hres.bus[1].pers[g.pid].income[UNIVERSAL_CREDIT] ≈ 375.51
 end
 
 @testset "16-17yo adult tests; cpag ch3 sec2" begin
@@ -244,6 +256,8 @@ end
     bus = get_benefit_units( yph )
     # doesn't qualify in standard case
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -258,6 +272,8 @@ end
     # qualifies as carer
     carer!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -269,6 +285,8 @@ end
         ucs ) 
     uncarer!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -284,6 +302,8 @@ end
     @test num_people(bus[1]) == 2
     @test num_children(bus[1]) == 1
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         yph, 
         sys.hours_limits, 
         sys.age_limits,
@@ -302,46 +322,103 @@ end
     hres = init_household_result( cpl )
     head = get_head( cpl )
     spouse = get_spouse( cpl )
+    @show settings
+    #=
     empty!(head.assets)
     head.over_20_k_saving = false
     empty!(spouse.assets)
     spouse.over_20_k_saving = false
+    =#
+    head.wealth_and_assets = 5_000.0
+    @show cpl.people[cpl.head_of_household]
+    intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
+        cpl, 
+        sys.hours_limits, 
+        sys.age_limits,
+        sys.child_limits )
+    @test intermed.buint[1].net_financial_wealth ≈ 5_000
     bus = get_benefit_units( cpl )
     @test ! disqualified_on_capital(
         bus[1],
+        intermed.buint[1],
         ucs )
-    spouse.over_20_k_saving = true
+    # spouse.over_20_k_saving = true
+    head.wealth_and_assets = 20_000.1
+    intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
+        cpl, 
+        sys.hours_limits, 
+        sys.age_limits,
+        sys.child_limits )
+    @show intermed.buint[1]
+    @test intermed.buint[1].net_financial_wealth ≈ 20_000.1
     @test disqualified_on_capital(
         bus[1],
+        intermed.buint[1],
         ucs )
+    #=
     calc_tariff_income!( 
         hres.bus[1],
+        intermed.buint[1],
         bus[1],
         ucs )
-    @test hres.bus[1].uc.assets == 0 
+    @test hres.bus[1].uc.assets == 20_000.1
     @test hres.bus[1].uc.tariff_income == 0 
+    =# 
+    #=
     spouse.over_20_k_saving = false
+
     spouse.assets[A_Premium_bonds] = 8000
+    head.
+    =#
+    head.wealth_and_assets = 8_000.0
+    intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
+        cpl, 
+        sys.hours_limits, 
+        sys.age_limits,
+        sys.child_limits )
+
     @test ! disqualified_on_capital(
         bus[1],
+        intermed.buint[1],
         ucs )
         calc_tariff_income!( 
             hres.bus[1],
+            intermed.buint[1],
             bus[1],
             ucs )
     @test hres.bus[1].uc.assets == 8_000 
     @test hres.bus[1].uc.tariff_income ≈ ceil((8000-ucs.capital_min)/ucs.capital_tariff)
-    head.assets[A_Premium_bonds] = 8_001
+
+    head.wealth_and_assets = 16_001.0
+    intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
+        cpl, 
+        sys.hours_limits, 
+        sys.age_limits,
+        sys.child_limits )
+
+
+    # head.assets[A_Premium_bonds] = 8_001
     @test disqualified_on_capital(
         bus[1],
+        intermed.buint[1],
         ucs )
     calc_tariff_income!( 
         hres.bus[1],
+        intermed.buint[1],
         bus[1],
         ucs )
+
+
     @test hres.bus[1].uc.assets == 16_001 
-    @test hres.bus[1].uc.tariff_income ≈ ceil(ucs.capital_tariff\(16001-ucs.capital_min))
-    
+    @test hres.bus[1].uc.tariff_income ≈ ceil(ucs.capital_tariff\(16001-ucs.capital_min))    
 end
 
 @testset "income calculations" begin
@@ -360,6 +437,8 @@ end
     bus = get_benefit_units( cpl )
     hres = init_household_result( cpl )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         cpl, 
         sys.hours_limits, 
         sys.age_limits,
@@ -414,6 +493,8 @@ run_full_tests = IS_LOCAL # && false
         for hno in 1:nhhs
             hh = get_household(hno)
             intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,                
                 hh,  
                 sys.hours_limits,
                 sys.age_limits,

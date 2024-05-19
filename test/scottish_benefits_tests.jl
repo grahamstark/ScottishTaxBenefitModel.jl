@@ -6,14 +6,17 @@ using .Intermediate: MTIntermediate, make_intermediate
 using .ScottishBenefits
 using .STBIncomes
 using .ExampleHelpers
+using .RunSettings 
 
 sys = get_system(year=2019, scotland=true )
-
+settings = Settings()
 @testset "Scottish Child Payment" begin
     
     for (hht,hh) in get_all_examples()
         bus = get_benefit_units( hh )
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hh,  
             sys.hours_limits,
             sys.age_limits,

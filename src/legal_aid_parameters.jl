@@ -70,6 +70,7 @@ const DEFAULT_LA_INCOME = IncludedItems(
 # https://www.slab.org.uk/solicitors/legal-aid-legislation/civil-legal-aid-regulations/the-civil-legal-aid-scotland-regulations-2002/#contS2
 const DISREGARDED_BENEFITS_CIVIL = [
     # 5:
+    STUDENT_LOANS,
     INCOME_SUPPORT,
     NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
     NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, # ppt
@@ -110,7 +111,19 @@ const  DISREGARDED_BENEFITS_AA = [
     SEVERE_DISABILITY_ALLOWANCE,
     STATE_PENSION,
     HOUSING_BENEFIT,
-    COUNCIL_TAX_BENEFIT
+    COUNCIL_TAX_BENEFIT,
+    NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+    NON_CONTRIB_JOBSEEKERS_ALLOWANCE,
+    CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
+    WINTER_FUEL_PAYMENTS,
+    ATTENDANCE_ALLOWANCE,
+    BEREAVEMENT_ALLOWANCE,
+    CHILD_BENEFIT,
+    GUARDIANS_ALLOWANCE,
+    INCAPACITY_BENEFIT,
+    PENSION_CREDIT,
+    STUDENT_LOANS,
+    SCOTTISH_CARERS_SUPPLEMENT
 ]
 
 function zero_premia( RT :: DataType ) :: Premia
@@ -151,7 +164,7 @@ function weeklyise!( prems :: Premia; wpy = WEEKS_PER_YEAR )
 end
 
 function get_default_incomes( systype :: SystemType )::IncludedItems
-    incs = DEFAULT_LA_INCOME
+    incs = deepcopy(DEFAULT_LA_INCOME)
     union!(incs.included, BENEFITS)
     if systype == sys_civil 
         setdiff!( incs.included, DISREGARDED_BENEFITS_CIVIL )
@@ -178,6 +191,7 @@ end
     capital_cont_type = cont_proportion
     income_contribution_rates :: RateBands{RT} =  [0.0,33.0,50.0,100.0]
     income_contribution_limits :: RateBands{RT} =  [3_521.0, 11_540.0, 15_743, 26_239.0]        
+    
     passported_benefits        = IncomesSet([
         INCOME_SUPPORT, 
         NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
@@ -195,6 +209,7 @@ end
     premia = zero_premia(RT)
     uc_limit = zero(RT)
     uc_limit_type :: UCLimitType = uc_no_limit
+    uc_use_earnings = false
 end
 
 """
@@ -229,7 +244,7 @@ function default_aa_sys( year::Integer, RT )::OneLegalAidSys
         # this is not right; it's just 1st person 2nd ... 
         aa.capital_allowances         = RT.([335,200,fill(100,20)...])            
         aa.capital_disregard_limits :: RateBands{RT} =  [10,22,34,46,105]
-        aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_0000,10_000,5_000]
+        aa.capital_disregard_amounts :: RateBands{RT} =  [25_000,20_000,15_000,10_000,5_000]
         # allowances are all zero
         aa.expenses.housing = Expense( false, zero(RT), inplaceoftypemax(RT))
         aa.expenses.childcare = Expense( false, zero(RT), inplaceoftypemax(RT))

@@ -19,6 +19,7 @@ using .Intermediate: MTIntermediate, make_intermediate
     
 using .STBParameters: LegacyMeansTestedBenefitSystem, IncomeRules, HoursLimits
 using .Results: LMTResults, LMTCanApplyFor, init_household_result
+using .RunSettings
 
 using .ExampleHelpers
 
@@ -29,7 +30,8 @@ using CSV
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( year=2019, scotland=true )
-
+settings = Settings()
+    
 
 """
 Extract a household from 
@@ -113,6 +115,8 @@ end
         println( res.CTB_NEW )
         hhres = init_household_result( hh )  
         intermed = make_intermediate(
+            DEFAULT_NUM_TYPE,
+            settings,
             hh,
             sys.hours_limits,
             sys.age_limits,

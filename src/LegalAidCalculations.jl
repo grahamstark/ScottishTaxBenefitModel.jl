@@ -190,21 +190,23 @@ function calc_legal_aid!(
 
     onela.eligible_on_income = onela.disposable_income < lasys.income_contribution_limits[end]
 
+    if net_physical_wealth in lasys.included_capital 
+        onela.capital += intermed.net_physical_wealth
+    end 
+    if net_financial_wealth in lasys.included_capital 
+        onela.capital += intermed.net_financial_wealth
+    end 
+    if net_housing_wealth in lasys.included_capital 
+        onela.capital += intermed.net_housing_wealth
+    end 
+    if net_pension_wealth in lasys.included_capital 
+        onela.capital += intermed.net_pension_wealth
+    end 
+    
+    #=
     # FIXME individual level 
     if lasys.use_inferred_capital 
-        if buno == 1
-            if net_physical_wealth in lasys.included_capital 
-                onela.capital += household.net_physical_wealth
-            end 
-            if net_financial_wealth in lasys.included_capital 
-                onela.capital += household.net_financial_wealth
-            end 
-            if net_housing_wealth in lasys.included_capital 
-                onela.capital += household.net_housing_wealth
-            end 
-            if net_pension_wealth in lasys.included_capital 
-                onela.capital += household.net_pension_wealth
-            end 
+        # if buno == 1
         end
     else
         if  net_physical_wealth in lasys.included_capital
@@ -216,6 +218,8 @@ function calc_legal_aid!(
             end
         end
     end
+    =#
+
     # println( "onela.disposable_income = $(onela.disposable_income)")
     if age_oldest >= lasys.pensioner_age_limit
         onela.capital_allowances += bandcalc( 
@@ -254,9 +258,12 @@ function calc_legal_aid!(
             onela.passported = false # onela.passported
         end
     end
-    if passported_on_uc 
+    if passported_on_uc # proposed uc non-passport
         if lasys.uc_limit_type == uc_max_income
-            if onela.net_income > lasys.uc_limit
+            # remove passport based on either uc
+            # earnings or assessed net income
+            ucinc = lasys.uc_use_earnings ? bres.uc.earned_income : onela.net_income
+            if ucinc > lasys.uc_limit
                 onela.passported = false
             end
         elseif lasys.uc_limit_type == uc_min_payment

@@ -10,6 +10,7 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
 using .ModelHousehold
+using .Utils:basiccensor
 
 export 
     agestr2, 
@@ -78,10 +79,11 @@ function group_cases( fcase :: AbstractString )
     return if fcase in [
     "Residence"
     "Divorce/separation"
-    "Adults with incapacity"
     "Family/matrimonial - other"
     "Contact/parentage"]
     fcase
+    elseif fcase in ["Adults with incapacity", "Mental health" ]
+        "Adults with incapacity/Mental Health"
     else
         "Other"
     end
@@ -177,7 +179,9 @@ function load_aa_costs( filename::String )::DataFrame
         :age_banded=>:age, 
         :ap_contribution=>:maxcon, 
         :passport_ben=>:passported])    
-    cost.hsm = CategoricalArray( group_cases.(cost.hsm_full))
+    gcases = group_cases.(cost.hsm_full)    
+    cost.hsm = CategoricalArray( gcases )
+    cost.hsm_censored = CategoricalArray( basiccensor.(gcases))
     cost.passported = cost.passported .== "Y"
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )    
     cost.age2 = age2.( cost.age )    
@@ -218,7 +222,9 @@ function load_costs( filename::String )::DataFrame
         :highersubject=>:hsm_full,
         :age_banded=>:age,
         :totalpaidincvat=>:totalpaid])
-    cost.hsm = CategoricalArray( group_cases.(cost.hsm_full))
+    gcases = group_cases.(cost.hsm_full)
+    cost.hsm = CategoricalArray( gcases )
+    cost.hsm_censored = CategoricalArray( basiccensor.(gcases))
     cost.passported = .! ismissing.( cost.passported )
     cost.maxcon = coalesce.(cost.maxcon, 0.0 )
     cost.la_status = fill( la_none, nrows )
@@ -228,7 +234,7 @@ function load_costs( filename::String )::DataFrame
         # @show a
         if a.passported # form 1
             cost[r,:la_status] = la_passported
-        elseif a.whichform == "2" # form 2 == means-test
+        else # elseif a.whichform == "2" # form 2 == means-test
             if (a.hsm == "Adults with incapacity")
                 ;
             else
@@ -244,7 +250,8 @@ function load_costs( filename::String )::DataFrame
         if ismissing(a.sex)
             a.sex = rand() <= 0.382 ? "Male" : "Female"
         end
-    end
+        # @assert cost[r,:la_status] !== la_none
+    end # each rpw
     cost
 end
 
@@ -285,7 +292,10 @@ const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
 const CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
 const CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
 const CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
-const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm])
+
+const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
+const AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
+
 const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
 const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
 const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])

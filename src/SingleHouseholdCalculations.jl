@@ -101,6 +101,8 @@ function do_one_calc(
     bus = get_benefit_units( hh )
     hres :: HouseholdResult{T} = init_household_result(hh)
     intermed = make_intermediate( 
+        T,
+        settings,
         hh, 
         sys.hours_limits, 
         sys.age_limits, 
@@ -231,9 +233,20 @@ function do_one_calc(
     end
     aggregate!( hh, hres )
     if settings.do_legal_aid
-        calc_legal_aid!( hres, hh, intermed, sys.legalaid.civil, sys.nmt_bens, sys.age_limits )
-        calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )        
-        # FIXME AA
+        calc_legal_aid!( 
+            hres, 
+            hh, 
+            intermed, 
+            sys.legalaid.civil, 
+            sys.nmt_bens, 
+            sys.age_limits )
+        calc_legal_aid!( 
+            hres, 
+            hh, 
+            intermed, 
+            sys.legalaid.aa, 
+            sys.nmt_bens, 
+            sys.age_limits )        
     end
     return hres
 end

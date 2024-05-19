@@ -60,6 +60,8 @@ end
             # println(hh)
             # dup but can't be helped
             intermed =  make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,
                 hh, 
                 sys[1].hours_limits, 
                 sys[1].age_limits, 

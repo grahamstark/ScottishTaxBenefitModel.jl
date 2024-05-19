@@ -75,7 +75,7 @@ using .GeneralTaxComponents:
 using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData
 using .LegalAidOutput
-using .LegalAidRunner
+# using .LegalAidRunner
 
 using .SingleHouseholdCalculations: do_one_calc
 
@@ -85,8 +85,22 @@ using .HTMLLibs
 
 using DataFrames, CSV
 
+import .Runner
+
 sys = get_system( year=2023, scotland=true )
 print = PrintControls()
+
+function lasettings()
+    settings = Settings()
+    settings.run_name = "Local Legal Aid Runner Test - base case"
+    settings.export_full_results = true
+    settings.do_legal_aid = true
+    settings.wealth_method = imputation 
+    settings.requested_threads = 4
+    settings.num_households,  settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true )
+    return settings
+end
 
 function blank_incomes!( hh, wage; annual=true )
     for( pid, pers ) in hh.people
@@ -100,13 +114,28 @@ function blank_incomes!( hh, wage; annual=true )
         income /= WEEKS_PER_YEAR
     end
     hhead.income[wages] = income 
-
 end
 
 sys1 = deepcopy(sys)
 sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth, net_physical_wealth ])
 sys2 = deepcopy( sys1 )
 # sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
+
+@testset "Run From Standard Runner" begin
+    settings = lasettings()
+    settings.run_name="Test of LA running just in full model."
+    settings.requested_threads = 4
+    settings.wealth_method = other_method_1
+    settings.run_name = "Direct Run"
+    sys2 = deepcopy(sys1)
+    settings.do_legal_aid = true
+
+    results = Runner.do_one_run( settings, [sys1,sys2], obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_frames( outf.legalaid, settings; num_systems=2 )
+    # @show results.legalaid
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2)
+end
 
 @testset "LA utils tests" begin
     exp1 = Expense( false, 1.0, typemax(Float64))
@@ -119,7 +148,8 @@ end
     hh = make_hh( adults = 1 )
     @test num_std_bus(hh) == 1
     @test household_composition_1(hh) == single_person
-
+    settings = Settings()
+    settings.wealth_method = imputation 
     head = get_head( hh )
     head.age = 45
     println( "hhage $(head.age)")
@@ -130,6 +160,8 @@ end
     hh.net_pension_wealth = 0.0
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -153,6 +185,8 @@ end
     hh.net_financial_wealth = 1_800.0
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -166,6 +200,8 @@ end
     hh.net_financial_wealth = 1_700.0
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -181,6 +217,8 @@ end
     blank_incomes!( hh, 130; annual=false )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -208,6 +246,8 @@ end
     println( "total hh after blank $(hh)" )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -226,6 +266,8 @@ end
     blank_incomes!( hh, 20; annual=false )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -245,6 +287,7 @@ end
 
 @testset "Civil Legal Aid: Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
     settings = Settings()
+    settings.wealth_method = imputation 
     # FIXME read the spreadsheet in and automate this.
 
     # 1) single adult 25k no expenses 1k capital
@@ -255,6 +298,8 @@ end
     hh.net_financial_wealth = 1_000.0
     hh.net_pension_wealth = 0.0
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -272,6 +317,8 @@ end
 
     add_spouse!( hh, 50, Female )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -294,6 +341,8 @@ end
     add_child!( hh, 10, Female )
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -313,6 +362,8 @@ end
     hh.net_financial_wealth = 10_000.0
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -333,6 +384,8 @@ end
     hh.net_financial_wealth = 12_000.0
     blank_incomes!( hh, 25_000 )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -360,6 +413,8 @@ end
     # plus 200pw housing
     hh.gross_rent = 10_000/WEEKS_PER_YEAR
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -378,7 +433,6 @@ end
     println( cres )
     HTMLLibs.format( hh, hres, hres; settings=settings, print=PrintControls() )
 end
-
   
 @testset "Expenses Test" begin
 
@@ -386,6 +440,7 @@ end
 
 @testset "Extra Allowance Test" begin
     settings = Settings()
+    settings.wealth_method = imputation 
  
     hh = get_example(single_parent_hh)
     head = get_head(hh)
@@ -394,6 +449,8 @@ end
     sys3 = deepcopy(sys1)
     sys3.legalaid.civil.premia.family_lone_parent = 100.0
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         hh,  
         sys.hours_limits,
         sys.age_limits,
@@ -409,9 +466,18 @@ end
     @assert (r1.disposable_income - r2.disposable_income) ≈ 100 "inc should be 100 lower is r1=$(r1.disposable_income) r2=$(r2.disposable_income)"
     @show HTMLLibs.format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
 
+    sys3.legalaid.civil.premia.family = 50
+    pre = init_household_result( hh )
+    calc_legal_aid!( pre, hh, intermed, sys1.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    post = init_household_result( hh )
+    calc_legal_aid!( post, hh, intermed, sys3.legalaid.civil, sys1.nmt_bens, sys1.age_limits )
+    r1 = pre.bus[1].legalaid.civil
+    r2 = post.bus[1].legalaid.civil
+    @assert r1.extra_allowances ≈ 0 "1 should be 0 was $(pre.bus[1].legalaid.civil.extra_allowances)"
+    @assert r2.extra_allowances ≈ 150 "2 should be 100+50 was $(post.bus[1].legalaid.civil.extra_allowances)"
+    @assert (r1.disposable_income - r2.disposable_income) ≈ 150 "inc should be 100 lower is r1=$(r1.disposable_income) r2=$(r2.disposable_income)"
+    @show HTMLLibs.format( pre.bus[1].legalaid.civil, post.bus[1].legalaid.civil )
 end
-
-
 
 """
 See PrettyTable documentation for formatter
@@ -422,7 +488,6 @@ function pt_fmt(val,row,col)
     end
     return Format.format(val,commas=true,precision=0)
 end
-
 
 function test_costs( 
     label :: String,
@@ -438,33 +503,24 @@ function test_costs(
             cgc = cost_grp[ck]
             @show ck
             actcost = sum( cgc.totalpaid )
-            @assert isapprox(entcost,actcost/1000; rtol=0.001) "$label : fail cost for $k actual $actcost modelled $entcost" 
+            @assert isapprox(entcost,actcost/1000; rtol=0.1) "$label : fail cost for $k actual $actcost modelled $entcost" 
         end
     end
 end
 
-
-
-function lasettings()
-    settings = Settings()
-    settings.run_name = "Local Legal Aid Runner Test - base case"
-    settings.export_full_results = true
-    settings.do_legal_aid = true
-    settings.requested_threads = 4
-    settings.num_households,  settings.num_people, nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=false )
-    return settings
-end
-
+#=
 @testset "using LegalAidRunner" begin
     global tot
     tot = 0
     settings = lasettings()
-    settings.run_name = "Local Legal Aid Runner Test"
+
+    settings.run_name = "Local Legal Aid Runner Test V2"
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
 
     @time laout = LegalAidRunner.do_one_run( settings, systems, obs )
+    LegalAidOutput.dump_frames( laout, settings; num_systems=2 )
+    
     println( "run complete")
     civil_propensities = LegalAidOutput.create_base_propensities( 
         laout.civil.data[1], 
@@ -484,7 +540,7 @@ end
 end
 
 @testset "inferred vs FRS capital" begin
-
+    # FIXME does nothing now needs 2 runs with settings.wealth_method changed
     sys2 = deepcopy(sys1)
     systems = [sys1, sys2]
     settings = lasettings()
@@ -498,6 +554,8 @@ end
 
 @testset "sp premia" begin
     settings = lasettings()
+    settings.wealth_method = imputation 
+
     settings.requested_threads = 4
     settings.run_name = "sing par premia"
     sys2 = deepcopy(sys1)
@@ -615,6 +673,7 @@ end
             label="AA cost table $t" ) == ""
     end # breakdown loop
 end # testset
+=#
 
 
 

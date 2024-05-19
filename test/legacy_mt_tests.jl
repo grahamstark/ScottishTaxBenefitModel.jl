@@ -75,6 +75,7 @@ using .ExampleHelpers
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
 sys = get_system( year=2019, scotland=true )
+settings = Settings()
 
 @testset "2 child policy" begin
     sph = get_example(single_parent_hh)
@@ -123,6 +124,8 @@ end
         bus = get_benefit_units( hh )
         bu = bus[1]
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             Scotland,
             1,
             bu,  
@@ -200,6 +203,8 @@ end
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         e_and_m,  
@@ -232,6 +237,8 @@ end # test set
     cpl = get_benefit_units(get_example(cpl_w_2_children_hh))[1]
     sparent = get_benefit_units(get_example(single_parent_hh))[1]
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -258,6 +265,8 @@ end # test set
     unemploy!( head )
     unemploy!( spouse )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -279,6 +288,8 @@ end # test set
     
     disable_slightly!( spouse )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -299,6 +310,8 @@ end # test set
     carer!( head )
     println( "head.employment_status=$(head.employment_status) spouse.employment_status=$(spouse.employment_status)")
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -314,6 +327,8 @@ end # test set
     @test ! eligs_cpl.wtc
     
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         sparent,  
@@ -332,6 +347,8 @@ end # test set
     head = get_head( sparent )
     unemploy!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         sparent,  
@@ -349,6 +366,8 @@ end # test set
     @test eligs_sp.ctr 
     carer!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         sparent,  
@@ -366,6 +385,8 @@ end # test set
     @test eligs_sp.ctr 
     head.age = 70
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         sparent,  
@@ -383,6 +404,8 @@ end # test set
     @test eligs_sp.ctr 
     retire!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         sparent,  
@@ -402,6 +425,8 @@ end # test set
     @test eligs_sp.ctr 
     employ!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         sparent,  
@@ -426,6 +451,8 @@ end
     head = get_head( cpl )
     println( "sp=$spouse" )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -456,6 +483,8 @@ end
     unemploy!( head )
     unemploy!( spouse )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -482,6 +511,8 @@ end
     
     disable_slightly!( spouse )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -508,6 +539,8 @@ end
     
     carer!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -533,6 +566,8 @@ end
 
     sparent = get_benefit_units(get_example(single_parent_hh))[1]
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         sparent,  
@@ -581,7 +616,9 @@ end
     for i in 1:nt
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
-            Scotland,
+            DEFAULT_NUM_TYPE,
+            settings,
+                Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -605,7 +642,9 @@ end
     for i in 1:nt
         head.income[wages] = wage[i]
         intermed = make_intermediate( 
-            Scotland,
+            DEFAULT_NUM_TYPE,
+            settings,
+                Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -630,6 +669,8 @@ end
         # head.income[wages] = wage[i]
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             Scotland,
             1,
             spers,  
@@ -656,6 +697,8 @@ end
         # head.income[wages] = wage[i]
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             Scotland,
             1,
             spers,  
@@ -688,6 +731,8 @@ end
         # spouse.income[wages] = wage[i]
         bur.pers[spouse.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             Scotland,
             1,
             cpl,  
@@ -712,6 +757,8 @@ end
         bur.pers[spouse.pid].income[WAGES] = wage[i] / 3.0
         bur.pers[head.pid].income[WAGES] = wage[i]* 2 / 3.0
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             Scotland,
             1,
             cpl,  
@@ -741,6 +788,8 @@ end
         # head.income[wages] = wage[i]
         bur.pers[head.pid].income[WAGES] = wage[i]
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             Scotland,
             1,   
             spers,  
@@ -769,13 +818,15 @@ end
     head.age = 25
     empty!( head.income )
     intermed = make_intermediate( 
-            Scotland,
-            1,   
-            singbu,  
-            sys.lmt.hours_limits,
-            sys.age_limits,
-            sys.child_limits,
-            1 )
+        DEFAULT_NUM_TYPE,
+        settings,
+        Scotland,
+        1,   
+        singbu,  
+        sys.lmt.hours_limits,
+        sys.age_limits,
+        sys.child_limits,
+        1 )
 
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances(
@@ -789,13 +840,15 @@ end
     end
     head.age = 17
     intermed = make_intermediate( 
-            Scotland,
-            1,   
-            singbu,  
-            sys.lmt.hours_limits,
-            sys.age_limits,
-            sys.child_limits,
-            1 )
+        DEFAULT_NUM_TYPE,
+        settings,
+        Scotland,
+        1,   
+        singbu,  
+        sys.lmt.hours_limits,
+        sys.age_limits,
+        sys.child_limits,
+        1 )
     for ben in [hb,ctr,is,jsa,esa]
         allow = calc_allowances(
             ben,
@@ -820,22 +873,26 @@ end
     head = get_head(sparbu) 
     
     intermed = make_intermediate( 
-            Scotland,
-            1,   
-            sparbu,  
-            sys.lmt.hours_limits,
-            sys.age_limits,
-            sys.child_limits,
-            1 )
+        DEFAULT_NUM_TYPE,
+        settings,
+        Scotland,
+        1,   
+        sparbu,  
+        sys.lmt.hours_limits,
+        sys.age_limits,
+        sys.child_limits,
+        1 )
     head.age = 17
     intermed = make_intermediate( 
-            Scotland,
-            1,   
-            sparbu,  
-            sys.lmt.hours_limits,
-            sys.age_limits,
-            sys.child_limits,
-            1 )
+        DEFAULT_NUM_TYPE,
+        settings,
+        Scotland,
+        1,   
+        sparbu,  
+        sys.lmt.hours_limits,
+        sys.age_limits,
+        sys.child_limits,
+        1 )
     @test intermed.num_children == 2
     @test intermed.num_allowed_children == 2
     for ben in [hb,ctr,is,jsa,esa]
@@ -866,6 +923,8 @@ end
     head.age = 17
     println( "sp=$spouse" )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -891,6 +950,8 @@ end
     spouse.age = 17
     head.age = 18
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -915,6 +976,8 @@ end
     spouse.age = 18
     head.age = 18
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -939,6 +1002,8 @@ end
     spouse.age = 60
     head.age = 60
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -971,6 +1036,8 @@ end
     spouse.age = 60
     head.age = 60
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -994,6 +1061,8 @@ end
     bures.pers[head.pid].income[PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING] = 
         sys.nmt_bens.pip.dl_standard
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -1024,6 +1093,8 @@ end
     end
     disable_seriously!( head )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         Scotland,
         1,
         cpl,  
@@ -1072,6 +1143,8 @@ end
     head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
     hhres = init_household_result( joplings )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         joplings, 
         sys.hours_limits, 
         sys.age_limits,
@@ -1105,6 +1178,8 @@ end
     mr_h.gross_rent = 88.50
     hhres = init_household_result( mr_h )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         mr_h, 
         sys.hours_limits, 
         sys.age_limits,            
@@ -1163,6 +1238,8 @@ end
         println( "hours_limits $(sys.lmt.hours_limits) ")
         bures = init_benefit_unit_result( Float64, bus[2])
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             bu3, 
             sys.hours_limits, 
             sys.age_limits, 
@@ -1186,6 +1263,8 @@ end
     end
     unemploy!( bu2p )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         bu3, 
         sys.hours_limits, 
         sys.age_limits,
@@ -1223,6 +1302,8 @@ end
         println( "on $key")
         head = get_head( hhc )
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hhc, 
             sys.hours_limits, 
             sys.age_limits,
@@ -1242,6 +1323,8 @@ end
         # head is unemployed
         unemploy!( head )
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hhc, 
             sys.hours_limits, 
             sys.age_limits,
@@ -1260,6 +1343,8 @@ end
         # head is seriously disabled
         disable_seriously!( head )
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hhc, 
             sys.hours_limits, 
             sys.age_limits,
@@ -1278,6 +1363,8 @@ end
         enable!( head )
         carer!( head )
         intermed = make_intermediate( 
+            DEFAULT_NUM_TYPE,
+            settings,
             hhc, 
             sys.hours_limits, 
             sys.age_limits,
@@ -1314,6 +1401,8 @@ end
     bres.income[ATTENDANCE_ALLOWANCE] = sys.nmt_bens.attendance_allowance.higher
 
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         bhh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -1353,8 +1442,8 @@ end
     retire!( geoff )
     geoff.attendance_allowance_type = high
     geoff.age = 68
-    geoff.assets[A_Stocks_Shares_Bonds_etc] = 11_500.0
-
+    # geoff.assets[A_Stocks_Shares_Bonds_etc] = 11_500.0
+    maria.wealth_and_assets = 11_500.0
     newpid = add_non_dependent!( m_and_j, 24, Female )
     bus = get_benefit_units( m_and_j )
     @test size( bus )[1] == 2
@@ -1375,6 +1464,8 @@ end
     dres.income .= 0
     dres.income[NON_CONTRIB_JOBSEEKERS_ALLOWANCE] = 100.0 # anything ..
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         m_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -1411,6 +1502,8 @@ end
     retire!( terry )
     terry.age = 75 # should still qualify on June's age
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         t_and_j, 
         sys.hours_limits, 
         sys.age_limits,
@@ -1487,6 +1580,8 @@ end
     tracy.usual_hours_worked = 20
     
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         tracyh, 
         sys.hours_limits, 
         sys.age_limits,
@@ -1604,6 +1699,8 @@ end
 
     unemploy!( tracy )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
         tracyh, 
         sys.hours_limits, 
         sys.age_limits,

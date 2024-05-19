@@ -26,6 +26,8 @@ settings.means_tested_routing = modelled_phase_in
         for bno in eachindex(bus)
             @test typeof(bus[bno]) <: BenefitUnit
             intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,                
                 Scotland,
                 bno,
                 bus[bno],  
@@ -57,6 +59,8 @@ end # example tests
             bus = get_benefit_units(hh)
             r += 1
             intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,                
                 hh, 
                 sys.hours_limits, 
                 sys.age_limits, 
@@ -106,6 +110,8 @@ end
     hh = deepcopy( examples[cpl_w_2_children_hh])
     hhres = init_household_result( hh )
     intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,                
         hh, 
         sys.hours_limits, 
         sys.age_limits,

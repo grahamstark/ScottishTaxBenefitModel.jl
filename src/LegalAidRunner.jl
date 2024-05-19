@@ -39,10 +39,10 @@ RESULTS =
     ResultsWrapper( 
         Matrix{HouseholdResult}(undef,0,0))
 
-function intialise( 
+function initialise( 
     settings :: Settings,
     systems  :: Vector{TaxBenefitSystem{T}},
-    observer :: Observable  ) where T
+    observer :: Observable  ) :: AllLegalOutput where T
     settings.export_full_results = true
     settings.do_legal_aid = false    
     rs = Runner.do_one_run( settings, systems, observer )
@@ -51,9 +51,9 @@ function intialise(
 
     # create takeup propensities
     settings.do_legal_aid = true
-    laresults = do_one_run( settings, systems, observer )
+    laresults = do_one_run( settings, systems, observer; reset_propensities = true )
     println( "initialise; at create wide propensities ")
-    
+    return laresults
 end
 
 
@@ -94,14 +94,16 @@ function do_one_run(
     systems  :: Vector{TaxBenefitSystem{T}},
     observer :: Observable;
     reset_data = false,
-    reset_results = false ) :: AllLegalOutput where T
+    reset_results = false,
+    reset_propensities = false ) :: AllLegalOutput where T
 
     if(FRSHouseholdGetter.get_num_households() == 0) || reset_data
         settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
     end
+    # FIXME potential for endless loop here?
     if( size( RESULTS.results )[1] <= 1) || reset_results
         println( "entering initialise")
-        intialise( settings, systems, observer )
+        initialise( settings, systems, observer )
     end
     num_systems = length( systems )
     num_threads = min( nthreads(), settings.requested_threads )
@@ -130,6 +132,8 @@ function do_one_run(
             res = RESULTS.results[:,hno]
             hh = get_household( hno )
             intermed = make_intermediate( 
+                T,
+                settings,
                 hh, 
                 systems[1].hours_limits, 
                 systems[1].age_limits, 
@@ -158,7 +162,7 @@ function do_one_run(
             end
         end # hhlds in each chunk 
     end # threads
-    LegalAidOutput.create_propensities( lout; reset_results = reset_results )
+    LegalAidOutput.create_propensities( lout; reset_results = reset_propensities )
 
     # @show RESULTS.civil_propensities
     LegalAidOutput.summarise_la_output!( lout )
