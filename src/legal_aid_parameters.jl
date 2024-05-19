@@ -164,14 +164,14 @@ function weeklyise!( prems :: Premia; wpy = WEEKS_PER_YEAR )
 end
 
 function get_default_incomes( systype :: SystemType )::IncludedItems
-    incs = DEFAULT_LA_INCOME
+    incs = deepcopy(DEFAULT_LA_INCOME)
     union!(incs.included, BENEFITS)
     if systype == sys_civil 
         setdiff!( incs.included, DISREGARDED_BENEFITS_CIVIL )
     else 
         setdiff!( incs.included, DISREGARDED_BENEFITS_AA )
     end
-    # @show incs.included
+    @show incs.included
     incs
 end
 
