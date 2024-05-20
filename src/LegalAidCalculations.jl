@@ -166,6 +166,7 @@ function calc_legal_aid!(
                 ct + 
                 # max( 0.0, household.gross_rent - hb) +
                 # max( 0.0, ct - ctb ) +
+                household.mortgage_payment + # NOTE NOT ACTUALLY PAYMENT - CAPITAL FIX NAME
                 household.mortgage_interest +
                 household.other_housing_charges
                 #!!! FIXME insurance
