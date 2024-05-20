@@ -354,13 +354,29 @@ function create_children(
     return child_model[1:ccount,:] # send them all back ...
 end
 
+"""
+Capital repayment on a mortgage. FIXME: Note the misnamed slot I'm putting this in pro. tem.
+The mortgage record has been murdered in FRS 2021/2
+but the fields we need are in the monster record, so get from
+that. Note early versions have 3 records and later frsxs have 2.
+"""
+function mortage_capital_payments( frsx :: DataFrameRow )::Real
+    nmortgages = frsx.data_year <= 2020 ? 3 : 2
+    cappay = 0.0
+    for mortno in 1:nmortgages 
+        if ! ismissing( )
+    end
+    cappay;
+end
+
 function create_household(
     year::Integer,
     frs_household::DataFrame,
     renter::DataFrame,
     mortgage::DataFrame,
     mortcont::DataFrame,
-    owner::DataFrame )::DataFrame
+    owner::DataFrame,
+    frsx :: DataFrame )::DataFrame
 
     num_households = size(frs_household)[1]
     hh_model = initialise_household(num_households)
@@ -370,6 +386,8 @@ function create_household(
             println("on year $year, hid $hn")
         end
         hh = frs_household[hn, :]
+        frx = frsx[hn,:]
+        @assert frx.sernum == hh.sernum # check in seq 
         sernum = hh.sernum
         hhno += 1
         dd = split(hh.intdate, "/")
@@ -443,6 +461,17 @@ function create_household(
     hh_model[1:hhno, :]
 end
 
+"""
+Override loadfrs for all the weird missings in frx1920 etc.
+"""
+function loadfrsx(which::AbstractString, year )::DataFrame
+    filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"
+    df = CSV.File(filename, delim = '\t', missingstrings=[""," ","-1"]) |> DataFrame #
+    lcnames = Symbol.(lowercase.(string.(names(df))))
+    rename!(df, lcnames)
+    df
+end
+
 function create_data(;start_year::Int, end_year::Int)
     for year in start_year:end_year
             print("on year $year ")
@@ -450,7 +479,7 @@ function create_data(;start_year::Int, end_year::Int)
         ystr = "$(y)$(y+1)"
         # we only want this massive thing for a couple of
         # benefit variables.
-        frsx = loadfrs( "frs$ystr", year )
+        frsx = loadfrsx( "frs$ystr", year )
         accounts = loadfrs("accounts", year)
         adult = loadfrs("adult", year)
         # probably *is* sorted by this.
@@ -514,7 +543,8 @@ function create_data(;start_year::Int, end_year::Int)
             renter,
             mortgage,
             mortcont,
-            owner )
+            owner,
+            frsx )
         println( "on year $year")
         println( "hhlds")
         append = year > start_year
