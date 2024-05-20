@@ -21,7 +21,9 @@ const L_FRS_DIR="/mnt/data/frs/"
 
 function loadfrs(which::AbstractString, year::Integer)::DataFrame
     filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"
-    loadtoframe(filename)
+    df = loadtoframe(filename)
+    df.data_year .= year
+    return df
 end
 
 
@@ -162,16 +164,19 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
     jsa = head ? af.jsatyphd : af.jsatypsp
     # fixme refactor
      # 2021 has mostly single blank
+     # FIXME DON'T NEED THIS
      if typeof(jsa) <: AbstractString
-     jsa = if jsa == " " 
+        jsa = if (jsa == " ") 
          -1
        else
          parse(Int,jsa)
        end
      end
+
      jtype = -1
-     if jsa == -1
-         jtype = -1
+     if ismissing(jsa) || (jsa == -1)
+        jsa == -1
+        #  jtype = -1
      elseif jsa in [1,3]
          jtype = 1
      elseif jsa in [2,4]
@@ -192,7 +197,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
          end
      end
      
-     if esa == -1
+     if ismissing(esa) || (esa == -1)
          etype = -1
      elseif esa in [1,3]
          etype = 1
@@ -1050,4 +1055,55 @@ function map_child_care( year :: Integer, care ) :: Integer
     end
     care
 end
+
+
+function xparse(s::AbstractString)::Real
+    parse(Float64,s)
+end
+
+function xparse(s::Missing)::Number
+    0
+end
+
+function xparse(s::Number)::Number
+    s
+end
+
+"""
+Weekly equivalent of annual capital repayment on a mortgage. FIXME: Note the misnamed slot I'm putting this in pro. tem.
+The mortgage record has been murdered in FRS 2021/2
+but the fields we need are in the monster record, so get from
+that. Note early versions have 3 records and later frsxs have 2.
+"""
+function mortage_capital_payments( frsx :: AbstractDataFrame )::Real
+    #=
+    if size(frsx)[1] == 0
+        return 0.0
+    end
+    =#
+    @argcheck size(frsx)[1] in 1:10 # count of BUs
+    nmortgages = frsx.data_year[1] < 2020 ? 3 : 2
+    cappay = 0.0
+    for fx in eachrow(frsx)
+        for mortno in 1:nmortgages 
+            mortends = fx[Symbol("mortend$mortno")]
+            if ! ismissing( mortends )
+                mortend = xparse( mortends )
+                rmort = xparse(fx[Symbol("rmort$mortno")])
+                rmamt = xparse(fx[Symbol("rmamt$mortno")])
+                borramt = xparse(fx[Symbol("borramt$mortno")])
+                cap = if rmort == 1
+                    rmamt 
+                else
+                    borramt
+                end
+                repay = cap/mortend
+                # println( "mortend=$mortend rmort=$rmort ramt=$rmamt borramt=$borramt => $cap => repay=$repay")
+                cappay += repay
+            end
+        end
+    end
+    cappay/WEEKS_PER_YEAR;
+end
+
 

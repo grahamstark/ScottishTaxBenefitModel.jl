@@ -5,7 +5,7 @@
 #
 using DataFrames
 using CSV
-
+using ArgCheck
 using ScottishTaxBenefitModel
 using .Utils
 using .Definitions
@@ -354,21 +354,6 @@ function create_children(
     return child_model[1:ccount,:] # send them all back ...
 end
 
-"""
-Capital repayment on a mortgage. FIXME: Note the misnamed slot I'm putting this in pro. tem.
-The mortgage record has been murdered in FRS 2021/2
-but the fields we need are in the monster record, so get from
-that. Note early versions have 3 records and later frsxs have 2.
-"""
-function mortage_capital_payments( frsx :: DataFrameRow )::Real
-    nmortgages = frsx.data_year <= 2020 ? 3 : 2
-    cappay = 0.0
-    for mortno in 1:nmortgages 
-        if ! ismissing( )
-    end
-    cappay;
-end
-
 function create_household(
     year::Integer,
     frs_household::DataFrame,
@@ -386,8 +371,8 @@ function create_household(
             println("on year $year, hid $hn")
         end
         hh = frs_household[hn, :]
-        frx = frsx[hn,:]
-        @assert frx.sernum == hh.sernum # check in seq 
+        frx = frsx[(frsx.sernum.==hh.sernum ), :]
+
         sernum = hh.sernum
         hhno += 1
         dd = split(hh.intdate, "/")
@@ -419,7 +404,8 @@ function create_household(
         else #
             hh_model[hhno, :water_and_sewerage] = safe_assign(hh.watsewrt)
         end
-        # hh_model[hhno, :mortgage_payment]
+        # FIXME this needs renamed: actually capital component
+        hh_model[hhno, :mortgage_payment] = mortage_capital_payments( frx )
         mit = safe_assign( hh.mortint )
         hh_model[hhno, :mortgage_interest] = mit > 0 ? mit : missing 
 
@@ -466,9 +452,10 @@ Override loadfrs for all the weird missings in frx1920 etc.
 """
 function loadfrsx(which::AbstractString, year )::DataFrame
     filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"
-    df = CSV.File(filename, delim = '\t', missingstrings=[""," ","-1"]) |> DataFrame #
+    df = CSV.File(filename, delim = '\t', missingstring=[""," ","-1"]) |> DataFrame #
     lcnames = Symbol.(lowercase.(string.(names(df))))
     rename!(df, lcnames)
+    df.data_year .= year
     df
 end
 
