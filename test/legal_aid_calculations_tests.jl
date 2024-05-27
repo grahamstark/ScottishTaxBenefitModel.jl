@@ -508,6 +508,47 @@ function test_costs(
     end
 end
 
+@testset "Capital versions" begin
+    settings = lasettings()
+    settings.num_households, 
+        settings.num_people = 
+            FRSHouseholdGetter.initialise( settings; reset=true )
+	# Observer as a global.
+	n = settings.num_households 
+    capdf = DataFrame( 
+        hid = fill(BigInt(0), n ),
+        data_year = fill(0, n ),
+        cap_matching = zeros(n),
+        cap_imputation = zeros(n),
+        cap_no_method = zeros(n),
+        cap_other_method_1 = zeros(n))
+
+    for hno in 1:n
+        hh = FRSHouseholdGetter.get_household( hno )
+        cf = capdf[hno,:]
+        for capt in [ # matching
+                imputation,
+                no_method,
+                other_method_1]
+            settings.wealth_method = capt
+            intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,
+                hh, 
+                sys.hours_limits, 
+                sys.age_limits, 
+                sys.child_limits )
+            col = Symbol("cap_$capt") 
+            cf[col] = intermed.hhint.net_financial_wealth 
+            cf.hid = hh.hid
+            cf.data_year = hh.data_year  
+        end
+    end
+    pfname = "$(settings.output_dir)/capcompare.tab"
+    CSV.write( pfname, capdf; delim='\t' )
+   
+end
+
 #=
 @testset "using LegalAidRunner" begin
     global tot
