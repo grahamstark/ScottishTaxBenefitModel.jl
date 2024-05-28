@@ -11,6 +11,8 @@ using Base.Threads
 using ChunkSplitters
 using ArgCheck
 
+using DataFrames, CSV
+
 using ScottishTaxBenefitModel
 
 using .Utils: pretty
@@ -83,8 +85,6 @@ using .STBOutput: LA_TARGETS
 
 using .HTMLLibs
 
-using DataFrames, CSV
-
 import .Runner
 
 sys = get_system( year=2023, scotland=true )
@@ -95,7 +95,7 @@ function lasettings()
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
-    settings.wealth_method = imputation 
+    settings.wealth_method = other_method_1
     settings.requested_threads = 4
     settings.num_households,  settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
@@ -546,7 +546,20 @@ end
     end
     pfname = "$(settings.output_dir)/capcompare.tab"
     CSV.write( pfname, capdf; delim='\t' )
-   
+end
+
+@testset "effect of mortgage" begin
+    global tot
+    tot = 0
+    settings = lasettings()
+
+    settings.run_name = "Include_mortgage_repayments off"
+    sys2 = deepcopy(sys1)
+    systems = [sys1, sys2]
+    sys2.legalaid.civil.include_mortgage_repayments = false
+    @time results = Runner.do_one_run( settings, systems, obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2 )
 end
 
 #=

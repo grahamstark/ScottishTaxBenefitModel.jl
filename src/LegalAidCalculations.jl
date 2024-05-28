@@ -162,11 +162,13 @@ function calc_legal_aid!(
 
     if buno == 1
         # gross housing costs and treating CTB HB as income
+        mp = lasys.include_mortgage_repayments ? 
+            household.mortgage_payment : 0.0
         housing = household.gross_rent +
                 ct + 
                 # max( 0.0, household.gross_rent - hb) +
                 # max( 0.0, ct - ctb ) +
-                household.mortgage_payment + # NOTE NOT ACTUALLY PAYMENT - CAPITAL FIX NAME
+                mp + # NOTE NOT ACTUALLY PAYMENT - CAPITAL FIX NAME
                 household.mortgage_interest +
                 household.other_housing_charges
                 #!!! FIXME insurance
