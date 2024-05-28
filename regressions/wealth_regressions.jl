@@ -61,7 +61,7 @@ reg_net_financial_5 = lm( @formula( net_financial  ~ scotland + wales + london +
 reg_net_financial_6 = lm( @formula( net_financial  ~ scotland + wales + london + north_west + yorkshire +east_midlands + west_midlands+  east_of_england + south_east + south_west +#  bedrooms +
            age_25_34 + age_35_44 + age_45_54 + age_55_64 +  
            age_65_74 + age_75_plus + managerial + intermediate ), was )
-regtable( reg_is_in_debt_1, reg_net_financial_1, reg_net_financial_2, reg_net_financial_3, reg_net_financial_4, reg_net_financial_5, reg_net_financial_6; renderSettings = latexOutput("docs/wealth/net_financial.tex") )
+regtable( reg_is_in_debt_1, reg_net_financial_1, reg_net_financial_2, reg_net_financial_3, reg_net_financial_4, reg_net_financial_5, reg_net_financial_6; renderSettings = LatexTable(), file="docs/wealth/net_financial.tex")
 regtable( reg_is_in_debt_1, reg_net_financial_1, reg_net_financial_2, reg_net_financial_3, reg_net_financial_4, reg_net_financial_5, reg_net_financial_6 )
            
 reg_net_physical_1 = lm( @formula( net_physical  ~ 
@@ -92,7 +92,7 @@ reg_net_physical_3 = lm( @formula( log(net_physical) ~
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[was.net_physical.>0,:] )
 
-regtable( reg_net_physical_1, reg_net_physical_2,reg_net_physical_3 ; renderSettings = latexOutput("docs/wealth/net_physical.tex") )
+regtable( reg_net_physical_1, reg_net_physical_2,reg_net_physical_3 ; renderSettings = LatexTable(), file="docs/wealth/net_physical.tex")
 regtable( reg_net_physical_1, reg_net_physical_2,reg_net_physical_3 )
 
 
@@ -116,7 +116,7 @@ reg_net_housing_2 = lm( @formula( log(net_housing) ~
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[(was.net_housing .>0).&(was.weekly_gross_income .>0),:] )
 
-regtable( reg_net_housing_1, reg_net_housing_2 ; renderSettings = latexOutput("docs/wealth/net_housing.tex") )
+regtable( reg_net_housing_1, reg_net_housing_2 ; renderSettings = LatexTable(), file="docs/wealth/net_housing.tex")
 regtable( reg_net_housing_1, reg_net_housing_2 )
     
 
@@ -156,7 +156,7 @@ reg_total_pensions_2 = lm( @formula( log(total_pensions)  ~
     log(weekly_gross_income) + managerial + intermediate + 
     num_adults + num_children), was[(was.total_pensions.>0).&(was.weekly_gross_income .> 0),:] )
 
-regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2; renderSettings = latexOutput("total_pensions.tex") )
+regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2; renderSettings = LatexTable(), file="total_pensions.tex")
 regtable( has_pension, reg_total_pensions_1, reg_total_pensions_2 )
     
 final_regs = OrderedDict([
@@ -168,7 +168,7 @@ final_regs = OrderedDict([
     :net_pension_wealth=>reg_total_pensions_2, 
     :net_housing_wealth=>reg_net_housing_2 ])
 
-regtable( collect(values(final_regs))... ; renderSettings = latexOutput("docs/wealth/total_hh_disagg_wealth_logs.tex") )
+regtable( collect(values(final_regs))... ; renderSettings = LatexTable(), file="docs/wealth/total_hh_disagg_wealth_logs.html")
 regtable( collect(values(final_regs))... )
 
 #=
