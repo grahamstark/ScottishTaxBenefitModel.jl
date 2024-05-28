@@ -215,6 +215,7 @@ end
     uc_limit = zero(RT)
     uc_limit_type :: UCLimitType = uc_no_limit
     uc_use_earnings = false
+    include_mortgage_repayments = true
 end
 
 """
