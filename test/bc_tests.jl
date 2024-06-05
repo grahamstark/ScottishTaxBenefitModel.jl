@@ -23,11 +23,12 @@ using .ExampleHelpers
 
 
 # COLS = [:gross,:mr,:label_pch]
-COLS = [:gross,:net,:mr,:reduction,:label_pch]
+COLS = [:gross,:net,:mr,:reduction,:simplelabel]
 
 
 
 function printbcs( 
+    f  :: IO,
     hh :: Household,
     sys :: TaxBenefitSystem, 
     wage::Real,
@@ -39,8 +40,8 @@ function printbcs(
         sys, 
         settings, 
         wage )
-    println("Legacy Case")
-    pretty_table( bc[!,COLS] )
+    println(f, "Legacy Case")
+    pretty_table(f, bc[!,COLS]; backend=Val(:html),allow_html_in_cells=true)
 
     settings.means_tested_routing = uc_full 
     bcu = BCCalcs.makebc(
@@ -48,14 +49,17 @@ function printbcs(
         sys, 
         settings, 
         wage )
-    println( "UC CASE ")
-    pretty_table( bcu[!,COLS] )
+    println( f, "UC CASE ")
+    pretty_table(f,bcu[!,COLS];allow_html_in_cells=true, backend=Val(:html) )
 end
-
+settings = Settings()
+settings.means_tested_routing = uc_full 
+    
 sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
 
 @testset "Single Pers bc" begin
-
+    f = open("tmp/test-bcs.html","w")
+    println(f,"<!DOCTYPE html><html><head></head><body>")
     hh = crude_construct_hh( 
         "private", 
         2, 
@@ -63,8 +67,12 @@ sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
         "couple", 
         0, 
         0 )
-    printbcs( hh, sys21_22, 20, Settings())
-    println("6 bedrooms; 6 kids; 300 hcost")
+    println( f, "<h2>2 bedrooms; 0 kids; 200 hcost</h2>")
+    hres = do_one_calc(hh, sys21_22, settings )
+    println( f, "<pre>$(hres.bus[1].uc)</pre>")
+    printbcs( f, hh, sys21_22, 20, settings)
+
+    println( f, "<h2>6 bedrooms; 6 kids; 300 hcost</h2>")
     hh = crude_construct_hh( 
         "council", 
         6, 
@@ -72,9 +80,8 @@ sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
         "couple", 
         2, 
         4 )
-    printbcs( hh, sys21_22, 20, Settings())
-
-
-
-
+    hres = do_one_calc(hh, sys21_22, settings)
+    println( f, "<pre>$(hres.bus[1].uc)</pre>")
+    printbcs( f, hh, sys21_22, 20, settings)
+    println(f,"</body></html>")
 end

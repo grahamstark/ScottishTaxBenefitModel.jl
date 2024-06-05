@@ -24,7 +24,6 @@ function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     sys = data[:sys]
     wage = data[:wage]
     pid = data[:pid]
-    # FIXME generalise to all hh members
     person = nothing
     if pid == -1
         person = get_head( hh )
@@ -33,13 +32,16 @@ function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     end
     set_wage!( person, gross, wage )
     # fixme adust penconts etc.
+    println( "local_getnet: pid=$pid wage=$wage gross set to $(person.income[wages])")
     hres = do_one_calc( hh, sys, settings )
     return hres
 end
 
 function getnet( data::Dict, gross::Real ) :: Real
     hres = local_getnet( data, gross )
-    return get_net_income( hres; target = data[:settings].target_bc_income )    
+    net = get_net_income( hres; target = data[:settings].target_bc_income )  
+    println( "got net as $net")
+    return net
 end
 
 """
@@ -77,7 +79,6 @@ function tosimplelabel(
     else
         s *= "<b>Discontinuity</b><br>"
     end
-
     return s
 end
 
