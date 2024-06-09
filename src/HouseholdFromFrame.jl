@@ -503,10 +503,12 @@ function load_hhld_from_frame(
     for p in 1:npers
         pers = map_person( hh, pers_fr_in_this_hh[p,:], source, settings )
         hh.people[pers.pid] = pers
+        # println( "pers.pid=$(pers.pid) pers.relationship_to_hoh=$(pers.relationship_to_hoh)")
         if pers.relationship_to_hoh == This_Person
             hh.head_of_household = pers.pid
         end
     end
+    @assert hh.head_of_household > 0 "head for hid $(hh.hid) = $(hh.head_of_household); should be +ive"    
     # rewrite the eq scale once we know everything
     make_eq_scales!( hh )
     # infer_wealth!( hh )    

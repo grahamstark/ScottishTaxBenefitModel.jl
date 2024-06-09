@@ -21,4 +21,5 @@ for r in eachrow(hh)
 end
 
 CSV.write( "../data/model_households-2015-2021.tab", hh )
-
+hh2021 = hh[hh.data_year.== 2021,:]
+CSV.write( "../data/model_households-2021-2021.tab", hh2021 )
