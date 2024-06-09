@@ -366,6 +366,7 @@ function make_hh(
     chu5      :: Integer, 
     ch5p      :: Integer ) :: Household
     hh = get_example( single_hh )
+    
     head = get_head(hh)
     head.age = 30
     sp = get_spouse(hh)

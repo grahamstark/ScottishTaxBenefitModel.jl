@@ -55,7 +55,9 @@ subtleties of the scheme, uses a crude wage/hours for hourly wage ...
 This is dependent on the FRS data, where anyone earning is counted as employee/self-employed.
 This is intended to be used on the results income array rather than 
 """
-function apply_minimum_wage( pers :: Person, mwsys :: MinimumWage )::Real
+function apply_minimum_wage( 
+    pers :: Person, 
+    mwsys :: MinimumWage )::Real
     # FIXME!! Only apply to people whose main employment is not SE
     # see the note - there are 120-odd cases of both wage and se in Scottish subset
     # we ignore 
@@ -87,10 +89,14 @@ function apply_minimum_wage( pers :: Person, mwsys :: MinimumWage )::Real
             hours = hours * (wage/(wage+se))
         end
         hourly_wage = wage / hours
+        println( "mwsys=$mwsys")
+        
         minwage = get_minimum_wage( mwsys, pers.age )
+        
         if hourly_wage < minwage
             wage = hours*minwage
         end
+        println("mw: age=$(pers.age) wage=$wage minwage=$minwage hours=$hours")
     end
     return wage
 end

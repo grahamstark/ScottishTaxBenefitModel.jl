@@ -25,8 +25,6 @@ using .ExampleHelpers
 # COLS = [:gross,:mr,:label_pch]
 COLS = [:gross,:net,:mr,:reduction,:simplelabel]
 
-
-
 function printbcs( 
     f  :: IO,
     hh :: Household,
@@ -52,6 +50,7 @@ function printbcs(
     println( f, "UC CASE ")
     pretty_table(f,bcu[!,COLS];allow_html_in_cells=true, backend=Val(:html) )
 end
+
 settings = Settings()
 settings.means_tested_routing = uc_full 
     
@@ -80,8 +79,11 @@ sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
         "couple", 
         2, 
         4 )
+    head = get_head( hh )
+    head.employment_status = Full_time_Employee
     hres = do_one_calc(hh, sys21_22, settings)
     println( f, "<pre>$(hres.bus[1].uc)</pre>")
     printbcs( f, hh, sys21_22, 20, settings)
     println(f,"</body></html>")
+    close(f)
 end

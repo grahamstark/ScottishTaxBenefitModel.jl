@@ -596,7 +596,7 @@ module Results
         for pid in keys( bu.people )
             bur.pers[pid] = IndividualResult{T}()
             bur.pers[pid].income = map_incomes( bu.people[pid])
-
+            # println( "incomes of $pid set to $(bur.pers[pid].income)")
         end
         return bur
     end
