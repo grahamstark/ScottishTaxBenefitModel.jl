@@ -69,7 +69,7 @@ sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
     println( f, "<h2>2 bedrooms; 0 kids; 200 hcost</h2>")
     hres = do_one_calc(hh, sys21_22, settings )
     println( f, "<pre>$(hres.bus[1].uc)</pre>")
-    printbcs( f, hh, sys21_22, 20, settings)
+    printbcs( f, hh, sys21_22, 12, settings)
 
     println( f, "<h2>6 bedrooms; 6 kids; 300 hcost</h2>")
     hh = crude_construct_hh( 
@@ -80,10 +80,10 @@ sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
         2, 
         4 )
     head = get_head( hh )
-    head.employment_status = Full_time_Employee
+    # head.employment_status = Full_time_Employee
     hres = do_one_calc(hh, sys21_22, settings)
     println( f, "<pre>$(hres.bus[1].uc)</pre>")
-    printbcs( f, hh, sys21_22, 20, settings)
+    printbcs( f, hh, sys21_22, 10, settings)
     println(f,"</body></html>")
     close(f)
 end

@@ -32,9 +32,9 @@ function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     end
     set_wage!( person, gross, wage; switch_status=true )
     # fixme adust penconts etc.
-    println( "local_getnet: person.usual_hours_worked=$(person.usual_hours_worked) pid=$(person.pid) wage=$wage gross set to $(person.income[wages])")
+    # println( "local_getnet: person.usual_hours_worked=$(person.usual_hours_worked) pid=$(person.pid) wage=$wage gross set to $(person.income[wages])")
     hres = do_one_calc( hh, sys, settings )
-    println( "head's calculated income = $(hres.bus[1].pers[person.pid].income)")
+    # println( "head's calculated income = $(hres.bus[1].pers[person.pid].income)")
     return hres
 end
 
