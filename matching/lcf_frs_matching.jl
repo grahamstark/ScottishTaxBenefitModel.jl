@@ -9,6 +9,7 @@
 using ScottishTaxBenefitModel
 using .Definitions,
       .MatchingLibs,
+      .MatchingLibs.LCF_TO_FRS,
       .Uprating,
       .RunSettings
 
@@ -47,76 +48,6 @@ function add_some_frs_fields!( frshh :: DataFrame, frs_hh_pp :: DataFrame )
     frshh.has_female_adult .= 0
     frs_femalepids = frs_hh_pp[(frs_hh_pp.sex .== 2),:sernum]
     frshh[frshh.sernum .∈ (frs_femalepids,),:has_female_adult] .= 1
-end
-
-"""
-Load 2020/21 FRS and add some matching fields
-"""
-function loadfrs()::Tuple
-    frsrows,frscols,frshh = load( "/mnt/data/frs/2021/tab/househol.tab",2021)
-    farows,facols,frsad = load( "/mnt/data/frs/2021/tab/adult.tab", 2021)
-    frs_hh_pp = innerjoin( frshh, frsad, on=[:sernum,:datayear], makeunique=true )
-    add_some_frs_fields!( frshh, frs_hh_pp )
-    return frshh,frspers,frs_hh_pp
-end
-# fcrows,fccols,frsch = load( "/mnt/data/frs/2021/tab/child.tab", 2021 )
-
-"""
-Scottish Version on Pooled data
-"""
-function load_scottish_frss( startyear::Int, endyear :: Int )::NamedTuple
-    frshh = DataFrame()
-    frs_hh_pp = DataFrame()
-    frspers = DataFrame()
-    for year in startyear:endyear
-        lhh = loadfrs( "househol", year )
-        lhh = lhh[ lhh.gvtregn.== 299999999, :] # SCOTLAND
-        lhh.datayear .= year
-        lad = loadfrs( "adult", year )
-        lad.datayear .= year
-        l_hh_pp = innerjoin( lhh, lad, on=[:sernum,:datayear], makeunique=true )
-        add_some_frs_fields!( lhh, l_hh_pp )
-        frshh = vcat( frshh, lhh; cols=:union )
-        frspers = vcat( frspers, lad; cols=:union )
-        frs_hh_pp = vcat( frs_hh_pp, l_hh_pp, cols=:union )
-    end
-    (; frshh, frspers, frs_hh_pp )
-end
-
-"""
-Load 2018/9 - 2020/1 LCFs and add some matching fields.
-"""
-function load3lcfs()::Tuple
-    lcfhrows,lcfhcols,lcfhh18 = load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
-    lcfhrows,lcfhcols,lcfhh19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
-    lcfhrows,lcfhcols,lcfhh20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
-    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, cols=:union )
-    lcfhrows = size(lcfhh)[1]
-
-    lcfprows,lcpfcols,lcfpers18 = load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
-    lcfprows,lcpfcols,lcfpers19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
-    lcfprows,lcpfcols,lcfpers20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, cols=:union )
-    lcf_hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
-    lcfhh.any_wages .= lcfhh.p356p .> 0
-    lcfhh.any_pension_income .= lcfhh.p364p .> 0
-    lcfhh.any_selfemp .= lcfhh.p320p .!= 0
-    lcfhh.hrp_unemployed .= lcfhh.p304 .== 1
-    lcfhh.num_children = lcfhh.a040 + lcfhh.a041 + lcfhh.a042
-    # LCF case ids of non white HRPs - convoluted; see: 
-    # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
-    lcf_nonwhitepids = lcf_hh_pp[(lcf_hh_pp.a012p .∈ (["10","2","3","4"],)).&(lcf_hh_pp.a003 .== 1),:case]
-    lcfhh.hrp_non_white .= 0
-    lcfhh[lcfhh.case .∈ (lcf_nonwhitepids,),:hrp_non_white] .= 1    
-    lcfhh.num_people = lcfhh.a049
-    lcfhh.income = lcfhh.p344p    
-    # not possible in lcf???
-    lcfhh.any_disabled .= 0
-    lcf_femalepids = lcf_hh_pp[(lcf_hh_pp.a004 .== 2),:case]
-    lcfhh.has_female_adult .= 0
-    lcfhh[lcfhh.case .∈ (lcf_femalepids,),:has_female_adult] .= 1
-    lcfhh.is_selected = fill( false, lcfhrows )
-    lcfhh,lcfpers,lcf_hh_pp
 end
 
 function insert_defaults_in_model_dataset(
