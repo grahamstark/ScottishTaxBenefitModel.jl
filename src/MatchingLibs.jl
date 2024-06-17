@@ -1,6 +1,38 @@
 
 module MatchingLibs
 
+#
+# A script to match records from 2019/19 to 2020/21 lcf to 2020 FRS
+# strategy is to match to a bunch of characteristics, take the top 20 of those, and then
+# match between those 20 on household income. 
+# TODO
+# - make this into a module and a bit more general-purpose;
+# - write up, so why not just Engel curves?
+#
+using ScottishTaxBenefitModel
+using .Definitions,
+    .ModelHousehold,
+    .Uprating,
+    .RunSettings
+
+using CSV,
+    DataFrames,
+    Measures,
+    StatsBase
+
+export make_lcf_subset, 
+    map_example, 
+    load, 
+    map_all, 
+    frs_lcf_match_row
+
+struct LCFLocation
+    case :: Int
+    datayear :: Int
+    score :: Float64
+    income :: Float64
+    incdiff :: Float64
+end
 
 """
 Load 2020/21 FRS and add some matching fields
@@ -96,39 +128,6 @@ function score( a :: Int, b :: Int ) :: Float64
     end
 end
 
-#
-# A script to match records from 2019/19 to 2020/21 lcf to 2020 FRS
-# strategy is to match to a bunch of characteristics, take the top 20 of those, and then
-# match between those 20 on household income. 
-# TODO
-# - make this into a module and a bit more general-purpose;
-# - write up, so why not just Engel curves?
-#
-using ScottishTaxBenefitModel
-using .Definitions,
-    .ModelHousehold,
-    .Uprating,
-    .RunSettings
-
-using CSV,
-    DataFrames,
-    Measures,
-    StatsBase
-
-export make_lcf_subset, 
-    map_example, 
-    load, 
-    map_all, 
-    frs_lcf_match_row
-
-struct LCFLocation
-    case :: Int
-    datayear :: Int
-    score :: Float64
-    income :: Float64
-    incdiff :: Float64
-end
-    
 function load( path::String, datayear :: Int )::Tuple
     d = CSV.File( path ) |> DataFrame
     ns = lowercase.(names( d ))
@@ -1115,8 +1114,8 @@ function lcf_tenuremap( a121 :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
-#=  WAS
-    Value = 1.0	Label = Own it outright
+#=
+Value = 1.0	Label = Own it outright
 	Value = 2.0	Label = Buying with mortgage
 	Value = 3.0	Label = Part rent part mortgage
 	Value = 4.0	Label = Rent it
@@ -1125,8 +1124,62 @@ end
 	Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/Refusal
 =#
-function was_tenuremap( tenure :: Int ) :: Vector{Int}
+function was_tenuremap( tenure :: Int )::Vector{Int}
 
+end
+
+#=  WAS ten1r7
+    Value = 1.0	Label = Own it outright
+	Value = 2.0	Label = Buying with mortgage
+	Value = 3.0	Label = Part rent part mortgage
+	Value = 4.0	Label = Rent it
+	Value = 5.0	Label = Rent-free
+	Value = 6.0	Label = Squatting
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/Refusal
+
+    llord7
+
+Value = 1.0	Label = Local authority / council / Scottish Homes
+	Value = 2.0	Label = Housing association / charitable trust / local housing company
+	Value = 3.0	Label = Employer (organisation) of household member
+	Value = 4.0	Label = Another organisation
+	Value = 5.0	Label = Relative / friend of household member
+	Value = 6.0	Label = Employer (individual) of household member
+	Value = 7.0	Label = Another individual private landlord
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+
+=#
+function was_tenuremap( was :: DataFrame  ) :: Vector{Int}
+    @argcheck was.ten1r7 in 1:6 "was.ten1r7 out of range"
+    out = if was.ten1r7 == 1 # o-outright
+        6 
+    elseif was.ten1r7 in 2:3
+        5 # mortgaged
+    elseif was.ten1r7 == 4 # rented
+        if was.llord7 == 1
+            1 # council
+        elseif was.llord7 == 2
+            2 # housing assoc
+        elseif was.llord == 3:7
+            if was.furnr7 in 1:2 # furnished, inc part
+                4
+            elseif was.furnr7 == 3
+                3 # unfurnished
+            else
+                @assert false "was.furnr7 out-of-range $(was.furnr7)"
+            end
+        else
+            @assert false "was.llord7 out of range $(was.llord7)"
+        end
+    elseif was.ten1r7 == 5
+        7
+    elseif was.ten1r7 == 6
+        8
+    end
+    @assert out in 1:8
+    return   lcf_tenuremap( out )
 end
 
 #=
@@ -1340,6 +1393,7 @@ lcf     | 2020 | dvhh            | A116          | 6     | Others               
 Map accomodation. Unused in the end.
 """
 function lcf_accmap( a116 :: Any)  :: Vector{Int}
+    @argcheck a116 in 1:6
     out = fill( 9998, 3 )
     # missing in 2020 f*** 
     if typeof(a116) <: AbstractString
@@ -1358,6 +1412,96 @@ function lcf_accmap( a116 :: Any)  :: Vector{Int}
         @assert false "unmatched a116 $a116"
     end
     out
+end
+
+#=
+Pos. = 58	Variable = accomr7	Variable label = Type of accommodation
+This variable is    numeric, the SPSS measurement level is NOMINAL
+	Value label information for accomr7
+	Value = 1.0	Label = House / bungalow
+	Value = 2.0	Label = Flat / maisonette
+	Value = 3.0	Label = Room / rooms
+	Value = 4.0	Label = Other
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+
+Pos. = 59	Variable = hsetyper7	Variable label = Type of house / bungalow
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for hsetyper7
+	Value = 1.0	Label = Detached
+	Value = 2.0	Label = Semi-detached
+	Value = 3.0	Label = Terraced (including end of terrace)
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+
+Pos. = 60	Variable = flttypr7	Variable label = Type of flat / maisonette
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for flttypr7
+	Value = 1.0	Label = Purpose-built block
+	Value = 2.0	Label = Converted house / some other kind of building
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+
+Pos. = 61	Variable = accothr7	Variable label = Other types of accommodation
+This variable is    numeric, the SPSS measurement level is SCALE
+	Value label information for accothr7
+	Value = 1.0	Label = Caravan, mobile home or houseboat
+	Value = 2.0	Label = Other
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+
+=#
+"""
+output:
+lcf     | 2020 | dvhh            | A116          | 1     | Whole house,bungalow-detached | Whole_house_bungalow_detached
+lcf     | 2020 | dvhh            | A116          | 2     | Whole hse,bungalow-semi-dtchd | Whole_hse_bungalow_semi_dtchd
+lcf     | 2020 | dvhh            | A116          | 3     | Whole house,bungalow-terraced | Whole_house_bungalow_terraced
+lcf     | 2020 | dvhh            | A116          | 4     | Purpose-built flat maisonette | Purpose_built_flat_maisonette
+lcf     | 2020 | dvhh            | A116          | 5     | Part of house converted flat  | Part_of_house_converted_flat
+lcf     | 2020 | dvhh            | A116          | 6     | Others                        | Others
+
+"""
+function was_accommap( was :: DataFrame ) :: Vector{Int}
+    out = if was.accomr7 == 1 # house
+        if was.hsetyper7 in 1:3
+            was.hsetyper7
+        else
+            @assert false "unmapped was.hsetyper7 $(was.hsetyper7)"
+        end
+    elseif was.accomr7 == 2 # flat
+        if was.flttypr7 == 1
+            4
+        elseif was.flttypr7 == 2
+            5
+        else
+            @assert false "unmapped was.flttypr7 $(was.flttypr7)"
+        end
+    elseif was.accomr7 == 3 # room/rooms ? how could this be true of a household?
+        6
+    elseif was.accomr7 == 4
+        6
+    else
+        @assert false "unmapped was.accomr7 $(was.accomr7)"
+    end
+    @assert out in 1:6 "out is $out"
+
+    return lcf_accmap( out )
+end
+
+"""
+   dwell_na = -1
+   detatched = 1
+   semi_detached = 2
+   terraced = 3
+   flat_or_maisonette = 4
+   converted_flat = 5
+   caravan = 6
+   other_dwelling = 7
+"""
+function model_accommap( dwelling :: DwellingType ):: Vector{Int}
+    id = Int( dwelling )
+    id = max(6,id) # caravan=>other
+    return lcf_accmap( out )
 end
 
 #=
@@ -1506,6 +1650,63 @@ function lcf_age_hrp( a065p :: Int ) :: Vector{Int}
         @assert false "mapping a065p $a065p"
     end
     out
+end
+
+
+function was_frs_age_hrp( agegrp :: Int ) :: Vector{Int}
+    out = fill( 9998, 3 )
+    out[1] = hhagegr4
+    if hhagegr4 <= 5
+        out[2] = 1
+    elseif hhagegr4 <= 13
+        out[2] = 2
+    else
+        @assert false "mapping hhagegr4 $hhagegr4"
+    end
+    out
+end
+
+"""
+ HRPDVAge8r7	Variable label = Grouped Age of HRP (8 categories)
+This variable is    numeric, the SPSS measurement level is NOMINAL
+	Value label information for HRPDVAge8r7
+	Value = 1.0	Label = 0 to 15
+	Value = 2.0	Label = 16 to 24
+	Value = 3.0	Label = 25 to 34
+	Value = 4.0	Label = 35 to 44
+	Value = 5.0	Label = 45 to 54
+	Value = 6.0	Label = 55 to 64
+	Value = 7.0	Label = 65 to 74
+	Value = 8.0	Label = 75 and over
+	Value = -9.0	Label = Not Routed
+	Value = -8.0	Label = Don t know
+"""
+function was_age_hrp( age :: Int ) :: Vector{Int}
+    out = if age in 1:2
+        1
+    else
+        age -1 
+    end
+    return was_frs_age_hrp( out )
+end
+
+function was_model_age_grp( age :: Int )
+    out = if age < 25
+        1
+    elseif age < 35
+        2
+    elseif age < 45
+        3
+    elseif age < 55
+        4
+    elseif age < 65
+        5
+    elseif age < 75
+        6
+    elseif age >= 75
+        7
+    end
+    return was_frs_age_hrp( out )
 end
 
 #=
@@ -1797,12 +1998,6 @@ end
 
 end # FRS_TO_LCF 
 
-module WAS_TO_FRS
-
-import Main.MatchingLibs.score
-import Main.MatchingLibs.model_regionmap
-import Main.MatchingLibs.frs_regionmap;
-
 #=
 Value = 1.0	Label = 0 to 15
 Value = 2.0	Label = 16 to 24
@@ -1859,6 +2054,126 @@ function model_age_grp( age :: Int )
     end
 end
 
+#=
+   
+ Missing_Socio_Economic_Group = -1
+   Employers_in_large_organisations = 1
+   Higher_managerial_occupations = 2
+   Higher_professional_occupations_New_self_employed = 3
+   Lower_prof_and_higher_technical_Traditional_employee = 4
+   Lower_managerial_occupations = 5
+   Higher_supervisory_occupations = 6
+   Intermediate_clerical_and_administrative = 7
+   Employers_in_small_organisations_non_professional = 8
+   Own_account_workers_non_professional = 9
+   Lower_supervisory_occupations = 10
+   Lower_technical_craft = 11
+   Semi_routine_sales = 12
+   Routine_sales_and_service = 13
+   Never_worked = 14
+   Full_time_student = 15
+   Not_classified_or_inadequately_stated = 16
+   Not_classifiable_for_other_reasons = 17
+end
+
+1 1.1 => 1
+2 1.2 => 2,3
+3 2.0 => 4
+4 3.0 => 5,6,7
+5 4.0 => 8,9
+6 5.0 => 10
+7 6.0 => 11,12,
+8 7.0 => 13,
+9 8.0 => 14,15
+10 97,-8,-9 => 16,17,-1
+
+1.1 => 1 
+1.2 => 2
+2 => 3
+3 => 4
+4 => 5
+5 => 6
+6 => 7
+7 => 8
+8 => 9
+9 => 10
+
+nssec8r7
+    Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+	1 Value = 1.1	Label = Large employers and higher managerial occupations
+	2 Value = 1.2	Label = Higher professional occupations
+	3 Value = 2.0	Label = Lower managerial and professional occupations
+	4 Value = 3.0	Label = Intermediate occupations
+	5 Value = 4.0	Label = Small employers and own account workers
+	6 Value = 5.0	Label = Lower supervisory and technical occupations
+	7 Value = 6.0	Label = Semi-routine occupations
+	8 Value = 7.0	Label = Routine occupations
+	9 Value = 8.0	Label = Never worked and long-term unemployed
+	10 Value = 97.0	Label = Not classified
+
+=#
+
+function map_was_socio( socio :: Real ) :: Vector{Int}
+    d = Dict([
+        1.1 => 1, 
+        1.2 => 2,
+        2 => 3,
+        3 => 4,
+        4 => 5,
+        5 => 6,
+        6 => 7,
+        7 => 8,
+        8 => 9,
+        9 => 10,
+        97=>10,
+        -8=>10,
+        -9=>10])
+    return fill(d[socio],3)
+end
+
+function frs_map_socio( socio :: Int )  :: Vector{Int}
+    out = if socio == 1
+        1
+    elseif socio in [2,3]
+        2
+    elseif socio in [4]
+        3
+    elseif socio in [5,6,7]
+        4
+    elseif socio in [8,9]
+        5
+    elseif socio in [10]
+        6
+    elseif socio in [11,12]
+        7
+    elseif socio in [13]
+        8
+    elseif socio in [14,15]
+        9
+    elseif socio in [16,17,-1]
+        10
+    else
+        @assert false "socio out of range $socio"
+    end
+    return fill( out, 3)
+end
+
+#=
+1 1.1 => 1
+2 1.2 => 2,3
+3 2.0 => 4
+4 3.0 => 5,6,7
+5 4.0 => 8,9
+6 5.0 => 10
+7 6.0 => 11,12,
+8 7.0 => 13,
+9 8.0 => 14,15
+10 97,-8,-9 => 16,17,-1
+=#
+
+function map_frs_socio( socio :: Socio_Economic_Group )
+
 """
 Just for fuckery WAS and LCF these numbers subtly different - was ommits 4
 """
@@ -1866,7 +2181,28 @@ function was_regionmap( wasreg :: int ) :: Vector{Int}
     wasreg = wasreg <= 2 ? wasreg : wasreg - 1
     return lcf_regionmap( wasreg )
 end
+#=
+Value = 96.0	Label = Never worked and long-term unemployed
+	Value = 1.0	Label = Managerial and professional occupations
+	Value = 2.0	Label = Intermediate occupations
+	Value = 3.0	Label = Routine and manual occupations
+	Value = 97.0	Label = Not classified
+	Value = -8.0	Label = Don't know/ Refusal
+	Value = -9.0	Label = Not asked / applicable
+=#
 
+#=
+wasp = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab") |> DataFrame
+wash = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab") |> DataFrame
+rename!(wasp,lowercase.(names(wasp)))
+rename!(wash,lowercase.(names(wash)))
+washj = innerjoin( wasp, wash; on=:caser7,makeunique=true)
+washj[washj.p_flag4r7 .∈ (1,3),:] # hrp only
+washj[(washj.p_flag4r7 .== "1") .| (washj.p_flag4r7 .== "3"),:]
+
+mpers = CSV.File( "data/model_people_scotland-2015-2021.tab")|>DataFrame
+
+=#
 
 """
 We're JUST going to use the model dataset here
@@ -1877,14 +2213,23 @@ function model_was_match(
     t = 0.0
     incdiff = 0.0
     hrp = get_head( hh )
-    t += score( was_age_group(was.age_head), was_age_group(model_age_grp( hrp.age )))
+    t += score( was_model_age_grp( hrp.age ), was_age_grp(was.age_head))
     t += score( model_regionmap( hh.region ), was_regionmap( was.region ))
-    t += score( lcf_accmap( lcf.accom ), frs_accmap( hh.dwelling ))
-    t += score( was.tenure model_tenuremap( hh.tenure )
+    t += score( model_accommap( hh.dwelling ), was_accommap( was ))
+    t += score( model_tenuremap( hh.tenure ), was.tenuremap( was )) 
    
     was.socio_economic_grouping
-     sex
+    
+    sex
     marital_status
+    hh_composition 
+    any_wages
+    any_pension_income
+    any_selfemp = lcf.any_selfemp,
+    
+    has_any_se 
+    
+
     num_children( hh )
     num_adults( hh )
     return t, incdiff
