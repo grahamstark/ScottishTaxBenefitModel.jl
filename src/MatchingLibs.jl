@@ -2030,7 +2030,7 @@ frs     | 2020 | househol | HHAGEGR4      | 13    | Age 75 or over | Age_75_or_o
 function was_age_grp( age :: Int )::Vector{Int}
     out = fill( 9998, 3 )
     out[1] = age
-    out[2] = age[2] < 3 ? 1 : 2
+    out[2] = age < 3 ? 1 : 2
     out
 end
 
@@ -2114,6 +2114,21 @@ nssec8r7
 
 =#
 
+function map_socio( socio :: Int ) :: Vector{Int}
+    out = fill( 9998, 3 )
+    out[1] = socio
+    out[2] = if socio in 1:5
+        1
+    elseif socio !== 10
+        2
+    else
+        3
+    end
+    out[3] = socio == 10 ? 2 : 1
+    out
+
+end
+
 function map_was_socio( socio :: Real ) :: Vector{Int}
     d = Dict([
         1.1 => 1, 
@@ -2129,10 +2144,11 @@ function map_was_socio( socio :: Real ) :: Vector{Int}
         97=>10,
         -8=>10,
         -9=>10])
-    return fill(d[socio],3)
-end
+    return map_socio(d[socio])
+end 
 
-function frs_map_socio( socio :: Int )  :: Vector{Int}
+function frs_map_socio( soc :: Socio_Economic_Group )  :: Vector{Int}
+    socio = Int( soc )
     out = if socio == 1
         1
     elseif socio in [2,3]
@@ -2156,7 +2172,7 @@ function frs_map_socio( socio :: Int )  :: Vector{Int}
     else
         @assert false "socio out of range $socio"
     end
-    return fill( out, 3)
+    return map_socio( out)
 end
 
 #=
@@ -2172,7 +2188,6 @@ end
 10 97,-8,-9 => 16,17,-1
 =#
 
-function map_frs_socio( socio :: Socio_Economic_Group )
 
 """
 Just for fuckery WAS and LCF these numbers subtly different - was ommits 4
@@ -2202,6 +2217,29 @@ washj[(washj.p_flag4r7 .== "1") .| (washj.p_flag4r7 .== "3"),:]
 
 mpers = CSV.File( "data/model_people_scotland-2015-2021.tab")|>DataFrame
 
+  Missing_Marital_Status = -1
+   Married_or_Civil_Partnership = 1
+   Cohabiting = 2
+   Single = 3
+   Widowed = 4
+   Separated = 5
+   Divorced_or_Civil_Partnership_dissolved = 6
+
+hrpdvmrdfr7	Variable label = Marital status of HRP or partner
+This variable is    numeric, the SPSS measurement level is NOMINAL
+	Value label information for hrpdvmrdfr7
+	Value = 1.0	Label = Married
+	Value = 2.0	Label = Cohabiting
+	Value = 3.0	Label = Single
+	Value = 4.0	Label = Widowed
+	Value = 5.0	Label = Divorced
+	Value = 6.0	Label = Separated
+	Value = 7.0	Label = Same-sex couple
+	Value = 8.0	Label = Civil Partner
+	Value = 9.0	Label = Former / separated Civil Partner
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+
 =#
 
 """
@@ -2218,20 +2256,21 @@ function model_was_match(
     t += score( model_accommap( hh.dwelling ), was_accommap( was ))
     t += score( model_tenuremap( hh.tenure ), was.tenuremap( was )) 
    
-    was.socio_economic_grouping
+    t += score( frs_map_socio( hrp.socio_economic_grouping ),  
+        map_was_socio(was.socio_economic_grouping))
     
-    sex
-    marital_status
+    sex hrp.sex,   hrpsexr7
+    marital_status hrpdvmrdfr7
     hh_composition 
-    any_wages
-    any_pension_income
+    any_wages DVGIEMPR7_aggr > 0
+    any_se DVGISER7_aggr > 0
     any_selfemp = lcf.any_selfemp,
     
     has_any_se 
     
 
-    num_children( hh )
-    num_adults( hh )
+    num_children( hh ) numchildr7
+    num_adults( hh ) washj.numadultr7
     return t, incdiff
 end
 
