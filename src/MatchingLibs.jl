@@ -1124,9 +1124,6 @@ Value = 1.0	Label = Own it outright
 	Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/Refusal
 =#
-function was_tenuremap( tenure :: Int )::Vector{Int}
-
-end
 
 #=  WAS ten1r7
     Value = 1.0	Label = Own it outright
@@ -1151,7 +1148,8 @@ Value = 1.0	Label = Local authority / council / Scottish Homes
 	Value = -8.0	Label = Don't know/ Refusal
 
 =#
-function was_tenuremap( was :: DataFrame  ) :: Vector{Int}
+
+function was_tenuremap_one( was :: DataFrame  ) :: Int
     @argcheck was.ten1r7 in 1:6 "was.ten1r7 out of range"
     out = if was.ten1r7 == 1 # o-outright
         6 
@@ -1179,6 +1177,11 @@ function was_tenuremap( was :: DataFrame  ) :: Vector{Int}
         8
     end
     @assert out in 1:8
+    out
+end
+
+function was_tenuremap( was :: DataFrame  ) :: Vector{Int}
+    out = was_tenuremap_ine( was )
     return   lcf_tenuremap( out )
 end
 
@@ -1451,17 +1454,8 @@ This variable is    numeric, the SPSS measurement level is SCALE
 	Value = -8.0	Label = Don't know/ Refusal
 
 =#
-"""
-output:
-lcf     | 2020 | dvhh            | A116          | 1     | Whole house,bungalow-detached | Whole_house_bungalow_detached
-lcf     | 2020 | dvhh            | A116          | 2     | Whole hse,bungalow-semi-dtchd | Whole_hse_bungalow_semi_dtchd
-lcf     | 2020 | dvhh            | A116          | 3     | Whole house,bungalow-terraced | Whole_house_bungalow_terraced
-lcf     | 2020 | dvhh            | A116          | 4     | Purpose-built flat maisonette | Purpose_built_flat_maisonette
-lcf     | 2020 | dvhh            | A116          | 5     | Part of house converted flat  | Part_of_house_converted_flat
-lcf     | 2020 | dvhh            | A116          | 6     | Others                        | Others
 
-"""
-function was_accommap( was :: DataFrame ) :: Vector{Int}
+function was_accommap_one( was :: DataFrame ) :: Int
     out = if was.accomr7 == 1 # house
         if was.hsetyper7 in 1:3
             was.hsetyper7
@@ -1484,7 +1478,24 @@ function was_accommap( was :: DataFrame ) :: Vector{Int}
         @assert false "unmapped was.accomr7 $(was.accomr7)"
     end
     @assert out in 1:6 "out is $out"
+    out
+end 
 
+
+"""
+output:
+lcf     | 2020 | dvhh            | A116          | 1     | Whole house,bungalow-detached | Whole_house_bungalow_detached
+lcf     | 2020 | dvhh            | A116          | 2     | Whole hse,bungalow-semi-dtchd | Whole_hse_bungalow_semi_dtchd
+lcf     | 2020 | dvhh            | A116          | 3     | Whole house,bungalow-terraced | Whole_house_bungalow_terraced
+lcf     | 2020 | dvhh            | A116          | 4     | Purpose-built flat maisonette | Purpose_built_flat_maisonette
+lcf     | 2020 | dvhh            | A116          | 5     | Part of house converted flat  | Part_of_house_converted_flat
+lcf     | 2020 | dvhh            | A116          | 6     | Others                        | Others
+
+
+
+"""
+function was_accommap( was :: DataFrame ) :: Vector{Int}
+    out = was_accommap_one( was )
     return lcf_accmap( out )
 end
 
@@ -1783,16 +1794,7 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     return t,incdiff
 end
 
-function example_lcf_match( hh :: Household, lcf :: DataFrameRow ) :: Tuple
-    hrp = get_head( hh )
-    t = 0.0
-    t += score( lcf_tenuremap( lcf.a121 ), model_tenuremap( hh.tenure ))
-    t += score( lcf_regionmap( lcf.gorx ), model_regionmap( hh.region ))
-    # !!! both next missing in 2020 LCF FUCKKK 
-    # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
-    # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
-    t += score( lcf_age_hrp(  lcf.a065p ), frs_age_hrp(model_age_grp( hrp.age )))
-    t += score( lcf_composition_map( lcf.a062 ), model_composition_map( hh ))
+function do_hh_sums( hh :: Household ) :: Tuple
     any_wages = false
     any_selfemp = false
     any_pension_income = false 
@@ -1813,6 +1815,20 @@ function example_lcf_match( hh :: Household, lcf :: DataFrameRow ) :: Tuple
         end
         income += sum( pers.income, start=wages, stop=alimony_and_child_support_received ) # FIXME
     end
+    return any_wages, any_selfemp, any_pension_income, has_female_adult, income 
+end
+
+function example_lcf_match( hh :: Household, lcf :: DataFrameRow ) :: Tuple
+    hrp = get_head( hh )
+    t = 0.0
+    t += score( lcf_tenuremap( lcf.a121 ), model_tenuremap( hh.tenure ))
+    t += score( lcf_regionmap( lcf.gorx ), model_regionmap( hh.region ))
+    # !!! both next missing in 2020 LCF FUCKKK 
+    # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
+    # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
+    t += score( lcf_age_hrp(  lcf.a065p ), frs_age_hrp(model_age_grp( hrp.age )))
+    t += score( lcf_composition_map( lcf.a062 ), model_composition_map( hh ))
+    any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
     t += lcf.any_wages == any_wages ? 1 : 0
     t += lcf.any_pension_income == any_pension_income ? 1 : 0
     t += lcf.any_selfemp == any_selfemp ? 1 : 0
@@ -2128,8 +2144,7 @@ function map_socio( socio :: Int ) :: Vector{Int}
     out
 
 end
-
-function map_was_socio( socio :: Real ) :: Vector{Int}
+function was_map_socio_one( socio :: Real ) :: Vector{Int}
     d = Dict([
         1.1 => 1, 
         1.2 => 2,
@@ -2144,10 +2159,15 @@ function map_was_socio( socio :: Real ) :: Vector{Int}
         97=>10,
         -8=>10,
         -9=>10])
-    return map_socio(d[socio])
+    return d[socio]
+end
+
+function was_map_socio( socio :: Real ) :: Vector{Int}
+    out = was_map_socio_one( socio )
+    return map_socio( out )
 end 
 
-function frs_map_socio( soc :: Socio_Economic_Group )  :: Vector{Int}
+function model_map_socio( soc :: Socio_Economic_Group )  :: Vector{Int}
     socio = Int( soc )
     out = if socio == 1
         1
@@ -2187,14 +2207,41 @@ end
 9 8.0 => 14,15
 10 97,-8,-9 => 16,17,-1
 =#
-
+"""
+Value = 1.0	Label = North East
+	Value = 2.0	Label = North West
+	Value = 4.0	Label = Yorkshire and The Humber
+	Value = 5.0	Label = East Midlands
+	Value = 6.0	Label = West Midlands
+	Value = 7.0	Label = East of England
+	Value = 8.0	Label = London
+	Value = 9.0	Label = South East
+	Value = 10.0	Label = South West
+	Value = 11.0	Label = Wales
+	Value = 12.0	Label = Scotland
+"""
+function was_regionmap_one( wasreg :: int ) :: Standard_Region
+    d = Dict( [
+        1 => North_East, # = 112000001
+        2 => North_West, # = 112000002
+        4 => Yorks_and_the_Humber, # = 112000003
+        5 => East_Midlands, # = 112000004
+        6 => West_Midlands, # = 112000005
+        7 => East_of_England, # = 112000006
+        8 => London, # = 112000007
+        9 => South_East, # = 112000008
+        10 => South_West, # = 112000009
+        12 => Scotland, # = 299999999
+        11 => Wales ] )  # = 399999999
+    return d[ wasreg ]
+end
 
 """
 Just for fuckery WAS and LCF these numbers subtly different - was ommits 4
 """
 function was_regionmap( wasreg :: int ) :: Vector{Int}
-    wasreg = wasreg <= 2 ? wasreg : wasreg - 1
-    return lcf_regionmap( wasreg )
+    out = was_regionmap_one(wasreg)
+    return frs_regionmap( out )
 end
 #=
 Value = 96.0	Label = Never worked and long-term unemployed
@@ -2228,7 +2275,61 @@ mpers = CSV.File( "data/model_people_scotland-2015-2021.tab")|>DataFrame
 hrpdvmrdfr7	Variable label = Marital status of HRP or partner
 This variable is    numeric, the SPSS measurement level is NOMINAL
 	Value label information for hrpdvmrdfr7
-	Value = 1.0	Label = Married
+	
+
+
+    hrpempstat2r7	Variable label = Employment status of HRP or partner
+    This variable is    numeric, the SPSS measureme nt level is SCALE
+	Value label information for hrpempstat2r7
+	Value = 1.0	Label = Employee
+	Value = 2.0	Label = Self-employed
+	Value = 3.0	Label = Unemployed
+	Value = 4.0	Label = Student
+	Value = 5.0	Label = Looking after family home
+	Value = 6.0	Label = Sick or disabled
+	Value = 7.0	Label = Retired
+	Value = 8.0	Label = Other
+	Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+
+
+    Missing_Marital_Status = -1
+   Married_or_Civil_Partnership = 1
+   Cohabiting = 2
+   Single = 3
+   Widowed = 4
+   Separated = 5
+   Divorced_or_Civil_Partnership_dissolved = 6
+=#
+
+function map_marital( ms :: Int ) :: Vector{Int}
+    out = fill( 9998, 3 )
+    out[1] = ie
+    out[2] = ie in 1,2 ? 1 : 2
+    return out
+end
+
+function was_map_marital_one( mar :: Int ) :: Int
+    out :: Marital_Status = if mar in 1,7,8
+        Married_or_Civil_Partnership 
+    elseif mar in 2
+        Cohabiting
+    elseif mar in 3
+        Single
+    elseif mar in 4
+        Widowed
+    elseif mar in 5,6,9
+        Separated
+    elseif mar in -9,-8
+        Missing_Marital_Status
+    else
+        @assert false "unmapped mar $mar"
+    end
+    return out
+end
+
+"""
+Value = 1.0	Label = Married
 	Value = 2.0	Label = Cohabiting
 	Value = 3.0	Label = Single
 	Value = 4.0	Label = Widowed
@@ -2239,8 +2340,125 @@ This variable is    numeric, the SPSS measurement level is NOMINAL
 	Value = 9.0	Label = Former / separated Civil Partner
 	Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/ Refusal
+"""
+function was_map_marital( mar :: Int ) :: Vector{Int}
+    out = was_map_marital_one( mar )
+    return map_marital( Int( out) )
+end
 
-=#
+"""
+Missing_Marital_Status = -1
+   Married_or_Civil_Partnership = 1
+   Cohabiting = 2
+   Single = 3
+   Widowed = 4
+   Separated = 5
+   Divorced_or_Civil_Partnership_dissolved = 6
+"""
+function model_map_marital( mar :: Marital_Status ):: Vector{Int}
+    im = Int( mar )
+    @assert im in 1:6 "im missing $mar = $im"
+    return map_marital(im)
+end
+
+
+function map_empstat( ie :: Int ):: Vector{Int}
+    out = fill( 9998, 3 )
+    out[1] = ie
+    out[2] = ie in 1:2 ? 1 : 2
+    return out
+end
+
+function was_map_empstat( ie :: Int ) :: Vector{Int}
+    return map_empstat( ie )
+end
+
+"""
+   Missing_ILO_Employment = -1
+   Full_time_Employee = 1
+   Part_time_Employee = 2
+   Full_time_Self_Employed = 3
+   Part_time_Self_Employed = 4
+   Unemployed = 5
+   Retired = 6
+   Student = 7
+   Looking_after_family_or_home = 8
+   Permanently_sick_or_disabled = 9
+   Temporarily_sick_or_injured = 10
+   Other_Inactive = 11
+"""
+function model_map_empstat( ie :: ILO_Employment ) :: Vector{Int}
+    out = if ie in [Full_time_Employee,Part_time_Employee]
+        1
+    elseif ie in [Full_time_Self_Employed,Part_time_Self_Employed ]
+        2
+    elseif ie in Unemployed
+        3
+    elseif ie in Retired 
+        7
+    elseif ie in Student
+        4
+    elseif ie in Looking_after_family_or_home
+        5
+    elseif ie in Permanently_sick_or_disabled,Temporarily_sick_or_injured
+        6
+    elseif ie in Other_Inactive,Missing_ILO_Employment
+        8
+    else
+        @assert false "unmapped empstat $empstat = $ie"
+    end
+    return map_empstat( Int(out) )
+end
+
+"""
+Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
+"""
+function create_was_subset( )
+    wasp = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " "]) |> DataFrame
+    wash = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
+    rename!(wasp,lowercase.(names(wasp)))
+    rename!(wash,lowercase.(names(wash)))
+    wash = innerjoin( wasp, wash; on=:caser7,makeunique=true)
+    was[(was.p_flag4r7 .== "1") .| (was.p_flag4r7 .== "3"),:]
+    @assert size( was )[1] == size( wash )[1] # selected 1 per hh, missed no hhs
+
+    wpy=365.25/7
+
+    subwas = DataFrame()
+    subwas.bedrooms = was.hbedrmr7
+    subwas.region = was_regionmap_one(was.gorr7)
+    subwas.age_head = was.hrpdvage8r7
+    subwas.weekly_gross_income = was.dvtotgirr7./wpy
+    
+    subwas.tenure = was_tenuremap_one.( was )
+    subwas.accom = was_accommap_one.( was )
+
+    subwas.household_type = was.hholdtyper7
+    subwas.occupation =  was.hrpnssec3r7
+    subwas.total_wealth = was.totwlthr7
+    subwas.num_children = was.numchildr7
+    subwas.num_adults = was.dvhsizer7 - subwas.num_children
+    subwas.sex_head = was.hrpsexr7
+    subwas.socio_economic_grouping
+    subwas.empstat_head = was.hrpempstat2r7 
+    subwas.socio_economic_head = was_map_socio_one.( was.nssec8r7 ) # hrpnssec3r7 
+    subwas.marital_status_head = Int.(was_map_marital_one.(was.hrpdvmrdfr7))
+
+    subwas.any_wages = was.dvgiempr7_aggr .> 0
+    subwas.any_selfemp = was.dvgiser7_aggr .> 0
+    subwas.any_pension_income = was.dvpinpvalr7_aggr .> 0
+
+    subwas.net_housing = was.hpropwr7
+    subwas.has_degree = was.hrpedlevelr7 .== 1
+    subwas.net_physical = was.hphyswr7
+    subwas.total_pensions = was.totpenr7_aggr
+    subwas.net_financial = was.hfinwntr7_sum
+    subwas.total_value_of_other_property = was.othpropvalr7_sum
+    subwas.total_financial_liabilities = was.hfinlr7_excslc_aggr #   Hhold value of financial liabilities
+    subwas.total_household_wealth = was.totwlthr7
+    return subwas
+end
+# HFINWNTR7_exSLC_Sum
 
 """
 We're JUST going to use the model dataset here
@@ -2254,23 +2472,31 @@ function model_was_match(
     t += score( was_model_age_grp( hrp.age ), was_age_grp(was.age_head))
     t += score( model_regionmap( hh.region ), was_regionmap( was.region ))
     t += score( model_accommap( hh.dwelling ), was_accommap( was ))
-    t += score( model_tenuremap( hh.tenure ), was.tenuremap( was )) 
+    t += score( model_tenuremap( hh.tenure ), was_tenuremap( was )) 
    
-    t += score( frs_map_socio( hrp.socio_economic_grouping ),  
-        map_was_socio(was.socio_economic_grouping))
-    
-    sex hrp.sex,   hrpsexr7
-    marital_status hrpdvmrdfr7
-    hh_composition 
-    any_wages DVGIEMPR7_aggr > 0
-    any_se DVGISER7_aggr > 0
-    any_selfemp = lcf.any_selfemp,
-    
-    has_any_se 
-    
+    t += score( model_map_socio( hrp.socio_economic_grouping ),  
+        was_map_socio(was.socio_economic_grouping))
+    t += score( model_map_empstat( hrp.employment_status ), was_map_empstat( was.empstat_head ))
 
-    num_children( hh ) numchildr7
-    num_adults( hh ) washj.numadultr7
+    t += Int(hrp.sex) == was.sex ? 1 : 0
+
+    t += score( model_map_marital(hrp.marital_status ), was_map_marital( was.marital_status_head ))
+    any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
+
+    #     hh_composition 
+    t += any_wages == was.any_wages ? 1 : 0
+    t += any_selfemp ==  was.any_selfemp ? 1 : 0
+    t += any_pension_income == was.any_pension_income ? 1 : 0
+     
+    t += highqual_degree_equiv(hrp.highest_qualification) == was.has_degree ? 1 : 0
+
+    t += score( num_children( hh ), was.num_children )
+    t += score( num_adults( hh ), was.num_adults )
+    # num_children( hh ), was.num_children  numchildr7
+    # num_adults( hh )    was.num_adults washj.numadultr7
+
+    incdiff = compare_income( lcf.income, income )
+
     return t, incdiff
 end
 

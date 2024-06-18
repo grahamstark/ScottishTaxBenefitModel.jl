@@ -25,7 +25,6 @@ was = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_202
 lcnames = lowercase.(names(was))
 rename!( was, lcnames )
 
-wpy=365.25/7
 
 subwas = DataFrame()
 subwas.ecpos_head = was.hrpdvecactr7
@@ -33,8 +32,6 @@ subwas.bedrooms = was.hbedrmr7
 subwas.region = was.gorr7
 subwas.age_head = was.hrpdvage8r7
 subwas.weekly_gross_income = was.dvtotgirr7./wpy
-subwas.tenure = was.ten1r7
-subwas.accom = was.accomr7
 subwas.household_type = was.hholdtyper7
 subwas.occupation =  was.hrpnssec3r7
 subwas.total_wealth = was.totwlthr7
@@ -43,18 +40,19 @@ subwas.num_adults = was.dvhsizer7 - subwas.num_children
 subwas.sex_head = was.hrpsexr7
 subwas.socio_economic_grouping
 subwas.empstat_head = was.hrpempstat2r7 
-subwas.socio_economic_head = was.nssec8r7 # hrpnssec3r7 
-
 # rename all thse
+#=
 subwas.accomr7 = was.accomr7 
 subwas.hsetyper7 = was.hsetyper7
 subwas.flttypr7 = was.flttypr7
 subwas.ten1r7 = was.ten1r7
 subwas.llord7 = was.llord7
 subwas.furnr7 = was.furnr7
+=#
 
 subwas.any_wages = was.dvgiempr7_aggr .> 0
 subwas.any_selfemp = was.dvgiser7_aggr .> 0
+subwas.any_pension_income = was.dvpinpvalr7_aggr .> 0
 
 subwas.net_housing = was.hpropwr7
 subwas.marital_status_head = was.hrpdvmrdfr7
