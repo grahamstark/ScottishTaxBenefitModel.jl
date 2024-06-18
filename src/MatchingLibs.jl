@@ -1164,11 +1164,11 @@ function was_tenuremap_one( wasf :: DataFrame ) :: Int
         elseif was.ten1r7 in 2:3
             5 # mortgaged
         elseif was.ten1r7 == 4 # rented
-            if was.llord7 == 1
+            if was.llordr7 == 1
                 1 # council
-            elseif was.llord7 == 2
+            elseif was.llordr7 == 2
                 2 # housing assoc
-            elseif was.llord7 in 3:7
+            elseif was.llordr7 in 3:7
                 if was.furnr7 in 1:2 # furnished, inc part
                     4
                 elseif was.furnr7 == 3
