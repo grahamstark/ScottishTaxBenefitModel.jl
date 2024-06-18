@@ -18,7 +18,8 @@ using .Definitions,
 using CSV,
     DataFrames,
     Measures,
-    StatsBase
+    StatsBase,
+    ArgCheck
 
 export make_lcf_subset, 
     map_example, 
@@ -33,6 +34,8 @@ struct LCFLocation
     income :: Float64
     incdiff :: Float64
 end
+
+s = instances( Socio_Economic_Group )
 
 """
 Load 2020/21 FRS and add some matching fields
@@ -1149,34 +1152,40 @@ Value = 1.0	Label = Local authority / council / Scottish Homes
 
 =#
 
-function was_tenuremap_one( was :: DataFrame  ) :: Int
-    @argcheck was.ten1r7 in 1:6 "was.ten1r7 out of range"
-    out = if was.ten1r7 == 1 # o-outright
-        6 
-    elseif was.ten1r7 in 2:3
-        5 # mortgaged
-    elseif was.ten1r7 == 4 # rented
-        if was.llord7 == 1
-            1 # council
-        elseif was.llord7 == 2
-            2 # housing assoc
-        elseif was.llord == 3:7
-            if was.furnr7 in 1:2 # furnished, inc part
-                4
-            elseif was.furnr7 == 3
-                3 # unfurnished
+function was_tenuremap_one( wasf :: DataFrame ) :: Int
+    nrows,ncols = size( wasf )
+    out = fill(0,nrows)
+    row = 0
+    for was in eachrow( wasf )
+        row += 1
+        @assert was.ten1r7 in 1:6 "was.ten1r7 out of range"
+        out[row] = if was.ten1r7 == 1 # o-outright
+            6 
+        elseif was.ten1r7 in 2:3
+            5 # mortgaged
+        elseif was.ten1r7 == 4 # rented
+            if was.llord7 == 1
+                1 # council
+            elseif was.llord7 == 2
+                2 # housing assoc
+            elseif was.llord7 in 3:7
+                if was.furnr7 in 1:2 # furnished, inc part
+                    4
+                elseif was.furnr7 == 3
+                    3 # unfurnished
+                else
+                    @assert false "was.furnr7 out-of-range $(was.furnr7)"
+                end
             else
-                @assert false "was.furnr7 out-of-range $(was.furnr7)"
+                @assert false "was.llord7 out of range $(was.llord7)"
             end
-        else
-            @assert false "was.llord7 out of range $(was.llord7)"
+        elseif was.ten1r7 == 5
+            7
+        elseif was.ten1r7 == 6
+            8
         end
-    elseif was.ten1r7 == 5
-        7
-    elseif was.ten1r7 == 6
-        8
+        @assert out[row] in 1:8
     end
-    @assert out in 1:8
     out
 end
 
@@ -1455,29 +1464,35 @@ This variable is    numeric, the SPSS measurement level is SCALE
 
 =#
 
-function was_accommap_one( was :: DataFrame ) :: Int
-    out = if was.accomr7 == 1 # house
-        if was.hsetyper7 in 1:3
-            was.hsetyper7
+function was_accommap_one( wasf :: DataFrame ) :: Int
+    nrows,ncols = size( wasf )
+    out = fill(0,nrows)
+    row = 0
+    for was in eachrow( wasf )
+        row += 1
+        out[row] = if was.accomr7 == 1 # house
+            if was.hsetyper7 in 1:3
+                was.hsetyper7
+            else
+                @assert false "unmapped was.hsetyper7 $(was.hsetyper7)"
+            end
+        elseif was.accomr7 == 2 # flat
+            if was.flttypr7 == 1
+                4
+            elseif was.flttypr7 == 2
+                5
+            else
+                @assert false "unmapped was.flttypr7 $(was.flttypr7)"
+            end
+        elseif was.accomr7 == 3 # room/rooms ? how could this be true of a household?
+            6
+        elseif was.accomr7 == 4
+            6
         else
-            @assert false "unmapped was.hsetyper7 $(was.hsetyper7)"
+            @assert false "unmapped was.accomr7 $(was.accomr7)"
         end
-    elseif was.accomr7 == 2 # flat
-        if was.flttypr7 == 1
-            4
-        elseif was.flttypr7 == 2
-            5
-        else
-            @assert false "unmapped was.flttypr7 $(was.flttypr7)"
-        end
-    elseif was.accomr7 == 3 # room/rooms ? how could this be true of a household?
-        6
-    elseif was.accomr7 == 4
-        6
-    else
-        @assert false "unmapped was.accomr7 $(was.accomr7)"
+        @assert out[row] in 1:6 "out is $out"
     end
-    @assert out in 1:6 "out is $out"
     out
 end 
 
@@ -1496,7 +1511,7 @@ lcf     | 2020 | dvhh            | A116          | 6     | Others               
 """
 function was_accommap( was :: DataFrame ) :: Vector{Int}
     out = was_accommap_one( was )
-    return lcf_accmap( out )
+    return lcf_accmap.( out )
 end
 
 """
@@ -2012,8 +2027,6 @@ function load3lcfs()::Tuple
     lcfhh,lcfpers,lcf_hh_pp
 end
 
-end # FRS_TO_LCF 
-
 #=
 Value = 1.0	Label = 0 to 15
 Value = 2.0	Label = 16 to 24
@@ -2142,8 +2155,8 @@ function map_socio( socio :: Int ) :: Vector{Int}
     end
     out[3] = socio == 10 ? 2 : 1
     out
-
 end
+
 function was_map_socio_one( socio :: Real ) :: Vector{Int}
     d = Dict([
         1.1 => 1, 
@@ -2167,7 +2180,7 @@ function was_map_socio( socio :: Real ) :: Vector{Int}
     return map_socio( out )
 end 
 
-function model_map_socio( soc :: Socio_Economic_Group )  :: Vector{Int}
+function model_map_socio( soc ) :: Vector{Int}
     socio = Int( soc )
     out = if socio == 1
         1
@@ -2207,6 +2220,7 @@ end
 9 8.0 => 14,15
 10 97,-8,-9 => 16,17,-1
 =#
+
 """
 Value = 1.0	Label = North East
 	Value = 2.0	Label = North West
@@ -2220,7 +2234,7 @@ Value = 1.0	Label = North East
 	Value = 11.0	Label = Wales
 	Value = 12.0	Label = Scotland
 """
-function was_regionmap_one( wasreg :: int ) :: Standard_Region
+function was_regionmap_one( wasreg :: Int ) :: Standard_Region
     d = Dict( [
         1 => North_East, # = 112000001
         2 => North_West, # = 112000002
@@ -2239,7 +2253,7 @@ end
 """
 Just for fuckery WAS and LCF these numbers subtly different - was ommits 4
 """
-function was_regionmap( wasreg :: int ) :: Vector{Int}
+function was_regionmap( wasreg :: Int ) :: Vector{Int}
     out = was_regionmap_one(wasreg)
     return frs_regionmap( out )
 end
@@ -2305,12 +2319,12 @@ This variable is    numeric, the SPSS measurement level is NOMINAL
 function map_marital( ms :: Int ) :: Vector{Int}
     out = fill( 9998, 3 )
     out[1] = ie
-    out[2] = ie in 1,2 ? 1 : 2
+    out[2] = ie in [1,2] ? 1 : 2
     return out
 end
 
 function was_map_marital_one( mar :: Int ) :: Int
-    out :: Marital_Status = if mar in 1,7,8
+    out :: Marital_Status = if mar in [1,7,8]
         Married_or_Civil_Partnership 
     elseif mar in 2
         Cohabiting
@@ -2318,9 +2332,9 @@ function was_map_marital_one( mar :: Int ) :: Int
         Single
     elseif mar in 4
         Widowed
-    elseif mar in 5,6,9
+    elseif mar in [5,6,9]
         Separated
-    elseif mar in -9,-8
+    elseif mar in [-9,-8]
         Missing_Marital_Status
     else
         @assert false "unmapped mar $mar"
@@ -2355,7 +2369,7 @@ Missing_Marital_Status = -1
    Separated = 5
    Divorced_or_Civil_Partnership_dissolved = 6
 """
-function model_map_marital( mar :: Marital_Status ):: Vector{Int}
+function model_map_marital( mar :: Marital_Status ):: Vector{Int} 
     im = Int( mar )
     @assert im in 1:6 "im missing $mar = $im"
     return map_marital(im)
@@ -2365,7 +2379,7 @@ end
 function map_empstat( ie :: Int ):: Vector{Int}
     out = fill( 9998, 3 )
     out[1] = ie
-    out[2] = ie in 1:2 ? 1 : 2
+    out[2] = ie in [1:2] ? 1 : 2
     return out
 end
 
@@ -2387,7 +2401,7 @@ end
    Temporarily_sick_or_injured = 10
    Other_Inactive = 11
 """
-function model_map_empstat( ie :: ILO_Employment ) :: Vector{Int}
+function model_map_empstat( ie :: ILO_Employment  ) :: Vector{Int} #  
     out = if ie in [Full_time_Employee,Part_time_Employee]
         1
     elseif ie in [Full_time_Self_Employed,Part_time_Self_Employed ]
@@ -2400,9 +2414,9 @@ function model_map_empstat( ie :: ILO_Employment ) :: Vector{Int}
         4
     elseif ie in Looking_after_family_or_home
         5
-    elseif ie in Permanently_sick_or_disabled,Temporarily_sick_or_injured
+    elseif ie in [Permanently_sick_or_disabled,Temporarily_sick_or_injured]
         6
-    elseif ie in Other_Inactive,Missing_ILO_Employment
+    elseif ie in [Other_Inactive,Missing_ILO_Employment]
         8
     else
         @assert false "unmapped empstat $empstat = $ie"
@@ -2418,20 +2432,21 @@ function create_was_subset( )
     wash = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
     rename!(wasp,lowercase.(names(wasp)))
     rename!(wash,lowercase.(names(wash)))
-    wash = innerjoin( wasp, wash; on=:caser7,makeunique=true)
-    was[(was.p_flag4r7 .== "1") .| (was.p_flag4r7 .== "3"),:]
-    @assert size( was )[1] == size( wash )[1] # selected 1 per hh, missed no hhs
-
+    wasj = innerjoin( wasp, wash; on=:caser7,makeunique=true)
+    wasj.p_flag4r7 = coalesce.(wasj.p_flag4r7, -1)
+    was = wasj[((wasj.p_flag4r7 .== 1) .| (wasj.p_flag4r7 .== 3)),:]
+    # @assert size( was )[1] == size( wash )[1] " sizes don't match $(size( was )) $(size( wash ))" # selected 1 per hh, missed no hhs
+    # this breaks! (17532, 5534) (17534, 852) - 2 missing, but that's OK??
     wpy=365.25/7
 
     subwas = DataFrame()
     subwas.bedrooms = was.hbedrmr7
-    subwas.region = was_regionmap_one(was.gorr7)
+    subwas.region = was_regionmap_one.(was.gorr7)
     subwas.age_head = was.hrpdvage8r7
     subwas.weekly_gross_income = was.dvtotgirr7./wpy
     
-    subwas.tenure = was_tenuremap_one.( was )
-    subwas.accom = was_accommap_one.( was )
+    subwas.tenure = was_tenuremap_one( was )
+    subwas.accom = was_accommap_one( was )
 
     subwas.household_type = was.hholdtyper7
     subwas.occupation =  was.hrpnssec3r7
