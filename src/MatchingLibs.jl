@@ -1152,18 +1152,19 @@ Value = 1.0	Label = Local authority / council / Scottish Homes
 
 =#
 
-function was_tenuremap_one( wasf :: DataFrame ) :: Int
+function was_tenuremap_one( wasf :: DataFrame ) :: Vector{Int}
     nrows,ncols = size( wasf )
     out = fill(0,nrows)
     row = 0
     for was in eachrow( wasf )
         row += 1
-        @assert was.ten1r7 in 1:6 "was.ten1r7 out of range"
-        out[row] = if was.ten1r7 == 1 # o-outright
+        # ten1r7_i since 2 "-8s" so use imputed version
+        @assert was.ten1r7_i in 1:6 "was.ten1r7 out of range $(was.ten1r7)"
+        out[row] = if was.ten1r7_i == 1 # o-outright
             6 
-        elseif was.ten1r7 in 2:3
+        elseif was.ten1r7_i in 2:3
             5 # mortgaged
-        elseif was.ten1r7 == 4 # rented
+        elseif was.ten1r7_i == 4 # rented
             if was.llordr7 == 1
                 1 # council
             elseif was.llordr7 == 2
@@ -1179,9 +1180,9 @@ function was_tenuremap_one( wasf :: DataFrame ) :: Int
             else
                 @assert false "was.llord7 out of range $(was.llord7)"
             end
-        elseif was.ten1r7 == 5
+        elseif was.ten1r7_i == 5
             7
-        elseif was.ten1r7 == 6
+        elseif was.ten1r7_i == 6
             8
         end
         @assert out[row] in 1:8
@@ -1278,7 +1279,7 @@ end
 """
 Convoluted household type map. See the note `lcf_frs_composition_mapping.md`.
 """
-function composition_map( comp :: Int, mappings; default::Int ) Vector{Int}
+function composition_map( comp :: Int, mappings; default::Int ) :: Vector{Int}
     out = fill( default, 3 )
     n = length(mappings)
     for i in 1:n
@@ -1464,7 +1465,7 @@ This variable is    numeric, the SPSS measurement level is SCALE
 
 =#
 
-function was_accommap_one( wasf :: DataFrame ) :: Int
+function was_accommap_one( wasf :: DataFrame ) :: Vector{Int}
     nrows,ncols = size( wasf )
     out = fill(0,nrows)
     row = 0
@@ -2157,7 +2158,7 @@ function map_socio( socio :: Int ) :: Vector{Int}
     out
 end
 
-function was_map_socio_one( socio :: Real ) :: Vector{Int}
+function was_map_socio_one( socio :: Real ) :: Int
     d = Dict([
         1.1 => 1, 
         1.2 => 2,
@@ -2323,7 +2324,7 @@ function map_marital( ms :: Int ) :: Vector{Int}
     return out
 end
 
-function was_map_marital_one( mar :: Int ) :: Int
+function was_map_marital_one( mar :: Int ) :: Marital_Status
     out :: Marital_Status = if mar in [1,7,8]
         Married_or_Civil_Partnership 
     elseif mar in 2
@@ -2441,7 +2442,7 @@ function create_was_subset( )
 
     subwas = DataFrame()
     subwas.bedrooms = was.hbedrmr7
-    subwas.region = was_regionmap_one.(was.gorr7)
+    subwas.region = Int.(was_regionmap_one.(was.gorr7))
     subwas.age_head = was.hrpdvage8r7
     subwas.weekly_gross_income = was.dvtotgirr7./wpy
     
@@ -2454,7 +2455,6 @@ function create_was_subset( )
     subwas.num_children = was.numchildr7
     subwas.num_adults = was.dvhsizer7 - subwas.num_children
     subwas.sex_head = was.hrpsexr7
-    subwas.socio_economic_grouping
     subwas.empstat_head = was.hrpempstat2r7 
     subwas.socio_economic_head = was_map_socio_one.( was.nssec8r7 ) # hrpnssec3r7 
     subwas.marital_status_head = Int.(was_map_marital_one.(was.hrpdvmrdfr7))
@@ -2471,6 +2471,7 @@ function create_was_subset( )
     subwas.total_value_of_other_property = was.othpropvalr7_sum
     subwas.total_financial_liabilities = was.hfinlr7_excslc_aggr #   Hhold value of financial liabilities
     subwas.total_household_wealth = was.totwlthr7
+    CSV.write( "data/was_wave_7_subset.tab", subwas; delim='\t')
     return subwas
 end
 # HFINWNTR7_exSLC_Sum
