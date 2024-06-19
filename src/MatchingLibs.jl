@@ -71,8 +71,8 @@ function load_scottish_frss( startyear::Int, endyear :: Int )::NamedTuple
     (; frshh, frspers, frs_hh_pp )
 end
 
-function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( 9999, 3 )
+function frs_regionmap( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
+    out = fill( default, 3 )
     # gvtregn = parse(Int, gvtregn )
     if ismissing( gvtregn )
         ;
@@ -98,7 +98,7 @@ function frs_regionmap( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
 end
 
 function model_regionmap(  reg :: Standard_Region ) :: Vector{Int}
-    return frs_regionmap( Int( reg ))
+    return frs_regionmap( Int( reg ), 9998 )
 end
 
 """
@@ -1033,6 +1033,10 @@ function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
     end
 end
 
+function uprate_was!( was :: DataFrame )
+
+end
+
 const TOPCODE = 2420.03
 
 function within(x;min=min,max=max) 
@@ -1086,8 +1090,8 @@ lcf     | 2020 | dvhh   | A121          | 6     | Owned by rental purchase      
 lcf     | 2020 | dvhh   | A121          | 7     | Owned outright                | Owned_outright
 lcf     | 2020 | dvhh   | A121          | 8     | Rent free                     | Rent_free
 =#
-function lcf_tenuremap( a121 :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( 9998, 3 )
+function lcf_tenuremap( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
+    out = fill( default, 3 )
     if ismissing( a121 )
         ;
     elseif a121 == 1
@@ -1192,7 +1196,7 @@ end
 
 function was_tenuremap( was :: DataFrame  ) :: Vector{Int}
     out = was_tenuremap_ine( was )
-    return   lcf_tenuremap( out )
+    return   lcf_tenuremap( out, 9997 )
 end
 
 #=
@@ -1405,9 +1409,9 @@ lcf     | 2020 | dvhh            | A116          | 6     | Others               
 """
 Map accomodation. Unused in the end.
 """
-function lcf_accmap( a116 :: Any)  :: Vector{Int}
+function lcf_accmap( a116 :: Any, default=9998)  :: Vector{Int}
     @argcheck a116 in 1:6
-    out = fill( 9998, 3 )
+    out = fill( default, 3 )
     # missing in 2020 f*** 
     if typeof(a116) <: AbstractString
         return out
@@ -1512,7 +1516,7 @@ lcf     | 2020 | dvhh            | A116          | 6     | Others               
 """
 function was_accommap( was :: DataFrame ) :: Vector{Int}
     out = was_accommap_one( was )
-    return lcf_accmap.( out )
+    return lcf_accmap.( out, 9997 )
 end
 
 """
@@ -1528,7 +1532,7 @@ end
 function model_accommap( dwelling :: DwellingType ):: Vector{Int}
     id = Int( dwelling )
     id = max(6,id) # caravan=>other
-    return lcf_accmap( out )
+    return lcf_accmap( out, 9998 )
 end
 
 #=
@@ -1788,7 +1792,7 @@ Produce a comparison between on frs and one lcf row on tenure, region, wages, et
 function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     t = 0.0
     t += score( lcf_tenuremap( lcf.a121 ), frs_tenuremap( frs.tentyp2 ))
-    t += score( lcf_regionmap( lcf.gorx ), frs_regionmap( frs.gvtregn ))
+    t += score( lcf_regionmap( lcf.gorx ), frs_regionmap( frs.gvtregn, 9997 ))
     # !!! both next missing in 2020 LCF FUCKKK 
     # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
     # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
@@ -1859,8 +1863,6 @@ function example_lcf_match( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     incdiff = compare_income( lcf.income, income )
     t += 10.0*incdiff
     return t,incdiff
-
-
 end
 
 islessscore( l1::LCFLocation, l2::LCFLocation ) = l1.score < l2.score
@@ -2058,7 +2060,7 @@ frs     | 2020 | househol | HHAGEGR4      | 13    | Age 75 or over | Age_75_or_o
 =#
 
 function was_age_grp( age :: Int )::Vector{Int}
-    out = fill( 9998, 3 )
+    out = fill( 9997, 3 )
     out[1] = age
     out[2] = age < 3 ? 1 : 2
     out
@@ -2144,8 +2146,8 @@ nssec8r7
 
 =#
 
-function map_socio( socio :: Int ) :: Vector{Int}
-    out = fill( 9998, 3 )
+function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
+    out = fill( default, 3 )
     out[1] = socio
     out[2] = if socio in 1:5
         1
@@ -2178,7 +2180,7 @@ end
 
 function was_map_socio( socio :: Real ) :: Vector{Int}
     out = was_map_socio_one( socio )
-    return map_socio( out )
+    return map_socio( out, 9997 )
 end 
 
 function model_map_socio( soc ) :: Vector{Int}
@@ -2256,7 +2258,7 @@ Just for fuckery WAS and LCF these numbers subtly different - was ommits 4
 """
 function was_regionmap( wasreg :: Int ) :: Vector{Int}
     out = was_regionmap_one(wasreg)
-    return frs_regionmap( out )
+    return frs_regionmap( out, 9997 )
 end
 #=
 Value = 96.0	Label = Never worked and long-term unemployed
@@ -2317,8 +2319,8 @@ This variable is    numeric, the SPSS measurement level is NOMINAL
    Divorced_or_Civil_Partnership_dissolved = 6
 =#
 
-function map_marital( ms :: Int ) :: Vector{Int}
-    out = fill( 9998, 3 )
+function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
+    out = fill( default, 3 )
     out[1] = ie
     out[2] = ie in [1,2] ? 1 : 2
     return out
@@ -2358,7 +2360,7 @@ Value = 1.0	Label = Married
 """
 function was_map_marital( mar :: Int ) :: Vector{Int}
     out = was_map_marital_one( mar )
-    return map_marital( Int( out) )
+    return map_marital( Int( out), 9997 )
 end
 
 """
@@ -2377,15 +2379,15 @@ function model_map_marital( mar :: Marital_Status ):: Vector{Int}
 end
 
 
-function map_empstat( ie :: Int ):: Vector{Int}
-    out = fill( 9998, 3 )
+function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
+    out = fill( default, 3 )
     out[1] = ie
     out[2] = ie in [1:2] ? 1 : 2
     return out
 end
 
 function was_map_empstat( ie :: Int ) :: Vector{Int}
-    return map_empstat( ie )
+    return map_empstat( ie, 9997 )
 end
 
 """
@@ -2441,11 +2443,14 @@ function create_was_subset( )
     wpy=365.25/7
 
     subwas = DataFrame()
+    subwas.case = was.caser7
+    subwas.year = was.yearr7
+    subwas.month = was.monthr7
+    subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
     subwas.bedrooms = was.hbedrmr7
     subwas.region = Int.(was_regionmap_one.(was.gorr7))
     subwas.age_head = was.hrpdvage8r7
     subwas.weekly_gross_income = was.dvtotgirr7./wpy
-    
     subwas.tenure = was_tenuremap_one( was )
     subwas.accom = was_accommap_one( was )
 
@@ -2471,6 +2476,13 @@ function create_was_subset( )
     subwas.total_value_of_other_property = was.othpropvalr7_sum
     subwas.total_financial_liabilities = was.hfinlr7_excslc_aggr #   Hhold value of financial liabilities
     subwas.total_household_wealth = was.totwlthr7
+    for row in eachrow( subwas )
+        row.weekly_gross_income = Uprating.uprate( 
+            row.weekly_gross_income,
+            row.year, 
+            row.q, 
+            Uprating.upr_nominal_gdp )
+    end
     CSV.write( "data/was_wave_7_subset.tab", subwas; delim='\t')
     return subwas
 end
@@ -2485,18 +2497,16 @@ function model_was_match(
     t = 0.0
     incdiff = 0.0
     hrp = get_head( hh )
-    t += score( was_model_age_grp( hrp.age ), was_age_grp(was.age_head))
-    t += score( model_regionmap( hh.region ), was_regionmap( was.region ))
-    t += score( model_accommap( hh.dwelling ), was_accommap( was ))
-    t += score( model_tenuremap( hh.tenure ), was_tenuremap( was )) 
-   
+    t += score( was_model_age_grp( hrp.age ), was_age_grp(was.age_head)) # ok
+    t += score( model_regionmap( hh.region ), frs_regionmap( was.region, 9997 )) 
+    t += score( model_accommap( hh.dwelling ), lcf_accommap( was.accom, 9997 ))
+    t += score( model_tenuremap( hh.tenure ),  lcf_tenuremap( was.tenure, 9997 ))
     t += score( model_map_socio( hrp.socio_economic_grouping ),  
-        was_map_socio(was.socio_economic_grouping))
-    t += score( model_map_empstat( hrp.employment_status ), was_map_empstat( was.empstat_head ))
-
+        map_socio( was.socio_economic_grouping, 9997 ))
+    t += score( model_map_empstat( hrp.employment_status ), map_empstat( was.empstat_head, 997 ))
     t += Int(hrp.sex) == was.sex ? 1 : 0
-
-    t += score( model_map_marital(hrp.marital_status ), was_map_marital( was.marital_status_head ))
+    t += score( model_map_marital(hrp.marital_status ), map_marital( was.marital_status_head ))
+    t += score( model.data_year, was.year )
     any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
 
     #     hh_composition 
@@ -2511,7 +2521,7 @@ function model_was_match(
     # num_children( hh ), was.num_children  numchildr7
     # num_adults( hh )    was.num_adults washj.numadultr7
 
-    incdiff = compare_income( lcf.income, income )
+    incdiff = compare_income( income, was.weekly_gross_income )
 
     return t, incdiff
 end
