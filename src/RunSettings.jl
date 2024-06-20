@@ -121,6 +121,9 @@ module RunSettings
         expenditure_dataset = "lcf_subset-2018-2020"
 
         wealth_method = no_method
+        wealth_matching_dataframe = "was-wave-7-frs-scotland-only-matches-2015-2021"
+        wealth_dataset = "was_wave_7_subset.tab"
+        
         do_indirect_tax_calculations = false
         do_legal_aid = true
         legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"

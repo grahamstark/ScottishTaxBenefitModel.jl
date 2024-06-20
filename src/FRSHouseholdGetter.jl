@@ -33,7 +33,6 @@ module FRSHouseholdGetter
     using .Utils:get_quantiles
 
     using .LegalAidData
-
     using .ConsumptionData
 
     export 

@@ -61,17 +61,17 @@ export HouseholdFromFrame
 include( "ConsumptionData.jl")
 export ConsumptionData
 
-include( "MatchingLibs.jl")
-export MatchingLibs
-
 include( "LegalAidData.jl" )
 export LegalAidData
 
-include("ExampleHouseholdGetter.jl" )
-export ExampleHouseholdGetter
-
 include("FRSHouseholdGetter.jl" )
 export FRSHouseholdGetter
+
+include( "MatchingLibs.jl")
+export MatchingLibs
+
+include("ExampleHouseholdGetter.jl" )
+export ExampleHouseholdGetter
 
 include("STBParameters.jl" )
 export STBParameters
