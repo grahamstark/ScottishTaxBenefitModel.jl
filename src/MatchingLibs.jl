@@ -12,6 +12,8 @@ module MatchingLibs
 using ScottishTaxBenefitModel
 using .Definitions,
     .ModelHousehold,
+    .FRSHouseholdGetter,
+    # FIXME cross dependency .ExampleHouseholdGetter,
     .Uprating,
     .RunSettings
 
@@ -169,6 +171,18 @@ function searchbaddies(lcf::DataFrame, rows, amount::Real, op=≈)
             end
         end
     end
+end
+
+function person_map( n::Int, default::Int )::Vector{Int}
+    @argcheck n >= 0
+    out = fill( default, 3 )
+    out[1] = n
+    out[2] = if n in 0:2
+        n
+    else 
+        3
+    end 
+    out
 end
 
 
@@ -1530,8 +1544,12 @@ end
    other_dwelling = 7
 """
 function model_accommap( dwelling :: DwellingType ):: Vector{Int}
-    id = Int( dwelling )
-    id = max(6,id) # caravan=>other
+    out = Int( dwelling )
+    if out == -1
+        println( "-1 dwelling ")
+        out = rand(1:6)
+    end
+    out = min( 6, out ) # caravan=>other
     return lcf_accmap( out, 9998 )
 end
 
@@ -1684,7 +1702,7 @@ function lcf_age_hrp( a065p :: Int ) :: Vector{Int}
 end
 
 
-function was_frs_age_hrp( agegrp :: Int ) :: Vector{Int}
+function was_frs_age_hrp( hhagegr4 :: Int ) :: Vector{Int}
     out = fill( 9998, 3 )
     out[1] = hhagegr4
     if hhagegr4 <= 5
@@ -1894,22 +1912,22 @@ end
 Create a dataframe for storing all the matches. 
 This has the FRS record and then 20 lcf records, with case,year,income and matching score for each.
 """
-function makeoutdf( n :: Int ) :: DataFrame
+function makeoutdf( n :: Int, prefix :: AbstractString ) :: DataFrame
     d = DataFrame(
     frs_sernum = zeros(Int, n),
     frs_datayear = zeros(Int, n),
     frs_income = zeros(n))
     for i in 1:NUM_SAMPLES
-        lcf_case_sym = Symbol( "lcf_case_$i")
-        lcf_datayear_sym = Symbol( "lcf_datayear_$i")
-        lcf_score_sym = Symbol( "lcf_score_$i")
-        lcf_income_sym = Symbol( "lcf_income_$i")
-        d[!,lcf_case_sym] .= 0
-        d[!,lcf_datayear_sym] .= 0
-        d[!,lcf_score_sym] .= 0.0
-        d[!,lcf_income_sym] .= 0.0
+        case_sym = Symbol( "$(prefix)_case_$i")
+        datayear_sym = Symbol( "$(prefix)_datayear_$i")
+        score_sym = Symbol( "$(prefix)_score_$i")
+        income_sym = Symbol( "$(prefix)_income_$i")
+        d[!,case_sym] .= 0
+        d[!,datayear_sym] .= 0
+        d[!,score_sym] .= 0.0
+        d[!,income_sym] .= 0.0
     end
-    d
+    return d
 end
 
 """
@@ -1918,23 +1936,23 @@ Map the entire datasets.
 function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function )::DataFrame
     p = 0
     nrows = size(recip)[1]
-    df = makeoutdf( nrows )
+    df = makeoutdf( nrows, "lcf" )
     for fr in eachrow(recip); 
         p += 1
         println(p)
-        df[p,:frs_sernum] = fr.sernum
-        df[p,:frs_datayear] = fr.datayear
-        df[p,:frs_income] = fr.income
+        df[ hno, :frs_sernum] = fr.sernum
+        df[ hno, :frs_datayear] = fr.datayear
+        df[ hno, :frs_income] = fr.income
         matches = match_recip_row( fr, donor, matcher ) 
         for i in 1:NUM_SAMPLES
             lcf_case_sym = Symbol( "lcf_case_$i")
             lcf_datayear_sym = Symbol( "lcf_datayear_$i")
             lcf_score_sym = Symbol( "lcf_score_$i")
             lcf_income_sym = Symbol( "lcf_income_$i")
-            df[p,lcf_case_sym] = matches[i].case
-            df[p,lcf_datayear_sym] = matches[i].datayear
-            df[p,lcf_score_sym] = matches[i].score
-            df[p,lcf_income_sym] = matches[i].income    
+            df[ hno, lcf_case_sym] = matches[i].case
+            df[ hno, lcf_datayear_sym] = matches[i].datayear
+            df[ hno, lcf_score_sym] = matches[i].score
+            df[ hno, lcf_income_sym] = matches[i].income    
         end
         if p > 10000000
             break
@@ -2321,8 +2339,8 @@ This variable is    numeric, the SPSS measurement level is NOMINAL
 
 function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
     out = fill( default, 3 )
-    out[1] = ie
-    out[2] = ie in [1,2] ? 1 : 2
+    out[1] = ms
+    out[2] = ms in [1,2] ? 1 : 2
     return out
 end
 
@@ -2409,13 +2427,13 @@ function model_map_empstat( ie :: ILO_Employment  ) :: Vector{Int} #
         1
     elseif ie in [Full_time_Self_Employed,Part_time_Self_Employed ]
         2
-    elseif ie in Unemployed
+    elseif ie == Unemployed
         3
-    elseif ie in Retired 
+    elseif ie == Retired 
         7
-    elseif ie in Student
+    elseif ie == Student
         4
-    elseif ie in Looking_after_family_or_home
+    elseif ie == Looking_after_family_or_home
         5
     elseif ie in [Permanently_sick_or_disabled,Temporarily_sick_or_injured]
         6
@@ -2430,7 +2448,7 @@ end
 """
 Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
 """
-function create_was_subset( )
+function create_was_subset(; outfilename="was_wave_7_subset.tab" )
     wasp = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " "]) |> DataFrame
     wash = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
     rename!(wasp,lowercase.(names(wasp)))
@@ -2445,6 +2463,7 @@ function create_was_subset( )
     subwas = DataFrame()
     subwas.case = was.caser7
     subwas.year = was.yearr7
+    subwas.datayear .= 7 # wave 7
     subwas.month = was.monthr7
     subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
     subwas.bedrooms = was.hbedrmr7
@@ -2483,7 +2502,7 @@ function create_was_subset( )
             row.q, 
             Uprating.upr_nominal_gdp )
     end
-    CSV.write( "data/was_wave_7_subset.tab", subwas; delim='\t')
+    CSV.write( "data/$(outfilename)", subwas; delim='\t')
     return subwas
 end
 # HFINWNTR7_exSLC_Sum
@@ -2499,14 +2518,14 @@ function model_was_match(
     hrp = get_head( hh )
     t += score( was_model_age_grp( hrp.age ), was_age_grp(was.age_head)) # ok
     t += score( model_regionmap( hh.region ), frs_regionmap( was.region, 9997 )) 
-    t += score( model_accommap( hh.dwelling ), lcf_accommap( was.accom, 9997 ))
+    t += score( model_accommap( hh.dwelling ), lcf_accmap( was.accom, 9997 ))
     t += score( model_tenuremap( hh.tenure ),  lcf_tenuremap( was.tenure, 9997 ))
     t += score( model_map_socio( hrp.socio_economic_grouping ),  
-        map_socio( was.socio_economic_grouping, 9997 ))
-    t += score( model_map_empstat( hrp.employment_status ), map_empstat( was.empstat_head, 997 ))
-    t += Int(hrp.sex) == was.sex ? 1 : 0
+        map_socio( was.socio_economic_head, 9997 ))
+    t += score( model_map_empstat( hrp.employment_status ), map_empstat( was.empstat_head, 9997 ))
+    t += Int(hrp.sex) == was.sex_head ? 1 : 0
     t += score( model_map_marital(hrp.marital_status ), map_marital( was.marital_status_head ))
-    t += score( model.data_year, was.year )
+    t += score( hh.data_year, was.year )
     any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
 
     #     hh_composition 
@@ -2516,14 +2535,311 @@ function model_was_match(
      
     t += highqual_degree_equiv(hrp.highest_qualification) == was.has_degree ? 1 : 0
 
-    t += score( num_children( hh ), was.num_children )
-    t += score( num_adults( hh ), was.num_adults )
+    t += score( person_map(num_children( hh ),9999), person_map(was.num_children,9997 ))
+    t += score( person_map(num_adults( hh ),9999), person_map(was.num_adults,9997))
     # num_children( hh ), was.num_children  numchildr7
     # num_adults( hh )    was.num_adults washj.numadultr7
-
     incdiff = compare_income( income, was.weekly_gross_income )
-
     return t, incdiff
 end
 
+function was_vs_frs_summary( settings )
+
+
+end
+
+"""
+Match one row in the FRS (recip) with all possible lcf matches (donor). Intended to be general
+but isn't really any more. FIXME: pass in a saving function so we're not tied to case/datayear.
+"""
+#=
+function match_recip_row( recip, donor :: DataFrame, matcher :: Function ) :: Vector{LCFLocation}
+    drows, dcols = size(donor)
+    i = 0
+    similar = Vector{LCFLocation}( undef, drows )
+    for lr in eachrow(donor)
+        i += 1
+        score, incdiff = matcher( recip, lr )
+        similar[i] = LCFLocation( lr.case, lr.datayear, score, lr.income, incdiff )
+    end
+    # sort by characteristics   
+    similar = sort( similar; lt=islessscore, rev=true )[1:NUM_SAMPLES]
+    # .. then the nearest income amongst those
+    similar = sort( similar; lt=islessincdiff, rev=true )[1:NUM_SAMPLES]
+    return similar
+end
+
+=#
+
+
+"""
+Map the entire datasets.
+"""
+function map_all_was( 
+    settings :: Settings, 
+    donor :: DataFrame, 
+    matcher :: Function ) :: DataFrame
+    p = 0
+    settings.num_households, 
+    settings.num_people = 
+        FRSHouseholdGetter.initialise( settings; reset=false )
+
+    nrows = size(recip)[1]
+    df = makeoutdf( nrows, "was" )
+    for hno in 1:settings.num_households
+        hh = FRSHouseholdGetter.get_household( hno )
+        df[ hno, :frs_sernum] = hh.hno
+        df[ hno, :frs_datayear] = hh.data_year
+        df[ hno, :frs_income] = fr.income
+        matches = match_recip_row( hh, donor, matcher ) 
+        for i in 1:NUM_SAMPLES
+            was_case_sym = Symbol( "was_case_$i")
+            was_datayear_sym = Symbol( "was_datayear_$i")
+            was_score_sym = Symbol( "was_score_$i")
+            was_income_sym = Symbol( "was_income_$i")
+            df[ hno, was_case_sym] = matches[i].case
+            df[ hno, was_datayear_sym] = matches[i].datayear
+            df[ hno, was_score_sym] = matches[i].score
+            df[ hno, was_income_sym] = matches[i].income    
+        end
+        if p > 10000000
+            break
+        end
+    end
+    return df
+end
+
+
+"""
+"""
+
+function create_was_frs_matching_dataset( settings :: Settings  )
+
+    function addtodf( df::DataFrame, label, n, row::Int, data::Vector)
+        @assert size(data)[1] == n "data=$(size(daya)[1]) n = $n"
+        for i in 1:n
+            k = Symbol( "$(label)_$(i)")
+            df[row,k] = data[i]
+        end
+    end
+
+    settings.num_households, settings.num_people, nhh2 = 
+           FRSHouseholdGetter.initialise( settings; reset=false )
+    was_dataset = CSV.File(joinpath(MODEL_DATA_DIR,settings.wealth_dataset))|>DataFrame
+    nwas = size( was_dataset )[1]
+    variables = Dict(["age"=>3,"region"=>3,"accom"=>3,"tenure"=>3,"socio"=>3,
+        "empstat"=>3,"marital"=>3,"year"=>1,"wages"=>1,"selfemp"=>1,"pensions"=>1,"degree"=>1,
+        "children"=>3,"adults"=>3,"sex"=>1,"year"=>1])
+    wasset = DataFrame()
+    frsset = DataFrame()
+    for v in variables
+        k = v[1]
+        n = v[2]
+        for i in 1:n
+            key = Symbol( "$(k)_$(i)")
+            wasset[!,key] = zeros( nwas )
+            frsset[!,key] = zeros( settings.num_households )
+        end
+    end
+    println( names(wasset))
+    hno = 0
+    for was in eachrow( was_dataset )
+        hno += 1
+        addtodf( 
+            wasset, 
+            "age",
+            variables["age"], 
+            hno, 
+            was_age_grp(was.age_head))
+        addtodf( 
+            wasset, 
+            "region",
+            variables["region"], 
+            hno,  
+            frs_regionmap( was.region, 9997 ))
+        addtodf( 
+            wasset, 
+            "accom",
+            variables["accom"], 
+            hno,  
+            lcf_accmap( was.accom, 9997 ))
+        addtodf( 
+            wasset, 
+            "tenure",
+            variables["tenure"], 
+            hno,  
+            lcf_tenuremap( was.tenure, 9997 ))
+        addtodf( 
+            wasset, 
+            "socio",
+            variables["socio"], 
+            hno, 
+            map_socio( was.socio_economic_head, 9997 ))
+        addtodf( 
+            wasset, 
+            "empstat",
+            variables["empstat"], 
+            hno, 
+            map_empstat( was.empstat_head, 9997 ))
+        addtodf( 
+            wasset, 
+            "sex",
+            variables["sex"], 
+            hno, 
+            [was.sex_head] )
+        addtodf( 
+            wasset, 
+            "marital",
+            variables["marital"], 
+            hno, 
+            map_marital( was.marital_status_head ) )
+        addtodf( 
+            wasset, 
+            "year",
+            variables["year"], 
+            hno, 
+            [was.year] )
+        addtodf( 
+            wasset, 
+            "wages",
+            variables["wages"], 
+            hno, 
+            [was.any_wages] )
+        addtodf( 
+            wasset, 
+            "selfemp",
+            variables["selfemp"], 
+            hno, 
+            [was.any_selfemp] )
+        addtodf( 
+            wasset, 
+            "pensions",
+            variables["pensions"], 
+            hno, 
+            [was.any_pension_income] )
+        addtodf( 
+            wasset, 
+            "degree",
+            variables["degree"], 
+            hno, 
+            [was.has_degree] )
+        addtodf( 
+            wasset, 
+            "children",
+            variables["degree"], 
+            hno, 
+            [was.num_children] )
+        addtodf( 
+            wasset, 
+            "children",
+            variables["children"], 
+            hno, 
+            person_map(was.num_children, 9997))
+        addtodf( 
+            wasset, 
+            "adults",
+            variables["adults"], 
+            hno, 
+            person_map(was.num_adults, 9997))
+    end
+    for hno in 1:settings.num_households
+        hh = FRSHouseholdGetter.get_household(hno)
+        any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
+        hrp = get_head( hh )
+        addtodf( 
+            frsset, 
+            "age",
+            variables["age"], 
+            hno, 
+            was_model_age_grp( hrp.age ))
+        addtodf( 
+            frsset,
+            "region", 
+            variables["region"], 
+            hno, 
+            model_regionmap( hh.region ))
+        addtodf( 
+            frsset,
+            "accom", 
+            variables["accom"], 
+            hno, 
+            model_accommap( hh.dwelling ))
+        addtodf( 
+            frsset, 
+            "tenure",
+            variables["tenure"], 
+            hno,  
+            model_tenuremap( hh.tenure ))
+        addtodf( 
+            frsset, 
+            "socio",
+            variables["socio"], 
+            hno, 
+            model_map_socio( hrp.socio_economic_grouping ))
+        addtodf( 
+            frsset, 
+            "empstat",
+            variables["empstat"], 
+            hno, 
+            model_map_empstat( hrp.employment_status ))
+        addtodf( 
+            frsset, 
+            "sex",
+            variables["sex"], 
+            hno, 
+            [Int(hrp.sex)] )
+        addtodf( 
+            frsset, 
+            "marital",
+            variables["marital"], 
+            hno, 
+            model_map_marital(hrp.marital_status ) )
+        addtodf( 
+            frsset, 
+            "year",
+            variables["year"], 
+            hno, 
+            [hh.interview_year] )
+        addtodf( 
+            frsset, 
+            "wages",
+            variables["wages"], 
+            hno, 
+            [any_wages] )
+        addtodf( 
+            frsset, 
+            "selfemp",
+            variables["selfemp"], 
+            hno, 
+            [any_selfemp] )
+        addtodf( 
+            frsset, 
+            "pensions",
+            variables["pensions"], 
+            hno, 
+            [any_pension_income] )
+        addtodf( 
+            frsset, 
+            "degree",
+            variables["degree"], 
+            hno, 
+            [highqual_degree_equiv(hrp.highest_qualification)] )
+        addtodf( 
+            frsset, 
+            "children",
+            variables["children"], 
+            hno, 
+            person_map( num_children(hh), 9999))
+        addtodf( 
+            frsset, 
+            "adults",
+            variables["adults"], 
+            hno, 
+            person_map( num_adults( hh ), 9999))
+                                
+        end
+    return frsset,wasset
+end # create_was_frs_matching_dataset
+
 end # module
+
