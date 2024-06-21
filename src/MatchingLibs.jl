@@ -2934,5 +2934,11 @@ function map_all_was( settings :: Settings, donor :: DataFrame, matcher :: Funct
     return df
 end
 
+function create_frs_was_matches()
+    settings = Settings()
+    was_dataset = CSV.File(joinpath(MODEL_DATA_DIR,settings.wealth_dataset))|>DataFrame    
+    map_all_was( settings, was_dataset, model_was_match )
+end
+
 end # module
 
