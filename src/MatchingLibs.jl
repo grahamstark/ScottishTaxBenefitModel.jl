@@ -21,7 +21,8 @@ using CSV,
     DataFrames,
     Measures,
     StatsBase,
-    ArgCheck
+    ArgCheck,
+    PrettyTables
 
 export make_lcf_subset, 
     map_example, 
@@ -1058,8 +1059,8 @@ function within(x;min=min,max=max)
 end
 
 
-function frs_tenuremap( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( 9999, 3 )
+function frs_tenuremap( tentyp2 :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
+    out = fill( default, 3 )
     if ismissing( tentyp2 )
 
     elseif tentyp2 == 1
@@ -1089,8 +1090,8 @@ function frs_tenuremap( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
-function model_tenuremap(  t :: Tenure_Type ) :: Vector{Int}
-    return frs_tenuremap( Int( t ) )
+function model_tenuremap(  t :: Tenure_Type, default=9998 ) :: Vector{Int}
+    return frs_tenuremap( Int( t ), default )
 end
 
 #=
@@ -1135,17 +1136,6 @@ function lcf_tenuremap( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int
     return out
 end
 
-#=
-Value = 1.0	Label = Own it outright
-	Value = 2.0	Label = Buying with mortgage
-	Value = 3.0	Label = Part rent part mortgage
-	Value = 4.0	Label = Rent it
-	Value = 5.0	Label = Rent-free
-	Value = 6.0	Label = Squatting
-	Value = -9.0	Label = Not asked / applicable
-	Value = -8.0	Label = Don't know/Refusal
-=#
-
 #=  WAS ten1r7
     Value = 1.0	Label = Own it outright
 	Value = 2.0	Label = Buying with mortgage
@@ -1168,8 +1158,31 @@ Value = 1.0	Label = Local authority / council / Scottish Homes
 	Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/ Refusal
 
+FRS
+
+   Missing_Tenure_Type = -1
+   Council_Rented = 1
+   Housing_Association = 2
+   Private_Rented_Unfurnished = 3
+   Private_Rented_Furnished = 4
+   Mortgaged_Or_Shared = 5
+   Owned_outright = 6
+   Rent_free = 7
+   Squats = 8
+
 =#
 
+"""
+Map to FRS i.e 
+ Missing_Tenure_Type = -1
+   Council_Rented = 1
+   Housing_Association = 2
+   Private_Rented_Unfurnished = 3
+   Private_Rented_Furnished = 4
+   Mortgaged_Or_Shared = 5
+   Owned_outright = 6
+   Rent_free/Squat = 7
+"""
 function was_tenuremap_one( wasf :: DataFrame ) :: Vector{Int}
     nrows,ncols = size( wasf )
     out = fill(0,nrows)
@@ -1178,20 +1191,20 @@ function was_tenuremap_one( wasf :: DataFrame ) :: Vector{Int}
         row += 1
         # ten1r7_i since 2 "-8s" so use imputed version
         @assert was.ten1r7_i in 1:6 "was.ten1r7 out of range $(was.ten1r7)"
-        out[row] = if was.ten1r7_i == 1 # o-outright
-            6 
+        frsten = if was.ten1r7_i == 1 # o-outright
+            Owned_outright 
         elseif was.ten1r7_i in 2:3
-            5 # mortgaged
+            Mortgaged_Or_Shared
         elseif was.ten1r7_i == 4 # rented
             if was.llordr7 == 1
-                1 # council
+                Council_Rented
             elseif was.llordr7 == 2
-                2 # housing assoc
+                Housing_Association
             elseif was.llordr7 in 3:7
                 if was.furnr7 in 1:2 # furnished, inc part
-                    4
+                    Private_Rented_Furnished
                 elseif was.furnr7 == 3
-                    3 # unfurnished
+                    Private_Rented_Unfurnished
                 else
                     @assert false "was.furnr7 out-of-range $(was.furnr7)"
                 end
@@ -1199,12 +1212,13 @@ function was_tenuremap_one( wasf :: DataFrame ) :: Vector{Int}
                 @assert false "was.llord7 out of range $(was.llord7)"
             end
         elseif was.ten1r7_i == 5
-            7
+            Rent_free
         elseif was.ten1r7_i == 6
-            8
+            Squats
         end
-        @assert out[row] in 1:8
-    end
+        out[row] = min( Int( frsten ), 7 ) # compress squat/rentfree
+        @assert out[row] in 1:7
+    end # each row
     out
 end
 
@@ -1635,36 +1649,6 @@ function frs_age_hrp( hhagegr4 :: Int ) :: Vector{Int}
     out
 end
 
-function model_age_grp( age :: Int )
-    return if age < 20
-        1
-    elseif age < 25
-        2
-    elseif age < 30
-        3
-    elseif age < 35
-        4
-    elseif age < 40
-        5
-    elseif age < 45
-        6
-    elseif age < 50
-        7
-    elseif age < 55
-        8
-    elseif age < 60
-        9
-    elseif age < 65
-        10
-    elseif age < 70
-        11
-    elseif age < 75
-        12
-    elseif age >= 75
-        13
-    end
-end
-
 #=
     Value = 3.0	Label =  15 but under 20 yrs
     Value = 4.0	Label =  20 but under 25 yrs
@@ -1702,60 +1686,38 @@ function lcf_age_hrp( a065p :: Int ) :: Vector{Int}
 end
 
 
-function was_frs_age_hrp( hhagegr4 :: Int ) :: Vector{Int}
-    out = fill( 9998, 3 )
+function was_frs_age_map( hhagegr4 :: Int, default=9998 ) :: Vector{Int}
+    out = fill( default, 3 )
     out[1] = hhagegr4
-    if hhagegr4 <= 5
+    if hhagegr4 in 1:3 # u35
         out[2] = 1
-    elseif hhagegr4 <= 13
+    elseif hhagegr4 in 4:5 # 35-64
         out[2] = 2
     else
-        @assert false "mapping hhagegr4 $hhagegr4"
+        out[2] = 3
     end
     out
 end
 
-"""
- HRPDVAge8r7	Variable label = Grouped Age of HRP (8 categories)
-This variable is    numeric, the SPSS measurement level is NOMINAL
-	Value label information for HRPDVAge8r7
-	Value = 1.0	Label = 0 to 15
-	Value = 2.0	Label = 16 to 24
-	Value = 3.0	Label = 25 to 34
-	Value = 4.0	Label = 35 to 44
-	Value = 5.0	Label = 45 to 54
-	Value = 6.0	Label = 55 to 64
-	Value = 7.0	Label = 65 to 74
-	Value = 8.0	Label = 75 and over
-	Value = -9.0	Label = Not Routed
-	Value = -8.0	Label = Don t know
-"""
-function was_age_hrp( age :: Int ) :: Vector{Int}
-    out = if age in 1:2
+function was_model_age_grp( age :: Int ) :: Vector{Int}
+    out = if age < 16 # can't happen?
         1
-    else
-        age -1 
-    end
-    return was_frs_age_hrp( out )
-end
-
-function was_model_age_grp( age :: Int )
-    out = if age < 25
-        1
-    elseif age < 35
+    elseif age < 25
         2
-    elseif age < 45
+    elseif age < 35
         3
-    elseif age < 55
+    elseif age < 45
         4
-    elseif age < 65
+    elseif age < 55
         5
-    elseif age < 75
+    elseif age < 65
         6
-    elseif age >= 75
+    elseif age < 75
         7
+    elseif age >= 75
+        8
     end
-    return was_frs_age_hrp( out )
+    return was_frs_age_map( out, 9998 )
 end
 
 #=
@@ -2077,12 +2039,6 @@ frs     | 2020 | househol | HHAGEGR4      | 12    | Age 70 to 74   | Age_70_to_7
 frs     | 2020 | househol | HHAGEGR4      | 13    | Age 75 or over | Age_75_or_over
 =#
 
-function was_age_grp( age :: Int )::Vector{Int}
-    out = fill( 9997, 3 )
-    out[1] = age
-    out[2] = age < 3 ? 1 : 2
-    out
-end
 
 function model_age_grp( age :: Int )
     return if age < 16
@@ -2103,6 +2059,38 @@ function model_age_grp( age :: Int )
         8
     end
 end
+
+
+function xxmodel_age_grp( age :: Int )
+    return if age < 20
+        1
+    elseif age < 25
+        2
+    elseif age < 30
+        3
+    elseif age < 35
+        4
+    elseif age < 40
+        5
+    elseif age < 45
+        6
+    elseif age < 50
+        7
+    elseif age < 55
+        8
+    elseif age < 60
+        9
+    elseif age < 65
+        10
+    elseif age < 70
+        11
+    elseif age < 75
+        12
+    elseif age >= 75
+        13
+    end
+end
+
 
 #=
    
@@ -2178,21 +2166,35 @@ function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
     out
 end
 
+"""
+    Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+	Value = 1.1	Label = Large employers and higher managerial occupations
+	Value = 1.2	Label = Higher professional occupations
+	Value = 2.0	Label = Lower managerial and professional occupations
+	Value = 3.0	Label = Intermediate occupations
+	Value = 4.0	Label = Small employers and own account workers
+	Value = 5.0	Label = Lower supervisory and technical occupations
+	Value = 6.0	Label = Semi-routine occupations
+	Value = 7.0	Label = Routine occupations
+	Value = 8.0	Label = Never worked and long-term unemployed
+	Value = 97.0 Label = Not classified
+"""
 function was_map_socio_one( socio :: Real ) :: Int
     d = Dict([
-        1.1 => 1, 
-        1.2 => 2,
-        2 => 3,
-        3 => 4,
-        4 => 5,
-        5 => 6,
-        6 => 7,
-        7 => 8,
-        8 => 9,
-        9 => 10,
-        97=>10,
-        -8=>10,
-        -9=>10])
+        1.1 => 1, # Employers_in_large_organisations is way out WAS vs FRS so amalgamate
+        1.2 => 1,
+        2 => 2,
+        3 => 3,
+        4 => 4,
+        5 => 5,
+        6 => 6,
+        7 => 7,
+        8 => 8,
+        9 => 9,
+        97=> 9,
+        -8=> 9,
+        -9=> 9])
     return d[socio]
 end
 
@@ -2203,26 +2205,24 @@ end
 
 function model_map_socio( soc ) :: Vector{Int}
     socio = Int( soc )
-    out = if socio == 1
+    out = if socio in [1,2,3] # Employers_in_large_organisations = 0.099% FRS 5.7% WAS so amalgamate
         1
-    elseif socio in [2,3]
-        2
     elseif socio in [4]
-        3
+        2
     elseif socio in [5,6,7]
-        4
+        3
     elseif socio in [8,9]
-        5
+        4
     elseif socio in [10]
-        6
+        5
     elseif socio in [11,12]
-        7
+        6
     elseif socio in [13]
-        8
+        7
     elseif socio in [14,15]
-        9
+        8
     elseif socio in [16,17,-1]
-        10
+        9
     else
         @assert false "socio out of range $socio"
     end
@@ -2344,6 +2344,19 @@ function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
     return out
 end
 
+"""
+Value = -9.0	Label = Not asked / applicable
+	Value = -8.0	Label = Don't know/ Refusal
+	Value = 1.0	Label = Married
+	Value = 2.0	Label = Cohabiting
+	Value = 3.0	Label = Single
+	Value = 4.0	Label = Widowed
+	Value = 5.0	Label = Divorced
+	Value = 6.0	Label = Separated
+	Value = 7.0	Label = Same-sex couple
+	Value = 8.0	Label = Civil Partner
+	Value = 9.0	Label = Former / separated Civil Partner
+"""
 function was_map_marital_one( mar :: Int ) :: Marital_Status
     out :: Marital_Status = if mar in [1,7,8]
         Married_or_Civil_Partnership 
@@ -2353,8 +2366,10 @@ function was_map_marital_one( mar :: Int ) :: Marital_Status
         Single
     elseif mar in 4
         Widowed
-    elseif mar in [5,6,9]
+    elseif mar in [6,9]
         Separated
+    elseif mar in [5]
+        Divorced_or_Civil_Partnership_dissolved
     elseif mar in [-9,-8]
         Missing_Marital_Status
     else
@@ -2363,23 +2378,6 @@ function was_map_marital_one( mar :: Int ) :: Marital_Status
     return out
 end
 
-"""
-Value = 1.0	Label = Married
-	Value = 2.0	Label = Cohabiting
-	Value = 3.0	Label = Single
-	Value = 4.0	Label = Widowed
-	Value = 5.0	Label = Divorced
-	Value = 6.0	Label = Separated
-	Value = 7.0	Label = Same-sex couple
-	Value = 8.0	Label = Civil Partner
-	Value = 9.0	Label = Former / separated Civil Partner
-	Value = -9.0	Label = Not asked / applicable
-	Value = -8.0	Label = Don't know/ Refusal
-"""
-function was_map_marital( mar :: Int ) :: Vector{Int}
-    out = was_map_marital_one( mar )
-    return map_marital( Int( out), 9997 )
-end
 
 """
 Missing_Marital_Status = -1
@@ -2400,7 +2398,7 @@ end
 function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
     out = fill( default, 3 )
     out[1] = ie
-    out[2] = ie in [1:2] ? 1 : 2
+    out[2] = ie in 1:2 ? 1 : 2
     return out
 end
 
@@ -2516,15 +2514,15 @@ function model_was_match(
     t = 0.0
     incdiff = 0.0
     hrp = get_head( hh )
-    t += score( was_model_age_grp( hrp.age ), was_age_grp(was.age_head)) # ok
+    t += score( was_model_age_grp( hrp.age ), was_frs_age_map(was.age_head, 9997 )) # ok
     t += score( model_regionmap( hh.region ), frs_regionmap( was.region, 9997 )) 
     t += score( model_accommap( hh.dwelling ), lcf_accmap( was.accom, 9997 ))
-    t += score( model_tenuremap( hh.tenure ),  lcf_tenuremap( was.tenure, 9997 ))
+    t += score( model_tenuremap( hh.tenure ),  frs_tenuremap( was.tenure, 9997 ))
     t += score( model_map_socio( hrp.socio_economic_grouping ),  
         map_socio( was.socio_economic_head, 9997 ))
     t += score( model_map_empstat( hrp.employment_status ), map_empstat( was.empstat_head, 9997 ))
     t += Int(hrp.sex) == was.sex_head ? 1 : 0
-    t += score( model_map_marital(hrp.marital_status ), map_marital( was.marital_status_head ))
+    t += score( model_map_marital(hrp.marital_status ), map_marital( was.marital_status_head, 9997 ))
     t += score( hh.data_year, was.year )
     any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
 
@@ -2613,10 +2611,69 @@ end
 """
 """
 
-function create_was_frs_matching_dataset( settings :: Settings  )
+const WAS_TARGET_VARS = Dict(
+    ["age"=>3,
+    "region"=>3,
+    "accom"=>3,
+    "tenure"=>3,
+    "socio"=>3,
+    "empstat"=>3,
+    "marital"=>3,
+    "year"=>1,
+    "wages"=>1,
+    "selfemp"=>1,
+    "pensions"=>1,
+    "degree"=>1,
+    "children"=>3,
+    "adults"=>3,
+    "sex"=>1,
+    "year"=>1])
+
+function pct(v)
+    round.( 100.0 .* v ./ sum(v), sigdigits=2 )
+end
+
+function compareone( frs :: DataFrame, was :: DataFrame, name :: String, n :: Int ) :: Array
+    out=[]
+    for i in 1:n
+        df = DataFrame( key=zeros(Int,200), frs=zeros(200), was=zeros(200), diff=zeros(200))
+        key = Symbol( "$(name)_$(i)")
+        wd = sort( countmap( was[!,key]))
+        wf = sort( countmap( frs[!,key]))
+        if keys(wd) != keys(wf) 
+            println( "key mismatch! $key wd = $(wd) wf = $(wf)")
+        end
+        wk = Int.(keys( wd ))
+        wv = pct(values( wd ))
+        fk = Int.(keys( wf ))
+        fv = pct(values( wf ))
+        mx = max( maximum(wk), maximum(fk))
+        mn = min( minimum(wk), minimum(fk))
+        incr = 1 - mn
+        len = mx - mn + 1
+        j = 0
+        for i in wk
+            j += 1
+            df[i+incr,:key] = i
+            df[i+incr,:was] = wv[j]
+        end
+        j = 0
+        for i in fk
+            j += 1
+            df[i+incr,:key] = i
+            df[i+incr,:frs] = fv[j]
+        end
+        df[:,:diff] = df[:,:was] - df[:,:frs]
+        println( "$key")
+        push!( out, pretty_table( String, df[1:len,:];backend = Val(:markdown)))
+    end
+    out
+end
+
+function create_was_frs_matching_dataset( settings :: Settings  ) :: Tuple
 
     function addtodf( df::DataFrame, label, n, row::Int, data::Vector)
-        @assert size(data)[1] == n "data=$(size(daya)[1]) n = $n"
+        @assert size(data)[1] == n "data=$(size(data)[1]) n = $n"
         for i in 1:n
             k = Symbol( "$(label)_$(i)")
             df[row,k] = data[i]
@@ -2627,18 +2684,15 @@ function create_was_frs_matching_dataset( settings :: Settings  )
            FRSHouseholdGetter.initialise( settings; reset=false )
     was_dataset = CSV.File(joinpath(MODEL_DATA_DIR,settings.wealth_dataset))|>DataFrame
     nwas = size( was_dataset )[1]
-    variables = Dict(["age"=>3,"region"=>3,"accom"=>3,"tenure"=>3,"socio"=>3,
-        "empstat"=>3,"marital"=>3,"year"=>1,"wages"=>1,"selfemp"=>1,"pensions"=>1,"degree"=>1,
-        "children"=>3,"adults"=>3,"sex"=>1,"year"=>1])
     wasset = DataFrame()
     frsset = DataFrame()
-    for v in variables
+    for v in WAS_TARGET_VARS
         k = v[1]
         n = v[2]
         for i in 1:n
             key = Symbol( "$(k)_$(i)")
-            wasset[!,key] = zeros( nwas )
-            frsset[!,key] = zeros( settings.num_households )
+            wasset[!,key] = zeros( Int, nwas )
+            frsset[!,key] = zeros( Int, settings.num_households )
         end
     end
     println( names(wasset))
@@ -2648,97 +2702,97 @@ function create_was_frs_matching_dataset( settings :: Settings  )
         addtodf( 
             wasset, 
             "age",
-            variables["age"], 
+            WAS_TARGET_VARS["age"], 
             hno, 
-            was_age_grp(was.age_head))
+            was_frs_age_map(was.age_head, 9997 ))
         addtodf( 
             wasset, 
             "region",
-            variables["region"], 
+            WAS_TARGET_VARS["region"], 
             hno,  
             frs_regionmap( was.region, 9997 ))
         addtodf( 
             wasset, 
             "accom",
-            variables["accom"], 
+            WAS_TARGET_VARS["accom"], 
             hno,  
             lcf_accmap( was.accom, 9997 ))
         addtodf( 
             wasset, 
             "tenure",
-            variables["tenure"], 
+            WAS_TARGET_VARS["tenure"], 
             hno,  
-            lcf_tenuremap( was.tenure, 9997 ))
+            frs_tenuremap( was.tenure, 9997 ))
         addtodf( 
             wasset, 
             "socio",
-            variables["socio"], 
+            WAS_TARGET_VARS["socio"], 
             hno, 
             map_socio( was.socio_economic_head, 9997 ))
         addtodf( 
             wasset, 
             "empstat",
-            variables["empstat"], 
+            WAS_TARGET_VARS["empstat"], 
             hno, 
             map_empstat( was.empstat_head, 9997 ))
         addtodf( 
             wasset, 
             "sex",
-            variables["sex"], 
+            WAS_TARGET_VARS["sex"], 
             hno, 
             [was.sex_head] )
         addtodf( 
             wasset, 
             "marital",
-            variables["marital"], 
+            WAS_TARGET_VARS["marital"], 
             hno, 
-            map_marital( was.marital_status_head ) )
+            map_marital( was.marital_status_head, 9997 ) )
         addtodf( 
             wasset, 
             "year",
-            variables["year"], 
+            WAS_TARGET_VARS["year"], 
             hno, 
             [was.year] )
         addtodf( 
             wasset, 
             "wages",
-            variables["wages"], 
+            WAS_TARGET_VARS["wages"], 
             hno, 
             [was.any_wages] )
         addtodf( 
             wasset, 
             "selfemp",
-            variables["selfemp"], 
+            WAS_TARGET_VARS["selfemp"], 
             hno, 
             [was.any_selfemp] )
         addtodf( 
             wasset, 
             "pensions",
-            variables["pensions"], 
+            WAS_TARGET_VARS["pensions"], 
             hno, 
             [was.any_pension_income] )
         addtodf( 
             wasset, 
             "degree",
-            variables["degree"], 
+            WAS_TARGET_VARS["degree"], 
             hno, 
             [was.has_degree] )
         addtodf( 
             wasset, 
             "children",
-            variables["degree"], 
+            WAS_TARGET_VARS["degree"], 
             hno, 
             [was.num_children] )
         addtodf( 
             wasset, 
             "children",
-            variables["children"], 
+            WAS_TARGET_VARS["children"], 
             hno, 
             person_map(was.num_children, 9997))
         addtodf( 
             wasset, 
             "adults",
-            variables["adults"], 
+            WAS_TARGET_VARS["adults"], 
             hno, 
             person_map(was.num_adults, 9997))
     end
@@ -2749,97 +2803,112 @@ function create_was_frs_matching_dataset( settings :: Settings  )
         addtodf( 
             frsset, 
             "age",
-            variables["age"], 
+            WAS_TARGET_VARS["age"], 
             hno, 
             was_model_age_grp( hrp.age ))
         addtodf( 
             frsset,
             "region", 
-            variables["region"], 
+            WAS_TARGET_VARS["region"], 
             hno, 
             model_regionmap( hh.region ))
         addtodf( 
             frsset,
             "accom", 
-            variables["accom"], 
+            WAS_TARGET_VARS["accom"], 
             hno, 
             model_accommap( hh.dwelling ))
         addtodf( 
             frsset, 
             "tenure",
-            variables["tenure"], 
+            WAS_TARGET_VARS["tenure"], 
             hno,  
             model_tenuremap( hh.tenure ))
         addtodf( 
             frsset, 
             "socio",
-            variables["socio"], 
+            WAS_TARGET_VARS["socio"], 
             hno, 
             model_map_socio( hrp.socio_economic_grouping ))
         addtodf( 
             frsset, 
             "empstat",
-            variables["empstat"], 
+            WAS_TARGET_VARS["empstat"], 
             hno, 
             model_map_empstat( hrp.employment_status ))
         addtodf( 
             frsset, 
             "sex",
-            variables["sex"], 
+            WAS_TARGET_VARS["sex"], 
             hno, 
             [Int(hrp.sex)] )
         addtodf( 
             frsset, 
             "marital",
-            variables["marital"], 
+            WAS_TARGET_VARS["marital"], 
             hno, 
             model_map_marital(hrp.marital_status ) )
         addtodf( 
             frsset, 
             "year",
-            variables["year"], 
+            WAS_TARGET_VARS["year"], 
             hno, 
             [hh.interview_year] )
         addtodf( 
             frsset, 
             "wages",
-            variables["wages"], 
+            WAS_TARGET_VARS["wages"], 
             hno, 
             [any_wages] )
         addtodf( 
             frsset, 
             "selfemp",
-            variables["selfemp"], 
+            WAS_TARGET_VARS["selfemp"], 
             hno, 
             [any_selfemp] )
         addtodf( 
             frsset, 
             "pensions",
-            variables["pensions"], 
+            WAS_TARGET_VARS["pensions"], 
             hno, 
             [any_pension_income] )
         addtodf( 
             frsset, 
             "degree",
-            variables["degree"], 
+            WAS_TARGET_VARS["degree"], 
             hno, 
             [highqual_degree_equiv(hrp.highest_qualification)] )
         addtodf( 
             frsset, 
             "children",
-            variables["children"], 
+            WAS_TARGET_VARS["children"], 
             hno, 
             person_map( num_children(hh), 9999))
         addtodf( 
             frsset, 
             "adults",
-            variables["adults"], 
+            WAS_TARGET_VARS["adults"], 
             hno, 
             person_map( num_adults( hh ), 9999))
                                 
         end
     return frsset,wasset
 end # create_was_frs_matching_dataset
+
+function checkall( filename = "was_matchchecks.md" )
+    settings = Settings()
+    frsset, wasset = create_was_frs_matching_dataset( settings )
+    outf = open( joinpath( "tmp", filename), "w")
+    for (k,i) in WAS_TARGET_VARS
+        tabs = compareone( frsset, wasset, k, i )
+        println( outf, "## $k")
+        for t in tabs
+            println( outf, t )
+            println( outf )
+        end
+    end
+    close( outf )
+end
 
 end # module
 
