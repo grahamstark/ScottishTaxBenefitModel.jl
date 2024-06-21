@@ -2541,11 +2541,6 @@ function model_was_match(
     return t, incdiff
 end
 
-function was_vs_frs_summary( settings )
-
-
-end
-
 """
 Match one row in the FRS (recip) with all possible lcf matches (donor). Intended to be general
 but isn't really any more. FIXME: pass in a saving function so we're not tied to case/datayear.
@@ -2908,6 +2903,35 @@ function checkall( filename = "was_matchchecks.md" )
         end
     end
     close( outf )
+end
+
+function map_all_was( settings :: Settings, donor :: DataFrame, matcher :: Function )
+    p = 0    
+    df = makeoutdf( nrows, "was" )
+    settings.num_households, settings.num_people, nhh2 = 
+           FRSHouseholdGetter.initialise( settings; reset=false )
+    for hno in 1:settings.num_households
+        hh = FRSHouseholdGetter.get_household(hno)
+        any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
+        df[ hno, :frs_sernum] = hh.hno
+        df[ hno, :frs_datayear] = hh.data_year
+        df[ hno, :frs_income] = income
+        matches = match_recip_row( fr, donor, matcher ) 
+        for i in 1:NUM_SAMPLES
+            lcf_case_sym = Symbol( "was_case_$i")
+            lcf_datayear_sym = Symbol( "was_datayear_$i")
+            lcf_score_sym = Symbol( "was_score_$i")
+            lcf_income_sym = Symbol( "was_income_$i")
+            df[ hno, lcf_case_sym] = matches[i].case
+            df[ hno, lcf_datayear_sym] = matches[i].datayear
+            df[ hno, lcf_score_sym] = matches[i].score
+            df[ hno, lcf_income_sym] = matches[i].income    
+        end
+        if p > 10000000
+            break
+        end
+    end
+    return df
 end
 
 end # module
