@@ -1852,14 +1852,14 @@ islessincdiff( l1::LCFLocation, l2::LCFLocation ) = l1.incdiff < l2.incdiff
 Match one row in the FRS (recip) with all possible lcf matches (donor). Intended to be general
 but isn't really any more. FIXME: pass in a saving function so we're not tied to case/datayear.
 """
-function match_recip_row( recip, donor :: DataFrame, matcher :: Function ) :: Vector{LCFLocation}
+function match_recip_row( recip, donor :: DataFrame, matcher :: Function, incomesym=:income ) :: Vector{LCFLocation}
     drows, dcols = size(donor)
     i = 0
     similar = Vector{LCFLocation}( undef, drows )
     for lr in eachrow(donor)
         i += 1
         score, incdiff = matcher( recip, lr )
-        similar[i] = LCFLocation( lr.case, lr.datayear, score, lr.income, incdiff )
+        similar[i] = LCFLocation( lr.case, lr.datayear, score, lr[incomesym], incdiff )
     end
     # sort by characteristics   
     similar = sort( similar; lt=islessscore, rev=true )[1:NUM_SAMPLES]
@@ -2566,44 +2566,6 @@ end
 
 
 """
-Map the entire datasets.
-"""
-function map_all_was( 
-    settings :: Settings, 
-    donor :: DataFrame, 
-    matcher :: Function ) :: DataFrame
-    p = 0
-    settings.num_households, 
-    settings.num_people = 
-        FRSHouseholdGetter.initialise( settings; reset=false )
-
-    nrows = size(recip)[1]
-    df = makeoutdf( nrows, "was" )
-    for hno in 1:settings.num_households
-        hh = FRSHouseholdGetter.get_household( hno )
-        df[ hno, :frs_sernum] = hh.hno
-        df[ hno, :frs_datayear] = hh.data_year
-        df[ hno, :frs_income] = fr.income
-        matches = match_recip_row( hh, donor, matcher ) 
-        for i in 1:NUM_SAMPLES
-            was_case_sym = Symbol( "was_case_$i")
-            was_datayear_sym = Symbol( "was_datayear_$i")
-            was_score_sym = Symbol( "was_score_$i")
-            was_income_sym = Symbol( "was_income_$i")
-            df[ hno, was_case_sym] = matches[i].case
-            df[ hno, was_datayear_sym] = matches[i].datayear
-            df[ hno, was_score_sym] = matches[i].score
-            df[ hno, was_income_sym] = matches[i].income    
-        end
-        if p > 10000000
-            break
-        end
-    end
-    return df
-end
-
-
-"""
 """
 
 const WAS_TARGET_VARS = Dict(
@@ -2905,27 +2867,35 @@ function checkall( filename = "was_matchchecks.md" )
     close( outf )
 end
 
-function map_all_was( settings :: Settings, donor :: DataFrame, matcher :: Function )
-    p = 0    
-    df = makeoutdf( nrows, "was" )
-    settings.num_households, settings.num_people, nhh2 = 
-           FRSHouseholdGetter.initialise( settings; reset=false )
+"""
+Map the entire datasets.
+"""
+function map_all_was( 
+    settings :: Settings, 
+    donor :: DataFrame, 
+    matcher :: Function ) :: DataFrame
+    p = 0
+    settings.num_households, 
+    settings.num_people = 
+        FRSHouseholdGetter.initialise( settings; reset=false )
+
+    df = makeoutdf( settings.num_households, "was" )
     for hno in 1:settings.num_households
-        hh = FRSHouseholdGetter.get_household(hno)
-        any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
-        df[ hno, :frs_sernum] = hh.hno
+        hh = FRSHouseholdGetter.get_household( hno )
+        println( "on hh $hno")
+        df[ hno, :frs_sernum] = hh.hid
         df[ hno, :frs_datayear] = hh.data_year
-        df[ hno, :frs_income] = income
-        matches = match_recip_row( fr, donor, matcher ) 
+        df[ hno, :frs_income] = hh.original_gross_income
+        matches = match_recip_row( hh, donor, matcher, :weekly_gross_income ) 
         for i in 1:NUM_SAMPLES
-            lcf_case_sym = Symbol( "was_case_$i")
-            lcf_datayear_sym = Symbol( "was_datayear_$i")
-            lcf_score_sym = Symbol( "was_score_$i")
-            lcf_income_sym = Symbol( "was_income_$i")
-            df[ hno, lcf_case_sym] = matches[i].case
-            df[ hno, lcf_datayear_sym] = matches[i].datayear
-            df[ hno, lcf_score_sym] = matches[i].score
-            df[ hno, lcf_income_sym] = matches[i].income    
+            was_case_sym = Symbol( "was_case_$i")
+            was_datayear_sym = Symbol( "was_datayear_$i")
+            was_score_sym = Symbol( "was_score_$i")
+            was_income_sym = Symbol( "was_income_$i")
+            df[ hno, was_case_sym] = matches[i].case
+            df[ hno, was_datayear_sym] = matches[i].datayear
+            df[ hno, was_score_sym] = matches[i].score
+            df[ hno, was_income_sym] = matches[i].income    
         end
         if p > 10000000
             break
@@ -2933,6 +2903,8 @@ function map_all_was( settings :: Settings, donor :: DataFrame, matcher :: Funct
     end
     return df
 end
+
+
 
 function create_frs_was_matches()
     settings = Settings()
