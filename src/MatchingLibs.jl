@@ -74,6 +74,20 @@ function load_scottish_frss( startyear::Int, endyear :: Int )::NamedTuple
     (; frshh, frspers, frs_hh_pp )
 end
 
+"""
+North_East = 1
+North_West = 2
+Yorks_and_the_Humber = 3
+East_Midlands = 4
+West_Midlands = 5
+East_of_England = 6
+London = 7
+South_East = 8
+South_West = 9
+Scotland = 11 
+Wales = 10
+Northern_Ireland = 12
+"""
 function frs_regionmap( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
     out = fill( default, 3 )
     # gvtregn = parse(Int, gvtregn )
@@ -2506,6 +2520,41 @@ end
 # HFINWNTR7_exSLC_Sum
 
 """
+
+North_East = 1
+North_West = 2
+Yorks_and_the_Humber = 3
+East_Midlands = 4
+West_Midlands = 5
+East_of_England = 6
+London = 7
+South_East = 8
+South_West = 9
+Wales = 10
+Scotland = 11 
+Northern_Ireland = 12
+
+Heavily weight Scotland, then n england, then midland/wales, 0 London/SE
+"""
+function region_score_scotland(
+    a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
+    @argcheck a3[1] == 11
+    return if a3[1] == b3[1] # scotland
+        2.0
+    else 
+        if b3[1] in [1,2,3 ] # neast, nwest, yorks
+            1.0
+        elseif b3[1] in [ 4, 5, 10, 12] # e/w midlands, wales
+            0.5
+        elseif b3[1] in [8] #South_West
+            0.1
+        else # london, seast
+            0.0
+        end 
+    end
+end
+
+"""
 We're JUST going to use the model dataset here
 """
 function model_was_match( 
@@ -2515,7 +2564,7 @@ function model_was_match(
     incdiff = 0.0
     hrp = get_head( hh )
     t += score( was_model_age_grp( hrp.age ), was_frs_age_map(was.age_head, 9997 )) # ok
-    t += score( model_regionmap( hh.region ), frs_regionmap( was.region, 9997 )) 
+    t += region_score_scotland( model_regionmap( hh.region ), frs_regionmap( was.region, 9997 )) 
     t += score( model_accommap( hh.dwelling ), lcf_accmap( was.accom, 9997 ))
     t += score( model_tenuremap( hh.tenure ),  frs_tenuremap( was.tenure, 9997 ))
     t += score( model_map_socio( hrp.socio_economic_grouping ),  
@@ -2523,7 +2572,7 @@ function model_was_match(
     t += score( model_map_empstat( hrp.employment_status ), map_empstat( was.empstat_head, 9997 ))
     t += Int(hrp.sex) == was.sex_head ? 1 : 0
     t += score( model_map_marital(hrp.marital_status ), map_marital( was.marital_status_head, 9997 ))
-    t += score( hh.data_year, was.year )
+    # t += score( hh.data_year, was.year )
     any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
 
     #     hh_composition 
