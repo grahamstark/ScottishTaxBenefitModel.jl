@@ -2498,9 +2498,9 @@ function create_was_subset(; outfilename="was_wave_7_subset.tab" )
     subwas.any_wages = was.dvgiempr7_aggr .> 0
     subwas.any_selfemp = was.dvgiser7_aggr .> 0
     subwas.any_pension_income = was.dvpinpvalr7_aggr .> 0
-
-    subwas.net_housing = was.hpropwr7
     subwas.has_degree = was.hrpedlevelr7 .== 1
+    
+    subwas.net_housing = was.hpropwr7
     subwas.net_physical = was.hphyswr7
     subwas.total_pensions = was.totpenr7_aggr
     subwas.net_financial = was.hfinwntr7_sum
@@ -2952,8 +2952,6 @@ function map_all_was(
     end
     return df
 end
-
-
 
 function create_frs_was_matches()
     settings = Settings()

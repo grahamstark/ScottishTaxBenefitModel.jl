@@ -225,6 +225,7 @@ mutable struct Household{RT<:Real}
     # lcf_default_data_year :: Int  
     expenditure :: Union{Nothing,DataFrameRow}
     factor_costs :: Union{Nothing,DataFrameRow}
+    raw_wealth :: Union{Nothing,DataFrameRow}
     people::People_Dict{RT}
     onerand :: String
     equivalence_scales :: EQScales{RT}
@@ -290,7 +291,7 @@ function uprate!( pid :: BigInt, year::Integer, quarter::Integer, person :: Pers
     person.cost_of_childcare = uprate( person.cost_of_childcare, year, quarter, upr_earnings )
 end
 
-function uprate!( hh :: Household )
+function uprate!( hh :: Household, settings::Settings )
 
     hh.water_and_sewerage  = uprate( hh.water_and_sewerage , hh.interview_year, hh.quarter, upr_housing_rents )
     hh.mortgage_payment = uprate( hh.mortgage_payment, hh.interview_year, hh.quarter, upr_housing_oo )
@@ -300,12 +301,13 @@ function uprate!( hh :: Household )
     hh.other_housing_charges = uprate( hh.other_housing_charges, hh.interview_year, hh.quarter, upr_nominal_gdp )
     hh.gross_housing_costs = uprate( hh.gross_housing_costs, hh.interview_year, hh.quarter, upr_nominal_gdp )
     # hh.total_income = uprate( hh.total_income, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.total_wealth = uprate( hh.total_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_physical_wealth = uprate( hh.net_physical_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_financial_wealth = uprate( hh.net_financial_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_pension_wealth = uprate( hh.net_pension_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-
+    if settings.wealth_method != matching # since matched wealth data is pre-uprated
+        hh.total_wealth = uprate( hh.total_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_physical_wealth = uprate( hh.net_physical_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_financial_wealth = uprate( hh.net_financial_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_pension_wealth = uprate( hh.net_pension_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+    end
     hh.house_value = uprate( hh.house_value, hh.interview_year, hh.quarter, upr_housing_oo )
     for (pid,person) in hh.people
         uprate!( pid, hh.interview_year, hh.quarter, person )
