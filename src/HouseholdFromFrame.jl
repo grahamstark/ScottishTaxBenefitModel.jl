@@ -483,6 +483,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         -1, # equiv_original_income_decile
         nothing, # Recorded expenditure; loaded afterwards as needed.
         nothing, # Expenditure factor costs i.e. minus taxes.
+        nothing, # raw_wealth
         people,        
         strtobi(frs_hh.onerand),
         ZERO_EQ_SCALE )

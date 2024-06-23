@@ -159,6 +159,10 @@ module FRSHouseholdGetter
         if settings.indirect_method == matching 
             ConsumptionData.init( settings; reset = reset )
         end
+        if settings.wealth_method == matching 
+            WealthData.init( settings; reset = reset )
+        end
+
         if settings.do_legal_aid
             LegalAidData.init( settings; reset = reset )
         end
@@ -174,7 +178,10 @@ module FRSHouseholdGetter
         for hseq in 1:nhhlds
             hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS, settings )
             MODEL_HOUSEHOLDS.hhlds[hseq] = hh
-            uprate!( hh )
+            if settings.wealth_method == matching 
+                WealthData.find_wealth_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
+            end
+            uprate!( hh, settings )
             if settings.indirect_method == matching 
                 ConsumptionData.find_consumption_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
                 if settings.impute_fields_from_consumption
