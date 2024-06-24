@@ -12,6 +12,7 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .ModelHousehold: Household
 using .ConsumptionData: find_consumption_for_hh!
+using .WealthData: find_wealth_for_hh!
 using .HouseholdFromFrame: load_hhld_from_frame
 using .MatchingLibs
 using .RunSettings
@@ -49,8 +50,7 @@ function initialise(
     ;
     # fixme move these to settings
     household_name :: AbstractString = "example_households",
-    people_name    :: AbstractString = "example_people",
-     ) :: Vector{AbstractString}
+    people_name    :: AbstractString = "example_people" ) :: Vector{AbstractString}
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
@@ -58,6 +58,9 @@ function initialise(
     # lazy load cons data if needs be
     if settings.indirect_method == matching
         ConsumptionData.init( settings ) 
+    end
+    if settings.wealth_method == matching
+        WealthData.init( settings ) 
     end
     KEYMAP = Vector{AbstractString}()
     hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab", delim='\t' ) |> DataFrame
