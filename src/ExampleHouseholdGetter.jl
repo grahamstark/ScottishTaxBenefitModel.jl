@@ -24,9 +24,22 @@ KEYMAP = Vector{AbstractString}()
 
 function find_consumption_for_example!( hh, settings )
     @argcheck settings.indirect_method == matching
-    c = MatchingLibs.match_recip_row( hh, ConsumptionData.EXPENDITURE_DATASET, MatchingLibs.example_lcf_match )[1]
+    c = MatchingLibs.match_recip_row( 
+        hh, 
+        ConsumptionData.EXPENDITURE_DATASET, 
+        MatchingLibs.example_lcf_match )[1]
     find_consumption_for_hh!( hh, c.case, c.datayear )
 end
+
+function find_wealth_for_example!( hh, settings )
+    @argcheck settings.wealth_method == matching
+    c = MatchingLibs.match_recip_row( 
+        hh, 
+        ConsumptionData.EXPENDITURE_DATASET, 
+        MatchingLibs.example_lcf_match )[1]
+    find_consumption_for_hh!( hh, c.case, c.datayear )
+end
+
 
 """
 return number of households available
@@ -59,6 +72,9 @@ function initialise(
             hseq, hhf, people_dataset, ExampleSource, settings )
         if settings.indirect_method == matching
             find_consumption_for_example!( hh, settings )
+        end
+        if settings.wealth_method == matching
+            find_wealth_for_example!( hh, settings )
         end
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )

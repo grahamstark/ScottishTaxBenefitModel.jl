@@ -64,6 +64,9 @@ export ConsumptionData
 include( "LegalAidData.jl" )
 export LegalAidData
 
+include( "WealthData.jl" )
+export WealthData
+
 include("FRSHouseholdGetter.jl" )
 export FRSHouseholdGetter
 

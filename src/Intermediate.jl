@@ -442,15 +442,13 @@ function add_wealth!(
     bu        :: BenefitUnit,
     buno      :: Int,
     method    :: ExtraDataMethod ) where T
-    if method == imputation 
+    if method in [ imputation, matching ]
         if buno == 1 # use the regression hhld stuff from was & assign all to 1st bu 
             intermed.net_financial_wealth = hh.net_financial_wealth
             intermed.net_physical_wealth = hh.net_physical_wealth
             intermed.net_housing_wealth  = hh.net_housing_wealth 
             intermed.net_pension_wealth = hh.net_pension_wealth
         end
-    elseif method == matching
-        @assert false "FRS matching not implemented yet for get_wealth"
     elseif method == no_method
         head = get_head( bu )
         # println( "add_wealth! method=$method head.wealth_and_assets=$(head.wealth_and_assets)")

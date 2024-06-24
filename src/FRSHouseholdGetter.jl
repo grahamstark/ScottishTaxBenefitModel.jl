@@ -34,6 +34,7 @@ module FRSHouseholdGetter
 
     using .LegalAidData
     using .ConsumptionData
+    using .WealthData
 
     export 
         initialise, 
