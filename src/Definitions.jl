@@ -2046,9 +2046,9 @@ Only citizens are entitled
 #
 
 export WealthTypes,net_physical_wealth,net_financial_wealth,
-   net_housing_wealth,net_pension_wealth,WealthSet
+   net_housing_wealth,net_pension_wealth,second_homes,WealthSet
 
-@enum WealthTypes net_physical_wealth net_financial_wealth net_housing_wealth net_pension_wealth
+@enum WealthTypes net_physical_wealth net_financial_wealth net_housing_wealth net_pension_wealth second_homes
 WealthSet = Set{WealthTypes}
 
 export AggregationLevel, individual, benefit_unit, household 

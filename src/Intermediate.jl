@@ -260,7 +260,7 @@ mutable struct MTIntermediate{RT<:Real}
     net_financial_wealth :: RT
     net_housing_wealth :: RT
     net_pension_wealth :: RT
-
+    total_value_of_other_property :: RT
 end
 
 
@@ -448,6 +448,9 @@ function add_wealth!(
             intermed.net_physical_wealth = hh.net_physical_wealth
             intermed.net_housing_wealth  = hh.net_housing_wealth 
             intermed.net_pension_wealth = hh.net_pension_wealth
+            if method == matching
+                intermed.total_value_of_other_property = hh.raw_wealth.total_value_of_other_property
+            end
         end
     elseif method == no_method
         head = get_head( bu )
@@ -626,6 +629,7 @@ function make_intermediate(
     net_financial_wealth = zero(T)
     net_housing_wealth = zero(T)
     net_pension_wealth = zero(T)
+    total_value_of_other_property = zero(T)
 
     return MTIntermediate{T}(
         buno,
@@ -674,7 +678,8 @@ function make_intermediate(
         net_physical_wealth,
         net_financial_wealth,
         net_housing_wealth,
-        net_pension_wealth )
+        net_pension_wealth,
+        total_value_of_other_property )
 end
 
 function make_intermediate( 
