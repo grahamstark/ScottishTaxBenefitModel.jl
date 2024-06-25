@@ -160,6 +160,9 @@ export Expenditure
 include( "Affordability.jl")
 export Affordability
 
+include( "CrudeTakeup.jl")
+export CrudeTakeup
+
 include( "HealthRegressions.jl")
 export HealthRegressions
 
