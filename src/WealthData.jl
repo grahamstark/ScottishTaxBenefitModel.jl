@@ -78,7 +78,7 @@ end
 """
 """
 function init( settings :: Settings; reset = false )
-    if(settings.wealth_method == matching) && (reset || (size(wealth_DATASET)[1] == 0 )) # needed but uninitialised
+    if(settings.wealth_method == matching) && (reset || (size(WEALTH_DATASET)[1] == 0 )) # needed but uninitialised
         global IND_MATCHING
         global WEALTH_DATASET
         IND_MATCHING = CSV.File( joinpath( settings.data_dir, "$(settings.wealth_matching_dataframe).tab" )) |> DataFrame
