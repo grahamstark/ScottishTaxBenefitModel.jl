@@ -97,7 +97,7 @@ function lasettings()
     settings.do_legal_aid = true
     settings.wealth_method = other_method_1
     settings.requested_threads = 4
-    settings.num_households,  settings.num_people, nhh2 = 
+    settings.num_households, settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
     return settings
 end
@@ -544,7 +544,7 @@ end
             cf.data_year = hh.data_year  
         end
     end
-    pfname = "$(settings.output_dir)/capcompare.tab"
+    pfname = "$(settings.output_dir)/capcompare-w3.tab"
     CSV.write( pfname, capdf; delim='\t' )
 end
 
