@@ -1827,8 +1827,9 @@ function do_hh_sums( hh :: Household ) :: Tuple
         if (! pers.is_standard_child) && (pers.sex == Female )
             has_female_adult = true
         end
-        income += sum( pers.income, start=wages, stop=alimony_and_child_support_received ) # FIXME
+        # income += sum( pers.income, start=wages, stop=alimony_and_child_support_received ) # FIXME
     end
+    income = hh.original_gross_income
     return any_wages, any_selfemp, any_pension_income, has_female_adult, income 
 end
 
