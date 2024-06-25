@@ -122,7 +122,7 @@ module RunSettings
 
         wealth_method = no_method
         wealth_matching_dataframe = "was-wave-7-frs-scotland-only-matches-2015-2021"
-        wealth_dataset = "was_wave_7_subset.tab"
+        wealth_dataset = "was_wave_7_subset"
         
         do_indirect_tax_calculations = false
         do_legal_aid = true

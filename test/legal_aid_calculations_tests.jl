@@ -510,9 +510,6 @@ end
 
 @testset "Capital versions" begin
     settings = lasettings()
-    settings.num_households, 
-        settings.num_people = 
-            FRSHouseholdGetter.initialise( settings; reset=true )
 	# Observer as a global.
 	n = settings.num_households 
     capdf = DataFrame( 
@@ -522,15 +519,18 @@ end
         cap_imputation = zeros(n),
         cap_no_method = zeros(n),
         cap_other_method_1 = zeros(n))
-
-    for hno in 1:n
-        hh = FRSHouseholdGetter.get_household( hno )
-        cf = capdf[hno,:]
-        for capt in [ # matching
-                imputation,
-                no_method,
-                other_method_1]
-            settings.wealth_method = capt
+    for capt in [ 
+            matching,
+            imputation,
+            no_method,
+            other_method_1]
+        settings.num_households, 
+        settings.num_people = 
+            FRSHouseholdGetter.initialise( settings; reset=true )
+        settings.wealth_method = capt
+        for hno in 1:n
+            hh = FRSHouseholdGetter.get_household( hno )
+            cf = capdf[hno,:]
             intermed = make_intermediate( 
                 DEFAULT_NUM_TYPE,
                 settings,

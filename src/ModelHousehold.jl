@@ -17,6 +17,8 @@ using .Utils:
     todays_date, 
     to_md_table
 
+using .RunSettings: Settings
+
 using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,

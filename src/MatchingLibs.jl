@@ -2535,21 +2535,22 @@ Scotland = 11
 Northern_Ireland = 12
 
 Heavily weight Scotland, then n england, then midland/wales, 0 London/SE
+NOTE 2.0 1.0 0.5 0.1 
 """
 function region_score_scotland(
-    a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
+    a3 :: Vector{Int}, b3 :: Vector{Int}, weights = [2.0,1.0,0.5,0.1,0])::Float64
     @argcheck a3[1] == 11
     return if a3[1] == b3[1] # scotland
-        2.0
+        weights[1]
     else 
         if b3[1] in [1,2,3 ] # neast, nwest, yorks
-            1.0
+            weights[2]
         elseif b3[1] in [ 4, 5, 10, 12] # e/w midlands, wales
-            0.5
+            weights[3]
         elseif b3[1] in [8] #South_West
-            0.1
+            weights[4]
         else # london, seast
-            0.0
+            weights[5]
         end 
     end
 end
@@ -2564,7 +2565,10 @@ function model_was_match(
     incdiff = 0.0
     hrp = get_head( hh )
     t += score( was_model_age_grp( hrp.age ), was_frs_age_map(was.age_head, 9997 )) # ok
-    t += region_score_scotland( model_regionmap( hh.region ), frs_regionmap( was.region, 9997 )) 
+    t += region_score_scotland( 
+        model_regionmap( hh.region ), 
+        frs_regionmap( was.region, 9997 ),
+        [1.5,0.8,0.3,0.2,0.1]) 
     t += score( model_accommap( hh.dwelling ), lcf_accmap( was.accom, 9997 ))
     t += score( model_tenuremap( hh.tenure ),  frs_tenuremap( was.tenure, 9997 ))
     t += score( model_map_socio( hrp.socio_economic_grouping ),  
@@ -2584,8 +2588,6 @@ function model_was_match(
 
     t += score( person_map(num_children( hh ),9999), person_map(was.num_children,9997 ))
     t += score( person_map(num_adults( hh ),9999), person_map(was.num_adults,9997))
-    # num_children( hh ), was.num_children  numchildr7
-    # num_adults( hh )    was.num_adults washj.numadultr7
     incdiff = compare_income( income, was.weekly_gross_income )
     return t, incdiff
 end
@@ -2955,7 +2957,7 @@ end
 
 function create_frs_was_matches()
     settings = Settings()
-    was_dataset = CSV.File(joinpath(MODEL_DATA_DIR,settings.wealth_dataset))|>DataFrame    
+    was_dataset = CSV.File(joinpath(MODEL_DATA_DIR,settings.wealth_dataset)*".tab")|>DataFrame    
     map_all_was( settings, was_dataset, model_was_match )
 end
 
