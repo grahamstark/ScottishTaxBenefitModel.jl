@@ -200,14 +200,11 @@ function calc_legal_aid!(
         onela.capital += intermed.net_financial_wealth
     end 
     if net_housing_wealth in lasys.included_capital 
+        # one or other of all housing, 2nd homes, not both.
         onela.capital += intermed.net_housing_wealth
-    end 
-    if second_homes in lasys.included_capital
-        @assert ! net_housing_wealth in lasys.included_capital # double counting
+    elseif second_homes in lasys.included_capital
         onela.capital += intermed.total_value_of_other_property
-    end
-
-
+    end 
     if net_pension_wealth in lasys.included_capital 
         onela.capital += intermed.net_pension_wealth
     end 
