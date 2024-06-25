@@ -204,7 +204,7 @@ end
         UNIVERSAL_CREDIT])
     pensioner_age_limit        = 9999
     # capital from wealth tax
-    included_capital = WealthSet([net_financial_wealth,net_physical_wealth])
+    included_capital = WealthSet([net_financial_wealth,net_physical_wealth,second_homes])
     expenses = Expenses{RT}()
     capital_contribution_rates  :: RateBands{RT} =  [0,100.0]
     capital_contribution_limits :: RateBands{RT} =  [7_853.0, 13_017.0]
