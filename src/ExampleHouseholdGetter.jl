@@ -36,9 +36,10 @@ function find_wealth_for_example!( hh, settings )
     @argcheck settings.wealth_method == matching
     c = MatchingLibs.match_recip_row( 
         hh, 
-        ConsumptionData.EXPENDITURE_DATASET, 
-        MatchingLibs.example_lcf_match )[1]
-    find_consumption_for_hh!( hh, c.case, c.datayear )
+        WealthData.WEALTH_DATASET, 
+        MatchingLibs.model_was_match, 
+        :weekly_gross_income )[1]
+    find_wealth_for_hh!( hh, c.case )
 end
 
 

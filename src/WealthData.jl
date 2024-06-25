@@ -26,8 +26,28 @@ using .ModelHousehold
 using .RunSettings
 using .Uprating
 
+export find_wealth_for_hh!
+
 IND_MATCHING = DataFrame()
 WEALTH_DATASET = DataFrame() 
+const WEALTH_COLS = [:net_housing,:net_physical,:total_pensions,:net_financial,
+                :total_value_of_other_property,
+                :total_financial_liabilities,:total_household_wealth]   
+function jam_on_float( i :: Int, name )
+    return name in WEALTH_COLS ? Float64 : nothing
+end
+                
+function find_wealth_for_hh!( hh :: Household, case :: Integer )
+    raw_wealth = WEALTH_DATASET[WEALTH_DATASET.case .== case,:]
+    @assert size(raw_wealth)[1] == 1 "find_wealth_for_hh! should be (x,1) is: size=$(size(raw_wealth))"# exactly 1 selection
+    hh.raw_wealth = raw_wealth[1,:]
+    # FIXME make all these names consistent
+    hh.net_physical_wealth = hh.raw_wealth.net_physical
+    hh.net_financial_wealth = hh.raw_wealth.net_financial
+    hh.net_housing_wealth = hh.raw_wealth.net_housing
+    hh.net_pension_wealth = hh.raw_wealth.total_pensions
+    hh.total_wealth = hh.raw_wealth.total_household_wealth
+end
 
 """
 Match in the was data using the lookup table constructed in 'matching/was_frs_matching.jl'
@@ -39,13 +59,7 @@ function find_wealth_for_hh!( hh :: Household, settings :: Settings, which = 1 )
     match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
     was_case_sym = Symbol( "was_case_$(which)" )
     case = match[was_case_sym]
-    raw_wealth = WEALTH_DATASET[WEALTH_DATASET.case .== case,:]
-    @assert size(raw_wealth)[2] == 1 # exactly 1 selection
-    hh.raw_wealth = raw_wealth[1,:]
-    hh.net_physical_wealth = hh.raw_wealth.net_physical_wealth
-    hh.net_financial_wealth = hh.raw_wealth.net_financial_wealth
-    hh.net_housing_wealth = hh.raw_wealth.net_housing_wealth
-    hh.net_pension_wealth = hh.raw_wealth.net_pension_wealth
+    find_wealth_for_hh!( hh, case )
 end
 
 function uprate_raw_wealth()
@@ -55,9 +69,7 @@ function uprate_raw_wealth()
     nr = size(WEALTH_DATASET)[1]
     for i in 1:nr
         r = WEALTH_DATASET[i,:]
-        for sym in [:net_housing,:net_physical,:total_pensions,:net_financial,
-                :total_value_of_other_property,
-                :total_financial_liabilities,:total_household_wealth]            
+        for sym in WEALTH_COLS
             r[sym] = Uprating.uprate( r[sym], r.year, r.q, Uprating.upr_nominal_gdp )
         end
     end
@@ -70,7 +82,7 @@ function init( settings :: Settings; reset = false )
         global IND_MATCHING
         global WEALTH_DATASET
         IND_MATCHING = CSV.File( joinpath( settings.data_dir, "$(settings.wealth_matching_dataframe).tab" )) |> DataFrame
-        WEALTH_DATASET = CSV.File( joinpath( settings.data_dir, settings.wealth_dataset * ".tab")) |> DataFrame
+        WEALTH_DATASET = CSV.File( joinpath( settings.data_dir, settings.wealth_dataset * ".tab"); types=jam_on_float ) |> DataFrame
         uprate_raw_wealth()
         println( WEALTH_DATASET[1:2,:])
     end
