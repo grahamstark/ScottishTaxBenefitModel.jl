@@ -524,10 +524,9 @@ end
             imputation,
             no_method,
             other_method_1]
-        settings.num_households, 
-        settings.num_people = 
+        settings.wealth_method = capt        
+        settings.num_households, settings.num_people, nhh = 
             FRSHouseholdGetter.initialise( settings; reset=true )
-        settings.wealth_method = capt
         for hno in 1:n
             hh = FRSHouseholdGetter.get_household( hno )
             cf = capdf[hno,:]

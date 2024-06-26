@@ -42,6 +42,7 @@ if IS_LOCAL
 	# FIXME needs rewritten to match new Weighting code include( "weighting_tests.jl")
     include( "uc_transition_tests.jl")
     include( "simple_runner_tests.jl")
+    include( "crude_takeup_tests.jl")
     include( "equaliser_tests.jl")
     include( "expenditure_tests.jl")
     include( "health_regressions_tests.jl")
