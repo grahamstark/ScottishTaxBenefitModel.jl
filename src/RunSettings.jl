@@ -128,6 +128,7 @@ module RunSettings
         do_legal_aid = true
         legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
         export_full_results = false
+        do_dodgy_takeup_corrections = false
     end
 
     """
