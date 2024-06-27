@@ -406,13 +406,13 @@ function fill_legal_aid_frame_row!(
     pr.all_eligible = lr.eligible | lr.passported
     pr.mt_eligible = lr.eligible
     pr.passported = lr.passported
-    pr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
-    pr.capital_contribution = lr.capital_contribution > 0
-    pr.income_contribution = lr.income_contribution > 0
-
-    pr.income_contribution_amt = lr.income_contribution
-    pr.capital_contribution_amt = lr.capital_contribution
-    
+    if ! lr.passported # needed because we do these tests for passported cases also now.
+        pr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
+        pr.capital_contribution = lr.capital_contribution > 0
+        pr.income_contribution = lr.income_contribution > 0
+        pr.income_contribution_amt = lr.income_contribution
+        pr.capital_contribution_amt = lr.capital_contribution
+    end
     pr.uc_entitlement = lr.uc_entitlement
     pr.uc_income = lr.uc_income
     pr.extra_allowances = lr.extra_allowances
