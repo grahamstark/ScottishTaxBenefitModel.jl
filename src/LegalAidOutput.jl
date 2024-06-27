@@ -35,6 +35,8 @@ mutable struct LegalOutput
     crosstab_bu_examples :: Vector{AbstractMatrix}
     crosstab_pers :: Vector{AbstractMatrix} # Vector{Dict{String,AbstractMatrix}}
     crosstab_pers_examples :: Vector{AbstractMatrix}
+    crosstab_adults :: Vector{AbstractMatrix} # Vector{Dict{String,AbstractMatrix}}
+    crosstab_adults_examples :: Vector{AbstractMatrix}
     summary_tables :: Vector{AbstractDataFrame}
 end
 
@@ -814,6 +816,7 @@ function summarise_la_output!(
         LegalAidData.LA_PROB_DATA,
         propensities )
     budata1 = data1[data1.is_bu_head, : ] 
+    adultsdata1 = data1[ .! data1.is_child, : ] 
     for sysno in 1:la.num_systems
         data = merge_in_probs_and_props( 
             la.data[sysno], 
@@ -826,6 +829,7 @@ function summarise_la_output!(
             prop_items = cost_items.props, 
             cost_items = cost_items.costs )
         budata = data[data.is_bu_head,:] 
+        adultsdata = data[ .! data.is_child,:] 
         la.breakdown_pers[sysno] = aggregate_all_legal_aid( 
             data, 
             :weight, 
@@ -854,6 +858,8 @@ function summarise_la_output!(
         if sysno > 1
             la.crosstab_pers[sysno-1], la.crosstab_pers_examples[sysno-1] = 
                 la_crosstab( data1, data )
+            la.crosstab_adults[sysno-1], la.crosstab_adults_examples[sysno-1] = 
+                la_crosstab( adultsdata1, adultsdata )
             la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
                 la_crosstab( budata1, budata )
 
@@ -938,16 +944,35 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
             laout.aa.summary_tables[ctno], 
             backend = Val(:markdown), 
             cell_first_line_only=true)
-        println( f, "### cross table AA entitlement")
-        pa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
 
-        println( f, "##  System $sysno vs System 1 Personal Level" )
-        pc = Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
-        println( f, "### cross table AA entitlement - Personal Level")
-        pa =  Utils.matrix_to_frame( laout.aa.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "## Crosstabs ");
+        println( f, "### Civil $sysno vs System 1" )
+        println( f, "#### BU Level")
+        bu_ci = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table( f, bu_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Level - all people" )
+        ap_ci = Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table( f, ap_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Levels  - adults only" )
+        aa_ci = Utils.matrix_to_frame( laout.civil.crosstab_adults[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table( f, aa_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+
+        println( f, "### AA  $sysno vs System 1")
+        println( f, "#### BU Level")
+        bu_aa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f, bu_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Level - All People")
+        ap_aa =  Utils.matrix_to_frame( laout.aa.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f, ap_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Level - Adults Only")
+        aa_aa =  Utils.matrix_to_frame( laout.aa.crosstab_adults[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f, aa_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
 
         #=
         for p in LegalAidData.PROBLEM_TYPES
@@ -1076,6 +1101,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
     crosstab_bu_examples = Vector{Matrix}(undef,0)
     crosstab_pers = Vector{Matrix}(undef,0) # Vector{Dict{String,Matrix}}(undef,0)
     crosstab_pers_examples = Vector{Matrix}(undef,0)
+    crosstab_adults = Vector{Matrix}(undef,0) # Vector{Dict{String,Matrix}}(undef,0)
+    crosstab_adults_examples = Vector{Matrix}(undef,0)
     summary_tables = Vector{DataFrame}(undef,0)
     for sysno in 1:num_systems
         push!( datas, make_legal_aid_frame( T, num_people ))
@@ -1085,11 +1112,13 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         push!( costs_pers, Dict())
         push!( breakdown_bu, Dict())
         if sysno < num_systems
-            push!(crosstab_pers, fill(T,4,4)) # Dict()) # )
+            push!( crosstab_pers, fill(T,4,4)) # Dict()) # )
             push!( crosstab_pers_examples, fill(Int[],4,4))    
-            push!(crosstab_bu, fill(T,4,4))
+            push!( crosstab_adults, fill(T,4,4)) # Dict()) # )
+            push!( crosstab_adults_examples, fill(Int[],4,4))    
+            push!( crosstab_bu, fill(T,4,4))
             push!( crosstab_bu_examples, fill(Int[],4,4))    
-            push!(summary_tables, summary_frame());
+            push!( summary_tables, summary_frame());
     
         end
     end
@@ -1104,6 +1133,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         crosstab_bu_examples,
         crosstab_pers,
         crosstab_pers_examples,
+        crosstab_adults,
+        crosstab_adults_examples,
         summary_tables )
 end
 
