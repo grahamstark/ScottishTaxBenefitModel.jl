@@ -404,9 +404,9 @@ function fill_legal_aid_frame_row!(
     pr.age2 = agestr2( pers.age )
     pr.sex = pers.sex
     pr.all_eligible = lr.eligible | lr.passported
-    pr.mt_eligible = lr.eligible
     pr.passported = lr.passported
     if ! lr.passported # needed because we do these tests for passported cases also now.
+        pr.mt_eligible = lr.eligible
         pr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
         pr.capital_contribution = lr.capital_contribution > 0
         pr.income_contribution = lr.income_contribution > 0
