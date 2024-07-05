@@ -75,6 +75,8 @@ function apply_minimum_wage(
         Part_time_Employee,
         Part_time_Self_Employed]
         20.0
+    else 
+        wage/10.0 # hack 10 per hour
     end
     if(wage > 0) && (hours > 0)
     #= if pers.employment_status in [
