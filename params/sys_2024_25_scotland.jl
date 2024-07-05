@@ -9,19 +9,19 @@
 """
 function load_sys_2024_25_scotland!( sys :: TaxBenefitSystem{T} ) where T
     sys.name = "Scottish System 2024/25"
-    sys.it.non_savings_rates = [
-        19.0,
-        20.0,
-        21.0,
-        42.0,
-        45,
-        48.0]
-    sys.it.non_savings_thresholds = [
+    sys.it.non_savings_rates = T[
+        19.0, # starter
+        20.0, # basic
+        21.0, # intermediate
+        42.0, # higher
+        45,   # advanced
+        48.0] # top
+    sys.it.non_savings_thresholds = T[
         2_306.0,
         13_991.0,
         31_092.0,
         62_430.0,
-        112_570.0]
+        125_140.0]
     sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
     sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
     ## !!! FIXME the Welsh ones in this file are not updated 

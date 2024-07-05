@@ -31,7 +31,7 @@ function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.it.savings_thresholds = [5_000.0, 37_700.0, 125_140.0]
   sys.it.savings_basic_rate = 2 # above this counts as higher rate
 
-  sys.it.non_savings_rates = [20.0,40.0,45.0]
+  sys.it.non_savings_rates = [20.0,40.0,45.0] # check bottom
   sys.it.non_savings_thresholds = [37_700, 125_140.0]
   sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
 
@@ -46,7 +46,7 @@ function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   sys.it.married_couples_allowance = 10_375.0
   sys.it.mca_minimum     = 4_010.00
-  sys.it.mca_income_maximum   = 31_400.00
+  sys.it.mca_income_maximum   = 34_600.00
   sys.it.mca_credit_rate    = 10.0
   sys.it.mca_withdrawal_rate  = 50.0
 
@@ -71,7 +71,7 @@ function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
     Biofuel_eg_E85_fuel=>0.02 ]))
 
   
-  sys.it.fuel_imputation = 25_300.00 # 22/23
+  sys.it.fuel_imputation = 27_800.00 # 22/23
 
   #
   # TODO CHECK THIS WORKED EXAMPLE
