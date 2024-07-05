@@ -1259,6 +1259,8 @@ include( "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
 include( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
 include( "$(MODEL_PARAMS_DIR)/ni_rates_jan_2024.jl" )
+include( "$(MODEL_PARAMS_DIR)/sys_2024_25_ruk.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2024_25_scotland.jl")
 
 """
 return the full system for the given date, weeklyised
@@ -1308,6 +1310,11 @@ function get_default_system_for_date(
         end
         if date >= Date(2024,1,5)
             load_ni_rates_jan_2024!( sys )
+        end
+    elseif date in fy(2024)
+        load_sys_2024_25_ruk!( sys )
+        if scotland 
+            load_sys_2024_25_scotland!( sys )
         end
     else
         # if date in  fy(2024)
