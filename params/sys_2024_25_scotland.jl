@@ -23,7 +23,9 @@ function load_sys_2024_25_scotland!( sys :: TaxBenefitSystem{T} ) where T
         62_430.0,
         125_140.0]
     sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
-    sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
+    # sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
+    sys.nmt_bens.carers.scottish_supplement = 231.40 # FROM APRIL 2021
+  
     ## !!! FIXME the Welsh ones in this file are not updated 
     brmapath = joinpath(MODEL_DATA_DIR, "local", "lha_rates_scotland_2024_25.csv")
     sys.hr.brmas = loadBRMAs( 4, T, brmapath )

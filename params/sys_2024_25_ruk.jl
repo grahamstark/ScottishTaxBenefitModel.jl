@@ -17,7 +17,7 @@ https://www.gov.uk/government/publications/spring-budget-2024-overview-of-tax-le
 
 ##  Local Taxes: 
 
-* ENGLAND https://www.gov.uk/government/statistics/council-tax-levels-set-by-local-authorities-in-england-2023-to-2024/council-tax-levels-set-by-local-authorities-in-england-2023-to-2024
+* ENGLAND https://www.gov.uk/government/statistics/council-tax-levels-set-by-local-authorities-in-england-2024-to-2025
 * WALES https://www.gov.wales/council-tax-levels-april-2023-march-2024
 * SCOTLAND http://www.gov.scot/publications/council-tax-datasets/
 
@@ -330,22 +330,23 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.nmt_bens.bereavement.lower = 100
 
   sys.nmt_bens.widows_pension.abolished = false
-  sys.nmt_bens.widows_pension.industrial_higher = 156.20
+  sys.nmt_bens.widows_pension.industrial_higher = 156.20 # FIXME check these 2 again
   sys.nmt_bens.widows_pension.industrial_lower = 46.86
-  sys.nmt_bens.widows_pension.standard_rate = 139.10
-  sys.nmt_bens.widows_pension.parent = 139.10
+  sys.nmt_bens.widows_pension.standard_rate =  148.40
+  sys.nmt_bens.widows_pension.parent = 148.40
   sys.nmt_bens.widows_pension.ages = collect(54:-1:45)
-  sys.nmt_bens.widows_pension.age_amounts = [129.36,119.63,109.89,100.15,90.42,80.68,70.94,61.20,51.47,41.73]
+  sys.nmt_bens.widows_pension.age_amounts = [138.01, 127.62, 127.62, 117.24, 106.85, 96.46,
+    86.07, 75.68, 65.30, 54.91, 44.52]
 
   # 
   # young carer grant
   sys.nmt_bens.maternity.abolished = false
-  sys.nmt_bens.maternity.rate = 172.48
+  sys.nmt_bens.maternity.rate = 184.03
 
 
-  sys.nmt_bens.smp = 172.48 ## 90% of earn cpag 21/2 812
+  sys.nmt_bens.smp = 184.03 ## 90% of earn cpag 21/2 812
   # = XX
-
+  ## ALL UNCHANGED ... 
   sys.bencap.abolished = false
   sys.bencap.outside_london_single = 283.71
   sys.bencap.outside_london_couple = 423.46
@@ -363,20 +364,21 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   sys.loctax.ct.band_d = Dict(
     [
-      :ENGLAND  => 2_065.0,
-      :WALES    => 1_879.0,
-      :SCOTLAND => 1_417.0,
+      :ENGLAND  => 2_171.0,
+      :WALES    => 2_024.0,
+      :SCOTLAND => 1_418.0, # FROZEN!!
       :LONDON => 2_065.0,
       :NIRELAND => -99999.99
     ] )
 
+  # FIXME? No updated publication as of 5/7/2024 ??https://www.gov.uk/government/publications/local-housing-allowance-lha-rates-applicable-from-april-2023-to-march-2024#full-publication-update-history
   brmapath = joinpath(MODEL_DATA_DIR, "local", "brma-2023-2024-country-averages.csv")
 
   sys.hr.brmas = loadBRMAs( 4, Float64, brmapath )
 
   # here so it's always on 
   sys.scottish_child_payment.abolished = false
-  sys.scottish_child_payment.amount = 25.0
+  sys.scottish_child_payment.amount = 26.70
   sys.scottish_child_payment.maximum_age = 15
   
 
