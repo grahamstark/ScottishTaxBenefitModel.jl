@@ -268,59 +268,59 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
 
   sys.nmt_bens.attendance_allowance.abolished = false
-  sys.nmt_bens.attendance_allowance.higher = 101.75
-  sys.nmt_bens.attendance_allowance.lower = 68.10
+  sys.nmt_bens.attendance_allowance.higher = 108.55
+  sys.nmt_bens.attendance_allowance.lower = 72.65
 
 
   sys.nmt_bens.child_benefit.abolished = false
-  sys.nmt_bens.child_benefit.first_child = 24.00
-  sys.nmt_bens.child_benefit.other_children = 15.90
+  sys.nmt_bens.child_benefit.first_child = 25.60
+  sys.nmt_bens.child_benefit.other_children = 16.95
   sys.nmt_bens.child_benefit.high_income_thresh = 50_000.0
   sys.nmt_bens.child_benefit.withdrawal = 1/100
-  sys.nmt_bens.child_benefit.guardians_allowance = 20.40
+  sys.nmt_bens.child_benefit.guardians_allowance = 21.75
 
   sys.nmt_bens.dla.abolished = false
-  sys.nmt_bens.dla.care_high = 101.75
-  sys.nmt_bens.dla.care_middle = 68.10
-  sys.nmt_bens.dla.care_low = 26.90
-  sys.nmt_bens.dla.mob_high = 71.00
-  sys.nmt_bens.dla.mob_low = 26.90
+  sys.nmt_bens.dla.care_high = 108.55
+  sys.nmt_bens.dla.care_middle = 72.65
+  sys.nmt_bens.dla.care_low = 28.70
+  sys.nmt_bens.dla.mob_high = 75.75
+  sys.nmt_bens.dla.mob_low = 28.70
 
 
   sys.nmt_bens.carers.abolished = false
-  sys.nmt_bens.carers.allowance = 76.75
+  sys.nmt_bens.carers.allowance = 81.90
 
   # TODO
-  sys.nmt_bens.carers.scottish_supplement = 231.40 # FROM APRIL 2021
+  sys.nmt_bens.carers.scottish_supplement = 288.60 # CHECK 2023/4
   sys.nmt_bens.carers.hours :: Int = 35
   sys.nmt_bens.carers.gainful_employment_min = 132.00
 
 
   sys.nmt_bens.pip.abolished = false
-  sys.nmt_bens.pip.dl_standard = 68.10
-  sys.nmt_bens.pip.dl_enhanced = 101.75
-  sys.nmt_bens.pip.mobility_standard = 26.90
-  sys.nmt_bens.pip.mobility_enhanced = 71.00
+  sys.nmt_bens.pip.dl_standard = 72.65
+  sys.nmt_bens.pip.dl_enhanced = 108.55
+  sys.nmt_bens.pip.mobility_standard = 28.70
+  sys.nmt_bens.pip.mobility_enhanced = 75.75
   
   sys.nmt_bens.esa.abolished = false
-  sys.nmt_bens.esa.assessment_u25 = 67.20
-  sys.nmt_bens.esa.assessment_25p = 84.80
-  sys.nmt_bens.esa.main   = 84.80
-  sys.nmt_bens.esa.work   = 33.70
+  sys.nmt_bens.esa.assessment_u25 = 71.70
+  sys.nmt_bens.esa.assessment_25p = 90.50
+  sys.nmt_bens.esa.main   = 90.50
+  sys.nmt_bens.esa.work   = 35.95
   sys.nmt_bens.esa.support  = 44.70
 
 
   sys.nmt_bens.jsa.abolished = false
-  sys.nmt_bens.jsa.u25 = 67.20
-  sys.nmt_bens.jsa.o24 = 84.80
+  sys.nmt_bens.jsa.u25 = 71.70
+  sys.nmt_bens.jsa.o24 = 90.50
 
   sys.nmt_bens.pensions.abolished = false
-  sys.nmt_bens.pensions.new_state_pension = 203.85
+  sys.nmt_bens.pensions.new_state_pension = 221.20
   # pension_start_date = Date( 2016, 04, 06 )
-  sys.nmt_bens.pensions.cat_a  = 156.20
-  sys.nmt_bens.pensions.cat_b  = 156.20
-  sys.nmt_bens.pensions.cat_b_survivor = 93.60
-  sys.nmt_bens.pensions.cat_d  = 93.60
+  sys.nmt_bens.pensions.cat_a  = 169.50
+  sys.nmt_bens.pensions.cat_b  = 169.50
+  sys.nmt_bens.pensions.cat_b_survivor = 101.55
+  sys.nmt_bens.pensions.cat_d  = 101.55
 
   sys.nmt_bens.bereavement.abolished = false
   # higher effectively just means 'with children'; 
