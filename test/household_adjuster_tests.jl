@@ -59,8 +59,8 @@ end
     apply_minumum_wage!( hres, hh, sys.minwage )
     @assert hres.bus[1].pers[head.pid].income[WAGES] ≈ mw*head.usual_hours_worked
     println( "set wage to $(hres.bus[1].pers[head.pid].income[WAGES]) hours $(head.usual_hours_worked) mw=$mw")
-    head.income[Definitions.self_employment_income] = 200
+    head.income[Definitions.self_employment_income] = 50
     apply_minumum_wage!( hres, hh, sys.minwage )
-    @assert hres.bus[1].pers[head.pid].income[WAGES] ≈ (mw*head.usual_hours_worked/3) "wage is $(hres.bus[1].pers[head.pid].income[WAGES]) "
+    @assert hres.bus[1].pers[head.pid].income[WAGES] ≈ (mw*head.usual_hours_worked*(2/3)) "wage is $(hres.bus[1].pers[head.pid].income[WAGES]) "
     println( "set wage to $(hres.bus[1].pers[head.pid].income[WAGES]) hours $(head.usual_hours_worked) mw=$mw")
 end
