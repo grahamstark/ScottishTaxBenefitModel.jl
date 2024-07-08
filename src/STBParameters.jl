@@ -1268,8 +1268,9 @@ return the full system for the given date, weeklyised
 function get_default_system_for_date( 
     date :: Date; scotland = true, 
     RT :: Type = Float64,
-    wpm=WEEKS_PER_MONTH, 
-    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
+    wpm = WEEKS_PER_MONTH, 
+    wpy = WEEKS_PER_YEAR,
+    autoweekly = true  )::TaxBenefitSystem
     #
     # FIXME ALL THE NAMES HERE ARE INCONSISTENT. NO RUK FILES for early years.
     #
@@ -1322,7 +1323,9 @@ function get_default_system_for_date(
         # else
         error( "system for $date hasn't been created yet")
     end
-    weeklyise!( sys; wpm=wpm, wpy=wpy )
+    if autoweekly
+        weeklyise!( sys; wpm=wpm, wpy=wpy )
+    end
     return sys
 end
 
