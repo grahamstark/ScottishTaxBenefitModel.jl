@@ -1337,9 +1337,10 @@ function get_default_system_for_cal_year(
     scotland = true, 
     RT :: Type = Float64,
     wpm=WEEKS_PER_MONTH, 
-    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
+    wpy=WEEKS_PER_YEAR,
+    autoweekly = true )::TaxBenefitSystem
     d = Date( year, 1, 1 )
-    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy )
+    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy, autoweekly=autoweekly )
 end
 
 """
@@ -1350,10 +1351,17 @@ function get_default_system_for_fin_year(
     scotland = true, 
     RT :: Type = Float64,
     wpm=WEEKS_PER_MONTH, 
-    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
+    wpy=WEEKS_PER_YEAR,
+    autoweekly = true  )::TaxBenefitSystem
     d = Date( finyear, 4, 6 )
     println( "date $d")
-    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy )
+    return get_default_system_for_date( 
+        d; 
+        scotland=scotland, 
+        RT = RT, 
+        wpm=wpm, 
+        wpy=wpy, 
+        autoweekly-autoweekly )
 end
 
 end # module
