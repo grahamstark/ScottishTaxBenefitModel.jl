@@ -1361,7 +1361,7 @@ function get_default_system_for_fin_year(
         RT = RT, 
         wpm=wpm, 
         wpy=wpy, 
-        autoweekly-autoweekly )
+        autoweekly = autoweekly )
 end
 
 end # module
