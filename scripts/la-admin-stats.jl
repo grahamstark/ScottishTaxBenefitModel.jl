@@ -57,9 +57,9 @@ function load_costs( filename::String )::DataFrame
 end
 	
 const MODEL_DATA_DIR = "/mnt/data/SLAB/"
-const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "civil-legal-aid-case-costs.tab" ))
+const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "legalaid", "civil-legal-aid-case-costs.tab" ))
 const CIVIL_COSTS_GRP = groupby(CIVIL_COSTS, [:hsm,:age,:sex])
-const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "civil-applications.tab" ))
+const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "legalaid", "civil-applications.tab" ))
 const CIVIL_AWARDS_GRP = groupby(CIVIL_AWARDS, [:hsm,:age,:sex])
 
 end

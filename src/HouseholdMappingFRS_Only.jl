@@ -535,9 +535,9 @@ function create_data(;start_year::Int, end_year::Int)
         println( "on year $year")
         println( "hhlds")
         append = year > start_year
-        CSV.write("$(MODEL_DATA_DIR)model_households-$(start_year)-$(end_year).tab", model_households, delim = "\t", append=append)
-        CSV.write("$(MODEL_DATA_DIR)model_people-$(start_year)-$(end_year).tab", model_people, delim = "\t", append=append)
-        CSV.write("$(MODEL_DATA_DIR)model_people-$(start_year)-$(end_year).tab", model_children, delim = "\t", append=true)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_households-$(start_year)-$(end_year).tab", model_households, delim = "\t", append=append)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year).tab", model_people, delim = "\t", append=append)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year).tab", model_children, delim = "\t", append=true)
     
     end    
 end
