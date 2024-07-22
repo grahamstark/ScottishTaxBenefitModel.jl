@@ -57,7 +57,7 @@ begin
 	const DEFAULT_NUM_TYPE = Float64
 	settings = RunSettings.Settings()
 	settings.requested_threads = 4
-	settings.data_dir = "/home/graham_s/julia/vw/ScottishTaxBenefitModel/data"
+	data_dir( settings ) = "/home/graham_s/julia/vw/ScottishTaxBenefitModel/data"
 	
 	function init_data(; reset :: Bool = false )
 	   nhh = FRSHouseholdGetter.get_num_households()
@@ -201,8 +201,8 @@ md"""
 
 # ╔═╡ d10d14c7-2b1a-4dde-8ea4-e5c8dcd86887
 begin	
-	hhs = CSV.File( "$(settings.data_dir)/model_households_scotland.tab" )|>DataFrame
-	people = CSV.File( "$(settings.data_dir)/model_people_scotland.tab" )|>DataFrame
+	hhs = CSV.File( "$(data_dir( settings ))/model_households_scotland.tab" )|>DataFrame
+	people = CSV.File( "$(data_dir( settings ))/model_people_scotland.tab" )|>DataFrame
 end
 
 # ╔═╡ abc6d492-562f-4186-abf7-70aa825648fe

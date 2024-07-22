@@ -146,8 +146,8 @@ md"""
 # ╔═╡ de91355d-9b75-46e7-8906-1cfaa8c8a183
 begin	
 	settings = Settings()
-	hhs = CSV.File( "$(settings.data_dir)/model_households_scotland.tab" )|>DataFrame
-	people = CSV.File( "$(settings.data_dir)/model_people_scotland.tab" )|>DataFrame
+	hhs = CSV.File( "$(data_dir( settings ))/model_households_scotland.tab" )|>DataFrame
+	people = CSV.File( "$(data_dir( settings ))/model_people_scotland.tab" )|>DataFrame
 end
 
 # ╔═╡ 402c1e02-3278-4678-b52f-295dfca4d99b

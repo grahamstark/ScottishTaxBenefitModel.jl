@@ -167,8 +167,8 @@ module FRSHouseholdGetter
         if settings.do_legal_aid
             LegalAidData.init( settings; reset = reset )
         end
-        hh_dataset = CSV.File( joinpath(settings.data_dir,settings.household_name*".tab" )) |> DataFrame
-        people_dataset = CSV.File( joinpath( settings.data_dir, settings.people_name*".tab")) |> DataFrame
+        hh_dataset = CSV.File( joinpath(data_dir( settings ),settings.household_name*".tab" )) |> DataFrame
+        people_dataset = CSV.File( joinpath( data_dir( settings ), settings.people_name*".tab")) |> DataFrame
         npeople = size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )

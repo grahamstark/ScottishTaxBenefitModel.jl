@@ -127,7 +127,7 @@ function infer_house_price!( hh :: Household, hhincome :: Real )
 end
 
 function add_house_price( settings::Settings)
-    hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+    hh_dataset = CSV.File("$(data_dir( settings ))/$(settings.household_name).tab" ) |> DataFrame
     obs = Observable( Progress(settings.uuid,"",0,0,0,0))
     # coerce house_value from coltype 'Missing'
     hh_dataset.house_value = zeros(settings.num_households)
@@ -144,7 +144,7 @@ function add_house_price( settings::Settings)
     end
     rent_summary = combine(groupby(hh_dataset,:tenure), [:house_value] .=> [length,mean,median])
     
-    CSV.write( "$(settings.data_dir)/$(settings.household_name).tab", hh_dataset )
+    CSV.write( "$(data_dir( settings ))/$(settings.household_name).tab", hh_dataset )
     rent_summary
 end
 
