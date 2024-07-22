@@ -81,8 +81,8 @@ function init( settings :: Settings; reset = false )
     if(settings.wealth_method == matching) && (reset || (size(WEALTH_DATASET)[1] == 0 )) # needed but uninitialised
         global IND_MATCHING
         global WEALTH_DATASET
-        IND_MATCHING = CSV.File( joinpath( settings.data_dir, "$(settings.wealth_matching_dataframe).tab" )) |> DataFrame
-        WEALTH_DATASET = CSV.File( joinpath( settings.data_dir, settings.wealth_dataset * ".tab"); types=jam_on_float ) |> DataFrame
+        IND_MATCHING = CSV.File( joinpath( data_dir( settings ), "$(settings.wealth_matching_dataframe).tab" )) |> DataFrame
+        WEALTH_DATASET = CSV.File( joinpath( data_dir( settings ), settings.wealth_dataset * ".tab"); types=jam_on_float ) |> DataFrame
         uprate_raw_wealth()
         println( WEALTH_DATASET[1:2,:])
     end

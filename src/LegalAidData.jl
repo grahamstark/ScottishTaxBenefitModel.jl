@@ -283,9 +283,9 @@ for kk in k
 
 =#
 
-const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "civil-legal-aid-case-costs.tab" ))
-const AA_COSTS = load_aa_costs( joinpath(MODEL_DATA_DIR, "aa-case-costs.tab" ))
-const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "civil-applications.tab" ))
+const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "legalaid", "civil-legal-aid-case-costs.tab" ))
+const AA_COSTS = load_aa_costs( joinpath(MODEL_DATA_DIR, "legalaid", "aa-case-costs.tab" ))
+const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "legalaid", "civil-applications.tab" ))
 const CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
 const CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
 const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
@@ -414,7 +414,7 @@ function init( settings::Settings; reset=false )
     global LA_PROB_DATA
     if settings.do_legal_aid 
         if(size( LA_PROB_DATA )[1] == 0) || reset 
-            LA_PROB_DATA = CSV.File( "$(settings.data_dir)/$(settings.legal_aid_probs_data).tab")|>DataFrame 
+            LA_PROB_DATA = CSV.File( joinpath(DATA_DIR, "legalaid", "$(settings.legal_aid_probs_data).tab"))|>DataFrame 
         end
     end
 end

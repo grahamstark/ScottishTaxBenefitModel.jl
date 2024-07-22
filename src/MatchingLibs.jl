@@ -10,6 +10,7 @@ module MatchingLibs
 # - write up, so why not just Engel curves?
 #
 using ScottishTaxBenefitModel
+using RunSettings
 using .Definitions,
     .ModelHousehold,
     .FRSHouseholdGetter,
@@ -2691,7 +2692,7 @@ function create_was_frs_matching_dataset( settings :: Settings  ) :: Tuple
 
     settings.num_households, settings.num_people, nhh2 = 
            FRSHouseholdGetter.initialise( settings; reset=false )
-    was_dataset = CSV.File(joinpath(MODEL_DATA_DIR,settings.wealth_dataset))|>DataFrame
+    was_dataset = CSV.File(joinpath(data_dir( settings ),settings.wealth_dataset))|>DataFrame
     nwas = size( was_dataset )[1]
     wasset = DataFrame()
     frsset = DataFrame()
@@ -2958,7 +2959,7 @@ end
 
 function create_frs_was_matches()
     settings = Settings()
-    was_dataset = CSV.File(joinpath(MODEL_DATA_DIR,settings.wealth_dataset)*".tab")|>DataFrame    
+    was_dataset = CSV.File(joinpath(data_dir( settings ),settings.wealth_dataset)*".tab")|>DataFrame    
     map_all_was( settings, was_dataset, model_was_match )
 end
 

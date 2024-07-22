@@ -38,6 +38,10 @@ module RunSettings
         pl_from_settings, 
         pl_first_sys,
         pl_current_sys,
+        DatasetType,
+        actual_data,
+        synthetic_data,
+        data_dir
 
         get_all_uk_settings_2023
         
@@ -55,6 +59,9 @@ module RunSettings
     # An arbitrary poverty line supplied in the settings, 60% of the base sys median income, 60% of the current 
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
+
+    @enum DatasetType actual_data synthetic_data
+
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
@@ -129,6 +136,18 @@ module RunSettings
         legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
         export_full_results = false
         do_dodgy_takeup_corrections = false
+        datatset_type = actual_data 
+    end
+
+    function data_dir( settings :: Settings ) :: String
+        return joinpath( string( settings.dataset_type), data_dir( settings ) )
+    end
+
+    """
+    Default live data dir
+    """
+    function data_dir()::String
+        return data_dir( Settings() )
     end
 
     """
