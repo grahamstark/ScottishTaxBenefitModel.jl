@@ -41,7 +41,7 @@ module RunSettings
         DatasetType,
         actual_data,
         synthetic_data,
-        data_dir
+        data_dir,
 
         get_all_uk_settings_2023
         
@@ -136,11 +136,11 @@ module RunSettings
         legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
         export_full_results = false
         do_dodgy_takeup_corrections = false
-        datatset_type = actual_data 
+        dataset_type = actual_data 
     end
 
     function data_dir( settings :: Settings ) :: String
-        return joinpath( string( settings.dataset_type), data_dir( settings ) )
+        return joinpath( settings.data_dir, string( settings.dataset_type) )
     end
 
     """

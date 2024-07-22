@@ -414,7 +414,7 @@ function init( settings::Settings; reset=false )
     global LA_PROB_DATA
     if settings.do_legal_aid 
         if(size( LA_PROB_DATA )[1] == 0) || reset 
-            LA_PROB_DATA = CSV.File( joinpath(DATA_DIR, "legalaid", "$(settings.legal_aid_probs_data).tab"))|>DataFrame 
+            LA_PROB_DATA = CSV.File( joinpath( MODEL_DATA_DIR, "legalaid", "$(settings.legal_aid_probs_data).tab"))|>DataFrame 
         end
     end
 end

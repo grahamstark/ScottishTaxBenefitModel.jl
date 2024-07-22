@@ -10,7 +10,6 @@ module MatchingLibs
 # - write up, so why not just Engel curves?
 #
 using ScottishTaxBenefitModel
-using RunSettings
 using .Definitions,
     .ModelHousehold,
     .FRSHouseholdGetter,
