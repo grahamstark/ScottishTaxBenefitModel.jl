@@ -84,7 +84,7 @@ module RunSettings
         num_households :: Int = 0
         num_people :: Int = 0
         prices_file = "indexes.tab"
-        to_y :: Int = 2023
+        to_y :: Int = 2024
         to_q :: Int = 3
         output_dir :: String = joinpath(tempdir(),"output")
         means_tested_routing :: MT_Routing = modelled_phase_in
@@ -151,6 +151,17 @@ module RunSettings
     end
 
     """
+    Make a tuple with "hhlds=>" and "people=>" with full paths to main datasets.
+    """
+    function main_datasets( settings :: Settings ) :: NamedTuple
+        dd = data_dir( settings )
+        return ( 
+            hhlds = joinpath( dd, settings.household_name ),
+            people = joinpath( dd, settings.people_name ),
+        )
+    end
+
+    """
     Hacky prebuilt settings for the Northumbria model.
     """
     function get_all_uk_settings_2023()::Settings
@@ -163,7 +174,7 @@ module RunSettings
         settings.num_people :: Int = 0
         settings.prices_file = "indexes-july-2023.tab"
         settings.to_y :: Int = 2024
-        settings.to_q :: Int = 1
+        settings.to_q :: Int = 3
         settings.auto_weight = false
         settings.use_average_band_d = true
         settings.benefit_generosity_estimates_available = false
