@@ -33,6 +33,7 @@ module RunSettings
         bhc_hh, 
         total_bens, 
         total_taxes,
+        main_datasets,
 
         PovertyLineSource,
         pl_from_settings, 
@@ -156,8 +157,8 @@ module RunSettings
     function main_datasets( settings :: Settings ) :: NamedTuple
         dd = data_dir( settings )
         return ( 
-            hhlds = joinpath( dd, settings.household_name ),
-            people = joinpath( dd, settings.people_name ),
+            hhlds = joinpath( dd, settings.household_name*".tab" ),
+            people = joinpath( dd, settings.people_name*".tab" ),
         )
     end
 

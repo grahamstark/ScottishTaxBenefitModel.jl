@@ -51,10 +51,10 @@ end
     summaries,gainlose=do_basic_run( sys, settings; print_test=true )
 
     ct=CSV.File(
-        joinpath( settings.output_dir, "run_w_takeup_correction_2_income-summary.csv")|>
+        joinpath( settings.output_dir, "run_w_takeup_correction_2_income-summary.csv"))|>
         DataFrame
     nt=CSV.File(
-        joinpath( settings.output_dir, "run_no_takeup_correction_2_income-summary.csv")|>
+        joinpath( settings.output_dir, "run_no_takeup_correction_2_income-summary.csv"))|>
         DataFrame
     @test ct.child_benefit[1]/ nt.child_benefit[1] ≈ 1
     @test ct.child_tax_credit[1]/ nt.child_tax_credit[1] < 1 # roughly 0.67

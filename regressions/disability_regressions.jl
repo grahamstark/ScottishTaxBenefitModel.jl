@@ -5,17 +5,27 @@
 
 using ScottishTaxBenefitModel
 using .Definitions
-using .RunSettings: Settings
+using .RunSettings
 using CSV,DataFrames,GLM,RegressionTables
 
 
 const settings = Settings()
 
+const LOCAL_DATA_DIR = data_dir( settings )
 #
-# UK wide with Scottish dummy
+# !!! For Actual Dataset, UK wide with Scottish dummy
+# For synth data, Scotland only for now!!! 
 #
-frshh = CSV.File("$(MODEL_DATA_DIR)/model_households-2015-2021.tab" ) |> DataFrame
-frspeople = CSV.File("$(MODEL_DATA_DIR)/model_people-2015-2021.tab") |> DataFrame
+settings.dataset_type = synthetic_data # !!! changeme!!! 
+if settings.dataset_type == actual_data
+  settings.household_name = "model_households-2015-2021.tab"
+  settings.people_name = "model_people-2015-2021.tab"
+end
+
+const DATASETS = main_datasets( settings )
+
+frshh = CSV.File( DATASETS.hhlds ) |> DataFrame
+frspeople = CSV.File( DATASETS.people ) |> DataFrame
 
 fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ], makeunique=true )
 
@@ -147,65 +157,65 @@ fm_children.dla_prob = predict( rec_dla_child )
 #
 positive_candidates_pip_care = fm_working_age[(((fm_working_age.rec_pip_care .== false) .& (fm_working_age.rec_dla_care .== false)) .& (fm_working_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :pip_care_prob,:rec_pip_care,:rec_dla_care,:scotland]]
 sort!(positive_candidates_pip_care, :pip_care_prob, rev=true )
-CSV.write( "data/disability/positive_candidates_pip_care.csv", positive_candidates_pip_care )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "positive_candidates_pip_care.tab" ), positive_candidates_pip_care )
 
 #
 # *least* likely people to be on PIP Care who are on it
 #
 negative_candidates_pip_care = fm_working_age[((fm_working_age.rec_pip_care .== true) .& (fm_working_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :pip_care_prob,:rec_pip_care,:rec_dla_care,:scotland]]
 sort!(negative_candidates_pip_care, :pip_care_prob  )
-CSV.write( "data/disability/negative_candidates_pip_care.csv", negative_candidates_pip_care )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "negative_candidates_pip_care.tab" ), negative_candidates_pip_care )
 
 #
 # Everybody *Not* receiving pip_mobility or DLA, ranked by probability of receiving it. For a more generous test, we go down this list.
 #
 positive_candidates_pip_mob = fm_working_age[((fm_working_age.rec_pip_mob .== false) .& (fm_working_age.rec_dla_mob .== false) .& (fm_working_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :pip_mob_prob,:rec_pip_mob,:rec_dla_care,:scotland]]
 sort!(positive_candidates_pip_mob, :pip_mob_prob, rev=true )
-CSV.write( "data/disability/positive_candidates_pip_mob.csv", positive_candidates_pip_mob )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "positive_candidates_pip_mob.tab" ), positive_candidates_pip_mob )
 
 #
 # *least* likely people to be on PIP Mobility who are actually on it. If we want a less generous test, we go down this list.
 #
 negative_candidates_pip_mob = fm_working_age[((fm_working_age.rec_pip_mob .== true) .& (fm_working_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :pip_mob_prob,:rec_pip_mob,:rec_dla_care,:scotland]]
 sort!(negative_candidates_pip_mob, :pip_mob_prob )
-CSV.write( "data/disability/negative_candidates_pip_mob.csv", negative_candidates_pip_mob )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "negative_candidates_pip_mob.tab" ), negative_candidates_pip_mob )
 
 #
 # ditto for AA amongst pension age
 #
 positive_candidates_aa = fm_pension_age[((fm_pension_age.rec_aa .== false) .& (fm_pension_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :aa_prob,:rec_aa,:scotland]]
 sort!(positive_candidates_aa, :aa_prob, rev=true )
-CSV.write( "data/disability/positive_candidates_aa.csv", positive_candidates_aa )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "positive_candidates_aa.tab" ), positive_candidates_aa )
 #
 # *least* likely people to be on AA who are actually on it. If we want a less generous test, we go down this list.
 #
 negative_candidates_aa = fm_pension_age[((fm_pension_age.rec_aa .== true) .& (fm_pension_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :aa_prob,:rec_aa,:scotland]]
 sort!(negative_candidates_aa, :aa_prob )
 
-CSV.write( "data/disability/negative_candidates_aa.csv", negative_candidates_aa )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "negative_candidates_aa.tab" ), negative_candidates_aa )
 
 #
 # ditto for DLA amongst children
 #
 positive_candidates_aa = fm_pension_age[((fm_pension_age.rec_aa .== false) .& (fm_pension_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :aa_prob,:rec_aa,:scotland]]
 sort!(positive_candidates_aa, :aa_prob, rev=true )
-CSV.write( "data/disability/positive_candidates_aa.csv", positive_candidates_aa )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "positive_candidates_aa.tab" ), positive_candidates_aa )
 #
 # *least* likely people to be on AA who are actually on it. If we want a less generous test, we go down this list.
 #
 negative_candidates_aa = fm_pension_age[((fm_pension_age.rec_aa .== true) .& (fm_pension_age.scotland .== true)), [:data_year,:hid,:pid,:weight, :aa_prob,:rec_aa,:scotland]]
 sort!(negative_candidates_aa, :aa_prob )
 
-CSV.write( "data/disability/negative_candidates_aa.csv", negative_candidates_aa )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "negative_candidates_aa.tab" ), negative_candidates_aa )
 
 
 
 positive_candidates_dla_children = fm_children[((fm_children.rec_dla .== false) .& (fm_children.scotland .== true)), [:data_year,:hid,:pid,:weight, :dla_prob,:rec_dla,:scotland]]
 sort!(positive_candidates_dla_children, :dla_prob, rev=true )
-CSV.write( "data/disability/positive_candidates_dla_children.csv", positive_candidates_dla_children )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "positive_candidates_dla_children.tab" ), positive_candidates_dla_children )
 #
 # *least* likely people to be on AA who are actually on it. If we want a less generous test, we go down this list.
 #
 negative_candidates_dla_children = fm_children[((fm_children.rec_dla .== true) .& (fm_children.scotland .== true)), [:data_year,:hid,:pid,:weight, :dla_prob,:rec_dla,:scotland]]
 sort!(negative_candidates_dla_children, :dla_prob )
-CSV.write( "data/disability/negative_candidates_dla_children.csv", negative_candidates_dla_children )
+CSV.write( joinpath(LOCAL_DATA_DIR,"disability", "negative_candidates_dla_children.tab" ), negative_candidates_dla_children )
