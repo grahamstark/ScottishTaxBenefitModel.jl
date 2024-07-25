@@ -84,8 +84,9 @@ mostly = MostlyAI(
 g = mostly.generators.get('e5004384-6f5e-4185-bd46-fe0e28f4cf3a')
 config = g.config()
 config
-
 ```
+
+```python 
 
 # probe the generator for some samples
 mostly.probe('e5004384-6f5e-4185-bd46-fe0e28f4cf3a', size=10)
@@ -120,3 +121,31 @@ sd = mostly.synthetic_datasets.create(g, config)
 ```
 
 should work
+
+## take 2
+
+redid with 'temperature' 'topP' turned down and now 43900 people. `tmp/v2`.
+
+## FIXUP SYNTHETIC DATA
+
+### HH 
+1. replace hids with numeric
+2. replace rand at end with rand string
+3. ben generosity regressions
+4. match wealth
+5. match consumption 
+
+### PERS
+
+1. map hids from hh
+2. create pers id
+3. fixup household reference person 
+4. benefit unit allocation 
+
+## check
+
+default_benefit_unit is consecutive
+data_year is same for all hh records
+is_hrp - one per household 
+
+
