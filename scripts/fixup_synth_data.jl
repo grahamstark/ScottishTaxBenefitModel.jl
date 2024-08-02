@@ -146,7 +146,7 @@ pers.is_bu_head = coalesce.( pers.is_bu_head, 0 )
 hh_pers = groupby( pers, [:hid])
 nps = size(hh_pers)[1]
 for hid in 1:nps
-    thishh = hh[hh.hid.==hid,:][1]
+    thishh = hh[hh.hid.==hid,:][1,:]
     hp = hh_pers[hid]
     first = hp[1,:] # 1st person, just randomly chosen.
     # Overwrite `is_hrp` if not exactly one in the hhlds' people.
