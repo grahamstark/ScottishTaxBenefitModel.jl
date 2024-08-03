@@ -77,7 +77,7 @@ function create_adults(
         model_adult.pno = frs_person.person
         model_adult.hid = frs_person.sernum
         model_adult.is_hrp = (frs_person.hrpid == 1) ? 1 : 0
-
+        model_adult.uhid = get_pid( FRS, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
         model_adult.pid = get_pid( FRS, year, frs_person.sernum, frs_person.person )
         model_adult.from_child_record = 0
         model_adult.data_year = year
@@ -278,6 +278,8 @@ function create_children(
 
         model_child.pno = frs_person.person
         model_child.hid = frs_person.sernum
+        model_child.uhid = get_pid( FRS, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
+        
         model_child.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
         model_child.from_child_record = 1
 
@@ -382,6 +384,8 @@ function create_household(
         hh_model[hhno, :quarter] = div(interview_month - 1, 3) + 1
 
         hh_model[hhno, :hid] = sernum
+        hh_model[hhno, :uhid] = get_pid( FRS, year, sernum, 0 ) # unique hhid needed for mostly.ai generator
+        
         hh_model[hhno, :data_year] = year
         hh_model[hhno, :tenure] = hh.tentyp2 > 0 ? hh.tentyp2 : -1
         hh_model[hhno, :dwelling] = hh.typeacc > 0 ? hh.typeacc : -1

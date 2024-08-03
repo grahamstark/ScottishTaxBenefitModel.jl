@@ -1828,12 +1828,13 @@ export LMTPremia,LMTPremiaDict, LMTPremiaSet, disabled_child,
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)
 
-export DataSource, FRS, OtherSource, ExampleSource
+export DataSource, FRS, OtherSource, ExampleSource, SyntheticSource
 
 @enum DataSource begin  # mapped from relhrp
    FRS = 1
    OtherSource = 2
    ExampleSource = 3
+   SyntheticSource = 4
 end
 
 export get_pid, safe_assign, safe_inc, from_pid

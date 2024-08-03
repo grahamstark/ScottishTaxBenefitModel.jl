@@ -226,6 +226,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
     pers = DataFrame(
         data_year = Vector{Union{Int64,Missing}}(missing, n),
         hid = Vector{Union{BigInt,Missing}}(missing, n),
+        uhid = Vector{Union{BigInt,Missing}}(missing, n), # unique combination of hid&data_year, needed for ai generation 
         pid = Vector{Union{BigInt,Missing}}(missing, n),
         pno = Vector{Union{Integer,Missing}}(missing, n),
         is_hrp = Vector{Union{Integer,Missing}}(missing, n),
@@ -530,6 +531,7 @@ function initialise_household(n::Integer)::DataFrame
         interview_month = Vector{Union{Integer,Missing}}(missing, n),
         quarter = Vector{Union{Integer,Missing}}(missing, n),
         hid = Vector{Union{BigInt,Missing}}(missing, n),
+        uhid = Vector{Union{BigInt,Missing}}(missing, n), # unique combination of hid&data_year, needed for ai generation 
         tenure = Vector{Union{Integer,Missing}}(missing, n),
         region = Vector{Union{Integer,Missing}}(missing, n),
         ct_band = Vector{Union{Integer,Missing}}(missing, n),
