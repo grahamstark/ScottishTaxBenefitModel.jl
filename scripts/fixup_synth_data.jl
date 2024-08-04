@@ -86,7 +86,7 @@ pers = CSV.File( ds.people ) |> DataFrame
 # mostly.ai replaces the hid and pid with a random string, whereas we use bigints.
 # So, create a dictionary mapping the random hid string to a BigInt, and cleanup `randstr`.
 #
-hids = Dict{String,BigInt}()
+hids = Dict{String,NamedTuple}()
 hid = BigInt(0)
 #
 # Cast rands to string as opposed to string7 or whatever so we can assign our big string.
@@ -98,14 +98,15 @@ hh.onerand = String.(hh.onerand)
 # !! NOTE that assigning `hid` this way makes `hid` unique even across multiple data years. 
 # The actual dataset has `hid` unique only within a `data_year`.
 #
-rename!( hh, [:hid=>:hidstr])
-hh.hid = fill( BigInt(0), hs )
+rename!( hh, [:uhid=>:uhidstr])
+hh.uhid = fill( BigInt(0), hs )
 for h in eachrow(hh)
     global hid
     hid += 1
     h.onerand = mybigrandstr()
-    hids[h.hidstr] = hid
+    h.uhid = get_pid( SyntheticSource, h.data_year, hid, 0 )
     h.hid = hid
+    hids[h.uhidstr] = (; hid, data_year = h.data_year, uhid=h.uhid )
 end
 #
 # Check everyone is allocated to an existing household.
@@ -119,21 +120,24 @@ n = length(v)
 # hid/pid clean up for people, and random string
 #
 np = size( pers )[1]
-rename!( pers, [:hid=>:hidstr,:pid=>:pidstr])
-pers.hid = fill( BigInt(0), np )
+rename!( pers, [:uhid=>:uhidstr,:pid=>:pidstr])
+pers.uhid = fill( BigInt(0), np )
 pers.pid = fill( BigInt(0), np )
 #
-# Assign correct numeric hid to each person and fixup the random string.
+# Assign correct numeric hid/uhid/data_year to each person and fixup the random string.
 #
 for p in eachrow( pers )
     p.onerand = mybigrandstr()
-    p.hid = hids[p.hidstr]
+    p.uhid = hids[p.uhidstr].uhid
+    p.hid = hids[p.uhidstr].hid
+    p.data_year = hids[p.uhidstr].data_year
+    p.pid = get_pid( SyntheticSource, p.data_year, p.hid, p.pno )
 end
 #
 # Data in order - just makes inspection easier.
 #
 sort!( hh, [:data_year,:hid] )
-sort!( pers, [:data_year,:hid,:pid])
+sort!( pers, [:data_year,:hid,:pno])
 #
 # Kill a few annoying missings.
 #
@@ -186,9 +190,9 @@ end
 
 # Delete working columns with the mostly.ai string primary keys - we've replaced them
 # with BigInts as in the actual data.
-select!( hh, Not(:hidstr) )
+select!( hh, Not(:uhidstr) )
 select!( pers, Not( :pidstr ))
-select!( pers, Not( :hidstr ))
+select!( pers, Not( :uhidstr ))
 
 ## TODO FIXUP relationship_x fields
 

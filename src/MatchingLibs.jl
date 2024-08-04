@@ -27,7 +27,7 @@ using CSV,
 export make_lcf_subset, 
     map_example, 
     load, 
-    map_all, 
+    map_all_lcf_frs, 
     frs_lcf_match_row
 
 struct LCFLocation
@@ -1910,7 +1910,7 @@ end
 """
 Map the entire datasets.
 """
-function map_all( recip :: DataFrame, donor :: DataFrame, matcher :: Function )::DataFrame
+function map_all_lcf_frs( recip :: DataFrame, donor :: DataFrame, matcher :: Function )::DataFrame
     p = 0
     nrows = size(recip)[1]
     df = makeoutdf( nrows, "lcf" )
@@ -1974,7 +1974,7 @@ end
 lcfhh,lcfpers,lcf_hh_pp = load3lcfs()
 frshh,frspers,frs_hh_pp = loadfrs()
 uprate_incomes!( frshh, lcfhh ) # all in constant prices
-alldf = map_all(frshh, lcfhh, frs_lcf_match_row )
+alldf = map_all_lcf_frs(frshh, lcfhh, frs_lcf_match_row )
 CSV.write( "frs_lcf_matches_2020_vx.csv", alldf )
 CSV.write( "data/lcf_edited.csv", lcfhh )
 
@@ -2956,8 +2956,9 @@ function map_all_was(
     return df
 end
 
-function create_frs_was_matches()
+function create_frs_was_matches(dataset_type :: DatasetType = actual_data)
     settings = Settings()
+    settings.dataset_type = dataset_type
     was_dataset = CSV.File(joinpath(data_dir( settings ),settings.wealth_dataset)*".tab")|>DataFrame    
     map_all_was( settings, was_dataset, model_was_match )
 end

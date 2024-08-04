@@ -61,7 +61,7 @@ module RunSettings
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
 
-    @enum DatasetType actual_data synthetic_data
+    @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
 
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
