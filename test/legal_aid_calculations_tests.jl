@@ -88,7 +88,7 @@ using .HTMLLibs
 import .Runner
 
 sys = get_system( year=2023, scotland=true )
-print = PrintControls()
+xprint = PrintControls()
 
 function lasettings()
     settings = Settings()

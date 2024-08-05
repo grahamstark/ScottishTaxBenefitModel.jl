@@ -149,3 +149,8 @@ data_year is same for all hh records
 is_hrp - one per household 
 
 
+## !!! BIG MISTAKE
+
+add `uhid` as a true unique primary key - was hid which can be duplicated over data_years.
+
+

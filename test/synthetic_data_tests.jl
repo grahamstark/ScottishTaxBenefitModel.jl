@@ -39,9 +39,10 @@ end
 # FIXME DELETE THIS AND USE THE ONE IN testutils
 function basic_run()
     settings = Settings()
-    settings.means_tested_routing = mtrouting
     settings.dataset_type = synthetic_data 
-    settings.run_name="run-$(mtrouting)-$(date_string())"
+    settings.do_legal_aid = false
+    
+    settings.run_name="run-$(settings.dataset_type)-$(date_string())"
     sys = [
         get_default_system_for_fin_year(2024; scotland=true), 
         get_default_system_for_fin_year( 2024; scotland=true )]

@@ -342,15 +342,17 @@ end
 FIXME DO FACTOR COSTS!!!!
 """
 function init( settings :: Settings; reset = false )
-    if(settings.indirect_method == matching) && (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
-        global IND_MATCHING
-        global EXPENDITURE_DATASET
-        global FACTOR_COST_DATASET
-        IND_MATCHING = CSV.File( joinpath( data_dir( settings ), "$(settings.indirect_matching_dataframe).tab" )) |> DataFrame
-        EXPENDITURE_DATASET = CSV.File( joinpath( data_dir( settings ), settings.expenditure_dataset * ".tab")) |> DataFrame
-        FACTOR_COST_DATASET = CSV.File( joinpath( data_dir( settings ), settings.expenditure_dataset * ".tab" )) |> DataFrame
-        println( EXPENDITURE_DATASET[1:2,:])
-        uprate_expenditure( settings )
+    if settings.do_indirect_tax_calculations 
+        if(settings.indirect_method == matching) && (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
+            global IND_MATCHING
+            global EXPENDITURE_DATASET
+            global FACTOR_COST_DATASET
+            IND_MATCHING = CSV.File( joinpath( data_dir( settings ), "$(settings.indirect_matching_dataframe).tab" )) |> DataFrame
+            EXPENDITURE_DATASET = CSV.File( joinpath( data_dir( settings ), settings.expenditure_dataset * ".tab")) |> DataFrame
+            FACTOR_COST_DATASET = CSV.File( joinpath( data_dir( settings ), settings.expenditure_dataset * ".tab" )) |> DataFrame
+            println( EXPENDITURE_DATASET[1:2,:])
+            uprate_expenditure( settings )
+        end
     end
 end
 

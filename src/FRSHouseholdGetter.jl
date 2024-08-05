@@ -183,7 +183,7 @@ module FRSHouseholdGetter
                 WealthData.find_wealth_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
             end
             uprate!( hh, settings )
-            if settings.indirect_method == matching 
+            if( settings.indirect_method == matching ) && (settings.do_indirect_tax_calculations)
                 ConsumptionData.find_consumption_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
                 if settings.impute_fields_from_consumption
                     ConsumptionData.impute_stuff_from_consumption!(hh,settings)

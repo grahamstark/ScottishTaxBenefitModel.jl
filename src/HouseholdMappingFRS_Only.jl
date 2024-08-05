@@ -16,6 +16,20 @@ export CreateData
 
 include( "frs_hbai_creation_libs.jl")
 
+"""
+hacky routine to add uhid - unique hhid needed for mostly.ai generator
+"""
+function add_uhids( hhf :: String, persf :: String )
+       hname = "data/actual_data/$(hhf).tab"
+ pname = "data/actual_data/$(persf).tab"
+    hh = CSV.File( hname ) |> DataFrame
+    pers = CSV.File( pname ) |> DataFrame
+    hh.uhid = get_pid.( FRS, hh.data_year, hh.hid, 0 ) # 
+    pers.uhid = get_pid.( FRS, pers.data_year, pers.hid, 0 ) # 
+    CSV.write( hname, hh )
+    CSV.write( pname, pers )
+end
+
 #
 # BU head is hrp or 1st person interviewed in subsequent BUs
 # see: 
