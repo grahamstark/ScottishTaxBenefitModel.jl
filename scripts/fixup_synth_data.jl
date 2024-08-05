@@ -132,6 +132,13 @@ for p in eachrow( pers )
     p.hid = hids[p.uhidstr].hid
     p.data_year = hids[p.uhidstr].data_year
     p.pid = get_pid( SyntheticSource, p.data_year, p.hid, p.pno )
+    if ! ismissing( p.highest_qualification ) && (p.highest_qualification == 0) # missing is -1 here, not zero
+        p.highest_qualification = -1
+    end
+    # FIXME fixup all the relationships
+    if p.is_hrp == 1
+        p.relationship_to_hoh = 0 # this person
+    end
 end
 #
 # Data in order - just makes inspection easier.
