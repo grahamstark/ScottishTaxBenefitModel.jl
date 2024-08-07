@@ -74,7 +74,7 @@ function initialise(
         println( "loading $(hhf.name) $(hhf.council)")
         hh = load_hhld_from_frame( 
             hseq, hhf, people_dataset, ExampleSource, settings )
-        if settings.indirect_method == matching
+        if( settings.indirect_method == matching ) && (settings.do_indirect_tax_calculations)
             find_consumption_for_example!( hh, settings )
         end
         if settings.wealth_method == matching
