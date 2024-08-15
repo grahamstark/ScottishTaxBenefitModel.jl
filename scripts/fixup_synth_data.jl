@@ -10,6 +10,21 @@ using DataFrames,CSV,StatsBase
 using OrderedCollections
 using Revise 
 
+#=
+
+STEPS:
+
+1. download (as csv) synthetic hh and pers data from https://app.mostly.ai/ file is probably `synthetic-csv-data.zip`
+2. unzip into `tmp/`
+3. should produce something like 
+    - `model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv`
+    - `model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv`
+4. check & maybe edit file read locations below
+5. run this script. Output should go in `data/synthetic_datasets/` & have the names given in `RunSettings.jl`.
+
+=#
+
+
 """
 For each hh, check there's 1 hrp per hh, one bu head per standard benefit unit, 
 and that everyone is allocated to 1 standard benefit unit. We've already 
@@ -78,10 +93,14 @@ end
 #
 settings = Settings()
 settings.dataset_type = synthetic_data
-ds = main_datasets( settings )
-hh = CSV.File( ds.hhlds ) |> DataFrame
+
+
+#
+# open unpacked synthetic files
+#
+hh = CSV.File("tmp/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv") |> DataFrame
 hs = size(hh)[1]
-pers = CSV.File( ds.people ) |> DataFrame
+pers = CSV.File( "tmp/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv" ) |> DataFrame
 # 
 # mostly.ai replaces the hid and pid with a random string, whereas we use bigints.
 # So, create a dictionary mapping the random hid string to a BigInt, and cleanup `randstr`.
@@ -131,10 +150,10 @@ for p in eachrow( pers )
     p.uhid = hids[p.uhidstr].uhid
     p.hid = hids[p.uhidstr].hid
     p.data_year = hids[p.uhidstr].data_year
-    p.pid = get_pid( SyntheticSource, p.data_year, p.hid, p.pno )
     if ! ismissing( p.highest_qualification ) && (p.highest_qualification == 0) # missing is -1 here, not zero
         p.highest_qualification = -1
     end
+    p.is_hrp = coalesce( p.is_hrp, 0 )
     # FIXME fixup all the relationships
     if p.is_hrp == 1
         p.relationship_to_hoh = 0 # this person
@@ -160,6 +179,15 @@ for hid in 1:nps
     thishh = hh[hh.hid.==hid,:][1,:]
     hp = hh_pers[hid]
     first = hp[1,:] # 1st person, just randomly chosen.
+    #
+    # force pnos to be consecutive from 1
+    #
+    pno = 0
+    for p in eachrow( hp )
+        pno += 1
+        p.pno = pno
+        p.pid = get_pid( SyntheticSource, p.data_year, p.hid, p.pno )
+    end
     # Overwrite `is_hrp` if not exactly one in the hhlds' people.
     hrps = sum( hp[:,:is_hrp])
     if hrps !== 1 # overwrite hrp 
@@ -205,6 +233,7 @@ select!( pers, Not( :uhidstr ))
 
 # Last minute checks - these are actually just a repeat of the hrp and bu checks in the main loop above.
 do_pers_idiot_checks( pers )
-
-CSV.write( ds.hhlds, hh )
-CSV.write( ds.people, pers )
+# write synth files to default locations.
+ds = main_datasets( settings )
+CSV.write( ds.hhlds, hh; delim='\t' )
+CSV.write( ds.people, pers; delim='\t' )
