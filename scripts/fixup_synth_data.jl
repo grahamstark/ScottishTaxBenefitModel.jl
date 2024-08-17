@@ -56,23 +56,27 @@ end
 function fixup_relationships!( hp :: AbstractDataFrame )
     num_people = size(hp)[1] # 
     println( "num people $num_people")
+    @assert size( hp[hp.is_hrp.==1,:])[1] == 1 # exactly 1 hrp 
+        
     for p in eachrow(hp)
         marstat = Marital_Status( safe_assign(p.marital_status ))
+        if p.is_hrp == 1 
+            p.relationship_to_hoh = 0 # this person
+        end
+        k = Symbol( "relationship_$(p.pno)")
+        p[k] = 0 # this person is him/herself
+
         println( "marrstat $marstat")
         for op in 1:num_people
             println( "p.pno $(p.pno) op = $op")
+            # fixme fill this in
             if p.pno !== op
-                if p.is_hrp == 1 
-                    p.relationship_to_hoh == 0 # this person
-                else
-                    if p.relationship_to_hoh == 0
-                        println( "!!!")
-                    end
-                end
+                if p.relationship_to_hoh == 0
+                    println( "!!!")
+                end                
                 for j in 1:num_people
                     k = Symbol( "relationship_$(j)")
                     oper = hp[op,:]
-
                 end    
                 # clear out the rest
                 for j in num_people+1:15
@@ -261,6 +265,11 @@ for hid in 1:nps
     fixup_relationships!(hp)
     @assert nbusps == size(hp)[1] "size mismatch for $(hp.hid)"
 end
+
+# work round pointless assertion in map to hh
+pers.type_of_bereavement_allowance = coalesce.(-1, pers.type_of_bereavement_allowance )
+# also, pointless check in grossing up routines on occupations
+pers.occupational_classification = max.(0, pers.occupational_classification ) 
 
 # Delete working columns with the mostly.ai string primary keys - we've replaced them
 # with BigInts as in the actual data.

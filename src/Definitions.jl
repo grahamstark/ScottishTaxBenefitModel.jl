@@ -1440,14 +1440,14 @@ end
 
 export Relationship_Dict
 Relationship_Dict = Dict{BigInt,Relationship}
-export is_spouse, 
+export is_partner, 
    is_dependent_child, 
    is_parent, 
    is_sibling, 
    is_other_relative, 
    is_non_relative
 
-is_spouse( r :: Relationship ) = r in [
+is_partner( r :: Relationship ) = r in [
    Spouse,
    Cohabitee,
    Civil_Partner]
