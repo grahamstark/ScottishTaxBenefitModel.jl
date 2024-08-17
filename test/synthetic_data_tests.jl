@@ -36,8 +36,8 @@ of = on(obs) do p
     println(tot)
 end
 
-# FIXME DELETE THIS AND USE THE ONE IN testutils
-function basic_run()
+
+@testset "basic run timing" begin
     settings = Settings()
     settings.dataset_type = synthetic_data 
     settings.do_legal_aid = false
@@ -49,9 +49,4 @@ function basic_run()
     tot = 0
     summary, results, settings = do_basic_run( settings, sys; reset = true )
     h1 = results.hh[1]
-end 
-
-
-@testset "basic run timing" begin
-    @time basic_run()
 end

@@ -48,7 +48,44 @@ function do_pers_idiot_checks( pers :: AbstractDataFrame )
         @assert nbusps == size(hp)[1] "size mismatch for hh.hid=$(hp.hid)"
         @assert sum( hp[:,:is_hrp]) == 1 "1 head for each hh hh.hid=$(hp.hid)"
     end
-end        
+end  
+
+"""
+
+"""
+function fixup_relationships!( hp :: AbstractDataFrame )
+    num_people = size(hp)[1] # 
+    println( "num people $num_people")
+    for p in eachrow(hp)
+        marstat = Marital_Status( safe_assign(p.marital_status ))
+        println( "marrstat $marstat")
+        for op in 1:num_people
+            println( "p.pno $(p.pno) op = $op")
+            if p.pno !== op
+                if p.is_hrp == 1 
+                    p.relationship_to_hoh == 0 # this person
+                else
+                    if p.relationship_to_hoh == 0
+                        println( "!!!")
+                    end
+                end
+                for j in 1:num_people
+                    k = Symbol( "relationship_$(j)")
+                    oper = hp[op,:]
+
+                end    
+                # clear out the rest
+                for j in num_people+1:15
+                    k = Symbol( "relationship_$(j)")
+                    println( "on relationship $k person $(p.pno)")
+                    if ! ismissing(p[k])
+                        p[k] = -1
+                    end
+                end
+            end
+        end
+    end    
+end
 
 """
 For disfunctional houshold `hrps` (without exactly 1 hrp).
@@ -69,7 +106,7 @@ function assign_hrp!( hp :: AbstractDataFrame; target::Symbol )
     else # .. or oldest if no income
         hrpp = findmax(hp.age)[2]
     end
-    hp[hrpp,target] = 1;
+    hp[hrpp,target] = 1;    
 end
 
 """
@@ -113,7 +150,7 @@ hid = BigInt(0)
 pers.onerand = String.(pers.onerand)
 hh.onerand = String.(hh.onerand)
 #
-# `hh` level: fixup `hid`s as BigInt, add rand string
+# `hh` level: fixup `hid`s as BigInt, add rand stringxx
 # !! NOTE that assigning `hid` this way makes `hid` unique even across multiple data years. 
 # The actual dataset has `hid` unique only within a `data_year`.
 #
@@ -220,6 +257,8 @@ for hid in 1:nps
             assign_hrp!( bu; target=:is_bu_head )
         end
     end
+    # this is very unfinished
+    fixup_relationships!(hp)
     @assert nbusps == size(hp)[1] "size mismatch for $(hp.hid)"
 end
 

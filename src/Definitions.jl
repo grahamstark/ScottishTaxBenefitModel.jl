@@ -1440,7 +1440,37 @@ end
 
 export Relationship_Dict
 Relationship_Dict = Dict{BigInt,Relationship}
+export is_spouse, 
+   is_dependent_child, 
+   is_parent, 
+   is_sibling, 
+   is_other_relative, 
+   is_non_relative
 
+is_spouse( r :: Relationship ) = r in [
+   Spouse,
+   Cohabitee,
+   Civil_Partner]
+is_dependent_child( r :: Relationship ) = r in [
+   Foster_child,
+   Step_son_or_daughter,
+   Son_or_daughter_incl_adopted]
+is_parent( r :: Relationship ) = r in [
+   Parent,
+   Foster_parent,
+   Step_parent]
+is_sibling( r :: Relationship ) = r in [
+   Brother_or_sister_incl_adopted, 
+   Foster_brother_or_sister,
+   Step_brother_or_sister]
+is_other_relative( r :: Relationship ) = r in [
+   Parent_in_law,
+   Son_in_law_or_daughter_in_law,
+   Grand_child, 
+   Grand_parent,
+   Other_relative]
+is_non_relative( r :: Relationship ) = r == Other_non_relative
+   
 export Employment_Type  # mapped from etype
 export An_Employee,
        Running_a_business_or_prof_practice,
