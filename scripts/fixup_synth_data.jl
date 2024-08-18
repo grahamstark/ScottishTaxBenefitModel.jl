@@ -103,7 +103,7 @@ function fixup_relationships!( hp :: AbstractDataFrame )::Int
         # is matched by a reciprocal one in the other people: 
         # father->child=>child<-father, partner=>partner and so on.
         for j in 1:num_people 
-            # change the other person's relationship to match this one
+            # change the other person's relationship to match this one, if needed.
             if j != p.pno
                 k = Symbol( "relationship_$(j)")
                 relationship = Relationship(p[k]) # relationship of this person to person j
@@ -159,6 +159,7 @@ function fixup_relationships!( hp :: AbstractDataFrame )::Int
                             Other_relative
                         end 
                         oper[ok] = Int( r )
+                    end
                 elseif is_non_relative( relationship )
                     if ! is_non_relative( recip_relationship )
                         nfixes += 1
@@ -175,7 +176,7 @@ function fixup_relationships!( hp :: AbstractDataFrame )::Int
             if ! ismissing(p[k])
                 p[k] = -1
             end
-        end
+        end # clearout unneeded relationships
     end # each person 
     return nfixes
 end # function
