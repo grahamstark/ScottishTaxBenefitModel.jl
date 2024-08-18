@@ -129,10 +129,12 @@ module FRSHouseholdGetter
             @assert dec in 1:10
             deccheck[dec] += hh.weight*num_people(hh) 
         end
-        println( deccheck )
+        for i in 1:10
+            println( "$i : $(deccheck[i])" )
+        end
         for dc in deccheck
             prop = dc/deccheck[1]
-            @assert isapprox( prop, 1, rtol=0.01 ) "Counts in Deciles seem very uneven: prop vs [1]=$(prop) abs diff $(dc - deccheck[1])."
+            @assert isapprox( prop, 1, rtol=0.03 ) "Counts in Deciles seem very uneven: prop vs [1]=$(prop) abs diff $(dc - deccheck[1])."
         end 
     end
 

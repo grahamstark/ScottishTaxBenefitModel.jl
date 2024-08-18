@@ -509,7 +509,7 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
             @assert head.pid == hh_head_pid "mismatched 1st bu head should be $hh_head is: $(head.pid)"
         else
             @assert (! ismissing( head )) "unallocated head for bu $buno"
-            @assert ! head.is_standard_child "head of bu seems to be child for bu $buno"
+            @assert ! head.is_standard_child "head of bu seems to be child for bu $buno pid=$(head.pid) hid=$(head.hid) age=$(head.age)"
         end
     end
     return bus

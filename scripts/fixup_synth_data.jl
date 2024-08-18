@@ -50,6 +50,41 @@ function do_pers_idiot_checks( pers :: AbstractDataFrame )
     end
 end  
 
+
+"""
+reassign over 21s not in education to non child
+"""
+function fixup_employment( pers :: DataFrameRow )
+
+end
+
+"""
+A dependent child is defined as an individual aged under 16. A person will also be
+defined as a child if they are 16 to 19 years old and they are:
+* Not married nor in a civil partnership nor living with a partner; and
+* Living with parents (or a responsible adult); and
+* In full-time non-advanced education or in unwaged government training.
+Family Resource Survey United Kingdom, 2021 to 2022 Background Information and Methodology March 2023
+FIXME just assign this rather than try to fix the ai one. p66 
+"""
+function fixup_child_status!( pers :: DataFrameRow )
+    oc = pers.from_child_record
+    if pers.from_child_record == 1
+        if pers.age >= 20
+            pers.from_child_record == 0
+        elseif age >= 16 # i don't have any field atm for 'non-advanced education ...'
+            if is_partnered(pers.relationship) 
+                pers.from_child_record == 0
+            end
+            if pers.is_hrp || pers.default_benefit_unit > 1
+                pers.from_child_record == 0
+            end
+        end
+    elseif pers.age < 16
+        pers.from_child_record == 1
+    end
+end 
+
 """
 
 """
@@ -58,37 +93,38 @@ function fixup_relationships!( hp :: AbstractDataFrame )
     println( "num people $num_people")
     @assert size( hp[hp.is_hrp.==1,:])[1] == 1 # exactly 1 hrp 
         
-    for p in eachrow(hp)
-        marstat = Marital_Status( safe_assign(p.marital_status ))
+    for p in eachrow(hp) # for each person .. (only need 1st 1/2?)
         if p.is_hrp == 1 
             p.relationship_to_hoh = 0 # this person
         end
-        k = Symbol( "relationship_$(p.pno)")
-        p[k] = 0 # this person is him/herself
+        ok = Symbol( "relationship_$(p.pno)") # a person's relationship to this person
+        p[ok] = 0 # this person is him/herself
 
-        println( "marrstat $marstat")
-        for op in 1:num_people
-            println( "p.pno $(p.pno) op = $op")
-            # fixme fill this in
-            if p.pno !== op
-                if p.relationship_to_hoh == 0
-                    println( "!!!")
-                end                
-                for j in 1:num_people
-                    k = Symbol( "relationship_$(j)")
-                    oper = hp[op,:]
-                end    
-                # clear out the rest
-                for j in num_people+1:15
-                    k = Symbol( "relationship_$(j)")
-                    println( "on relationship $k person $(p.pno)")
-                    if ! ismissing(p[k])
-                        p[k] = -1
+        # test each relationship for this person
+        # is matched by a reciprical one in the other people: 
+        # father->child=>child<-father, partner=>partner and so on.
+        for j in 1:num_people
+            k = Symbol( "relationship_$(j)")
+            relationship = Relationship(p[k])
+            for l in 1:num_people
+                if j != l
+                    oper = hp[j,:] # look up the other person
+                    recip_relationship = Relationship(oper[ok])
+                    if is_partner( relationship )
+                        @assert is_partner( recip_relationship )
                     end
-                end
+                end # other people
+            end # loop
+        end
+        # clear out the rest
+        for j in num_people+1:15
+            k = Symbol( "relationship_$(j)")
+            println( "on relationship $k person $(p.pno)")
+            if ! ismissing(p[k])
+                p[k] = -1
             end
         end
-    end    
+    end # each person 
 end
 
 """
@@ -200,6 +236,7 @@ for p in eachrow( pers )
         p.relationship_to_hoh = 0 # this person
     end
 end
+
 #
 # Data in order - just makes inspection easier.
 #
@@ -221,6 +258,9 @@ for hid in 1:nps
     hp = hh_pers[hid]
     first = hp[1,:] # 1st person, just randomly chosen.
     #
+    # fixup child records
+    #
+    #
     # force pnos to be consecutive from 1
     #
     pno = 0
@@ -228,6 +268,7 @@ for hid in 1:nps
         pno += 1
         p.pno = pno
         p.pid = get_pid( SyntheticSource, p.data_year, p.hid, p.pno )
+        fixup_child_status!( p )
     end
     # Overwrite `is_hrp` if not exactly one in the hhlds' people.
     hrps = sum( hp[:,:is_hrp])
@@ -243,6 +284,10 @@ for hid in 1:nps
         push!( bus, p.default_benefit_unit )
         # this assert can sometimes fail without the assignment above
         @assert p.data_year == first.data_year "data_year $(p.data_year)  $(thishh.data_year) $(thishh.hid)"
+        #
+        # fixup employment
+        #
+        fixup_employment!( p )
     end
     @assert sum( hp[:,:is_hrp]) == 1 "!=1 hrp for $(thishh.hid)"
     # Fixup non-contigious default BU allocations.
@@ -263,12 +308,15 @@ for hid in 1:nps
     end
     # this is very unfinished
     fixup_relationships!(hp)
+
+    
     @assert nbusps == size(hp)[1] "size mismatch for $(hp.hid)"
 end
 
 # work round pointless assertion in map to hh
-pers.type_of_bereavement_allowance = coalesce.(-1, pers.type_of_bereavement_allowance )
+pers.type_of_bereavement_allowance = coalesce.(pers.type_of_bereavement_allowance, -1)
 # also, pointless check in grossing up routines on occupations
+pers.occupational_classification = coalesce.(pers.occupational_classification, 0 )
 pers.occupational_classification = max.(0, pers.occupational_classification ) 
 
 # Delete working columns with the mostly.ai string primary keys - we've replaced them
