@@ -622,7 +622,7 @@ function make_intermediate(
     
     ## fixme parameterise this
     num_allowed_children :: Int = apply_2_child_policy( bu, child_limits )
-    @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
+    @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0) "pid=$(bu.adults[1]); has_children=$has_children but age_oldest_child=$age_oldest_child age_youngest_child=$age_youngest_child"
           
     
     net_physical_wealth = zero(T)

@@ -54,7 +54,7 @@ end
 """
 reassign over 21s not in education to non child
 """
-function fixup_employment( pers :: DataFrameRow )
+function fixup_employment!( pers :: DataFrameRow )
 
 end
 
@@ -67,22 +67,23 @@ defined as a child if they are 16 to 19 years old and they are:
 Family Resource Survey United Kingdom, 2021 to 2022 Background Information and Methodology March 2023
 FIXME just assign this rather than try to fix the ai one. p66 
 """
-function fixup_child_status!( pers :: DataFrameRow )
+function fixup_child_status!( pers :: DataFrameRow )::Int
     oc = pers.from_child_record
     if pers.from_child_record == 1
         if pers.age >= 20
-            pers.from_child_record == 0
-        elseif age >= 16 # i don't have any field atm for 'non-advanced education ...'
-            if is_partnered(pers.relationship) 
-                pers.from_child_record == 0
+            pers.from_child_record = 0
+        elseif pers.age >= 16 # i don't have any field atm for 'non-advanced education ...'
+            if(! ismissing(pers.marital_status)) && (pers.marital_status != 3)
+                pers.from_child_record = 0
             end
-            if pers.is_hrp || pers.default_benefit_unit > 1
-                pers.from_child_record == 0
+            if pers.is_hrp == 1 || pers.default_benefit_unit > 1
+                pers.from_child_record = 0
             end
         end
     elseif pers.age < 16
-        pers.from_child_record == 1
+        pers.from_child_record = 1
     end
+    return oc == pers.from_child_record ? 0 : 1 # count of changes made
 end 
 
 """
@@ -109,11 +110,11 @@ function fixup_relationships!( hp :: AbstractDataFrame )::Int
                 relationship = Relationship(p[k]) # relationship of this person to person j
                 oper = hp[j,:] # look up the other person
                 recip_relationship = Relationship(oper[ok])
-                println("hh $(hh.hno): checking $(p.pno)=>$(oper.pno) relationships $(relationship)=>$(recip_relationship)")
+                println("hh $(p.hid): checking $(p.pno)=>$(oper.pno) relationships $(relationship)=>$(recip_relationship)")
                 if is_partner( relationship )
                     if ! is_partner( recip_relationship )
                         nfixes += 1
-                        oper[ok] = Int( relationship ) ## morality police
+                        oper[ok] = Int( relationship )
                     end 
                 elseif is_dependent_child( relationship )
                     if ! is_parent( recip_relationship )
@@ -166,13 +167,13 @@ function fixup_relationships!( hp :: AbstractDataFrame )::Int
                         oper[ok] = Int( Other_non_relative )
                     end
                 end # check end
+                println("final relationships: $(relationship)=>$(Relationship(oper[ok]))")             
             end # other people
-            println("final relationships: $(relationship)=>$(recip_relationship)")             
         end # each relationship of this person 
         # clear out the rest
         for j in (num_people+1):15
             k = Symbol( "relationship_$(j)")
-            println( "clearing $k")
+            # println( "clearing $k")
             if ! ismissing(p[k])
                 p[k] = -1
             end
@@ -309,6 +310,7 @@ n_relationships_changed = 0
 hh_pers = groupby( pers, [:hid])
 nps = size(hh_pers)[1]
 for hid in 1:nps
+    global n_relationships_changed
     thishh = hh[hh.hid.==hid,:][1,:]
     hp = hh_pers[hid]
     first = hp[1,:] # 1st person, just randomly chosen.
