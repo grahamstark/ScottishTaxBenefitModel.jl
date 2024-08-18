@@ -88,44 +88,97 @@ end
 """
 
 """
-function fixup_relationships!( hp :: AbstractDataFrame )
+function fixup_relationships!( hp :: AbstractDataFrame )::Int
     num_people = size(hp)[1] # 
     println( "num people $num_people")
     @assert size( hp[hp.is_hrp.==1,:])[1] == 1 # exactly 1 hrp 
-        
+    nfixes = 0        
     for p in eachrow(hp) # for each person .. (only need 1st 1/2?)
         if p.is_hrp == 1 
             p.relationship_to_hoh = 0 # this person
         end
         ok = Symbol( "relationship_$(p.pno)") # a person's relationship to this person
         p[ok] = 0 # this person is him/herself
-
         # test each relationship for this person
-        # is matched by a reciprical one in the other people: 
+        # is matched by a reciprocal one in the other people: 
         # father->child=>child<-father, partner=>partner and so on.
-        for j in 1:num_people
-            k = Symbol( "relationship_$(j)")
-            relationship = Relationship(p[k])
-            for l in 1:num_people
-                if j != l
-                    oper = hp[j,:] # look up the other person
-                    recip_relationship = Relationship(oper[ok])
-                    if is_partner( relationship )
-                        @assert is_partner( recip_relationship )
+        for j in 1:num_people 
+            # change the other person's relationship to match this one
+            if j != p.pno
+                k = Symbol( "relationship_$(j)")
+                relationship = Relationship(p[k]) # relationship of this person to person j
+                oper = hp[j,:] # look up the other person
+                recip_relationship = Relationship(oper[ok])
+                println("hh $(hh.hno): checking $(p.pno)=>$(oper.pno) relationships $(relationship)=>$(recip_relationship)")
+                if is_partner( relationship )
+                    if ! is_partner( recip_relationship )
+                        nfixes += 1
+                        oper[ok] = Int( relationship ) ## morality police
+                    end 
+                elseif is_dependent_child( relationship )
+                    if ! is_parent( recip_relationship )
+                        nfixes += 1
+                        r = if relationship == Son_or_daughter_incl_adopted
+                            Parent
+                        elseif relationship == Foster_child
+                            Foster_parent
+                        elseif relationship == Step_son_or_daughter
+                            Step_parent
+                        end
+                        oper[ok] = Int( r )
+                    end 
+                elseif is_parent( relationship )
+                    if ! is_dependent_child( recip_relationship )
+                        nfixes += 1
+                        r = if relationship == Parent
+                            Son_or_daughter_incl_adopted
+                        elseif relationship == Foster_parent
+                            Foster_child
+                        elseif relationship == Step_parent
+                            Step_son_or_daughter
+                        end
+                        oper[ok] = Int( r )
                     end
-                end # other people
-            end # loop
-        end
+                elseif is_sibling( relationship )
+                    if ! is_sibling( recip_relationship )
+                        nfixes += 1
+                        oper[ok] = Int( relationship )
+                    end
+                elseif is_other_relative( relationship )
+                    if ! is_other_relative( recip_relationship )
+                        nfixes += 1
+                        r = if relationship == Parent_in_law
+                            Son_in_law_or_daughter_in_law
+                        elseif relationship == Son_in_law_or_daughter_in_law
+                            Parent_in_law    
+                        elseif relationship == Grand_child
+                            Grand_parent
+                        elseif relationship == Grand_parent
+                            Grand_child
+                        elseif relationship == Other_relative
+                            Other_relative
+                        end 
+                        oper[ok] = Int( r )
+                elseif is_non_relative( relationship )
+                    if ! is_non_relative( recip_relationship )
+                        nfixes += 1
+                        oper[ok] = Int( Other_non_relative )
+                    end
+                end # check end
+            end # other people
+            println("final relationships: $(relationship)=>$(recip_relationship)")             
+        end # each relationship of this person 
         # clear out the rest
-        for j in num_people+1:15
+        for j in (num_people+1):15
             k = Symbol( "relationship_$(j)")
-            println( "on relationship $k person $(p.pno)")
+            println( "clearing $k")
             if ! ismissing(p[k])
                 p[k] = -1
             end
         end
     end # each person 
-end
+    return nfixes
+end # function
 
 """
 For disfunctional houshold `hrps` (without exactly 1 hrp).
@@ -251,6 +304,7 @@ pers.is_bu_head = coalesce.( pers.is_bu_head, 0 )
 #
 # Loop round households-worth of person records.
 #
+n_relationships_changed = 0
 hh_pers = groupby( pers, [:hid])
 nps = size(hh_pers)[1]
 for hid in 1:nps
@@ -307,7 +361,7 @@ for hid in 1:nps
         end
     end
     # this is very unfinished
-    fixup_relationships!(hp)
+    n_relationships_changed += fixup_relationships!(hp)
 
     
     @assert nbusps == size(hp)[1] "size mismatch for $(hp.hid)"
