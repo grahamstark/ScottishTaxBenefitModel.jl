@@ -43,13 +43,28 @@ function do_pers_idiot_checks( pers :: AbstractDataFrame )
         for bu in hbus 
             nbusps += size( bu )[1]
             numheads = sum( bu[:,:is_bu_head])
-            @assert numheads == 1 "1 head for each bu hh.hid=$(first.hid)"
+            @assert numheads == 1 "1 head for each bu hh.hid=$(first.hid) numheads=$numheads bu = $(bu[1,:default_benefit_unit])"
         end
         @assert nbusps == size(hp)[1] "size mismatch for hh.hid=$(hp.hid)"
-        @assert sum( hp[:,:is_hrp]) == 1 "1 head for each hh hh.hid=$(hp.hid)"
+        @assert sum( hp[:,:is_hrp]) == 1 "1 head for each hh hh.hid=$(hp.hid) was $(sum( hp[:,:is_hrp]) )"
     end
 end  
 
+function delete_irredemably_bad_hhs( hh :: DataFrame, pers :: DataFrame )
+    kills = []
+    for h in eachrow( hh )
+        p = pers[pers.hid .== h.hid,:]
+        n = size(p)[1]
+        # all children - killem all
+        if(maximum( p[!,:age]) < 16) && (sum( p[!,:from_child_record]) == n)
+            println( "want to kill $(h.hid)")
+            push!(kills, h.hid)
+        end
+    end
+    println( "killing $(kills)")
+    deleteat!(hh, hh.hid .∈ (kills,))
+    deleteat!(pers, pers.hid .∈ (kills,))
+end
 
 """
 reassign over 21s not in education to non child
@@ -86,12 +101,30 @@ function fixup_child_status!( pers :: DataFrameRow )::Int
     return oc == pers.from_child_record ? 0 : 1 # count of changes made
 end 
 
+
+function zeropos( p :: DataFrameRow )::Int
+    for i in 1:15
+        k = Symbol( "relationship_$(i)")
+        if ismissing(p[k])
+            return 9999
+        elseif p[k] == 0
+            return i
+        end
+    end
+    9999
+end
+
+
 """
 
 """
 function fixup_relationships!( hp :: AbstractDataFrame )::Int
+    # sort the hh people in order of the zero (itself) relationship field
+    # that 
+    hp.zpos .= zeropos.( eachrow(hp) )
+    sort!( hp, :zpos )
     num_people = size(hp)[1] # 
-    println( "num people $num_people")
+    # println( "num people $num_people")
     @assert size( hp[hp.is_hrp.==1,:])[1] == 1 # exactly 1 hrp 
     nfixes = 0        
     for p in eachrow(hp) # for each person .. (only need 1st 1/2?)
@@ -107,67 +140,29 @@ function fixup_relationships!( hp :: AbstractDataFrame )::Int
             # change the other person's relationship to match this one, if needed.
             if j != p.pno
                 k = Symbol( "relationship_$(j)")
-                relationship = Relationship(p[k]) # relationship of this person to person j
+                relationship = if ismissing( p[k] )  # relationship of this person to person j
+                    Missing_Relationship
+                else 
+                    Relationship(p[k])
+                end
+                if relationship == This_Person # can't be this person if pno != j
+                    relationship = Missing_Relationship
+                end
                 oper = hp[j,:] # look up the other person
                 recip_relationship = Relationship(oper[ok])
-                println("hh $(p.hid): checking $(p.pno)=>$(oper.pno) relationships $(relationship)=>$(recip_relationship)")
-                if is_partner( relationship )
-                    if ! is_partner( recip_relationship )
-                        nfixes += 1
-                        oper[ok] = Int( relationship )
-                    end 
-                elseif is_dependent_child( relationship )
-                    if ! is_parent( recip_relationship )
-                        nfixes += 1
-                        r = if relationship == Son_or_daughter_incl_adopted
-                            Parent
-                        elseif relationship == Foster_child
-                            Foster_parent
-                        elseif relationship == Step_son_or_daughter
-                            Step_parent
-                        end
-                        oper[ok] = Int( r )
-                    end 
-                elseif is_parent( relationship )
-                    if ! is_dependent_child( recip_relationship )
-                        nfixes += 1
-                        r = if relationship == Parent
-                            Son_or_daughter_incl_adopted
-                        elseif relationship == Foster_parent
-                            Foster_child
-                        elseif relationship == Step_parent
-                            Step_son_or_daughter
-                        end
-                        oper[ok] = Int( r )
-                    end
-                elseif is_sibling( relationship )
-                    if ! is_sibling( recip_relationship )
-                        nfixes += 1
-                        oper[ok] = Int( relationship )
-                    end
-                elseif is_other_relative( relationship )
-                    if ! is_other_relative( recip_relationship )
-                        nfixes += 1
-                        r = if relationship == Parent_in_law
-                            Son_in_law_or_daughter_in_law
-                        elseif relationship == Son_in_law_or_daughter_in_law
-                            Parent_in_law    
-                        elseif relationship == Grand_child
-                            Grand_parent
-                        elseif relationship == Grand_parent
-                            Grand_child
-                        elseif relationship == Other_relative
-                            Other_relative
-                        end 
-                        oper[ok] = Int( r )
-                    end
-                elseif is_non_relative( relationship )
-                    if ! is_non_relative( recip_relationship )
-                        nfixes += 1
-                        oper[ok] = Int( Other_non_relative )
-                    end
-                end # check end
-                println("final relationships: $(relationship)=>$(Relationship(oper[ok]))")             
+                if (relationship == Missing_Relationship) # lookup other way around if missing
+                    relationship = reciprocal_relationship( recip_relationship )
+                end
+                shouldbe_rel = reciprocal_relationship( relationship )
+                if recip_relationship != shouldbe_rel
+                    # println("hh $(p.hid): changing for $(p.pno)=>$(oper.pno) relationships $(relationship)=>$(recip_relationship)")
+                    nfixes += 1
+                    oper[ok] = Int(shouldbe_rel)
+                    # println("final relationships: $(relationship)=>$(Relationship(oper[ok]))")             
+                end
+                if relationship == This_Person # can't be this person if pno != j
+                    oper[ok] = Int(Other_non_relative)
+                end
             end # other people
         end # each relationship of this person 
         # clear out the rest
@@ -179,6 +174,8 @@ function fixup_relationships!( hp :: AbstractDataFrame )::Int
             end
         end # clearout unneeded relationships
     end # each person 
+    # clear out zero sort marker
+    # select!( pers, Not( :zpos ))
     return nfixes
 end # function
 
@@ -201,6 +198,7 @@ function assign_hrp!( hp :: AbstractDataFrame; target::Symbol )
     else # .. or oldest if no income
         hrpp = findmax(hp.age)[2]
     end
+    println( "setting $hrpp $target to 1")
     hp[hrpp,target] = 1;    
 end
 
@@ -211,26 +209,58 @@ if bus numbers are 1,3,9 replace with 1,2,3
 function fixup_bus!( hp :: AbstractDataFrame; target :: Symbol )
     targets = hp[:,target]
     buos = collect(sort( OrderedSet(hp[:,target])))
-    println("initial buos $(hp[:,target])")
+    # println("initial buos $(hp[:,target])")
     for p in eachrow(hp)
         defb = p[target]
         nb = searchsorted(buos, defb )[1]
         p[target] = nb
     end
-    println("final bunos $(hp[:,target])")
+    # println("final bunos $(hp[:,target])")
 end
 
-function get_relationships( hp :: AbstractDataFrame ) :: Matrix{Int}
+"""
+Allocate anyone, say, in Grand_parent relationship in a bu with a head to a new bu.
+FIXME won't work for couples 
+"""
+function add_lonely_bus!( hp :: AbstractDataFrame )
+    nbus = maximum( hp[:,:default_benefit_unit])
+    buheads = hp[ hp.is_bu_head .== 1, : ]
+    for b in eachrow(buheads)
+        for p in eachrow(hp)
+            if p.pno != b.pno
+                if(p.default_benefit_unit == b.default_benefit_unit) # nominally in this bu
+                    k = Symbol( "relationship_$(b.pno)")
+                    if(is_not_immediate_family(Relationship(p[k]))&&(p.age >= 16))
+                        println( "adding $nbus for hh $(p.hid) age $(p.age) pno $(p.pno)")
+                        nbus += 1
+                        p.default_benefit_unit = nbus
+                        p.is_bu_head = true
+                    end
+                end
+            end
+        end
+    end
+end
+
+function get_relationships( hp :: AbstractDataFrame ) :: Matrix{Relationship}
     num_people = size(hp)[1]
-    v = fill(-1,15,15)
+    v = fill(Missing_Relationship,15,15)
     for i in 1:num_people
         k = Symbol("relationship_$i")
         for j in 1:num_people
-            v[j,i] = hp[j,k]
+            v[j,i] = Relationship(hp[j,k])
         end
     end
     v
 end
+
+
+function print_relationships( m::Matrix{Relationship} )
+    n = findfirst( isequal( Missing_Relationship ), m[1,:])-1
+    hc = hcat(m[1:n,1:n ],collect(1:n))
+    pretty_table( hc )
+end
+
 
 
 function put_relationships!( hp :: AbstractDataFrame, rels :: Matrix{Int})
@@ -303,6 +333,14 @@ function do_initial_fixes!(hh::DataFrame, pers::DataFrame )
         if ! ismissing( p.highest_qualification ) && (p.highest_qualification == 0) # missing is -1 here, not zero
             p.highest_qualification = -1
         end
+        if(p.age < 16) || ((p.from_child_record==1)&&(p.age < 20))
+            p.is_hrp = 0
+            if (! ismissing(p.is_bu_head)) && (p.is_bu_head == 1)
+                println( "removing bu head for $(p.pno) aged $(p.age) hid=$(p.hid)")
+                p.is_bu_head = 0
+                p.default_benefit_unit = 1 # FIXME wild guess
+            end
+        end
         p.is_hrp = coalesce( p.is_hrp, 0 )
         # FIXME fixup all the relationships
         if p.is_hrp == 1
@@ -312,8 +350,8 @@ function do_initial_fixes!(hh::DataFrame, pers::DataFrame )
     #
     # Data in order - just makes inspection easier.
     #
-    sort!( hh, [:data_year,:hid] )
-    sort!( pers, [:data_year,:hid,:pno,:default_benefit_unit,:age])
+    sort!( hh, [:hid] )
+    sort!( pers, [:hid,:pno,:default_benefit_unit,:age])
     #
     # Kill a few annoying missings.
     #
@@ -370,7 +408,7 @@ function do_main_fixes!(hh::DataFrame,pers::DataFrame)
         @assert sum( hp[:,:is_hrp]) == 1 "!=1 hrp for $(thishh.hid)"
         # Fixup non-contigious default BU allocations.
         if length(bus) !== maximum(bus) 
-            println( "non contig $(bus) $(thishh.hid)" )
+            # println( "non contig $(bus) $(thishh.hid)" )
             fixup_bus!( hp, target=:default_benefit_unit )
         end
         # For each of these now nicely numbered bus, ensure 1 bu head.
@@ -380,23 +418,43 @@ function do_main_fixes!(hh::DataFrame,pers::DataFrame)
             nbusps += size( bu )[1]
             numheads = sum( bu[:,:is_bu_head])
             if numheads !== 1
-                println( "numheads $numheads")
+                # println( "numheads $numheads")
                 assign_hrp!( bu; target=:is_bu_head )
             end
         end
         # this is very unfinished
-        n_relationships_changed += fixup_relationships!(hp)
         @assert nbusps == size(hp)[1] "size mismatch for $(hp.hid)"
-    end
+        n_relationships_changed += fixup_relationships!(hp)
+        for p in eachrow( hp ) 
+            if(p.age < 16) || ((p.from_child_record==1)&&(p.age < 20))
+                p.is_hrp = 0
+                if (! ismissing(p.is_bu_head)) && (p.is_bu_head == 1)
+                    println( "#2 removing bu head for $(p.pno) aged $(p.age) hid=$(p.hid)")
+                    p.is_bu_head = 0
+                    p.default_benefit_unit = 1 # FIXME wild guess
+                end
+            end
+        end
+        add_lonely_bus!( hp )
+        # endlessly repeated FIXME
+        nbusps = 0
+        # regroup bus
+        hbus = groupby( hp, :default_benefit_unit )
+        for bu in hbus 
+            nbusps += size( bu )[1]
+            numheads = sum( bu[:,:is_bu_head])
+            if numheads !== 1
+                println( "numheads wrong for $numheads")
+                assign_hrp!( bu; target=:is_bu_head )
+            end
+        end
+    end # hh loop
+    delete_irredemably_bad_hhs( hh, pers )
 end
 
+"""
 
-## TODO FIXUP relationship_x fields
-
-#
-# Load synthetic datasets using default settings.
-#
-
+"""
 function fixall!( hh::DataFrame, pers::DataFrame)
     settings = Settings()
     settings.dataset_type = synthetic_data
@@ -406,11 +464,9 @@ function fixall!( hh::DataFrame, pers::DataFrame)
     do_pers_idiot_checks( pers )
     # Delete working columns with the mostly.ai string primary keys - we've replaced them
     # with BigInts as in the actual data.
-    #=
     select!( hh, Not(:uhidstr) )
     select!( pers, Not( :pidstr ))
     select!( pers, Not( :uhidstr ))
-    =#
     # write synth files to default locations.
     ds = main_datasets( settings )
     CSV.write( ds.hhlds, hh; delim='\t' )

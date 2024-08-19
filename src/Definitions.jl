@@ -1445,7 +1445,9 @@ export is_partner,
    is_parent, 
    is_sibling, 
    is_other_relative, 
-   is_non_relative
+   is_non_relative,
+   is_not_immediate_family,
+   reciprocal_relationship
 
 is_partner( r :: Relationship ) = r in [
    Spouse,
@@ -1466,10 +1468,52 @@ is_sibling( r :: Relationship ) = r in [
 is_other_relative( r :: Relationship ) = r in [
    Parent_in_law,
    Son_in_law_or_daughter_in_law,
+   Brother_or_sister_in_law,
    Grand_child, 
    Grand_parent,
    Other_relative]
 is_non_relative( r :: Relationship ) = r == Other_non_relative
+is_not_immediate_family( r :: Relationship ) = is_other_relative(r)||is_non_relative(r)||(r == Missing_Relationship)
+
+function reciprocal_relationship( relationship :: Relationship ) :: Relationship
+   return if relationship == This_Person 
+      This_Person 
+   elseif is_partner(relationship)
+      relationship
+   elseif relationship == Son_or_daughter_incl_adopted
+      Parent
+   elseif relationship == Foster_child
+      Foster_parent
+   elseif relationship == Step_son_or_daughter
+      Step_parent
+   elseif relationship == Parent
+      Son_or_daughter_incl_adopted
+   elseif relationship == Foster_parent
+      Foster_child
+   elseif relationship == Step_parent
+      Step_son_or_daughter  
+   elseif is_sibling( relationship )
+      relationship
+   elseif relationship == Parent_in_law
+      Son_in_law_or_daughter_in_law
+   elseif relationship == Son_in_law_or_daughter_in_law
+      Parent_in_law    
+   elseif relationship == Grand_child
+      Grand_parent
+   elseif relationship == Grand_parent
+      Grand_child
+   elseif relationship == Other_relative
+      Other_relative
+   elseif relationship == Other_non_relative
+      Other_non_relative
+   elseif relationship == Brother_or_sister_in_law
+      Brother_or_sister_in_law
+   elseif relationship == Missing_Relationship
+      Missing_Relationship
+   else 
+      @assert false "unmapped $relationship"
+   end 
+end
    
 export Employment_Type  # mapped from etype
 export An_Employee,
