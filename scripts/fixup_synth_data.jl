@@ -220,173 +220,204 @@ function fixup_bus!( hp :: AbstractDataFrame; target :: Symbol )
     println("final bunos $(hp[:,target])")
 end
 
+function get_relationships( hp :: AbstractDataFrame ) :: Matrix{Int}
+    num_people = size(hp)[1]
+    v = fill(-1,15,15)
+    for i in 1:num_people
+        k = Symbol("relationship_$i")
+        for j in 1:num_people
+            v[j,i] = hp[j,k]
+        end
+    end
+    v
+end
+
+
+function put_relationships!( hp :: AbstractDataFrame, rels :: Matrix{Int})
+
+end
+
+
+function change_pids!( hp :: AbstractDataFrame )# from::Int, to::Int )
+    pno = 0
+    for p in eachrow(hp) 
+        pno += 1
+        if p.pno != pno
+
+            p.pno = pno
+
+        end
+        p.pid = get_pid( SyntheticSource, p.data_year, p.hid, p.pno )
+    end
+end
+
+function do_initial_fixes!(hh::DataFrame, pers::DataFrame )
+    # 
+    # mostly.ai replaces the hid and pid with a random string, whereas we use bigints.
+    # So, create a dictionary mapping the random hid string to a BigInt, and cleanup `randstr`.
+    #
+    hids = Dict{String,NamedTuple}()
+    hid = BigInt(0)
+    #
+    # Cast rands to string as opposed to string7 or whatever so we can assign our big string.
+    #
+    pers.onerand = String.(pers.onerand)
+    hh.onerand = String.(hh.onerand)
+    #
+    # `hh` level: fixup `hid`s as BigInt, add rand stringxx
+    # !! NOTE that assigning `hid` this way makes `hid` unique even across multiple data years. 
+    # The actual dataset has `hid` unique only within a `data_year`.
+    #
+    rename!( hh, [:uhid=>:uhidstr])
+    hh.uhid = fill( BigInt(0), hs )
+    for h in eachrow(hh)
+        hid += 1
+        h.onerand = mybigrandstr()
+        h.uhid = get_pid( SyntheticSource, h.data_year, hid, 0 )
+        h.hid = hid
+        hids[h.uhidstr] = (; hid, data_year = h.data_year, uhid=h.uhid )
+    end
+    #
+    # Check everyone is allocated to an existing household.
+    # FIXME in retrospect this doesn't actually check that... I need a join to hh.
+    # The next loop does check this though.
+    #
+    v=counts(collect(values( countmap( pers.hid ))))
+    n = length(v)
+    @assert sum( collect(1:n) .* v) == size( pers )[1] 
+    #
+    # hid/pid clean up for people, and random string
+    #
+    np = size( pers )[1]
+    rename!( pers, [:uhid=>:uhidstr,:pid=>:pidstr])
+    pers.uhid = fill( BigInt(0), np )
+    pers.pid = fill( BigInt(0), np )
+    #
+    # Assign correct numeric hid/uhid/data_year to each person and fixup the random string.
+    #
+    for p in eachrow( pers )
+        p.onerand = mybigrandstr()
+        p.uhid = hids[p.uhidstr].uhid
+        p.hid = hids[p.uhidstr].hid
+        p.data_year = hids[p.uhidstr].data_year
+        if ! ismissing( p.highest_qualification ) && (p.highest_qualification == 0) # missing is -1 here, not zero
+            p.highest_qualification = -1
+        end
+        p.is_hrp = coalesce( p.is_hrp, 0 )
+        # FIXME fixup all the relationships
+        if p.is_hrp == 1
+            p.relationship_to_hoh = 0 # this person
+        end
+    end
+    #
+    # Data in order - just makes inspection easier.
+    #
+    sort!( hh, [:data_year,:hid] )
+    sort!( pers, [:data_year,:hid,:pno,:default_benefit_unit,:age])
+    #
+    # Kill a few annoying missings.
+    #
+    pers.is_hrp = coalesce.( pers.is_hrp, 0 )
+    pers.income_self_employment_income = coalesce.( pers.income_self_employment_income, 0 )
+    pers.is_bu_head = coalesce.( pers.is_bu_head, 0 )
+    # work round pointless assertion in map to hh
+    pers.type_of_bereavement_allowance = coalesce.(pers.type_of_bereavement_allowance, -1)
+    # also, pointless check in grossing up routines on occupations
+    pers.occupational_classification = coalesce.(pers.occupational_classification, 0 )
+    pers.occupational_classification = max.(0, pers.occupational_classification ) 
+end
+
+function do_main_fixes!(hh::DataFrame,pers::DataFrame)
+    #
+    # Loop round households-worth of person records.
+    #
+    n_relationships_changed = 0
+    hh_pers = groupby( pers, [:hid])
+    nps = size(hh_pers)[1]
+    for hid in 1:nps
+        thishh = hh[hh.hid.==hid,:][1,:]
+        hp = hh_pers[hid]
+        first = hp[1,:] # 1st person, just randomly chosen.
+        #
+        # fixup child records
+        #
+        #
+        # force pnos to be consecutive from 1
+        #
+        change_pids!( hp )
+        for p in eachrow( hp )
+            fixup_child_status!( p )
+        end
+        # Overwrite `is_hrp` if not exactly one in the hhlds' people.
+        hrps = sum( hp[:,:is_hrp])
+        if hrps !== 1 # overwrite hrp 
+            assign_hrp!( hp; target=:is_hrp )
+        end
+        # Round the hh people: check benefit unit number sequencing, rewrite `pid` to a number, data_year always 
+        # matches data_year for hh.
+        bus = Set()        
+        for p in eachrow( hp )
+            p.data_year = thishh.data_year
+            p.pid = get_pid( FRS, p.data_year, p.hid, p.pno  )
+            push!( bus, p.default_benefit_unit )
+            # this assert can sometimes fail without the assignment above
+            @assert p.data_year == first.data_year "data_year $(p.data_year)  $(thishh.data_year) $(thishh.hid)"
+            #
+            # fixup employment
+            #
+            fixup_employment!( p )
+        end
+        @assert sum( hp[:,:is_hrp]) == 1 "!=1 hrp for $(thishh.hid)"
+        # Fixup non-contigious default BU allocations.
+        if length(bus) !== maximum(bus) 
+            println( "non contig $(bus) $(thishh.hid)" )
+            fixup_bus!( hp, target=:default_benefit_unit )
+        end
+        # For each of these now nicely numbered bus, ensure 1 bu head.
+        hbus = groupby( hp, :default_benefit_unit )
+        nbusps = 0
+        for bu in hbus 
+            nbusps += size( bu )[1]
+            numheads = sum( bu[:,:is_bu_head])
+            if numheads !== 1
+                println( "numheads $numheads")
+                assign_hrp!( bu; target=:is_bu_head )
+            end
+        end
+        # this is very unfinished
+        n_relationships_changed += fixup_relationships!(hp)
+        @assert nbusps == size(hp)[1] "size mismatch for $(hp.hid)"
+    end
+end
+
+
+## TODO FIXUP relationship_x fields
+
 #
 # Load synthetic datasets using default settings.
 #
-settings = Settings()
-settings.dataset_type = synthetic_data
 
-
+function fixall!( hh::DataFrame, pers::DataFrame)
+    settings = Settings()
+    settings.dataset_type = synthetic_data
+    do_initial_fixes!( hh, pers )
+    do_main_fixes!( hh, pers )
+    # Last minute checks - these are actually just a repeat of the hrp and bu checks in the main loop above.
+    do_pers_idiot_checks( pers )
+    # Delete working columns with the mostly.ai string primary keys - we've replaced them
+    # with BigInts as in the actual data.
+    #=
+    select!( hh, Not(:uhidstr) )
+    select!( pers, Not( :pidstr ))
+    select!( pers, Not( :uhidstr ))
+    =#
+    # write synth files to default locations.
+    ds = main_datasets( settings )
+    CSV.write( ds.hhlds, hh; delim='\t' )
+    CSV.write( ds.people, pers; delim='\t' )
+end
 #
 # open unpacked synthetic files
 #
 hh = CSV.File("tmp/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv") |> DataFrame
-hs = size(hh)[1]
 pers = CSV.File( "tmp/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv" ) |> DataFrame
-# 
-# mostly.ai replaces the hid and pid with a random string, whereas we use bigints.
-# So, create a dictionary mapping the random hid string to a BigInt, and cleanup `randstr`.
-#
-hids = Dict{String,NamedTuple}()
-hid = BigInt(0)
-#
-# Cast rands to string as opposed to string7 or whatever so we can assign our big string.
-#
-pers.onerand = String.(pers.onerand)
-hh.onerand = String.(hh.onerand)
-#
-# `hh` level: fixup `hid`s as BigInt, add rand stringxx
-# !! NOTE that assigning `hid` this way makes `hid` unique even across multiple data years. 
-# The actual dataset has `hid` unique only within a `data_year`.
-#
-rename!( hh, [:uhid=>:uhidstr])
-hh.uhid = fill( BigInt(0), hs )
-for h in eachrow(hh)
-    global hid
-    hid += 1
-    h.onerand = mybigrandstr()
-    h.uhid = get_pid( SyntheticSource, h.data_year, hid, 0 )
-    h.hid = hid
-    hids[h.uhidstr] = (; hid, data_year = h.data_year, uhid=h.uhid )
-end
-#
-# Check everyone is allocated to an existing household.
-# FIXME in retrospect this doesn't actually check that... I need a join to hh.
-# The next loop does check this though.
-#
-v=counts(collect(values( countmap( pers.hid ))))
-n = length(v)
-@assert sum( collect(1:n) .* v) == size( pers )[1] 
-#
-# hid/pid clean up for people, and random string
-#
-np = size( pers )[1]
-rename!( pers, [:uhid=>:uhidstr,:pid=>:pidstr])
-pers.uhid = fill( BigInt(0), np )
-pers.pid = fill( BigInt(0), np )
-#
-# Assign correct numeric hid/uhid/data_year to each person and fixup the random string.
-#
-for p in eachrow( pers )
-    p.onerand = mybigrandstr()
-    p.uhid = hids[p.uhidstr].uhid
-    p.hid = hids[p.uhidstr].hid
-    p.data_year = hids[p.uhidstr].data_year
-    if ! ismissing( p.highest_qualification ) && (p.highest_qualification == 0) # missing is -1 here, not zero
-        p.highest_qualification = -1
-    end
-    p.is_hrp = coalesce( p.is_hrp, 0 )
-    # FIXME fixup all the relationships
-    if p.is_hrp == 1
-        p.relationship_to_hoh = 0 # this person
-    end
-end
-
-#
-# Data in order - just makes inspection easier.
-#
-sort!( hh, [:data_year,:hid] )
-sort!( pers, [:data_year,:hid,:pno])
-#
-# Kill a few annoying missings.
-#
-pers.is_hrp = coalesce.( pers.is_hrp, 0 )
-pers.income_self_employment_income = coalesce.( pers.income_self_employment_income, 0 )
-pers.is_bu_head = coalesce.( pers.is_bu_head, 0 )
-#
-# Loop round households-worth of person records.
-#
-n_relationships_changed = 0
-hh_pers = groupby( pers, [:hid])
-nps = size(hh_pers)[1]
-for hid in 1:nps
-    global n_relationships_changed
-    thishh = hh[hh.hid.==hid,:][1,:]
-    hp = hh_pers[hid]
-    first = hp[1,:] # 1st person, just randomly chosen.
-    #
-    # fixup child records
-    #
-    #
-    # force pnos to be consecutive from 1
-    #
-    pno = 0
-    for p in eachrow( hp )
-        pno += 1
-        p.pno = pno
-        p.pid = get_pid( SyntheticSource, p.data_year, p.hid, p.pno )
-        fixup_child_status!( p )
-    end
-    # Overwrite `is_hrp` if not exactly one in the hhlds' people.
-    hrps = sum( hp[:,:is_hrp])
-    if hrps !== 1 # overwrite hrp 
-        assign_hrp!( hp; target=:is_hrp )
-    end
-    # Round the hh people: check benefit unit number sequencing, rewrite `pid` to a number, data_year always 
-    # matches data_year for hh.
-    bus = Set()        
-    for p in eachrow( hp )
-        p.data_year = thishh.data_year
-        p.pid = get_pid( FRS, p.data_year, p.hid, p.pno  )
-        push!( bus, p.default_benefit_unit )
-        # this assert can sometimes fail without the assignment above
-        @assert p.data_year == first.data_year "data_year $(p.data_year)  $(thishh.data_year) $(thishh.hid)"
-        #
-        # fixup employment
-        #
-        fixup_employment!( p )
-    end
-    @assert sum( hp[:,:is_hrp]) == 1 "!=1 hrp for $(thishh.hid)"
-    # Fixup non-contigious default BU allocations.
-    if length(bus) !== maximum(bus) 
-        println( "non contig $(bus) $(thishh.hid)" )
-        fixup_bus!( hp, target=:default_benefit_unit )
-    end
-    # For each of these now nicely numbered bus, ensure 1 bu head.
-    hbus = groupby( hp, :default_benefit_unit )
-    nbusps = 0
-    for bu in hbus 
-        nbusps += size( bu )[1]
-        numheads = sum( bu[:,:is_bu_head])
-        if numheads !== 1
-            println( "numheads $numheads")
-            assign_hrp!( bu; target=:is_bu_head )
-        end
-    end
-    # this is very unfinished
-    n_relationships_changed += fixup_relationships!(hp)
-
-    
-    @assert nbusps == size(hp)[1] "size mismatch for $(hp.hid)"
-end
-
-# work round pointless assertion in map to hh
-pers.type_of_bereavement_allowance = coalesce.(pers.type_of_bereavement_allowance, -1)
-# also, pointless check in grossing up routines on occupations
-pers.occupational_classification = coalesce.(pers.occupational_classification, 0 )
-pers.occupational_classification = max.(0, pers.occupational_classification ) 
-
-# Delete working columns with the mostly.ai string primary keys - we've replaced them
-# with BigInts as in the actual data.
-select!( hh, Not(:uhidstr) )
-select!( pers, Not( :pidstr ))
-select!( pers, Not( :uhidstr ))
-
-## TODO FIXUP relationship_x fields
-
-# Last minute checks - these are actually just a repeat of the hrp and bu checks in the main loop above.
-do_pers_idiot_checks( pers )
-# write synth files to default locations.
-ds = main_datasets( settings )
-CSV.write( ds.hhlds, hh; delim='\t' )
-CSV.write( ds.people, pers; delim='\t' )
