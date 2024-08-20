@@ -53,15 +53,34 @@ function do_pers_idiot_checks( pers :: AbstractDataFrame )
     end
 end  
 
+
+function create_skips()
+    settings = Settings()
+    settings.dataset_type = synthetic_data 
+    settings.do_legal_aid = false    
+    settings.run_name="run-$(settings.dataset_type)-$(date_string())"
+  
+    settings.run_name="run-$(settings.dataset_type)-$(date_string())"
+    sys = [
+        get_default_system_for_fin_year(2024; scotland=true), 
+        get_default_system_for_fin_year( 2024; scotland=true )]
+    tot = 0
+  
+    settings.num_households, settings.num_people, nhh2 = 
+    FRSHouseholdGetter.initialise( settings; reset=reset )
+
+
+end
+
 function delete_irredemably_bad_hhs( hh :: DataFrame, pers :: DataFrame )
-    kills = []
+    kills = DataFrame( hid=zeros(BigInt,0), data_year=zeros(0), reason=fill("",0))
     for h in eachrow( hh )
         p = pers[pers.hid .== h.hid,:]
         n = size(p)[1]
         # all children - killem all
         if(maximum( p[!,:age]) < 16) && (sum( p[!,:from_child_record]) == n)
             println( "want to kill $(h.hid)")
-            push!(kills, h.hid)
+            push!(kills, (; hid=h.hid, data_year=h.data_year, reason="all child hh child "))
         end
         hbus = groupby( p, :default_benefit_unit )
         nbusps = 0
