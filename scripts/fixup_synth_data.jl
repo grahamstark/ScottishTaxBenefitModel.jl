@@ -6,6 +6,9 @@ using .Utils
 using .Randoms
 using .RunSettings
 using .Definitions
+using .Intermediate
+using .ModelHousehold
+using .FRSHouseholdGetter
 using DataFrames,CSV,StatsBase
 using OrderedCollections
 using Revise 
@@ -60,6 +63,28 @@ function delete_irredemably_bad_hhs( hh :: DataFrame, pers :: DataFrame )
             println( "want to kill $(h.hid)")
             push!(kills, h.hid)
         end
+        hbus = groupby( p, :default_benefit_unit )
+        nbusps = 0
+        for bu in hbus 
+            nbusps += size( bu )[1]
+            numheads = sum( bu[:,:is_bu_head])
+            if numheads != 1 
+                println("kill: != 1 head for each bu hh.hid=$(h.hid) numheads=$numheads bu = $(bu[1,:default_benefit_unit])")
+                push!( kills, h.hid )
+            end
+        end
+        if sum( p[:,:is_hrp]) != 1 
+            println("kill !=1 head for each hh hh.hid=$(p.hid) was $(sum( p[:,:is_hrp]) )")
+            push!( kills, h.hid )
+        end
+        # fixable, but hey..
+        age_oldest_child = maximum(p[p.from_child_record.==1,:age];init=-99)
+        println( "age_oldest_child=$age_oldest_child")
+        if age_oldest_child >= 20
+            println( "age_oldest_child=$age_oldest_child for $(h.hid)")
+            push!( kills, h.hid )
+        end
+
     end
     println( "killing $(kills)")
     deleteat!(hh, hh.hid .∈ (kills,))
@@ -288,6 +313,7 @@ function do_initial_fixes!(hh::DataFrame, pers::DataFrame )
     #
     hids = Dict{String,NamedTuple}()
     hid = BigInt(0)
+    hs = size(hh)[1]
     #
     # Cast rands to string as opposed to string7 or whatever so we can assign our big string.
     #

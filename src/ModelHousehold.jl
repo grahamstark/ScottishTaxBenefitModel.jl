@@ -438,7 +438,7 @@ function make_benefit_unit(
     palloc = spouse <= 0 ? 2 : 3
     for n in palloc:npeople
         push!(children, people[n].pid)
-        @assert people[n].age <= 21 # vague idiot check
+        @assert people[n].age <= 19 # vague idiot check
     end
     for pers in people
         pd[pers.pid] = pers
