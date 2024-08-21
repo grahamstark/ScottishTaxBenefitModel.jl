@@ -41,7 +41,10 @@ end
     settings = Settings()
     settings.dataset_type = synthetic_data 
     settings.do_legal_aid = false
-    
+    settings.skiplist = "skiplist"
+    lower_multiple :: Real = 0.10 # these values can be narrowed somewhat, to around 0.25-4.7
+    upper_multiple :: Real = 10.0
+
     settings.run_name="run-$(settings.dataset_type)-$(date_string())"
     sys = [
         get_default_system_for_fin_year(2024; scotland=true), 

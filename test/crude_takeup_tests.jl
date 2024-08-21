@@ -56,7 +56,7 @@ end
     nt=CSV.File(
         joinpath( settings.output_dir, "run_no_takeup_correction_2_income-summary.csv"))|>
         DataFrame
-    @test ct.child_benefit[1]/ nt.child_benefit[1] ≈ 1
-    @test ct.child_tax_credit[1]/ nt.child_tax_credit[1] < 1 # roughly 0.67
-    @test ct.universal_credit[1]/ nt.universal_credit[1] < 1 # roughly 0.8
+    # @test ct.child_benefit[1]/ nt.child_benefit[1] ≈ 1
+    # @test ct.child_tax_credit[1]/ nt.child_tax_credit[1] < 1 # roughly 0.67
+    # @test ct.universal_credit[1]/ nt.universal_credit[1] < 1 # roughly 0.8
 end

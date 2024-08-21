@@ -153,4 +153,14 @@ is_hrp - one per household
 
 add `uhid` as a true unique primary key - was hid which can be duplicated over data_years.
 
+## Relationships Messed Up
+
+fixup_synth_data 
+
+file synthetic_data/skiplist.tab has list of errors
+
+relationships! badly messed up.
+
+## Take 2 - break adults and children into separate files 
+
 

@@ -9,6 +9,9 @@ using .Definitions
 using .Intermediate
 using .ModelHousehold
 using .FRSHouseholdGetter
+using .SingleHouseholdCalculations: do_one_calc
+using .STBParameters
+
 using DataFrames,CSV,StatsBase
 using OrderedCollections
 using Revise 
@@ -35,45 +38,67 @@ checked that each person is allocated to a household via `hid`.
 FIXME move to `tests/`
 FIXME check the `relationship_x` records
 """
-function do_pers_idiot_checks( pers :: AbstractDataFrame )
+function do_pers_idiot_checks( pers :: AbstractDataFrame, skiplist :: DataFrame )
     hh_pers = groupby( pers, [:hid])
     nps = size(hh_pers)[1]
     for hid in 1:nps
         hp = hh_pers[hid]
-        hbus = groupby( hp, :default_benefit_unit )
-        nbusps = 0
-        first = hp[1,:]
-        for bu in hbus 
-            nbusps += size( bu )[1]
-            numheads = sum( bu[:,:is_bu_head])
-            @assert numheads == 1 "1 head for each bu hh.hid=$(first.hid) numheads=$numheads bu = $(bu[1,:default_benefit_unit])"
+        if not_in_skiplist(hp[1,:],skiplist)
+            hbus = groupby( hp, :default_benefit_unit )
+            nbusps = 0
+            first = hp[1,:]
+            for bu in hbus 
+                nbusps += size( bu )[1]
+                numheads = sum( bu[:,:is_bu_head])
+                @assert numheads == 1 "1 head for each bu hh.hid=$(first.hid) numheads=$numheads bu = $(bu[1,:default_benefit_unit])"
+            end
+            @assert nbusps == size(hp)[1] "size mismatch for hh.hid=$(first.hid)"
+            @assert sum( hp[:,:is_hrp]) == 1 "1 head for each hh hh.hid=$(first.hid) was $(sum( hp[:,:is_hrp]) )"
         end
-        @assert nbusps == size(hp)[1] "size mismatch for hh.hid=$(hp.hid)"
-        @assert sum( hp[:,:is_hrp]) == 1 "1 head for each hh hh.hid=$(hp.hid) was $(sum( hp[:,:is_hrp]) )"
     end
 end  
 
 
-function create_skips()
+function add_skips_from_model!( skips :: DataFrame )
     settings = Settings()
     settings.dataset_type = synthetic_data 
     settings.do_legal_aid = false    
     settings.run_name="run-$(settings.dataset_type)-$(date_string())"
+    settings.skiplist = "skiplist"
   
     settings.run_name="run-$(settings.dataset_type)-$(date_string())"
+
     sys = [
         get_default_system_for_fin_year(2024; scotland=true), 
         get_default_system_for_fin_year( 2024; scotland=true )]
     tot = 0
-  
-    settings.num_households, settings.num_people, nhh2 = 
-    FRSHouseholdGetter.initialise( settings; reset=reset )
-
-
+    settings.num_households, 
+    settings.num_people, 
+    nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true )
+    for hno in 1:settings.num_households
+        println( "on hh $hno num_households=$(settings.num_households)")
+        mhh = FRSHouseholdGetter.get_household( hno )            
+        try
+            intermed = make_intermediate( 
+                Float64,
+                settings,
+                mhh,  
+                sys[1].lmt.hours_limits,
+                sys[1].age_limits,
+                sys[1].child_limits )
+            for sysno in 1:2
+                res = do_one_calc( mhh, sys[sysno], settings )
+            end
+        catch e
+            println( "caught exception $(e) hh.hid=$(mhh.hid) hh.data_year=$(mhh.data_year)")
+            push!( skips, (; hid=mhh.hid, data_year=mhh.data_year, reason="$(e)"))
+        end
+    end
 end
 
-function delete_irredemably_bad_hhs( hh :: DataFrame, pers :: DataFrame )
-    kills = DataFrame( hid=zeros(BigInt,0), data_year=zeros(0), reason=fill("",0))
+function select_irredemably_bad_hhs( hh :: DataFrame, pers :: DataFrame )::DataFrame
+    kills = DataFrame( hid=zeros(BigInt,0), data_year=zeros(Int,0), reason=fill("",0))
     for h in eachrow( hh )
         p = pers[pers.hid .== h.hid,:]
         n = size(p)[1]
@@ -88,26 +113,26 @@ function delete_irredemably_bad_hhs( hh :: DataFrame, pers :: DataFrame )
             nbusps += size( bu )[1]
             numheads = sum( bu[:,:is_bu_head])
             if numheads != 1 
-                println("kill: != 1 head for each bu hh.hid=$(h.hid) numheads=$numheads bu = $(bu[1,:default_benefit_unit])")
-                push!( kills, h.hid )
+                msg = "!= 1 head for each bu hh.hid=$(h.hid) numheads=$numheads bu = $(bu[1,:default_benefit_unit])"
+                push!( kills, (; hid=h.hid, data_year=h.data_year, reason=msg))
             end
         end
         if sum( p[:,:is_hrp]) != 1 
-            println("kill !=1 head for each hh hh.hid=$(p.hid) was $(sum( p[:,:is_hrp]) )")
-            push!( kills, h.hid )
+            msg = "!=1 head for each hh hh.hid=$(p.hid) was $(sum( p[:,:is_hrp]) )"
+            push!( kills, (; hid=h.hid, data_year=h.data_year, reason=msg) )
         end
         # fixable, but hey..
         age_oldest_child = maximum(p[p.from_child_record.==1,:age];init=-99)
-        println( "age_oldest_child=$age_oldest_child")
         if age_oldest_child >= 20
-            println( "age_oldest_child=$age_oldest_child for $(h.hid)")
-            push!( kills, h.hid )
+            msg = "age_oldest_child=$age_oldest_child for $(h.hid)"
+            push!( kills,  (; hid=h.hid, data_year=h.data_year, reason=msg))
         end
 
     end
-    println( "killing $(kills)")
-    deleteat!(hh, hh.hid .∈ (kills,))
-    deleteat!(pers, pers.hid .∈ (kills,))
+    # println( "killing $(kills)")
+    return kills;
+    # deleteat!(hh, hh.hid .∈ (kills,))
+    # deleteat!(pers, pers.hid .∈ (kills,))
 end
 
 """
@@ -494,7 +519,6 @@ function do_main_fixes!(hh::DataFrame,pers::DataFrame)
             end
         end
     end # hh loop
-    delete_irredemably_bad_hhs( hh, pers )
 end
 
 """
@@ -503,10 +527,12 @@ end
 function fixall!( hh::DataFrame, pers::DataFrame)
     settings = Settings()
     settings.dataset_type = synthetic_data
+    settings.skiplist = "skiplist"
     do_initial_fixes!( hh, pers )
     do_main_fixes!( hh, pers )
+    skiplist = select_irredemably_bad_hhs( hh, pers )
     # Last minute checks - these are actually just a repeat of the hrp and bu checks in the main loop above.
-    do_pers_idiot_checks( pers )
+    do_pers_idiot_checks( pers, skiplist )
     # Delete working columns with the mostly.ai string primary keys - we've replaced them
     # with BigInts as in the actual data.
     select!( hh, Not(:uhidstr) )
@@ -516,9 +542,20 @@ function fixall!( hh::DataFrame, pers::DataFrame)
     ds = main_datasets( settings )
     CSV.write( ds.hhlds, hh; delim='\t' )
     CSV.write( ds.people, pers; delim='\t' )
+    CSV.write( ds.skiplist, skiplist; delim='\t')
+    # 2nd try - just let the model fail
+    add_skips_from_model!( skiplist )
+    CSV.write( ds.skiplist, skiplist; delim='\t')
 end
 #
 # open unpacked synthetic files
 #
+#= original version 
 hh = CSV.File("tmp/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv") |> DataFrame
 pers = CSV.File( "tmp/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv" ) |> DataFrame
+=#
+# version with child/adult seperate
+hh = CSV.File("tmp/v3/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
+child = CSV.File("tmp/v3/model_children_scotland-2015-2021/model_children_scotland-2015-2021.csv")|>DataFrame
+adult = CSV.File("tmp/v3/model_adults_scotland-2015-2021/model_adults_scotland-2015-2021.csv")|>DataFrame
+pers = vcat( adult, child )

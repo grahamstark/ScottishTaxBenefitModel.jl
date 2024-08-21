@@ -43,6 +43,7 @@ module RunSettings
         actual_data,
         synthetic_data,
         data_dir,
+        get_skiplist,
 
         get_all_uk_settings_2023
         
@@ -138,6 +139,7 @@ module RunSettings
         export_full_results = false
         do_dodgy_takeup_corrections = false
         dataset_type = actual_data 
+        skiplist = ""
     end
 
     function data_dir( settings :: Settings ) :: String
@@ -159,6 +161,7 @@ module RunSettings
         return ( 
             hhlds = joinpath( dd, settings.household_name*".tab" ),
             people = joinpath( dd, settings.people_name*".tab" ),
+            skiplist = joinpath( dd, settings.skiplist*".tab" )
         )
     end
 

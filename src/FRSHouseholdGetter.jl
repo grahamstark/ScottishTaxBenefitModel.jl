@@ -7,7 +7,7 @@ module FRSHouseholdGetter
     # 
 
     using CSV
-    using DataFrames: DataFrame
+    using DataFrames: DataFrame, DataFrameRow, AbstractDataFrame
     using StatsBase
     
     using ScottishTaxBenefitModel
@@ -41,6 +41,7 @@ module FRSHouseholdGetter
         get_data_years,
         get_household, 
         num_households, 
+        not_in_skiplist,
         get_household_of_person,
         get_interview_years,
         get_regression_dataset, 
@@ -90,7 +91,14 @@ module FRSHouseholdGetter
         data :: DataFrame
     end
 
-
+    function get_skiplist( settings :: Settings )::DataFrame 
+        df = DataFrame( hid=zeros(BigInt,0), data_year=zeros(Int,0), reason=fill("",0))
+        if settings.skiplist != ""
+            fname = main_datasets( settings ).skiplist
+            df = CSV.File( fname )|>DataFrame
+        end
+        return df
+    end
 
     """
     Insert into data a pair of basic deciles in the hh data based on actual pre-model income and eq scale
@@ -140,6 +148,18 @@ module FRSHouseholdGetter
 
     # fixme I don't see how to make this a constant 
     REG_DATA :: DataFrame = DataFrame()
+
+    """
+    This hh not in skiplist
+    """
+    function not_in_skiplist( hr :: DataFrameRow, skiplist :: DataFrame )::Bool
+        if size(skiplist)[1] == 0
+            return true
+        end 
+        sk = skiplist[ (skiplist.data_year .== hr.data_year ) .&
+                  (skiplist.hid .== hr.hid ),:]
+        return size(sk)[1] == 0 # not in skiplist
+    end
     
     """
     Initialise the dataset. If this has already been done, do nothing unless 
@@ -169,46 +189,57 @@ module FRSHouseholdGetter
         if settings.do_legal_aid
             LegalAidData.init( settings; reset = reset )
         end
-        hh_dataset = CSV.File( joinpath(data_dir( settings ),settings.household_name*".tab" )) |> DataFrame
-        people_dataset = CSV.File( joinpath( data_dir( settings ), settings.people_name*".tab")) |> DataFrame
-        npeople = size( people_dataset)[1]
+        skiplist = get_skiplist( settings )
+        ds = main_datasets( settings )
+        hh_dataset = CSV.File( ds.hhlds ) |> DataFrame
+        people_dataset = CSV.File( ds.people ) |> DataFrame
+        npeople = 0; # size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )
         resize!( MODEL_HOUSEHOLDS.weight, nhhlds )
         MODEL_HOUSEHOLDS.weight .= 0
         
         pseq = 0
-        for hseq in 1:nhhlds
-            hh = load_hhld_from_frame( hseq, hh_dataset[hseq,:], people_dataset, FRS, settings )
-            MODEL_HOUSEHOLDS.hhlds[hseq] = hh
-            if settings.wealth_method == matching 
-                WealthData.find_wealth_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
-            end
-            uprate!( hh, settings )
-            if( settings.indirect_method == matching ) && (settings.do_indirect_tax_calculations)
-                ConsumptionData.find_consumption_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
-                if settings.impute_fields_from_consumption
-                    ConsumptionData.impute_stuff_from_consumption!(hh,settings)
+        hseq = 0
+        dseq = 0
+        for hdata in eachrow( hh_dataset )            
+            if not_in_skiplist( hdata, skiplist )
+                hseq += 1
+                hh = load_hhld_from_frame( dseq, hdata, people_dataset, FRS, settings )
+                npeople += num_people(hh)
+                MODEL_HOUSEHOLDS.hhlds[hseq] = hh
+                if settings.wealth_method == matching 
+                    WealthData.find_wealth_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
                 end
-            end
+                uprate!( hh, settings )
+                if( settings.indirect_method == matching ) && (settings.do_indirect_tax_calculations)
+                    ConsumptionData.find_consumption_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
+                    if settings.impute_fields_from_consumption
+                        ConsumptionData.impute_stuff_from_consumption!(hh,settings)
+                    end
+                end
 
-            pseqs = []
-            for pid in keys(hh.people)
-                pseq += 1
-                push!( pseqs, pseq )
-                MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = OnePos(hseq,pseq)
-            end
-            MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = HHPeople( hseq, pseqs)
-            if ! (hh.data_year in MODEL_HOUSEHOLDS.data_years )
-                push!( MODEL_HOUSEHOLDS.data_years, hh.data_year )
-            end
-            if settings.do_legal_aid
-                LegalAidData.add_la_probs!( hh )
-            end
-            if ! (hh.interview_year in MODEL_HOUSEHOLDS.interview_years )
-                push!( MODEL_HOUSEHOLDS.interview_years, hh.interview_year )
-            end
+                pseqs = []
+                for pid in keys(hh.people)
+                    pseq += 1
+                    push!( pseqs, pseq )
+                    MODEL_HOUSEHOLDS.pers_map[OneIndex( pid, hh.data_year )] = OnePos(hseq,pseq)
+                end
+                MODEL_HOUSEHOLDS.hh_map[OneIndex( hh.hid, hh.data_year )] = HHPeople( hseq, pseqs)
+                if ! (hh.data_year in MODEL_HOUSEHOLDS.data_years )
+                    push!( MODEL_HOUSEHOLDS.data_years, hh.data_year )
+                end
+                if settings.do_legal_aid
+                    LegalAidData.add_la_probs!( hh )
+                end
+                if ! (hh.interview_year in MODEL_HOUSEHOLDS.interview_years )
+                    push!( MODEL_HOUSEHOLDS.interview_years, hh.interview_year )
+                end
+            end # don't skip
         end
+        resize!( MODEL_HOUSEHOLDS.hhlds, hseq )
+        resize!( MODEL_HOUSEHOLDS.weight, hseq )
+        nhhlds = size( MODEL_HOUSEHOLDS.hhlds )[1]
         # default weighting using current Scotland settings; otherwise do manually
         if settings.auto_weight && settings.target_nation == N_Scotland
             @time weight = generate_weights( 
@@ -224,6 +255,8 @@ module FRSHouseholdGetter
                 MODEL_HOUSEHOLDS.weight[hseq] = MODEL_HOUSEHOLDS.hhlds[hseq].weight
             end
         end
+        # in case we have skipped some
+        
         MODEL_HOUSEHOLDS.dimensions.=
             size(MODEL_HOUSEHOLDS.hhlds)[1],
             npeople,

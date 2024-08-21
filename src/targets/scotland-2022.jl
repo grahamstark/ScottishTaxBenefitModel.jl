@@ -297,7 +297,6 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
                 num_u_16s += 1;
             end
             if pers.sex == Male
-    
                 if( pers.age >= 16 )
                     num_male_ads += 1;
                 end
@@ -398,9 +397,7 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
                     row.f_75_79 += 1
                 else
                     row.f_80_plus += 1
-                end
-    
-    
+                end    
             end # female
             if get(pers.income,attendance_allowance,0.0) > 0 ### sp!!!!!
                 row.aa += 1
@@ -445,7 +442,6 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
                 end
            end
         end
-    
         if is_owner_occupier(hh.tenure)
             # row.owner_occupied = 1
         elseif hh.tenure == Council_Rented

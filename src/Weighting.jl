@@ -94,6 +94,7 @@ function generate_weights(
         nhhlds, 
         initialise_target_dataframe, 
         make_target_row! )
+    # println( data )
     nrows = size( data )[1]
     ncols = size( data )[2]
     ## FIXME parameterise this
