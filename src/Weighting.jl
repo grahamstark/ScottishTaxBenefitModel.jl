@@ -90,13 +90,30 @@ function generate_weights(
     initialise_target_dataframe :: Function = initialise_target_dataframe_scotland_2022,
     make_target_row! :: Function = make_target_row_scotland_2022! ) :: Vector
 
+    function check_data( d, nrows, ncols )
+        zrows = Int[]
+        for r in 1:nrows
+            if sum( d[r,:] ) == 0
+                push!(zrows,r)
+            end
+        end
+        zcols = Int[]
+        @assert length(zrows) == 0 "data has all-zero rows for rows $(zrows)"
+        for c in 1:ncols
+            if sum( d[:,c] ) == 0
+                push!(zcols,c)
+            end
+        end
+        @assert length(zcols) == 0 "data has all-zero cols $(zcols)"
+    end
+
     data :: Matrix = make_target_dataset( 
         nhhlds, 
         initialise_target_dataframe, 
         make_target_row! )
     # println( data )
-    nrows = size( data )[1]
-    ncols = size( data )[2]
+    nrows, ncols = size( data )
+    check_data( data, nrows, ncols )
     ## FIXME parameterise this
     initial_weights = ones(nhhlds)*household_total/nhhlds
     println( "initial_weights $(initial_weights[1])")
