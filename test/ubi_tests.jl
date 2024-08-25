@@ -167,3 +167,27 @@ Only those with incomes less than £125k are entitled to the full benefit
     # toto make_ubi_post_adjustments
 
 end
+
+
+"""
+
+"""
+
+@testset "Conjoint Base Case " begin
+    
+# end function map_features!( tb :: TaxBenefitSystem, facs :: Factors )
+  tb.ubi.abolished = false
+  tb.ubi.mt_bens_treatment = ub_as_is # ub_keep_housing
+      # "Child - £0; Adult - £63; Pensioner - £190"
+      tb.ubi.adult_amount = 63
+      tb.ubi.child_amount = 0
+      tb.ubi.universal_pension = 190
+
+
+      # "Basic rate - 20%; Higher rate - 40%; Additional rate - 45%"
+      tb.it.non_savings_rates = [0.2, 0.4, 0.45 ]
+      tb.ubi.entitlement = ub_ent_all
+      tb.ubi.income_limit = -1.0
+
+  make_ubi_pre_adjustments!( tb )
+end
