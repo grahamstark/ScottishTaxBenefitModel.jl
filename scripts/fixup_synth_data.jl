@@ -91,6 +91,7 @@ function add_skips_from_model!( skips :: DataFrame )
                 res = do_one_calc( mhh, sys[sysno], settings )
             end
         catch e
+            # println( stacktrace())
             println( "caught exception $(e) hh.hid=$(mhh.hid) hh.data_year=$(mhh.data_year)")
             push!( skips, (; hid=mhh.hid, data_year=mhh.data_year, reason="$(e)"))
         end
@@ -558,4 +559,7 @@ pers = CSV.File( "tmp/model_people_scotland-2015-2021/model_people_scotland-2015
 hh = CSV.File("tmp/v3/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
 child = CSV.File("tmp/v3/model_children_scotland-2015-2021/model_children_scotland-2015-2021.csv")|>DataFrame
 adult = CSV.File("tmp/v3/model_adults_scotland-2015-2021/model_adults_scotland-2015-2021.csv")|>DataFrame
+# Not actually needed with current sets but just in case.
+child.from_child_record .= 1
+adult.from_child_record .= 0
 pers = vcat( adult, child )
