@@ -479,12 +479,15 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
                 @assert buno == 1 "head needs to be 1st BU $hh_head_pid"
                 head_pid = person.pid
                 push!( adults, head_pid )
+            elseif person.is_benefit_unit_head
+                head_pid = person.pid
+                push!( adults, head_pid )
             elseif (p == 1) && (buno > 1)
                 head_pid = person.pid
                 push!( adults, head_pid )
             else
                 # println( "on bu $i person $p relationships $(person.relationships)")
-                @assert head_pid > 0 "head pid must be allocated; buno=$buno"
+                @assert head_pid > 0 "head pid must be allocated; buno=$buno person $(person.pid) relationships $(person.relationships)"
                 hp = (buno == 1) ? hh_head_pid : head_pid
                 reltohead = person.relationships[hp]
                 if reltohead in [Spouse,Cohabitee,Civil_Partner]
