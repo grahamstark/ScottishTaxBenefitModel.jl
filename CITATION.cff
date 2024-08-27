@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: Scotben - A Tax Benefit Model For Scotland
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Graham
+    family-names: Stark
+    email: graham.stark@virtual-worlds.scot
+    orcid: 'https://orcid.org/0000-0002-4740-8711'
+repository-code: 'https://github.com/grahamstark/ScottishTaxBenefitModel.jl/'
+abstract: >-
+  This is a Tax Benefit Model for Scotland. To my knowledge,
+  this is the first model specifically built for Scotland,
+  and the first fully Open Source one anywhere. It is
+  designed to use data from the Family Resources Survey,
+  possibly augmented by other datasets later on.
+keywords:
+  - microsimulation
+  - economics
+  - taxation
+  - benefits
+license: MIT

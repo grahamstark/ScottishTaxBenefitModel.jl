@@ -1,0 +1,23 @@
+using StatsBase,CSV,DataFrames
+
+cj = CSV.File( "/mnt/data/Northumbria/conjoint/Data and R code/conjointdata.csv") |> DataFrame
+
+100*collect(values(countmap(cj."Ethnicity simplified")))./n
+# 77% white
+
+100*collect(values(countmap(cj."Sex")))./n
+
+# 43% M/F 
+
+100*collect(values(countmap(cj."vote.last")))./n
+
+# 25% conservative 35% Labour 17% non-voting
+
+# non voter adj
+q = 1/(1-((1710+2400+30+810)/n))
+
+q .* 100*collect(values(countmap(cj."vote.last")))./n
+
+# 44.33 Lab 31.76 Con
+
+
