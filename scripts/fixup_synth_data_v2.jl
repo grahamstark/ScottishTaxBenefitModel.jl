@@ -76,7 +76,7 @@ function nearest_in_age(
     minage = 10000000
     targetp = -1
     for p in allpers
-        if p.pid !== pers.pid
+        if(p.pid !== pers.pid)&&(!p.is_standard_child)
             if (sex == Missing_Sex) || (p.sex == sex )
                 diff = abs(p.age - age )
                 if diff < minage
@@ -218,6 +218,7 @@ end
 
 function assign_ben_units!(pers :: Vector{MiniPers}, stats::NamedTuple  )
     n = length(pers)
+    @show stats
     if stats.num_children > 0
         if stats.num_adults == 1
             pers[1].default_benefit_unit = 1
@@ -266,6 +267,59 @@ function assign_ben_units!(pers :: Vector{MiniPers}, stats::NamedTuple  )
 end
 
 """
+If A is child of B, and C is child of B, B and C are siblings
+"""
+function relationship_from_rel1( r1::Relationship, r2::Relationship )::Relationship
+    @argcheck is_dependent_child(r1) && is_dependent_child(r2)
+    if r1 == Son_or_daughter_incl_adopted
+        return if r2 == Son_or_daughter_incl_adopted
+            Brother_or_sister_incl_adopted
+        elseif r2 == Foster_child
+            Foster_brother_or_sister
+        elseif r2 == Step_son_or_daughter
+            Step_brother_or_sister
+        end
+    elseif r1 == Step_son_or_daughter
+        return if r2 == Son_or_daughter_incl_adopted
+            Step_brother_or_sister
+        elseif r2 == Foster_child
+            Foster_brother_or_sister
+        elseif r2 == Step_son_or_daughter
+            Brother_or_sister_incl_adopted            
+        end
+    elseif r1 == Foster_child
+        return if r2 == Son_or_daughter_incl_adopted
+            Foster_brother_or_sister
+        elseif r2 == Foster_child
+            Brother_or_sister_incl_adopted                        
+        elseif r2 == Step_son_or_daughter
+            Step_brother_or_sister
+        end
+    end
+end
+#=
+
+   Step_son_or_daughter = 4
+   Foster_child = 5
+   Son_in_law_or_daughter_in_law = 6
+   Parent = 7
+   Step_parent = 8
+   Foster_parent = 9
+   Parent_in_law = 10
+   Brother_or_sister_incl_adopted = 11
+   Step_brother_or_sister = 12
+   Foster_brother_or_sister = 13
+   Brother_or_sister_in_law = 14
+   Grand_child = 15
+   Grand_parent = 16
+   Other_relative = 17
+   Other_non_relative = 18
+   Civil_Partner = 20
+   
+=#
+
+
+"""
 All children in bu 1. All adults in bu 1
 """
 function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple )
@@ -289,31 +343,78 @@ function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
         child = pers[cn]
         child.relationships[cn] = This_Person
         for pn in parents
-            relationship_to_parent = sample( [
-                Foster_child,
-                Step_son_or_daughter,
-                Son_or_daughter_incl_adopted], 
-                weights( [0.025, 0.025, 0.95 ]))
+            parents_relationship_to_child = sample( [
+                Parent,
+                Foster_parent,
+                Step_parent], 
+                weights( [0.95, 0.025, 0.025 ]))
             parent = pers[pn]
-            parent.relationships[cn] = relationship_to_parent
+            parent.relationships[cn] = parents_relationship_to_child
         end
     end
-    pretty_table( rel_matrix(pers) )
-    
+    println( "parents = $parents children=$children non_family=$non_family")
+    # child->parent
     for cn in children
         child = pers[cn]
         for pn in parents
             parent = pers[pn]
-            for r in 1:n
-                println( "r=$r pn=$pn")
-                if r != pn
-                    child.relationships[r] = 
-                        one_generation_relationship( ; 
-                            relationship_to_parent = reciprocal_relationship(parent.relationships[pn]),
-                            parents_relationship_to_person = parent.relationships[r])
+            child.relationships[pn] = reciprocal_relationship(parent.relationships[cn])
+        end
+    end
+
+    # child->child
+    parent = pers[parents[1]]
+    for c1 in children
+        child1 = pers[c1]
+        for c2 in children
+            child2 = pers[c2]
+            if c1 != c2 
+                child1.relationships[c2] = reciprocal_relationship(parent.relationships[c1])
+                child2.relationships[c1] = child1.relationships[c2]
+            end
+        end
+    end
+    for nf in non_family
+        nfp = pers[nf]
+        for cn in children
+            child = pers[cn]
+            #nfp.relationships[cn] = 
+        end
+    end
+
+    pretty_table( rel_matrix(pers) )
+
+    # child -> child relationships, from 1st col which should always be rel to bu head
+    reltop1 = []
+    buhead = parents[1]
+    for p in pers
+        push!( reltop1, p.relationships[buhead])
+    end
+    for i in 1:n
+        for j in 1:n
+            if i != j
+                if is_dependent_child(reltop1[i])&&(is_dependent_child(reltop1[j]))
+                    rel = relationship_from_rel1( reltop1[i], reltop1[j] )
+                    pers[i].relationships[j] = rel
                 end
             end
         end
+    end
+
+    for nf in non_family
+        for cn in children
+            rel1 = pers[cn].relationships[buhead]
+            rel2 = pers[nf].relationships[buhead]
+            println( "rel1=$rel1 rel2=$rel2")
+            nfrel = one_generation_relationship( 
+                relationship_to_parent=rel1, 
+                parents_relationship_to_person=rel2)
+            pers[nf].relationships[cn] = nfrel
+            pers[cn].relationships[nf] = reciprocal_relationship(nfrel)
+        end
+    end
+
+    #=    
         # non 1st bu people. Nearest they can be is sibling, then othen
         for nf in non_family
             nfp = pers[nf]
@@ -333,12 +434,13 @@ function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
                     relationship_to_parent = nfp.relationships[1],
                     parents_relationship_to_person = child.relationships[nf])
             elseif is_rel_of_parent 
-                Other_Relative
+                Other_non_relative
             else
-                Non_Relative
+                Other_non_relative
             end
         end
     end
+    =#
     # non bu relationships
 end
 
@@ -348,7 +450,7 @@ function writeback!( hp :: AbstractDataFrame, pers  :: Vector{MiniPers})
 end 
 
 function fixup_one_family!( h :: DataFrameRow, hp :: AbstractDataFrame )
-    sort!( hp, [:age, :from_child_record],rev=true)
+    sort!( hp, [:age, :from_adult_record],rev=true)
     pers = all_mini_pers( h, hp )
     stats = basic_stats( hp )
     assign_adult_relationships!( pers, stats )
@@ -364,6 +466,8 @@ end
 function fixall!( hhs :: DataFrame, pers :: DataFrame )
     nps = size(hhs)[1]
     hh_pers = groupby( pers, [:hid])
+    pers.from_adult_record = pers.from_child_record .== false
+    # nps = 12
     for hid in 1:nps
         thishh = hh[hh.hid.==hid,:][1,:]
         fixup_one_family!( thishh, hh_pers[hid] )

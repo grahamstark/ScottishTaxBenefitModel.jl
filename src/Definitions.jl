@@ -1477,6 +1477,9 @@ is_other_relative( r :: Relationship ) = r in [
 is_non_relative( r :: Relationship ) = r == Other_non_relative
 is_not_immediate_family( r :: Relationship ) = is_other_relative(r)||is_non_relative(r)||(r == Missing_Relationship)
 
+
+
+
 """
 If x is the son of y, y is the parent of x.
 """
@@ -1519,6 +1522,8 @@ function reciprocal_relationship( relationship :: Relationship ) :: Relationship
       @assert false "unmapped $relationship"
    end 
 end
+
+
 
 """
 This convoluted code answers(??) questions like:
@@ -1565,7 +1570,7 @@ function one_generation_relationship( ;
       elseif parents_relationship_to_person == Other_non_relative
          Other_non_relative
       end
-   elseif relationship_to_parent == Foster_brother_or_sister
+   elseif relationship_to_parent == Foster_child # Foster_brother_or_sister
       return if parents_relationship_to_person == This_Person
          Foster_brother_or_sister
       elseif is_partner(parents_relationship_to_person)
