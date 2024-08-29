@@ -6,6 +6,7 @@ using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
 using Parameters
 using JSON3
+using ArgCheck
 using Preferences 
 import Base.sum
 
@@ -1447,7 +1448,8 @@ export is_partner,
    is_other_relative, 
    is_non_relative,
    is_not_immediate_family,
-   reciprocal_relationship
+   reciprocal_relationship,
+   one_generation_relationship
 
 is_partner( r :: Relationship ) = r in [
    Spouse,
@@ -1475,6 +1477,9 @@ is_other_relative( r :: Relationship ) = r in [
 is_non_relative( r :: Relationship ) = r == Other_non_relative
 is_not_immediate_family( r :: Relationship ) = is_other_relative(r)||is_non_relative(r)||(r == Missing_Relationship)
 
+"""
+If x is the son of y, y is the parent of x.
+"""
 function reciprocal_relationship( relationship :: Relationship ) :: Relationship
    return if relationship == This_Person 
       This_Person 
@@ -1513,6 +1518,105 @@ function reciprocal_relationship( relationship :: Relationship ) :: Relationship
    else 
       @assert false "unmapped $relationship"
    end 
+end
+
+"""
+This convoluted code answers(??) questions like:
+'if x is the son of y, and y is the brother of z, what is 
+the relation of x to z?'
+This is useful for artificially generating households or fixing up synthetic data.
+"""
+function one_generation_relationship( ; 
+   relationship_to_parent :: Relationship,
+   parents_relationship_to_person :: Relationship ) :: Relationship
+   @argcheck relationship_to_parent in [
+      Foster_child,
+      Step_son_or_daughter,
+      Son_or_daughter_incl_adopted,
+      Missing_Relationship]
+   println("relationship_to_parent=$relationship_to_parent parents_relationship_to_person=$parents_relationship_to_person")
+   if relationship_to_parent == Missing_Relationship # not related: just return
+      return parents_relationship_to_person
+   elseif relationship_to_parent == Son_or_daughter_incl_adopted
+      return if parents_relationship_to_person == This_Person
+         Son_or_daughter_incl_adopted
+      elseif is_partner(parents_relationship_to_person)
+         Son_or_daughter_incl_adopted
+      elseif parents_relationship_to_person == Son_or_daughter_incl_adopted
+         Brother_or_sister_incl_adopted
+      elseif parents_relationship_to_person == Foster_child
+         Foster_brother_or_sister
+      elseif parents_relationship_to_person == Step_son_or_daughter
+         Step_brother_or_sister
+      elseif parents_relationship_to_person == Parent
+         Grand_child
+      elseif parents_relationship_to_person in [
+         Foster_parent,
+         Parent_in_law,
+         Brother_or_sister_incl_adopted,
+         Step_brother_or_sister,
+         Foster_brother_or_sister,
+         Brother_or_sister_in_law,
+         Grand_child,
+         Grand_parent,
+         Other_relative]
+         Other_relative 
+      elseif parents_relationship_to_person == Other_non_relative
+         Other_non_relative
+      end
+   elseif relationship_to_parent == Foster_brother_or_sister
+      return if parents_relationship_to_person == This_Person
+         Foster_brother_or_sister
+      elseif is_partner(parents_relationship_to_person)
+         Foster_brother_or_sister
+      elseif parents_relationship_to_person == Son_or_daughter_incl_adopted
+         Foster_brother_or_sister # ??
+      elseif parents_relationship_to_person == Foster_child
+         Brother_or_sister_incl_adopted # not neccesarily
+      elseif parents_relationship_to_person == Step_son_or_daughter
+         Step_brother_or_sister
+      elseif parents_relationship_to_person in [
+         Parent,
+         Foster_parent,
+         Parent_in_law,
+         Brother_or_sister_incl_adopted,
+         Step_brother_or_sister,
+         Foster_brother_or_sister,
+         Brother_or_sister_in_law,
+         Grand_child,
+         Grand_parent,
+         Other_relative]
+         Other_relative 
+      elseif parents_relationship_to_person == Other_non_relative
+         Other_non_relative
+      end
+   elseif relationship_to_parent == Step_son_or_daughter
+      return if parents_relationship_to_person == This_Person
+         Step_son_or_daughter
+      elseif is_partner(parents_relationship_to_person)
+         Son_or_daughter_incl_adopted # step of one, son of other
+      elseif parents_relationship_to_person == Son_or_daughter_incl_adopted
+         Step_brother_or_sister # ??
+      elseif parents_relationship_to_person == Foster_child
+         Other_Relative # not neccesarily
+      elseif parents_relationship_to_person == Step_son_or_daughter
+         Brother_or_sister_incl_adopted # needn't always be
+      elseif parents_relationship_to_person in [
+         Parent,
+         Foster_parent,
+         Parent_in_law,
+         Brother_or_sister_incl_adopted,
+         Step_brother_or_sister,
+         Foster_brother_or_sister,
+         Brother_or_sister_in_law,
+         Grand_child,
+         Grand_parent,
+         Other_relative]
+         Other_relative 
+      elseif parents_relationship_to_person == Other_non_relative
+         Other_non_relative
+      end
+   end
 end
    
 export Employment_Type  # mapped from etype
