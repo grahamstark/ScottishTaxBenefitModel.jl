@@ -298,15 +298,20 @@ function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
             parent.relationships[cn] = relationship_to_parent
         end
     end
+    pretty_table( rel_matrix(pers) )
+    
     for cn in children
         child = pers[cn]
         for pn in parents
             parent = pers[pn]
             for r in 1:n
-                child.relationships[r] = 
-                    one_generation_relationship( ; 
-                        relationship_to_parent = parent.relationships[cn],
-                        parents_relationship_to_person = parent.relationships[r])
+                println( "r=$r pn=$pn")
+                if r != pn
+                    child.relationships[r] = 
+                        one_generation_relationship( ; 
+                            relationship_to_parent = reciprocal_relationship(parent.relationships[pn]),
+                            parents_relationship_to_person = parent.relationships[r])
+                end
             end
         end
         # non 1st bu people. Nearest they can be is sibling, then othen

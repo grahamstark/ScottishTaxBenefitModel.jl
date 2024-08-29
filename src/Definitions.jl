@@ -1530,6 +1530,7 @@ function one_generation_relationship( ;
    relationship_to_parent :: Relationship,
    parents_relationship_to_person :: Relationship ) :: Relationship
    @argcheck relationship_to_parent in [
+      # This_Person,
       Foster_child,
       Step_son_or_daughter,
       Son_or_daughter_incl_adopted,
