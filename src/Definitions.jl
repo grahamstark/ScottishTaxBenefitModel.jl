@@ -1530,6 +1530,8 @@ This convoluted code answers(??) questions like:
 'if x is the son of y, and y is the brother of z, what is 
 the relation of x to z?'
 This is useful for artificially generating households or fixing up synthetic data.
+
+FIXME: this needs checked and rethought.
 """
 function one_generation_relationship( ; 
    relationship_to_parent :: Relationship,
@@ -1540,6 +1542,7 @@ function one_generation_relationship( ;
       Step_son_or_daughter,
       Son_or_daughter_incl_adopted,
       Missing_Relationship]
+
    println("relationship_to_parent=$relationship_to_parent parents_relationship_to_person=$parents_relationship_to_person")
    if relationship_to_parent == Missing_Relationship # not related: just return
       return parents_relationship_to_person
@@ -1554,6 +1557,8 @@ function one_generation_relationship( ;
          Foster_brother_or_sister
       elseif parents_relationship_to_person == Step_son_or_daughter
          Step_brother_or_sister
+      elseif parents_relationship_to_person == Son_in_law_or_daughter_in_law
+         Brother_or_sister_in_law
       elseif parents_relationship_to_person == Parent
          Grand_child
       elseif parents_relationship_to_person in [
@@ -1565,6 +1570,7 @@ function one_generation_relationship( ;
          Brother_or_sister_in_law,
          Grand_child,
          Grand_parent,
+         Step_parent,
          Other_relative]
          Other_relative 
       elseif parents_relationship_to_person == Other_non_relative
@@ -1588,15 +1594,17 @@ function one_generation_relationship( ;
          Brother_or_sister_incl_adopted,
          Step_brother_or_sister,
          Foster_brother_or_sister,
+         Son_in_law_or_daughter_in_law,
          Brother_or_sister_in_law,
          Grand_child,
          Grand_parent,
+         Step_parent,
          Other_relative]
          Other_relative 
       elseif parents_relationship_to_person == Other_non_relative
          Other_non_relative
       end
-   elseif relationship_to_parent == Step_son_or_daughter
+   elseif relationship_to_parent == Step_son_or_daughter      
       return if parents_relationship_to_person == This_Person
          Step_son_or_daughter
       elseif is_partner(parents_relationship_to_person)
@@ -1617,6 +1625,8 @@ function one_generation_relationship( ;
          Brother_or_sister_in_law,
          Grand_child,
          Grand_parent,
+         Step_parent,
+         Son_in_law_or_daughter_in_law,
          Other_relative]
          Other_relative 
       elseif parents_relationship_to_person == Other_non_relative

@@ -47,6 +47,12 @@ function all_mini_pers( h :: DataFrameRow, hp :: AbstractDataFrame )::Vector{Min
         pid = get_pid( SyntheticSource, h.data_year, h.hid, pno )
         rels = fill(Missing_Relationship,n)
         rels[pno] = This_Person
+        inc = 0.0
+        if r.from_child_record == 0
+            inc = r.income_wages +
+                r.income_self_employment_income - 
+                r.income_self_employment_losses
+        end
         p = MiniPers(
                 r.hid,
                 pid, # pid
@@ -61,9 +67,9 @@ function all_mini_pers( h :: DataFrameRow, hp :: AbstractDataFrame )::Vector{Min
                 Missing_Marital_Status,
                 rels,
                 Missing_Relationship,
-                0.0 )
+                inc )
         push!( m, p )
-        
+        println(inc)
     end
     return m
 end
@@ -98,6 +104,9 @@ function basic_stats( hp :: AbstractDataFrame  ) :: NamedTuple
     oldest = maximum( hp.age ),
     youngest = minimum( hp.age ),
     oldest_adult = maximum(  hp[hp.from_child_record.==0,:age] ),
+    pos_oldest = findmax( hp[hp.from_child_record.==0,:age])[2],
+    highest_earner = findmax( hp[hp.from_child_record.==0,:income_wages])[2],
+    highest_wage = findmax( hp[hp.from_child_record.==0,:income_wages])[1],
     youngest_adult = minimum(  hp[hp.from_child_record.==0,:age]))
 end
 
@@ -128,8 +137,8 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
                 agediff = p1.age - p2.age
                 println( "; agediff = $agediff")
                 if abs(agediff) < 25
-                    if p1.marital_status != Married_or_Civil_Partnership
-                        probs = Weights([1,0,0,0,0,0,0,0,0])
+                    if p1.marital_status != Married_or_Civil_Partnership # not already married off
+                        probs = Weights([0.8,0.1,0.1,0,0,0,0,0,0])
                         if p1.sex == p2.sex
                             probs = Weights([0.1,0.1,0.1,0.1,0.1,0.2,0.1,0.1,0.1])
                         end
@@ -159,6 +168,7 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
                         
                     end
                 elseif agediff >= 25 # p1 at least 25 years older than p2
+                    # since rels are reciprocal we just need one??
                     assign_relationships!(p1, p2, 
                         [Parent, 
                         Grand_parent,
@@ -167,16 +177,19 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
                         Parent_in_law,
                         Other_relative, 
                         Other_non_relative ],
-                        Weights([1,0,0,0,0,0,0]))
+                        Weights([0.5,0.1,0.05,0.0,0.05,0.2,0.1]))
 
                 elseif agediff <= -25
-                    assign_relationships!(p1, p2, 
-                        [Foster_child,
-                        Step_son_or_daughter,
-                        Son_or_daughter_incl_adopted,
+                    # same but backwards
+                    assign_relationships!(p2, p1, 
+                        [Parent, 
+                        Grand_parent,
+                        Step_parent,
+                        Foster_parent,
+                        Parent_in_law,
                         Other_relative, 
                         Other_non_relative ],
-                        Weights([0,0,0,0.5,0.5]))
+                        Weights([0.5,0.1,0.05,0.0,0.05,0.2,0.1]))
                 end
             end
         end
@@ -188,9 +201,13 @@ function rel_matrix( pers :: Vector{MiniPers} )::Matrix
     v = fill(Missing_Relationship,n,n)
     pnos = fill(0,n)
     ages = fill(0,n)
+    buheads = fill(false,n)
+    hhheads = fill(false,n)
     benunits = fill(0,n)
     sexes = fill(Missing_Sex,n)
     ischild = fill(false, n)
+    marrstat = fill( Missing_Marital_Status,n)
+    incomes = zeros(n)
     r = 0
     for p in pers
         r += 1
@@ -200,10 +217,48 @@ function rel_matrix( pers :: Vector{MiniPers} )::Matrix
         pnos[r] = p.pno
         ages[r] = p.age
         sexes[r] = p.sex
+        marrstat[r] = p.marital_status
+        hhheads[r] = p.is_hrp
+        buheads[r] = p.is_benefit_unit_head
+        marrstat[r] = p.marital_status
         benunits[r] = p.default_benefit_unit
         ischild[r] = p.is_standard_child
+        incomes[r] = p.income
     end
-    hcat( pnos, ages, sexes, ischild, benunits, v )
+    hcat( pnos, ages, sexes, ischild, benunits, hhheads, buheads, marrstat, incomes, v )
+end
+
+function pretty_print( pers :: Vector{MiniPers})
+    n = length(pers)
+    relations = fill("Rel_",n)
+    for i in 1:n
+        relations[i] *= "$i"
+    end
+    header=["pnos", "ages", "sexes", "ischild", "benunits", "hhheads", "buheads", "marrstat", "incomes", relations...]
+    pretty_table( rel_matrix(pers), header=header )
+end 
+
+
+function idiotchecks( pers :: Vector{MiniPers} )
+    nhrps = 0
+    maxbu = -1
+    n = length(pers)
+    nbu_heads = zeros(n)
+    for p in pers 
+        if p.is_hrp 
+            nhrps += 1
+        end
+        b = p.default_benefit_unit
+        if p.is_benefit_unit_head
+            nbu_heads[b] += 1
+        end
+        maxbu = max(maxbu, b )
+        @assert all(m->m !=Missing_Relationship, p.relationships )
+        @assert all(b->b > 0, p.default_benefit_unit )
+    end
+    @assert nhrps == 1
+    @assert maxbu >= 1
+    @assert all( b->b==1, nbu_heads[1:maxbu])
 end
 
 function married_to( pers :: MiniPers )::Int
@@ -297,27 +352,48 @@ function relationship_from_rel1( r1::Relationship, r2::Relationship )::Relations
         end
     end
 end
-#=
 
-   Step_son_or_daughter = 4
-   Foster_child = 5
-   Son_in_law_or_daughter_in_law = 6
-   Parent = 7
-   Step_parent = 8
-   Foster_parent = 9
-   Parent_in_law = 10
-   Brother_or_sister_incl_adopted = 11
-   Step_brother_or_sister = 12
-   Foster_brother_or_sister = 13
-   Brother_or_sister_in_law = 14
-   Grand_child = 15
-   Grand_parent = 16
-   Other_relative = 17
-   Other_non_relative = 18
-   Civil_Partner = 20
-   
-=#
+function assign_heads!( pers :: Vector{MiniPers}, stats::NamedTuple)
+    hrp = if stats.highest_wage > 0 # fixme not wage
+        stats.highest_earner
+    else
+        stats.pos_oldest
+    end
+    println("hrp=$hrp")
+    pers[hrp].is_hrp = true
+    # allocate bu heads on income and then age 
+    # next is 1 line using a dataframe, but hey ho.
+    n = length(pers)
+    maxbu = zeros(n,4)
+    nbu = 0
+    for p in pers
+        if ! p.is_standard_child
+            b = p.default_benefit_unit
+            if p.age > maxbu[b,2]
+                maxbu[b,1] = p.pno
+                maxbu[b,2] = p.age
+            end
+            if p.income > maxbu[b,4]
+                maxbu[b,3] = p.pno
+                maxbu[b,4] = p.income
+            end
+            nbu = max(b,nbu)
+        end
+    end
+    pretty_table(maxbu)
+    for b in 1:nbu 
+        buh = Int(if maxbu[b,4] > 0
+            maxbu[b,3]
+        else
+            maxbu[b,1]
+        end)
+        pers[buh].is_benefit_unit_head = true
+    end
+end
 
+function assign_marital_statuses!( pers :: Vector{MiniPers}, stats::NamedTuple)
+
+end
 
 """
 All children in bu 1. All adults in bu 1
@@ -374,6 +450,8 @@ function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
             end
         end
     end
+
+    #=
     for nf in non_family
         nfp = pers[nf]
         for cn in children
@@ -381,8 +459,7 @@ function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
             #nfp.relationships[cn] = 
         end
     end
-
-    pretty_table( rel_matrix(pers) )
+    =#
 
     # child -> child relationships, from 1st col which should always be rel to bu head
     reltop1 = []
@@ -413,37 +490,7 @@ function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
             pers[cn].relationships[nf] = reciprocal_relationship(nfrel)
         end
     end
-
-    #=    
-        # non 1st bu people. Nearest they can be is sibling, then othen
-        for nf in non_family
-            nfp = pers[nf]
-            # brother of the parent => Other_relative of parent's child
-            is_rel_of_parent = false
-            rel_to_bu_1 = []
-            for pn in parents
-                if is_dependent_child( nfp.relationships[pn] )
-                    push!(rel_to_bu_1, pn )
-                elseif is_non_relative(nfp.relationships[pn])
-                    is_rel_of_parent = true
-                end
-            end
-            nfp.relationships[cn] = 
-            if length(rel_to_bu_1)>0  # 2nd is son of bu1 head, etc
-                one_generation_relationship( ; 
-                    relationship_to_parent = nfp.relationships[1],
-                    parents_relationship_to_person = child.relationships[nf])
-            elseif is_rel_of_parent 
-                Other_non_relative
-            else
-                Other_non_relative
-            end
-        end
-    end
-    =#
-    # non bu relationships
 end
-
 
 function writeback!( hp :: AbstractDataFrame, pers  :: Vector{MiniPers})
 
@@ -455,11 +502,14 @@ function fixup_one_family!( h :: DataFrameRow, hp :: AbstractDataFrame )
     stats = basic_stats( hp )
     assign_adult_relationships!( pers, stats )
     assign_ben_units!( pers, stats )
-    pretty_table( rel_matrix(pers) )
+    pretty_print( pers )
     if stats.num_children > 0
         assign_child_relationships!(pers,stats)
     end
-    pretty_table( rel_matrix(pers) )
+    assign_marital_statuses!(pers,stats)
+    assign_heads!(pers,stats)
+    pretty_print( pers )
+    idiotchecks( pers )
     writeback!( hp, pers )
 end
 
@@ -467,7 +517,7 @@ function fixall!( hhs :: DataFrame, pers :: DataFrame )
     nps = size(hhs)[1]
     hh_pers = groupby( pers, [:hid])
     pers.from_adult_record = pers.from_child_record .== false
-    # nps = 12
+    # nps = 5
     for hid in 1:nps
         thishh = hh[hh.hid.==hid,:][1,:]
         fixup_one_family!( thishh, hh_pers[hid] )
