@@ -123,8 +123,9 @@ function assign_relationships!(p1::MiniPers, p2::MiniPers, p1states, freqs::Abst
         p1.relationships[p2.pno] = rel
         p2.relationships[p1.pno] = reciprocal_relationship(rel)
         if is_partner( rel ) # note includes cohabitee
-            p1.marital_status = Married_or_Civil_Partnership
-            p2.marital_status = Married_or_Civil_Partnership
+            mstat = sample( [Married_or_Civil_Partnership, Cohabiting], weights([0.9,0.1]))
+            p1.marital_status = mstat
+            p2.marital_status = mstat
         end
     end
 end
@@ -137,7 +138,7 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
                 agediff = p1.age - p2.age
                 println( "; agediff = $agediff")
                 if abs(agediff) < 25
-                    if p1.marital_status != Married_or_Civil_Partnership # not already married off
+                    if ! is_coupled( p1.marital_status ) # already married off?
                         probs = Weights([0.8,0.1,0.1,0,0,0,0,0,0])
                         if p1.sex == p2.sex
                             probs = Weights([0.1,0.1,0.1,0.1,0.1,0.2,0.1,0.1,0.1])
@@ -254,7 +255,11 @@ function idiotchecks( pers :: Vector{MiniPers} )
         end
         maxbu = max(maxbu, b )
         @assert all(m->m !=Missing_Relationship, p.relationships )
-        @assert all(b->b > 0, p.default_benefit_unit )
+        @assert p.default_benefit_unit > 0
+        if ! p.is_standard_child
+            @assert p.marital_status != Missing_Marital_Status
+        end
+        @assert p.relationship_to_hoh != Missing_Relationship
     end
     @assert nhrps == 1
     @assert maxbu >= 1
@@ -277,13 +282,13 @@ function assign_ben_units!(pers :: Vector{MiniPers}, stats::NamedTuple  )
     if stats.num_children > 0
         if stats.num_adults == 1
             pers[1].default_benefit_unit = 1
-        elseif(stats.num_adults == 2) && (pers[1].marital_status == Married_or_Civil_Partnership)
+        elseif(stats.num_adults == 2) && (is_coupled(pers[1].marital_status))
             pers[1].default_benefit_unit = 1
             pers[2].default_benefit_unit = 1
         else
             p = nearest_in_age( 40, pers )
             pers[p].default_benefit_unit = 1
-            if pers[p].marital_status == Married_or_Civil_Partnership
+            if is_coupled(pers[p].marital_status)
                 q = married_to( pers[p])
                 pers[q].default_benefit_unit = 1
             end
@@ -379,6 +384,7 @@ function assign_heads!( pers :: Vector{MiniPers}, stats::NamedTuple)
             end
             nbu = max(b,nbu)
         end
+        p.relationship_to_hoh = p.relationships[hrp] # no real need for this 
     end
     pretty_table(maxbu)
     for b in 1:nbu 
@@ -389,10 +395,36 @@ function assign_heads!( pers :: Vector{MiniPers}, stats::NamedTuple)
         end)
         pers[buh].is_benefit_unit_head = true
     end
+    
 end
 
-function assign_marital_statuses!( pers :: Vector{MiniPers}, stats::NamedTuple)
+#=
+@enum Marital_Status begin  # mapped from marital
+    Missing_Marital_Status = -1
+    Married_or_Civil_Partnership = 1
+    Cohabiting = 2
+    Single = 3
+    Widowed = 4
+    Separated = 5
+    Divorced_or_Civil_Partnership_dissolved = 6
+ end
+ =#
 
+function assign_marital_statuses!( pers :: Vector{MiniPers}, stats::NamedTuple)
+    for p in pers
+        if (! p.is_standard_child) && (p.marital_status == Missing_Marital_Status)
+            w = if p.age < 40
+                [0.7,0.1,0.1,0.1]
+            elseif p.age < 70
+                [0.6,0.2,0.1,0.1]
+            else
+                [0.4,0.4,0.1,0.1]
+            end
+            p.marital_status = sample( 
+                [Single, Widowed, Separated, Divorced_or_Civil_Partnership_dissolved], 
+                weights(w))
+        end
+    end
 end
 
 """
@@ -493,7 +525,35 @@ function assign_child_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
 end
 
 function writeback!( hp :: AbstractDataFrame, pers  :: Vector{MiniPers})
+@argcheck size(hp)[1] == length(pers)
+    n = length(pers)
+    i = 0
+    for r in eachrow( hp )
+        i += 1
+        p = pers[i]
 
+        @assert r.hid == p.hid "r.hid = $(r.hid) != p.pid=$(p.hid)"
+        r.pid = p.pid
+        r.pno = p.pno
+        r.is_hrp = p.is_hrp ? 1 : 0
+        r.default_benefit_unit = p.default_benefit_unit
+        r.is_bu_head = p.is_benefit_unit_head
+        @assert r.from_child_record == p.is_standard_child 
+        @assert r.age == p.age
+        @assert Sex(r.sex) == p.sex
+        r.marital_status = Int( p.marital_status )
+        for k in 1:15
+            rs = Symbol( "relationship_$k")
+            if eltype( hp[!,rs]) !== Missing # skip all missing vectors
+                r[rs] = -1
+            end
+        end
+        for k in 1:n
+            rs = Symbol( "relationship_$k")
+            r[rs] = Int(p.relationships[k])
+        end
+        r.relationship_to_hoh = Int(p.relationship_to_hoh)
+    end
 end 
 
 function fixup_one_family!( h :: DataFrameRow, hp :: AbstractDataFrame )
@@ -527,4 +587,3 @@ end
 function overwrite_all( hp :: AbstractDataFrame )
     # 1 
 end
-

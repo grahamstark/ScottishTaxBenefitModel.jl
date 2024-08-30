@@ -321,6 +321,7 @@ export Married_or_Civil_Partnership,
        Separated,
        Divorced_or_Civil_Partnership_dissolved
 export Missing_Marital_Status
+export is_coupled
 
 @enum Marital_Status begin  # mapped from marital
    Missing_Marital_Status = -1
@@ -331,6 +332,8 @@ export Missing_Marital_Status
    Separated = 5
    Divorced_or_Civil_Partnership_dissolved = 6
 end
+
+is_coupled( ms :: Marital_Status )::Bool = ms ∈ [Married_or_Civil_Partnership, Cohabiting]
 
 
 export Qualification_Type  # mapped from dvhiqual
