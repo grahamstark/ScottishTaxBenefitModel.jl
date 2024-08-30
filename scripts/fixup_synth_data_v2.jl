@@ -137,9 +137,10 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
             if (! p1.is_standard_child ) && (! p2.is_standard_child ) && (p1.pno != p2.pno)
                 agediff = p1.age - p2.age
                 println( "; agediff = $agediff")
-                if abs(agediff) < 25
+                if abs(agediff) < 25 # FIXME I don't follow my own logic here...
                     if ! is_coupled( p1.marital_status ) # already married off?
-                        probs = Weights([0.8,0.1,0.1,0,0,0,0,0,0])
+                        
+                        probs = Weights([0.9,0.05,0.05,0,0,0,0,0,0])
                         if p1.sex == p2.sex
                             probs = Weights([0.1,0.1,0.1,0.1,0.1,0.2,0.1,0.1,0.1])
                         end
