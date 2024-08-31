@@ -236,7 +236,7 @@ end
                   bits = from_pid( pid )
                   @test pid == pers.pid
                   @test bits.year == hh.data_year
-                  @test bits.datasource == FRS
+                  @test bits.datasource == FRSSource
                   @test bits.hid == hh.hid
             end
             bua_people_count = 0

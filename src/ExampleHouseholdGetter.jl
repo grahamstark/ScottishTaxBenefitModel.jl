@@ -66,7 +66,7 @@ function initialise(
         WealthData.init( settings ) 
     end
     KEYMAP = Vector{AbstractString}()
-    ds = main_datasets( settings )
+    ds = example_datasets( settings )
     hh_dataset = CSV.File( ds.hhlds, delim='\t' ) |> DataFrame
     people_dataset = CSV.File(ds.people, delim='\t' ) |> DataFrame
     npeople = size( people_dataset)[1]

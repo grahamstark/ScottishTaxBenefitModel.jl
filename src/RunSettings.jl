@@ -34,6 +34,7 @@ module RunSettings
         total_bens, 
         total_taxes,
         main_datasets,
+        example_datasets,
 
         PovertyLineSource,
         pl_from_settings, 
@@ -159,6 +160,18 @@ module RunSettings
     function data_dir()::String
         return data_dir( Settings() )
     end
+
+    """
+    Make a tuple with "hhlds=>" and "people=>" with full paths to example datasets.
+    """
+    function example_datasets( settings :: Settings ) :: NamedTuple
+        dd = data_dir( settings )
+        return ( 
+            hhlds = joinpath( dd, "example_households.tab" ),
+            people = joinpath( dd, "example_people.tab" ),
+            skiplist = ""
+        )
+    end  
 
     """
     Make a tuple with "hhlds=>" and "people=>" with full paths to main datasets.

@@ -2025,7 +2025,7 @@ export LMTPremia,LMTPremiaDict, LMTPremiaSet, disabled_child,
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)
 
-export DataSource, FRS, OtherSource, ExampleSource, SyntheticSource
+export DataSource, FRSSource, OtherSource, ExampleSource, SyntheticSource
 
 @enum DataSource begin  # mapped from relhrp
    FRSSource = 1

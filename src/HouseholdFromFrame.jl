@@ -330,7 +330,7 @@ function map_person(
         irel = model_person[relmod]
         if (! ismissing( irel )) & ( irel >= 0 )
             pid = get_pid(
-                ,
+                settings.data_source,
                 model_person.data_year,
                 model_person.hid,
                 i )
