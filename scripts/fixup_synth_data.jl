@@ -32,84 +32,6 @@ STEPS:
 
 =#
 
-
-function add_skips_from_model!( skips :: DataFrame )
-    settings = Settings()
-    settings.dataset_type = synthetic_data 
-    settings.do_legal_aid = false    
-    settings.run_name="run-$(settings.dataset_type)-$(date_string())"
-    settings.skiplist = "skiplist"
-  
-    settings.run_name="run-$(settings.dataset_type)-$(date_string())"
-
-    sys = [
-        get_default_system_for_fin_year(2024; scotland=true), 
-        get_default_system_for_fin_year( 2024; scotland=true )]
-    tot = 0
-    settings.num_households, 
-    settings.num_people, 
-    nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=true )
-    for hno in 1:settings.num_households
-        println( "on hh $hno num_households=$(settings.num_households)")
-        mhh = FRSHouseholdGetter.get_household( hno )            
-        try
-            intermed = make_intermediate( 
-                Float64,
-                settings,
-                mhh,  
-                sys[1].lmt.hours_limits,
-                sys[1].age_limits,
-                sys[1].child_limits )
-            for sysno in 1:2
-                res = do_one_calc( mhh, sys[sysno], settings )
-            end
-        catch e
-            # println( stacktrace())
-            println( "caught exception $(e) hh.hid=$(mhh.hid) hh.data_year=$(mhh.data_year)")
-            push!( skips, (; hid=mhh.hid, data_year=mhh.data_year, reason="$(e)"))
-        end
-    end
-end
-
-function select_irredemably_bad_hhs( hh :: DataFrame, pers :: DataFrame )::DataFrame
-    kills = DataFrame( hid=zeros(BigInt,0), data_year=zeros(Int,0), reason=fill("",0))
-    for h in eachrow( hh )
-        p = pers[pers.hid .== h.hid,:]
-        n = size(p)[1]
-        # all children - killem all
-        if(maximum( p[!,:age]) < 16) && (sum( p[!,:from_child_record]) == n)
-            println( "want to kill $(h.hid)")
-            push!(kills, (; hid=h.hid, data_year=h.data_year, reason="all child hh child "))
-        end
-        hbus = groupby( p, :default_benefit_unit )
-        nbusps = 0
-        for bu in hbus 
-            nbusps += size( bu )[1]
-            numheads = sum( bu[:,:is_bu_head])
-            if numheads != 1 
-                msg = "!= 1 head for each bu hh.hid=$(h.hid) numheads=$numheads bu = $(bu[1,:default_benefit_unit])"
-                push!( kills, (; hid=h.hid, data_year=h.data_year, reason=msg))
-            end
-        end
-        if sum( p[:,:is_hrp]) != 1 
-            msg = "!=1 head for each hh hh.hid=$(p.hid) was $(sum( p[:,:is_hrp]) )"
-            push!( kills, (; hid=h.hid, data_year=h.data_year, reason=msg) )
-        end
-        # fixable, but hey..
-        age_oldest_child = maximum(p[p.from_child_record.==1,:age];init=-99)
-        if age_oldest_child >= 20
-            msg = "age_oldest_child=$age_oldest_child for $(h.hid)"
-            push!( kills,  (; hid=h.hid, data_year=h.data_year, reason=msg))
-        end
-
-    end
-    # println( "killing $(kills)")
-    return kills;
-    # deleteat!(hh, hh.hid .∈ (kills,))
-    # deleteat!(pers, pers.hid .∈ (kills,))
-end
-
 """
 reassign over 21s not in education to non child
 """
@@ -396,7 +318,7 @@ end
 """
 function fixall!( hh::DataFrame, pers::DataFrame)
     settings = Settings()
-    settings.dataset_type = synthetic_data
+    settings.data_source = SyntheticSource
     settings.skiplist = "skiplist"
     do_initial_fixes!( hh, pers )
     do_main_fixes!( hh, pers )

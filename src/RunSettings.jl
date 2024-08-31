@@ -39,9 +39,9 @@ module RunSettings
         pl_from_settings, 
         pl_first_sys,
         pl_current_sys,
-        DatasetType,
-        actual_data,
-        synthetic_data,
+        # DatasetType,
+        # actual_data,
+        # synthetic_data,
         data_dir,
         get_skiplist,
 
@@ -62,7 +62,7 @@ module RunSettings
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
 
-    @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
+    # @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
 
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
@@ -138,12 +138,19 @@ module RunSettings
         legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
         export_full_results = false
         do_dodgy_takeup_corrections = false
-        dataset_type = actual_data 
+        data_source = FRSSource
         skiplist = ""
     end
 
     function data_dir( settings :: Settings ) :: String
-        return joinpath( settings.data_dir, string( settings.dataset_type) )
+        ds = if settings.data_source == FRSSource
+            "actual_data"
+        elseif settings.data_source == ExampleSource
+            "example_data"
+        elseif settings.data_source == SyntheticSource
+            "synthetic_data"
+        end
+        return joinpath( settings.data_dir, ds )
     end
 
     """

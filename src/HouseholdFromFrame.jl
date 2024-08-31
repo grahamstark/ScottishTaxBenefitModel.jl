@@ -246,7 +246,6 @@ end
 function map_person( 
     hh           :: Household, 
     model_person :: DataFrameRow, 
-    source       :: DataSource, 
     settings     :: Settings  )
     income = Dict{Incomes_Type,Float64}()
 
@@ -326,12 +325,12 @@ function map_person(
         end
     end
     relationships = Relationship_Dict()
-    for i in 1:14
+    for i in 1:15
         relmod = Symbol( "relationship_$(i)") # :relationship_10 or :relationship_2
         irel = model_person[relmod]
         if (! ismissing( irel )) & ( irel >= 0 )
             pid = get_pid(
-                source,
+                ,
                 model_person.data_year,
                 model_person.hid,
                 i )
@@ -494,7 +493,6 @@ function load_hhld_from_frame(
     hseq     :: Integer, 
     hhld_fr  :: DataFrameRow, 
     pers_fr  :: DataFrame, 
-    source   :: DataSource, 
     settings :: Settings ) :: Household
     hh = map_hhld( hseq, hhld_fr, settings )
     pers_fr_in_this_hh = pers_fr[((pers_fr.data_year .== hhld_fr.data_year).&(pers_fr.hid .== hh.hid)),:]
@@ -502,7 +500,7 @@ function load_hhld_from_frame(
     @assert npers in 1:19
     head_of_household = -1
     for p in 1:npers
-        pers = map_person( hh, pers_fr_in_this_hh[p,:], source, settings )
+        pers = map_person( hh, pers_fr_in_this_hh[p,:], settings )
         hh.people[pers.pid] = pers
         # println( "pers.pid=$(pers.pid) pers.relationship_to_hoh=$(pers.relationship_to_hoh)")
         if pers.relationship_to_hoh == This_Person

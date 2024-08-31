@@ -55,6 +55,8 @@ function initialise(
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
+    tmpsource =  # hack to work round datasource being wired in to settings
+     = ExampleSource
     println( "DEF_MODEL_DATA_DIR=|$(Definitions.DEF_MODEL_DATA_DIR)| MODEL_DATA_DIR=|$MODEL_DATA_DIR|")
     # lazy load cons data if needs be
     if settings.indirect_method == matching
@@ -73,7 +75,7 @@ function initialise(
         push!( KEYMAP, hhf.name )
         println( "loading $(hhf.name) $(hhf.council)")
         hh = load_hhld_from_frame( 
-            hseq, hhf, people_dataset, ExampleSource, settings )
+            hseq, hhf, people_dataset, settings )
         if( settings.indirect_method == matching ) && (settings.do_indirect_tax_calculations)
             find_consumption_for_example!( hh, settings )
         end
@@ -83,6 +85,7 @@ function initialise(
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
     end
+     = tmpsource
     return KEYMAP
 end
 

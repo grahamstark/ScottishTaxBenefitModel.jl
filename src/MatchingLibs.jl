@@ -2958,7 +2958,7 @@ end
 
 function create_frs_was_matches(dataset_type :: DatasetType = actual_data)
     settings = Settings()
-    settings.dataset_type = dataset_type
+     = dataset_type
     was_dataset = CSV.File(joinpath(data_dir( settings ),settings.wealth_dataset)*".tab")|>DataFrame    
     map_all_was( settings, was_dataset, model_was_match )
 end

@@ -574,8 +574,11 @@ function fixup_one_family!( h :: DataFrameRow, hp :: AbstractDataFrame )
     writeback!( hp, pers )
 end
 
-function fixall!( hhs :: DataFrame, pers :: DataFrame )
-    nps = size(hhs)[1]
+"""
+
+"""
+function rewrite_fam_structures!( hh :: DataFrame, pers :: DataFrame )
+    nps = size(hh)[1]
     hh_pers = groupby( pers, [:hid])
     pers.from_adult_record = pers.from_child_record .== false
     # nps = 5
@@ -585,6 +588,40 @@ function fixall!( hhs :: DataFrame, pers :: DataFrame )
     end
 end
 
+
+function fixall!( hh::DataFrame, pers::DataFrame)
+    settings = Settings()
+    settings.data_source = SyntheticSource
+    settings.skiplist = "skiplist"
+    do_initial_fixes!( hh, pers )
+    rewrite_fam_structures!( hh, pers )
+    skiplist = select_irredemably_bad_hhs( hh, pers )
+    # Last minute checks - these are actually just a repeat of the hrp and bu checks in the main loop above.
+    do_pers_idiot_checks( pers, skiplist )
+    # Delete working columns with the mostly.ai string primary keys - we've replaced them
+    # with BigInts as in the actual data.
+    select!( hh, Not(:uhidstr) )
+    select!( pers, Not( :pidstr ))
+    select!( pers, Not( :uhidstr ))
+    select!( pers, Not( :from_adult_record ))
+    
+    # write synth files to default locations.
+    ds = main_datasets( settings )
+    CSV.write( ds.hhlds, hh; delim='\t' )
+    CSV.write( ds.people, pers; delim='\t' )
+    # CSV.write( ds.skiplist, skiplist; delim='\t')
+    # 2nd try - just let the model fail
+    add_skips_from_model!( skiplist )
+    CSV.write( ds.skiplist, skiplist; delim='\t')
+end
+
+
 function overwrite_all( hp :: AbstractDataFrame )
     # 1 
 end
+
+
+# hh, pers = load_unpacked_files()
+# do_basic_fixes!( hh, pers )
+# fixall!( hh, pers )
+# 

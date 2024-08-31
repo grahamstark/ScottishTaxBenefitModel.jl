@@ -39,17 +39,18 @@ end
 
 @testset "basic run timing" begin
     settings = Settings()
-    settings.dataset_type = synthetic_data 
+    settings.data_source = SyntheticSource 
     settings.do_legal_aid = false
     settings.skiplist = "skiplist"
     lower_multiple :: Real = 0.10 # these values can be narrowed somewhat, to around 0.25-4.7
     upper_multiple :: Real = 10.0
 
-    settings.run_name="run-$(settings.dataset_type)-$(date_string())"
+    settings.run_name="run-$()-$(date_string())"
     sys = [
         get_default_system_for_fin_year(2024; scotland=true), 
         get_default_system_for_fin_year( 2024; scotland=true )]
     tot = 0
+
     summary, results, settings = do_basic_run( settings, sys; reset = true )
     h1 = results.hh[1]
 end

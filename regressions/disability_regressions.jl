@@ -16,8 +16,8 @@ const LOCAL_DATA_DIR = data_dir( settings )
 # !!! For Actual Dataset, UK wide with Scottish dummy
 # For synth data, Scotland only for now!!! 
 #
-settings.dataset_type = synthetic_data # !!! changeme!!! 
-if settings.dataset_type == actual_data
+settings.data_source = SyntheticSource # !!! changeme!!! 
+if settings.data_source == FRS
   settings.household_name = "model_households-2015-2021.tab"
   settings.people_name = "model_people-2015-2021.tab"
 end

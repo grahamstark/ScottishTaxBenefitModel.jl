@@ -205,7 +205,7 @@ module FRSHouseholdGetter
         for hdata in eachrow( hh_dataset )            
             if not_in_skiplist( hdata, skiplist )
                 hseq += 1
-                hh = load_hhld_from_frame( dseq, hdata, people_dataset, FRS, settings )
+                hh = load_hhld_from_frame( dseq, hdata, people_dataset, settings )
                 npeople += num_people(hh)
                 MODEL_HOUSEHOLDS.hhlds[hseq] = hh
                 if settings.wealth_method == matching 

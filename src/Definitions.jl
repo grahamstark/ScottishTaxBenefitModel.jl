@@ -2028,7 +2028,7 @@ const BIG_NOTHING = BigInt(0)
 export DataSource, FRS, OtherSource, ExampleSource, SyntheticSource
 
 @enum DataSource begin  # mapped from relhrp
-   FRS = 1
+   FRSSource = 1
    OtherSource = 2
    ExampleSource = 3
    SyntheticSource = 4
