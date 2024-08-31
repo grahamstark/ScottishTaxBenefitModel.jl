@@ -200,7 +200,7 @@ module RunSettings
         settings.wealth_method=imputation
         settings.do_indirect_tax_calculations = true
         settings.do_legal_aid = false
-        legal_aid_probs_data = ""
+        settings.legal_aid_probs_data = ""
         return settings
     end
 

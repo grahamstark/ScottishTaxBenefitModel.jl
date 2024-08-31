@@ -55,8 +55,8 @@ function initialise(
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
-    tmpsource =  # hack to work round datasource being wired in to settings
-     = ExampleSource
+    tmpsource = settings.data_source # hack to work round datasource being wired in to settings
+    settings.data_source = ExampleSource
     println( "DEF_MODEL_DATA_DIR=|$(Definitions.DEF_MODEL_DATA_DIR)| MODEL_DATA_DIR=|$MODEL_DATA_DIR|")
     # lazy load cons data if needs be
     if settings.indirect_method == matching
@@ -66,8 +66,9 @@ function initialise(
         WealthData.init( settings ) 
     end
     KEYMAP = Vector{AbstractString}()
-    hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab", delim='\t' ) |> DataFrame
-    people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab", delim='\t' ) |> DataFrame
+    ds = main_datasets( settings )
+    hh_dataset = CSV.File( ds.hhlds, delim='\t' ) |> DataFrame
+    people_dataset = CSV.File(ds.people, delim='\t' ) |> DataFrame
     npeople = size( people_dataset)[1]
     nhhlds = size( hh_dataset )[1]
     for hseq in 1:nhhlds
@@ -85,7 +86,7 @@ function initialise(
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
     end
-     = tmpsource
+    settings.data_source = tmpsource
     return KEYMAP
 end
 
