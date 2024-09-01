@@ -92,7 +92,7 @@ checked that each person is allocated to a household via `hid`.
 FIXME move to `tests/`
 FIXME check the `relationship_x` records
 """
-function do_pers_idiot_checks( pers :: AbstractDataFrame, skiplist :: DataFrame )
+function do_pers_idiot_checks( pers :: AbstractDataFrame, skiplist :: DataFrame  )
     hh_pers = groupby( pers, [:hid])
     nps = size(hh_pers)[1]
     for hid in 1:nps
@@ -192,7 +192,7 @@ function load_unpacked_files()::Tuple
 end
 
 
-function add_skips_from_model!( skips :: DataFrame )
+function add_skips_from_model!( skips ::  DataFrame, n )
     settings = Settings()
     settings.data_source = SyntheticSource 
     settings.do_legal_aid = false    
@@ -230,5 +230,181 @@ function add_skips_from_model!( skips :: DataFrame )
             push!( skips, (; hid=mhh.hid, data_year=mhh.data_year, reason="$(e)"))
         end
     end
+end
+
+
+function make_intermed_df( n :: Int ) :: DataFrame 
+    RT = Float64
+    return DataFrame(
+        benefit_unit_number = zeros( Int, n ),
+        num_people = zeros( Int, n ),
+        age_youngest_adult = zeros( Int, n ),
+        age_oldest_adult = zeros( Int, n ),
+        age_youngest_child = zeros( Int, n ),
+        age_oldest_child = zeros( Int, n ),
+        num_adults = zeros( Int, n ),
+        someone_pension_age  = zeros( Bool, n ),
+        someone_pension_age_2016 = zeros( Bool, n ),
+        all_pension_age = zeros( Bool, n ),
+        someone_working_ft  = zeros( Bool , n ),
+        #
+        someone_working_ft_and_25_plus = zeros( Bool, n ),
+
+        num_not_working = zeros( Int, n ),
+        num_working_ft = zeros( Int, n ),
+        num_working_pt = zeros( Int , n ),
+        num_working_24_plus = zeros( Int , n ),
+        num_working_16_or_less = zeros( Int, n ),
+        total_hours_worked = zeros( Int, n ),
+        someone_is_carer = zeros( Bool , n ),
+        num_carers = zeros( Int, n ),
+
+        is_sparent  = zeros( Bool , n ),
+        is_sing  = zeros( Bool, n ),
+        is_disabled = zeros( Bool, n ),
+
+        num_disabled_adults = zeros( Int, n ),
+        num_disabled_children = zeros( Int, n ),
+        num_severely_disabled_adults = zeros( Int, n ),
+        num_severely_disabled_children = zeros( Int, n ),
+
+        num_job_seekers = zeros( Int, n ),
+
+        num_children = zeros( Int, n ),
+        num_allowed_children = zeros( Int, n ),
+        num_children_born_before = zeros( Int, n ),
+        ge_16_u_pension_age  = zeros( Bool , n ),
+        limited_capacity_for_work  = zeros( Bool , n ),
+        has_children  = zeros( Bool , n ),
+        economically_active = zeros( Bool, n ),
+        working_disabled = zeros( Bool, n ),
+        num_benefit_units = zeros( Int, n ),
+        all_student_bu = zeros( Bool, n ),
+
+        net_physical_wealth = zeros( RT, n ),
+        net_financial_wealth = zeros( RT, n ),
+        net_housing_wealth = zeros( RT, n ),
+        net_pension_wealth = zeros( RT, n ),
+        total_value_of_other_property = zeros( RT, n ))
+end
+
+function add_to_intermed_frame!( df :: AbstractDataFrame, intermed :: MTIntermediate, n :: Int)
+    df[n,:benefit_unit_number] = intermed.benefit_unit_number
+    df[n,:num_people] = intermed.num_people
+    df[n,:age_youngest_adult] = intermed.age_youngest_adult
+    df[n,:age_oldest_adult] = intermed.age_oldest_adult
+    df[n,:age_youngest_child] = intermed.age_youngest_child
+    df[n,:age_oldest_child] = intermed.age_oldest_child
+    df[n,:num_adults] = intermed.num_adults
+    df[n,:someone_pension_age ] = intermed.someone_pension_age 
+    df[n,:someone_pension_age_2016] = intermed.someone_pension_age_2016
+    df[n,:all_pension_age] = intermed.all_pension_age
+    df[n,:someone_working_ft ] = intermed.someone_working_ft 
+            #
+    df[n,:someone_working_ft_and_25_plus] = intermed.someone_working_ft_and_25_plus
+
+    df[n,:num_not_working] = intermed.num_not_working
+    df[n,:num_working_ft] = intermed.num_working_ft
+    df[n,:num_working_pt] = intermed.num_working_pt
+    df[n,:num_working_24_plus] = intermed.num_working_24_plus
+    df[n,:num_working_16_or_less] = intermed.num_working_16_or_less
+    df[n,:total_hours_worked] = intermed.total_hours_worked
+    df[n,:someone_is_carer] = intermed.someone_is_carer
+    df[n,:num_carers] = intermed.num_carers
+
+    df[n,:is_sparent ] = intermed.is_sparent 
+    df[n,:is_sing ] = intermed.is_sing 
+    df[n,:is_disabled] = intermed.is_disabled
+
+    df[n,:num_disabled_adults] = intermed.num_disabled_adults
+    df[n,:num_disabled_children] = intermed.num_disabled_children
+    df[n,:num_severely_disabled_adults] = intermed.num_severely_disabled_adults
+    df[n,:num_severely_disabled_children] = intermed.num_severely_disabled_children
+
+    df[n,:num_job_seekers] = intermed.num_job_seekers
+
+    df[n,:num_children] = intermed.num_children
+    df[n,:num_allowed_children] = intermed.num_allowed_children
+    df[n,:num_children_born_before] = intermed.num_children_born_before
+    df[n,:ge_16_u_pension_age ] = intermed.ge_16_u_pension_age 
+    df[n,:limited_capacity_for_work ] = intermed.limited_capacity_for_work 
+    df[n,:has_children ] = intermed.has_children 
+    df[n,:economically_active] = intermed.economically_active
+    df[n,:working_disabled] = intermed.working_disabled
+    df[n,:num_benefit_units] = intermed.num_benefit_units
+    df[n,:all_student_bu] = intermed.all_student_bu
+
+    df[n,:net_physical_wealth] = intermed.net_physical_wealth
+    df[n,:net_financial_wealth] = intermed.net_financial_wealth
+    df[n,:net_housing_wealth] = intermed.net_housing_wealth
+    df[n,:net_pension_wealth] = intermed.net_pension_wealth
+    df[n,:total_value_of_other_property] = intermed.total_value_of_other_property
+end
+
+function summarise_data( source :: DataSource )
+    settings = Settings()
+    settings.data_source = source
+    settings.do_legal_aid = false
+    settings.skiplist = ""
+    sys = [ # for intermed
+        get_default_system_for_fin_year(2024; scotland=true), 
+        get_default_system_for_fin_year( 2024; scotland=true )]
+
+    ds = main_datasets( settings )
+    hh = CSV.File( ds.hhlds ) |> DataFrame
+    hn = size(hh)[1]
+    hh.household_composition_1 = fill(single_person,hn)
+
+    pers = CSV.File( ds.people ) |> DataFrame
+    adults=pers[pers.from_child_record.==0,:]
+    
+    settings.num_households, settings.num_people, nhh2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true )
+    interdf = make_intermed_df( settings.num_people )
+    nbus = 0
+    for hno in 1:settings.num_households
+        mhh = get_household( hno )
+        hh.household_composition_1[hno] = household_composition_1( mhh )
+        intermed = make_intermediate( 
+            Float64,
+            settings,
+            mhh, 
+            sys[1].hours_limits, 
+            sys[1].age_limits, 
+            sys[1].child_limits )
+        for bi in intermed.buint
+            nbus += 1
+            add_to_intermed_frame!( interdf, bi, nbus  )
+        end
+    end
+    interdf = interdf[1:nbus,:]
+    d = Dict()
+    vnames = []
+    for n in names(pers)
+        v = adults[!,n] # collect(skipmissing(adults[!,n]))
+        if( length(v) > 0) && (eltype(v) <: Number )
+            d[n] = summarystats( v )
+            push!( vnames, n  ) 
+        end
+    end 
+
+    inames=[]
+    id = Dict()
+    for n in names(interdf)
+        v = interdf[!,n] # collect(skipmissing(adults[!,n]))
+        if( length(v) > 0) && (eltype(v) <: Number )
+            id[n] = summarystats( v )
+            push!( inames, n  ) 
+        end
+    end 
+
+    return (;
+        names = vnames,
+        summaries = d,
+        inames = inames,
+        isummaries = id,
+        household_composition_1=sort(countmap(hh.household_composition_1)),
+        marital_status=sort(countmap(Marital_Status.(adults.marital_status))),
+        default_benefit_unit=sort(countmap(adults.default_benefit_unit)))
 end
 
