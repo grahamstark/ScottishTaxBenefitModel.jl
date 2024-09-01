@@ -43,14 +43,15 @@ fmt(x,i,j) = format(x, precision=0, commas=true)
 #
 # Formatting routines for PrettyTables
 #
-form( v :: Missing, i, j ) = ""
-form( v :: AbstractString, i, j ) = pretty(v)
-form( v :: Integer, i, j ) = "$v"
-function form( v :: Number, i, j )
+form( v :: Missing, r, c ) = ""
+form( v :: AbstractString, r, c ) = pretty(v)
+form( v :: Integer, r, c ) = "$v"
+function form( v :: Number, r, c )
     if isnan(v)
        return "" 
     end
-    Format.format(v; precision=2, commas=true )
+    prec = c == 4 ? 2 : 0
+    Format.format(v; precision=prec, commas=true )
 end
 
 
@@ -73,16 +74,18 @@ end
         push!( summaries, summary )
     end
     nms = names(summaries[1].income_summary[1])[1:108]
-    frsinc = Vector(summaries[1].income_summary[1][1,1:108])
-    syninc = Vector(summaries[2].income_summary[1][1,1:108])
+    frsinc = Vector(summaries[1].income_summary[1][1,1:108])./1_000_000
+    syninc = Vector(summaries[2].income_summary[1][1,1:108])./1_000_000
     diff = 100 .* ((syninc .- frsinc) ./ frsinc)
     
     incs = DataFrame( item=nms, frs=frsinc, synth=syninc, diff=diff )
+    sort!(incs,[:frs],rev=true)
     io = open( "frs-vs-synth.html", "w")
     t = pretty_table( 
         io,
-        incs; 
+        incs[1:50,:]; 
         formatters=( form ), 
+        header = ["", "FRS (£m pa)", "Synthetic (£m pa)", "Diff (%)"],
         table_class="table table-sm table-striped table-responsive", 
         backend = Val(:html))
     close(io)
