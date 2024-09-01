@@ -360,13 +360,6 @@ function relationship_from_rel1( r1::Relationship, r2::Relationship )::Relations
 end
 
 function assign_heads!( pers :: Vector{MiniPers}, stats::NamedTuple)
-    hrp = if stats.highest_wage > 0 # fixme not wage
-        stats.highest_earner
-    else
-        stats.pos_oldest
-    end
-    println("hrp=$hrp")
-    pers[hrp].is_hrp = true
     # allocate bu heads on income and then age 
     # next is 1 line using a dataframe, but hey ho.
     n = length(pers)
@@ -385,9 +378,9 @@ function assign_heads!( pers :: Vector{MiniPers}, stats::NamedTuple)
             end
             nbu = max(b,nbu)
         end
-        p.relationship_to_hoh = p.relationships[hrp] # no real need for this 
     end
     pretty_table(maxbu)
+    hrp = -1
     for b in 1:nbu 
         buh = Int(if maxbu[b,4] > 0
             maxbu[b,3]
@@ -395,8 +388,24 @@ function assign_heads!( pers :: Vector{MiniPers}, stats::NamedTuple)
             maxbu[b,1]
         end)
         pers[buh].is_benefit_unit_head = true
+        if b == 1 # hrp is 1st bu head. Wrong but needed atm.
+            pers[buh].is_hrp = true
+            hrp = buh
+        end
     end
-    
+    # FIXME relationship_to_hoh should not be needed.
+    for p in pers
+        p.relationship_to_hoh = p.relationships[hrp] # no real need for this 
+    end
+    #= FIXME should really allow hrp to be any bu, as in:   
+    hrp = if stats.highest_wage > 0 # fixme not wage
+        stats.highest_earner
+    else
+        stats.pos_oldest
+    end
+    pers[hrp].is_hrp = true
+    but this breaks bad bu code in ModelHousehold.allocate_to_bus
+    =#
 end
 
 #=
@@ -615,10 +624,6 @@ function fixall!( hh::DataFrame, pers::DataFrame)
     CSV.write( ds.skiplist, skiplist; delim='\t')
 end
 
-
-function overwrite_all( hp :: AbstractDataFrame )
-    # 1 
-end
 
 
 # hh, pers = load_unpacked_files()

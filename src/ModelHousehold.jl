@@ -476,6 +476,7 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
             person = bua[buno][p]
             people[person.pid] = person
             if person.pid == hh_head_pid
+                # FIXME: Rewrite so there's no need for this.
                 @assert buno == 1 "head needs to be 1st BU $hh_head_pid"
                 head_pid = person.pid
                 push!( adults, head_pid )
