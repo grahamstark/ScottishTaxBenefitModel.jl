@@ -1,11 +1,12 @@
 using Test
+using BenchmarkTools
 using CSV
 using ArgCheck
 using DataFrames
-using StatsBase
-using BenchmarkTools
-using PrettyTables
+using Format
 using Observables
+using PrettyTables
+using StatsBase
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.GeneralTaxComponents
 using ScottishTaxBenefitModel.STBParameters
@@ -36,21 +37,53 @@ of = on(obs) do p
     println(tot)
 end
 
+fmt(x,i,j) = format(x, precision=0, commas=true)
+
+
+#
+# Formatting routines for PrettyTables
+#
+form( v :: Missing, i, j ) = ""
+form( v :: AbstractString, i, j ) = pretty(v)
+form( v :: Integer, i, j ) = "$v"
+function form( v :: Number, i, j )
+    if isnan(v)
+       return "" 
+    end
+    Format.format(v; precision=2, commas=true )
+end
+
+
 
 @testset "basic run timing" begin
     settings = Settings()
-    settings.data_source = SyntheticSource 
     settings.do_legal_aid = false
-    settings.skiplist = "skiplist"
-    lower_multiple :: Real = 0.10 # these values can be narrowed somewhat, to around 0.25-4.7
-    upper_multiple :: Real = 10.0
-
-    settings.run_name="run-$(settings.data_source)-$(date_string())"
+    settings.skiplist = ""
+    # lower_multiple :: Real = 0.10 # these values can be narrowed somewhat, to around 0.25-4.7
+    # upper_multiple :: Real = 10.0
     sys = [
         get_default_system_for_fin_year(2024; scotland=true), 
         get_default_system_for_fin_year( 2024; scotland=true )]
-    tot = 0
-
-    summary, results, settings = do_basic_run( settings, sys; reset = true )
-    h1 = results.hh[1]
+    summaries = []
+    for source in [FRSSource, SyntheticSource]
+        settings.data_source = source 
+        settings.run_name="run-$(settings.data_source)-$(date_string())"
+        tot = 0
+        summary, results, settings = do_basic_run( settings, sys; reset = true )
+        push!( summaries, summary )
+    end
+    nms = names(summaries[1].income_summary[1])[1:108]
+    frsinc = Vector(summaries[1].income_summary[1][1,1:108])
+    syninc = Vector(summaries[2].income_summary[1][1,1:108])
+    diff = 100 .* ((syninc .- frsinc) ./ frsinc)
+    
+    incs = DataFrame( item=nms, frs=frsinc, synth=syninc, diff=diff )
+    io = open( "frs-vs-synth.html", "w")
+    t = pretty_table( 
+        io,
+        incs; 
+        formatters=( form ), 
+        table_class="table table-sm table-striped table-responsive", 
+        backend = Val(:html))
+    close(io)
 end
