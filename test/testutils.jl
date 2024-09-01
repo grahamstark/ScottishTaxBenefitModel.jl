@@ -199,7 +199,7 @@ function do_basic_run( settings :: Settings, sys :: Vector; reset :: Bool ) :: T
    results = do_one_run( settings, sys, obs )
    h1 = results.hh[1]
    settings.poverty_line = make_poverty_line( results.hh[1], settings )
-   # dump_frames( settings, results )
+   dump_frames( settings, results )
    println( "poverty line = $(settings.poverty_line)")
    summary = summarise_frames!( results, settings )
    return (summary, results, settings )

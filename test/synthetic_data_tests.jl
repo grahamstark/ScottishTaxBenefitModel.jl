@@ -85,7 +85,8 @@ end
         io,
         incs[1:50,:]; 
         formatters=( form ), 
-        header = ["", "FRS (£m pa)", "Synthetic (£m pa)", "Diff (%)"],
+        header = ["", "FRS", "Synthetic", "Diff (%)"],
+        alignment = [:l,:r,:r,:r],
         table_class="table table-sm table-striped table-responsive", 
         backend = Val(:html))
     close(io)
