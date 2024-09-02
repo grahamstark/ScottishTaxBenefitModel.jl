@@ -360,7 +360,8 @@ function summarise_data( source :: DataSource )
     
     settings.num_households, settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
-    interdf = make_intermed_df( settings.num_people )
+    bu_interdf = make_intermed_df( settings.num_people )
+    hh_interdf = make_intermed_df( settings.num_households )
     nbus = 0
     for hno in 1:settings.num_households
         mhh = get_household( hno )
@@ -372,12 +373,13 @@ function summarise_data( source :: DataSource )
             sys[1].hours_limits, 
             sys[1].age_limits, 
             sys[1].child_limits )
+        add_to_intermed_frame!( bu_interdf, intermed.hhint, hno  )
         for bi in intermed.buint
             nbus += 1
-            add_to_intermed_frame!( interdf, bi, nbus  )
+            add_to_intermed_frame!( bu_interdf, bi, nbus  )
         end
     end
-    interdf = interdf[1:nbus,:]
+    bu_interdf = bu_interdf[1:nbus,:]
     d = Dict()
     vnames = []
     for n in names(pers)
@@ -388,21 +390,36 @@ function summarise_data( source :: DataSource )
         end
     end 
 
-    inames=[]
-    id = Dict()
-    for n in names(interdf)
-        v = interdf[!,n] # collect(skipmissing(adults[!,n]))
+    hh_inames=[]
+    bu_inames=[]
+    bu_id = Dict()
+    hh_id = Dict()
+    #FIXME don't need if?/ dups
+    for n in names(bu_interdf)
+        v = bu_interdf[!,n] # collect(skipmissing(adults[!,n]))
         if( length(v) > 0) && (eltype(v) <: Number )
-            id[n] = summarystats( v )
-            push!( inames, n  ) 
+            bu_id[n] = summarystats( v )
+            push!( bu_inames, n  ) 
+        end
+    end 
+    for n in names(hh_interdf)
+        v = hh_interdf[!,n] # collect(skipmissing(adults[!,n]))
+        if( length(v) > 0) && (eltype(v) <: Number )
+            hh_id[n] = summarystats( v )
+            push!( hh_inames, n  ) 
         end
     end 
 
+
     return (;
+        nadults = size( adults )[1],
+        nchildren = sum( pers.from_child_record ),
         names = vnames,
         summaries = d,
-        inames = inames,
-        isummaries = id,
+        hh_inames = hh_inames,
+        bu_inames = bu_inames,
+        bu_isummaries = bu_id,
+        hh_isummaries = hh_id,
         household_composition_1=sort(countmap(hh.household_composition_1)),
         marital_status=sort(countmap(Marital_Status.(adults.marital_status))),
         default_benefit_unit=sort(countmap(adults.default_benefit_unit)))

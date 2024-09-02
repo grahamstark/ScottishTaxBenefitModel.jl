@@ -137,12 +137,12 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
             if (! p1.is_standard_child ) && (! p2.is_standard_child ) && (p1.pno != p2.pno)
                 agediff = p1.age - p2.age
                 println( "; agediff = $agediff")
-                if abs(agediff) < 25 # FIXME I don't follow my own logic here...
-                    if ! is_coupled( p1.marital_status ) # already married off?
-                        
-                        probs = Weights([0.9,0.05,0.05,0,0,0,0,0,0])
-                        if p1.sex == p2.sex
-                            probs = Weights([0.1,0.1,0.1,0.1,0.1,0.2,0.1,0.1,0.1])
+                if abs(agediff) < 25 # marry off most pairs where age diff is < 25 years
+                    if ! is_coupled( p1.marital_status ) # already married off in this loop?
+                        probs = if p1.sex != p2.sex 
+                            Weights([0.9,0.05,0.05,0,0,0,0,0,0])
+                        else # the gays .. 
+                            Weights([0.1,0.1,0.1,0.1,0.1,0.2,0.1,0.1,0.1])
                         end
                         assign_relationships!(p1, p2, 
                             [
@@ -156,7 +156,7 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
                                 Other_relative, 
                                 Other_non_relative                            
                             ], probs )
-                    else
+                    else # this person has married another, so find another near-age relationship 
                         probs = Weights([0.2,0.2,0.1,0.2,0.1,0.2])
                         assign_relationships!(p1, p2, 
                             [
@@ -167,7 +167,6 @@ function assign_adult_relationships!(pers :: Vector{MiniPers}, stats::NamedTuple
                                 Other_relative, 
                                 Other_non_relative                            
                             ], probs )
-                        
                     end
                 elseif agediff >= 25 # p1 at least 25 years older than p2
                     # since rels are reciprocal we just need one??
