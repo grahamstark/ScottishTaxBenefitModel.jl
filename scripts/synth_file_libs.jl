@@ -175,20 +175,26 @@ end
 #
 # open unpacked synthetic files
 #
-function load_unpacked_files()::Tuple
+function load_unpacked_files(; version=3)::Tuple
     #= original version 
     hh = CSV.File("tmp/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv") |> DataFrame
     pers = CSV.File( "tmp/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv" ) |> DataFrame
     =#
     # version with child/adult seperate
-    hh = CSV.File("tmp/v3/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
-    child = CSV.File("tmp/v3/model_children_scotland-2015-2021/model_children_scotland-2015-2021.csv")|>DataFrame
-    adult = CSV.File("tmp/v3/model_adults_scotland-2015-2021/model_adults_scotland-2015-2021.csv")|>DataFrame
-    # Not actually needed with current sets but just in case.
-    child.from_child_record .= 1
-    adult.from_child_record .= 0
-    pers = vcat( adult, child )
-    hh,pers
+    hh,pers = if version == 2
+        hh = CSV.File("tmp/v2/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
+        pers = CSV.File("tmp/v2/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv")|>DataFrame
+        hh,pers
+    elseif version == 3
+        hh = CSV.File("tmp/v3/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
+        child = CSV.File("tmp/v3/model_children_scotland-2015-2021/model_children_scotland-2015-2021.csv")|>DataFrame
+        adult = CSV.File("tmp/v3/model_adults_scotland-2015-2021/model_adults_scotland-2015-2021.csv")|>DataFrame
+        # Not actually needed with current sets but just in case.
+        child.from_child_record .= 1
+        adult.from_child_record .= 0
+        pers = vcat( adult, child )
+        hh,pers
+    end
 end
 
 
