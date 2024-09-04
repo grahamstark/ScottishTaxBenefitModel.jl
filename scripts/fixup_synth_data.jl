@@ -15,6 +15,7 @@ using .STBParameters
 using DataFrames,CSV,StatsBase
 using OrderedCollections
 using Revise 
+using Format
 
 include( "synth_file_libs.jl")
 
