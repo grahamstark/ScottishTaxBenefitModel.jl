@@ -12,11 +12,14 @@ using .FRSHouseholdGetter
 using .SingleHouseholdCalculations: do_one_calc
 using .STBParameters
 
-using DataFrames,CSV,StatsBase
-using OrderedCollections
-using Revise 
-using PrettyTables
 using ArgCheck
+using CSV
+using DataFrames
+using Format
+using OrderedCollections
+using PrettyTables
+using Revise 
+using StatsBase
 
 include( "synth_file_libs.jl")
 
@@ -619,8 +622,8 @@ function fixall!( hh::DataFrame, pers::DataFrame)
     CSV.write( ds.people, pers; delim='\t' )
     # CSV.write( ds.skiplist, skiplist; delim='\t')
     # 2nd try - just let the model fail
-    add_skips_from_model!( skiplist )
-    CSV.write( ds.skiplist, skiplist; delim='\t')
+    # add_skips_from_model!( skiplist )
+    # CSV.write( ds.skiplist, skiplist; delim='\t')
 end
 
 
@@ -629,3 +632,15 @@ end
 # do_basic_fixes!( hh, pers )
 # fixall!( hh, pers )
 # 
+
+
+function make_denorm_actual_dataset()
+    mpers = CSV.File( "data/actual_data/model_people_scotland-2015-2021.tab")|>DataFrame
+    mhh = CSV.File( "data/actual_data/model_households_scotland-2015-2021.tab")|>DataFrame
+    mpers_denorm = leftjoin( mhh, mpers, on=:uhid, makeunique=true)
+    sort!( mpers_denorm, [:uhid,:pno,:from_child_record])
+    select!( mpers_denorm, Not(:data_year) )
+    select!( mpers_denorm, Not( :onerand ))
+    select!( mpers_denorm, Not( :onerand_1 ))
+    CSV.write( "tmp/mpers_denorm-scotland-2015-2021.tsv", mpers_denorm;delim='\t')
+end

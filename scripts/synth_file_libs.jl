@@ -1,4 +1,20 @@
 
+
+#
+# Formatting routines for PrettyTables
+#
+form( v :: Missing, r, c ) = ""
+form( v :: AbstractString, r, c ) = pretty(v)
+form( v :: Integer, r, c ) =  Format.format(v; precision=0, commas=true )
+function form( v :: Number, r, c )
+    if isnan(v)
+       return "" 
+    end
+    prec = c == 4 ? 2 : 1
+    Format.format(v; precision=prec, commas=true )
+end
+
+
 function do_initial_fixes!(hh::DataFrame, pers::DataFrame )
     # 
     # mostly.ai replaces the hid and pid with a random string, whereas we use bigints.
@@ -38,14 +54,19 @@ function do_initial_fixes!(hh::DataFrame, pers::DataFrame )
     # hid/pid clean up for people, and random string
     #
     np = size( pers )[1]
-    rename!( pers, [:uhid=>:uhidstr,:pid=>:pidstr])
+    # for v3
+    rename!( pers, [:uhid=>:uhidstr,:pid=>:pidstr,:hid=>:hidstr2])
     pers.uhid = fill( BigInt(0), np )
+    # for v4 - dunno what happened
+    #rename!( pers, [:pid=>:pidstr,:hid=>:uhidstr])
     pers.pid = fill( BigInt(0), np )
+    pers.hid = fill( BigInt(0), np )
     #
     # Assign correct numeric hid/uhid/data_year to each person and fixup the random string.
     #
     for p in eachrow( pers )
         p.onerand = mybigrandstr()
+        println( "p.uhidstr $(p.uhidstr)")
         p.uhid = hids[p.uhidstr].uhid
         p.hid = hids[p.uhidstr].hid
         p.data_year = hids[p.uhidstr].data_year
@@ -176,29 +197,30 @@ end
 # open unpacked synthetic files
 #
 function load_unpacked_files(; version=3)::Tuple
-    #= original version 
-    hh = CSV.File("tmp/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv") |> DataFrame
-    pers = CSV.File( "tmp/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv" ) |> DataFrame
-    =#
-    # version with child/adult seperate
+    dir = "$(RAW_DATA)/synthetic_data/mostly_ai/"
     hh,pers = if version == 2
-        hh = CSV.File("tmp/v2/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
-        pers = CSV.File("tmp/v2/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv")|>DataFrame
+        hh = CSV.File("$(dir)/v2/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
+        pers = CSV.File("$(dir)/v2/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv")|>DataFrame
         hh,pers
+    # version with child/adult seperate
     elseif version == 3
-        hh = CSV.File("tmp/v3/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
-        child = CSV.File("tmp/v3/model_children_scotland-2015-2021/model_children_scotland-2015-2021.csv")|>DataFrame
-        adult = CSV.File("tmp/v3/model_adults_scotland-2015-2021/model_adults_scotland-2015-2021.csv")|>DataFrame
+        hh = CSV.File("$(dir)/v3/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
+        child = CSV.File("$(dir)/v3/model_children_scotland-2015-2021/model_children_scotland-2015-2021.csv")|>DataFrame
+        adult = CSV.File("$(dir)/v3/model_adults_scotland-2015-2021/model_adults_scotland-2015-2021.csv")|>DataFrame
         # Not actually needed with current sets but just in case.
         child.from_child_record .= 1
         adult.from_child_record .= 0
         pers = vcat( adult, child )
         hh,pers
+    elseif version == 4
+        hh = CSV.File("$(dir)/v4/model_households_scotland-2015-2021/model_households_scotland-2015-2021.csv")|>DataFrame
+        pers = CSV.File("$(dir)/v4/model_people_scotland-2015-2021/model_people_scotland-2015-2021.csv")|>DataFrame
+        hh,pers    
     end
 end
 
 
-function add_skips_from_model!( skips ::  DataFrame, n )
+function add_skips_from_model!( skips ::  DataFrame )
     settings = Settings()
     settings.data_source = SyntheticSource 
     settings.do_legal_aid = false    
@@ -430,4 +452,47 @@ function summarise_data( source :: DataSource )
         marital_status=sort(countmap(Marital_Status.(adults.marital_status))),
         default_benefit_unit=sort(countmap(adults.default_benefit_unit)))
 end
+
+function smerge(f::AbstractDict,s::AbstractDict)
+    l = length(f)
+    d = DataFrame( k = fill("",l), f=fill(0,l),s=fill(0,l),ch=fill(0.0,l))
+    i = 0
+    for k in keys(f)
+        i += 1
+        d.k[i] = pretty( k )
+        d.f[i] = f[k]
+        d.s[i] = s[k]
+        d.ch[i] = 100 .* ( s[k] - f[k])/f[k]
+    end
+    pretty_table(d;
+        formatters=(form), 
+        header=["", "FRS", "Synthetic", "Diff (%)"], 
+        alignment = [:l,:r,:r,:r],
+        backend = Val(:markdown))
+end
+
+function smerge(f::StatsBase.SummaryStats, s::StatsBase.SummaryStats)
+    fn = fieldnames(typeof(f))
+    l = length(fn)
+    println("l=$l")
+    d = DataFrame( k = fill("",l), f=fill(0.0,l),s=fill(0.0,l),ch=fill(0.0,l))
+    i = 0
+    for k in fn
+        i += 1
+        println( "i=$i, k=$k")
+        d.k[i] = pretty( string(k) )
+        fv = getfield(f,k)
+        d.f[i] = fv
+        println( "fv=$fv")
+        sv = getfield(s,k)
+        d.s[i] = sv
+        d.ch[i] = 100 .* ( sv - fv)/fv
+    end
+    pretty_table(d;
+        formatters=(form), 
+        header=["", "FRS", "Synthetic", "Diff (%)"], 
+        alignment = [:l,:r,:r,:r],
+        backend = Val(:markdown))
+end
+
 

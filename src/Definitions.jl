@@ -11,10 +11,7 @@ using Preferences
 import Base.sum
 
 export 
-   Employment_Status,  # mapped from empstat
-   Employee, 
-   Missing_Employment_Status,
-   Self_employed,   
+   DOCS_DIR,
    FRS_DIR, 
    HBAI_DIR,
    MATCHING_DIR,
@@ -22,10 +19,10 @@ export
    MODEL_PARAMS_DIR, 
    PRICES_DIR, 
    PROJECT_DIR,
-   TEST_DIR,
+   RAW_DATA
+   SCRIPTS_DIR,
    SRC_DIR,
-   DOCS_DIR,
-   SCRIPTS_DIR 
+   TEST_DIR,
 
 
 """
@@ -85,6 +82,12 @@ export LegacyOrUC, legacy_bens, uc_bens
    pip_dla_historic = Date(2022, 08, 12 )
    benefit_generosity = Date(2022, 08, 12 )
 end
+
+export 
+   Employment_Status,  # mapped from empstat
+   Employee, 
+   Missing_Employment_Status,
+   Self_employed 
 
 #
 # Legal Aid Stuff. Note *lower* is better here.
