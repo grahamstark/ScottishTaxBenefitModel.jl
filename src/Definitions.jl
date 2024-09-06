@@ -19,7 +19,7 @@ export
    MODEL_PARAMS_DIR, 
    PRICES_DIR, 
    PROJECT_DIR,
-   RAW_DATA
+   RAW_DATA,
    SCRIPTS_DIR,
    SRC_DIR,
    TEST_DIR,
