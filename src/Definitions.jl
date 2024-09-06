@@ -22,7 +22,7 @@ export
    RAW_DATA,
    SCRIPTS_DIR,
    SRC_DIR,
-   TEST_DIR,
+   TEST_DIR
 
 
 """
