@@ -285,6 +285,12 @@ end
     println( get_head( hh ))
 end
 
+@testset "top limit anomaly" begin
+    
+
+    
+end
+
 @testset "Civil Legal Aid: Ist Spreadsheet Examples from calculator docs/legalaid/testcalcs.ods" begin
     settings = Settings()
     settings.wealth_method = imputation 
