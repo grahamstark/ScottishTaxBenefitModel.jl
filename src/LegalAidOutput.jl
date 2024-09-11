@@ -546,6 +546,7 @@ function make_post_consistent_with_pre!(;
     cost_items :: Vector,
     prop_items :: Vector )
     @argcheck size(pre)[1] == size(post)[1]
+    return
     n = size(pre)[1]
     for i in 1:n
         r2 = post[i,:]
