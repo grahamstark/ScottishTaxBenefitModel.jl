@@ -354,7 +354,7 @@ function merge_in_probs_and_props(
         r, 
         propensities;
         on = [:age2=>:age2,:sex=>:sex,:entitlement=>:la_status ],
-        makeunique=true) # unique shouldn't be needed here??
+        makeunique=false) # unique shouldn't be needed here??
     @assert size(r)[1] == rsize # no shorter
     # Needed since leftjoin puts unmatched right at the end
     # ?? bu_number prob not needed.
@@ -546,7 +546,7 @@ function make_post_consistent_with_pre!(;
     cost_items :: Vector,
     prop_items :: Vector )
     @argcheck size(pre)[1] == size(post)[1]
-    return
+    # return
     n = size(pre)[1]
     for i in 1:n
         r2 = post[i,:]
@@ -675,10 +675,6 @@ function aggregate_all_legal_aid(
     end
     return alltab
 end
-
-"""
-
-"""
 
 """
 Formatter for an all-counts dataframe.
