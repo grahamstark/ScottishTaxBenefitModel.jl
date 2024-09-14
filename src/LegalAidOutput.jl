@@ -354,7 +354,7 @@ function merge_in_probs_and_props(
         r, 
         propensities;
         on = [:age2=>:age2,:sex=>:sex,:entitlement=>:la_status ],
-        makeunique=false) # unique shouldn't be needed here??
+        makeunique=true) # unique shouldn't be needed here??
     @assert size(r)[1] == rsize # no shorter
     # Needed since leftjoin puts unmatched right at the end
     # ?? bu_number prob not needed.

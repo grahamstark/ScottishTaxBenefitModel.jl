@@ -117,3 +117,10 @@ sys2.legalaid.civil.income_contribution_limits[end] += 10_000/WEEKS_PER_YEAR
 @time results = Runner.do_one_run( settings, systems, obs )
 outf = summarise_frames!( results, settings )
 LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2 )
+
+fbase = basiccensor(settings.run_name)
+settings.output_dir 
+
+for sysno in 1:length(systems)
+    CSV.write( frames.legalaid. )
+end
