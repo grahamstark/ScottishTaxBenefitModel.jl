@@ -64,7 +64,8 @@ using .Utils:
     eq_nearest_p,
     to_md_table,
     make_crosstab,
-    matrix_to_frame
+    matrix_to_frame,
+    basiccensor
 
 using .ExampleHelpers
 
@@ -91,11 +92,10 @@ import .Runner
 
 include( "testutils.jl")
 
-sys1 = get_system( year=2023, scotland=true )
 xprint = PrintControls()
 
 
-function lasettings()
+function lasettings( reset :: Bool )
     settings = Settings()
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
@@ -103,24 +103,41 @@ function lasettings()
     settings.wealth_method = other_method_1
     settings.requested_threads = 4
     settings.num_households, settings.num_people, nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=true )
+        FRSHouseholdGetter.initialise( settings; reset=reset )
     return settings
 end
    
-tot = 0
-settings = lasettings()
+function do_quickierun(; topextra =  10_000.0, reset=false )
+    global tot
+    sys1 = get_system( year=2023, scotland=true )
+    tot = 0
+    settings = lasettings( reset )
 
-settings.run_name = "top rate bug chaser"
-sys2 = deepcopy(sys1)
-systems = [sys1, sys2]
-sys2.legalaid.civil.income_contribution_limits[end] += 10_000/WEEKS_PER_YEAR
-@time results = Runner.do_one_run( settings, systems, obs )
-outf = summarise_frames!( results, settings )
-LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2 )
+    settings.run_name = "top rate bug chaser"
+    sys2 = deepcopy(sys1)
+    systems = [sys1, sys2]
+    sys2.legalaid.civil.income_contribution_limits[end] += topextra/WEEKS_PER_YEAR
+    @time results = Runner.do_one_run( settings, systems, obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2 )
 
-fbase = basiccensor(settings.run_name)
-settings.output_dir 
+    fbase = basiccensor(settings.run_name)
+    #
+    fname = joinpath( settings.output_dir, fbase*"-civil_propensities.tab" )
+    CSV.write( fname, LegalAidOutput.PROPENSITIES.civil_propensities ;  delim='\t' )
+    #
+    fname = joinpath( settings.output_dir, fbase*"-civil_costs.tab" )
+    CSV.write( fname, LegalAidData.CIVIL_COSTS;  delim='\t' )
+    #
+    for sysno in 1:length(systems)
+        fname = joinpath( settings.output_dir, fbase*"-civil_data-$(sysno).tab" )
+        println( "writing to |$fname|")
+        CSV.write( fname,  outf.legalaid.civil.data[sysno];  delim='\t' )
+    end
 
-for sysno in 1:length(systems)
-    CSV.write( frames.legalaid. )
+    laout = outf.legalaid.civil
+    diffdata = innerjoin( laout.data[1], laout.data[2], on=[:hid,:pid]; makeunique=true )
+    diffdata.dq = (diffdata.disqualified_on_income - diffdata.disqualified_on_income_1) .!= 0
+
+    laout, diffdata
 end

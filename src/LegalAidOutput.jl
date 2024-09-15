@@ -127,9 +127,11 @@ end
 =#
         
 """
-This is the base of the costs model
+This is the base of the costs model.
+It for a given set of entitlements (from the base case of a run), it groups all the SLAB costs data
+by status (passported/full/partial), age, sex 
 entitlement = out.civil.data[1]  or out.aa
-
+@return dataframe with mean,mediam count/cost for each age/sex/entitlement
 """
 function create_base_propensities( 
     entitlement :: DataFrame,
@@ -174,9 +176,10 @@ function create_base_propensities(
         costs_q25 = zeros(n), 
         costs_q75 = zeros(n))
     i = 0
-    
+    # round the grouped entitlement data (by status, age, sex)
     for (k,v) in pairs( entitlement_grp )
-        for hsm in subjects # divorce ... 
+        # once round for each subject group (divorce, etc ... )
+        for hsm in subjects 
             i += 1
             lout = out[i,:]
             lout.popn = sum( v.weight )
@@ -264,6 +267,9 @@ function create_base_propensities(
     return (; cost_and_count, long_data=out )
 end
 
+"""
+
+"""
 function create_wide_propensities(
     entitlement :: DataFrame,
     costs :: DataFrame ) :: DataFrame
