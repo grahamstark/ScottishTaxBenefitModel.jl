@@ -209,6 +209,9 @@ function create_base_propensities(
                 lout.costs_q25 = r.q25     
                 lout.costs_q75 = r.q75
                 lout.case_freq = r.nobs / lout.popn 
+            else
+                lout.costs_mean = 100.0 # r.mean
+                lout.case_freq = 1.0/lout.popn
             end
         end # each subject
         # total 
