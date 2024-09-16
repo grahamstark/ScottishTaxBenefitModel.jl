@@ -100,8 +100,9 @@ function lasettings( reset :: Bool )
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
-    settings.wealth_method = other_method_1
     settings.requested_threads = 4
+    settings.wealth_method = matching
+    settings.do_dodgy_takeup_corrections = false
     settings.num_households, settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=reset )
     return settings
@@ -141,6 +142,9 @@ function do_quickierun(; topextra = 10_000.0, ila=6_000.0, reset=false )
         diffdata = innerjoin( diffdata, laout.data[3], on=[:hid,:pid]; makeunique=true )
         diffdata.dq_base_2 = (diffdata.disqualified_on_income - diffdata.disqualified_on_income_1) .!= 0
         diffdata.dq_base_3 = (diffdata.disqualified_on_income - diffdata.disqualified_on_income_2) .!= 0
+        
+        gh = groupby( CIVIL_COSTS, :hsm_censored )
+        actualpay = combine(gh, :totalpaid=>sum, :totalpaid=>length)
+        laout, diffdata, actualpay
     end
-    laout, diffdata
 end

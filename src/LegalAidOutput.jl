@@ -156,6 +156,8 @@ function create_base_propensities(
     costs_grp4 = groupby( costs, [:hsm, :la_status, :age2, :sex])
     # .. and without the subject to get a quick and dirty way to get total costs
     costs_grp3 = groupby( costs, [:la_status, :age2, :sex])
+    costs_grp2 = groupby( costs, [:hsm, :la_status])
+    # .. and without the subject to get a quick and dirty way to get total costs
     # make a dataframe class by types of claim, la entitlement, age & sex
     n = size( entitlement_grp )[1]*(1+length(subjects)) 
     out = DataFrame( 
@@ -182,22 +184,30 @@ function create_base_propensities(
         for hsm in subjects 
             i += 1
             lout = out[i,:]
+            allcases = costs[costs.hsm .== hsm, :]
+            avcasecost = summarystats( allcases.totalpaid ./ 1000.0 ).mean
             lout.popn = sum( v.weight )
             lout.sex = k.sex
             lout.age2 = k.age2
             lout.hsm = hsm
             lout.la_status = k.la_status
             # now, look up corresponding costs data: first make a key to disagg grouped dataframe
-            costk = make_key( 
+            costk4 = make_key( 
                 la_status = k.la_status, 
                 hsm = hsm,
                 age = k.age2,
                 sex = k.sex )
+            costk2 = make_key( 
+                la_status = k.la_status, 
+                hsm = hsm )
+                # age = k.age2,
+                # sex = k.sex )
             # then look up & fill if there are records for the costs for that combo 
             # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
-            if haskey( costs_grp4, costk ) 
-                cv = costs_grp4[costk] 
-                r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
+            if haskey( costs_grp4, costk4 ) 
+                cv = costs_grp4[costk4] 
+                r = summarystats(
+                      cv.totalpaid ./ 1000.0 ) # in 000s
                 lout.case_count = size(cv)[1]
                 lout.costs_total = sum( cv.totalpaid )
                 lout.costs_max = r.max     
@@ -208,10 +218,24 @@ function create_base_propensities(
                 lout.costs_nobs = r.nobs
                 lout.costs_q25 = r.q25     
                 lout.costs_q75 = r.q75
-                lout.case_freq = r.nobs / lout.popn 
-            else
-                lout.costs_mean = 100.0 # r.mean
-                lout.case_freq = 1.0/lout.popn
+                lout.case_freq = r.nobs / lout.popn     
+            elseif haskey( costs_grp2, costk2 ) # fallback - average over all cases regardless of age and sex                
+                cv = costs_grp2[costk2] 
+                r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
+                lout.costs_mean = r.mean
+                #=
+                lout.case_count = size(cv)[1]
+                lout.costs_max = r.max     
+                lout.costs_median = r.median  
+                lout.costs_min = r.min
+                lout.costs_nmiss = r.nmiss   
+                lout.costs_nobs = r.nobs
+                lout.costs_q25 = r.q25     
+                lout.costs_q75 = r.q75
+                lout.case_freq = 0 # r.nobs / sum( v.weight ) # lout.popn     
+                =#
+            else # final fallback - just average for this case type                
+                lout.costs_mean = avcasecost
             end
         end # each subject
         # total 
@@ -223,15 +247,15 @@ function create_base_propensities(
         lout.hsm = "aa_total"
         lout.la_status = k.la_status
         # now, look up corresponding costs data: first make a key to disagg grouped dataframe
-        costk = make_key( 
+        costk3 = make_key( 
             la_status = k.la_status, 
             age = k.age2,
             sex = k.sex )
         # then look up & fill if there are records for the costs for that combo 
         # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
-        if haskey( costs_grp3, costk ) 
-            cv = costs_grp3[costk] 
-            r = summarystats( cv.totalpaid  ) # in 000s
+        if haskey( costs_grp3, costk3 ) 
+            cv = costs_grp3[costk3] 
+            r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
             lout.costs_max = r.max     
             lout.costs_mean = r.mean
             lout.costs_median = r.median  
@@ -266,7 +290,7 @@ function create_base_propensities(
     cost_and_count.adults_with_incapacity_or_mental_health_cost .= awicost/(awicount*1000) # in 000s
     cost_and_count.adults_with_incapacity_or_mental_health_prop .= awicount/popn
 
-    fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
+    # fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
     return (; cost_and_count, long_data=out )
 end
 
