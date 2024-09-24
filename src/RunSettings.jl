@@ -165,7 +165,11 @@ module RunSettings
     Make a tuple with "hhlds=>" and "people=>" with full paths to example datasets.
     """
     function example_datasets( settings :: Settings ) :: NamedTuple
+        # FIXME data_dir with just the src, not settings.
+        tmpsrc = settings.data_source
+        settings.data_source = ExampleSource
         dd = data_dir( settings )
+        settings.data_source = tmpsrc
         return ( 
             hhlds = joinpath( dd, "example_households.tab" ),
             people = joinpath( dd, "example_people.tab" ),

@@ -344,6 +344,7 @@ function map_person(
 
         BigInt(model_person.hid),  # BigInt# == sernum
         BigInt(model_person.pid),  # BigInt# == unique id (year * 100000)+
+        BigInt(model_person.uhid), # unique hh id - needed for some synth data applications which need single col PK/FKs
         model_person.pno,  # Integer# person number in household
         safe_to_bool(model_person.is_hrp), 
         model_person.default_benefit_unit,  # Integer
@@ -437,12 +438,12 @@ function map_person(
 end
 
 function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
-
     people = People_Dict{Float64}()
     head_of_household = BigInt(-1) # this is set when we scan the actual people below
     hh = Household{Float64}(
         hno,
         frs_hh.hid,
+        frs_hh.uhid,
         frs_hh.data_year, 
         frs_hh.interview_year,
         frs_hh.interview_month,

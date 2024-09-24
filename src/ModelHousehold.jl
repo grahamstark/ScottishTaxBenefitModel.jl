@@ -92,6 +92,7 @@ export
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
+    uhid::BigInt # non compound index to hhld
     pno:: Int # person number in household
     is_hrp :: Bool
     default_benefit_unit:: Int
@@ -186,6 +187,7 @@ Pid_Array = Vector{BigInt}
 mutable struct Household{RT<:Real}
     sequence:: Int # position in current generated dataset
     hid::BigInt
+    uhid::BigInt # single 
     data_year :: Int
     interview_year:: Int
     interview_month:: Int

@@ -9,6 +9,7 @@ using ArgCheck
 using ScottishTaxBenefitModel
 using .Utils
 using .Definitions
+using .RunSettings
 using .Randoms: mybigrandstr
 using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
 
@@ -19,15 +20,22 @@ include( "frs_hbai_creation_libs.jl")
 """
 hacky routine to add uhid - unique hhid needed for mostly.ai generator
 """
-function add_uhids( hhf :: String, persf :: String )
-       hname = "data/actual_data/$(hhf).tab"
- pname = "data/actual_data/$(persf).tab"
-    hh = CSV.File( hname ) |> DataFrame
-    pers = CSV.File( pname ) |> DataFrame
-    hh.uhid = get_pid.( FRS, hh.data_year, hh.hid, 0 ) # 
-    pers.uhid = get_pid.( FRS, pers.data_year, pers.hid, 0 ) # 
-    CSV.write( hname, hh )
-    CSV.write( pname, pers )
+function add_uhids( settings :: Settings )
+    for i in 1:2 
+        datafs, data_source = if i == 1 
+            main_datasets( settings ),
+            settings.data_source
+        else
+            example_datasets( settings ),
+            ExampleSource
+        end
+        hh = CSV.File( datafs.hhlds ) |> DataFrame
+        pers = CSV.File( datafs.people ) |> DataFrame
+        hh.uhid = get_pid.( data_source, hh.data_year, hh.hid, 0 ) # 
+        pers.uhid = get_pid.( data_source, pers.data_year, pers.hid, 0 ) # 
+        CSV.write( datafs.hhlds, hh; delim='\t' )
+        CSV.write( datafs.people, pers; delim='\t' )
+    end
 end
 
 #
