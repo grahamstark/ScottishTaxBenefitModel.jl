@@ -18,6 +18,44 @@ const MONTHS = Dict(
 const L_HBAI_DIR="/mnt/data/hbai/"
 const L_FRS_DIR="/mnt/data/frs/"
 
+"""
+hacky routine to add uhid - unique hhid needed for mostly.ai generator
+"""
+function add_uhids( settings :: Settings )
+    for i in 1:2 
+        datafs, data_source = if i == 1 
+            main_datasets( settings ),
+            settings.data_source
+        else
+            example_datasets( settings ),
+            ExampleSource
+        end
+        hh = CSV.File( datafs.hhlds ) |> DataFrame
+        pers = CSV.File( datafs.people ) |> DataFrame
+        hh.uhid = get_pid.( data_source, hh.data_year, hh.hid, 0 ) # 
+        pers.uhid = get_pid.( data_source, pers.data_year, pers.hid, 0 ) # 
+        CSV.write( datafs.hhlds, hh; delim='\t' )
+        CSV.write( datafs.people, pers; delim='\t' )
+    end
+end
+
+"""
+Make a subset of main model data.
+TODO add in WAS,LCF,SHS mapping stuff 
+sz - 10 for 1/10 and so on
+- another approach: https://discourse.julialang.org/t/how-to-sample-a-data-frame/32791/5
+"""
+function make_sample( settings :: Settings; sz :: Int ) :: Tuple
+    datafs = main_datasets( settings )
+    hh = CSV.File( datafs.hhlds ) |> DataFrame
+    pers = CSV.File( datafs.people ) |> DataFrame
+    uhid = copy(hh.uhid)
+    n = length(uhid)
+    suhids = sample( uhid, sz; replace=false, ordered=true )
+    hhsample = hh[ in.(hh.uhid, ( suhids, )),: ]
+    perssample = pers[ in.(pers.uhid, ( suhids, )),: ]
+    return hhsample, perssample
+end
 
 function loadfrs(which::AbstractString, year::Integer)::DataFrame
     filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"

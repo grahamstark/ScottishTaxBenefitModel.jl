@@ -1103,13 +1103,16 @@ function make_summary_tab(
                 tcost = Symbol(prop_cols[i]*"_cost")
                 postres = coalesce( po[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
                 postcost = coalesce( po[tcost], 0.0 )
-                tab[1,2] += w*pr[tc]
+                preres = coalesce( pr[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
+                precost = coalesce( pr[tcost], 0.0 )
+                
+                tab[1,2] += w*preres #[tc]
                 tab[1,3] += w*postres
-                tab[2,2] += w*pr[tc]*pr[tcost]
+                tab[2,2] += w*preres*precost # pr[tc]*pr[tcost]
                 tab[2,3] += w*postres*postcost
                 if (max_contrib_pr > 0)||(max_contrib_po > 0)
                     scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
-                    tab[3,2] += w*pr[tc]*scase_pr/1000.0 #*scase_pr # 
+                    tab[3,2] += w*preres*scase_pr/1000.0 #*scase_pr # 
                     tab[3,3] += w*postres*scase_po/1000.0 # scase_po # 
                 end                
             end
