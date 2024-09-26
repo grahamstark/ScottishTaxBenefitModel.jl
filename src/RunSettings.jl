@@ -74,11 +74,8 @@ module RunSettings
         end_year :: Int = 2021
         =# 
         scotland_full :: Bool = true
-        weighted :: Bool = false
-        
-        # weighting stuff
+        weighted :: Bool = false        
         auto_weight = true
- 
         data_dir :: String = MODEL_DATA_DIR
         household_name = "model_households_scotland-2015-2021"
         people_name    = "model_people_scotland-2015-2021"

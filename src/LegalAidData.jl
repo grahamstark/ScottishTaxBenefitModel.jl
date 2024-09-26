@@ -255,34 +255,6 @@ function load_costs( filename::String )::DataFrame
     cost
 end
 
-#=
-ulia> StatsBase.countmap( LegalAidData.CIVIL_COSTS.sex )
-Dict{Union{Missing, InlineStrings.String7}, Int64} with 3 entries:
-  String7("Female") => 7190
-  String7("Male")   => 4436
-  missing           => 169
-
-julia> StatsBase.countmap( LegalAidData.CIVIL_AWARDS.sex )
-Dict{Union{Missing, InlineStrings.String7}, Int64} with 3 entries:
-  String7("Female") => 8917
-  String7("Male")   => 5595
-  missing           => 1169
-
-=#
-
-#=
-k = sort(keys(LegalAidData.CIVIL_COSTS_GRP_NS))
-for kk in k
-         if haskey( LegalAidData.CIVIL_COSTS_GRP_NS, kk )
-             v = LegalAidData.CIVIL_COSTS_GRP_NS[kk]
-             @show kk    
-             @show summarystats(v.totalpaid)
-         end
-       end
-
-
-=#
-
 const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "legalaid", "civil-legal-aid-case-costs.tab" ))
 const AA_COSTS = load_aa_costs( joinpath(MODEL_DATA_DIR, "legalaid", "aa-case-costs.tab" ))
 const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "legalaid", "civil-applications.tab" ))

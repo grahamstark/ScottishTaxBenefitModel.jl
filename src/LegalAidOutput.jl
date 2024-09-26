@@ -800,41 +800,6 @@ function la_crosstab(
     return crosstab, full_examples
 end
 
-"""
-Fixed silly Crosstab with entitlement wired in because my general crosstab is 
-breaking in a way I can't work out.
-pre is the row, post is the col, cells above the diagonal represent gains, below losses.
-"""
-#=
-function crappycrosstab( 
-    pre :: DataFrame, 
-    post :: DataFrame, 
-    problem="no_problem", 
-    estimate="prediction"  ) :: Matrix
-    m = zeros(4,4)
-    s1 = size( pre )
-    s2 = size( post )
-    @assert s1 == s2
-    num_rows = s1[1]
-    weights = Weights(pre.weight) 
-    # @assert pre.weight .≈ post.weight
-    if problem != "no_problem"
-        col = Symbol( "$(problem)_$estimate")
-        weights = Weights( pre[:,col] .* pre.weight)
-    end
-    for r in 1:num_rows
-        prer = pre[r,:]
-        postr = post[r,:]
-        @assert (prer.pid == postr.pid) && (prer.data_year == postr.data_year) && (prer.weight ≈ postr.weight )
-        prev = Int( prer.entitlement )+1
-        postv = Int( postr.entitlement )+1
-        # pre is the row post is the col. Julia arrays are row first, then col
-        m[postv,prev] += weights[r]
-    end
-    return m
-end
-=#
-
 function summarise_la_output!( 
     la :: LegalOutput,
     propensities :: DataFrame, 
@@ -1177,5 +1142,4 @@ function AllLegalOutput( T; num_systems::Integer, num_people::Integer )
         LegalOutput( T; num_systems=num_systems, num_people=num_people))
 end
     
-
 end # module
