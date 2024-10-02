@@ -15,6 +15,7 @@ using CSV
 using DataFrames
 using Dates
 using Printf
+using PrettyTables
 using StatsBase
 
 
@@ -35,6 +36,7 @@ export
    get_if_set,
    get_project_path,
    get_quantiles,
+   glimpse,
    has_non_z, 
    haskeys,
    index_of_field, 
@@ -62,7 +64,11 @@ export
    todays_date, 
    uprate_struct!
 
-   
+function glimpse( d::AbstractDataFrame; n = 10 )
+   n = min(n, size(d)[1])
+   w=permutedims(d)[:,1:n]
+   pretty_table(insertcols( w, 1 ,:name=>names(d)))
+end
 
 """
 crosstab rows vs cols of a categorical arrays using the given weights.
