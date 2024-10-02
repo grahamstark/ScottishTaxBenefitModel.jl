@@ -886,6 +886,8 @@ function summarise_frames!(
         println( "gain lose")
     end    
     if settings.do_legal_aid
+        # note we're now always reseting these propensities
+        # since some base assumptions might change e.g. capital modelling.
         # FIXME this is not thread-safe
         LegalAidOutput.create_propensities( frames.legalaid; reset_results = true  )
         LegalAidOutput.summarise_la_output!( frames.legalaid )
