@@ -669,9 +669,8 @@ function dump_pers()
     pers.onerand .= ""
     pers.uhid = BigInt.(pers.uhid)
     CSV.write( "data/actual_data/model_people_scotland-2015-2021-w-enums.tab", pers )
-    pers
+    return pers
 end
-
 
 function get_relationships( hp :: AbstractDataFrame ) :: Matrix{Relationship}
     num_people = size(hp)[1]

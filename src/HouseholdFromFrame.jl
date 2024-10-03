@@ -239,7 +239,6 @@ function create_regression_dataframe(
     #
     # 2nd
     #
-
     return fm
 end
 
