@@ -26,6 +26,7 @@ using StatsBase
 @testset "Wealth Tax Examples" begin
     sys = get_system( year=2023, scotland=false )
     settings = get_all_uk_settings_2023()
+    settings.do_indirect_tax_calculations = false
     sys.wealth.rates = [0.05]
     sys.wealth.thresholds = []
     sys.wealth.abolished = false
