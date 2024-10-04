@@ -153,7 +153,8 @@ function formiss( x, RT = Float64 )
 end
 
 function dumphh(RT=Float64)
-    hh = CSV.File( "data/actual_data/model_households_scotland-2015-2021.tab") |> DataFrame
+    # hh = CSV.File( "data/actual_data/model_households_scotland-2015-2021.tab") |> DataFrame
+    hh = CSV.File( "data/example_data/example_households.tab" )|>DataFrame 
     hh.data_year = Int.(hh.data_year)
     hh.interview_year = Int.(hh.interview_year)
     hh.interview_month = Int.(hh.interview_month)
@@ -187,23 +188,11 @@ function dumphh(RT=Float64)
     hh.net_financial_wealth  =  formiss.(hh.net_financial_wealth )
     hh.net_housing_wealth  =  formiss.(hh.net_housing_wealth )
     hh.net_pension_wealth  =  formiss.(hh.net_pension_wealth )
-    CSV.write( "data/actual_data/model_households_scotland-2015-2021-w-enums.tab", hh )
+    # CSV.write( "data/actual_data/model_households_scotland-2015-2021-w-enums.tab", hh )
+    CSV.write( "data/example_data/example_households-w-enums.tab", hh )
 end
 
-function readhh(RT=Float64)
-    hh = CSV.File( "data/actual_data/model_households_scotland-2015-2021-w-enums.tab") |> DataFrame
-    hh.hid = BigInt.(hh.hid)
-    hh.uhid = BigInt.(hh.uhid)
-    hh.tenure = eval.( Symbol.( hh.tenure ))
-    hh.region = eval.(Symbol.( hh.region))
-    hh.ct_band = eval.(Symbol.( hh.ct_band))
-    hh.dwelling  =  eval.(Symbol.( hh.dwelling ))
-    hh.council  =  Symbol.(hh.council )
-    hh.rent_includes_water_and_sewerage = Bool.(hh.rent_includes_water_and_sewerage)
-    hh.nhs_board  =  Symbol.(hh.nhs_board )
-    hh
-end
-
+#=
 function safe_to_bool( x :: Union{Integer,Missing} )
     return if ismissing(x)
         false
@@ -213,6 +202,7 @@ function safe_to_bool( x :: Union{Integer,Missing} )
         false
     end        
 end
+=#
 
 function etype(x :: Union{Integer,Missing}, T )
     if ismissing(x)
@@ -222,233 +212,8 @@ function etype(x :: Union{Integer,Missing}, T )
     end
 end
 
-function read_pers()
-    pers = CSV.File( "data/actual_data/model_people_scotland-2015-2021-w-enums.tab") |> DataFrame
-    pers.pid = BigInt.(pers.pid)
-    # pno
-#     pers.is_hrp
-#     pers.is_bu_head
-    # pers.from_child_record = Bool.( pers.from_child_record )
-    # default_benefit_unit
-    # age
-    pers.sex = eval.( Symbol.( pers.sex ))
-    pers.ethnic_group = eval.( Symbol.( pers.ethnic_group ))
-    pers.marital_status = eval.( Symbol.( pers.marital_status ))
-    pers.highest_qualification = eval.( Symbol.( pers.highest_qualification ))
-    pers.sic = eval.( Symbol.( pers.sic ))
-    pers.occupational_classification = eval.( Symbol.( pers.occupational_classification ))
-    pers.public_or_private = eval.( Symbol.( pers.public_or_private ))
-    pers.principal_employment_type = eval.( Symbol.( pers.principal_employment_type ))
-    pers.socio_economic_grouping = eval.( Symbol.( pers.socio_economic_grouping ))
-#     pers.age_completed_full_time_education
-#     pers.years_in_full_time_work
-    pers.employment_status = eval.( Symbol.( pers.employment_status ))
-#     pers.usual_hours_worked
-#     pers.actual_hours_worked
-#     pers.age_started_first_job
-    pers.type_of_bereavement_allowance = eval.( Symbol.( pers.type_of_bereavement_allowance ))
-    pers.had_children_when_bereaved = safe_to_bool.( pers.had_children_when_bereaved )
-#     pers.pay_includes_ssp
-#     pers.pay_includes_smp
-#     pers.pay_includes_spp
-#     pers.pay_includes_sap
-#     pers.pay_includes_mileage
-#     pers.pay_includes_motoring_expenses
-#     pers.income_wages
-#     pers.income_self_employment_income
-#     pers.income_self_employment_expenses
-#     pers.income_self_employment_losses
-#     pers.income_odd_jobs
-#     pers.income_private_pensions
-#     pers.income_national_savings
-#     pers.income_bank_interest
-#     pers.income_stocks_shares
-#     pers.income_individual_savings_account
-#     pers.income_property
-#     pers.income_royalties
-#     pers.income_bonds_and_gilts
-#     pers.income_other_investment_income
-#     pers.income_other_income
-#     pers.income_alimony_and_child_support_received
-#     pers.income_health_insurance
-#     pers.income_alimony_and_child_support_paid
-#     pers.income_care_insurance
-#     pers.income_trade_unions_etc
-#     pers.income_friendly_societies
-#     pers.income_work_expenses
-#     pers.income_avcs
-#     pers.income_other_deductions
-#     pers.income_loan_repayments
-#     pers.income_student_loan_repayments
-#     pers.income_pension_contributions_employer
-#     pers.income_pension_contributions_employee
-#     pers.income_education_allowances
-#     pers.income_foster_care_payments
-#     pers.income_student_grants
-#     pers.income_student_loans
-#     pers.income_income_tax
-#     pers.income_national_insurance
-#     pers.income_local_taxes
-#     pers.income_free_school_meals
-#     pers.income_dlaself_care
-#     pers.income_dlamobility
-#     pers.income_child_benefit
-#     pers.income_pension_credit
-#     pers.income_state_pension
-#     pers.income_bereavement_allowance_or_widowed_parents_allowance_or_bereavement
-#     pers.income_armed_forces_compensation_scheme
-#     pers.income_war_widows_or_widowers_pension
-#     pers.income_severe_disability_allowance
-#     pers.income_attendance_allowance
-#     pers.income_carers_allowance
-#     pers.income_jobseekers_allowance
-#     pers.income_industrial_injury_disablement_benefit
-#     pers.income_employment_and_support_allowance
-#     pers.income_incapacity_benefit
-#     pers.income_income_support
-#     pers.income_maternity_allowance
-#     pers.income_maternity_grant_from_social_fund
-#     pers.income_funeral_grant_from_social_fund
-#     pers.income_any_other_ni_or_state_benefit
-#     pers.income_trade_union_sick_or_strike_pay
-#     pers.income_friendly_society_benefits
-#     pers.income_private_sickness_scheme_benefits
-#     pers.income_accident_insurance_scheme_benefits
-#     pers.income_hospital_savings_scheme_benefits
-#     pers.income_government_training_allowances
-#     pers.income_guardians_allowance
-#     pers.income_widows_payment
-#     pers.income_unemployment_or_redundancy_insurance
-#     pers.income_winter_fuel_payments
-#     pers.income_child_winter_heating_assistance_payment
-#     pers.income_dwp_third_party_payments_is_or_pc
-#     pers.income_dwp_third_party_payments_jsa_or_esa
-#     pers.income_social_fund_loan_repayment_from_is_or_pc
-#     pers.income_social_fund_loan_repayment_from_jsa_or_esa
-#     pers.income_extended_hb
-#     pers.income_permanent_health_insurance
-#     pers.income_any_other_sickness_insurance
-#     pers.income_critical_illness_cover
-#     pers.income_working_tax_credit
-#     pers.income_child_tax_credit
-#     pers.income_working_tax_credit_lump_sum
-#     pers.income_child_tax_credit_lump_sum
-#     pers.income_housing_benefit
-#     pers.income_universal_credit
-#     pers.income_personal_independence_payment_daily_living
-#     pers.income_personal_independence_payment_mobility
-#     pers.income_a_loan_from_the_dwp_and_dfc
-#     pers.income_a_loan_or_grant_from_local_authority
-#     pers.income_social_fund_loan_uc
-#     pers.income_other_benefits
-#     pers.income_scottish_child_payment
-#     pers.income_job_start_payment
-#     pers.income_troubles_permanent_disablement
-#     pers.income_child_disability_payment_care
-#     pers.income_child_disability_payment_mobility
-#     pers.income_pupil_development_grant
-#     pers.wages_frs
-#     pers.self_emp_frs
-#     pers.wages_hbai
-#     pers.self_emp_hbai
-    pers.jsa_type = eval.( Symbol.( pers.jsa_type ))
-    pers.esa_type = eval.( Symbol.( pers.esa_type ))
-    pers.dlaself_care_type = eval.( Symbol.( pers.dlaself_care_type ))
-    pers.dlamobility_type = eval.( Symbol.( pers.dlamobility_type ))
-    pers.attendance_allowance_type = eval.( Symbol.( pers.attendance_allowance_type ))
-    pers.personal_independence_payment_daily_living_type = eval.( Symbol.( pers.personal_independence_payment_daily_living_type ))
-    pers.personal_independence_payment_mobility_type = eval.( Symbol.( pers.personal_independence_payment_mobility_type ))
-#     pers.over_20_k_saving
-    println("#1")
-#     pers.asset_current_account
-#     pers.asset_nsb_ordinary_account
-#     pers.asset_nsb_investment_account
-#     pers.asset_not_used
-#     pers.asset_savings_investments_etc
-#     pers.asset_government_gilt_edged_stock
-#     pers.asset_unit_or_investment_trusts
-#     pers.asset_stocks_shares_bonds_etc
-#     pers.asset_pep
-#     pers.asset_national_savings_capital_bonds
-#     pers.asset_index_linked_national_savings_certificates
-#     pers.asset_fixed_interest_national_savings_certificates
-#     pers.asset_pensioners_guaranteed_bonds
-#     pers.asset_saye
-#     pers.asset_premium_bonds
-#     pers.asset_national_savings_income_bonds
-#     pers.asset_national_savings_deposit_bonds
-#     pers.asset_first_option_bonds
-#     pers.asset_yearly_plan
-#     pers.asset_isa
-#     pers.asset_fixd_rate_svngs_bonds_or_grntd_incm_bonds_or_grntd_growth_bonds
-#     pers.asset_geb
-#     pers.asset_basic_account
-#     pers.asset_credit_unions
-#     pers.asset_endowment_policy_not_linked
-#     pers.asset_informal_assets
-#     pers.asset_post_office_card_account
-#     pers.asset_friendly_society_investment
-    println("#2")
-    # contracted_out_of_serps
-#     pers.registered_blind
-#     pers.registered_partially_sighted
-#     pers.registered_deaf
-#     pers.disability_vision
-#     pers.disability_hearing
-#     pers.disability_mobility
-#     pers.disability_dexterity
-#     pers.disability_learning
-#     pers.disability_memory
-#     pers.disability_mental_health
-#     pers.disability_stamina
-#     pers.disability_socially
-#     pers.disability_other_difficulty
-    pers.health_status = eval.( Symbol.( pers.health_status ))
-#     pers.has_long_standing_illness
-    pers.adls_are_reduced = eval.( Symbol.( pers.adls_are_reduced ))
-    pers.how_long_adls_reduced = eval.( Symbol.( pers.how_long_adls_reduced ))
-#     pers.is_informal_carer
-#     pers.receives_informal_care_from_non_householder
-#     pers.hours_of_care_received
-#     pers.hours_of_care_given
-#     pers.hours_of_childcare
-#     pers.cost_of_childcare
-    pers.childcare_type = eval.( Symbol.( pers.childcare_type ))
-#     pers.employer_provides_child_care
-#     pers.work_expenses 
-#     pers.travel_to_work
-#     pers.debt_repayments
-#     pers.wealth_and_assets
-#     pers.totsav
-    pers.company_car_fuel_type = eval.( Symbol.( pers.company_car_fuel_type ))
-#     pers.company_car_value
-#     pers.company_car_contribution
-#     pers.fuel_supplied
-    pers.relationship_to_hoh = eval.( Symbol.( pers.relationship_to_hoh ))
-    pers.relationship_1 = eval.( Symbol.( pers.relationship_1 ))
-    pers.relationship_2 = eval.( Symbol.( pers.relationship_2 ))
-    pers.relationship_3 = eval.( Symbol.( pers.relationship_3 ))
-    pers.relationship_4 = eval.( Symbol.( pers.relationship_4 ))
-    pers.relationship_5 = eval.( Symbol.( pers.relationship_5 ))
-    pers.relationship_6 = eval.( Symbol.( pers.relationship_6 ))
-    pers.relationship_7 = eval.( Symbol.( pers.relationship_7 ))
-    pers.relationship_8 = eval.( Symbol.( pers.relationship_8 ))
-    pers.relationship_9 = eval.( Symbol.( pers.relationship_9 ))
-    pers.relationship_10 = eval.( Symbol.( pers.relationship_10 ))
-    pers.relationship_11 = eval.( Symbol.( pers.relationship_11 ))
-    pers.relationship_12 = eval.( Symbol.( pers.relationship_12 ))
-    pers.relationship_13 = eval.( Symbol.( pers.relationship_13 ))
-    pers.relationship_14 = eval.( Symbol.( pers.relationship_14 ))
-    pers.relationship_15 = eval.( Symbol.( pers.relationship_15 ))
-    println("#3")
-    pers.onerand .= ""
-    pers.uhid = BigInt.(pers.uhid)
-    CSV.write( "data/actual_data/model_people_scotland-2015-2021-w-enums.tab", pers )
-    pers
-end
-
 function dump_pers()
-    pers = CSV.File( "data/actual_data/model_people_scotland-2015-2021.tab") |> DataFrame
+    pers = CSV.File( "data/example_data/example_people.tab") |> DataFrame
     pers.pid = BigInt.(pers.pid)
     # pno
     pers.is_hrp = formiss.( pers.is_hrp, Bool )
@@ -668,7 +433,8 @@ function dump_pers()
     println("#3")
     pers.onerand .= ""
     pers.uhid = BigInt.(pers.uhid)
-    CSV.write( "data/actual_data/model_people_scotland-2015-2021-w-enums.tab", pers )
+    # CSV.write( "data/actual_data/model_people_scotland-2015-2021-w-enums.tab", pers )
+    CSV.write( "data/example_data/example_people-w-enums.tab", pers )
     return pers
 end
 
