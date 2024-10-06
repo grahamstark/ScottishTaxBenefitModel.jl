@@ -285,7 +285,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         socio_economic_grouping = fill( Missing_Socio_Economic_Group, n ), # Vector{Union{Integer,Missing}}(missing, n),
         age_completed_full_time_education = fill(0,n), # Vector{Union{Integer,Missing}}(missing, n),
         years_in_full_time_work = fill(0,n), # Vector{Union{Integer,Missing}}(missing, n),
-        employment_status = fill( Missing_Employment_Status, n ), #Vector{Union{Integer,Missing}}(missing, n),
+        employment_status = fill( Missing_ILO_Employment, n ), #Vector{Union{Integer,Missing}}(missing, n),
         usual_hours_worked = fill(0.0, n ), # Vector{Union{Real,Missing}}(missing, n),
         actual_hours_worked = fill(0.0, n), # Vector{Union{Real,Missing}}(missing, n),
         age_started_first_job = fill(0, n), # Vector{Union{Real,Missing}}(missing, n),
@@ -679,7 +679,7 @@ function map_investment_income!(model_adult::DataFrameRow, accounts::DataFrame)
             # the weird way the FRS records National Savings as stocks
             # nsamt should always be set for these records & handled above.
             # @assert false
-            println( "atype = $atype but nsamt is $nsamt" )
+            # println( "atype = $atype but nsamt is $nsamt" )
         elseif atype in [
             Stocks_Shares_Bonds_etc,
             Member_of_Share_Club]
@@ -860,7 +860,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
             self_employment_income += jb.prbefore
         elseif jb.profit1 > 0.0 
             if jb.profit2 == -1
-                println( "jb.profit2 is |$(jb.profit2)| should be 1,2 pid=$(model_adult.pid)")
+                # println( "jb.profit2 is |$(jb.profit2)| should be 1,2 pid=$(model_adult.pid)")
                 jb.profit2 = 1# jb.profit2 catch 1 weird -1 profit2 pid=120191636601 just treat as profit not loss
             end
             @assert jb.profit2 in [1, 2] 
@@ -900,8 +900,10 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
             end # bonuses loop
         end # add bonuses
         # cars
-
-        company_car_fuel_type = Fuel_Type(jb.fueltyp)
+        # assign once
+        if company_car_fuel_type < 0
+            company_car_fuel_type = jb.fueltyp
+        end
         mv = map_car_value(jb.carval)
         # println( mv )
         company_car_value = safe_inc(company_car_value, mv )
@@ -913,8 +915,8 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
     model_adult.usual_hours_worked = usual_hours
     model_adult.actual_hours_worked = actual_hours
     model_adult.income_wages = earnings
-    model_adult.principal_employment_type = principal_employment_type
-    model_adult.public_or_private = public_or_private
+    model_adult.principal_employment_type = Employment_Type(principal_employment_type)
+    model_adult.public_or_private = Employment_Sector(public_or_private)
     ## FIXME look at this mapping again: pcodes
     model_adult.income_health_insurance = health_insurance
     # model_adult.income_# care_insurance  = # care_insurance
@@ -931,7 +933,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
     model_adult.income_self_employment_expenses = self_employment_expenses
     model_adult.income_self_employment_losses = self_employment_losses
 
-    model_adult.company_car_fuel_type = company_car_fuel_type
+    model_adult.company_car_fuel_type = Fuel_Type(company_car_fuel_type)
     model_adult.company_car_value = company_car_value
     model_adult.company_car_contribution = company_car_contribution
     model_adult.fuel_supplied = fuel_supplied
@@ -954,10 +956,10 @@ function process_benefits!( model_adult::DataFrameRow, a_benefits::DataFrame)
         bno = a_benefits[b, :benefit]
         if !(bno in [46, 47]) # 2015 receipt in last 6 months of tax credits
             btype = Benefit_Type(bno)
-            println( "bno=$bno BenefitType=$btype")
+            # println( "bno=$bno BenefitType=$btype")
             if btype <= Personal_Independence_Payment_Mobility
                 ikey = make_sym_for_frame("income", btype)
-                println( "ikey=$ikey")
+                # println( "ikey=$ikey")
                 model_adult[ikey] = safe_inc(model_adult[ikey], a_benefits[b, :benamt])
             end
         end

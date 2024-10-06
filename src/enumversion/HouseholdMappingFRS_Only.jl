@@ -79,8 +79,8 @@ function create_adults(
         model_adult.pno = frs_person.person
         model_adult.hid = frs_person.sernum
         model_adult.is_hrp = (frs_person.hrpid == 1) 
-        model_adult.uhid = get_pid( FRS, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
-        model_adult.pid = get_pid( FRS, year, frs_person.sernum, frs_person.person )
+        model_adult.uhid = get_pid( FRSSource, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
+        model_adult.pid = get_pid( FRSSource, year, frs_person.sernum, frs_person.person )
         model_adult.from_child_record = false
         model_adult.data_year = year
         model_adult.default_benefit_unit = frs_person.benunit
@@ -147,8 +147,8 @@ function create_adults(
         # so we can compare the two. This is in reaction to the 
         # oddly low Gini/Palma when using HBAI/SPI'd earnings
         # DELETED in this Non-HBAI version
-        model_adult.wages_hbai = missing #hbaidata.wages
-        model_adult.self_emp_hbai = missing # hbaidata.selfemp
+        model_adult.wages_hbai = -1 #missing #hbaidata.wages
+        model_adult.self_emp_hbai = -1# missing # hbaidata.selfemp
         model_adult.wages_frs = safe_inc( 0.0, frs_person.inearns )
         model_adult.self_emp_frs = safe_inc( 0.0, frs_person.incseo2 )
         
@@ -281,9 +281,9 @@ function create_children(
 
         model_child.pno = frs_person.person
         model_child.hid = frs_person.sernum
-        model_child.uhid = get_pid( FRS, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
+        model_child.uhid = get_pid( FRSSource, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
         
-        model_child.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
+        model_child.pid = get_pid(FRSSource, year, frs_person.sernum, frs_person.person)
         model_child.from_child_record = true
 
         model_child.data_year = year
@@ -329,7 +329,7 @@ function create_children(
         for c in 1:nchildcares
             if c == 1 # type of care from 1st instance
                 model_child.childcare_type =
-                    map_child_care( year, a_childcare[c, :chlook] )
+                Child_Care_Type(map_child_care( year, a_childcare[c, :chlook] ))
                 model_child.employer_provides_child_care = (a_childcare[c, :emplprov] == 2)
             end
             model_child.cost_of_childcare = safe_inc(
@@ -385,7 +385,7 @@ function create_household(
         hh_model[hhno, :quarter] = div(interview_month - 1, 3) + 1
 
         hh_model[hhno, :hid] = sernum
-        hh_model[hhno, :uhid] = get_pid( FRS, year, sernum, 0 ) # unique hhid needed for mostly.ai generator
+        hh_model[hhno, :uhid] = get_pid( FRSSource, year, sernum, 0 ) # unique hhid needed for mostly.ai generator
         
         hh_model[hhno, :data_year] = year
         hh_model[hhno, :tenure] = Tenure_Type( max(-1,hh.tentyp2))
@@ -412,7 +412,7 @@ function create_household(
         # FIXME this needs renamed: actually capital component
         hh_model[hhno, :mortgage_payment] = mortage_capital_payments( frx )
         mit = safe_assign( hh.mortint )
-        hh_model[hhno, :mortgage_interest] = mit > 0 ? mit : missing 
+        hh_model[hhno, :mortgage_interest] = max( 0.0, mit ) # > 0 ? mit : missing 
 
         # TODO
         # years_outstanding_on_mortgage::Integer
@@ -540,9 +540,9 @@ function create_data(;start_year::Int, end_year::Int)
         println( "on year $year")
         println( "hhlds")
         append = year > start_year
-        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_households-$(start_year)-$(end_year).tab", model_households, delim = "\t", append=append)
-        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year).tab", model_people, delim = "\t", append=append)
-        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year).tab", model_children, delim = "\t", append=true)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_households-$(start_year)-$(end_year)-w-enums-2.tab", model_households, delim = "\t", append=append)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year)-w-enums-2.tab", model_people, delim = "\t", append=append)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year)-w-enums-2.tab", model_children, delim = "\t", append=true)
     
     end    
 end

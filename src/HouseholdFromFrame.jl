@@ -323,6 +323,7 @@ function map_person(
             end
         end
     end
+    
     relationships = Relationship_Dict()
     for i in 1:15
         relmod = Symbol( "relationship_$(i)") # :relationship_10 or :relationship_2
