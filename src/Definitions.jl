@@ -110,7 +110,7 @@ export BereavementType,
    bereavement_allowance,
    widowed_parents,
    bereavement_support
-   
+   # FIXME names 
 @enum BereavementType begin
    missing_bereave = -1
    bereavement_allowance = 1
