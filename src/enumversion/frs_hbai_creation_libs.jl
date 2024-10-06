@@ -514,31 +514,31 @@ function initialise_household(n::Integer)::DataFrame
     # FIXME change all VectorUnion to fill(0,n)
     # select value,count(value),label from dictionaries.enums where dataset='frs' and tables='househol' and variable_name='hhcomps' group by value,label;
     return DataFrame(
-        data_year = Vector{Union{Integer,Missing}}(missing, n),
-        interview_year = Vector{Union{Integer,Missing}}(missing, n),
-        interview_month = Vector{Union{Integer,Missing}}(missing, n),
-        quarter = Vector{Union{Integer,Missing}}(missing, n),
-        hid = Vector{Union{BigInt,Missing}}(missing, n),
-        uhid = Vector{Union{BigInt,Missing}}(missing, n), # unique combination of hid&data_year, needed for ai generation 
-        tenure = Vector{Union{Integer,Missing}}(missing, n),
-        region = Vector{Union{Integer,Missing}}(missing, n),
-        ct_band = Vector{Union{Integer,Missing}}(missing, n),
-        dwelling = Vector{Union{Integer,Missing}}(missing, n),
-        council_tax = Vector{Union{Real,Missing}}(missing, n),
-        water_and_sewerage = Vector{Union{Real,Missing}}(missing, n),
-        mortgage_payment = Vector{Union{Real,Missing}}(missing, n),
-        mortgage_interest = Vector{Union{Real,Missing}}(missing, n),
-        years_outstanding_on_mortgage = Vector{Union{Integer,Missing}}(missing, n),
-        mortgage_outstanding = Vector{Union{Real,Missing}}(missing, n),
-        year_house_bought = Vector{Union{Integer,Missing}}(missing, n),
-        gross_rent = Vector{Union{Real,Missing}}(missing, n),
-        rent_includes_water_and_sewerage = Vector{Union{Integer,Missing}}(missing, n),
-        other_housing_charges = Vector{Union{Real,Missing}}(missing, n),
-        gross_housing_costs = Vector{Union{Real,Missing}}(missing, n),
-        original_gross_income = Vector{Union{Real,Missing}}(missing, n),
-        total_wealth = Vector{Union{Real,Missing}}(missing, n),
-        house_value = Vector{Union{Real,Missing}}(missing, n),
-        weight = Vector{Union{Real,Missing}}(missing, n),
+        data_year = fill(0,n), # Vector{Union{Integer,Missing}}(missing, n),
+        interview_year = fill(0,n), # = Vector{Union{Integer,Missing}}(missing, n),
+        interview_month = fill(0,n), # = Vector{Union{Integer,Missing}}(missing, n),
+        quarter= fill(0,n), # = Vector{Union{Integer,Missing}}(missing, n),
+        hid = fill(BigInt(0),n), # = Vector{Union{BigInt,Missing}}(missing, n),
+        uhid = fill(BigInt(0),n), # Vector{Union{BigInt,Missing}}(missing, n), # unique combination of hid&data_year, needed for ai generation 
+        tenure = fill(Missing_Tenure_Type,n), # Vector{Union{Integer,Missing}}(missing, n),
+        region = fill( Missing_Standard_Region, n ), # Vector{Union{Integer,Missing}}(missing, n),
+        ct_band = fill( Missing_CT_Band, n ), # Vector{Union{Integer,Missing}}(missing, n),
+        dwelling = fill( dwell_na, n ), # Vector{Union{Integer,Missing}}(missing, n),
+        council_tax = zeros(n), # Vector{Union{Real,Missing}}(missing, n),
+        water_and_sewerage = zeros(n), #  = Vector{Union{Real,Missing}}(missing, n),
+        mortgage_payment = zeros(n), #  = Vector{Union{Real,Missing}}(missing, n),
+        mortgage_interest = zeros(n), #  = Vector{Union{Real,Missing}}(missing, n),
+        years_outstanding_on_mortgage = fill(0,n), # Vector{Union{Integer,Missing}}(missing, n),
+        mortgage_outstanding = zeros(n), #  = Vector{Union{Real,Missing}}(missing, n),
+        year_house_bought = fill(0,n), # = Vector{Union{Integer,Missing}}(missing, n),
+        gross_rent = zeros(n), # = Vector{Union{Real,Missing}}(missing, n),
+        rent_includes_water_and_sewerage = fill( false,  n ), #Vector{Union{Integer,Missing}}(missing, n),
+        other_housing_charges = zeros(n), # Vector{Union{Real,Missing}}(missing, n),
+        gross_housing_costs = zeros(n), # = Vector{Union{Real,Missing}}(missing, n),
+        original_gross_income = zeros(n), # = Vector{Union{Real,Missing}}(missing, n),
+        total_wealth = zeros(n), # = Vector{Union{Real,Missing}}(missing, n),
+        house_value = zeros(n), # = Vector{Union{Real,Missing}}(missing, n),
+        weight = zeros(n), # = Vector{Union{Real,Missing}}(missing, n),
         council = fill( "", n ),
         nhs_board = fill( "", n ),
         bedrooms = fill( 0, n ),
@@ -547,7 +547,7 @@ function initialise_household(n::Integer)::DataFrame
         net_financial_wealth = zeros(n),
         net_housing_wealth = zeros(n),
         net_pension_wealth = zeros(n),
-        onerand = Vector{String}(undef,n)
+        onerand = fill("", n ) # Vector{String}(undef,n)
     )
 end
 
@@ -768,7 +768,7 @@ function process_relationships!( model_person :: DataFrameRow, frs_person :: Dat
     if (relhh == -1 )
         relhh = 0 # map 'this person'; note hrp/head no longer needs to be 1
     end
-    model_person.relationship_to_hoh = fill( Missing_Relationship, n ), #
+    model_person.relationship_to_hoh =  Relationship( relhh )#
     for i in 1:14
         rel = i < 10 ? "r0" : "r"
         relfrs = Symbol( "$(rel)$i" ) # :r10 or :r02 and so on
@@ -777,7 +777,7 @@ function process_relationships!( model_person :: DataFrameRow, frs_person :: Dat
         if (frs_person.person == i) & (relp == -1) # again "this person = 0; makes mapping code (and just reading output) easier
             relp = 0
         end
-        model_person[relmod] = relp
+        model_person[relmod] = Relationship(relp)
     end
 end
 
@@ -836,23 +836,23 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         work_expenses = safe_inc(work_expenses, jb.umotamt)# CARS FIXME add to this
         
         if jb.inclpay1 == 1
-            model_adult.pay_includes_ssp = 1
+            model_adult.pay_includes_ssp = true
         end
         if jb.inclpay2 == 1
-            model_adult.pay_includes_smp = 1
+            model_adult.pay_includes_smp = true
         end
         # it refund .. 3
         if jb.inclpay4 == 1
-            model_adult.pay_includes_mileage = 1
+            model_adult.pay_includes_mileage = true
         end
         if jb.inclpay5 == 1
-            model_adult.pay_includes_motoring_expenses = 1
+            model_adult.pay_includes_motoring_expenses = true
         end
         if jb.inclpay6 == 1
-            model_adult.pay_includes_spp = 1
+            model_adult.pay_includes_spp = true
         end
         if jb.inclpay7 == 1
-            model_adult.pay_includes_sap = 1
+            model_adult.pay_includes_sap = true
         end
         
         # self employment
@@ -901,7 +901,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         end # add bonuses
         # cars
 
-        company_car_fuel_type = jb.fueltyp
+        company_car_fuel_type = Fuel_Type(jb.fueltyp)
         mv = map_car_value(jb.carval)
         # println( mv )
         company_car_value = safe_inc(company_car_value, mv )

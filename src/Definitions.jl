@@ -125,6 +125,7 @@ export Missing_Illness_Length, RT
 export DwellingType,  dwell_na, detatched, semi_detached, terraced,
    flat_or_maisonette, converted_flat, caravan, other_dwelling
 
+# FIXME _na -> missing ? 
 @enum DwellingType begin
    dwell_na = -1
    detatched = 1
