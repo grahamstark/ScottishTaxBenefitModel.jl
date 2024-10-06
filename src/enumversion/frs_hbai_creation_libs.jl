@@ -436,7 +436,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         asset_credit_unions = zeros(n),
         asset_endowment_policy_not_linked = zeros(n),
         asset_informal_assets = zeros(n),
-        asset_post_office_card_account= Vector{Union{Real,Missing}}(missing, n),
+        asset_post_office_card_account= zeros(n),
         asset_friendly_society_investment = zeros(n),
 
         contracted_out_of_serps = fill( false, n ),

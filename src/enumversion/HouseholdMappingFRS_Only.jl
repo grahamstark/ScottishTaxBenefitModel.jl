@@ -229,11 +229,21 @@ function create_adults(
         model_adult.adls_are_reduced = ADLS_Inhibited(adlr) # missings to 'not at all'
 
         model_adult.age_started_first_job = safe_assign( frs_person.jobbyr )
-        # 2017/18 only
+        # This IGNORES the WID field and should use financial year as changeover
         # FIXME check this
-        if year >= 2017
-            model_adult.type_of_bereavement_allowance = BereavementType(safe_assign( frs_person.wid ))
+        if(model_adult.income_bereavement_allowance_or_widowed_parents_allowance_or_bereavement > 0)||
+           (model_adult.income_widows_payment > 0)
+           if( year >= 2017 ) # || (year == 2017 && month > 3)
+            model_adult.type_of_bereavement_allowance = widowed_parents
+           else
+            model_adult.type_of_bereavement_allowance = bereavement_allowance
+           end
         end
+        #=        
+            BereavementType(safe_assign( frs_person.wid ))
+        end
+        =#
+
         model_adult.had_children_when_bereaved = safe_assign( frs_person.w2 ) == 1
 
         # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),

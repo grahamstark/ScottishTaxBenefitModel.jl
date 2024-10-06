@@ -8,15 +8,15 @@ ADD_IN_MATCHING = true
 
 settings = Settings()
 
-household_name = "model_households-2015-2021"
-people_name = "model_people-2015-2021"
+household_name = "model_households-2015-2021-w-enums-2"
+people_name = "model_people-2015-2021-w-enums-2"
 
 hh_dataset = CSV.File("$(data_dir( settings ))/$(household_name).tab", delim='\t' ) |> DataFrame
 people_dataset = CSV.File("$(data_dir( settings ))/$(people_name).tab", delim='\t') |> DataFrame
 
 dropmissing!(people_dataset,:data_year) # kill!!! non hbai kids
 
-scottish_hhlds = hh_dataset[(hh_dataset.region .== 299999999),:]
+scottish_hhlds = hh_dataset[(hh_dataset.region .== "Scotland"), :] #299999999),:]
 scottish_people = semijoin(people_dataset, scottish_hhlds,on=[:hid,:data_year])
 
 if ADD_IN_MATCHING
@@ -31,8 +31,8 @@ if ADD_IN_MATCHING
     scottish_hhlds.bedrooms = shs_matches.bedrooms
 end
 
-CSV.write("$(data_dir( settings ))/model_households_scotland-2015-2021.tab", scottish_hhlds, delim = "\t")
-CSV.write("$(data_dir( settings ))/model_people_scotland-2015-2021.tab", scottish_people, delim = "\t")
+CSV.write("$(data_dir( settings ))/model_households_scotland-2015-2021-w-enums-2.tab", scottish_hhlds, delim = "\t")
+CSV.write("$(data_dir( settings ))/model_people_scotland-2015-2021-w-enums-2.tab", scottish_people, delim = "\t")
 
 #
 # write a 1 year all UK dataset while we're at it.
@@ -40,6 +40,6 @@ CSV.write("$(data_dir( settings ))/model_people_scotland-2015-2021.tab", scottis
 latest_year = maximum( hh_dataset.data_year )
 uk_latest_hhlds = hh_dataset[(hh_dataset.data_year .== latest_year ),:]
 uk_latest_people = semijoin( people_dataset, uk_latest_hhlds,on=[:hid,:data_year])
-CSV.write("$(data_dir( settings ))/model_households-$(latest_year)-$(latest_year).tab", uk_latest_hhlds, delim = "\t")
-CSV.write("$(data_dir( settings ))/model_people-$(latest_year)-$(latest_year).tab", uk_latest_people, delim = "\t")
+CSV.write("$(data_dir( settings ))/model_households-$(latest_year)-$(latest_year)-w-enums-2.tab", uk_latest_hhlds, delim = "\t")
+CSV.write("$(data_dir( settings ))/model_people-$(latest_year)-$(latest_year)-w-enums-2.tab", uk_latest_people, delim = "\t")
 
