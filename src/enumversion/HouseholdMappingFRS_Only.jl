@@ -78,27 +78,27 @@ function create_adults(
         model_adult = adult_model[adno, :]
         model_adult.pno = frs_person.person
         model_adult.hid = frs_person.sernum
-        model_adult.is_hrp = (frs_person.hrpid == 1) ? 1 : 0
+        model_adult.is_hrp = (frs_person.hrpid == 1) 
         model_adult.uhid = get_pid( FRS, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
         model_adult.pid = get_pid( FRS, year, frs_person.sernum, frs_person.person )
-        model_adult.from_child_record = 0
+        model_adult.from_child_record = false
         model_adult.data_year = year
         model_adult.default_benefit_unit = frs_person.benunit
         model_adult.age = frs_person.age80
-        model_adult.sex = safe_assign(frs_person.sex)
-        model_adult.ethnic_group = safe_assign(frs_person.ethgr3)
+        model_adult.sex = Sex(safe_assign(frs_person.sex))
+        model_adult.ethnic_group = Ethnic_Group(safe_assign(frs_person.ethgr3))
         
         hdsp = is_bu_head( 
             frs_bu,
             bu_people,
             frs_person )
-        model_adult.is_bu_head = (hdsp == true) ? 1 : 0
+        model_adult.is_bu_head = hdsp #  == true) 
         model_adult.jsa_type, model_adult.esa_type = make_jsa_type( 
             frsx,
             frs_person.sernum,
             frs_person.benunit,
             hdsp )
-        if model_adult.is_bu_head == 1
+        if model_adult.is_bu_head
             # see the note on capital in `docs/legalaid` - and 
             # assign BU total to head of bu
             # totsav3 us is the only measure in all of 2015-2021 FRSs
@@ -130,15 +130,15 @@ function create_adults(
         naaccounts = size(an_account)[1]
         nojs = size(a_oddjob)[1]
 
-        model_adult.marital_status = safe_assign(frs_person.marital)
-        model_adult.highest_qualification = safe_assign(frs_person.dvhiqual)
-        model_adult.sic = safe_assign(frs_person.sic)
+        model_adult.marital_status = Marital_Status(safe_assign(frs_person.marital))
+        model_adult.highest_qualification = Qualification_Type(safe_assign(frs_person.dvhiqual))
+        model_adult.sic = SIC_2007(safe_assign(frs_person.sic))
 
-        model_adult.socio_economic_grouping = safe_assign(Integer(trunc(frs_person.nssec)))
+        model_adult.socio_economic_grouping = Socio_Economic_Group(safe_assign(Integer(trunc(frs_person.nssec))))
         model_adult.age_completed_full_time_education = safe_assign(frs_person.tea)
         model_adult.years_in_full_time_work = safe_inc(0, frs_person.ftwk)
-        model_adult.employment_status = safe_assign(frs_person.empstati)
-        model_adult.occupational_classification = safe_assign(frs_person.soc2010)
+        model_adult.employment_status = ILO_Employment(safe_assign(frs_person.empstati))
+        model_adult.occupational_classification = Standard_Occupational_Classification(safe_assign(frs_person.soc2010))
 
         process_job_rec!(model_adult, a_job)
         # FIXME some duplication here
@@ -208,47 +208,49 @@ function create_adults(
         process_assets!(model_adult, an_asset)
 
         ## also for child
-        model_adult.registered_blind = (frs_person.spcreg1 == 1 ? 1 : 0)
-        model_adult.registered_partially_sighted = (frs_person.spcreg2 == 1 ? 1 : 0)
-        model_adult.registered_deaf = (frs_person.spcreg3 == 1 ? 1 : 0)
+        model_adult.registered_blind = (frs_person.spcreg1 == 1)
+        model_adult.registered_partially_sighted = (frs_person.spcreg2 == 1)
+        model_adult.registered_deaf = (frs_person.spcreg3 == 1)
 
-        model_adult.disability_vision = (frs_person.disd01 == 1 ? 1 : 0) # cdisd kids ..
-        model_adult.disability_hearing = (frs_person.disd02 == 1 ? 1 : 0)
-        model_adult.disability_mobility = (frs_person.disd03 == 1 ? 1 : 0)
-        model_adult.disability_dexterity = (frs_person.disd04 == 1 ? 1 : 0)
-        model_adult.disability_learning = (frs_person.disd05 == 1 ? 1 : 0)
-        model_adult.disability_memory = (frs_person.disd06 == 1 ? 1 : 0)
-        model_adult.disability_mental_health = (frs_person.disd07 == 1 ? 1 : 0)
-        model_adult.disability_stamina = (frs_person.disd08 == 1 ? 1 : 0)
-        model_adult.disability_socially = (frs_person.disd09 == 1 ? 1 : 0)
-        model_adult.disability_other_difficulty = (frs_person.disd10 == 1 ? 1 : 0)
+        model_adult.disability_vision = (frs_person.disd01 == 1) # cdisd kids ..
+        model_adult.disability_hearing = (frs_person.disd02 == 1)
+        model_adult.disability_mobility = (frs_person.disd03 == 1)
+        model_adult.disability_dexterity = (frs_person.disd04 == 1)
+        model_adult.disability_learning = (frs_person.disd05 == 1)
+        model_adult.disability_memory = (frs_person.disd06 == 1)
+        model_adult.disability_mental_health = (frs_person.disd07 == 1)
+        model_adult.disability_stamina = (frs_person.disd08 == 1)
+        model_adult.disability_socially = (frs_person.disd09 == 1)
+        model_adult.disability_other_difficulty = (frs_person.disd10 == 1)
 
-        model_adult.has_long_standing_illness = (frs_person.health1 == 1 ? 1 : 0)
-        model_adult.how_long_adls_reduced = (frs_person.limitl < 0 ? -1 : frs_person.limitl)
-        model_adult.adls_are_reduced = (frs_person.condit < 0 ? -1 : frs_person.condit) # missings to 'not at all'
+        model_adult.has_long_standing_illness = (frs_person.health1 == 1)
+        model_adult.how_long_adls_reduced = Illness_Length(max(-1,frs_person.limitl)) #  < 0 ? -1 : frs_person.limitl)
+        adlr = max(-1,frs_person.condit)
+        model_adult.adls_are_reduced = ADLS_Inhibited(adlr) # missings to 'not at all'
 
         model_adult.age_started_first_job = safe_assign( frs_person.jobbyr )
         # 2017/18 only
+        # FIXME check this
         if year >= 2017
-            model_adult.type_of_bereavement_allowance = safe_assign( frs_person.wid )
+            model_adult.type_of_bereavement_allowance = BereavementType(safe_assign( frs_person.wid ))
         end
-        model_adult.had_children_when_bereaved = safe_assign( frs_person.w2 )
+        model_adult.had_children_when_bereaved = safe_assign( frs_person.w2 ) == 1
 
         # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
-        model_adult.health_status = safe_assign(frs_person.heathad)
+        model_adult.health_status = Health_Status(safe_assign(frs_person.heathad))
         model_adult.hours_of_care_received = safe_inc(0.0, frs_person.hourcare)
         model_adult.hours_of_care_given = infer_hours_of_care(frs_person.hourtot) # also kid
 
-        model_adult.is_informal_carer = (frs_person.carefl == 1 ? 1 : 0) # also kid
+        model_adult.is_informal_carer = (frs_person.carefl == 1) # also kid
         process_relationships!( model_adult, frs_person )
         #
         # illness benefit levels
         # See the note on this in docs/
-        model_adult.dlaself_care_type = map123( model_adult.income_dlaself_care, [30, 60 ] )
-        model_adult.dlamobility_type = map123(model_adult.income_dlamobility, [30] )
-        model_adult.attendance_allowance_type = map123( model_adult.income_attendance_allowance, [65] )
-        model_adult.personal_independence_payment_daily_living_type = map12( model_adult.income_personal_independence_payment_daily_living, 65 )
-        model_adult.personal_independence_payment_mobility_type  = map12( model_adult.income_personal_independence_payment_mobility, 30 )            
+        model_adult.dlaself_care_type = LowMiddleHigh(map123( model_adult.income_dlaself_care, [30, 60 ] ))
+        model_adult.dlamobility_type = LowMiddleHigh(map123(model_adult.income_dlamobility, [30] ))
+        model_adult.attendance_allowance_type = LowMiddleHigh(map123( model_adult.income_attendance_allowance, [65] ))
+        model_adult.personal_independence_payment_daily_living_type = PIPType(map12( model_adult.income_personal_independence_payment_daily_living, 65 ))
+        model_adult.personal_independence_payment_mobility_type  = PIPType(map12( model_adult.income_personal_independence_payment_mobility, 30 ))
     end # adult loop
     println("final adno $adno")
     return adult_model[1:adno, :]
@@ -260,8 +262,7 @@ function create_children(
     year::Integer,
     frs_children::DataFrame,
     childcare::DataFrame,
-    benefits:: DataFrame
-)::DataFrame
+    benefits:: DataFrame )::DataFrame
     num_children = size(frs_children)[1]
     child_model = initialise_person(num_children)
     ccount = 0
@@ -283,35 +284,35 @@ function create_children(
         model_child.uhid = get_pid( FRS, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
         
         model_child.pid = get_pid(FRS, year, frs_person.sernum, frs_person.person)
-        model_child.from_child_record = 1
+        model_child.from_child_record = true
 
         model_child.data_year = year
         model_child.default_benefit_unit = frs_person.benunit
         model_child.age = frs_person.age
-        model_child.sex = safe_assign(frs_person.sex)
+        model_child.sex = Sex(safe_assign(frs_person.sex))
         # model_child.ethnic_group = safe_assign(frs_person.ethgr3)
         ## also for child
         # println( "frs_person.chlimitl='$(frs_person.chlimitl)'")
-        model_child.has_long_standing_illness = (frs_person.chealth1 == 1 ? 1 : 0)
-        model_child.how_long_adls_reduced = (frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
-        model_child.adls_are_reduced = (frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
+        model_child.has_long_standing_illness = (frs_person.chealth1 == 1)
+        model_child.how_long_adls_reduced = Illness_Length(frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
+        model_child.adls_are_reduced = ADLS_Inhibited(frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
         model_child.over_20_k_saving = 0
 
-        model_child.registered_blind = (frs_person.spcreg1 == 1 ? 1 : 0)
-        model_child.registered_partially_sighted = (frs_person.spcreg2 == 1 ? 1 : 0)
-        model_child.registered_deaf = (frs_person.spcreg3 == 1 ? 1 : 0)
+        model_child.registered_blind = (frs_person.spcreg1 == 1)
+        model_child.registered_partially_sighted = (frs_person.spcreg2 == 1)
+        model_child.registered_deaf = (frs_person.spcreg3 == 1 )
 
-        model_child.disability_vision = (frs_person.cdisd01 == 1 ? 1 : 0) # cdisd kids ..
-        model_child.disability_hearing = (frs_person.cdisd02 == 1 ? 1 : 0)
-        model_child.disability_mobility = (frs_person.cdisd03 == 1 ? 1 : 0)
-        model_child.disability_dexterity = (frs_person.cdisd04 == 1 ? 1 : 0)
-        model_child.disability_learning = (frs_person.cdisd05 == 1 ? 1 : 0)
-        model_child.disability_memory = (frs_person.cdisd06 == 1 ? 1 : 0)
-        model_child.disability_mental_health = (frs_person.cdisd07 == 1 ? 1 : 0)
-        model_child.disability_stamina = (frs_person.cdisd08 == 1 ? 1 : 0)
-        model_child.disability_socially = (frs_person.cdisd09 == 1 ? 1 : 0)
+        model_child.disability_vision = ( frs_person.cdisd01 == 1 ) # cdisd kids ..
+        model_child.disability_hearing = ( frs_person.cdisd02 == 1 )
+        model_child.disability_mobility = ( frs_person.cdisd03 == 1 )
+        model_child.disability_dexterity = ( frs_person.cdisd04 == 1 )
+        model_child.disability_learning = ( frs_person.cdisd05 == 1 )
+        model_child.disability_memory = ( frs_person.cdisd06 == 1 )
+        model_child.disability_mental_health = ( frs_person.cdisd07 == 1 )
+        model_child.disability_stamina = ( frs_person.cdisd08 == 1 )
+        model_child.disability_socially = ( frs_person.cdisd09 == 1 )
         # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
-        model_child.health_status = safe_assign(frs_person.heathch)
+        model_child.health_status = Health_Status(safe_assign(frs_person.heathch))
         model_child.income_wages = safe_inc( 0.0, frs_person.chearns )
         model_child.income_other_investment_income = safe_inc( 0.0, frs_person.chsave )
         model_child.income_other_income = safe_inc( 0.0, frs_person.chrinc )
@@ -319,7 +320,7 @@ function create_children(
         for t in [:fsbval,:fsfvval,:fsmlkval,:fsmval]
             model_child.income_free_school_meals = safe_inc( model_child.income_free_school_meals, frs_person[t] )
         end
-        model_child.is_informal_carer = (frs_person.carefl == 1 ? 1 : 0) # also kid
+        model_child.is_informal_carer = (frs_person.carefl == 1 ) # also kid
         process_relationships!( model_child, frs_person )
         # TODO education grants, all the other good child stuff EMA
 
@@ -329,8 +330,7 @@ function create_children(
             if c == 1 # type of care from 1st instance
                 model_child.childcare_type =
                     map_child_care( year, a_childcare[c, :chlook] )
-                model_child.employer_provides_child_care = (a_childcare[c, :emplprov] == 2 ?
-                                                            1 : 0)
+                model_child.employer_provides_child_care = (a_childcare[c, :emplprov] == 2)
             end
             model_child.cost_of_childcare = safe_inc(
                 model_child.cost_of_childcare,
@@ -342,7 +342,6 @@ function create_children(
             )
         end # child care loop
         model_child.onerand = mybigrandstr()
-
         #
         #
         # this is zero length
@@ -389,10 +388,10 @@ function create_household(
         hh_model[hhno, :uhid] = get_pid( FRS, year, sernum, 0 ) # unique hhid needed for mostly.ai generator
         
         hh_model[hhno, :data_year] = year
-        hh_model[hhno, :tenure] = hh.tentyp2 > 0 ? hh.tentyp2 : -1
-        hh_model[hhno, :dwelling] = hh.typeacc > 0 ? hh.typeacc : -1
-        hh_model[hhno, :region] = hh.gvtregn > 0 ? hh.gvtregn : -1
-        hh_model[hhno, :ct_band] = hh.ctband > 0 ? hh.ctband : -1
+        hh_model[hhno, :tenure] = Tenure_Type( max(-1,hh.tentyp2))
+        hh_model[hhno, :dwelling] = DwellingType(max(-1,hh.typeacc))
+        hh_model[hhno, :region] = Standard_Region(max(-1,hh.gvtregn))
+        hh_model[hhno, :ct_band] = CT_Band(max(-1,hh.ctband))
         hh_model[hhno, :weight] = hh.gross4
         # hh_model[hhno, :tenure] = hh.tentyp2 > 0 ? Tenure_Type(hh.tentyp2) :
         #                          Missing_Tenure_Type
