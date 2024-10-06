@@ -128,7 +128,7 @@ end
 
 #
 # @returns ns for the JSType enum -1=no 1=cont, 2=income 3=mixed
-#
+# !!! FIXME DUP
 function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Tuple
     ad_frs = frs_res[((frs_res.sernum.==sernum ).&
                       (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp,:esatyphd,:esatypsp]]
@@ -190,7 +190,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
      # 5 = Both contributory and income based
      # 6 = Both contributory and income based (Imputed)
      
- end
+end
  
 #
 # @returns ns for the JSType enum -1=no 1=cont, 2=income 3=mixed
@@ -247,7 +247,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
      else
          @assert false "ESA: value |$esa| not mapped"
      end 
-     return( jtype, etype )
+     return( JSAType(jtype), JSAType(etype) )
  
  
      
