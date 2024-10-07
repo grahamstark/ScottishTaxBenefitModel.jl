@@ -8,6 +8,7 @@ module HouseholdFromFrame
 
 using DataFrames
 using StatsBase
+using CSV
 # using CSVFiles
 
 using ScottishTaxBenefitModel
@@ -35,8 +36,8 @@ const ZERO_EQ_SCALE = EQScales(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
 
 function read_hh( filename :: String ) :: DataFrame 
     hh = CSV.File( filename; delim='\t') |> DataFrame
-    hh.hid = Bighh.hid
-    hh.uhid = Bighh.uhid
+    hh.hid = BigInt.(hh.hid)
+    hh.uhid = BigInt.(hh.uhid)
     hh.tenure = eval.( Symbol.( hh.tenure ))
     hh.region = eval.(Symbol.( hh.region))
     hh.ct_band = eval.(Symbol.( hh.ct_band))
@@ -44,12 +45,13 @@ function read_hh( filename :: String ) :: DataFrame
     hh.council  =  Symbol.(hh.council )
     hh.rent_includes_water_and_sewerage = Bool.(hh.rent_includes_water_and_sewerage)
     hh.nhs_board  =  Symbol.(hh.nhs_board )
-    hh
+    hh.onerand = strtobi.(hh.onerand)
+    return hh
 end
 
 function read_pers( filename :: String ) :: DataFrame 
     pers = CSV.File( filename; delim='\t' ) |> DataFrame
-    pers.pid = Bigpers.pid
+    pers.pid = BigInt.(pers.pid)
     # pno
 #     pers.is_hrp
 #     pers.is_bu_head
@@ -178,7 +180,9 @@ function read_pers( filename :: String ) :: DataFrame
 #     pers.self_emp_hbai
     pers.jsa_type = eval.( Symbol.( pers.jsa_type ))
     pers.esa_type = eval.( Symbol.( pers.esa_type ))
+    # @show pers.dlaself_care_type
     pers.dlaself_care_type = eval.( Symbol.( pers.dlaself_care_type ))
+    # @show pers.dlaself_care_type
     pers.dlamobility_type = eval.( Symbol.( pers.dlamobility_type ))
     pers.attendance_allowance_type = eval.( Symbol.( pers.attendance_allowance_type ))
     pers.personal_independence_payment_daily_living_type = eval.( Symbol.( pers.personal_independence_payment_daily_living_type ))
@@ -266,8 +270,8 @@ function read_pers( filename :: String ) :: DataFrame
     pers.relationship_14 = eval.( Symbol.( pers.relationship_14 ))
     pers.relationship_15 = eval.( Symbol.( pers.relationship_15 ))
     # println("#3")
-    pers.onerand .= ""
-    pers.uhid = Bigpers.uhid
+    pers.onerand = strtobi.(pers.onerand)
+    pers.uhid = BigInt.(pers.uhid)
     # CSV.write( "data/actual_data/model_people_scotland-2015-2021-w-enums.tab", pers )
     return pers
 end
@@ -512,16 +516,20 @@ function map_person(
     for i in instances(Asset_Type)
         if i != Missing_Asset_Type
             ikey = make_sym_for_asset( i )
+            # println(ikey)
             if model_person[ikey] != 0
                 assets[i] = model_person[ikey]
             end
         end
     end
 
+    # FIXME disabilties should be a set, not a map
     disabilities = Dict{Disability_Type,Bool}()
     for i in instances(Disability_Type)
         ikey = make_sym_for_frame("disability", i)
-        disabilities[i] = model_person[ikey]
+        if model_person[ikey]
+            disabilities[i] = true # model_person[ikey
+        end
     end
 
     #= ??? not needed ???
@@ -626,6 +634,7 @@ function map_person(
         strtobi(model_person.onerand),
         nothing # legal aid added as needed FIXME? maybe make this 'other data'??
     )
+    # println( "model_person.pid=$(model_person.pid) model_person.dlaself_care_type $(model_person.dlaself_care_type) pers.dla_self_care_type $(pers.dla_self_care_type) ")
     # FIXME we need a separate switch for make benefit ratios 
     if settings.benefit_generosity_estimates_available
         make_benefit_ratios!( 

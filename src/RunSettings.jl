@@ -77,8 +77,8 @@ module RunSettings
         weighted :: Bool = false        
         auto_weight = true
         data_dir :: String = MODEL_DATA_DIR
-        household_name = "model_households_scotland-2015-2021"
-        people_name    = "model_people_scotland-2015-2021"
+        household_name = "model_households_scotland-2015-2021-w-enums-2"
+        people_name    = "model_people_scotland-2015-2021-w-enums-2"
         target_nation :: Nation = N_Scotland
         dump_frames :: Bool = false
         num_households :: Int = 0
@@ -168,8 +168,8 @@ module RunSettings
         dd = data_dir( settings )
         settings.data_source = tmpsrc
         return ( 
-            hhlds = joinpath( dd, "example_households.tab" ),
-            people = joinpath( dd, "example_people.tab" ),
+            hhlds = joinpath( dd, "example_households-w-enums.tab" ),
+            people = joinpath( dd, "example_people-w-enums.tab" ),
             skiplist = ""
         )
     end  
@@ -191,8 +191,8 @@ module RunSettings
     """
     function get_all_uk_settings_2023()::Settings
         settings = Settings()
-        settings.household_name = "model_households-2021-2021"
-        settings.people_name    = "model_people-2021-2021"
+        settings.household_name = "model_households-2021-2021-w-enums-2"
+        settings.people_name    = "model_people-2021-2021-w-enums-2"
         settings.target_nation :: Nation = N_UK
         settings.dump_frames :: Bool = false
         settings.num_households :: Int = 0

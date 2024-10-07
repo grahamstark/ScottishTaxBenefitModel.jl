@@ -188,6 +188,7 @@ module NonMeansTestedBenefits
         pm = zero(T)
         daily_type = pers.pip_daily_living_type
         mob_type = pers.pip_mobility_type
+        # println( "calc_pip initial: daily_type=$daily_type mob_type = $mob_type")
         if pip.abolished
             return (pl, pm )
         end
@@ -205,6 +206,7 @@ module NonMeansTestedBenefits
             change=pip.extra_people,
             current_value=mob_type, 
             disqual_value=no_pip )
+        # println( "calc_pip after change_staus: daily_type=$daily_type mob_type = $mob_type")
             
         # fixme consistent names dl->daily living etc.
         if daily_type == standard_pip

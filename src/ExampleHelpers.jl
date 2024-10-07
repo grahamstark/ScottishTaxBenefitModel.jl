@@ -54,6 +54,7 @@ export SS_Examples, cpl_w_2_children_hh, single_parent_hh, single_hh, childless_
 function get_ss_examples( settings = Settings() )::Dict{SS_Examples, Household}
     d = Dict{SS_Examples, Household}()
     settings = Settings() 
+    settings.benefit_generosity_estimates_available = false
     settings.indirect_method = matching # force loading indirect tax stuff
     @time names = ExampleHouseholdGetter.initialise( settings )
     d[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )

@@ -1168,7 +1168,7 @@ end
     mr_h = get_example(single_hh)
     mrhbu = get_benefit_units(mr_h)[1]
     head = get_head( mrhbu )
-    println( "mr h:: initial: head.dla_self_care_type $(head.dla_self_care_type)" )
+    println( "mr h:: initial: head.pip_daily_living_type $(head.pip_daily_living_type)" )
     head.dla_self_care_type = missing_lmh # turn off the dla in the spreadsheet
     retire!( head )
     empty!( head.income )
@@ -1185,6 +1185,7 @@ end
         sys.age_limits,            
         sys.child_limits
         )
+    println( inctostr( hhres.bus[1].pers[head.pid].income))
     println( "mr h:: after changes: head.dla_self_care_type $(head.dla_self_care_type)" )
     calc_pre_tax_non_means_tested!( 
         hhres,
@@ -1204,12 +1205,17 @@ end
         sys.lmt, 
         sys.age_limits,
         sys.nmt_bens )
+    mrhead = get_head(mr_h)
     println("Head's incomes:")
+    println( mrhead.income )
     println( inctostr( hhres.bus[1].pers[head.pid].income))
     println( "MTBens for Mr. H:\n$(hhres.bus[1].legacy_mtbens)\n" )
     println( "Incomes $(hhres.bus[1].legacy_mtbens.hb_incomes)\n")
     println( "premia $(hhres.bus[1].legacy_mtbens.premia)\n")
-    @test length( hhres.bus[1].legacy_mtbens.premia ) == 0
+    @show hhres.bus[1].legacy_mtbens.premia 
+    @show mrhead
+    @test length( hhres.bus[1].legacy_mtbens.premia ) == 0 
+    # "premia should be 0; got $(hhres.bus[1].legacy_mtbens.premia)"
     @test hhres.bus[1].legacy_mtbens.hb_allowances == 181.00
     println( "hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT]=$(hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT])")
     @test to_nearest_p( hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT], 84.11 )

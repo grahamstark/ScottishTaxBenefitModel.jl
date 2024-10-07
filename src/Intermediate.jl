@@ -190,8 +190,11 @@ function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
         if pers.registered_blind || pers.registered_partially_sighted || pers.registered_deaf
             return true
         end
+        #FIXME disabilities should be a set
         for (dis, t ) in pers.disabilities
-            return true
+            if t 
+                return true
+            end
         end
         if haskeys( pers.income, 
             [
