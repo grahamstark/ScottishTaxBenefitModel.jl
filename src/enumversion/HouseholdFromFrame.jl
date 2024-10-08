@@ -35,6 +35,7 @@ const ZERO_EQ_SCALE = EQScales(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
 
 
 function read_hh( filename :: String ) :: DataFrame 
+    println( "read_hh; opening $filename")
     hh = CSV.File( filename; delim='\t') |> DataFrame
     hh.hid = BigInt.(hh.hid)
     hh.uhid = BigInt.(hh.uhid)
@@ -50,6 +51,7 @@ function read_hh( filename :: String ) :: DataFrame
 end
 
 function read_pers( filename :: String ) :: DataFrame 
+    println( "read_pers; opening $filename")
     pers = CSV.File( filename; delim='\t' ) |> DataFrame
     pers.pid = BigInt.(pers.pid)
     # pno
