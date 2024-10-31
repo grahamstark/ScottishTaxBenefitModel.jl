@@ -26,3 +26,5 @@ docs/.sass-cache/*
 
 scotmat.csv
 .Rproj.user
+
+LocalPreferences.toml
