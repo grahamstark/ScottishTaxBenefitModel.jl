@@ -191,8 +191,10 @@ module FRSHouseholdGetter
         end
         skiplist = get_skiplist( settings )
         ds = main_datasets( settings )
-        hh_dataset = CSV.File( ds.hhlds ) |> DataFrame
-        people_dataset = CSV.File( ds.people ) |> DataFrame
+
+        hh_dataset = HouseholdFromFrame.read_hh( ds.hhlds ) # CSV.File( ds.hhlds ) |> DataFrame
+        people_dataset = HouseholdFromFrame.read_pers( ds.people ) # CSV.File( ds.people ) |> DataFrame
+
         npeople = 0; # size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )

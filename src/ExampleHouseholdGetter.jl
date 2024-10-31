@@ -67,8 +67,13 @@ function initialise(
     end
     KEYMAP = Vector{AbstractString}()
     ds = example_datasets( settings )
-    hh_dataset = CSV.File( ds.hhlds, delim='\t' ) |> DataFrame
-    people_dataset = CSV.File(ds.people, delim='\t' ) |> DataFrame
+
+    # hh_dataset = CSV.File( ds.hhlds, delim='\t' ) |> DataFrame
+    # people_dataset = CSV.File(ds.people, delim='\t' ) |> DataFrame
+    @show ds 
+    hh_dataset = HouseholdFromFrame.read_hh( ds.hhlds ) # CSV.File( ds.hhlds ) |> DataFrame
+    people_dataset = HouseholdFromFrame.read_pers( ds.people ) # CSV.File( ds.people ) |> DataFrame
+
     npeople = size( people_dataset)[1]
     nhhlds = size( hh_dataset )[1]
     for hseq in 1:nhhlds

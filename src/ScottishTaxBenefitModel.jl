@@ -55,7 +55,7 @@ export HistoricBenefits
 include( "Pensions.jl")
 export Pensions
 
-include(joinpath("enumversion","HouseholdFromFrame.jl"))
+include("HouseholdFromFrame.jl")
 export HouseholdFromFrame
 
 include( "ConsumptionData.jl")
@@ -67,13 +67,13 @@ export LegalAidData
 include( "WealthData.jl" )
 export WealthData
 
-include( joinpath("enumversion","FRSHouseholdGetter.jl" ))
+include( "FRSHouseholdGetter.jl" )
 export FRSHouseholdGetter
 
-include( joinpath("enumversion","MatchingLibs.jl"))
+include( "MatchingLibs.jl")
 export MatchingLibs
 
-include(joinpath("enumversion","ExampleHouseholdGetter.jl" ))
+include( "ExampleHouseholdGetter.jl" )
 export ExampleHouseholdGetter
 
 include("STBParameters.jl" )

@@ -8,6 +8,7 @@ module HouseholdFromFrame
 
 using DataFrames
 using StatsBase
+using CSV
 # using CSVFiles
 
 using ScottishTaxBenefitModel
@@ -26,17 +27,255 @@ using .Pensions: impute_employer_pension!
 export 
     create_regression_dataframe,
     load_hhld_from_frame, 
-    map_hhld 
+    map_hhld,
+    read_hh,
+    read_pers
 
 const ZERO_EQ_SCALE = EQScales(0.0,0.0,0.0,0.0,0.0,0.0,0.0)
 
-"""
-A vector which is 1 if element is one of the things, 0 otherwise.
-"""
-function in_vect( f :: Vector, things... )::Vector{Int}
-    nr = size(f)[1]
-    its = [Int.( collect(things))]; 
-    return in.(Int.(coalesce.(f,-1)),its)
+
+function read_hh( filename :: String ) :: DataFrame 
+    println( "read_hh; opening $filename")
+    hh = CSV.File( filename; delim='\t') |> DataFrame
+    hh.hid = BigInt.(hh.hid)
+    hh.uhid = BigInt.(hh.uhid)
+    hh.tenure = eval.( Symbol.( hh.tenure ))
+    hh.region = eval.(Symbol.( hh.region))
+    hh.ct_band = eval.(Symbol.( hh.ct_band))
+    hh.dwelling  =  eval.(Symbol.( hh.dwelling ))
+    hh.council  =  Symbol.(hh.council )
+    hh.rent_includes_water_and_sewerage = Bool.(hh.rent_includes_water_and_sewerage)
+    hh.nhs_board  =  Symbol.(hh.nhs_board )
+    hh.onerand = strtobi.(hh.onerand)
+    return hh
+end
+
+function read_pers( filename :: String ) :: DataFrame 
+    println( "read_pers; opening $filename")
+    pers = CSV.File( filename; delim='\t' ) |> DataFrame
+    pers.pid = BigInt.(pers.pid)
+    # pno
+#     pers.is_hrp
+#     pers.is_bu_head
+    # pers.from_child_record = Bool.( pers.from_child_record )
+    # default_benefit_unit
+    # age
+    pers.sex = eval.( Symbol.( pers.sex ))
+    pers.ethnic_group = eval.( Symbol.( pers.ethnic_group ))
+    pers.marital_status = eval.( Symbol.( pers.marital_status ))
+    pers.highest_qualification = eval.( Symbol.( pers.highest_qualification ))
+    pers.sic = eval.( Symbol.( pers.sic ))
+    pers.occupational_classification = eval.( Symbol.( pers.occupational_classification ))
+    pers.public_or_private = eval.( Symbol.( pers.public_or_private ))
+    pers.principal_employment_type = eval.( Symbol.( pers.principal_employment_type ))
+    pers.socio_economic_grouping = eval.( Symbol.( pers.socio_economic_grouping ))
+#     pers.age_completed_full_time_education
+#     pers.years_in_full_time_work
+    pers.employment_status = eval.( Symbol.( pers.employment_status ))
+#     pers.usual_hours_worked
+#     pers.actual_hours_worked
+#     pers.age_started_first_job
+    pers.type_of_bereavement_allowance = eval.( Symbol.( pers.type_of_bereavement_allowance ))
+    pers.had_children_when_bereaved = safe_to_bool.( pers.had_children_when_bereaved )
+#     pers.pay_includes_ssp
+#     pers.pay_includes_smp
+#     pers.pay_includes_spp
+#     pers.pay_includes_sap
+#     pers.pay_includes_mileage
+#     pers.pay_includes_motoring_expenses
+#     pers.income_wages
+#     pers.income_self_employment_income
+#     pers.income_self_employment_expenses
+#     pers.income_self_employment_losses
+#     pers.income_odd_jobs
+#     pers.income_private_pensions
+#     pers.income_national_savings
+#     pers.income_bank_interest
+#     pers.income_stocks_shares
+#     pers.income_individual_savings_account
+#     pers.income_property
+#     pers.income_royalties
+#     pers.income_bonds_and_gilts
+#     pers.income_other_investment_income
+#     pers.income_other_income
+#     pers.income_alimony_and_child_support_received
+#     pers.income_health_insurance
+#     pers.income_alimony_and_child_support_paid
+#     pers.income_care_insurance
+#     pers.income_trade_unions_etc
+#     pers.income_friendly_societies
+#     pers.income_work_expenses
+#     pers.income_avcs
+#     pers.income_other_deductions
+#     pers.income_loan_repayments
+#     pers.income_student_loan_repayments
+#     pers.income_pension_contributions_employer
+#     pers.income_pension_contributions_employee
+#     pers.income_education_allowances
+#     pers.income_foster_care_payments
+#     pers.income_student_grants
+#     pers.income_student_loans
+#     pers.income_income_tax
+#     pers.income_national_insurance
+#     pers.income_local_taxes
+#     pers.income_free_school_meals
+#     pers.income_dlaself_care
+#     pers.income_dlamobility
+#     pers.income_child_benefit
+#     pers.income_pension_credit
+#     pers.income_state_pension
+#     pers.income_bereavement_allowance_or_widowed_parents_allowance_or_bereavement
+#     pers.income_armed_forces_compensation_scheme
+#     pers.income_war_widows_or_widowers_pension
+#     pers.income_severe_disability_allowance
+#     pers.income_attendance_allowance
+#     pers.income_carers_allowance
+#     pers.income_jobseekers_allowance
+#     pers.income_industrial_injury_disablement_benefit
+#     pers.income_employment_and_support_allowance
+#     pers.income_incapacity_benefit
+#     pers.income_income_support
+#     pers.income_maternity_allowance
+#     pers.income_maternity_grant_from_social_fund
+#     pers.income_funeral_grant_from_social_fund
+#     pers.income_any_other_ni_or_state_benefit
+#     pers.income_trade_union_sick_or_strike_pay
+#     pers.income_friendly_society_benefits
+#     pers.income_private_sickness_scheme_benefits
+#     pers.income_accident_insurance_scheme_benefits
+#     pers.income_hospital_savings_scheme_benefits
+#     pers.income_government_training_allowances
+#     pers.income_guardians_allowance
+#     pers.income_widows_payment
+#     pers.income_unemployment_or_redundancy_insurance
+#     pers.income_winter_fuel_payments
+#     pers.income_child_winter_heating_assistance_payment
+#     pers.income_dwp_third_party_payments_is_or_pc
+#     pers.income_dwp_third_party_payments_jsa_or_esa
+#     pers.income_social_fund_loan_repayment_from_is_or_pc
+#     pers.income_social_fund_loan_repayment_from_jsa_or_esa
+#     pers.income_extended_hb
+#     pers.income_permanent_health_insurance
+#     pers.income_any_other_sickness_insurance
+#     pers.income_critical_illness_cover
+#     pers.income_working_tax_credit
+#     pers.income_child_tax_credit
+#     pers.income_working_tax_credit_lump_sum
+#     pers.income_child_tax_credit_lump_sum
+#     pers.income_housing_benefit
+#     pers.income_universal_credit
+#     pers.income_personal_independence_payment_daily_living
+#     pers.income_personal_independence_payment_mobility
+#     pers.income_a_loan_from_the_dwp_and_dfc
+#     pers.income_a_loan_or_grant_from_local_authority
+#     pers.income_social_fund_loan_uc
+#     pers.income_other_benefits
+#     pers.income_scottish_child_payment
+#     pers.income_job_start_payment
+#     pers.income_troubles_permanent_disablement
+#     pers.income_child_disability_payment_care
+#     pers.income_child_disability_payment_mobility
+#     pers.income_pupil_development_grant
+#     pers.wages_frs
+#     pers.self_emp_frs
+#     pers.wages_hbai
+#     pers.self_emp_hbai
+    pers.jsa_type = eval.( Symbol.( pers.jsa_type ))
+    pers.esa_type = eval.( Symbol.( pers.esa_type ))
+    # @show pers.dlaself_care_type
+    pers.dlaself_care_type = eval.( Symbol.( pers.dlaself_care_type ))
+    # @show pers.dlaself_care_type
+    pers.dlamobility_type = eval.( Symbol.( pers.dlamobility_type ))
+    pers.attendance_allowance_type = eval.( Symbol.( pers.attendance_allowance_type ))
+    pers.personal_independence_payment_daily_living_type = eval.( Symbol.( pers.personal_independence_payment_daily_living_type ))
+    pers.personal_independence_payment_mobility_type = eval.( Symbol.( pers.personal_independence_payment_mobility_type ))
+#     pers.over_20_k_saving
+#    println("#1")
+#     pers.asset_current_account
+#     pers.asset_nsb_ordinary_account
+#     pers.asset_nsb_investment_account
+#     pers.asset_not_used
+#     pers.asset_savings_investments_etc
+#     pers.asset_government_gilt_edged_stock
+#     pers.asset_unit_or_investment_trusts
+#     pers.asset_stocks_shares_bonds_etc
+#     pers.asset_pep
+#     pers.asset_national_savings_capital_bonds
+#     pers.asset_index_linked_national_savings_certificates
+#     pers.asset_fixed_interest_national_savings_certificates
+#     pers.asset_pensioners_guaranteed_bonds
+#     pers.asset_saye
+#     pers.asset_premium_bonds
+#     pers.asset_national_savings_income_bonds
+#     pers.asset_national_savings_deposit_bonds
+#     pers.asset_first_option_bonds
+#     pers.asset_yearly_plan
+#     pers.asset_isa
+#     pers.asset_fixd_rate_svngs_bonds_or_grntd_incm_bonds_or_grntd_growth_bonds
+#     pers.asset_geb
+#     pers.asset_basic_account
+#     pers.asset_credit_unions
+#     pers.asset_endowment_policy_not_linked
+#     pers.asset_informal_assets
+#     pers.asset_post_office_card_account
+#     pers.asset_friendly_society_investment
+#    println("#2")
+    # contracted_out_of_serps
+#     pers.registered_blind
+#     pers.registered_partially_sighted
+#     pers.registered_deaf
+#     pers.disability_vision
+#     pers.disability_hearing
+#     pers.disability_mobility
+#     pers.disability_dexterity
+#     pers.disability_learning
+#     pers.disability_memory
+#     pers.disability_mental_health
+#     pers.disability_stamina
+#     pers.disability_socially
+#     pers.disability_other_difficulty
+    pers.health_status = eval.( Symbol.( pers.health_status ))
+#     pers.has_long_standing_illness
+    pers.adls_are_reduced = eval.( Symbol.( pers.adls_are_reduced ))
+    pers.how_long_adls_reduced = eval.( Symbol.( pers.how_long_adls_reduced ))
+#     pers.is_informal_carer
+#     pers.receives_informal_care_from_non_householder
+#     pers.hours_of_care_received
+#     pers.hours_of_care_given
+#     pers.hours_of_childcare
+#     pers.cost_of_childcare
+    pers.childcare_type = eval.( Symbol.( pers.childcare_type ))
+#     pers.employer_provides_child_care
+#     pers.work_expenses 
+#     pers.travel_to_work
+#     pers.debt_repayments
+#     pers.wealth_and_assets
+#     pers.totsav
+    pers.company_car_fuel_type = eval.( Symbol.( pers.company_car_fuel_type ))
+#     pers.company_car_value
+#     pers.company_car_contribution
+#     pers.fuel_supplied
+    pers.relationship_to_hoh = eval.( Symbol.( pers.relationship_to_hoh ))
+    pers.relationship_1 = eval.( Symbol.( pers.relationship_1 ))
+    pers.relationship_2 = eval.( Symbol.( pers.relationship_2 ))
+    pers.relationship_3 = eval.( Symbol.( pers.relationship_3 ))
+    pers.relationship_4 = eval.( Symbol.( pers.relationship_4 ))
+    pers.relationship_5 = eval.( Symbol.( pers.relationship_5 ))
+    pers.relationship_6 = eval.( Symbol.( pers.relationship_6 ))
+    pers.relationship_7 = eval.( Symbol.( pers.relationship_7 ))
+    pers.relationship_8 = eval.( Symbol.( pers.relationship_8 ))
+    pers.relationship_9 = eval.( Symbol.( pers.relationship_9 ))
+    pers.relationship_10 = eval.( Symbol.( pers.relationship_10 ))
+    pers.relationship_11 = eval.( Symbol.( pers.relationship_11 ))
+    pers.relationship_12 = eval.( Symbol.( pers.relationship_12 ))
+    pers.relationship_13 = eval.( Symbol.( pers.relationship_13 ))
+    pers.relationship_14 = eval.( Symbol.( pers.relationship_14 ))
+    pers.relationship_15 = eval.( Symbol.( pers.relationship_15 ))
+    # println("#3")
+    pers.onerand = strtobi.(pers.onerand)
+    pers.uhid = BigInt.(pers.uhid)
+    # CSV.write( "data/actual_data/model_people_scotland-2015-2021-w-enums.tab", pers )
+    return pers
 end
 
 """
@@ -83,58 +322,58 @@ function create_regression_dataframe(
     ## these rather cryptic names below are to match Howard' Stata regressions.
     ## FIXME make them all consistent 
     fm.mlogbhc = zeros(nrows)
-    fm.gor_nw = Int.(fm.region .== Int(North_West))
-    fm.gor_yh = Int.(fm.region .== Int(Yorks_and_the_Humber))
-    fm.gor_em = Int.(fm.region .== Int(East_Midlands))
-    fm.gor_wm = Int.(fm.region .== Int(West_Midlands))
-    fm.gor_ee = Int.(fm.region .== Int(East_of_England))
-    fm.gor_lo = Int.(fm.region .== Int(London))
-    fm.gor_se = Int.(fm.region .== Int(South_East))
-    fm.gor_sw = Int.(fm.region .== Int(South_West))
-    fm.gor_wa = Int.(fm.region .== Int(Wales))
-    fm.gor_sc = Int.(fm.region .== Int(Scotland))
-    fm.gor_ni = Int.(fm.region .== Int(Northern_Ireland))
-    fm.ten_own = in_vect(fm.tenure,Owned_outright, Mortgaged_Or_Shared )
-    fm.ten_sr = in_vect(fm.tenure,Council_Rented, Housing_Association )
+    fm.gor_nw = fm.region .== North_West
+    fm.gor_yh = fm.region .== Yorks_and_the_Humber
+    fm.gor_em = fm.region .== East_Midlands
+    fm.gor_wm = fm.region .== West_Midlands
+    fm.gor_ee = fm.region .== East_of_England
+    fm.gor_lo = fm.region .== London
+    fm.gor_se = fm.region .== South_East
+    fm.gor_sw = fm.region .== South_West
+    fm.gor_wa = fm.region .== Wales
+    fm.gor_sc = fm.region .== Scotland
+    fm.gor_ni = fm.region .== Northern_Ireland
+    fm.ten_own = in.( fm.tenure,( [Owned_outright, Mortgaged_Or_Shared], ))
+    fm.ten_sr = in.(fm.tenure, ( [Council_Rented, Housing_Association], ) )
 
-    fm.male = Int.(fm.sex .== 1) 
-    fm.female = Int.(fm.sex .== 2)
+    fm.male = fm.sex .== 1 
+    fm.female = fm.sex .== 2
 
-    eg = safe_assign.(fm.ethnic_group)
+    # eg = safe_assign.(fm.ethnic_group)
 
-    fm.race_ms = Int.( eg .== Int(Missing_Ethnic_Group))
-    fm.race_mx = Int.( eg .== Int(Mixed_or_Multiple_ethnic_groups))
-    fm.race_as = Int.( eg .== Int(Asian_or_Asian_British ))
-    fm.race_bl = Int.( eg .== Int(Black_or_African_or_Caribbean_or_Black_British ))
-    fm.race_ot = Int.( eg  .== Int(Other_ethnic_group ))
+    fm.race_ms =  fm.ethnic_group .== Missing_Ethnic_Group
+    fm.race_mx =  fm.ethnic_group .== Mixed_or_Multiple_ethnic_groups
+    fm.race_as =  fm.ethnic_group .== Asian_or_Asian_British 
+    fm.race_bl =  fm.ethnic_group .== Black_or_African_or_Caribbean_or_Black_British 
+    fm.race_ot =  fm.ethnic_group .== Other_ethnic_group 
     fm.born_m = zeros(nrows)
     fm.born_uk = zeros(nrows)
-    fm.llsid = safe_to_bool.(fm.has_long_standing_illness) .| (fm.adls_bad)
-    ms = safe_assign.(fm.marital_status)
-    fm.marciv = Int.(ms .== Int(Married_or_Civil_Partnership))
-    fm.divsep = in_vect(ms, Separated,Divorced_or_Civil_Partnership_dissolved )
-    fm.widow = in_vect(ms, Widowed )
+    fm.llsid = fm.has_long_standing_illness .| fm.adls_bad
+    # ms = safe_assign.(fm.marital_status)
+    fm.marciv = fm.marital_status .== Int(Married_or_Civil_Partnership)
+    fm.divsep = in.(fm.marital_status , ([Separated,Divorced_or_Civil_Partnership_dissolved],) )
+    fm.widow = in.(fm.marital_status, ([Widowed],) )
 
-    fm.age2534 = Int.(in.(fm.age, [25:34] ))
-    fm.age3544 = Int.(in.(fm.age, [35:44] ))
-    fm.age4554 = Int.(in.(fm.age, [45:54] ))
+    fm.age2534 = in.(fm.age, [25:34] )
+    fm.age3544 = in.(fm.age, [35:44] )
+    fm.age4554 = in.(fm.age, [45:54] )
 
     # FIXME check HR 5564
-    fm.age5565 = Int.(in.(fm.age, [55:64] ))
-    fm.age6574 = Int.(in.(fm.age, [65:74] ))
-    fm.age75 = Int.(in.(fm.age,[75:200]))
-    hq = Qualification_Type.(safe_assign.(fm.highest_qualification))
-    fm.hq_deg = Int.(highqual_degree_equiv.( hq ))
-    fm.hq_ohe = Int.(highqual_other_he.( hq ))
-    fm.hq_al = Int.(highqual_alevel_equiv.( hq ))
-    fm.hq_gcse = Int.(highqual_gcse_equiv.( hq ))
-    fm.hq_oth = Int.(highqual_other.( hq))
-    es = safe_assign.( fm.employment_status )
-    fm.ec_emp = in_vect(es, Full_time_Employee, Part_time_Employee )
-    fm.ec_se = in_vect(es, Full_time_Self_Employed,Part_time_Self_Employed )
-    fm.ec_fam = in_vect(es, Looking_after_family_or_home )
-    fm.ec_un = in_vect(es, Unemployed )
-    fm.ec_ret = in_vect(es, Retired )
+    fm.age5565 = in.(fm.age, [55:64] )
+    fm.age6574 = in.(fm.age, [65:74] )
+    fm.age75 = in.(fm.age,[75:200])
+    hq = fm.highest_qualification
+    fm.hq_deg = highqual_degree_equiv.( hq )
+    fm.hq_ohe = highqual_other_he.( hq )
+    fm.hq_al = highqual_alevel_equiv.( hq )
+    fm.hq_gcse = highqual_gcse_equiv.( hq )
+    fm.hq_oth = highqual_other.( hq)
+    # es = safe_assign.( fm.employment_status )
+    fm.ec_emp = in.(fm.employment_status, ([Full_time_Employee, Part_time_Employee], ))
+    fm.ec_se = in.(fm.employment_status, ([Full_time_Self_Employed,Part_time_Self_Employed],) )
+    fm.ec_fam = in.(fm.employment_status, ([Looking_after_family_or_home],) )
+    fm.ec_un = in.(fm.employment_status, ([Unemployed],) )
+    fm.ec_ret = in.(fm.employment_status, ([Retired],))
 
     fm.q1mlog = zeros(nrows)
     fm.q2mlog = zeros(nrows)
@@ -158,7 +397,7 @@ function create_regression_dataframe(
     fm.south_east = fm.gor_se 
     fm.south_west = fm.gor_sw
 
-    fm.age_u_25 = Int.(in.(fm.age, [0:24] ))
+    fm.age_u_25 = in.(fm.age, [0:24] )
     fm.age_25_34 = fm.age2534 
     fm.age_35_44 = fm.age3544
     fm.age_45_54 = fm.age4554
@@ -166,39 +405,39 @@ function create_regression_dataframe(
     fm.age_65_74 = fm.age6574
     fm.age_75_plus = fm.age75
 
-    fm.employee = in_vect(es, Full_time_Employee, Part_time_Employee )
-    fm.selfemp = in_vect(es, Full_time_Self_Employed,Part_time_Self_Employed )
-    fm.inactive = in_vect(es, Looking_after_family_or_home, Other_Inactive )
-    fm.unemployed = in_vect(es, Unemployed )
-    fm.student = in_vect(es, Student )
-    fm.sick = in_vect(es, Permanently_sick_or_disabled, Temporarily_sick_or_injured )
-    fm.retired = in_vect(es, Retired )
+    fm.employee = in.(fm.employment_status, ([Full_time_Employee, Part_time_Employee],) )
+    fm.selfemp = in.(fm.employment_status, ([Full_time_Self_Employed,Part_time_Self_Employed],) )
+    fm.inactive = in.(fm.employment_status, ([Looking_after_family_or_home, Other_Inactive],) )
+    fm.unemployed = in.(fm.employment_status, ([Unemployed],) )
+    fm.student = in.(fm.employment_status, ([Student],) )
+    fm.sick = in.(fm.employment_status, ([Permanently_sick_or_disabled, Temporarily_sick_or_injured],) )
+    fm.retired = in.(fm.employment_status, ([Retired],))
 
     fm.log_weekly_gross_income = log.( max.(0.0001, fm.original_gross_income))
     fm.weekly_gross_income = fm.original_gross_income
-    fm.detatched = in_vect( fm.dwelling, detatched )
-    fm.semi = in_vect( fm.dwelling, semi_detached )
-    fm.terraced = in_vect( fm.dwelling, terraced )
-    fm.purpose_build_flat = in_vect(fm.dwelling, flat_or_maisonette )
-    fm.converted_flat = in_vect(fm.dwelling, converted_flat )
+    fm.detatched = in.( fm.dwelling, ([detatched],) )
+    fm.semi = in.( fm.dwelling, ([semi_detached],) )
+    fm.terraced = in.( fm.dwelling, ([terraced],))
+    fm.purpose_build_flat = in.(fm.dwelling, ([flat_or_maisonette],))
+    fm.converted_flat = in.(fm.dwelling, ([converted_flat],))
 
-    fm.managerial = in_vect(fm.socio_economic_grouping, 
-        Employers_in_large_organisations,
+    fm.managerial = in.(fm.socio_economic_grouping, 
+        ( [Employers_in_large_organisations,
         Higher_managerial_occupations,
         Lower_managerial_occupations,
         Higher_supervisory_occupations, 
         Higher_professional_occupations_New_self_employed,
-        Lower_supervisory_occupations )
+        Lower_supervisory_occupations],) )
 
-    fm.intermediate = in_vect(fm.socio_economic_grouping, 
-        Lower_prof_and_higher_technical_Traditional_employee,
+    fm.intermediate = in.(fm.socio_economic_grouping, 
+        ([Lower_prof_and_higher_technical_Traditional_employee,
         Lower_technical_craft,
-        Own_account_workers_non_professional )
+        Own_account_workers_non_professional],) )
 
-    fm.routine = in_vect(fm.socio_economic_grouping,
-        Lower_technical_craft,
+    fm.routine = in.(fm.socio_economic_grouping,
+        ([Lower_technical_craft,
         Semi_routine_sales,
-        Routine_sales_and_service )
+        Routine_sales_and_service],) )
 
     fm.num_people = zeros(Int,nrows)
     fm.num_adults = zeros(Int,nrows)
@@ -206,22 +445,22 @@ function create_regression_dataframe(
 
     hhlds = groupby( fm, [:hid,:data_year])
     for hhld in hhlds 
-        hhld.num_children .= Int.(sum( hhld.from_child_record ))
-        hhld.num_people .= Int.(size( hhld )[1])
-        hhld.num_adults .= Int.(hhld.num_people - hhld.num_children)
+        hhld.num_children .= sum( hhld.from_child_record )
+        hhld.num_people .= size( hhld )[1]
+        hhld.num_adults .= hhld.num_people - hhld.num_children
     end
 
-    fm.owner = in_vect( fm.tenure, Owned_outright )
-    fm.mortgaged = in_vect( fm.tenure, Mortgaged_Or_Shared )
-    fm.renter = in_vect( fm.tenure, Council_Rented,
+    fm.owner = in.( fm.tenure, ([Owned_outright],) )
+    fm.mortgaged = in.( fm.tenure, ([Mortgaged_Or_Shared],) )
+    fm.renter = in.( fm.tenure, ([Council_Rented,
         Housing_Association,
         Private_Rented_Unfurnished,
-        Private_Rented_Furnished )
+        Private_Rented_Furnished], ))
 
-    fm.is_hrp = coalesce.(fm.is_hrp,0)
+    # fm.is_hrp = coalesce.(fm.is_hrp,0)
 
     ## wealth for head only
-    fm[fm.is_hrp.==0,[:net_housing_wealth,:net_pension_wealth,:net_financial_wealth,:net_physical_wealth]] .= 0.0
+    fm[ .!fm.is_hrp,[:net_housing_wealth,:net_pension_wealth,:net_financial_wealth,:net_physical_wealth]] .= 0.0
 
     #
     # added for legal aid, matching scjs - see scjs_mappings.jl, civil_problems-scjs.jl in regressions/
@@ -230,10 +469,10 @@ function create_regression_dataframe(
     fm.non_white = fm.race_mx .| fm.race_as .| fm.race_bl .| fm.race_ot 
     fm.is_carer = fm.rec_carers .| fm.is_informal_carer
     fm.single_parent = (fm.num_children .> 0) .& (fm.num_adults .== 1) # FIXME this is hhld level 
-    fm.divorced_or_separated = in_vect( fm.marital_status, Separated, Divorced_or_Civil_Partnership_dissolved )
+    fm.divorced_or_separated = in.( fm.marital_status, ([Separated, Divorced_or_Civil_Partnership_dissolved],) )
     fm.out_of_labour_market = fm.inactive .| fm.unemployed .| fm.student .| fm.retired 
-    fm.is_limited = in_vect(fm.adls_are_reduced, reduced_a_lot, reduced_a_little ) .| (fm.has_long_standing_illness .== 1)
-    fm.health_good_or_better = in_vect( fm.health_status, Very_Good, Good )
+    fm.is_limited = in.(fm.adls_are_reduced, ([reduced_a_lot, reduced_a_little],) ) .| (fm.has_long_standing_illness )
+    fm.health_good_or_better = in.( fm.health_status, ([Very_Good, Good],) )
     fm.has_condition = coalesce.( fm.any_dis .| fm.adls_bad .| fm.adls_mid .| fm.is_limited, 0 )
     fm.agesq = fm.age .^2
     #
@@ -250,36 +489,28 @@ function map_person(
 
     for i in instances(Incomes_Type)
         ikey = make_sym_for_frame("income", i)
-        if ! ismissing(model_person[ikey])
-            if model_person[ikey] != 0.0
-                v = model_person[ikey] # this is a hack because in j 1.3 csv is parsing many cols as strings & I don't understand why
-                tv = typeof(v)
-                if tv == String # FIXME delete not needed
-                    v = parse( Float64, v )
-                end
-                # println( "setting ikey = $ikey to $v of type $tv")
-                income[i] = v
-            end
+        if model_person[ikey] != 0.0
+            income[i] = model_person[ikey]
         end
     end
     #
     # override wages and se
-    #
+    # wage needs to be set
     if settings.income_data_source == ds_frs
-        income[wages] = m2z(model_person.wages_frs)
-        income[self_employment_income] = m2z(model_person.self_emp_frs)
+        income[wages] = model_person.wages_frs
+        income[self_employment_income] = model_person.self_emp_frs
     else # not really needed since hbai is the default
-        income[wages] = m2z(model_person.wages_hbai)
-        income[self_employment_income] = m2z(model_person.self_emp_hbai)
+        income[wages] = model_person.wages_hbai
+        income[self_employment_income] = model_person.self_emp_hbai
     end
+    
+    # FIXME should be set
     pay_includes  = Included_In_Pay_Dict{Bool}()
     for i in instances(Included_In_Pay_Type)
         s = String(Symbol(i))
         ikey = Symbol(lowercase("pay_includes_" * s))
-        if ! ismissing(model_person[ikey])
-            if model_person[ikey] == 1
-                pay_includes[i] = true
-            end
+        if model_person[ikey]
+            pay_includes[i] = true # model_person[ikey]
         end
     end
     
@@ -287,28 +518,23 @@ function map_person(
     for i in instances(Asset_Type)
         if i != Missing_Asset_Type
             ikey = make_sym_for_asset( i )
-            if ! ismissing(model_person[ikey])
-                v = model_person[ikey]
-                if typeof(v) == String
-                    v = parse( Float64, v )
-                end
-                if model_person[ikey] != 0.0
-                    assets[i] = model_person[ikey]
-                end
+            # println(ikey)
+            if model_person[ikey] != 0
+                assets[i] = model_person[ikey]
             end
         end
     end
 
+    # FIXME disabilties should be a set, not a map
     disabilities = Dict{Disability_Type,Bool}()
     for i in instances(Disability_Type)
         ikey = make_sym_for_frame("disability", i)
-        if ! ismissing(model_person[ikey])
-            if model_person[ikey] == 1
-                disabilities[i] = Bool(model_person[ikey])
-            end
+        if model_person[ikey]
+            disabilities[i] = true # model_person[ikey
         end
     end
 
+    #= ??? not needed ???
     bereavement_type = missing 
     if not_zero_or_missing( model_person.income_bereavement_allowance_or_widowed_parents_allowance_or_bereavement ) ||
        not_zero_or_missing( model_person.income_widows_payment )
@@ -323,108 +549,94 @@ function map_person(
             end
         end
     end
-    
+    =#
+
     relationships = Relationship_Dict()
     for i in 1:15
         relmod = Symbol( "relationship_$(i)") # :relationship_10 or :relationship_2
         irel = model_person[relmod]
-        if (! ismissing( irel )) & ( irel >= 0 )
+        if irel != Missing_Relationship
             pid = get_pid(
                 settings.data_source,
                 model_person.data_year,
                 model_person.hid,
                 i )
-            relationships[pid] = Relationship( irel )
+            relationships[pid] = irel
         end
     end
 
     benefit_ratios = Incomes_Dict{Float64}()
     
     pers = Person{Float64}(
-
-        BigInt(model_person.hid),  # BigInt# == sernum
-        BigInt(model_person.pid),  # BigInt# == unique id (year * 100000)+
-        BigInt(model_person.uhid), # unique hh id - needed for some synth data applications which need single col PK/FKs
+        model_person.hid,
+        model_person.pid,
+        model_person.uhid,
         model_person.pno,  # Integer# person number in household
-        safe_to_bool(model_person.is_hrp), 
+        model_person.is_hrp,
         model_person.default_benefit_unit,  # Integer
-        safe_to_bool(model_person.is_bu_head),
-        safe_to_bool(model_person.from_child_record), # Bool
+        model_person.is_bu_head,
+        model_person.from_child_record,
         model_person.age,  # Integer
-        Sex(model_person.sex),  # Sex
-        Ethnic_Group(safe_assign(model_person.ethnic_group)),  # Ethnic_Group
-        Marital_Status(safe_assign(model_person.marital_status)),  # Marital_Status
-        Qualification_Type(safe_assign(model_person.highest_qualification)),  # Qualification_Type
-
-        SIC_2007(safe_assign(model_person.sic)),  # SIC_2007
-        Standard_Occupational_Classification(safe_assign(model_person.occupational_classification)),  # Standard_Occupational_Classification
-        Employment_Sector(safe_assign(model_person.public_or_private)),  #  Employment_Sector
-        Employment_Type(safe_assign(model_person.principal_employment_type)),  #  Employment_Type
-
-        Socio_Economic_Group(safe_assign(model_person.socio_economic_grouping)),  # Socio_Economic_Group
-        m2z(model_person.age_completed_full_time_education),  # Integer
-        m2z(model_person.years_in_full_time_work),  # Integer
-        ILO_Employment(safe_assign(model_person.employment_status)),  # ILO_Employment
-        m2z(model_person.actual_hours_worked),  # Real
-        m2z(model_person.usual_hours_worked),  # Real
-
-        m2z(model_person.age_started_first_job),
-
+        model_person.sex,
+        model_person.ethnic_group,
+        model_person.marital_status,
+        model_person.highest_qualification,
+        model_person.sic,
+        model_person.occupational_classification,
+        model_person.public_or_private,
+        model_person.principal_employment_type,
+        model_person.socio_economic_grouping,
+        model_person.age_completed_full_time_education,
+        model_person.years_in_full_time_work,
+        model_person.employment_status,
+        model_person.actual_hours_worked,
+        model_person.usual_hours_worked,
+        model_person.age_started_first_job,
         income,
-        benefit_ratios,
-        
-        JSAType(safe_assign(model_person.jsa_type)),
-        JSAType(safe_assign(model_person.esa_type)),
-        
-        LowMiddleHigh( safe_assign( model_person.dlaself_care_type )),
-        LowMiddleHigh( safe_assign( model_person.dlamobility_type)),
-        LowMiddleHigh( safe_assign( model_person.attendance_allowance_type )),
-        PIPType( safe_assign( model_person.personal_independence_payment_daily_living_type )),
-        PIPType( safe_assign( model_person.personal_independence_payment_mobility_type )),
-        BereavementType( safe_assign( bereavement_type )),
-        safe_to_bool(model_person.had_children_when_bereaved), 
-        
+        benefit_ratios,                
+        model_person.jsa_type,
+        model_person.esa_type,
+        model_person.dlaself_care_type,
+        model_person.dlamobility_type,
+        model_person.attendance_allowance_type,
+        model_person.personal_independence_payment_daily_living_type,
+        model_person.personal_independence_payment_mobility_type,
+        model_person.type_of_bereavement_allowance,
+        model_person.had_children_when_bereaved,                
         assets,
-        safe_to_bool(model_person.over_20_k_saving),
-
+        model_person.over_20_k_saving,
         pay_includes,
-
-        safe_to_bool(model_person.registered_blind),
-        safe_to_bool(model_person.registered_partially_sighted),
-        safe_to_bool(model_person.registered_deaf),
-
+        model_person.registered_blind,
+        model_person.registered_partially_sighted,
+        model_person.registered_deaf,
         disabilities,
-
-        Health_Status(safe_assign(model_person.health_status)),
-
-        safe_to_bool(model_person.has_long_standing_illness),
-        ADLS_Inhibited(model_person.adls_are_reduced),
-        Illness_Length(model_person.how_long_adls_reduced),
-
+        model_person.health_status,
+        model_person.has_long_standing_illness,
+        model_person.adls_are_reduced,
+        model_person.how_long_adls_reduced,
         relationships,
-        Relationship(model_person.relationship_to_hoh),
-        safe_to_bool(model_person.is_informal_carer),
-        safe_to_bool(model_person.receives_informal_care_from_non_householder),
-        m2z(model_person.hours_of_care_received),
-        m2z(model_person.hours_of_care_given),
-        m2z(model_person.hours_of_childcare),
-        m2z(model_person.cost_of_childcare),
-        Child_Care_Type(safe_assign(model_person.childcare_type )),
-        safe_to_bool( model_person.employer_provides_child_care ),
-
-        Fuel_Type( m2z(model_person.company_car_fuel_type )),
-        m2z(model_person.company_car_value),
-        m2z(model_person.company_car_contribution),
-        m2z(model_person.fuel_supplied),
-
-        m2z( model_person.work_expenses ),
-        m2z( model_person.travel_to_work ),
-        m2z( model_person.debt_repayments ),
-        m2z( model_person.wealth_and_assets ),
+        model_person.relationship_to_hoh,
+        model_person.is_informal_carer,
+        model_person.receives_informal_care_from_non_householder,
+        model_person.hours_of_care_received,
+        model_person.hours_of_care_given,
+        model_person.hours_of_childcare,
+        model_person.cost_of_childcare,
+        model_person.childcare_type,
+        model_person.employer_provides_child_care ,
+        model_person.company_car_fuel_type,
+        model_person.company_car_value,
+        model_person.company_car_contribution,
+        model_person.fuel_supplied,
+        model_person.work_expenses ,
+        model_person.travel_to_work ,
+        model_person.debt_repayments ,
+        model_person.wealth_and_assets ,
         model_person.totsav, # FIXME unedited FRS totsav field needs enum ??? 
         strtobi(model_person.onerand),
         nothing # legal aid added as needed FIXME? maybe make this 'other data'??
     )
+    # println( "model_person.pid=$(model_person.pid) model_person.dlaself_care_type $(model_person.dlaself_care_type) pers.dla_self_care_type $(pers.dla_self_care_type) ")
     # FIXME we need a separate switch for make benefit ratios 
     if settings.benefit_generosity_estimates_available
         make_benefit_ratios!( 
@@ -448,27 +660,27 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         frs_hh.interview_year,
         frs_hh.interview_month,
         frs_hh.quarter,
-        Tenure_Type(frs_hh.tenure),
-        Standard_Region(frs_hh.region),
-        CT_Band(frs_hh.ct_band),
-        DwellingType( frs_hh.dwelling ),
-        m2z(frs_hh.council_tax),
-        m2z(frs_hh.water_and_sewerage ),
-        m2z(frs_hh.mortgage_payment),
-        m2z(frs_hh.mortgage_interest),
-        m2z(frs_hh.years_outstanding_on_mortgage),
-        m2z(frs_hh.mortgage_outstanding),
-        m2z(frs_hh.year_house_bought),
-        m2z(frs_hh.gross_rent),
-        safe_to_bool(frs_hh.rent_includes_water_and_sewerage),
-        m2z(frs_hh.other_housing_charges),
-        m2z(frs_hh.gross_housing_costs),
-        # m2z(frs_hh.total_income),
-        m2z(frs_hh.total_wealth),
-        m2z(frs_hh.house_value),
-        m2z(frs_hh.weight),
-        Symbol( frs_hh.council ),
-        Symbol( frs_hh.nhs_board ),
+        frs_hh.tenure,
+        frs_hh.region,
+        frs_hh.ct_band,
+        frs_hh.dwelling ,
+        frs_hh.council_tax,
+        frs_hh.water_and_sewerage ,
+        frs_hh.mortgage_payment,
+        frs_hh.mortgage_interest,
+        frs_hh.years_outstanding_on_mortgage,
+        frs_hh.mortgage_outstanding,
+        frs_hh.year_house_bought,
+        frs_hh.gross_rent,
+        frs_hh.rent_includes_water_and_sewerage,
+        frs_hh.other_housing_charges,
+        frs_hh.gross_housing_costs,
+        # frs_hh.total_income,
+        frs_hh.total_wealth,
+        frs_hh.house_value,
+        frs_hh.weight,
+        frs_hh.council ,
+        frs_hh.nhs_board ,
         frs_hh.bedrooms,
         head_of_household,
         frs_hh.net_physical_wealth,
@@ -477,8 +689,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         frs_hh.net_pension_wealth,
         frs_hh.original_gross_income,
         # frs_hh.lcf_default_matched_case, 
-        # frs_hh.lcf_default_data_year,
-    
+        # frs_hh.lcf_default_data_year,    
         -1, # original_income_decile
         -1, # equiv_original_income_decile
         nothing, # Recorded expenditure; loaded afterwards as needed.

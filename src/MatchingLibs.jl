@@ -102,10 +102,10 @@ function frs_regionmap( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{
     elseif gvtregn == 299999999 # scotland
         out[1] = 11 
         out[2] = 3
-    elseif gvtregn == 399999999
+    elseif gvtregn == 399999999 # 
         out[1] = 10
         out[2] = 4
-    elseif gvtregn == 499999999
+    elseif gvtregn == 499999999 # nire
         out[1] = 12
         out[2] = 5
     else
