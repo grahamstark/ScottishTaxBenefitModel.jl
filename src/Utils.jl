@@ -8,16 +8,19 @@ module Utils
 using BudgetConstraints
 
 using ArgCheck
+using ArtifactUtils
 using Base: Integer, String, Bool
 using Base.Unicode
 using CategoricalArrays
 using CSV
 using DataFrames
 using Dates
+using LazyArtifacts
+using Pkg.Artifacts
+using Preferences
 using Printf
 using PrettyTables
 using StatsBase
-
 
 export 
    @exported_enum, 
@@ -64,6 +67,34 @@ export
    todays_date, 
    uprate_struct!
 
+"""
+Given a gzipped tar file in `tmp/` with some data, upload this to a server 
+defined in Project.toml and add an entry to `Artifacts.toml`. Artifact
+is set to lazy load. Uses `ArtifactUtils`.
+"""
+function make_artifact(;
+   artifact_name :: AbstractString,
+   gzip_file_name:: AbstractString, 
+   toml_file = "Artifacts.toml" )::Int 
+   art_server_upload = @load_preference( "artifact_server_upload" )
+   art_server_url = @load_preference( "artifact_server_url" )
+   dest = "$(art_server_upload)/$(gzip_file_name)"
+   upload = `scp tmp/$(gzip_file_name) $(dest)`
+   url = "$(art_server_url)/$gzip_file_name"
+   try
+      run( upload )
+      add_artifact!( toml_file, artifact_name, url; force=true, lazy=true )
+   catch e 
+      println( "ERROR UPLOADING $e")
+      return -1
+   end
+   return 0
+end
+
+"""
+Crude version of Tidyverse `glimpse` command - print 1st `n` rows of each
+col in a DataFrame, sideways.
+"""
 function glimpse( d::AbstractDataFrame; n = 10 )
    n = min(n, size(d)[1])
    w=permutedims(d)[:,1:n]
