@@ -69,16 +69,12 @@ module RunSettings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name = @load_preference( "default_run_name")
-        #= not used??
-        start_year :: Int = 2015
-        end_year :: Int = 2021
-        =# 
         scotland_full :: Bool = true
-        weighted  @load_preference( "use_weighting")
+        weighted = @load_preference( "use_weighting")
         auto_weight = @load_preference( "auto_weight")
         data_dir :: String = MODEL_DATA_DIR
         household_name = "model_households_scotland-2015-2021-w-enums-2"
-        people_name    = "model_people_scotland-2015-2021-w-enums-2"
+        people_name  = "model_people_scotland-2015-2021-w-enums-2"
         target_nation :: Nation = N_Scotland
         dump_frames :: Bool = false
         num_households :: Int = 0
