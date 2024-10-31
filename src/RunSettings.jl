@@ -68,14 +68,14 @@ module RunSettings
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
-        run_name :: String = "default_run"
+        run_name = @load_preference( "default_run_name")
         #= not used??
         start_year :: Int = 2015
         end_year :: Int = 2021
         =# 
         scotland_full :: Bool = true
-        weighted :: Bool = false        
-        auto_weight = true
+        weighted  @load_preference( "use_weighting")
+        auto_weight = @load_preference( "auto_weight")
         data_dir :: String = MODEL_DATA_DIR
         household_name = "model_households_scotland-2015-2021-w-enums-2"
         people_name    = "model_people_scotland-2015-2021-w-enums-2"

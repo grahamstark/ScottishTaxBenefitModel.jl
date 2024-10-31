@@ -110,5 +110,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 test = ["Test"]
 
 [preferences.ScottishTaxBenefitModel]
-thing2 = "Exported preference copied over by Pkg.jl thing5"
-
+default_run_name="default_run"
+use_weighting = true
+auto_weight = true
