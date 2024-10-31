@@ -6,16 +6,25 @@ git-tree-sha1 = "288471b266e4ec933d1c6190c8dd7fc3e82d3f4c"
     url = "https://virtual-worlds.biz/artifacts//aux-data.tar.gz"
 
 [exampledata]
-git-tree-sha1 = "63b5f38f593fe12aa55d8b7ac18b04673a60fa5f"
+git-tree-sha1 = "7853136d3530ea531e4f45a29f8fcef81d08fc1c"
+lazy = true
 
     [[exampledata.download]]
-    sha256 = "9a4a78d23d0ba9ee7ecaa7482716233341219c51e61d8b1fc2cba339bd29a17e"
-    url = "https://virtual-worlds.biz/artifacts//example_data-v2.tar.gz"
+    sha256 = "c426f605704bde8c79df3573a4f150512614480aa00f900893accaf75408463c"
+    url = "https://virtual-worlds.biz/artifacts//exampledata.tar.gz"
 
 [scottish-frs-data]
-git-tree-sha1 = "44b5c23bc7203bd782d9aa9f7d9dee8f5434fea5"
+git-tree-sha1 = "bd6ce2f1f27907a93676494361bda1aa7fc2e50e"
 lazy = true
+
     [[scottish-frs-data.download]]
-    sha256 = "6032a989eb44d7316d7b75d4e935b594853cca7b6fb02b26ef7b6ed2698601a8"
+    sha256 = "84bec85c1b034f3997995dcc8aa2b0fd55e890a1cd8b768ca98ca46d84bb85fd"
     url = "https://virtual-worlds.biz/artifacts//model-data-scotland-2015-2021.tar.gz"
 
+[uk-frs-data]
+git-tree-sha1 = "5816f9889082a215017bd36cb09a9dac38145079"
+lazy = true
+
+    [[uk-frs-data.download]]
+    sha256 = "e02d1f704d94611eab385b224546958ee9f37b3d2e484234df18d46f34ce22c2"
+    url = "https://virtual-worlds.biz/artifacts//model-data-2021-2021.tar.gz"

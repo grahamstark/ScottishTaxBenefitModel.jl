@@ -7,6 +7,7 @@ module ExampleHouseholdGetter
 using DataFrames
 using CSV
 using ArgCheck
+using Pkg.Artifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -55,9 +56,9 @@ function initialise(
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
-    tmpsource = settings.data_source # hack to work round datasource being wired in to settings
-    settings.data_source = ExampleSource
-    println( "DEF_MODEL_DATA_DIR=|$(Definitions.DEF_MODEL_DATA_DIR)| MODEL_DATA_DIR=|$MODEL_DATA_DIR|")
+    # tmpsource = settings.data_source # hack to work round datasource being wired in to settings
+    # settings.data_source = ExampleSource
+    # println( "DEF_MODEL_DATA_DIR=|$(Definitions.DEF_MODEL_DATA_DIR)| MODEL_DATA_DIR=|$MODEL_DATA_DIR|")
     # lazy load cons data if needs be
     if settings.indirect_method == matching
         ConsumptionData.init( settings ) 
@@ -66,13 +67,16 @@ function initialise(
         WealthData.init( settings ) 
     end
     KEYMAP = Vector{AbstractString}()
-    ds = example_datasets( settings )
-
+    
+    # ds = example_datasets( settings )
     # hh_dataset = CSV.File( ds.hhlds, delim='\t' ) |> DataFrame
     # people_dataset = CSV.File(ds.people, delim='\t' ) |> DataFrame
-    @show ds 
-    hh_dataset = HouseholdFromFrame.read_hh( ds.hhlds ) # CSV.File( ds.hhlds ) |> DataFrame
-    people_dataset = HouseholdFromFrame.read_pers( ds.people ) # CSV.File( ds.people ) |> DataFrame
+    # @show ds 
+    hh_dataset = HouseholdFromFrame.read_hh( 
+        joinpath(artifact"exampledata","households.tab" ))# CSV.File( ds.hhlds ) |> DataFrame
+    people_dataset = 
+        HouseholdFromFrame.read_pers( 
+            joinpath(artifact"exampledata","people.tab" )) # CSV.File( ds.people ) |> DataFrame
 
     npeople = size( people_dataset)[1]
     nhhlds = size( hh_dataset )[1]
@@ -91,7 +95,7 @@ function initialise(
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
     end
-    settings.data_source = tmpsource
+    # settings.data_source = tmpsource
     return KEYMAP
 end
 
