@@ -1,0 +1,13 @@
+[augdata]
+git-tree-sha1 = "288471b266e4ec933d1c6190c8dd7fc3e82d3f4c"
+
+    [[augdata.download]]
+    sha256 = "774759a0726fe9d904016569c643650ad1cb0bcf650784c52f60bdcb35a0f2db"
+    url = "https://virtual-worlds.biz/artifacts//aux-data.tar.gz"
+
+[exampledata]
+git-tree-sha1 = "63b5f38f593fe12aa55d8b7ac18b04673a60fa5f"
+
+    [[exampledata.download]]
+    sha256 = "9a4a78d23d0ba9ee7ecaa7482716233341219c51e61d8b1fc2cba339bd29a17e"
+    url = "https://virtual-worlds.biz/artifacts//example_data-v2.tar.gz"
