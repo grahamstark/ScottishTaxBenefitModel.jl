@@ -804,11 +804,11 @@ function pretty(a)
 end
 
 
-"""
+#=
  macro to define an enum and automatically
  add export statements for its elements
  see: https://discourse.julialang.org/t/export-enum/5396
-"""
+=#
 macro exported_enum(name, args...)
    esc(quote
       @enum($name, $(args...))
@@ -922,10 +922,10 @@ function is_a_struct( T::Type )::Bool
    return ! (( T <: AbstractArray)||(T<:AbstractDict)||(T<:Real)||(T<:AbstractString)||(T<:Symbol))
 end
 
-"""
+#=
 Crude but more-or-less effective thing that prints out a struct (which may contain other structs) as
 a markdown table. 
-"""
+=#
 function to_md_table( f; exclude=[], depth=0 ) :: String
     F = typeof(f)
     @assert isstructtype( F )

@@ -428,12 +428,12 @@ export UC_EARNED_INCOME
 
 const SAVINGS_INCOME = IncomesSet([BANK_INTEREST, BONDS_AND_GILTS,OTHER_INVESTMENT_INCOME])
 
-""" 
+#= 
 TODO check this carefully against WTC,PC and IS chapters
 note this doesn't include wages and TaxBenefitSystem
 which are handled in the `calc_incomes` function.   
 poss. have 2nd complete version for WTC/CTC
-"""
+=#
 const UC_EARNED_INCOME = IncludedItems(
     [   
         WAGES

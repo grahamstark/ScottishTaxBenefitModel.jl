@@ -1,6 +1,6 @@
-"""
+#=
 Filename notwithstanding, this is also the 2024 target set
-"""
+=#
 const DEFAULT_TARGETS_SCOTLAND_2022 = [
     1_347_880.73,	#	1	M- Total in employment- aged 16+ July 2022 – see LFS\ headline indicators.xls m/f scottish tabs
     63_487.44,	#	2	M- Total unemployed- aged 16+

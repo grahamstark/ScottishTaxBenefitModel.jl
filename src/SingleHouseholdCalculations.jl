@@ -91,9 +91,7 @@ using .CrudeTakeup: correct_for_caseload_non_takeup!
 
 export do_one_calc
 
-"""
-One complete calculation for a single household and tb system.
-"""
+"One complete calculation for a single household and tb system."
 function do_one_calc( 
     mhh :: Household{T}, 
     sys :: TaxBenefitSystem{T},
