@@ -68,6 +68,25 @@ export
    uprate_struct!
 
 """
+Very simple sampler for the main hh/pers data.
+TODO: add all the joined data.
+"""
+function make_household_sample( 
+   ;
+   hhs :: DataFrame,
+   pers :: DataFrame,
+   sample_size :: Int  ) :: Tuple
+   hids = sample( hhs.uhid, sample_size )
+   shhs = hhs[ hhs.uhid .∈ ( targets, ), : ]
+   spers = pers[ pers.uhid .∈ ( targets, ), : ]
+   sort!( shhs, :uhid )
+   sort!( spers, :uhid )
+   shhs, spers 
+   # CSV.write( joinpath( outdir, "households.tab"), shhs; delim='\t')
+   # CSV.write( joinpath( outdir, "people.tab"), spers; delim='\t')
+end
+
+"""
 Given a gzipped tar file in `tmp/` with some data, upload this to a server 
 defined in Project.toml and add an entry to `Artifacts.toml`. Artifact
 is set to lazy load. Uses `ArtifactUtils`.
