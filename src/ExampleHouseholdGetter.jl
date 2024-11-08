@@ -60,6 +60,8 @@ function initialise(
     # settings.data_source = ExampleSource
     # println( "DEF_MODEL_DATA_DIR=|$(Definitions.DEF_MODEL_DATA_DIR)| MODEL_DATA_DIR=|$MODEL_DATA_DIR|")
     # lazy load cons data if needs be
+    tmp_data_source = settings.data_source 
+    settings.data_source = ExampleSource
     if settings.indirect_method == matching
         ConsumptionData.init( settings ) 
     end
@@ -95,7 +97,7 @@ function initialise(
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
     end
-    # settings.data_source = tmpsource
+    settings.data_source = tmp_data_source
     return KEYMAP
 end
 

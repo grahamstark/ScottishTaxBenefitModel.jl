@@ -492,6 +492,7 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
                 # println( "on bu $i person $p relationships $(person.relationships)")
                 @assert head_pid > 0 "head pid must be allocated; buno=$buno person $(person.pid) relationships $(person.relationships)"
                 hp = (buno == 1) ? hh_head_pid : head_pid
+                println( "hp = $(hp) person.relationships $(person.relationships)" )
                 reltohead = person.relationships[hp]
                 if reltohead in [Spouse,Cohabitee,Civil_Partner]
                     spouse_pid = person.pid

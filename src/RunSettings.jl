@@ -2,6 +2,8 @@ module RunSettings
     #
     # This module contains things needed to control one run e.g. the output destination, number of households to use andd so on.
     #
+    using Pkg
+    using Pkg.Artifacts
     using Parameters
     using Preferences 
     using UUIDs
@@ -65,6 +67,8 @@ module RunSettings
 
     # @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
 
+    # settings loaded automatically from the Project.toml section 'preferences.ScottishTaxBenefitModel' 
+    # and maybe overwritten in LocalPreferences.toml
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
@@ -72,26 +76,26 @@ module RunSettings
         scotland_full :: Bool = true
         weighted = @load_preference( "use_weighting")
         auto_weight = @load_preference( "auto_weight")
-        data_dir :: String = MODEL_DATA_DIR
+        data_dir :: String = MODEL_DATA_DIR # DELETE
         household_name = "model_households_scotland-2015-2021-w-enums-2"
         people_name  = "model_people_scotland-2015-2021-w-enums-2"
-        target_nation :: Nation = N_Scotland
-        dump_frames :: Bool = false
+        target_nation :: Nation = eval(Symbol(@load_preference("target_nation"))) #  N_Scotland
+        dump_frames :: Bool = @load_preference( "dump_frames")
         num_households :: Int = 0
         num_people :: Int = 0
         prices_file = "indexes.tab"
-        to_y :: Int = 2024
-        to_q :: Int = 3
+        to_y :: Int = @load_preference( "to_y" )
+        to_q :: Int = @load_preference( "to_q" )
         output_dir :: String = joinpath(tempdir(),"output")
-        means_tested_routing :: MT_Routing = modelled_phase_in
+        means_tested_routing :: MT_Routing = eval( Symbol(@load_preference( "means_tested_routing" )))
         poverty_line :: Real = -1.0
-        poverty_line_source :: PovertyLineSource = pl_first_sys
-        ineq_income_measure  :: IneqIncomeMeasure = eq_bhc_net_income
+        poverty_line_source :: PovertyLineSource = eval( Symbol(@load_preference( "poverty_line_source")))
+        ineq_income_measure  :: IneqIncomeMeasure = eval( Symbol(@load_preference( "ineq_income_measure" )))
         growth :: Real = 0.02 # for time to exit poverty
-        income_data_source :: DataIncomeSource = ds_frs # ds_hbai
-        do_marginal_rates  :: Bool = false
-        do_replacement_rates :: Bool = false
-        replacement_rate_hours :: Int = 30
+        income_data_source :: DataIncomeSource = ds_frs # ds_hbai !! not used
+        do_marginal_rates  :: Bool = @load_preference( "do_marginal_rates" )
+        do_replacement_rates :: Bool = @load_preference( "do_replacement_rates" )
+        replacement_rate_hours :: Int = @load_preference( "replacement_rate_hours" )
         # We jam on age 68 here since we don't want changes to pension age
         # in the parameters to affect the numbers of people in
         # mr/rr calculations.
@@ -134,6 +138,24 @@ module RunSettings
         do_dodgy_takeup_corrections = false
         data_source = FRSSource
         skiplist = ""
+    end
+
+    function artifact_name( settings::Settings )::AbstractString
+        return if settings.data_source == FRSSource
+            if settings.target_nation == N_Scotland
+                artifact"scottish-frs-data"
+            elseif settings.target_nation == N_UK
+                artifact"uk-frs-data"
+            end            
+        elseif settings.data_source == ExampleSource
+            artifact"exampledata"
+        elseif settings.data_source == SyntheticSource
+            if settings.target_nation == N_Scotland
+                artifact"scottish-synthetic-data"
+            elseif settings.target_nation == N_UK
+                artifact"uk-synthetic-data"
+            end            
+        end
     end
 
     function data_dir( settings :: Settings ) :: String
