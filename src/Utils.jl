@@ -82,8 +82,6 @@ function make_household_sample(
    sort!( shhs, :uhid )
    sort!( spers, :uhid )
    shhs, spers 
-   # CSV.write( joinpath( outdir, "households.tab"), shhs; delim='\t')
-   # CSV.write( joinpath( outdir, "people.tab"), spers; delim='\t')
 end
 
 """
