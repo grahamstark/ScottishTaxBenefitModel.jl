@@ -88,6 +88,9 @@ end
 Given a gzipped tar file in `tmp/` with some data, upload this to a server 
 defined in Project.toml and add an entry to `Artifacts.toml`. Artifact
 is set to lazy load. Uses `ArtifactUtils`.
+
+file should contain: `people.tab` `households.tab` `README.md`, all top-level
+
 """
 function make_artifact(;
    artifact_name :: AbstractString,
@@ -96,7 +99,9 @@ function make_artifact(;
    art_server_upload = @load_preference( "artifact_server_upload" )
    art_server_url = @load_preference( "artifact_server_url" )
    dest = "$(art_server_upload)/$(gzip_file_name)"
+   println( "copying |tmp/$gzip_file_name| to |$dest| ")
    upload = `scp tmp/$(gzip_file_name) $(dest)`
+   println( "upload cmd |$upload|")
    url = "$(art_server_url)/$gzip_file_name"
    try
       run( upload )
