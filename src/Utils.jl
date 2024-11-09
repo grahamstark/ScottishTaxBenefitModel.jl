@@ -478,9 +478,6 @@ function nearz( x :: Real, comps ... ) :: Real
     return nearest( x, comps ... )
 end
 
-
-
-
 #
 # this has a higher top income than the BC default
 #

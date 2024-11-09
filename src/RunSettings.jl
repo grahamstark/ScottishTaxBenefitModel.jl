@@ -48,7 +48,8 @@ module RunSettings
         data_dir,
         get_skiplist,
 
-        get_all_uk_settings_2023
+        get_all_uk_settings_2023,
+        get_data_artifact
         
     @enum TargetBCIncomes ahc_hh bhc_hh total_bens total_taxes
         
@@ -140,7 +141,7 @@ module RunSettings
         skiplist = ""
     end
 
-    function artifact_name( settings::Settings )::AbstractString
+    function get_data_artifact( settings::Settings )::AbstractString
         return if settings.data_source == FRSSource
             if settings.target_nation == N_Scotland
                 artifact"scottish-frs-data"
