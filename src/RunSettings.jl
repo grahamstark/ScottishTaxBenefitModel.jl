@@ -66,6 +66,35 @@ module RunSettings
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
 
+    function load_settings!( settings::Settings )
+        settings.run_name = @load_preference( "default_run_name")
+        settings.scotland_full :: Bool = true
+        settings.weighted = @load_preference( "use_weighting")
+        settings.auto_weight = @load_preference( "auto_weight")
+        settings.data_dir = MODEL_DATA_DIR # DELETE
+        settings.household_name = "model_households_scotland-2015-2021-w-enums-2"
+        settings.people_name  = "model_people_scotland-2015-2021-w-enums-2"
+        settings.target_nation = eval(Symbol(@load_preference("target_nation"))) #  N_Scotland
+        settings.dump_frames = @load_preference( "dump_frames")
+        # num_households  = 0
+        # num_people :: Int = 0
+        settings.prices_file = "indexes.tab"
+        settings.to_y = @load_preference( "to_y" )
+        settings.to_q = @load_preference( "to_q" )
+        # settings.output_dir = joinpath(tempdir(),"output")
+        settings.means_tested_routing = eval( Symbol(@load_preference( "means_tested_routing" )))
+        # settings.poverty_line = -1.0
+        settings.poverty_line_source = eval( Symbol(@load_preference( "poverty_line_source")))
+        settings.ineq_income_measure = eval( Symbol(@load_preference( "ineq_income_measure" )))
+        # settings.growth :: Real = 0.02 # for time to exit poverty
+        settings.income_data_source = ds_frs # ds_hbai !! not used
+        settings.do_marginal_rates = @load_preference( "do_marginal_rates" )
+        settings.do_replacement_rates = @load_preference( "do_replacement_rates" )
+        settings.replacement_rate_hours = @load_preference( "replacement_rate_hours" )
+
+
+    end
+
     # @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
 
     # settings loaded automatically from the Project.toml section 'preferences.ScottishTaxBenefitModel' 

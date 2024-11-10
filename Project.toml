@@ -120,7 +120,6 @@ target_nation = "N_Scotland"
 dump_frames = false
 to_y = 2024
 to_q = 3
-
 means_tested_routing = "modelled_phase_in"
 poverty_line_source = "pl_first_sys"
 ineq_income_measure = "eq_bhc_net_income"

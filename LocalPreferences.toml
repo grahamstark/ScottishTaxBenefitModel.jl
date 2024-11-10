@@ -1,0 +1,16 @@
+[preferences.ScottishTaxBenefitModel]
+artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
+artifact_server_url = "https://virtual-worlds.biz/artifacts/"
+auto_weight = true
+default_run_name = "default_run"
+use_weighting = true
+target_nation = "N_Scotland"
+dump_frames = false
+to_y = 2024
+to_q = 3
+means_tested_routing = "modelled_phase_in"
+poverty_line_source = "pl_first_sys"
+ineq_income_measure = "eq_bhc_net_income"
+do_marginal_rates = false
+do_replacement_rates = false
+replacement_rate_hours = 30
