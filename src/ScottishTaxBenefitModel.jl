@@ -172,4 +172,8 @@ export HealthRegressions
 include( "HTMLLibs.jl")
 export HTMLLibs
 
+function Base.__init__()
+
+end
+
 end
