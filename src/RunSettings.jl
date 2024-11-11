@@ -66,6 +66,17 @@ module RunSettings
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
 
+    mutable struct MiniSett
+        prem :: LMTPremia
+        dump_frames2 :: Bool
+    end
+
+    function default_minisett()::MiniSett
+        prem2 = eval(Symbol(@load_preference("prem2"))) #  N_Scotland
+        dump_frames2 = @load_preference( "dump_frames2")
+        return MiniSett( prem2, dump_frames2 )
+    end
+
     # @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
 
     # settings loaded automatically from the Project.toml section 'preferences.ScottishTaxBenefitModel' 

@@ -126,6 +126,11 @@ ineq_income_measure = "eq_bhc_net_income"
 do_marginal_rates = false
 do_replacement_rates = false
 replacement_rate_hours = 30
+
+prem2 = "enhanced_disability_child"
+dump_frames2 = true
        
 [targets]
 test = ["Test"]
+
+
