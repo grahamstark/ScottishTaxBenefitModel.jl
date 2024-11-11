@@ -66,6 +66,7 @@ module RunSettings
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
 
+    #=
     mutable struct MiniSett
         prem :: LMTPremia
         dump_frames2 :: Bool
@@ -76,6 +77,7 @@ module RunSettings
         dump_frames2 = @load_preference( "dump_frames2")
         return MiniSett( prem2, dump_frames2 )
     end
+    =#
 
     # @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
 
@@ -84,74 +86,71 @@ module RunSettings
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere
-        run_name = @load_preference( "default_run_name")
+        run_name = @load_preference( "default_run_name", "default_run" )
         scotland_full :: Bool = true
-        weighted = @load_preference( "use_weighting")
-        auto_weight = @load_preference( "auto_weight")
+        weighted = @load_preference( "use_weighting", true )
+        auto_weight = @load_preference( "auto_weight", true )
         data_dir :: String = MODEL_DATA_DIR # DELETE
         household_name = "model_households_scotland-2015-2021-w-enums-2"
         people_name  = "model_people_scotland-2015-2021-w-enums-2"
-        target_nation :: Nation = eval(Symbol(@load_preference("target_nation"))) #  N_Scotland
-        dump_frames :: Bool = @load_preference( "dump_frames")
+        target_nation :: Nation = eval(Symbol(@load_preference("target_nation", "N_Scotland"))) #  N_Scotland
+        dump_frames :: Bool = @load_preference( "dump_frames", false )
         num_households :: Int = 0
         num_people :: Int = 0
-        prices_file = "indexes.tab"
-        to_y :: Int = @load_preference( "to_y" )
-        to_q :: Int = @load_preference( "to_q" )
+        prices_file = @load_preference( "prices_file", "indexes.tab" )
+        to_y :: Int = @load_preference( "to_y", 2024 )
+        to_q :: Int = @load_preference( "to_q", 4 )
         output_dir :: String = joinpath(tempdir(),"output")
-        means_tested_routing :: MT_Routing = eval( Symbol(@load_preference( "means_tested_routing" )))
+        means_tested_routing :: MT_Routing = eval( Symbol(@load_preference( "means_tested_routing", "modelled_phase_in" )))
         poverty_line :: Real = -1.0
-        poverty_line_source :: PovertyLineSource = eval( Symbol(@load_preference( "poverty_line_source")))
-        ineq_income_measure  :: IneqIncomeMeasure = eval( Symbol(@load_preference( "ineq_income_measure" )))
+        poverty_line_source :: PovertyLineSource = eval( Symbol(@load_preference( "poverty_line_source", "pl_first_sys")))
+        ineq_income_measure  :: IneqIncomeMeasure = eval( Symbol(@load_preference( "ineq_income_measure", "eq_bhc_net_income" )))
         growth :: Real = 0.02 # for time to exit poverty
         income_data_source :: DataIncomeSource = ds_frs # ds_hbai !! not used
-        do_marginal_rates  :: Bool = @load_preference( "do_marginal_rates" )
-        do_replacement_rates :: Bool = @load_preference( "do_replacement_rates" )
-        replacement_rate_hours :: Int = @load_preference( "replacement_rate_hours" )
+        do_marginal_rates  :: Bool = @load_preference( "do_marginal_rates", false )
+        do_replacement_rates :: Bool = @load_preference( "do_replacement_rates", false )
+        replacement_rate_hours :: Int = @load_preference( "replacement_rate_hours", 30 )
         # We jam on age 68 here since we don't want changes to pension age
         # in the parameters to affect the numbers of people in
         # mr/rr calculations.
-        mr_rr_upper_age :: Int = 68
-        target_bc_income :: TargetBCIncomes = ahc_hh 
-        target_mr_rr_income :: TargetBCIncomes = ahc_hh 
-        mr_incr = 0.001
-        requested_threads = 1
-        impute_employer_pension = true
-        benefit_generosity_estimates_available = true
+        mr_rr_upper_age :: Int = @load_preference("mr_rr_upper_age", 68 )
+        target_bc_income :: TargetBCIncomes = eval(Symbol(@load_preference("target_bc_income", "ahc_hh" )))
+        target_mr_rr_income :: TargetBCIncomes = eval(Symbol(@load_preference("target_mr_rr_income", "ahc_hh" )))
+        mr_incr = @load_preference( "mr_incr", 0.001 )
+        requested_threads = @load_preference( "requested_threads", 1 )
+        impute_employer_pension = @load_preference( "impute_employer_pension", true )
+        benefit_generosity_estimates_available = @load_preference( "benefit_generosity_estimates_available", true )
         #
         # weights
         #
-        weight_type :: DistanceFunctionType = constrained_chi_square
-        lower_multiple :: Real = 0.20 # these values can be narrowed somewhat, to around 0.25-4.7
-        upper_multiple :: Real = 5.0
-        do_health_esimates = false 
-        ## Elliot's email of June 21, 2023
-        sf12_depression_limit = 45.60
-        create_own_grossing = true
-        use_average_band_d = false
-        included_nations = [N_Scotland]
-
-        indirect_method = matching 
-        impute_fields_from_consumption = true
-        # indirect_matching_dataframe = ""
-        # expenditure_dataset = ""
-        # FIXME: note these are UK dataframes! 
-        indirect_matching_dataframe = "lcf-frs-scotland-only-matches-2015-2021"
-        expenditure_dataset = "lcf_subset-2018-2020"
-
-        wealth_method = no_method
-        wealth_matching_dataframe = "was-wave-7-frs-scotland-only-matches-2015-2021-w3"
-        wealth_dataset = "was_wave_7_subset"
+        weight_type = eval(Symbol(@load_preference( "weight_type", "constrained_chi_square")))
+        lower_multiple = eval(Symbol(@load_preference( "lower_multiple", "0.20 # these values can be narrowed somewhat, to around 0.25-4.7")))
+        upper_multiple = eval(Symbol(@load_preference( "upper_multiple", "5.0")))
         
-        do_indirect_tax_calculations = false
-        do_legal_aid = true
-        legal_aid_probs_data = "civil-legal-aid-probs-scotland-2015-2012"
-        export_full_results = false
-        do_dodgy_takeup_corrections = false
-        data_source = FRSSource
-        skiplist = ""
+        do_health_estimates = @load_preference( "do_health_estimates", false )
+        ## Elliot's email of June 21, 2023
+        sf12_depression_limit = @load_preference( "sf12_depression_limit", 45.60)
+        create_own_grossing = @load_preference( "create_own_grossing", true)
+        use_average_band_d = @load_preference( "use_average_band_d", false)
+        included_nations = @load_preference( "included_nations", [N_Scotland])
+        indirect_method = @load_preference( "indirect_method", matching )
+        impute_fields_from_consumption = @load_preference( "impute_fields_from_consumption", true)
+        indirect_matching_dataframe = @load_preference( "indirect_matching_dataframe", "lcf-frs-scotland-only-matches-2015-2021")
+        expenditure_dataset = @load_preference( "expenditure_dataset", "lcf_subset-2018-2020")
+        wealth_method = @load_preference( "wealth_method", no_method)
+        wealth_matching_dataframe = @load_preference( "wealth_matching_dataframe", "was-wave-7-frs-scotland-only-matches-2015-2021-w3")
+        wealth_dataset = @load_preference( "wealth_dataset", "was_wave_7_subset")
+        do_indirect_tax_calculations = @load_preference( "do_indirect_tax_calculations", false)
+        do_legal_aid = @load_preference( "do_legal_aid", true)
+        legal_aid_probs_data = @load_preference( "legal_aid_probs_data", "civil-legal-aid-probs-scotland-2015-2012")
+        export_full_results = @load_preference( "export_full_results", false)
+        do_dodgy_takeup_corrections = @load_preference( "do_dodgy_takeup_corrections", false)
+        data_source = @load_preference( "data_source", FRSSource)
+        skiplist = @load_preference( "skiplist", "")
+                
     end
 
+    #=
     function load_settings!( settings::Settings )
         settings.run_name = @load_preference( "default_run_name")
         settings.scotland_full = true
@@ -178,6 +177,7 @@ module RunSettings
         settings.do_replacement_rates = @load_preference( "do_replacement_rates" )
         settings.replacement_rate_hours = @load_preference( "replacement_rate_hours" )
     end
+    =#
 
     function get_data_artifact( settings::Settings )::AbstractString
         return if settings.data_source == FRSSource
