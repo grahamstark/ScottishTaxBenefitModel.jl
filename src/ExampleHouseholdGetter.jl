@@ -8,6 +8,7 @@ using DataFrames
 using CSV
 using ArgCheck
 using Pkg.Artifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -56,12 +57,10 @@ function initialise(
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
-    # tmpsource = settings.data_source # hack to work round datasource being wired in to settings
-    # settings.data_source = ExampleSource
-    # println( "DEF_MODEL_DATA_DIR=|$(Definitions.DEF_MODEL_DATA_DIR)| MODEL_DATA_DIR=|$MODEL_DATA_DIR|")
     # lazy load cons data if needs be
     tmp_data_source = settings.data_source 
     settings.data_source = ExampleSource
+    # tmpsource = settings.data_source # hack to work round datasource being wired in to settings
     if settings.indirect_method == matching
         ConsumptionData.init( settings ) 
     end

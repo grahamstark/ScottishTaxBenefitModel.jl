@@ -10,22 +10,11 @@ using CSV,DataFrames,GLM,RegressionTables
 
 
 const settings = Settings()
+# settings.data_source = SyntheticSource # !!! changeme!!! 
+daf = get_data_artifact( settings )
 
-const LOCAL_DATA_DIR = data_dir( settings )
-#
-# !!! For Actual Dataset, UK wide with Scottish dummy
-# For synth data, Scotland only for now!!! 
-#
-settings.data_source = SyntheticSource # !!! changeme!!! 
-if settings.data_source == FRS
-  settings.household_name = "model_households-2015-2021.tab"
-  settings.people_name = "model_people-2015-2021.tab"
-end
-
-const DATASETS = main_datasets( settings )
-
-frshh = CSV.File( DATASETS.hhlds ) |> DataFrame
-frspeople = CSV.File( DATASETS.people ) |> DataFrame
+frshh = CSV.File( joinpath( daf, "households.tab"  )) |> DataFrame
+frspeople = CSV.File( joinpath( daf, "households.tab" )) |> DataFrame
 
 fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ], makeunique=true )
 

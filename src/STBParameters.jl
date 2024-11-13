@@ -13,6 +13,8 @@ using Dates: Date, now, TimeType, Year
 using TimeSeries
 using StaticArrays
 using Parameters
+using Pkg, Pkg.Artifacts
+using LazyArtifacts
 using DataFrames,CSV
 
 using ScottishTaxBenefitModel
@@ -822,7 +824,7 @@ end
 
     function weeklyise!( hb :: HousingBenefits; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEARs )
     hb.taper /= 100.0
-    end
+end
 
 @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
     # CPAG 2019/bur.pers[pid].20 p335
@@ -863,7 +865,7 @@ function loadBRMAs( N :: Int, T :: Type, file :: String  ) :: Dict{Symbol,BRMA{N
     dict
 end
 
-const DEFAULT_BRMA_2021 = joinpath(MODEL_DATA_DIR,"local", "lha_rates_scotland_2020_21.csv")
+const DEFAULT_BRMA_2021 = joinpath( artifact"augdata", "lha_rates_scotland_2020_21.csv")
 
 @with_kw mutable struct HousingRestrictions{RT<:Real}
     abolished :: Bool = false

@@ -94,15 +94,18 @@ file should contain: `people.tab` `households.tab` `README.md`, all top-level
 """
 function make_artifact(;
    artifact_name :: AbstractString,
-   gzip_file_name:: AbstractString, 
    toml_file = "Artifacts.toml" )::Int 
-   art_server_upload = @load_preference( "artifact_server_upload" )
-   art_server_url = @load_preference( "artifact_server_url" )
-   dest = "$(art_server_upload)/$(gzip_file_name)"
-   println( "copying |tmp/$gzip_file_name| to |$dest| ")
-   upload = `scp tmp/$(gzip_file_name) $(dest)`
+   gzip_file_name = "$(artifact_name).tar.gz"
+   dir = "/mnt/data/ScotBen/artifacts/"
+   artifact_server_upload = @load_preference( "artifact_server_upload" )
+   artifact_server_url = @load_preference( "artifact_server_url" )
+   tarcmd = `tar zcvf $(dir)/tmp/$(gzip_file_name) -C $(dir)/$(artifact_name)/ .`
+   run( tarcmd )
+   dest = "$(artifact_server_upload)/$(gzip_file_name)"
+   println( "copying |$(dir)/tmp/$gzip_file_name| to |$dest| ")
+   upload = `scp $(dir)/tmp/$(gzip_file_name) $(dest)`
    println( "upload cmd |$upload|")
-   url = "$(art_server_url)/$gzip_file_name"
+   url = "$(artifact_server_url)/$gzip_file_name"
    try
       run( upload )
       add_artifact!( toml_file, artifact_name, url; force=true, lazy=true )

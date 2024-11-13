@@ -9,6 +9,8 @@ module LocalLevelCalculations
 
 using StaticArrays
 using CSV,DataFrames
+using Pkg, Pkg.Artifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -118,7 +120,7 @@ export
 
     # FIXME hard code this in
     function make_la_to_brma_map()
-        lacsv = CSV.File( "$(MODEL_DATA_DIR)/local/la_to_brma_approx_mappings.csv" ) |> DataFrame
+        lacsv = CSV.File( joinpath( artifact"augdata", "la_to_brma_approx_mappings.csv" )) |> DataFrame
         out = Dict{Symbol,Symbol}()
         for r in eachrow( lacsv )
             out[Symbol(r.ccode)] = Symbol(r.bcode)

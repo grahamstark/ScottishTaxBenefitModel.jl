@@ -4,6 +4,7 @@ module RunSettings
     #
     using Pkg
     using Pkg.Artifacts
+    using LazyArtifacts
     using Parameters
     using Preferences 
     using UUIDs
@@ -45,7 +46,6 @@ module RunSettings
         # DatasetType,
         # actual_data,
         # synthetic_data,
-        data_dir,
         get_skiplist,
 
         get_all_uk_settings_2023,
@@ -90,7 +90,6 @@ module RunSettings
         scotland_full :: Bool = true
         weighted = @load_preference( "use_weighting", true )
         auto_weight = @load_preference( "auto_weight", true )
-        data_dir :: String = MODEL_DATA_DIR # DELETE
         household_name = "model_households_scotland-2015-2021-w-enums-2"
         people_name  = "model_people_scotland-2015-2021-w-enums-2"
         target_nation :: Nation = eval(Symbol(@load_preference("target_nation", "N_Scotland"))) #  N_Scotland
@@ -178,6 +177,7 @@ module RunSettings
         settings.replacement_rate_hours = @load_preference( "replacement_rate_hours" )
     end
     =#
+    
 
     function get_data_artifact( settings::Settings )::AbstractString
         return if settings.data_source == FRSSource
@@ -196,6 +196,16 @@ module RunSettings
             end            
         end
     end
+
+    function main_datasets( settings :: Settings ) :: NamedTuple
+        artd = get_data_artifact( settings )
+        return ( 
+            hhlds = joinpath( artd, "households.tab" ),
+            people = joinpath( artd, "people.tab" )
+        )
+    end
+
+    #=
 
     function data_dir( settings :: Settings ) :: String
         ds = if settings.data_source == FRSSource
@@ -242,6 +252,8 @@ module RunSettings
             skiplist = joinpath( dd, settings.skiplist*".tab" )
         )
     end
+
+    =#
 
     """
     Hacky prebuilt settings for the Northumbria model.
