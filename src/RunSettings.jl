@@ -124,8 +124,8 @@ module RunSettings
         # weights
         #
         weight_type = eval(Symbol(@load_preference( "weight_type", "constrained_chi_square")))
-        lower_multiple = eval(Symbol(@load_preference( "lower_multiple", "0.20 # these values can be narrowed somewhat, to around 0.25-4.7")))
-        upper_multiple = eval(Symbol(@load_preference( "upper_multiple", "5.0")))
+        lower_multiple = @load_preference( "lower_multiple", 0.20 )
+        upper_multiple = @load_preference( "upper_multiple", 5.0)
         
         do_health_estimates = @load_preference( "do_health_estimates", false )
         ## Elliot's email of June 21, 2023
