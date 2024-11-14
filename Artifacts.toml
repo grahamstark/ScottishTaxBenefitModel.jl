@@ -79,11 +79,11 @@ lazy = true
     url = "https://virtual-worlds.biz/artifacts//model-data-2021-2021-v2.tar.gz"
 
 [uk-lcf-expenditure]
-git-tree-sha1 = "1b7595de9b2c796f301a9f3e3a43d8e39a3f4a07"
+git-tree-sha1 = "aac0e469d51d53ae54dcc2aa54af2d4f2d72a03a"
 lazy = true
 
     [[uk-lcf-expenditure.download]]
-    sha256 = "53ec609f8b2dc593e3459ceb7e6af776299f1448bd8ba1f13875dc46a5bcbf9e"
+    sha256 = "a2888101e82837d3cf9852fc35f66a36372d579b5660bf5cbf7a70cf11777187"
     url = "https://virtual-worlds.biz/artifacts//uk-lcf-expenditure.tar.gz"
 
 [uk-synthetic-data]
