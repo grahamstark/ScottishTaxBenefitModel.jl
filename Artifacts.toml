@@ -30,6 +30,14 @@ lazy = true
     sha256 = "5bc1607882203127bd0c13ddeeb22deb0f51156cd65aa9f4c14af3c1df175ef2"
     url = "https://virtual-worlds.biz/artifacts//model-data-scotland-2015-2021-v2.tar.gz"
 
+[scottish-lcf-expenditure]
+git-tree-sha1 = "bf18d73b3f48bea065528bf63e43e522f85f5e4b"
+lazy = true
+
+    [[scottish-lcf-expenditure.download]]
+    sha256 = "66231a2f9d4cf75d373812e6969e40ffe1dd386dc0b8c577aa3ed67f75e4cc1c"
+    url = "https://virtual-worlds.biz/artifacts//scottish-lcf-expenditure.tar.gz"
+
 [scottish-synthetic-data]
 git-tree-sha1 = "2bcdf3e7a62bb4bcd282f05008adbe6b63228ab9"
 lazy = true
@@ -37,6 +45,14 @@ lazy = true
     [[scottish-synthetic-data.download]]
     sha256 = "701ac0c44fe997b7d4e252dc2bee65e2c8ae2cdb2b6975cf5ae8134c0188e2d5"
     url = "https://virtual-worlds.biz/artifacts//not-created-yet.tar.gz"
+
+[scottish-synthetic-expenditure]
+git-tree-sha1 = "8fb7e3a1d9da7de2a9b1f91a05a8c431f8ab4526"
+lazy = true
+
+    [[scottish-synthetic-expenditure.download]]
+    sha256 = "38f4f588974a40102a4b9998f9c0cea15001ec3d59f3e6b329a9659201cdb4c0"
+    url = "https://virtual-worlds.biz/artifacts//scottish-synthetic-expenditure.tar.gz"
 
 [uk-frs-data]
 git-tree-sha1 = "8891ef02ea5dada4ec097ce0a183502cfafb995f"
@@ -46,6 +62,14 @@ lazy = true
     sha256 = "8e3efc98a687441085be9ef5e53b663c2bd9abf6e300efa2dd6edb29993d8777"
     url = "https://virtual-worlds.biz/artifacts//model-data-2021-2021-v2.tar.gz"
 
+[uk-lcf-expenditure]
+git-tree-sha1 = "75780fa203742d35c05e345ea26daa4b2e803280"
+lazy = true
+
+    [[uk-lcf-expenditure.download]]
+    sha256 = "3cc8b249fb7e9e8e50b2ac719165d4dbe6e79ddbd9a57f444b9e0a7fc0f11f4c"
+    url = "https://virtual-worlds.biz/artifacts//uk-lcf-expenditure.tar.gz"
+
 [uk-synthetic-data]
 git-tree-sha1 = "2bcdf3e7a62bb4bcd282f05008adbe6b63228ab9"
 lazy = true
@@ -53,3 +77,11 @@ lazy = true
     [[uk-synthetic-data.download]]
     sha256 = "701ac0c44fe997b7d4e252dc2bee65e2c8ae2cdb2b6975cf5ae8134c0188e2d5"
     url = "https://virtual-worlds.biz/artifacts//not-created-yet.tar.gz"
+
+[uk-synthetic-expenditure]
+git-tree-sha1 = "8fb7e3a1d9da7de2a9b1f91a05a8c431f8ab4526"
+lazy = true
+
+    [[uk-synthetic-expenditure.download]]
+    sha256 = "65593965ef048b2f9144b73e109a7dd25756df491929e63b5ff1b70e808e8d50"
+    url = "https://virtual-worlds.biz/artifacts//uk-synthetic-expenditure.tar.gz"

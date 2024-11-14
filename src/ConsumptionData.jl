@@ -18,6 +18,8 @@ using ArgCheck
 using CSV
 using DataFrames
 using StatsBase
+using Pkg, Pkg.Artifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -340,6 +342,7 @@ end
 
 """
 FIXME DO FACTOR COSTS!!!!
+fixme selectable artifacts
 """
 function init( settings :: Settings; reset = false )
     if settings.do_indirect_tax_calculations 
@@ -347,9 +350,9 @@ function init( settings :: Settings; reset = false )
             global IND_MATCHING
             global EXPENDITURE_DATASET
             global FACTOR_COST_DATASET
-            IND_MATCHING = CSV.File( joinpath( data_dir( settings ), "$(settings.indirect_matching_dataframe).tab" )) |> DataFrame
-            EXPENDITURE_DATASET = CSV.File( joinpath( data_dir( settings ), settings.expenditure_dataset * ".tab")) |> DataFrame
-            FACTOR_COST_DATASET = CSV.File( joinpath( data_dir( settings ), settings.expenditure_dataset * ".tab" )) |> DataFrame
+            IND_MATCHING = CSV.File( joinpath( artifact"uk-lcf-expenditure", "matches.tab" )) |> DataFrame
+            EXPENDITURE_DATASET = CSV.File( joinpath( artifact"uk-lcf-expenditure", "dataset.tab")) |> DataFrame
+            FACTOR_COST_DATASET = CSV.File( joinpath( artifact"uk-lcf-expenditure", "dataset.tab" )) |> DataFrame
             println( EXPENDITURE_DATASET[1:2,:])
             uprate_expenditure( settings )
         end

@@ -3,14 +3,6 @@
 This module holds both the data for wealth tax calculations. Quickie pro tem thing
 for Northumberland, but you know how that goes..
 
-TODO add mapping for example households.
-TODO all uprating is nom gdp for now.
-TODO Factor costs for excisable goods and base excisable good parameters.
-TODO Better calculation of exempt goods.
-TODO Recheck allocations REALLY carefully.
-TODO Much more detailed uprating.
-TODO costs of spirits etc.
-
 =#
 module WealthData
 
@@ -18,6 +10,8 @@ using ArgCheck
 using CSV
 using DataFrames
 using StatsBase
+using Pkg, Pkg.Artifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -81,8 +75,8 @@ function init( settings :: Settings; reset = false )
     if(settings.wealth_method == matching) && (reset || (size(WEALTH_DATASET)[1] == 0 )) # needed but uninitialised
         global IND_MATCHING
         global WEALTH_DATASET
-        IND_MATCHING = CSV.File( joinpath( data_dir( settings ), "$(settings.wealth_matching_dataframe).tab" )) |> DataFrame
-        WEALTH_DATASET = CSV.File( joinpath( data_dir( settings ), settings.wealth_dataset * ".tab"); types=jam_on_float ) |> DataFrame
+        #IND_MATCHING = CSV.File( joinpath( artifact"uk-was-wealth", "matches.tab" )) |> DataFrame
+        #WEALTH_DATASET = CSV.File( joinpath( artifact"uk-was-wealth", "data.tab"); types=jam_on_float ) |> DataFrame
         uprate_raw_wealth()
         println( WEALTH_DATASET[1:2,:])
     end
