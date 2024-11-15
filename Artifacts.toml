@@ -22,6 +22,14 @@ lazy = true
     sha256 = "c426f605704bde8c79df3573a4f150512614480aa00f900893accaf75408463c"
     url = "https://virtual-worlds.biz/artifacts//exampledata.tar.gz"
 
+[legalaid]
+git-tree-sha1 = "3518935453a2ed48612f94a4f7ef8fe77f56aace"
+lazy = true
+
+    [[legalaid.download]]
+    sha256 = "fb9a643138fea7669fceda20ef9b4f65b2646d2e8c27d4a0ecbb7306908cb3a9"
+    url = "https://virtual-worlds.biz/artifacts//legalaid.tar.gz"
+
 [scottish-frs-data]
 git-tree-sha1 = "9c5c1e8a29e8f82d861100579cee3e3e49cae464"
 lazy = true

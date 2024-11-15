@@ -255,23 +255,68 @@ function load_costs( filename::String )::DataFrame
     cost
 end
 
-const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "legalaid", "civil-legal-aid-case-costs.tab" ))
-const AA_COSTS = load_aa_costs( joinpath(MODEL_DATA_DIR, "legalaid", "aa-case-costs.tab" ))
-const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "legalaid", "civil-applications.tab" ))
-const CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
-const CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
-const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
-const CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
-const CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
-const CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
+CIVIL_COSTS = DataFrame()
+AA_COSTS = DataFrame()
+CIVIL_AWARDS = DataFrame()
 
-const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
-const AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
+CIVIL_AWARDS_GRP_NS = DataFrame()
+CIVIL_AWARDS_GRP1 = DataFrame()
+CIVIL_AWARDS_GRP2 = DataFrame()
+CIVIL_AWARDS_GRP3 = DataFrame()
+CIVIL_AWARDS_GRP4 = DataFrame()
+CIVIL_COSTS_GRP_NS = DataFrame()
 
-const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
-const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
-const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
-const CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
+CIVIL_COSTS_GRP1 = DataFrame()
+AA_COSTS_GRP1 = DataFrame()
+
+CIVIL_COSTS_GRP2 = DataFrame()
+CIVIL_COSTS_GRP3 = DataFrame()
+CIVIL_COSTS_GRP4 = DataFrame()
+CIVIL_SUBJECTS = DataFrame()
+
+
+function init()
+
+    CIVIL_COSTS = DataFrame()
+    AA_COSTS = DataFrame()
+    CIVIL_AWARDS = DataFrame()
+    
+    CIVIL_AWARDS_GRP_NS = DataFrame()
+    CIVIL_AWARDS_GRP1 = DataFrame()
+    CIVIL_AWARDS_GRP2 = DataFrame()
+    CIVIL_AWARDS_GRP3 = DataFrame()
+    CIVIL_AWARDS_GRP4 = DataFrame()
+    CIVIL_COSTS_GRP_NS = DataFrame()
+    
+    CIVIL_COSTS_GRP1 = DataFrame()
+    AA_COSTS_GRP1 = DataFrame()
+    
+    CIVIL_COSTS_GRP2 = DataFrame()
+    CIVIL_COSTS_GRP3 = DataFrame()
+    CIVIL_COSTS_GRP4 = DataFrame()
+    CIVIL_SUBJECTS = DataFrame()
+    
+
+   CIVIL_COSTS = load_costs( joinpath(artifact"legalaid", "civil-legal-aid-case-costs.tab" ))
+   AA_COSTS = load_aa_costs( joinpath( artifact"legalaid", "aa-case-costs.tab" ))
+   CIVIL_AWARDS = load_awards( joinpath( artifact"legalaid", "civil-applications.tab" ))
+
+   CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
+   CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
+   CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
+   CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
+   CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
+   CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
+
+   CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
+   AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
+
+   CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
+   CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
+   CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
+   CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
+end
+
 #= 
   psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
   k=(hsm = "Discrimination", age_banded = "5 - 9", consolidatedsex = "Male")
