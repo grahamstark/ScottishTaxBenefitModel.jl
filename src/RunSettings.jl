@@ -149,36 +149,6 @@ module RunSettings
                 
     end
 
-    #=
-    function load_settings!( settings::Settings )
-        settings.run_name = @load_preference( "default_run_name")
-        settings.scotland_full = true
-        settings.weighted = @load_preference( "use_weighting")
-        settings.auto_weight = @load_preference( "auto_weight")
-        settings.data_dir = MODEL_DATA_DIR # DELETE
-        settings.household_name = "model_households_scotland-2015-2021-w-enums-2"
-        settings.people_name  = "model_people_scotland-2015-2021-w-enums-2"
-        settings.target_nation = eval(Symbol(@load_preference("target_nation"))) #  N_Scotland
-        settings.dump_frames = @load_preference( "dump_frames")
-        # num_households  = 0
-        # num_people :: Int = 0
-        settings.prices_file = "indexes.tab"
-        settings.to_y = @load_preference( "to_y" )
-        settings.to_q = @load_preference( "to_q" )
-        # settings.output_dir = joinpath(tempdir(),"output")
-        settings.means_tested_routing = eval( Symbol(@load_preference( "means_tested_routing" )))
-        # settings.poverty_line = -1.0
-        settings.poverty_line_source = eval( Symbol(@load_preference( "poverty_line_source")))
-        settings.ineq_income_measure = eval( Symbol(@load_preference( "ineq_income_measure" )))
-        # settings.growth :: Real = 0.02 # for time to exit poverty
-        settings.income_data_source = ds_frs # ds_hbai !! not used
-        settings.do_marginal_rates = @load_preference( "do_marginal_rates" )
-        settings.do_replacement_rates = @load_preference( "do_replacement_rates" )
-        settings.replacement_rate_hours = @load_preference( "replacement_rate_hours" )
-    end
-    =#
-    
-
     function get_data_artifact( settings::Settings )::AbstractString
         return if settings.data_source == FRSSource
             if settings.target_nation == N_Scotland
@@ -197,6 +167,11 @@ module RunSettings
         end
     end
 
+    function get_artifact(; name::String, source::String, scottish :: Bool )::AbstractString
+        scuk = scottish ? "scottish" : "uk"
+        return LazyArtifacts.@artifact_str("$(scuk)-$(source)-$(name)")
+    end
+
     function main_datasets( settings :: Settings ) :: NamedTuple
         artd = get_data_artifact( settings )
         return ( 
@@ -204,56 +179,6 @@ module RunSettings
             people = joinpath( artd, "people.tab" )
         )
     end
-
-    #=
-
-    function data_dir( settings :: Settings ) :: String
-        ds = if settings.data_source == FRSSource
-            "actual_data"
-        elseif settings.data_source == ExampleSource
-            "example_data"
-        elseif settings.data_source == SyntheticSource
-            "synthetic_data"
-        end
-        return joinpath( settings.data_dir, ds )
-    end
-
-    """
-    Default live data dir
-    """
-    function data_dir()::String
-        return data_dir( Settings() )
-    end
-
-    """
-    Make a tuple with "hhlds=>" and "people=>" with full paths to example datasets.
-    """
-    function example_datasets( settings :: Settings ) :: NamedTuple
-        # FIXME data_dir with just the src, not settings.
-        tmpsrc = settings.data_source
-        settings.data_source = ExampleSource
-        dd = data_dir( settings )
-        settings.data_source = tmpsrc
-        return ( 
-            hhlds = joinpath( dd, "example_households-w-enums.tab" ),
-            people = joinpath( dd, "example_people-w-enums.tab" ),
-            skiplist = ""
-        )
-    end  
-
-    """
-    Make a tuple with "hhlds=>" and "people=>" with full paths to main datasets.
-    """
-    function main_datasets( settings :: Settings ) :: NamedTuple
-        dd = data_dir( settings )
-        return ( 
-            hhlds = joinpath( dd, settings.household_name*".tab" ),
-            people = joinpath( dd, settings.people_name*".tab" ),
-            skiplist = joinpath( dd, settings.skiplist*".tab" )
-        )
-    end
-
-    =#
 
     """
     Hacky prebuilt settings for the Northumbria model.
