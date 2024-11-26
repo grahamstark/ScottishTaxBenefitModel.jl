@@ -106,7 +106,7 @@ SummaryTables = "3.0.1"
 SurveyDataWeighting = "1.0.4, 2"
 TableTraits = "1.0.1, 2"
 Tables = "1.10.1, 2"
-TimeSeries = "0.23.1, 1"
+TimeSeries = "0.23.1, 1, 0.24"
 julia = "1"
 
 [extras]
