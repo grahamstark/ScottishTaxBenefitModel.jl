@@ -33,7 +33,6 @@ struct IncomesSet{K}
 
 end
 
-function 
 
 function Base.keys( i::IncomesList )
     return keys(i.i)

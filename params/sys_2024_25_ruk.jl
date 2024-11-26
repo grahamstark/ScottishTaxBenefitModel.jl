@@ -2,9 +2,15 @@
 see:
 This is the benefit/tax credit/IT/MinWage/NI rates for rUK, excluding NI,
 
-from As of May, 2024
+from As of November 2024
 sources:
 IT: 
+
+https://assets.publishing.service.gov.uk/media/672b9695fbd69e1861921c63/Autumn_Budget_2024_Accessible.pdf
+
+https://www.gov.uk/government/publications/autumn-budget-2024-overview-of-tax-legislation-and-rates-ootlar/annex-a-rates-and-allowances
+
+previously:
 
 https://www.gov.uk/government/publications/spring-budget-2024-overview-of-tax-legislation-and-rates-ootlar/annex-a-rates-and-allowances
 * - allowances: https://www.gov.uk/government/publications/rates-and-allowances-income-tax/income-tax-rates-and-allowances-current-and-past
@@ -32,6 +38,17 @@ https://www.gov.uk/government/publications/minimum-wage-rates-for-2024
 
 =#
 
+function load_sys_2025_26_pre_announced(sys :: TaxBenefitSystem{T} ) where T
+    sys.it.blind_persons_allowance  = 3_070.00  
+    sys.it.married_couples_allowance = 11_270.0
+    sys.it.mca_minimum     = 4_360.00
+    sys.it.mca_income_maximum   = 37_700.00
+    sys.it.mca_credit_rate    = 10.0
+    sys.it.mca_withdrawal_rate  = 50.0
+    sys.it.marriage_allowance   = 1_260.00
+    sys.it.personal_savings_allowance = 1_000.00
+    sys.ni.secondary_class_1_rates = [0.0, 15.0, 15.0 ] # keep 2 so
+  end
 
 function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
     sys.name = "rUK System 2024/5"
@@ -51,10 +68,10 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
     sys.it.personal_allowance   = 12_570.00
     sys.it.personal_allowance_income_limit = 100_000.00
     sys.it.personal_allowance_withdrawal_rate = 50.0
-    sys.it.blind_persons_allowance  = 2_870.00
+    sys.it.blind_persons_allowance  = 3_130.0
   
     sys.it.married_couples_allowance = 11_080.0
-    sys.it.mca_minimum     = 4_080.00
+    sys.it.mca_minimum     = 4_280.00
     sys.it.mca_income_maximum   = 37_000.00
     sys.it.mca_credit_rate    = 10.0
     sys.it.mca_withdrawal_rate  = 50.0
@@ -163,6 +180,7 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.lmt.income_rules.pc_capital_max = 99999999999999.9
   sys.lmt.income_rules.pensioner_capital_min = 10_000.0
   sys.lmt.income_rules.pensioner_capital_max = 16_000.0
+  # FIXME child capital disregard 5000 what's that?
 
   sys.lmt.income_rules.capital_tariff = 250
   sys.lmt.income_rules.pensioner_tariff = 500
@@ -203,8 +221,8 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.lmt.working_tax_credit.non_earnings_minima = 300.0 # FIXME check
 
   sys.lmt.hb.taper = 65.0
-  sys.lmt.hb.ndd_deductions = [18.10,41.60,57.10,93.40,106.35,116.75]
-  sys.lmt.hb.ndd_incomes = [162.0,236.0,308.0,410.0,511.0,99999999999999.9]
+  sys.lmt.hb.ndd_deductions = [19.30,44.40,60.95,99.65,113.50,124.55]
+  sys.lmt.hb.ndd_incomes = [183.0,266.0,348.0,463.0,579.0,99999999999999.9]
 
   sys.lmt.ctr.taper = 20.0
   sys.lmt.ctr.ndd_deductions = [] # FIXME
@@ -286,14 +304,14 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.nmt_bens.dla.mob_high = 75.75
   sys.nmt_bens.dla.mob_low = 28.70
 
-
   sys.nmt_bens.carers.abolished = false
   sys.nmt_bens.carers.allowance = 81.90
 
   # TODO
   sys.nmt_bens.carers.scottish_supplement = 288.60 # CHECK 2023/4
   sys.nmt_bens.carers.hours :: Int = 35
-  sys.nmt_bens.carers.gainful_employment_min = 132.00
+  # FIXME check the earnings rules here
+  sys.nmt_bens.carers.gainful_employment_min = 151.00
 
 
   sys.nmt_bens.pip.abolished = false
@@ -346,7 +364,7 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   sys.nmt_bens.smp = 184.03 ## 90% of earn cpag 21/2 812
   # = XX
-  ## ALL UNCHANGED ... 
+  ## ALL UNCHANGED ... NB divide 52
   sys.bencap.abolished = false
   sys.bencap.outside_london_single = 283.71
   sys.bencap.outside_london_couple = 423.46

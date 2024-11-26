@@ -127,9 +127,10 @@ poverty_line_source = "pl_first_sys"
 prem2 = "enhanced_disability_child"
 replacement_rate_hours = 30
 target_nation = "N_Scotland"
-to_q = 3
+to_q = 4
 to_y = 2024
 use_weighting = true
+do_legal_aid = false
 
 [targets]
 test = ["Test"]

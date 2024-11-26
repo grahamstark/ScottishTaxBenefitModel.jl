@@ -4,7 +4,12 @@
 # 
 module LegalAidData
 
-using CSV,DataFrames,CategoricalArrays,StatsBase
+using CSV
+using DataFrames
+using CategoricalArrays
+using StatsBase
+using Artifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .RunSettings
