@@ -113,8 +113,11 @@ julia = "1"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [preferences.ScottishTaxBenefitModel]
-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
+public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
+public-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
+local-artifact_server_upload = "stb-artifacts:"
+local-artifact_server_url = "http://stb-artifacts/"
+
 auto_weight = true
 default_run_name = "default_run"
 do_marginal_rates = false

@@ -108,11 +108,3 @@ end
         println( "hres.bhc_net_income=$(hres.bhc_net_income)" )
     end
 end
-
-@testset "Wealth Imputation Direct" begin
-    settings = Settings() # scotland
-    mps = CSV.File( joinpath( data_dir( settings ), settings.people_name*".tab")) |>DataFrame
-    
-
-
-end

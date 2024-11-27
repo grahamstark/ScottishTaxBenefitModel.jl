@@ -7,6 +7,8 @@ module Uprating
 #
 using DataFrames
 using CSV
+using Pkg,Pkg.Artifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .RunSettings
@@ -122,7 +124,8 @@ function load_prices( settings :: Settings, reload :: Bool = false )
         return
     end
 
-    upr = CSV.File("$(PRICES_DIR)/$(settings.prices_file)"; delim = '\t', comment = "#") |> DataFrame
+    upr = CSV.File(joinpath(artifact"augdata","indexes.tab"); delim = '\t', comment = "#") |> DataFrame
+
     nrows = size(upr)[1]
     ncols = size(upr)[2]
     println( "read $nrows rows and $ncols cols ")

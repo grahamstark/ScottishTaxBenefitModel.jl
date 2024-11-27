@@ -280,57 +280,48 @@ CIVIL_COSTS_GRP4 = DataFrame()
 CIVIL_SUBJECTS = DataFrame()
 
 
-function init()
+function initialise()
 
-    CIVIL_COSTS = DataFrame()
-    AA_COSTS = DataFrame()
-    CIVIL_AWARDS = DataFrame()
+    global CIVIL_COSTS
+    global AA_COSTS
+    global CIVIL_AWARDS
     
-    CIVIL_AWARDS_GRP_NS = DataFrame()
-    CIVIL_AWARDS_GRP1 = DataFrame()
-    CIVIL_AWARDS_GRP2 = DataFrame()
-    CIVIL_AWARDS_GRP3 = DataFrame()
-    CIVIL_AWARDS_GRP4 = DataFrame()
-    CIVIL_COSTS_GRP_NS = DataFrame()
-    
-    CIVIL_COSTS_GRP1 = DataFrame()
-    AA_COSTS_GRP1 = DataFrame()
-    
-    CIVIL_COSTS_GRP2 = DataFrame()
-    CIVIL_COSTS_GRP3 = DataFrame()
-    CIVIL_COSTS_GRP4 = DataFrame()
-    CIVIL_SUBJECTS = DataFrame()
-    
+    global CIVIL_AWARDS_GRP_NS 
+    global CIVIL_AWARDS_GRP1 
+    global CIVIL_AWARDS_GRP2 
+    global CIVIL_AWARDS_GRP3 
+    global CIVIL_AWARDS_GRP4 
+    global CIVIL_COSTS_GRP_NS 
+        
+    global CIVIL_COSTS_GRP1 
+    global AA_COSTS_GRP1 
+        
+    global CIVIL_COSTS_GRP2 
+    global CIVIL_COSTS_GRP3 
+    global CIVIL_COSTS_GRP4 
+    global CIVIL_SUBJECTS 
 
-   CIVIL_COSTS = load_costs( joinpath(artifact"legalaid", "civil-legal-aid-case-costs.tab" ))
-   AA_COSTS = load_aa_costs( joinpath( artifact"legalaid", "aa-case-costs.tab" ))
-   CIVIL_AWARDS = load_awards( joinpath( artifact"legalaid", "civil-applications.tab" ))
+    if size( CIVIL_COSTS ) == (0,0) || size(AA_COSTS) == (0,0) || size(CIVIL_AWARDS) == (0.0)
+        CIVIL_COSTS = load_costs( joinpath(artifact"legalaid", "civil-legal-aid-case-costs.tab" ))
+        AA_COSTS = load_aa_costs( joinpath( artifact"legalaid", "aa-case-costs.tab" ))
+        CIVIL_AWARDS = load_awards( joinpath( artifact"legalaid", "civil-applications.tab" ))
 
-   CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
-   CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
-   CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
-   CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
-   CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
-   CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
+        CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
+        CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
+        CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
+        CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
+        CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
+        CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
 
-   CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
-   AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
+        CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
+        AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
 
-   CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
-   CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
-   CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
-   CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
+        CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
+        CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
+        CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
+        CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
+    end
 end
-
-#= 
-  psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
-  k=(hsm = "Discrimination", age_banded = "5 - 9", consolidatedsex = "Male")
-  psa[k]
-  haskey(psa,k)
-  for( k, v ) in pairs( psa )
-   println( "k=$k ")
-  end
-=#
 
 function gcounts( gdf :: GroupedDataFrame )
     kk = sort(keys(gdf))

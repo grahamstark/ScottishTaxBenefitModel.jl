@@ -85,20 +85,27 @@ function make_household_sample(
 end
 
 """
-Given a gzipped tar file in `tmp/` with some data, upload this to a server 
+Given a directory in `tmp/` with some data, make a gzipped tar file, upload this to a server 
 defined in Project.toml and add an entry to `Artifacts.toml`. Artifact
 is set to lazy load. Uses `ArtifactUtils`.
 
-file should contain: `people.tab` `households.tab` `README.md`, all top-level
+main data files should contain: `people.tab` `households.tab` `README.md`, all top-level
+other files can contain anything.
 
 """
 function make_artifact(;
    artifact_name :: AbstractString,
+   is_local :: Bool,
    toml_file = "Artifacts.toml" )::Int 
    gzip_file_name = "$(artifact_name).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
-   artifact_server_upload = @load_preference( "artifact_server_upload" )
-   artifact_server_url = @load_preference( "artifact_server_url" )
+   if is_local 
+      artifact_server_upload = @load_preference( "public-artifact_server_upload" )
+      artifact_server_url = @load_preference( "public-artifact_server_url" )
+   else
+      artifact_server_upload = @load_preference( "local-artifact_server_upload" )
+      artifact_server_url = @load_preference( "local-artifact_server_url" )
+   end
    tarcmd = `tar zcvf $(dir)/tmp/$(gzip_file_name) -C $(dir)/$(artifact_name)/ .`
    run( tarcmd )
    dest = "$(artifact_server_upload)/$(gzip_file_name)"

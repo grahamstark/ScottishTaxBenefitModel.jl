@@ -83,6 +83,7 @@ module RunSettings
 
     # settings loaded automatically from the Project.toml section 'preferences.ScottishTaxBenefitModel' 
     # and maybe overwritten in LocalPreferences.toml
+    # FIXME clear out all the duplications of Scotland in this
     @with_kw mutable struct Settings
         uuid :: UUID = UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e")
         uid :: Int = 1 # placeholder for maybe a user somewhere

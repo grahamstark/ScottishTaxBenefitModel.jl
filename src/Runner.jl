@@ -80,6 +80,9 @@ module Runner
                 BenefitGenerosity.initialise( artifact"disability" )  
             end     
         end
+        if settings.do_legal_aid
+            LegalAidData.initialise()
+        end
         full_results = Array{HouseholdResult}(undef,0,0)
         # fixme if we have one are threads OK? I think yes
         if settings.export_full_results
