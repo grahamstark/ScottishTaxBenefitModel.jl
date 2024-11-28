@@ -177,6 +177,8 @@ allfs.Five_plus_people = allfs.Five_people +
         allfs.Six_people +
         allfs.Seven_people +
         allfs.Eight_or_more_people 
+allfs.working = allfs.economically_active_employee + allfs.economically_active_self_employed 
+
 
 CSV.write( "labels.tab", labels; delim='\t')
 CSV.write( "allfs.tab", allfs; delim='\t' )
@@ -186,18 +188,18 @@ const INCLUDE_OCCUP = true
 const INCLUDE_HOUSING = true
 const INCLUDE_BEDROOMS = true
 const INCLUDE_CT = true
-const INCLUDE_HCOMP = false
-const INCLUDE_EMPLOYMENT = true
+const INCLUDE_HCOMP = true
+INCLUDE_EMPLOYMENT = true
 const INCLUDE_INDUSTRY = false
-const INCLUDE_HH_SIZE = false
+INCLUDE_HH_SIZE = true
 
 function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d = DataFrame()
 
     if INCLUDE_HCOMP 
-        d.single_person = zeros(n) #1
+        # d.single_person = zeros(n) #1
         d.single_parent = zeros(n) # 2
-        d.single_family = zeros(n) # 3
+        # d.single_family = zeros(n) # 3
         d.multi_family = zeros(n) # 4
     end
     # 5
@@ -227,12 +229,14 @@ function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d.m_65plus = zeros(n)
     # 25
     if INCLUDE_EMPLOYMENT
-        d.economically_active_employee  = zeros(n)
-        d.economically_active_self_employed  = zeros(n)
+        # d.working = zeros(n)
+        # d.economically_active_employee  = zeros(n)
+        # d.economically_active_self_employed  = zeros(n)
         d.economically_active_unemployed  = zeros(n)
     end
     # 29
     if INCLUDE_OCCUP 
+        # d.Soc_Managers_Directors_and_Senior_Officials=zeros(n)
         d.Soc_Professional_Occupations = zeros(n)	#	83	% all in employment who are - 2: professional occupations (SOC2010)
         d.Soc_Associate_Prof_and_Technical_Occupations = zeros(n)	#	84	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
         d.Soc_Admin_and_Secretarial_Occupations = zeros(n)	#	85	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
@@ -288,13 +292,11 @@ end
 function make_target_row_scotland_la!( 
     row :: DataFrameRow, 
     hh :: Household )
-
-    
     if INCLUDE_HCOMP
         bus = get_benefit_units( hh )
         if is_single(hh)
             # println("single_person")
-            row.single_person = 1
+            # row.single_person = 1
             # 
         elseif size(bus)[1] > 1
             row.multi_family = 1 
@@ -303,12 +305,11 @@ function make_target_row_scotland_la!(
             row.single_parent = 1
             # println( "single_parent")
         else
-            row.single_family = 1 
+            # row.single_family = 1 
             # println( "single_family")
             # 
         end
     end
-
     if INCLUDE_CT
         # println( "hh.ct_band $(hh.ct_band)")
         if hh.ct_band == Band_A
@@ -371,11 +372,13 @@ function make_target_row_scotland_la!(
         if INCLUDE_EMPLOYMENT
             # drop inactive 
             if pers.employment_status in [Full_time_Employee, Part_time_Employee]
-                row.economically_active_employee += 1
+                # row.economically_active_employee += 1
+                # row.working += 1
             elseif pers.employment_status in [
                 Full_time_Self_Employed,
                 Part_time_Self_Employed ]
-                row.economically_active_self_employed += 1
+                # row.working += 1
+                # row.economically_active_self_employed += 1
             elseif pers.employment_status in [Unemployed]
                 row.economically_active_unemployed += 1
             end
@@ -399,13 +402,19 @@ function make_target_row_scotland_la!(
                     Caring_leisure_and_other_service_occupations,
                     Sales_and_Customer_Service,
                     Process_Plant_and_Machine_Operatives,
-                    Elementary_Occupations
-                
-                ] "$p not recognised hhld $(hh.hid) $(hh.data_year) pid $(pers.pid)"
+                    Elementary_Occupations] "$p not recognised hhld $(hh.hid) $(hh.data_year) pid $(pers.pid)"
                 # FIXME HACK
                 if p == Undefined_SOC
-                    println( "undefined soc for working person pid $(pers.pid)")
-                    p = Elementary_Occupations
+                    # println( "undefined soc for working person pid $(pers.pid)")
+                    p = rand( [ 
+                    Professional_Occupations,
+                    Associate_Prof_and_Technical_Occupations,
+                    Admin_and_Secretarial_Occupations,
+                    Skilled_Trades_Occupations,
+                    Caring_leisure_and_other_service_occupations,
+                    Sales_and_Customer_Service,
+                    Process_Plant_and_Machine_Operatives,
+                    Elementary_Occupations ])
                 end
                 if p != Managers_Directors_and_Senior_Officials
                     psoc = Symbol( "Soc_$(p)")            
@@ -494,9 +503,9 @@ function make_target_list( alldata::DataFrame, council::AbstractString )::Vector
     data = alldata[alldata.Authority .== council,:][1,:]
     v = initialise_target_dataframe_scotland_la(1)[1,:] # a single row
     if INCLUDE_HCOMP
-        v.single_person = data.single_person
+        # v.single_person = data.single_person
         v.single_parent = data.single_parent
-        v.single_family = data.single_family
+        # v.single_family = data.single_family
         v.multi_family = data.multi_family        
     end
     if INCLUDE_CT
@@ -524,11 +533,13 @@ function make_target_list( alldata::DataFrame, council::AbstractString )::Vector
     v.m_50_64 = data.m_50_64
     v.m_65plus = data.m_65plus
     if INCLUDE_EMPLOYMENT
-        v.economically_active_employee  = data.economically_active_employee 
-        v.economically_active_self_employed  = data.economically_active_self_employed 
+        # v.working  = data.working
+        # v.economically_active_employee  = data.economically_active_employee 
+        # v.economically_active_self_employed  = data.economically_active_self_employed 
         v.economically_active_unemployed  = data.economically_active_unemployed 
     end
     if INCLUDE_OCCUP 
+        # v.Soc_Managers_Directors_and_Senior_Officials = data.Soc_Managers_Directors_and_Senior_Officials
         v.Soc_Professional_Occupations = data.Soc_Professional_Occupations
         v.Soc_Associate_Prof_and_Technical_Occupations = data.Soc_Associate_Prof_and_Technical_Occupations
         v.Soc_Admin_and_Secretarial_Occupations = data.Soc_Admin_and_Secretarial_Occupations
@@ -631,8 +642,39 @@ dataset = t_make_target_dataset(
     settings.num_households,
     initialise_target_dataframe_scotland_la,
     make_target_row_scotland_la! )
+errors = []
+const wides = Set(["Na h-Eileanan Siar"] ) #"Angus", "East Lothian", "East Renfrewshire", "Renfrewshire", "East Dunbartonshire", "North Ayrshire", "West Dunbartonshire", "Shetland Islands", "Orkney Islands", "Inverclyde", "Midlothian", "Argyll and Bute", "East Ayrshire", "Dundee City", "Na h-Eileanan Siar", "South Lanarkshire", "Clackmannanshire", "West Lothian", "Falkirk", "Moray", "South Ayrshire", "City of Edinburgh", "Aberdeenshire", "North Lanarkshire"])
+const verywides = Set(["East Lothian", "Midlothian", "East Renfrewshire", "Argyll and Bute", "East Dunbartonshire"])
+# s = Set()
 settings.lower_multiple = 0.01
-settings.upper_multiple = 60.0
+settings.upper_multiple = 50.0     
+for code in allfs.Authority
+    global errors, s, INCLUDE_EMPLOYMENT, INCLUDE_HH_SIZE 
+    println( "on $code")
+    try
+        # FIXME messing with globals for empl, hhsize, which break some authorities
+        if code in verywides
+            INCLUDE_EMPLOYMENT = false
+            INCLUDE_HH_SIZE = false
+        elseif code in wides     
+            INCLUDE_EMPLOYMENT = true
+            INCLUDE_HH_SIZE = true
+            settings.lower_multiple = 0.001
+            settings.upper_multiple = 100.0            
+        else
+            INCLUDE_HH_SIZE = true
+            INCLUDE_EMPLOYMENT = true            
+        end
+        w = weight_to_la( settings, allfs, code, settings.num_households )
+        println("OK")
+    catch e
+        println( "error $e")
+        push!( errors, (; e, code ))
+        push!(s, code )
+    end
+end
 
-w = weight_to_la( settings, allfs, code, settings.num_households )
+println( errors )
+println(s)
+
 

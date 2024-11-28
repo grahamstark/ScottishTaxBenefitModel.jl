@@ -27,7 +27,6 @@ obs = Observable( Progress(settings.uuid,"",0,0,0,0))
 of = on(obs) do p
     global tot
     println(p)
-
     tot += p.step
     println(tot)
 end
@@ -65,9 +64,9 @@ function do_scottish_child_payments()::Tuple
         end
         push!( systems, sys)
     end
-
     return do_basic_run( systems )
 end
+
 function povform( v, row, col )
     if col == 3
         return format(v,precision=1,commas=false)
@@ -80,8 +79,7 @@ function povform( v, row, col )
     end
 end 
 
-
-function poverty_to_df(povs :: Vector )
+function poverty_to_df( povs :: Vector )
     incr = 0.0
     n = length(povs)
     df = DataFrame( 
