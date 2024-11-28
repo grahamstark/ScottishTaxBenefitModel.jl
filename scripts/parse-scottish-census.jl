@@ -45,6 +45,11 @@ function read_all()
     end
     allfs,labels[1:n,:]
 end
+allfs,labels = read_all()
+
+
+ctbase=CSV.File("CTAXBASE+2024+-+Tables+-+Chargeable+Dwellings.csv",normalizenames=true)|>DataFrame
+allfs = hcat( allfs, ctbase; makeunique=true )
 
 CSV.write( "labels.tab", labels; delim='\t')
 CSV.write( "allfs.tab", allfs; delim='\t' )
