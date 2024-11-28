@@ -184,11 +184,12 @@ CSV.write( "allfs.tab", allfs; delim='\t' )
 
 const INCLUDE_OCCUP = true
 const INCLUDE_HOUSING = true
+const INCLUDE_BEDROOMS = true
 const INCLUDE_CT = true
-const INCLUDE_HCOMP = true
+const INCLUDE_HCOMP = false
 const INCLUDE_EMPLOYMENT = true
 const INCLUDE_INDUSTRY = false
-const INCLUDE_HH_SIZE = true 
+const INCLUDE_HH_SIZE = false
 
 function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d = DataFrame()
@@ -248,10 +249,6 @@ function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
         d.socially_rented = zeros(n)
         d.private_rented_rent_free = zeros(n)
 
-        # one bedroom
-        d.bedrooms_2 = zeros(n)
-        d.bedrooms_3 = zeros(n)
-        d.bedrooms_4_plus = zeros(n)
 
         # detached
         d.semi_detached = zeros(n)
@@ -260,6 +257,12 @@ function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
         d.converted_flat = zeros(n)
         d.other_accom = zeros(n)
     end
+    if INCLUDE_BEDROOMS
+        # one bedroom
+        d.bedrooms_2 = zeros(n)
+        d.bedrooms_3 = zeros(n)
+        d.bedrooms_4_plus = zeros(n)
+    end        
     if INCLUDE_INDUSTRY
         # d.A_B_D_E_Agriculture_energy_and_water = zeros(n)
         d.C_Manufacturing = zeros(n)
@@ -431,7 +434,17 @@ function make_target_row_scotland_la!(
         end
     
     end # pers loop
-
+    if INCLUDE_BEDROOMS
+        if hh.bedrooms == 1
+            #
+        elseif hh.bedrooms == 2
+            row.bedrooms_2 = 1
+        elseif hh.bedrooms == 3
+            row.bedrooms_3 = 1
+        else
+            row.bedrooms_4_plus = 1
+        end
+    end
     if INCLUDE_HOUSING
         if hh.tenure in [Council_Rented, Housing_Association]
             row.socially_rented = 1
@@ -446,15 +459,6 @@ function make_target_row_scotland_la!(
             # row.
         end
 
-        if hh.bedrooms == 1
-            #
-        elseif hh.bedrooms == 2
-            row.bedrooms_2 = 1
-        elseif hh.bedrooms == 3
-            row.bedrooms_3 = 1
-        else
-            row.bedrooms_4_plus = 1
-        end
         # dwell_na = -1
         if hh.dwelling == detatched
             # 
@@ -486,7 +490,7 @@ function make_target_row_scotland_la!(
     end
 end
 
-function make_target_list( alldata::DataFrame, council::AbstractString )::DataFrameRow # Vector
+function make_target_list( alldata::DataFrame, council::AbstractString )::Vector
     data = alldata[alldata.Authority .== council,:][1,:]
     v = initialise_target_dataframe_scotland_la(1)[1,:] # a single row
     if INCLUDE_HCOMP
@@ -534,17 +538,18 @@ function make_target_list( alldata::DataFrame, council::AbstractString )::DataFr
         v.Soc_Process_Plant_and_Machine_Operatives = data.Soc_Process_Plant_and_Machine_Operatives
         v.Soc_Elementary_Occupations = data.Soc_Elementary_Occupations
     end
+    if INCLUDE_BEDROOMS
+        # one bedroom
+        v.bedrooms_2 = data.bedrooms_2
+        v.bedrooms_3 = data.bedrooms_3
+        v.bedrooms_4_plus = data.bedrooms_4_plus
+    end
+
     if INCLUDE_HOUSING 
         # owner_occupied = zeros(n),
         v.all_mortgaged = data.all_mortgaged
         v.socially_rented = data.socially_rented
         v.private_rented_rent_free = data.private_rented_rent_free
-
-        # one bedroom
-        v.bedrooms_2 = data.bedrooms_2
-        v.bedrooms_3 = data.bedrooms_3
-        v.bedrooms_4_plus = data.bedrooms_4_plus
-
         # detached
         v.semi_detached = data.semi_detached
         v.terraced = data.terraced
@@ -571,7 +576,7 @@ function make_target_list( alldata::DataFrame, council::AbstractString )::DataFr
         #v.Seven_people = data.Seven_people
         #v.Eight_or_more_people = data.Eight_or_more_people
     end
-    return v #Vector(v)
+    return Vector(v)
 end
 
 function weight_to_la( 
@@ -580,7 +585,7 @@ function weight_to_la(
     code :: AbstractString,
     num_households :: Int )
     targets = make_target_list( alldata, code ) 
-    hhtotal = alldata[alldata.Authority .== code,:][1,:]."Household composition: Total; measures: Value"
+    hhtotal = alldata[alldata.Authority .== code,:total_hhlds][1]
     println( "calculating for $code; hh total $hhtotal")
     weights = generate_weights(
         num_households;
@@ -626,3 +631,8 @@ dataset = t_make_target_dataset(
     settings.num_households,
     initialise_target_dataframe_scotland_la,
     make_target_row_scotland_la! )
+settings.lower_multiple = 0.01
+settings.upper_multiple = 60.0
+
+w = weight_to_la( settings, allfs, code, settings.num_households )
+
