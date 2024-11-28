@@ -580,7 +580,7 @@ function weight_to_la(
     code :: AbstractString,
     num_households :: Int )
     targets = make_target_list( alldata, code ) 
-    hhtotal = alldata[alldata.code .== code,:][1,:]."Household composition: Total; measures: Value"
+    hhtotal = alldata[alldata.Authority .== code,:][1,:]."Household composition: Total; measures: Value"
     println( "calculating for $code; hh total $hhtotal")
     weights = generate_weights(
         num_households;
