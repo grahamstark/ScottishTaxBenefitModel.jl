@@ -7,6 +7,8 @@ using .RunSettings
 using .Weighting
 using SurveyDataWeighting
 
+const DDIR = joinpath("/","mnt","data","ScotBen","data", "local", "local_targets_2024" )
+
 function readc(filename::String)::Tuple
     d = (CSV.File( filename; normalizenames=true, header=10, skipto=12)|>DataFrame)
     if ismissing(d[1,2])
@@ -20,7 +22,7 @@ function readc(filename::String)::Tuple
 end
 
 function read_all()
-    fs = sort(readdir("."))
+    fs = sort(readdir( DDIR, join=true ))
     n = 0
     allfs = nothing
     rows = 0
@@ -29,7 +31,7 @@ function read_all()
     dfs = []
     labels = DataFrame( filename=fill("",nfs), label=fill("",nfs), start=zeros(Int,nfs) )
     for f in fs
-        if ! isnothing(match(r"^table.*.csv$",f))
+        if ! isnothing(match(r".*table.*.csv$",f))
             n += 1
             println( "on $f")
             data, label, nms = readc(f)
@@ -57,7 +59,7 @@ end
 
 allfs,labels,dfs = read_all()
 
-const Authority_Codes = [
+const authority_codes = [
     :S12000033,
     :S12000034,
     :S12000041,
@@ -174,12 +176,6 @@ RENAMES = Dict(
         "One_family_household_Couple_family" => "single_family",
         "One_family_household_Lone_parent" => "single_parent",
         "Other_household_types" => "multi_family",
-        #=
-        "economically_active_employee" => "employee"
-        "economically_active_self_employed" => "selfemp"
-        "economically_active_unemployed" => "unemployed"
-        "economically_inactive" => "inactive"
-        =#
         "Managers_Directors_and_Senior_Officials" => "Soc_Managers_Directors_and_Senior_Officials",
         "Professional_Occupations" => "Soc_Professional_Occupations",
         "Associate_Professional_and_Technical_Occupations" => "Soc_Associate_Prof_and_Technical_Occupations",
@@ -198,7 +194,7 @@ RENAMES = Dict(
         "Band_G" => "G",
         "Band_H" => "H"])
 
-ctbase=CSV.File("CTAXBASE+2024+-+Tables+-+Chargeable+Dwellings.csv",normalizenames=true)|>DataFrame
+ctbase=CSV.File(joinpath( DDIR, "CTAXBASE+2024+-+Tables+-+Chargeable+Dwellings.csv"),normalizenames=true)|>DataFrame
 allfs = hcat( allfs, ctbase; makeunique=true )
 
 rename!( allfs, RENAMES )
@@ -215,10 +211,10 @@ allfs.Five_plus_people = allfs.Five_people +
         allfs.Seven_people +
         allfs.Eight_or_more_people 
 allfs.working = allfs.economically_active_employee + allfs.economically_active_self_employed 
-allfs.authortity_code = Authority_Codes
+allfs.authority_code = authority_codes
 
-CSV.write( "labels.tab", labels; delim='\t')
-CSV.write( "allfs.tab", allfs; delim='\t' )
+CSV.write( joinpath(DDIR,"labels.tab"), labels; delim='\t')
+CSV.write( joinpath(DDIR,"allfs.tab"), allfs; delim='\t' )
 
 
 const INCLUDE_OCCUP = true
@@ -536,8 +532,8 @@ function make_target_row_scotland_la!(
     end
 end
 
-function make_target_list( alldata::DataFrame, council::AbstractString )::Vector
-    data = alldata[alldata.Authority .== council,:][1,:]
+function make_target_list( alldata::DataFrame, council::Symbol )::Vector
+    data = alldata[alldata.authority_code .== council,:][1,:]
     v = initialise_target_dataframe_scotland_la(1)[1,:] # a single row
     if INCLUDE_HCOMP
         # v.single_person = data.single_person
@@ -630,10 +626,10 @@ end
 function weight_to_la( 
     settings :: Settings,
     alldata :: DataFrame, 
-    code :: AbstractString,
+    code :: Symbol,
     num_households :: Int )
     targets = make_target_list( alldata, code ) 
-    hhtotal = alldata[alldata.Authority .== code,:total_hhlds][1]
+    hhtotal = alldata[alldata.authority_code .== code,:total_hhlds][1]
     println( "calculating for $code; hh total $hhtotal")
     weights = generate_weights(
         num_households;
@@ -680,12 +676,26 @@ dataset = t_make_target_dataset(
     initialise_target_dataframe_scotland_la,
     make_target_row_scotland_la! )
 errors = []
-const wides = Set(["Na h-Eileanan Siar"] ) #"Angus", "East Lothian", "East Renfrewshire", "Renfrewshire", "East Dunbartonshire", "North Ayrshire", "West Dunbartonshire", "Shetland Islands", "Orkney Islands", "Inverclyde", "Midlothian", "Argyll and Bute", "East Ayrshire", "Dundee City", "Na h-Eileanan Siar", "South Lanarkshire", "Clackmannanshire", "West Lothian", "Falkirk", "Moray", "South Ayrshire", "City of Edinburgh", "Aberdeenshire", "North Lanarkshire"])
-const verywides = Set(["East Lothian", "Midlothian", "East Renfrewshire", "Argyll and Bute", "East Dunbartonshire"])
-# s = Set()
+const wides = Set([:S12000013] ) # h-Eileanan Siar""Angus", "East Lothian", "East Renfrewshire", "Renfrewshire", "East Dunbartonshire", "North Ayrshire", "West Dunbartonshire", "Shetland Islands", "Orkney Islands", "Inverclyde", "Midlothian", "Argyll and Bute", "East Ayrshire", "Dundee City", "Na h-Eileanan Siar", "South Lanarkshire", "Clackmannanshire", "West Lothian", "Falkirk", "Moray", "South Ayrshire", "City of Edinburgh", "Aberdeenshire", "North Lanarkshire"])
+const verywides = Set([:S12000010, :S12000019, :S12000011, :S12000035, :S12000045] ) 
+#"East Lothian", "Midlothian", "East Renfrewshire", "Argyll and Bute", "East Dunbartonshire"])
+s = Set()
 settings.lower_multiple = 0.01
-settings.upper_multiple = 50.0     
-for code in allfs.Authority
+settings.upper_multiple = 50.0  
+
+outweights = DataFrame()
+
+outweights.data_year = zeros(Int,settings.num_households)
+outweights.hid = zeros(BigInt,settings.num_households)
+outweights.uhid = zeros(BigInt,settings.num_households)
+for href in 1:settings.num_households
+    mhh = get_household( href )
+    outweights.uhid[href] = mhh.uhid
+    outweights.hid[href] = mhh.hid
+    outweights.data_year[href] = mhh.data_year
+end
+
+for code in allfs.authority_code
     global errors, s, INCLUDE_EMPLOYMENT, INCLUDE_HH_SIZE 
     println( "on $code")
     try
@@ -704,14 +714,21 @@ for code in allfs.Authority
         end
         w = weight_to_la( settings, allfs, code, settings.num_households )
         println("OK")
+        outweights[!,code] = w
     catch e
         println( "error $e")
         push!( errors, (; e, code ))
         push!(s, code )
     end
+
 end
 
 println( errors )
 println(s)
+
+CSV.write( joinpath( DDIR, "la-frs-weights-scotland-2024.tab"), outweights; delim='\t')
+
+weights = CSV.File( joinpath( DDIR, "la-frs-weights-scotland-2024.tab") ) |> DataFrame 
+
 
 
