@@ -57,6 +57,43 @@ end
 
 allfs,labels,dfs = read_all()
 
+const Authority_Codes = [
+    :S12000033,
+    :S12000034,
+    :S12000041,
+    :S12000035,
+    :S12000036,
+    :S12000005,
+    :S12000006,
+    :S12000042,
+    :S12000008,
+    :S12000045,
+    :S12000010,
+    :S12000011,
+    :S12000014,
+    :S12000047,
+    :S12000049,
+    :S12000017,
+    :S12000018,
+    :S12000019,
+    :S12000020,
+    :S12000013,
+    :S12000021,
+    :S12000050,
+    :S12000023,
+    :S12000048,
+    :S12000038,
+    :S12000026,
+    :S12000027,
+    :S12000028,
+    :S12000029,
+    :S12000030,
+    :S12000039,
+    :S12000040,
+    :S92000003] # scotland
+
+
+
 DROPS = [
     "Authority_1",
     "Total_1",
@@ -178,7 +215,7 @@ allfs.Five_plus_people = allfs.Five_people +
         allfs.Seven_people +
         allfs.Eight_or_more_people 
 allfs.working = allfs.economically_active_employee + allfs.economically_active_self_employed 
-
+allfs.authortity_code = Authority_Codes
 
 CSV.write( "labels.tab", labels; delim='\t')
 CSV.write( "allfs.tab", allfs; delim='\t' )
