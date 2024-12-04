@@ -10,27 +10,6 @@ using DataFrame
 const DDIR = joinpath("/","mnt","data","ScotBen","data", "local", "local_targets_2024" )
 
 
-"""
-Very simple implementation of the CT scheme
-note this doesn't include rebates apart from single
-person rebate
-"""
-function l_calc_council_tax( 
-    hh :: Household{RT}, 
-    intermed :: MTIntermediate,
-    ctsys :: CouncilTax{RT} ) :: RT where RT 
-    ctres = zero(RT)
-    if hh.region != Wales
-        @assert hh.ct_band != Band_I # We're not Welsh
-    end
-    ctres = ctsys.band_d[hh.council]* ctsys.relativities[hh.ct_band]
-    if intermed.num_adults == 1
-        ctres *= (1-ctsys.single_person_discount)
-    end
-    ## TODO disabled discounts. See CT note.
-    return ctres
-end
-
 function calculate_ct()
     ctf = joinpath( DDIR, "council-tax-levels-scotland-24-25-edited.tab")
     wf = joinpath( DDIR,  "la-frs-weights-scotland-2024.tab") 

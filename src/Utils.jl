@@ -100,11 +100,11 @@ function make_artifact(;
    gzip_file_name = "$(artifact_name).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
    if is_local 
-      artifact_server_upload = @load_preference( "public-artifact_server_upload" )
-      artifact_server_url = @load_preference( "public-artifact_server_url" )
-   else
       artifact_server_upload = @load_preference( "local-artifact_server_upload" )
       artifact_server_url = @load_preference( "local-artifact_server_url" )
+   else
+      artifact_server_upload = @load_preference( "public-artifact_server_upload" )
+      artifact_server_url = @load_preference( "public-artifact_server_url" )
    end
    tarcmd = `tar zcvf $(dir)/tmp/$(gzip_file_name) -C $(dir)/$(artifact_name)/ .`
    run( tarcmd )
