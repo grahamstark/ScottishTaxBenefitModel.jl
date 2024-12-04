@@ -100,10 +100,11 @@ const PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
 Note ATM this is Scotland only!
 """
 function do_local_level_run(; 
+    target :: EqTargets,
     systems :: Vector{TaxBenefitSystem}, 
     settings::Settings, 
     ccode :: Symbol,
-    observer :: Observable
+    observer :: Observable,
     reset = false,
     restore = false )::DataFrame
 @argcheck settings.target_nation == N_Scotland
@@ -143,9 +144,14 @@ function do_local_level_run(;
      
     base_cost = get_base_cost( ;
         settings = settings, base_sys=system[1], observer = observer )
- 
-    # FIXME this adds an initial value 
-    # progressive_ct_sys.loctax.ct.band_d[code] += fairer_bands_band_d / WEEKS_PER_YEAR
+
+    local_income_tax = equalise( 
+        target, 
+        system[2], 
+        settings, 
+        base_cost, 
+        obs )
+
 
     # always reload data at the end so we haven't messed up councils and weights
     if restore

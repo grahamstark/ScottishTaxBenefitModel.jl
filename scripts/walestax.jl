@@ -668,7 +668,7 @@ end
 
 # output formatters
 countfmt = (v, i, j) -> fmt(v)
-pctfmt = (v, i, j) Format.format(v, precision=2)
+pctfmt = (v, i, j) = Format.format(v, precision=2)
 
 function how_we_doing_fmt(val, row, col )
     if col == 1 # name col
