@@ -139,7 +139,7 @@ function do_local_level_run(;
         hh = get_household(i)
         hh.council = ccode
         hh.weight = weight[i]
-        FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = weight[i]
+        # FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = weight[i]
     end
      
     base_cost = get_base_cost( ;

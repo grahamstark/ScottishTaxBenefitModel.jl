@@ -147,7 +147,8 @@ module RunSettings
         do_dodgy_takeup_corrections = @load_preference( "do_dodgy_takeup_corrections", false)
         data_source = @load_preference( "data_source", FRSSource)
         skiplist = @load_preference( "skiplist", "")
-                
+        do_local_run = @load_preference( "do_local_run", false )
+        ccode = Symbol(@load_preference( "ccode", "" ))
     end
 
     function get_data_artifact( settings::Settings )::AbstractString

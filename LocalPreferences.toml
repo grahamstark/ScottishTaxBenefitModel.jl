@@ -2,7 +2,7 @@
 
 public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
 public-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
-local-artifact_server_upload = "stb-artifacts:"
+local-artifact_server_upload = "stb-artifacts:/var/www/stb-artifacts/"
 local-artifact_server_url = "http://stb-artifacts/"
 
 auto_weight = true
@@ -47,4 +47,6 @@ export_full_results = false
 do_dodgy_takeup_corrections = false
 data_source = "FRSSource"
 skiplist = ""
+do_local_run = false
+ccode = ""
 

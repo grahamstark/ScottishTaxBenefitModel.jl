@@ -115,7 +115,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [preferences.ScottishTaxBenefitModel]
 public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
 public-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
-local-artifact_server_upload = "stb-artifacts:"
+local-artifact_server_upload = "stb-artifacts:/var/www/stb-artifacts/"
 local-artifact_server_url = "http://stb-artifacts/"
 
 auto_weight = true
@@ -134,6 +134,7 @@ to_q = 4
 to_y = 2024
 use_weighting = true
 do_legal_aid = false
-
+do_local_run = false
+ccode = ""
 [targets]
 test = ["Test"]

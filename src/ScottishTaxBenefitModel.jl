@@ -49,6 +49,9 @@ export ModelHousehold
 include("Weighting.jl" )
 export Weighting
 
+include( "WeightingData.jl")
+export WeightingData
+
 include( "HistoricBenefits.jl")
 export HistoricBenefits
 

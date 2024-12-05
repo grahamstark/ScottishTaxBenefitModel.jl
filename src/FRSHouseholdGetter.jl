@@ -25,9 +25,6 @@ module FRSHouseholdGetter
 
     using .RunSettings 
 
-    using .Weighting: 
-        generate_weights
-
     using .Uprating: load_prices
 
     using .Utils:get_quantiles
@@ -35,6 +32,7 @@ module FRSHouseholdGetter
     using .LegalAidData
     using .ConsumptionData
     using .WealthData
+    using .WeightingData
 
     export 
         initialise, 
@@ -69,7 +67,7 @@ module FRSHouseholdGetter
 
     struct HHWrapper 
         hhlds      :: Vector{Household{Float64}}
-        weight     :: Vector{Float64}   
+        # weight     :: Vector{Float64}   
         dimensions :: Vector{Int}  
         hh_map     :: Dict{OneIndex,HHPeople}   
         pers_map   :: Dict{OneIndex,OnePos}
@@ -80,7 +78,7 @@ module FRSHouseholdGetter
     const MODEL_HOUSEHOLDS = 
         HHWrapper(
             Vector{Household{Float64}}(undef, 0 ), 
-            zeros(Float64,0),
+            # zeros(Float64,0),
             zeros(Int,3),
             Dict{OneIndex,HHPeople}(),
             Dict{OneIndex,Int}(),
@@ -199,8 +197,8 @@ module FRSHouseholdGetter
         npeople = 0; # size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )
-        resize!( MODEL_HOUSEHOLDS.weight, nhhlds )
-        MODEL_HOUSEHOLDS.weight .= 0
+        # resize!( MODEL_HOUSEHOLDS.weight, nhhlds )
+        # MODEL_HOUSEHOLDS.weight .= 0
         
         pseq = 0
         hseq = 0
@@ -241,22 +239,15 @@ module FRSHouseholdGetter
             end # don't skip
         end
         resize!( MODEL_HOUSEHOLDS.hhlds, hseq )
-        resize!( MODEL_HOUSEHOLDS.weight, hseq )
+        # resize!( MODEL_HOUSEHOLDS.weight, hseq )
         nhhlds = size( MODEL_HOUSEHOLDS.hhlds )[1]
-        # default weighting using current Scotland settings; otherwise do manually
-        if settings.auto_weight && settings.target_nation == N_Scotland
-            @time weight = generate_weights( 
-                nhhlds;
-                weight_type = settings.weight_type,
-                lower_multiple = settings.lower_multiple,
-                upper_multiple = settings.upper_multiple )
-            for i in eachindex( weight ) # just assign weight = weight?
-                MODEL_HOUSEHOLDS.weight[i] = weight[i]
+        wsizes = WeightingData.init( settings; reset=reset )
+        for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
+            if settings.do_local_run && settings.ccode != :""
+                MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
+                # ?? FIXME fixup nhs area??
             end
-        else
-            for hseq in 1:nhhlds # just assign weight = weight?
-                MODEL_HOUSEHOLDS.weight[hseq] = MODEL_HOUSEHOLDS.hhlds[hseq].weight
-            end
+            WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
         end
         # in case we have skipped some
         
@@ -307,7 +298,7 @@ module FRSHouseholdGetter
 
     function get_household( pos :: Integer ) :: Household
         hh = MODEL_HOUSEHOLDS.hhlds[pos]
-        hh.weight = MODEL_HOUSEHOLDS.weight[pos]
+        # hh.weight = MODEL_HOUSEHOLDS.weight[pos]
         return hh
     end
 

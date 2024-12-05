@@ -1,9 +1,9 @@
 [augdata]
-git-tree-sha1 = "ae33729ba3c17c9671e7e793cec06881784c60a8"
+git-tree-sha1 = "fd7f8af9e3146d055401e57a8790a4d4bcba7a56"
 lazy = true
 
     [[augdata.download]]
-    sha256 = "3673fda5d3137182f14e7ce525b2fec8136eeea08b124a45210bcb0859ef3374"
+    sha256 = "83c2ab0754069d0baee2ee5b67d1b3636a9bec312c99da12d060ed0f7c9437f5"
     url = "https://virtual-worlds.biz/artifacts//augdata.tar.gz"
 
 [disability]
@@ -31,12 +31,12 @@ lazy = true
     url = "http://stb-artifacts/legalaid.tar.gz"
 
 [scottish-frs-data]
-git-tree-sha1 = "9c5c1e8a29e8f82d861100579cee3e3e49cae464"
+git-tree-sha1 = "703eca3d0bf0e2f36ed0481e9b5078201808b45c"
 lazy = true
 
     [[scottish-frs-data.download]]
-    sha256 = "5bc1607882203127bd0c13ddeeb22deb0f51156cd65aa9f4c14af3c1df175ef2"
-    url = "http://stb-artifacts/model-data-scotland-2015-2021-v2.tar.gz"
+    sha256 = "6b413446a64d6555a1a75d44562447ef1fe7182ad61006a98b0cd9a9ef1a6f7e"
+    url = "http://stb-artifacts//scottish-frs-data.tar.gz"
 
 [scottish-lcf-expenditure]
 git-tree-sha1 = "bf18d73b3f48bea065528bf63e43e522f85f5e4b"

@@ -789,7 +789,7 @@ end
 @with_kw mutable struct LocalTaxes{RT<:Real}
     ct = CouncilTax{RT}()
     ppt = ProportionalPropertyTax{RT}()
-    local_income_tax_rates = RateBands{RT} = zeros(RT,1) # [19.0,20.0,21.0,41.0,46.0]
+    local_income_tax_rates :: RateBands{RT} = zeros(RT,1) # [19.0,20.0,21.0,41.0,46.0]
     # other possible local taxes go here
 end
 
