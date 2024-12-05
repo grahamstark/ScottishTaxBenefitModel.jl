@@ -50,6 +50,7 @@ function set_weight!( hh :: Household, settings::Settings )
         hh.weight = WEIGHTS_LA.weights[hno,hh.council]
     elseif size( WEIGHTS.weights )!=(0,0)
         hno = findfirst( (WEIGHTS.weights.hid .== hh.hid).&(WEIGHTS.weights.data_year.== hh.data_year))
+        println( "hno=$hno hh.hid=$(hh.hid) hh.data_year=$(hh.data_year)")
         hh.weight = WEIGHTS.weights[hno,:weight]
     end
 end
@@ -63,12 +64,16 @@ function init( settings::Settings; reset :: Bool )::NamedTuple
         wfile = joinpath(dataset_artifact,"weights.tab")
         if isfile( wfile )
             WEIGHTS.weights = CSV.File( wfile ) |> DataFrame
+        else # reset to zero
+            WEIGHTS.weights = DataFrame()
         end
     end 
     if reset || (size( WEIGHTS_LA.weights ) == (0,0))
         wfile = joinpath(dataset_artifact,"weights-la.tab")
         if isfile( wfile )
             WEIGHTS_LA.weights = CSV.File( wfile ) |> DataFrame
+        else # reset to zero
+            WEIGHTS_LA.weights = DataFrame()
         end
     end 
     return (;weights_size=size(WEIGHTS.weights), weights_la_size=size(WEIGHTS_LA.weights))
