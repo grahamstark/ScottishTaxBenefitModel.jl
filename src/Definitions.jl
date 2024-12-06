@@ -291,7 +291,6 @@ export Missing_Ethnic_Scotland
    Any_other_ethnic_group = 19
 end
 
-
 export Sex  # mapped from sex
 export Male, Female
 export Missing_Sex

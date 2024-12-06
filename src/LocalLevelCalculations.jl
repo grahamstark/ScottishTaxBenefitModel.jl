@@ -40,6 +40,7 @@ export
     LA_BRMA_MAP, 
     LA_CODES, 
     LA_NAMES,
+    LA_NAMES_TO_CCODES,
     apply_rent_restrictions,
     apply_size_criteria, 
     calc_council_tax, 
@@ -117,6 +118,9 @@ export
         :S12000039 => "West Dunbartonshire",
         :S12000040 => "West Lothian"
     )
+    # reverse lookup
+    const LA_NAMES_TO_CCODES = Dict( values(LA_NAMES) .=> keys(LA_NAMES))
+
 
     # FIXME hard code this in
     function make_la_to_brma_map()

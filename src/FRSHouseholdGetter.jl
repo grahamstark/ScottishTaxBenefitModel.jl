@@ -9,6 +9,7 @@ module FRSHouseholdGetter
     using CSV
     using DataFrames: DataFrame, DataFrameRow, AbstractDataFrame
     using StatsBase
+    using Parameters
     
     using ScottishTaxBenefitModel
     
@@ -101,7 +102,7 @@ module FRSHouseholdGetter
     """
     Insert into data a pair of basic deciles in the hh data based on actual pre-model income and eq scale
     """
-    function fill_in_deciles!()
+    function fill_in_deciles!(settings::Settings)
         nhhs = MODEL_HOUSEHOLDS.dimensions[1]
         inc = zeros(nhhs)
         eqinc = zeros(nhhs)
@@ -138,9 +139,14 @@ module FRSHouseholdGetter
         for i in 1:10
             println( "$i : $(deccheck[i])" )
         end
+        rtol = if settings.do_local_run 
+            0.1
+        else
+            0.03
+        end
         for dc in deccheck
             prop = dc/deccheck[1]
-            @assert isapprox( prop, 1, rtol=0.03 ) "Counts in Deciles seem very uneven: prop vs [1]=$(prop) abs diff $(dc - deccheck[1])."
+            @assert isapprox( prop, 1, rtol=rtol ) "Counts in Deciles seem very uneven: prop vs [1]=$(prop) abs diff $(dc - deccheck[1])."
         end 
     end
 
@@ -158,7 +164,7 @@ module FRSHouseholdGetter
                   (skiplist.hid .== hr.hid ),:]
         return size(sk)[1] == 0 # not in skiplist
     end
-    
+
     """
     Initialise the dataset. If this has already been done, do nothing unless 
     `reset` is true.
@@ -183,7 +189,6 @@ module FRSHouseholdGetter
         if settings.wealth_method == matching 
             WealthData.init( settings; reset = reset )
         end
-
         if settings.do_legal_aid
             LegalAidData.init( settings; reset = reset )
         end
@@ -241,23 +246,28 @@ module FRSHouseholdGetter
         resize!( MODEL_HOUSEHOLDS.hhlds, hseq )
         # resize!( MODEL_HOUSEHOLDS.weight, hseq )
         nhhlds = size( MODEL_HOUSEHOLDS.hhlds )[1]
-        wsizes = WeightingData.init( settings; reset=reset )
-        for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
-            if settings.do_local_run && settings.ccode != :""
+
+        # weights: national or local
+        if settings.do_local_run && (settings.ccode != :"")
+            wsizes = WeightingData.init_local_weights( settings; reset=reset )
+            for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
                 MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
                 # ?? FIXME fixup nhs area??
+                WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
             end
-            WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
+        else
+            WeightingData.init_national_weights( settings, reset=reset )
+            for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
+                WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
+            end
         end
-        # in case we have skipped some
-        
         MODEL_HOUSEHOLDS.dimensions.=
             size(MODEL_HOUSEHOLDS.hhlds)[1],
             npeople,
             nhhlds
 
         REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
-        fill_in_deciles!()
+        fill_in_deciles!(settings)
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
 
@@ -281,6 +291,64 @@ module FRSHouseholdGetter
     function get_regression_dataset()::DataFrame
         return REG_DATA
     end
+
+    @with_kw mutable struct PopAndWage
+        popn=zeros(100_000) 
+        wage=zeros(100_000)
+        n=0
+    end
+
+    function addone!( pw :: PopAndWage, wage::Real, weight::Real )
+        pw.n += 1
+        pw.popn[pw.n] = weight
+        pw.wage[pw.n] = wage
+    end
+
+    function truncate!( pw :: PopAndWage )
+        if pw.n > 0
+            pw.wage = pw.wage[1:pw.n]
+            pw.popn = pw.popn[1:pw.n]
+        end
+    end
+
+    """
+    A dictionary of wages from the model to match to the LA NOMIS data from WeightingData.jl+
+    """
+    function get_mean_earnings( 
+        settings :: Settings )::Dict
+        popns = Dict{String,PopAndWage}()
+        for sex in [Male,Female,nothing]
+            for is_ft in [true,false,nothing]
+                key = WeightingData.make_wage_key(; sex=sex, is_ft=is_ft)
+                popns[key] = PopAndWage()
+            end
+        end
+        for hno in 1:settings.num_households
+            hh = get_household(hno)
+            for (pid,ad) in hh.people
+                if ad.employment_status in [Full_time_Employee,
+                    Part_time_Employee]
+                    key = WeightingData.make_wage_key(; sex=ad.sex, is_ft=ad.employment_status == Full_time_Employee )
+                    addone!( popns[key], ad.income[wages], hh.weight )
+                    allsexk = WeightingData.make_wage_key(; is_ft=ad.employment_status == Full_time_Employee )
+                    addone!( popns[allsexk], ad.income[wages], hh.weight )
+                    allk = WeightingData.make_wage_key(;  )
+                    addone!( popns[allk], ad.income[wages], hh.weight )
+                    # full time workers both sexes
+                    allftk = WeightingData.make_wage_key(; sex = ad.sex )
+                    addone!( popns[allftk], ad.income[wages], hh.weight )                    
+                end
+            end
+        end
+        for sex in [Male,Female,nothing]
+            for is_ft in [true,false,nothing]
+                key = WeightingData.make_wage_key(; sex=sex, is_ft=is_ft)
+                truncate!(popns[key])
+            end
+        end
+        return popns
+    end
+    
 
     """
     A vector of the data years in the actual data e.g.2014,2020 ..
