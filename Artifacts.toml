@@ -22,14 +22,6 @@ lazy = true
     sha256 = "c426f605704bde8c79df3573a4f150512614480aa00f900893accaf75408463c"
     url = "https://virtual-worlds.biz/artifacts//exampledata.tar.gz"
 
-[legalaid]
-git-tree-sha1 = "3518935453a2ed48612f94a4f7ef8fe77f56aace"
-lazy = true
-
-    [[legalaid.download]]
-    sha256 = "fb9a643138fea7669fceda20ef9b4f65b2646d2e8c27d4a0ecbb7306908cb3a9"
-    url = "http://stb-artifacts/legalaid.tar.gz"
-
 [scottish-frs-data]
 git-tree-sha1 = "703eca3d0bf0e2f36ed0481e9b5078201808b45c"
 lazy = true
@@ -45,6 +37,14 @@ lazy = true
     [[scottish-lcf-expenditure.download]]
     sha256 = "66231a2f9d4cf75d373812e6969e40ffe1dd386dc0b8c577aa3ed67f75e4cc1c"
     url = "http://stb-artifacts/scottish-lcf-expenditure.tar.gz"
+
+[scottish-slab-legalaid]
+git-tree-sha1 = "6ac253d4e01462d5fb25ba410a91504186c46f9d"
+lazy = true
+
+    [[scottish-slab-legalaid.download]]
+    sha256 = "ec6dfe097d4dcceadb457261ff4ca1223f2c95a2642d541766ada87cfb6932e0"
+    url = "http://stb-artifacts//scottish-slab-legalaid.tar.gz"
 
 [scottish-synthetic-data]
 git-tree-sha1 = "2bcdf3e7a62bb4bcd282f05008adbe6b63228ab9"

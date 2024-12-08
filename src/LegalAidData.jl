@@ -280,7 +280,7 @@ CIVIL_COSTS_GRP4 = DataFrame()
 CIVIL_SUBJECTS = DataFrame()
 
 
-function initialise()
+function init(settings::Settings; reset=false)
 
     global CIVIL_COSTS
     global AA_COSTS
@@ -300,11 +300,17 @@ function initialise()
     global CIVIL_COSTS_GRP3 
     global CIVIL_COSTS_GRP4 
     global CIVIL_SUBJECTS 
-
+    global LA_PROB_DATA
+    # FIXME DUPS
     if size( CIVIL_COSTS ) == (0,0) || size(AA_COSTS) == (0,0) || size(CIVIL_AWARDS) == (0.0)
-        CIVIL_COSTS = load_costs( joinpath(artifact"legalaid", "civil-legal-aid-case-costs.tab" ))
-        AA_COSTS = load_aa_costs( joinpath( artifact"legalaid", "aa-case-costs.tab" ))
-        CIVIL_AWARDS = load_awards( joinpath( artifact"legalaid", "civil-applications.tab" ))
+        l_artifact = RunSettings.get_artifact(; 
+            name="legalaid", 
+            source=settings.data_source == SyntheticSource ? "synthetic" : "slab", 
+            scottish=settings.target_nation == N_Scotland )
+
+        CIVIL_COSTS = load_costs( joinpath( l_artifact, "civil-legal-aid-case-costs.tab" ))
+        AA_COSTS = load_aa_costs( joinpath( l_artifact, "aa-case-costs.tab" ))
+        CIVIL_AWARDS = load_awards( joinpath( l_artifact, "civil-applications.tab" ))
 
         CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
         CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
@@ -320,6 +326,9 @@ function initialise()
         CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
         CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
         CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
+        #=  FIXME legal aid prob data is NOT NEEDED ANYMORE (but should be)- scottish crime survey probs unused at SLAB request. =#
+        LA_PROB_DATA = CSV.File( joinpath( l_artifact, "$(settings.legal_aid_probs_data).tab"))|>DataFrame 
+ 
     end
 end
 
@@ -409,10 +418,7 @@ function make_key(;
     return k
 end
 
-
-
-
-# NOT NEEDED
+# FIXME NOT NEEDED as the scjs data is unused at slab request
 function add_la_probs!( hh :: Household )
     global LA_PROB_DATA
     la_hhdata = LA_PROB_DATA[ (LA_PROB_DATA.data_year .== hh.data_year) .& (LA_PROB_DATA.hid.==hh.hid),: ]
@@ -420,15 +426,6 @@ function add_la_probs!( hh :: Household )
         pdat = la_hhdata[la_hhdata.pid .== pers.pid,:]
         @assert size(pdat)[1] == 1
         pers.legal_aid_problem_probs = pdat[1,:]
-    end
-end
-
-function init( settings::Settings; reset=false )
-    global LA_PROB_DATA
-    if settings.do_legal_aid 
-        if(size( LA_PROB_DATA )[1] == 0) || reset 
-            LA_PROB_DATA = CSV.File( joinpath( MODEL_DATA_DIR, "legalaid", "$(settings.legal_aid_probs_data).tab"))|>DataFrame 
-        end
     end
 end
 
