@@ -10,12 +10,14 @@ using .FRSHouseholdGetter
 using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .RunSettings: Settings
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
-    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax,
-    LA_NAMES, LA_CODES
+    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax
+
+using .WeightingData: LA_NAMES, LA_CODES
 
 using .STBParameters
 using .Intermediate: make_intermediate, MTIntermediate
 using .ExampleHelpers
+using CSV,DataFrames
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
@@ -23,7 +25,7 @@ sys = get_system( year=2019, scotland=true )
 settings = Settings()
 
 rc = @timed begin
-    num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )
+    settings.num_households,settings.num_people,nhh2 = FRSHouseholdGetter.initialise( Settings(), reset=true )
 end
 
 
@@ -416,4 +418,25 @@ end
     ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
     @test hh.ct_band == Band_B
     @test ct ≈ 1_078.00/WEEKS_PER_YEAR # glasgow 2020/1 CT band b per week
+end
+
+@testset "Local reweighing" begin
+    n = length(LA_CODES)
+    # settings = Settings()
+    settings.do_local_run = true
+   
+    # rc = @timed begin
+    #     settings.num_households,settings.total_num_people,nhh2 = FRSHouseholdGetter.initialise( 
+    #         settings, reset=true )
+    # end
+    for i in 1:n
+        reset = i==1
+        settings.ccode = LA_CODES[i]
+        FRSHouseholdGetter.restore()
+        @show settings.ccode
+        dict = FRSHouseholdGetter.set_local_weights_and_incomes!( settings, reset=false )
+        # println(dict)
+
+    i+= 1
+    end
 end

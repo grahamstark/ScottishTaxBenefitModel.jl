@@ -66,7 +66,7 @@ module FRSHouseholdGetter
         pseqs :: Vector{Int}
     end
 
-    struct HHWrapper 
+    mutable struct HHWrapper 
         hhlds      :: Vector{Household{Float64}}
         # weight     :: Vector{Float64}   
         dimensions :: Vector{Int}  
@@ -96,7 +96,18 @@ module FRSHouseholdGetter
             zeros(0))
 
     function backup()
-        BACKUP_HOUSEHOLDS.hhlds = deepcopy( MODEL_HOUSEHOLDS.hhlds )
+        #= BACKUP_HOUSEHOLDS.hhlds = similar( MODEL_HOUSEHOLDS.hhlds )
+        if length( BACKUP_HOUSEHOLDS.hhlds ) == 0
+            for i in eachindex( MODEL_HOUSEHOLDS.hhlds )
+                push!(BACKUP_HOUSEHOLDS.hhlds, deepcopy( MODEL_HOUSEHOLDS.hhlds[i]))
+            end
+        else
+            for i in eachindex( MODEL_HOUSEHOLDS.hhlds )
+                BACKUP_HOUSEHOLDS.hhlds[i] =  deepcopy( MODEL_HOUSEHOLDS.hhlds[i])
+            end
+        end
+        =#
+        BACKUP_HOUSEHOLDS.hhlds = deepcopy(MODEL_HOUSEHOLDS.hhlds)
         BACKUP_HOUSEHOLDS.dimensions = deepcopy( MODEL_HOUSEHOLDS.dimensions )
         BACKUP_HOUSEHOLDS.hh_map     = deepcopy( MODEL_HOUSEHOLDS.hh_map     )
         BACKUP_HOUSEHOLDS.pers_map   = deepcopy( MODEL_HOUSEHOLDS.pers_map   )
@@ -105,10 +116,15 @@ module FRSHouseholdGetter
     end
 
     function restore()
-        MODEL_HOUSEHOLDS.hhlds      = deepcopy( BACKUP_HOUSEHOLDS.hhlds      )
+        #=
+        for i in eachindex( BACKUP_HOUSEHOLDS.hhlds )
+            MODEL_HOUSEHOLDS.hhlds[i] = deepcopy( BACKUP_HOUSEHOLDS.hhlds[i])
+        end
+        =#
+        MODEL_HOUSEHOLDS.hhlds      = deepcopy( BACKUP_HOUSEHOLDS.hhlds )
         MODEL_HOUSEHOLDS.dimensions = deepcopy( BACKUP_HOUSEHOLDS.dimensions )
-        MODEL_HOUSEHOLDS.hh_map     = deepcopy( BACKUP_HOUSEHOLDS.hh_map     )
-        MODEL_HOUSEHOLDS.pers_map   = deepcopy( BACKUP_HOUSEHOLDS.pers_map   )
+        MODEL_HOUSEHOLDS.hh_map     = deepcopy( BACKUP_HOUSEHOLDS.hh_map )
+        MODEL_HOUSEHOLDS.pers_map   = deepcopy( BACKUP_HOUSEHOLDS.pers_map )
         MODEL_HOUSEHOLDS.data_years = deepcopy( BACKUP_HOUSEHOLDS.data_years )
         MODEL_HOUSEHOLDS.interview_years = deepcopy( BACKUP_HOUSEHOLDS.interview_years )
     end
@@ -193,19 +209,126 @@ module FRSHouseholdGetter
         return size(sk)[1] == 0 # not in skiplist
     end
 
-    function set_local_weights_and_incomes( settings::Settings, reset::Bool)
+
+    @with_kw mutable struct PopAndWage
+        popn=zeros(100_000) 
+        wage=zeros(100_000)
+        mean = 0.0
+        median = 0.0
+        ratio = 1.0
+        sdev = 0.0
+        n=0
+    end
+
+    function addone!( pw :: PopAndWage, wage::Real, weight::Real )
+        pw.n += 1
+        pw.popn[pw.n] = weight
+        pw.wage[pw.n] = wage
+    end
+
+    function summarise!( pw :: PopAndWage; 
+        sex :: Union{Sex,Nothing}, 
+        is_ft :: Union{Bool,Nothing},
+        ccode :: Symbol )
+        if pw.n > 0
+            pw.wage = pw.wage[1:pw.n]
+            pw.popn = pw.popn[1:pw.n]
+            pw.mean = mean( pw.wage, Weights(pw.popn))
+            pw.median = median( pw.wage, Weights(pw.popn))
+            pw.sdev = std( pw.wage, Weights(pw.popn))
+            pw.wage = zeros(0)
+            pw.popn = zeros(0)
+            wd = WeightingData.get_earnings_data(; sex = sex, is_ft = is_ft, council=ccode )
+            @show pw.mean
+            @show wd.Mean
+            if ! ismissing( wd.Mean )
+                pw.ratio = wd.Mean/pw.mean
+            end
+            @show pw.ratio            
+        end
+    end
+
+    """
+    Make dictionary of wages from the model to match to the LA NOMIS data from WeightingData.jl+
+    and use this to adjust average wages to match the ratio between the two.
+    """
+    function fixup_earnings_data!( 
+        settings :: Settings )::Dict
+        popns = Dict{String,PopAndWage}()
+        for sex in [Male,Female,nothing]
+            for is_ft in [true,false,nothing]
+                key = WeightingData.make_wage_key(; sex=sex, is_ft=is_ft)
+                popns[key] = PopAndWage()
+            end
+        end
+        # @show settings.num_households
+        for hno in 1:settings.num_households
+            hh = get_household(hno)
+            for (pid,ad) in hh.people
+                # @show ad 
+                if ad.employment_status in [Full_time_Employee,
+                    Part_time_Employee]
+                    key = WeightingData.make_wage_key(; sex=ad.sex, is_ft=ad.employment_status == Full_time_Employee )
+                    addone!( popns[key], ad.income[wages], hh.weight )
+                    allsexk = WeightingData.make_wage_key(; is_ft=ad.employment_status == Full_time_Employee )
+                    addone!( popns[allsexk], ad.income[wages], hh.weight )
+                    allk = WeightingData.make_wage_key(;  )
+                    addone!( popns[allk], ad.income[wages], hh.weight )
+                    # full time workers both sexes
+                    allftk = WeightingData.make_wage_key(; sex = ad.sex )
+                    addone!( popns[allftk], ad.income[wages], hh.weight )                    
+                end
+            end
+        end        
+        for sex in [Male,Female]
+            for is_ft in [true,false]
+                key = WeightingData.make_wage_key(; sex=sex, is_ft=is_ft)
+                summarise!(popns[key]; sex = sex, is_ft = is_ft, ccode=settings.ccode )
+                println( "summarising $key ")
+            end
+        end
+        for hno in 1:settings.num_households
+            hh = get_household(hno)
+            for (pid,ad) in hh.people
+                ratio = 1.0
+                if ad.employment_status in [Full_time_Employee,
+                    Full_time_Self_Employed]
+                    key = WeightingData.make_wage_key(; sex=ad.sex, is_ft=true )
+                    ratio = popns[key].ratio
+                elseif ad.employment_status in [Part_time_Employee,
+                    Part_time_Self_Employed]
+                    key = WeightingData.make_wage_key(; sex=ad.sex, is_ft=false )
+                    ratio = popns[key].ratio
+                end
+                if haskey( ad.income, wages )
+                    # @show ad.income[wages]
+                    # @show ratio
+                    ad.income[ wages ] *= ratio
+                end
+                if haskey( ad.income, self_employment_income )
+                    ad.income[ self_employment_income ] *= ratio
+                end
+            end
+        end
+        return popns
+    end
+
+    function set_local_weights_and_incomes!( settings::Settings; reset::Bool)
         # wsizes = WeightingData.init_local_weights( settings; reset=reset )
         for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
             MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
             # ?? FIXME fixup nhs area??
             WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
         end
+        ratios = fixup_earnings_data!( settings )
+        # .. something to summarise the ratios if very large
     end
 
     """
     Initialise the dataset. If this has already been done, do nothing unless 
     `reset` is true.
-    return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]))
+    return (number of households available, num people loaded inc. kids, num hhls in dataset (should always = item[1]), and a valuw
+    that's nothing if not a local run, else the funny ratios dict)
     """
     function initialise(
             settings :: Settings;            
@@ -286,17 +409,17 @@ module FRSHouseholdGetter
         REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
         # Save a copy of the dataset before we maybe mess with council weights
         # and incomes.
-        backup()
         # weights: national or local
-        if settings.do_local_run && (settings.ccode != :"")
-            set_local_weights_and_incomes( settings, reset )
-        else
-            WeightingData.init_national_weights( settings, reset=reset )
-            for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
-                WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
-            end
+        lsummary = nothing
+        # if settings.do_local_run && (settings.ccode != :"")
+        #     lsummary = set_local_weights_and_incomes!( settings, reset )
+        # else
+        WeightingData.init_national_weights( settings, reset=reset )
+        for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
+            WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
         end
         fill_in_deciles!(settings)
+        backup()
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
 
@@ -319,63 +442,6 @@ module FRSHouseholdGetter
 
     function get_regression_dataset()::DataFrame
         return REG_DATA
-    end
-
-    @with_kw mutable struct PopAndWage
-        popn=zeros(100_000) 
-        wage=zeros(100_000)
-        n=0
-    end
-
-    function addone!( pw :: PopAndWage, wage::Real, weight::Real )
-        pw.n += 1
-        pw.popn[pw.n] = weight
-        pw.wage[pw.n] = wage
-    end
-
-    function truncate!( pw :: PopAndWage )
-        if pw.n > 0
-            pw.wage = pw.wage[1:pw.n]
-            pw.popn = pw.popn[1:pw.n]
-        end
-    end
-
-    """
-    A dictionary of wages from the model to match to the LA NOMIS data from WeightingData.jl+
-    """
-    function get_mean_earnings( 
-        settings :: Settings )::Dict
-        popns = Dict{String,PopAndWage}()
-        for sex in [Male,Female,nothing]
-            for is_ft in [true,false,nothing]
-                key = WeightingData.make_wage_key(; sex=sex, is_ft=is_ft)
-                popns[key] = PopAndWage()
-            end
-        end
-        for hno in 1:settings.num_households
-            hh = get_household(hno)
-            for (pid,ad) in hh.people
-                if ad.employment_status in [Full_time_Employee,
-                    Part_time_Employee]
-                    key = WeightingData.make_wage_key(; sex=ad.sex, is_ft=ad.employment_status == Full_time_Employee )
-                    addone!( popns[key], ad.income[wages], hh.weight )
-                    allsexk = WeightingData.make_wage_key(; is_ft=ad.employment_status == Full_time_Employee )
-                    addone!( popns[allsexk], ad.income[wages], hh.weight )
-                    allk = WeightingData.make_wage_key(;  )
-                    addone!( popns[allk], ad.income[wages], hh.weight )
-                    # full time workers both sexes
-                    allftk = WeightingData.make_wage_key(; sex = ad.sex )
-                    addone!( popns[allftk], ad.income[wages], hh.weight )                    
-                end
-            end
-        end
-        for sex in [Male,Female,nothing]
-            for is_ft in [true,false,nothing]
-                key = WeightingData.make_wage_key(; sex=sex, is_ft=is_ft)
-                truncate!(popns[key])
-            end
-        end
-        return popns
     end
     
     """

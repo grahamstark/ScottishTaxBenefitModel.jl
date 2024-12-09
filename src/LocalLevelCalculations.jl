@@ -14,6 +14,7 @@ using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
+using .WeightingData
 
 using .ModelHousehold: 
     BenefitUnit, 
@@ -38,89 +39,12 @@ using .Results:
 
 export 
     LA_BRMA_MAP, 
-    LA_CODES, 
-    LA_NAMES,
-    LA_NAMES_TO_CCODES,
     apply_rent_restrictions,
     apply_size_criteria, 
     calc_council_tax, 
     calc_proportional_property_tax,
     lookup, 
     make_la_to_brma_map
-
-    # la codes in order
-    const LA_CODES = [
-        :S12000033,
-        :S12000034,
-        :S12000041,
-        :S12000035,
-        :S12000036,
-        :S12000005,
-        :S12000006,
-        :S12000042,
-        :S12000008,
-        :S12000045,
-        :S12000010,
-        :S12000011,
-        :S12000014,
-        :S12000047,
-        :S12000049,
-        :S12000017,
-        :S12000018,
-        :S12000019,
-        :S12000020,
-        :S12000013,
-        :S12000021,
-        :S12000050,
-        :S12000023,
-        :S12000048,
-        :S12000038,
-        :S12000026,
-        :S12000027,
-        :S12000028,
-        :S12000029,
-        :S12000030,
-        :S12000039,
-        :S12000040
-    ]
-
-    const LA_NAMES = Dict(
-        :S12000033 => "Aberdeen City",
-        :S12000034 => "Aberdeenshire",
-        :S12000041 => "Angus",
-        :S12000035 => "Argyll and Bute",
-        :S12000036 => "City of Edinburgh",
-        :S12000005 => "Clackmannanshire",
-        :S12000006 => "Dumfries and Galloway",
-        :S12000042 => "Dundee City",
-        :S12000008 => "East Ayrshire",
-        :S12000045 => "East Dunbartonshire",
-        :S12000010 => "East Lothian",
-        :S12000011 => "East Renfrewshire",
-        :S12000014 => "Falkirk",
-        :S12000047 => "Fife",
-        :S12000049 => "Glasgow City",
-        :S12000017 => "Highland",
-        :S12000018 => "Inverclyde",
-        :S12000019 => "Midlothian",
-        :S12000020 => "Moray",
-        :S12000013 => "Na h-Eileanan Siar",
-        :S12000021 => "North Ayrshire",
-        :S12000050 => "North Lanarkshire",
-        :S12000023 => "Orkney Islands",
-        :S12000048 => "Perth and Kinross",
-        :S12000038 => "Renfrewshire",
-        :S12000026 => "Scottish Borders",
-        :S12000027 => "Shetland Islands",
-        :S12000028 => "South Ayrshire",
-        :S12000029 => "South Lanarkshire",
-        :S12000030 => "Stirling",
-        :S12000039 => "West Dunbartonshire",
-        :S12000040 => "West Lothian"
-    )
-    # reverse lookup
-    const LA_NAMES_TO_CCODES = Dict( values(LA_NAMES) .=> keys(LA_NAMES))
-
 
     # FIXME hard code this in
     function make_la_to_brma_map()
