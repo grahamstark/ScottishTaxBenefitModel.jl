@@ -1,5 +1,10 @@
 module WeightingData
+#=
 
+This module holds pre-calculated household weights.
+TODO add UK,rUK,GB,NIreland,Wales country level weights
+
+=#
 using CSV
 using DataFrames
 using Pkg, Pkg.Artifacts, LazyArtifacts
@@ -174,31 +179,21 @@ function init_local_weights(settings::Settings; reset=false)::Tuple
     return size(WEIGHTS_LA.weights)
 end
 
-
-function get_weight( settings::Settings, hno :: Integer )::Real
-    if settings.do_local_run && (settings.ccode != NULL_CC)
-        if size( WEIGHTS_LA.weights ) == (0,0)
-            init_local_weights( settings, reset=true )
-        end
-        return WEIGHTS_LA.weights[hno,settings.ccode]
-    else
-        if size( WEIGHTS.weights ) == (0,0)
-            init_national_weights( settings, reset=true )
-        end
-        return WEIGHTS.weights[hno,:weight]
-    end
-end
-
 """
 set the weight for a hh depending on whether do_local is set 
 """
 function set_weight!( hh :: Household, settings::Settings )
-    if settings.do_local_run && size( WEIGHTS_LA.weights )!=(0,0)
+    if settings.do_local_run && (settings.ccode != NULL_CC)
+        if size( WEIGHTS_LA.weights )==(0,0)
+            init_local_weights( settings, reset=true )
+        end
         hno = findfirst( (WEIGHTS_LA.weights.hid .== hh.hid).&(WEIGHTS_LA.weights.data_year.==hh.data_year))
         hh.weight = WEIGHTS_LA.weights[hno,hh.council]
-    elseif size( WEIGHTS.weights )!=(0,0)
+    elseif scottish=settings.target_nation == N_Scotland #FIXME parameterise this
+        if size( WEIGHTS.weights )==(0,0)
+            init_national_weights( settings, reset=true )
+        end
         hno = findfirst( (WEIGHTS.weights.hid .== hh.hid).&(WEIGHTS.weights.data_year.== hh.data_year))
-        # println( "hno=$hno hh.hid=$(hh.hid) hh.data_year=$(hh.data_year)")
         hh.weight = WEIGHTS.weights[hno,:weight]
     end
 end

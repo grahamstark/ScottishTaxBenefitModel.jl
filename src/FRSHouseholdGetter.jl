@@ -85,7 +85,34 @@ module FRSHouseholdGetter
             Dict{OneIndex,Int}(),
             zeros(0),
             zeros(0))
-    
+    const BACKUP_HOUSEHOLDS = 
+        HHWrapper(
+            Vector{Household{Float64}}(undef, 0 ), 
+            # zeros(Float64,0),
+            zeros(Int,3),
+            Dict{OneIndex,HHPeople}(),
+            Dict{OneIndex,Int}(),
+            zeros(0),
+            zeros(0))
+
+    function backup()
+        BACKUP_HOUSEHOLDS.hhlds = deepcopy( MODEL_HOUSEHOLDS.hhlds )
+        BACKUP_HOUSEHOLDS.dimensions = deepcopy( MODEL_HOUSEHOLDS.dimensions )
+        BACKUP_HOUSEHOLDS.hh_map     = deepcopy( MODEL_HOUSEHOLDS.hh_map     )
+        BACKUP_HOUSEHOLDS.pers_map   = deepcopy( MODEL_HOUSEHOLDS.pers_map   )
+        BACKUP_HOUSEHOLDS.data_years = deepcopy( MODEL_HOUSEHOLDS.data_years )
+        BACKUP_HOUSEHOLDS.interview_years = deepcopy( MODEL_HOUSEHOLDS.interview_years )
+    end
+
+    function restore()
+        MODEL_HOUSEHOLDS.hhlds      = deepcopy( BACKUP_HOUSEHOLDS.hhlds      )
+        MODEL_HOUSEHOLDS.dimensions = deepcopy( BACKUP_HOUSEHOLDS.dimensions )
+        MODEL_HOUSEHOLDS.hh_map     = deepcopy( BACKUP_HOUSEHOLDS.hh_map     )
+        MODEL_HOUSEHOLDS.pers_map   = deepcopy( BACKUP_HOUSEHOLDS.pers_map   )
+        MODEL_HOUSEHOLDS.data_years = deepcopy( BACKUP_HOUSEHOLDS.data_years )
+        MODEL_HOUSEHOLDS.interview_years = deepcopy( BACKUP_HOUSEHOLDS.interview_years )
+    end
+        
     mutable struct RegWrapper # I don't understand why I need 'mutable' here, but..
         data :: DataFrame
     end
@@ -136,6 +163,7 @@ module FRSHouseholdGetter
             @assert dec in 1:10
             deccheck[dec] += hh.weight*num_people(hh) 
         end
+        # popns can be quite a bit off whem weighting to a locality
         for i in 1:10
             println( "$i : $(deccheck[i])" )
         end
@@ -163,6 +191,15 @@ module FRSHouseholdGetter
         sk = skiplist[ (skiplist.data_year .== hr.data_year ) .&
                   (skiplist.hid .== hr.hid ),:]
         return size(sk)[1] == 0 # not in skiplist
+    end
+
+    function set_local_weights_and_incomes( settings::Settings, reset::Bool)
+        # wsizes = WeightingData.init_local_weights( settings; reset=reset )
+        for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
+            MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
+            # ?? FIXME fixup nhs area??
+            WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
+        end
     end
 
     """
@@ -202,9 +239,6 @@ module FRSHouseholdGetter
         npeople = 0; # size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )
-        # resize!( MODEL_HOUSEHOLDS.weight, nhhlds )
-        # MODEL_HOUSEHOLDS.weight .= 0
-        
         pseq = 0
         hseq = 0
         dseq = 0
@@ -224,7 +258,6 @@ module FRSHouseholdGetter
                         ConsumptionData.impute_stuff_from_consumption!(hh,settings)
                     end
                 end
-
                 pseqs = []
                 for pid in keys(hh.people)
                     pseq += 1
@@ -246,27 +279,23 @@ module FRSHouseholdGetter
         resize!( MODEL_HOUSEHOLDS.hhlds, hseq )
         # resize!( MODEL_HOUSEHOLDS.weight, hseq )
         nhhlds = size( MODEL_HOUSEHOLDS.hhlds )[1]
-
+        MODEL_HOUSEHOLDS.dimensions.=
+            size(MODEL_HOUSEHOLDS.hhlds)[1],
+            npeople,
+            nhhlds
+        REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
+        # Save a copy of the dataset before we maybe mess with council weights
+        # and incomes.
+        backup()
         # weights: national or local
         if settings.do_local_run && (settings.ccode != :"")
-            wsizes = WeightingData.init_local_weights( settings; reset=reset )
-            for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
-                MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
-                # ?? FIXME fixup nhs area??
-                WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
-            end
+            set_local_weights_and_incomes( settings, reset )
         else
             WeightingData.init_national_weights( settings, reset=reset )
             for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
                 WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
             end
         end
-        MODEL_HOUSEHOLDS.dimensions.=
-            size(MODEL_HOUSEHOLDS.hhlds)[1],
-            npeople,
-            nhhlds
-
-        REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
         fill_in_deciles!(settings)
         return (MODEL_HOUSEHOLDS.dimensions...,)
     end
@@ -349,7 +378,6 @@ module FRSHouseholdGetter
         return popns
     end
     
-
     """
     A vector of the data years in the actual data e.g.2014,2020 ..
     """
