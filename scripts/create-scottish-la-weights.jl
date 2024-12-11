@@ -263,8 +263,8 @@ function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
     # 25
     if INCLUDE_EMPLOYMENT
         # d.working = zeros(n)
-        # d.economically_active_employee  = zeros(n)
-        # d.economically_active_self_employed  = zeros(n)
+        d.economically_active_employee  = zeros(n)
+        d.economically_active_self_employed  = zeros(n)
         d.economically_active_unemployed  = zeros(n)
     end
     # 29
@@ -405,13 +405,13 @@ function make_target_row_scotland_la!(
         if INCLUDE_EMPLOYMENT
             # drop inactive 
             if pers.employment_status in [Full_time_Employee, Part_time_Employee]
-                # row.economically_active_employee += 1
+                row.economically_active_employee += 1
                 # row.working += 1
             elseif pers.employment_status in [
                 Full_time_Self_Employed,
                 Part_time_Self_Employed ]
                 # row.working += 1
-                # row.economically_active_self_employed += 1
+                row.economically_active_self_employed += 1
             elseif pers.employment_status in [Unemployed]
                 row.economically_active_unemployed += 1
             end
@@ -567,8 +567,8 @@ function make_target_list( alldata::DataFrame, council::Symbol )::Vector
     v.m_65plus = data.m_65plus
     if INCLUDE_EMPLOYMENT
         # v.working  = data.working
-        # v.economically_active_employee  = data.economically_active_employee 
-        # v.economically_active_self_employed  = data.economically_active_self_employed 
+        v.economically_active_employee  = data.economically_active_employee 
+        v.economically_active_self_employed  = data.economically_active_self_employed 
         v.economically_active_unemployed  = data.economically_active_unemployed 
     end
     if INCLUDE_OCCUP 
