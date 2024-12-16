@@ -1,11 +1,8 @@
-
-const DDIR = joinpath("/","mnt","data","ScotBen","data", "local", "local_targets_2024" )
-
 function read_census_file(filename::String)::Tuple
     d = (CSV.File( filename; normalizenames=true, header=10, skipto=12)|>DataFrame)
-    if ismissing(d[1,2])
-        delete!( )
-    end
+    # if ismissing(d[1,2])
+    #     delete!( )
+    # end
     label = names(d)[1]
     actuald = d[1:33,2:end]
     nms = names(actuald)
@@ -13,14 +10,18 @@ function read_census_file(filename::String)::Tuple
     actuald, label, nms
 end
 
-function read_all_scot_2024()
-    fs = sort(readdir( DDIR, join=true ))
+"""
+Very, very ad-hoc code to munge together a bunch of Census Scotland datafiles into a
+single dataframe.
+"""
+function read_all_scot_2024( file_dir :: AbstractString )::Tuple
+    fs = sort(reafile_dir( file_dir, join=true ))
     n = 0
-    allfs = nothing
+    merged_census_files = nothing
     rows = 0
     cols = 0
     nfs = length(fs)
-    dfs = []
+    individual_datasets = []
     labels = DataFrame( filename=fill("",nfs), label=fill("",nfs), start=zeros(Int,nfs) )
     for f in fs
         if ! isnothing(match(r".*table.*.csv$",f))
@@ -34,24 +35,28 @@ function read_all_scot_2024()
             labels.label[n]=label
             labels.start[n]=cols+2        
             if n == 1
-                allfs = deepcopy( data )
+                merged_census_files = deepcopy( data )
             else
                 n1 = String.(data[:,1])[1:8] # skip "Na hEileanan Siar", since it's sometimes edited
-                n2 = String.(allfs[:,1])[1:8]
+                n2 = String.(merged_census_files[:,1])[1:8]
                 @assert n1 == n2 "$(n1) !== $(n2)" # check in sync
-                allfs = hcat( allfs, data; makeunique=true )
-                rows,cols = size(allfs)                
+                merged_census_files = hcat( merged_census_files, data; makeunique=true )
+                rows,cols = size(merged_census_files)                
             end
-            push!(dfs,data)
+            push!(individual_datasets,data)
             # println( "label=$label")
         end
     end
-    allfs,labels[1:n,:],dfs
+    merged_census_files,labels[1:n,:],individual_datasets
 end
 
+"""
+More ad-hoc code code to load Census Scotland files, clean them up and
+add some constructed fields.
+"""
 function load_census_2024()
-
-    allfs,labels,dfs = read_all_scot_2024()
+    file_dir = joinpath("/","mnt","data","ScotBen","data", "local", "local_targets_2024" )
+    merged_census_files,labels,individual_datasets = read_all_scot_2024( file_dir )
     # FIXME dup
     authority_codes = [
         :S12000033,
@@ -184,7 +189,31 @@ function load_census_2024()
             "Band_F" => "F",
             "Band_G" => "G",
             "Band_H" => "H"])
-    
+            
+        merged_census_files,labels,individual_datasets = read_all_scot_2024()
+
+        ctbase=CSV.File(joinpath( file_dir, "CTAXBASE+2024+-+Tables+-+Chargeable+Dwellings.csv"),normalizenames=true)|>DataFrame
+        merged_census_files = hcat( merged_census_files, ctbase; makeunique=true )
+        
+        rename!( merged_census_files, RENAMES )
+        select!( merged_census_files, Not(DROPS))
+        merged_census_files.total_cts = sum.(eachrow(merged_census_files[:,[:A,:B,:C,:D,:E,:F,:G,:H]]))
+        
+        # merged columns 
+        merged_census_files.private_rented_rent_free = merged_census_files.private_rented + merged_census_files.rent_free
+        merged_census_files.converted_flat = merged_census_files.converted_flat_1 + merged_census_files.converted_flat_2
+        merged_census_files.all_mortgaged = merged_census_files.mortgaged + merged_census_files.shared_ownership + merged_census_files.shared_equity
+        merged_census_files.bedrooms_4_plus = merged_census_files.bedrooms_4 + merged_census_files.bedrooms_5_plus
+        merged_census_files.Five_plus_people = merged_census_files.Five_people +
+                merged_census_files.Six_people +
+                merged_census_files.Seven_people +
+                merged_census_files.Eight_or_more_people 
+        merged_census_files.working = merged_census_files.economically_active_employee + merged_census_files.economically_active_self_employed 
+        merged_census_files.authority_code = authority_codes
+        
+        CSV.write( joinpath(file_dir,"merged_census_labels_2024.tab"), labels; delim='\t')
+        CSV.write( joinpath(file_dir,"merged_census_files_2024.tab"), merged_census_files; delim='\t' )
+        return merged_census_files
 end
 
 function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame

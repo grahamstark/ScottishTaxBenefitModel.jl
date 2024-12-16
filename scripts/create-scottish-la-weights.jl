@@ -6,6 +6,8 @@ using .FRSHouseholdGetter
 using .RunSettings
 using .Weighting
 using SurveyDataWeighting
+using CSV
+using StatsBase
 
 const DDIR = joinpath("/","mnt","data","ScotBen","data", "local", "local_targets_2024" )
 
@@ -95,6 +97,37 @@ const authority_codes = [
     :S92000003] # scotland
 
 
+function summarise_dfs( data :: DataFrame, targets::DataFrameRow, household_total :: Number )::DataFrame
+    nms = Symbol.(names(targets))
+    nrows, ncols = size( data )
+    d = DataFrame()
+    scale = nrows / popn
+    initial_weights = Weights(ones(nrows)*household_total/rows)
+    for n in nms 
+        d[n] = zeros(11)
+        v = summarystats(data[!,n], initial_weights)
+        d[1,n] = v.max
+        d[3,n] = v.mean
+        d[4,n] = v.median
+        d[5,n] = v.nmiss
+        d[6,n] = v.min
+        d[7,n] = v.nobs
+        d[8,n] = v.q25
+        d[9,n] = v.q75
+        d[10,n] = v.sd
+        d[11,n] = targets[n] / sum(data[!,n],initial_weights)
+    end
+    #=
+    max     mean
+median  min
+nmiss   nobs
+q25     q75
+sd
+    =#
+    d
+end
+    
+    
 
 DROPS = [
     "Authority_1",
@@ -215,7 +248,6 @@ allfs.authority_code = authority_codes
 
 CSV.write( joinpath(DDIR,"labels.tab"), labels; delim='\t')
 CSV.write( joinpath(DDIR,"allfs.tab"), allfs; delim='\t' )
-
 
 const INCLUDE_OCCUP = true
 const INCLUDE_HOUSING = true
@@ -629,6 +661,7 @@ function weight_to_la(
     code :: Symbol,
     num_households :: Int )
     targets = make_target_list( alldata, code ) 
+
     hhtotal = alldata[alldata.authority_code .== code,:total_hhlds][1]
     println( "calculating for $code; hh total $hhtotal")
     weights = generate_weights(
@@ -640,13 +673,15 @@ function weight_to_la(
         targets = targets,
         initialise_target_dataframe = initialise_target_dataframe_scotland_la,
         make_target_row! = make_target_row_scotland_la! )
+    initial_weights( )
+    
     return weights
 end
 
 function t_make_target_dataset( 
     nhhlds :: Integer, 
     initialise_target_dataframe :: Function,
-    make_target_row! :: Function ) :: Matrix
+    make_target_row! :: Function ) :: Tuple
     df :: DataFrame = initialise_target_dataframe( nhhlds )
     for hno in 1:nhhlds
         hh = FRSHouseholdGetter.get_household( hno )
@@ -665,13 +700,14 @@ function t_make_target_dataset(
     for r in 1:nr
         @assert sum(m[r,:] ) != 0 "all zero row $r"
     end
-    return m
+    return m,df
 end
 
 settings = Settings()
 @time settings.num_households, settings.num_people, nhh2 = 
     initialise( settings; reset=false )
-dataset = t_make_target_dataset(
+# initial version for checking
+m, tdf = t_make_target_dataset(
     settings.num_households,
     initialise_target_dataframe_scotland_la,
     make_target_row_scotland_la! )

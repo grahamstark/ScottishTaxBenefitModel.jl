@@ -105,6 +105,7 @@ module Results
         work_allowance :: RT = zero(RT)
         earnings_before_allowances :: RT = zero(RT)
         earned_income :: RT = zero(RT)
+        untapered_earnings :: RT = zero(RT)
         other_income :: RT = zero(RT)
         tariff_income :: RT = zero(RT)
         standard_allowance  :: RT = zero(RT)

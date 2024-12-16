@@ -19,6 +19,8 @@ export Net_Or_Gross, net, gross
 @enum Assessment_Period weekly monthly annualHistoric annualForward
 export ContributionType, cont_proportion, cont_fixed
 @enum ContributionType cont_proportion cont_fixed
+export UCEarningsType, assessed_net_income, tapered_uc_earnings, full_uc_earnings
+@enum UCEarningsType assessed_net_income tapered_uc_earnings full_uc_earnings
 
 """
 needed because json (inf) isn't supported and typemax(somefloattype) == Inf
@@ -214,7 +216,7 @@ end
     premia = zero_premia(RT)
     uc_limit = zero(RT)
     uc_limit_type :: UCLimitType = uc_no_limit
-    uc_use_earnings = false
+    uc_use_earnings :: UCEarningsType = assessed_net_income 
     include_mortgage_repayments = true
 end
 

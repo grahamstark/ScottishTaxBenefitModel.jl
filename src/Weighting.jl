@@ -145,7 +145,7 @@ function generate_weights(
         hh = FRSHouseholdGetter.get_household( hno )
         hh.weight = weights[hno]
     end
-    return weights
+    return weights, data
 end
 
 end # package
