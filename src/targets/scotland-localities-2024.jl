@@ -1,3 +1,8 @@
+"""
+An include file that helps with generating 2024 local authority
+weights using a bunch of Census Scotland datafiles downloaded in Dec 2024.
+"""
+
 function read_census_file(filename::String)::Tuple
     d = (CSV.File( filename; normalizenames=true, header=10, skipto=12)|>DataFrame)
     # if ismissing(d[1,2])
@@ -216,9 +221,13 @@ function load_census_2024()
         return merged_census_files
 end
 
-function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
+"""
+Create a dataframe with num_households length zeroed entries and all possible
+weighting fields.
+"""
+function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d = DataFrame()
-    # d.single_person = zeros(n) #1
+    d.single_person = zeros(n) #1
     d.single_parent = zeros(n) # 2
     # d.single_family = zeros(n) # 3
     d.multi_family = zeros(n) # 4
@@ -289,26 +298,33 @@ function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
     return d    
 end
 
-function make_target_row_scotland_la!( 
+"""
+
+"""
+function make_model_dataframe_row!( 
     row :: DataFrameRow, 
     hh :: Household )
     bus = get_benefit_units( hh )
     if is_single(hh)
-        # println("single_person")
-        # row.single_person = 1
-        # 
+        row.single_person = 1
     elseif size(bus)[1] > 1
         row.multi_family = 1 
-        # println( "multi-family")
     elseif is_lone_parent(hh) # only dependent children
         row.single_parent = 1
-        # println( "single_parent")
     else
-        # row.single_family = 1 
-        # println( "single_family")
-        # 
+        row.single_family = 1 
     end
-    # println( "hh.ct_band $(hh.ct_band)")
+    if hsize == 1
+        #
+    elseif hsize == 2
+        row.Two_people = 1
+    elseif hsize == 3
+        row.Three_people = 1
+    elseif hsize == 4
+        row.Four_people = 1
+    elseif hsize >= 5
+        row.Five_plus_people = 1
+    end
     if hh.ct_band == Band_A
         #  row.A = 1
     elseif hh.ct_band == Band_B
@@ -333,7 +349,7 @@ function make_target_row_scotland_la!(
         #
         # @assert false "NO CT BAND"
     end
-    # these sum to totals
+    # these sum to total people
     for (pid,pers) in hh.people
         if pers.sex == Male
             if pers.age <= 16
@@ -466,109 +482,160 @@ function make_target_row_scotland_la!(
         row.other_accom = 1
     end
     hsize = num_people(hh)
-    if hsize == 1
-        #
-    elseif hsize == 2
-        row.Two_people = 1
-    elseif hsize == 3
-        row.Three_people = 1
-    elseif hsize == 4
-        row.Four_people = 1
-    elseif hsize >= 5
-        row.Five_plus_people = 1
-    end
 end # proc
 
+"""
+return a df single row loaded with values for the `council` 
+"""
 function make_target_list_2024( 
-    all_councils_census::DataFrame, council::Symbol, which_included :: Set{Int} )::Vector
-    data = all_councils_census[all_councils_census.authority_code .== council,:][1,:]
-    v = initialise_target_dataframe_scotland_la(1)[1,:] # a single row
-    if INCLUDE_HCOMP in which_included
-        # v.single_person = data.single_person
-        v.single_parent = data.single_parent
-        # v.single_family = data.single_family
-        v.multi_family = data.multi_family        
-    end
-    if INCLUDE_CT in which_included
-        scale = data.total_cts/data.total_hhlds # since total cts is always a bit smaller as total hhlds
-        # v.A = data.A*scale
-        v.B = data.B*scale
-        v.C = data.C*scale
-        v.D = data.D*scale
-        v.E = data.E*scale
-        v.F = data.F*scale
-        v.G = data.G*scale
-        v.H = data.H*scale
-        # v.I = data.I*scale 
-    end
-    v.f_0_15  = data.f_0_15 
-    v.f_16_24  = data.f_16_24 
-    v.f_25_34  = data.f_25_34 
-    v.f_35_49 = data.f_35_49
-    v.f_50_64 = data.f_50_64
-    v.f_65plus = data.f_65plus
-    v.m_0_15 = data.m_0_15
-    v.m_16_24 = data.m_16_24
-    v.m_25_34 = data.m_25_34
-    v.m_35_49 = data.m_35_49
-    v.m_50_64 = data.m_50_64
-    v.m_65plus = data.m_65plus
-    if INCLUDE_EMPLOYMENT in which_included
-        # v.working  = data.working
-        v.economically_active_employee  = data.economically_active_employee 
-        v.economically_active_self_employed  = data.economically_active_self_employed 
-        v.economically_active_unemployed  = data.economically_active_unemployed 
-    end
-    if INCLUDE_OCCUP in which_included
-        # v.Soc_Managers_Directors_and_Senior_Officials = data.Soc_Managers_Directors_and_Senior_Officials
-        v.Soc_Professional_Occupations = data.Soc_Professional_Occupations
-        v.Soc_Associate_Prof_and_Technical_Occupations = data.Soc_Associate_Prof_and_Technical_Occupations
-        v.Soc_Admin_and_Secretarial_Occupations = data.Soc_Admin_and_Secretarial_Occupations
-        v.Soc_Skilled_Trades_Occupations = data.Soc_Skilled_Trades_Occupations
-        v.Soc_Caring_leisure_and_other_service_occupations = data.Soc_Caring_leisure_and_other_service_occupations
-        v.Soc_Sales_and_Customer_Service = data.Soc_Sales_and_Customer_Service
-        v.Soc_Process_Plant_and_Machine_Operatives = data.Soc_Process_Plant_and_Machine_Operatives
-        v.Soc_Elementary_Occupations = data.Soc_Elementary_Occupations
-    end
-    if INCLUDE_BEDROOMS in which_included
-        # one bedroom
-        v.bedrooms_2 = data.bedrooms_2
-        v.bedrooms_3 = data.bedrooms_3
-        v.bedrooms_4_plus = data.bedrooms_4_plus
-    end
+    all_council_data::DataFrameRow, 
+    which_included = INCLUDE_ALL )::Tuple 
 
-    if INCLUDE_HOUSING in which_included
-        # owner_occupied = zeros(n),
-        v.all_mortgaged = data.all_mortgaged
-        v.socially_rented = data.socially_rented
-        v.private_rented_rent_free = data.private_rented_rent_free
-        # detached
-        v.semi_detached = data.semi_detached
-        v.terraced = data.terraced
-        v.flat_or_maisonette = data.flat_or_maisonette
-        v.converted_flat = data.converted_flat
-        v.other_accom = data.other_accom
+    included_fields = []
+    v = initialise_model_dataframe_scotland_la(1)[1,:] # a single row
+    # sums to all households
+    v.single_person = all_council_data.single_person
+    v.single_parent = all_council_data.single_parent
+    v.single_family = all_council_data.single_family
+    v.multi_family = all_council_data.multi_family  
+    if INCLUDE_HCOMP in which_included
+        push!( included_fields, :single_person ) 
+        push!( included_fields, :single_parent ) 
+        push!( included_fields, :single_family ) 
+        push!( included_fields, :multi_family )     
     end
-    if INCLUDE_INDUSTRY in which_included
-        # v.A_B_D_E_Agriculture_energy_and_water = data.A_B_D_E_Agriculture_energy_and_water
-        v.C_Manufacturing = data.C_Manufacturing
-        v.F_Construction = data.F_Construction
-        v.G_I_Distribution_hotels_and_restaurants = data.G_I_Distribution_hotels_and_restaurants
-        v.H_J_Transport_and_communication = data.H_J_Transport_and_communication
-        v.K_L_M_N_Financial_real_estate_professional_and_administrative_activities  = data.K_L_M_N_Financial_real_estate_professional_and_administrative_activities 
-        v.O_P_Q_Public_administration_education_and_health = data.O_P_Q_Public_administration_education_and_health
-    end
+    v.Two_people = all_council_data.Two_people
+    v.Three_people = all_council_data.Three_people
+    v.Four_people = all_council_data.Four_people
+    v.Five_plus_people  = all_council_data.Five_plus_people
     if INCLUDE_HH_SIZE in which_included
         # one person
-        v.Two_people = data.Two_people
-        v.Three_people = data.Three_people
-        v.Four_people = data.Four_people
-        v.Five_plus_people  = data.Five_plus_people
-        #v.Six_people = data.Six_people
-        #v.Seven_people = data.Seven_people
-        #v.Eight_or_more_people = data.Eight_or_more_people
+        push!( included_fields, :Two_people )
+        push!( included_fields, :Three_people )
+        push!( included_fields, :Four_people )
+        push!( included_fields, :Five_plus_people  )
     end
-    return Vector(v)
+    scale = all_council_data.total_cts/data.total_hhlds # since total cts is always a bit smaller as total hhlds
+    v.B = all_council_data.B*scale
+    v.C = all_council_data.C*scale
+    v.D = all_council_data.D*scale
+    v.E = all_council_data.E*scale
+    v.F = all_council_data.F*scale
+    v.G = all_council_data.G*scale
+    v.H = all_council_data.H*scale
+    if INCLUDE_CT in which_included
+        push!( included_fields, :B ) 
+        push!( included_fields, :C ) 
+        push!( included_fields, :D ) 
+        push!( included_fields, :E ) 
+        push!( included_fields, :F ) 
+        push!( included_fields, :G ) 
+        push!( included_fields, :H ) 
+    end
+    # sums to all people
+    v.f_0_15  = all_council_data.f_0_15 
+    v.f_16_24  = all_council_data.f_16_24 
+    v.f_25_34  = all_council_data.f_25_34 
+    v.f_35_49 = all_council_data.f_35_49
+    v.f_50_64 = all_council_data.f_50_64
+    v.f_65plus = all_council_data.f_65plus
+    v.m_0_15 = all_council_data.m_0_15
+    v.m_16_24 = all_council_data.m_16_24
+    v.m_25_34 = all_council_data.m_25_34
+    v.m_35_49 = all_council_data.m_35_49
+    v.m_50_64 = all_council_data.m_50_64
+    v.m_65plus = all_council_data.m_65plus
+    push!( included_fields, :f_0_15  )
+    push!( included_fields, :f_16_24  )
+    push!( included_fields, :f_25_34  )
+    push!( included_fields, :f_35_49 )
+    push!( included_fields, :f_50_64 )
+    push!( included_fields, :f_65plus )
+    push!( included_fields, :m_0_15 )
+    push!( included_fields, :m_16_24 )
+    push!( included_fields, :m_25_34 )
+    push!( included_fields, :m_35_49 )
+    push!( included_fields, :m_50_64 )
+    push!( included_fields, :m_65plus )
+    # these sum to all adults 
+    v.economically_active_employee  = all_council_data.economically_active_employee 
+    v.economically_active_self_employed  = all_council_data.economically_active_self_employed 
+    v.economically_active_unemployed  = all_council_data.economically_active_unemployed 
+    if INCLUDE_EMPLOYMENT in which_included
+        push!( included_fields, :economically_active_employee  )
+        push!( included_fields, :economically_active_self_employed  )
+        push!( included_fields, :economically_active_unemployed  )
+    # v.working  = all_council_data.working
+    end
+        # v.Soc_Managers_Directors_and_Senior_Officials = all_council_data.Soc_Managers_Directors_and_Senior_Officials
+    v.Soc_Professional_Occupations = all_council_data.Soc_Professional_Occupations
+    v.Soc_Associate_Prof_and_Technical_Occupations = all_council_data.Soc_Associate_Prof_and_Technical_Occupations
+    v.Soc_Admin_and_Secretarial_Occupations = all_council_data.Soc_Admin_and_Secretarial_Occupations
+    v.Soc_Skilled_Trades_Occupations = all_council_data.Soc_Skilled_Trades_Occupations
+    v.Soc_Caring_leisure_and_other_service_occupations = all_council_data.Soc_Caring_leisure_and_other_service_occupations
+    v.Soc_Sales_and_Customer_Service = all_council_data.Soc_Sales_and_Customer_Service
+    v.Soc_Process_Plant_and_Machine_Operatives = all_council_data.Soc_Process_Plant_and_Machine_Operatives
+    v.Soc_Elementary_Occupations = all_council_data.Soc_Elementary_Occupations
+    if INCLUDE_OCCUP in which_included
+        # v.Soc_Managers_Directors_and_Senior_Officials = all_council_data.Soc_Managers_Directors_and_Senior_Officials
+        push!( included_fields, :Soc_Professional_Occupations )
+        push!( included_fields, :Soc_Associate_Prof_and_Technical_Occupations )
+        push!( included_fields, :Soc_Admin_and_Secretarial_Occupations )
+        push!( included_fields, :Soc_Skilled_Trades_Occupations )
+        push!( included_fields, :Soc_Caring_leisure_and_other_service_occupations )
+        push!( included_fields, :Soc_Sales_and_Customer_Service )
+        push!( included_fields, :Soc_Process_Plant_and_Machine_Operatives )
+        push!( included_fields, :Soc_Elementary_Occupations )
+    end
+    v.bedrooms_2 = all_council_data.bedrooms_2
+    v.bedrooms_3 = all_council_data.bedrooms_3
+    v.bedrooms_4_plus = all_council_data.bedrooms_4_plus
+    if INCLUDE_BEDROOMS in which_included
+        # one bedroom
+        push!( included_fields, :bedrooms_2 )
+        push!( included_fields, :bedrooms_3 )
+        push!( included_fields, :bedrooms_4_plus )
+    end
+
+    v.all_mortgaged = all_council_data.all_mortgaged
+    v.socially_rented = all_council_data.socially_rented
+    v.private_rented_rent_free = all_council_data.private_rented_rent_free
+    # detached
+    v.semi_detached = all_council_data.semi_detached
+    v.terraced = all_council_data.terraced
+    v.flat_or_maisonette = all_council_data.flat_or_maisonette
+    v.converted_flat = all_council_data.converted_flat
+    v.other_accom = all_council_data.other_accom
+    if INCLUDE_HOUSING in which_included
+        # owner_occupied
+        push!( included_fields, :all_mortgaged )
+        push!( included_fields, :socially_rented )
+        push!( included_fields, :private_rented_rent_free )
+        # detached
+        push!( included_fields, :semi_detached )
+        push!( included_fields, :terraced )
+        push!( included_fields, :flat_or_maisonette )
+        push!( included_fields, :converted_flat )
+        push!( included_fields, :other_accom )
+    end
+    v.C_Manufacturing = all_council_data.C_Manufacturing
+    v.F_Construction = all_council_data.F_Construction
+    v.G_I_Distribution_hotels_and_restaurants = all_council_data.G_I_Distribution_hotels_and_restaurants
+    v.H_J_Transport_and_communication = all_council_data.H_J_Transport_and_communication
+    v.K_L_M_N_Financial_real_estate_professional_and_administrative_activities  = all_council_data.K_L_M_N_Financial_real_estate_professional_and_administrative_activities 
+    v.O_P_Q_Public_administration_education_and_health = all_council_data.O_P_Q_Public_administration_education_and_health
+    if INCLUDE_INDUSTRY in which_included
+        # v.A_B_D_E_Agriculture_energy_and_water = all_council_data.A_B_D_E_Agriculture_energy_and_water
+        push!( included_fields, :C_Manufacturing )
+        push!( included_fields, :F_Construction )
+        push!( included_fields, :G_I_Distribution_hotels_and_restaurants )
+        push!( included_fields, :H_J_Transport_and_communication )
+        push!( included_fields, :K_L_M_N_Financial_real_estate_professional_and_administrative_activities  )
+        push!( included_fields, :O_P_Q_Public_administration_education_and_health )
+    end
+    av = copy(v)
+    select!( av, included_fields )
+    return v,av
 end
 
 
