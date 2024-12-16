@@ -169,6 +169,8 @@ export Affordability
 include( "HealthRegressions.jl")
 export HealthRegressions
 
+include( "LocalWeightGeneration.jl")
+export LocalWeightGeneration
 # include( "LegalAidRunner.jl")
 # export LegalAidRunner
 
