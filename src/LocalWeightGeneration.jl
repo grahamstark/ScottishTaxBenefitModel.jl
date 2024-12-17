@@ -45,25 +45,30 @@ function summarise_dfs( data :: DataFrame, targets::DataFrameRow, initial_weight
     @show nrows ncols
     d = DataFrame()
     nms = names(data)
-    for n in nms 
-        d[:,n] = zeros(11)
+    for n in nms
+        d[:,n] = zeros(12)
         # @show data[!,n]
         v = summarystats(data[!,n])
         d[1,n] = v.max
-        d[3,n] = v.mean
-        d[4,n] = v.median
-        d[5,n] = v.nmiss
-        d[6,n] = v.min
-        d[7,n] = v.nobs
-        d[8,n] = v.q25
-        d[9,n] = v.q75
-        d[10,n] = v.sd
+        d[2,n] = v.mean
+        d[3,n] = v.median
+        d[4,n] = v.nmiss
+        d[5,n] = v.min
+        d[6,n] = v.nobs
+        d[7,n] = v.q25
+        d[8,n] = v.q75
+        d[9,n] = v.sd
         it = sum(data[!,n])*initial_weights[1]
-        d[11,n] = (targets[n] - it )/ targets[n]
+        d[10,n] = targets[n]
+        d[11,n] = it
+        d[12,n] = (targets[n] - it )/ targets[n]
     end
-    poss = sortperm(abs.(Vector(d[11,:])),rev=true)
+    # sort numeric fields by abs proportional difference
+    poss = sortperm(abs.(Vector(d[12,:])),rev=true)
     @show poss
-    return d[!,poss] #, d[11,poss]
+    d = d[!,poss]
+    insertcols!(d, 1, :names => ["Max","Mean","Median","N.Miss","Min","Nobs","Q25","Q75","SD","CENSUS TOTAL","FRS Crude","(c-f)/c"])
+    return  d
 end
         
 function weight_to_la( 
@@ -73,7 +78,7 @@ function weight_to_la(
     all_council_data :: DataFrameRow,
     included_categories :: Set{Integer} )
     nhhlds = size(model_data)[1]
-    targets, tnames = make_target_list_2024( 
+    targets, tnames, full_targets = make_target_list_2024( 
         all_council_data, included_categories ) 
     data = select(model_data, tnames)
     initial_weights = ones(nhhlds)*household_total/nhhlds
@@ -81,7 +86,7 @@ function weight_to_la(
     pt = summarise_dfs( data, targets, initial_weights )
     pretty_table(pt)
     # @show diffs
-    @show near_collinear_cols( data )
+    @show near_collinear_cols( data; tol=1e-9 )
     mdata = Matrix(data)
     vtargets = Vector(targets)
     # println( "calculating for $code; hh total $hhtotal")
@@ -104,7 +109,11 @@ function weight_to_la(
         end
     end
     summarystats( weights )
-    return weights
+    overallsums = (weights'*Matrix(model_data))' # so, including things ommitted for colinearity - should add more or less back up 
+    @show full_targets
+    overall_compare = DataFrame( names = names(model_data), weighted_populations=overallsums, target_populations = collect(values(full_targets)))
+    overall_compare.difference = overall_compare.weighted_populations - overall_compare.target_populations
+    return weights, tnames, overall_compare
 end
 
 function create_model_dataset( 
@@ -140,6 +149,45 @@ function create_model_dataset(
     end
     return df
 end
+#= 
+ Row │ Authority              authority_code 
+     │ String?                Symbol         
+─────┼───────────────────────────────────────
+   1 │ Aberdeen City          S12000033
+   2 │ Aberdeenshire          S12000034
+   3 │ Angus                  S12000041
+   4 │ Argyll and Bute        S12000035
+   5 │ City of Edinburgh      S12000036
+   6 │ Clackmannanshire       S12000005
+   7 │ Dumfries and Galloway  S12000006
+   8 │ Dundee City            S12000042
+   9 │ East Ayrshire          S12000008
+  10 │ East Dunbartonshire    S12000045
+  11 │ East Lothian           S12000010
+  12 │ East Renfrewshire      S12000011
+  13 │ Falkirk                S12000014
+  14 │ Fife                   S12000047
+  15 │ Glasgow City           S12000049
+  16 │ Highland               S12000017
+  17 │ Inverclyde             S12000018
+  18 │ Midlothian             S12000019
+  19 │ Moray                  S12000020
+  20 │ Na h-Eileanan Siar     S12000013
+  21 │ North Ayrshire         S12000021
+  22 │ North Lanarkshire      S12000050
+  23 │ Orkney Islands         S12000023
+  24 │ Perth and Kinross      S12000048
+  25 │ Renfrewshire           S12000038
+  26 │ Scottish Borders       S12000026
+  27 │ Shetland Islands       S12000027
+  28 │ South Ayrshire         S12000028
+  29 │ South Lanarkshire      S12000029
+  30 │ Stirling               S12000030
+  31 │ West Dunbartonshire    S12000039
+  32 │ West Lothian           S12000040
+  33 │ Total                  S92000003
+
+=#
 
 #=
 
@@ -157,20 +205,8 @@ using StatsBase
 using PrettyTables
 using DataFrames
 
-EXCLUDE_CT = Set{Integer}(
-    [LocalWeightGeneration.INCLUDE_OCCUP,
-    LocalWeightGeneration.INCLUDE_HOUSING,
-    LocalWeightGeneration.INCLUDE_BEDROOMS,
-    # INCLUDE_CT,
-    LocalWeightGeneration.INCLUDE_HCOMP,
-    LocalWeightGeneration.INCLUDE_EMPLOYMENT,
-    LocalWeightGeneration.INCLUDE_INDUSTRY])
-    # LocalWeightGeneration.INCLUDE_HH_SIZE] )
-
 merged_census_files = LocalWeightGeneration.load_census_2024()
 settings = Settings()
-settings.lower_multiple = 0.01
-settings.upper_multiple = 100.0  
 
 settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
 df = LocalWeightGeneration.create_model_dataset( 
@@ -178,14 +214,33 @@ df = LocalWeightGeneration.create_model_dataset(
     LocalWeightGeneration.initialise_model_dataframe_scotland_la, 
     LocalWeightGeneration.make_model_dataframe_row! )
 
-targets = merged_census_files[merged_census_files.authority_code.==:S12000039,:][1,:]
-           
-weight_to_la( 
+targets = merged_census_files[merged_census_files.authority_code.==:S12000049,:][1,:]
+# :S12000049
+INCLUDES = Set{Integer}([
+    LocalWeightGeneration.INCLUDE_OCCUP,
+    LocalWeightGeneration.INCLUDE_HOUSING,
+    LocalWeightGeneration.INCLUDE_BEDROOMS,
+    LocalWeightGeneration.INCLUDE_CT,
+    LocalWeightGeneration.INCLUDE_HCOMP,
+    LocalWeightGeneration.INCLUDE_EMPLOYMENT,
+    LocalWeightGeneration.INCLUDE_INDUSTRY,
+    # LocalWeightGeneration.INCLUDE_HH_SIZE,
+    ])
+
+settings.lower_multiple = 0.10
+settings.upper_multiple = 30.0  
+    
+wts, targetnames, comparisons =weight_to_la( 
     settings,
     df, 
     targets.total_hhlds,
     targets,
-    EXCLUDE_CT)
+    INCLUDES )
+
+summarystats(wts)
+summarystats( wts[wts.>0])
+
+pretty_table( comparisons )
 
 =#
 

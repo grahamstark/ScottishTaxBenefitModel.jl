@@ -206,9 +206,15 @@ function load_census_2024()
         
         # merged columns 
         merged_census_files.private_rented_rent_free = merged_census_files.private_rented + merged_census_files.rent_free
-        merged_census_files.converted_flat = merged_census_files.converted_flat_1 + merged_census_files.converted_flat_2
+        merged_census_files.converted_flat_or_other= merged_census_files.converted_flat_1 + merged_census_files.converted_flat_2 + merged_census_files.other_accom
         merged_census_files.all_mortgaged = merged_census_files.mortgaged + merged_census_files.shared_ownership + merged_census_files.shared_equity
         merged_census_files.bedrooms_4_plus = merged_census_files.bedrooms_4 + merged_census_files.bedrooms_5_plus
+        merged_census_files.total_tenures = merged_census_files.private_rented_rent_free + 
+            merged_census_files.all_mortgaged +
+            merged_census_files.socially_rented +
+            merged_census_files.owned_outright
+        
+
         merged_census_files.Five_plus_people = merged_census_files.Five_people +
                 merged_census_files.Six_people +
                 merged_census_files.Seven_people +
@@ -225,15 +231,15 @@ end
 No idea how this works, but it does.
 see: https://discourse.julialang.org/t/how-to-remove-specific-collumn-from-modelframe-statsmodels-jl/106864/5?u=grahamstark
 """
-function near_collinear_cols( m :: Matrix)
+function near_collinear_cols( m :: Matrix; tol=1e-8)
     qrd = qr(m'm)
-    return findall(x-> abs(x) < 1e-8, diag(qrd.R))
+    return findall(x-> abs(x) < tol, diag(qrd.R))
 end
 
-function near_collinear_cols( d :: DataFrame )::Vector
+function near_collinear_cols( d :: DataFrame; tol=1e-8 )::Vector
     m = Matrix(d)
     nms = names(d)
-    grps = near_collinear_cols(m)
+    grps = near_collinear_cols(m; tol=tol)
     return nms[grps]
 end 
 
@@ -243,16 +249,7 @@ weighting fields.
 """
 function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d = DataFrame()
-    d.single_person = zeros(n) #1
-    d.single_parent = zeros(n) # 2
-    d.single_family = zeros(n) # 3
-    d.multi_family = zeros(n) # 4
-    # one person
-    # d.Two_people = zeros(n) -- snce 1 person==single person 
-    d.Three_people = zeros(n)
-    d.Four_people = zeros(n)
-    d.Five_plus_people = zeros(n)
-    # d.A = zeros(n) #7
+    d.A = zeros(n) #7
     d.B = zeros(n) #5
     d.C = zeros(n) #6
     d.D = zeros(n)
@@ -260,6 +257,15 @@ function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d.F = zeros(n) #9
     d.G = zeros(n) # 10
     d.H = zeros(n) # 11
+    d.single_person = zeros(n) 
+    d.single_parent = zeros(n) 
+    d.single_family = zeros(n) 
+    d.multi_family = zeros(n) 
+    d.One_person = zeros(n) 
+    d.Two_people = zeros(n) 
+    d.Three_people = zeros(n)
+    d.Four_people = zeros(n)
+    d.Five_plus_people = zeros(n)
     # d.I = zeros(n) # 12
     # 13
     d.f_0_15  = zeros(n)
@@ -274,11 +280,11 @@ function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d.m_35_49 = zeros(n)
     d.m_50_64 = zeros(n)
     d.m_65plus = zeros(n)
-    # d.working = zeros(n)
+    d.working = zeros(n)
     d.economically_active_employee  = zeros(n)
     d.economically_active_self_employed  = zeros(n)
-    d.economically_active_unemployed  = zeros(n)
-    # d.Soc_Managers_Directors_and_Senior_Officials=zeros(n)
+    d.economically_inactive  = zeros(n)
+    d.Soc_Managers_Directors_and_Senior_Officials=zeros(n)
     d.Soc_Professional_Occupations = zeros(n)	#	83	% all in employment who are - 2: professional occupations (SOC2010)
     d.Soc_Associate_Prof_and_Technical_Occupations = zeros(n)	#	84	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
     d.Soc_Admin_and_Secretarial_Occupations = zeros(n)	#	85	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
@@ -287,17 +293,16 @@ function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d.Soc_Sales_and_Customer_Service = zeros(n)	#	88	% all in employment who are - 7: sales and customer service occupations (SOC2010)
     d.Soc_Process_Plant_and_Machine_Operatives = zeros(n)  	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
     d.Soc_Elementary_Occupations = zeros(n)    #   90  % all in employment who are - 9: elementary occupations (SOC2010) 
-    # owner_occupied = zeros(n),
+    d.owned_outright = zeros(n)
     d.all_mortgaged = zeros(n)
     d.socially_rented = zeros(n)
     d.private_rented_rent_free = zeros(n)
-    # detached
+    d.detached = zeros(n)
     d.semi_detached = zeros(n)
     d.terraced = zeros(n)
     d.flat_or_maisonette = zeros(n)
-    d.converted_flat = zeros(n)
-    d.other_accom = zeros(n)
-    # one bedroom
+    d.converted_flat_or_other= zeros(n)
+    d.bedrooms_1 = zeros(n)
     d.bedrooms_2 = zeros(n)
     d.bedrooms_3 = zeros(n)
     d.bedrooms_4_plus = zeros(n)
@@ -331,9 +336,9 @@ function make_model_dataframe_row!(
     end
     hsize = num_people(hh)
     if hsize == 1
-        #
+        row.One_person = 1
     elseif hsize == 2
-        # row.Two_people = 1
+        row.Two_people = 1
     elseif hsize == 3
         row.Three_people = 1
     elseif hsize == 4
@@ -342,7 +347,7 @@ function make_model_dataframe_row!(
         row.Five_plus_people = 1
     end
     if hh.ct_band == Band_A
-        #  row.A = 1
+        row.A = 1
     elseif hh.ct_band == Band_B
         row.B = 1
     elseif hh.ct_band == Band_C
@@ -361,7 +366,7 @@ function make_model_dataframe_row!(
         @assert false "wrong band I for hh=$(hh.hid)"
         # row.I = 1
     else hh.ct_band == Household_not_valued_separately
-        # row.A = 1 # DODGY!! FIXME
+        row.A = 1 # DODGY!! FIXME
         #
         # @assert false "NO CT BAND"
     end
@@ -397,73 +402,68 @@ function make_model_dataframe_row!(
             end
         end # female
         # drop inactive 
-        if pers.employment_status in [Full_time_Employee, Part_time_Employee]
-            row.economically_active_employee += 1
-            # row.working += 1
-        elseif pers.employment_status in [
-            Full_time_Self_Employed,
-            Part_time_Self_Employed ]
-            # row.working += 1
-            row.economically_active_self_employed += 1
-        elseif pers.employment_status in [Unemployed]
-            row.economically_active_unemployed += 1
-        end
-        if pers.employment_status in [
+        if ! pers.is_standard_child 
+            if pers.employment_status in [Full_time_Employee, Part_time_Employee]
+                row.economically_active_employee += 1
+                row.working += 1
+            elseif pers.employment_status in [
+                Full_time_Self_Employed,
+                Part_time_Self_Employed ]
+                row.working += 1
+                row.economically_active_self_employed += 1
+            elseif pers.employment_status !== Unemployed
+                row.economically_inactive += 1
+            end
+            if pers.years_in_full_time_work > 0 # no children or people who've never been in work
+                p = pers.occupational_classification      
+                @assert p in [
+                    Undefined_SOC, ## THIS SHOULD NEVER HAPPEN, but does
+                    Managers_Directors_and_Senior_Officials,
+                    Professional_Occupations,
+                    Associate_Prof_and_Technical_Occupations,
+                    Admin_and_Secretarial_Occupations,
+                    Skilled_Trades_Occupations,
+                    Caring_leisure_and_other_service_occupations,
+                    Sales_and_Customer_Service,
+                    Process_Plant_and_Machine_Operatives,
+                    Elementary_Occupations] "$p not recognised hhld $(hh.hid) $(hh.data_year) pid $(pers.pid)"
+                # FIXME HACK
+                if p == Undefined_SOC
+                    # println( "undefined soc for working person pid $(pers.pid)")
+                    p = rand( [ 
+                    Professional_Occupations,
+                    Associate_Prof_and_Technical_Occupations,
+                    Admin_and_Secretarial_Occupations,
+                    Skilled_Trades_Occupations,
+                    Caring_leisure_and_other_service_occupations,
+                    Sales_and_Customer_Service,
+                    Process_Plant_and_Machine_Operatives,
+                    Elementary_Occupations ])
+                end
+                psoc = Symbol( "Soc_$(p)")
+                row[psoc] += 1
+            end # occupation
+            if pers.employment_status in [
                 Full_time_Employee,
                 Part_time_Employee,
                 Full_time_Self_Employed,
                 Part_time_Self_Employed
                 ]      
-            p = pers.occupational_classification      
-            @assert p in [
-                Undefined_SOC, ## THIS SHOULD NEVER HAPPEN, but does
-                Managers_Directors_and_Senior_Officials,
-                Professional_Occupations,
-                Associate_Prof_and_Technical_Occupations,
-                Admin_and_Secretarial_Occupations,
-                Skilled_Trades_Occupations,
-                Caring_leisure_and_other_service_occupations,
-                Sales_and_Customer_Service,
-                Process_Plant_and_Machine_Operatives,
-                Elementary_Occupations] "$p not recognised hhld $(hh.hid) $(hh.data_year) pid $(pers.pid)"
-            # FIXME HACK
-            if p == Undefined_SOC
-                # println( "undefined soc for working person pid $(pers.pid)")
-                p = rand( [ 
-                Professional_Occupations,
-                Associate_Prof_and_Technical_Occupations,
-                Admin_and_Secretarial_Occupations,
-                Skilled_Trades_Occupations,
-                Caring_leisure_and_other_service_occupations,
-                Sales_and_Customer_Service,
-                Process_Plant_and_Machine_Operatives,
-                Elementary_Occupations ])
+                #= TODO
+                pers.sic
+                # d.A_B_D_E_Agriculture_energy_and_water = zeros(n)
+                d.C_Manufacturing = zeros(n)
+                d.F_Construction = zeros(n)
+                d.G_I_Distribution_hotels_and_restaurants = zeros(n)
+                d.H_J_Transport_and_communication = zeros(n)
+                d.K_L_M_N_Financial_real_estate_professional_and_administrative_activities  = zeros(n)
+                d.O_P_Q_Public_administration_education_and_health = zeros(n)
+                =#
             end
-            if p != Managers_Directors_and_Senior_Officials
-                psoc = Symbol( "Soc_$(p)")            
-                row[psoc] += 1
-            end
-        end # occupation
-        if pers.employment_status in [
-            Full_time_Employee,
-            Part_time_Employee,
-            Full_time_Self_Employed,
-            Part_time_Self_Employed
-            ]      
-            #= TODO
-            pers.sic
-            # d.A_B_D_E_Agriculture_energy_and_water = zeros(n)
-            d.C_Manufacturing = zeros(n)
-            d.F_Construction = zeros(n)
-            d.G_I_Distribution_hotels_and_restaurants = zeros(n)
-            d.H_J_Transport_and_communication = zeros(n)
-            d.K_L_M_N_Financial_real_estate_professional_and_administrative_activities  = zeros(n)
-            d.O_P_Q_Public_administration_education_and_health = zeros(n)
-            =#
-        end
+        end # adults 
     end # people loop
     if hh.bedrooms == 1
-        #
+        row.bedrooms_1 = 1
     elseif hh.bedrooms == 2
         row.bedrooms_2 = 1
     elseif hh.bedrooms == 3
@@ -481,21 +481,21 @@ function make_model_dataframe_row!(
     elseif hh.tenure in [Mortgaged_Or_Shared]
         row.all_mortgaged = 1
     elseif hh.tenure == Owned_outright
-        # row.
+        row.owned_outright = 1
     end        
     # dwell_na = -1
     if hh.dwelling == detatched
-        # 
+        row.detached = 1
     elseif hh.dwelling == semi_detached
         row.semi_detached = 1
     elseif hh.dwelling == terraced
         row.terraced = 1
     elseif hh.dwelling == flat_or_maisonette
         row.flat_or_maisonette = 1
-    elseif hh.dwelling == converted_flat
-        row.converted_flat = 1
-    else 
-        row.other_accom = 1
+    else # if hh.dwelling == converted_flat merge other with flat conversion since it's often way out
+        row.converted_flat_or_other= 1
+    # else 
+    #     row.other_accom = 1
     end
 end # proc
 
@@ -514,24 +514,13 @@ function make_target_list_2024(
     v.single_parent = all_council_data.single_parent
     v.single_family = all_council_data.single_family
     v.multi_family = all_council_data.multi_family  
-    if( INCLUDE_HCOMP in which_included)||length(which_included) == 0
-        push!( included_fields, :single_person ) 
-        push!( included_fields, :single_parent ) 
-        push!( included_fields, :single_family ) 
-        push!( included_fields, :multi_family )     
-    end
-    # v.Two_people = all_council_data.Two_people
+    v.One_person = all_council_data.One_person
+    v.Two_people = all_council_data.Two_people
     v.Three_people = all_council_data.Three_people
     v.Four_people = all_council_data.Four_people
     v.Five_plus_people  = all_council_data.Five_plus_people
-    if (INCLUDE_HH_SIZE in which_included)||isempty(which_included)
-        # one person
-        # push!( included_fields, :Two_people )
-        push!( included_fields, :Three_people )
-        push!( included_fields, :Four_people )
-        push!( included_fields, :Five_plus_people  )
-    end
-    scale = all_council_data.total_cts/all_council_data.total_hhlds # since total cts is always a bit smaller as total hhlds
+    scale = all_council_data.total_hhlds/all_council_data.total_cts # since total cts is always a bit smaller as total hhlds
+    v.A = all_council_data.A*scale
     v.B = all_council_data.B*scale
     v.C = all_council_data.C*scale
     v.D = all_council_data.D*scale
@@ -539,15 +528,7 @@ function make_target_list_2024(
     v.F = all_council_data.F*scale
     v.G = all_council_data.G*scale
     v.H = all_council_data.H*scale
-    if(INCLUDE_CT in which_included)||isempty(which_included)
-        push!( included_fields, :B ) 
-        push!( included_fields, :C ) 
-        push!( included_fields, :D ) 
-        push!( included_fields, :E ) 
-        push!( included_fields, :F ) 
-        push!( included_fields, :G ) 
-        push!( included_fields, :H ) 
-    end
+    
     # sums to all people
     v.f_0_15  = all_council_data.f_0_15 
     v.f_16_24  = all_council_data.f_16_24 
@@ -561,29 +542,12 @@ function make_target_list_2024(
     v.m_35_49 = all_council_data.m_35_49
     v.m_50_64 = all_council_data.m_50_64
     v.m_65plus = all_council_data.m_65plus
-    push!( included_fields, :f_0_15  )
-    push!( included_fields, :f_16_24  )
-    push!( included_fields, :f_25_34  )
-    push!( included_fields, :f_35_49 )
-    push!( included_fields, :f_50_64 )
-    push!( included_fields, :f_65plus )
-    push!( included_fields, :m_0_15 )
-    push!( included_fields, :m_16_24 )
-    push!( included_fields, :m_25_34 )
-    push!( included_fields, :m_35_49 )
-    push!( included_fields, :m_50_64 )
-    push!( included_fields, :m_65plus )
+    v.working = all_council_data.working
     # these sum to all adults 
     v.economically_active_employee  = all_council_data.economically_active_employee 
     v.economically_active_self_employed  = all_council_data.economically_active_self_employed 
-    v.economically_active_unemployed  = all_council_data.economically_active_unemployed 
-    if(INCLUDE_EMPLOYMENT in which_included)||isempty(which_included)
-        push!( included_fields, :economically_active_employee  )
-        push!( included_fields, :economically_active_self_employed  )
-        push!( included_fields, :economically_active_unemployed  )
-    # v.working  = all_council_data.working
-    end
-        # v.Soc_Managers_Directors_and_Senior_Officials = all_council_data.Soc_Managers_Directors_and_Senior_Officials
+    v.economically_inactive  = all_council_data.economically_inactive 
+    v.Soc_Managers_Directors_and_Senior_Officials = all_council_data.Soc_Managers_Directors_and_Senior_Officials
     v.Soc_Professional_Occupations = all_council_data.Soc_Professional_Occupations
     v.Soc_Associate_Prof_and_Technical_Occupations = all_council_data.Soc_Associate_Prof_and_Technical_Occupations
     v.Soc_Admin_and_Secretarial_Occupations = all_council_data.Soc_Admin_and_Secretarial_Occupations
@@ -592,48 +556,23 @@ function make_target_list_2024(
     v.Soc_Sales_and_Customer_Service = all_council_data.Soc_Sales_and_Customer_Service
     v.Soc_Process_Plant_and_Machine_Operatives = all_council_data.Soc_Process_Plant_and_Machine_Operatives
     v.Soc_Elementary_Occupations = all_council_data.Soc_Elementary_Occupations
-    if(INCLUDE_OCCUP in which_included)||length(which_included) == 0
-        # v.Soc_Managers_Directors_and_Senior_Officials = all_council_data.Soc_Managers_Directors_and_Senior_Officials
-        push!( included_fields, :Soc_Professional_Occupations )
-        push!( included_fields, :Soc_Associate_Prof_and_Technical_Occupations )
-        push!( included_fields, :Soc_Admin_and_Secretarial_Occupations )
-        push!( included_fields, :Soc_Skilled_Trades_Occupations )
-        push!( included_fields, :Soc_Caring_leisure_and_other_service_occupations )
-        push!( included_fields, :Soc_Sales_and_Customer_Service )
-        push!( included_fields, :Soc_Process_Plant_and_Machine_Operatives )
-        push!( included_fields, :Soc_Elementary_Occupations )
-    end
+    v.bedrooms_1 = all_council_data.bedrooms_1
     v.bedrooms_2 = all_council_data.bedrooms_2
     v.bedrooms_3 = all_council_data.bedrooms_3
     v.bedrooms_4_plus = all_council_data.bedrooms_4_plus
-    if(INCLUDE_BEDROOMS in which_included)||isempty(which_included)
-        # one bedroom
-        push!( included_fields, :bedrooms_2 )
-        push!( included_fields, :bedrooms_3 )
-        push!( included_fields, :bedrooms_4_plus )
-    end
 
-    v.all_mortgaged = all_council_data.all_mortgaged
-    v.socially_rented = all_council_data.socially_rented
-    v.private_rented_rent_free = all_council_data.private_rented_rent_free
+    scale2 = all_council_data.total_hhlds/all_council_data.total_tenures # since total TENures is always a bit smaller as total hhlds
+    v.owned_outright = all_council_data.owned_outright*scale2
+    v.all_mortgaged = all_council_data.all_mortgaged*scale2
+    v.socially_rented = all_council_data.socially_rented*scale2
+    v.private_rented_rent_free = all_council_data.private_rented_rent_free*scale2
     # detached
+    v.detached = all_council_data.detached
     v.semi_detached = all_council_data.semi_detached
     v.terraced = all_council_data.terraced
     v.flat_or_maisonette = all_council_data.flat_or_maisonette
-    v.converted_flat = all_council_data.converted_flat
-    v.other_accom = all_council_data.other_accom
-    if(INCLUDE_HOUSING in which_included)||isempty(which_included)
-        # owner_occupied
-        push!( included_fields, :all_mortgaged )
-        push!( included_fields, :socially_rented )
-        push!( included_fields, :private_rented_rent_free )
-        # detached
-        push!( included_fields, :semi_detached )
-        push!( included_fields, :terraced )
-        push!( included_fields, :flat_or_maisonette )
-        push!( included_fields, :converted_flat )
-        push!( included_fields, :other_accom )
-    end
+    v.converted_flat_or_other = all_council_data.converted_flat_or_other
+    # v.other_accom = all_council_data.other_accom
     #= TODO
     v.C_Manufacturing = all_council_data.C_Manufacturing
     v.F_Construction = all_council_data.F_Construction
@@ -651,10 +590,80 @@ function make_target_list_2024(
         push!( included_fields, :O_P_Q_Public_administration_education_and_health )
     end
     =#
+    # FIXME to own function 
+    if( INCLUDE_HCOMP in which_included)||length(which_included) == 0
+        push!( included_fields, :single_person ) 
+        # push!( included_fields, :single_parent ) 
+        push!( included_fields, :single_family ) 
+        push!( included_fields, :multi_family )     
+    end
+    push!( included_fields, :f_0_15  )
+    push!( included_fields, :f_16_24  )
+    push!( included_fields, :f_25_34  )
+    push!( included_fields, :f_35_49 )
+    push!( included_fields, :f_50_64 )
+    push!( included_fields, :f_65plus )
+    push!( included_fields, :m_0_15 )
+    push!( included_fields, :m_16_24 )
+    push!( included_fields, :m_25_34 )
+    push!( included_fields, :m_35_49 )
+    push!( included_fields, :m_50_64 )
+    push!( included_fields, :m_65plus )
+    if(INCLUDE_EMPLOYMENT in which_included)||isempty(which_included)
+        push!( included_fields, :economically_active_employee  ) # collinear with sum if occupation?
+        push!( included_fields, :economically_active_self_employed  )
+        # push!( included_fields, :economically_inactive  )
+    end
+    if(INCLUDE_CT in which_included)||isempty(which_included)
+        push!( included_fields, :A ) 
+        push!( included_fields, :B ) 
+        push!( included_fields, :C ) 
+        push!( included_fields, :D ) 
+        push!( included_fields, :E ) 
+        push!( included_fields, :F ) 
+        push!( included_fields, :G ) 
+        push!( included_fields, :H ) 
+    end
+    if (INCLUDE_HH_SIZE in which_included)||isempty(which_included)
+        # one person
+        # push!( included_fields, :Two_people )
+        push!( included_fields, :Three_people )
+        push!( included_fields, :Four_people )
+        push!( included_fields, :Five_plus_people  )
+    end
+    if(INCLUDE_OCCUP in which_included)||length(which_included) == 0
+        push!( included_fields, :Soc_Managers_Directors_and_Senior_Officials )
+        push!( included_fields, :Soc_Professional_Occupations )
+        push!( included_fields, :Soc_Associate_Prof_and_Technical_Occupations )
+        push!( included_fields, :Soc_Admin_and_Secretarial_Occupations )
+        push!( included_fields, :Soc_Skilled_Trades_Occupations )
+        push!( included_fields, :Soc_Caring_leisure_and_other_service_occupations )
+        push!( included_fields, :Soc_Sales_and_Customer_Service )
+        push!( included_fields, :Soc_Process_Plant_and_Machine_Operatives )
+        push!( included_fields, :Soc_Elementary_Occupations )
+    end
+    if(INCLUDE_BEDROOMS in which_included)||isempty(which_included)
+        # one bedroom
+        push!( included_fields, :bedrooms_2 )
+        push!( included_fields, :bedrooms_3 )
+        push!( included_fields, :bedrooms_4_plus )
+    end
+    if(INCLUDE_HOUSING in which_included)||isempty(which_included)
+        # owner_occupied
+        push!( included_fields, :all_mortgaged )
+        push!( included_fields, :socially_rented )
+        push!( included_fields, :private_rented_rent_free )
+        # detached
+        push!( included_fields, :semi_detached )
+        push!( included_fields, :terraced )
+        push!( included_fields, :flat_or_maisonette )
+        push!( included_fields, :converted_flat_or_other )
+    end
+
     av = copy(v)
     println( typeof(v))
     select!( df, included_fields )
-    return v,included_fields
+    return v,included_fields,av
 end
 
 
