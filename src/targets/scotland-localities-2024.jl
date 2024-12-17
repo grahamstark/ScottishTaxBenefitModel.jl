@@ -20,7 +20,7 @@ Very, very ad-hoc code to munge together a bunch of Census Scotland datafiles in
 single dataframe.
 """
 function read_all_scot_2024( file_dir :: AbstractString )::Tuple
-    fs = sort(reafile_dir( file_dir, join=true ))
+    fs = sort(readdir( file_dir, join=true ))
     n = 0
     merged_census_files = nothing
     rows = 0
@@ -195,7 +195,7 @@ function load_census_2024()
             "Band_G" => "G",
             "Band_H" => "H"])
             
-        merged_census_files,labels,individual_datasets = read_all_scot_2024()
+        # merged_census_files,labels,individual_datasets = read_all_scot_2024()
 
         ctbase=CSV.File(joinpath( file_dir, "CTAXBASE+2024+-+Tables+-+Chargeable+Dwellings.csv"),normalizenames=true)|>DataFrame
         merged_census_files = hcat( merged_census_files, ctbase; makeunique=true )
@@ -222,6 +222,22 @@ function load_census_2024()
 end
 
 """
+No idea how this works, but it does.
+see: https://discourse.julialang.org/t/how-to-remove-specific-collumn-from-modelframe-statsmodels-jl/106864/5?u=grahamstark
+"""
+function near_collinear_cols( m :: Matrix)
+    qrd = qr(m'm)
+    return findall(x-> abs(x) < 1e-8, diag(qrd.R))
+end
+
+function near_collinear_cols( d :: DataFrame )::Vector
+    m = Matrix(d)
+    nms = names(d)
+    grps = near_collinear_cols(m)
+    return nms[grps]
+end 
+
+"""
 Create a dataframe with num_households length zeroed entries and all possible
 weighting fields.
 """
@@ -229,8 +245,13 @@ function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d = DataFrame()
     d.single_person = zeros(n) #1
     d.single_parent = zeros(n) # 2
-    # d.single_family = zeros(n) # 3
+    d.single_family = zeros(n) # 3
     d.multi_family = zeros(n) # 4
+    # one person
+    # d.Two_people = zeros(n) -- snce 1 person==single person 
+    d.Three_people = zeros(n)
+    d.Four_people = zeros(n)
+    d.Five_plus_people = zeros(n)
     # d.A = zeros(n) #7
     d.B = zeros(n) #5
     d.C = zeros(n) #6
@@ -281,20 +302,14 @@ function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d.bedrooms_3 = zeros(n)
     d.bedrooms_4_plus = zeros(n)
     # d.A_B_D_E_Agriculture_energy_and_water = zeros(n)
+    #= TODO 
     d.C_Manufacturing = zeros(n)
     d.F_Construction = zeros(n)
     d.G_I_Distribution_hotels_and_restaurants = zeros(n)
     d.H_J_Transport_and_communication = zeros(n)
     d.K_L_M_N_Financial_real_estate_professional_and_administrative_activities  = zeros(n)
     d.O_P_Q_Public_administration_education_and_health = zeros(n)
-    # one person
-    d.Two_people = zeros(n)
-    d.Three_people = zeros(n)
-    d.Four_people = zeros(n)
-    d.Five_plus_people = zeros(n)
-    # d.Six_people = zeros(n)
-    # d.Seven_people = zeros(n)
-    # d.Eight_or_more_people = zeros(n)
+    =#
     return d    
 end
 
@@ -314,10 +329,11 @@ function make_model_dataframe_row!(
     else
         row.single_family = 1 
     end
+    hsize = num_people(hh)
     if hsize == 1
         #
     elseif hsize == 2
-        row.Two_people = 1
+        # row.Two_people = 1
     elseif hsize == 3
         row.Three_people = 1
     elseif hsize == 4
@@ -481,7 +497,6 @@ function make_model_dataframe_row!(
     else 
         row.other_accom = 1
     end
-    hsize = num_people(hh)
 end # proc
 
 """
@@ -492,30 +507,31 @@ function make_target_list_2024(
     which_included = INCLUDE_ALL )::Tuple 
 
     included_fields = []
-    v = initialise_model_dataframe_scotland_la(1)[1,:] # a single row
+    df = initialise_model_dataframe_scotland_la(1)# a single row
+    v = df[1,:]
     # sums to all households
     v.single_person = all_council_data.single_person
     v.single_parent = all_council_data.single_parent
     v.single_family = all_council_data.single_family
     v.multi_family = all_council_data.multi_family  
-    if INCLUDE_HCOMP in which_included
+    if( INCLUDE_HCOMP in which_included)||length(which_included) == 0
         push!( included_fields, :single_person ) 
         push!( included_fields, :single_parent ) 
         push!( included_fields, :single_family ) 
         push!( included_fields, :multi_family )     
     end
-    v.Two_people = all_council_data.Two_people
+    # v.Two_people = all_council_data.Two_people
     v.Three_people = all_council_data.Three_people
     v.Four_people = all_council_data.Four_people
     v.Five_plus_people  = all_council_data.Five_plus_people
-    if INCLUDE_HH_SIZE in which_included
+    if (INCLUDE_HH_SIZE in which_included)||isempty(which_included)
         # one person
-        push!( included_fields, :Two_people )
+        # push!( included_fields, :Two_people )
         push!( included_fields, :Three_people )
         push!( included_fields, :Four_people )
         push!( included_fields, :Five_plus_people  )
     end
-    scale = all_council_data.total_cts/data.total_hhlds # since total cts is always a bit smaller as total hhlds
+    scale = all_council_data.total_cts/all_council_data.total_hhlds # since total cts is always a bit smaller as total hhlds
     v.B = all_council_data.B*scale
     v.C = all_council_data.C*scale
     v.D = all_council_data.D*scale
@@ -523,7 +539,7 @@ function make_target_list_2024(
     v.F = all_council_data.F*scale
     v.G = all_council_data.G*scale
     v.H = all_council_data.H*scale
-    if INCLUDE_CT in which_included
+    if(INCLUDE_CT in which_included)||isempty(which_included)
         push!( included_fields, :B ) 
         push!( included_fields, :C ) 
         push!( included_fields, :D ) 
@@ -561,7 +577,7 @@ function make_target_list_2024(
     v.economically_active_employee  = all_council_data.economically_active_employee 
     v.economically_active_self_employed  = all_council_data.economically_active_self_employed 
     v.economically_active_unemployed  = all_council_data.economically_active_unemployed 
-    if INCLUDE_EMPLOYMENT in which_included
+    if(INCLUDE_EMPLOYMENT in which_included)||isempty(which_included)
         push!( included_fields, :economically_active_employee  )
         push!( included_fields, :economically_active_self_employed  )
         push!( included_fields, :economically_active_unemployed  )
@@ -576,7 +592,7 @@ function make_target_list_2024(
     v.Soc_Sales_and_Customer_Service = all_council_data.Soc_Sales_and_Customer_Service
     v.Soc_Process_Plant_and_Machine_Operatives = all_council_data.Soc_Process_Plant_and_Machine_Operatives
     v.Soc_Elementary_Occupations = all_council_data.Soc_Elementary_Occupations
-    if INCLUDE_OCCUP in which_included
+    if(INCLUDE_OCCUP in which_included)||length(which_included) == 0
         # v.Soc_Managers_Directors_and_Senior_Officials = all_council_data.Soc_Managers_Directors_and_Senior_Officials
         push!( included_fields, :Soc_Professional_Occupations )
         push!( included_fields, :Soc_Associate_Prof_and_Technical_Occupations )
@@ -590,7 +606,7 @@ function make_target_list_2024(
     v.bedrooms_2 = all_council_data.bedrooms_2
     v.bedrooms_3 = all_council_data.bedrooms_3
     v.bedrooms_4_plus = all_council_data.bedrooms_4_plus
-    if INCLUDE_BEDROOMS in which_included
+    if(INCLUDE_BEDROOMS in which_included)||isempty(which_included)
         # one bedroom
         push!( included_fields, :bedrooms_2 )
         push!( included_fields, :bedrooms_3 )
@@ -606,7 +622,7 @@ function make_target_list_2024(
     v.flat_or_maisonette = all_council_data.flat_or_maisonette
     v.converted_flat = all_council_data.converted_flat
     v.other_accom = all_council_data.other_accom
-    if INCLUDE_HOUSING in which_included
+    if(INCLUDE_HOUSING in which_included)||isempty(which_included)
         # owner_occupied
         push!( included_fields, :all_mortgaged )
         push!( included_fields, :socially_rented )
@@ -618,13 +634,14 @@ function make_target_list_2024(
         push!( included_fields, :converted_flat )
         push!( included_fields, :other_accom )
     end
+    #= TODO
     v.C_Manufacturing = all_council_data.C_Manufacturing
     v.F_Construction = all_council_data.F_Construction
     v.G_I_Distribution_hotels_and_restaurants = all_council_data.G_I_Distribution_hotels_and_restaurants
     v.H_J_Transport_and_communication = all_council_data.H_J_Transport_and_communication
     v.K_L_M_N_Financial_real_estate_professional_and_administrative_activities  = all_council_data.K_L_M_N_Financial_real_estate_professional_and_administrative_activities 
     v.O_P_Q_Public_administration_education_and_health = all_council_data.O_P_Q_Public_administration_education_and_health
-    if INCLUDE_INDUSTRY in which_included
+    if(INCLUDE_INDUSTRY in which_included)||isempty(which_included)
         # v.A_B_D_E_Agriculture_energy_and_water = all_council_data.A_B_D_E_Agriculture_energy_and_water
         push!( included_fields, :C_Manufacturing )
         push!( included_fields, :F_Construction )
@@ -633,9 +650,11 @@ function make_target_list_2024(
         push!( included_fields, :K_L_M_N_Financial_real_estate_professional_and_administrative_activities  )
         push!( included_fields, :O_P_Q_Public_administration_education_and_health )
     end
+    =#
     av = copy(v)
-    select!( av, included_fields )
-    return v,av
+    println( typeof(v))
+    select!( df, included_fields )
+    return v,included_fields
 end
 
 
