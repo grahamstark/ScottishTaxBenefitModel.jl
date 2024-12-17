@@ -2,6 +2,45 @@
 An include file that helps with generating 2024 local authority
 weights using a bunch of Census Scotland datafiles downloaded in Dec 2024.
 """
+#= MEMO
+ Row │ Authority              authority_code 
+     │ String?                Symbol         
+─────┼───────────────────────────────────────
+   1 │ Aberdeen City          S12000033
+   2 │ Aberdeenshire          S12000034
+   3 │ Angus                  S12000041
+   4 │ Argyll and Bute        S12000035
+   5 │ City of Edinburgh      S12000036
+   6 │ Clackmannanshire       S12000005
+   7 │ Dumfries and Galloway  S12000006
+   8 │ Dundee City            S12000042
+   9 │ East Ayrshire          S12000008
+  10 │ East Dunbartonshire    S12000045
+  11 │ East Lothian           S12000010
+  12 │ East Renfrewshire      S12000011
+  13 │ Falkirk                S12000014
+  14 │ Fife                   S12000047
+  15 │ Glasgow City           S12000049
+  16 │ Highland               S12000017
+  17 │ Inverclyde             S12000018
+  18 │ Midlothian             S12000019
+  19 │ Moray                  S12000020
+  20 │ Na h-Eileanan Siar     S12000013
+  21 │ North Ayrshire         S12000021
+  22 │ North Lanarkshire      S12000050
+  23 │ Orkney Islands         S12000023
+  24 │ Perth and Kinross      S12000048
+  25 │ Renfrewshire           S12000038
+  26 │ Scottish Borders       S12000026
+  27 │ Shetland Islands       S12000027
+  28 │ South Ayrshire         S12000028
+  29 │ South Lanarkshire      S12000029
+  30 │ Stirling               S12000030
+  31 │ West Dunbartonshire    S12000039
+  32 │ West Lothian           S12000040
+  33 │ Total                  S92000003
+
+=#
 
 function read_census_file(filename::String)::Tuple
     d = (CSV.File( filename; normalizenames=true, header=10, skipto=12)|>DataFrame)
@@ -214,6 +253,9 @@ function load_census_2024()
             merged_census_files.socially_rented +
             merged_census_files.owned_outright
         
+        merged_census_files.A_C = merged_census_files.A + merged_census_files.B + merged_census_files.C
+        merged_census_files.E_H = merged_census_files.E + merged_census_files.F + merged_census_files.G + merged_census_files.H
+        
 
         merged_census_files.Five_plus_people = merged_census_files.Five_people +
                 merged_census_files.Six_people +
@@ -257,6 +299,9 @@ function initialise_model_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d.F = zeros(n) #9
     d.G = zeros(n) # 10
     d.H = zeros(n) # 11
+    d.A_C = zeros(n)
+    d.E_H = zeros(n) 
+
     d.single_person = zeros(n) 
     d.single_parent = zeros(n) 
     d.single_family = zeros(n) 
@@ -348,20 +393,27 @@ function make_model_dataframe_row!(
     end
     if hh.ct_band == Band_A
         row.A = 1
+        row.A_C = 1
     elseif hh.ct_band == Band_B
         row.B = 1
+        row.A_C = 1
     elseif hh.ct_band == Band_C
         row.C = 1
+        row.A_C = 1
     elseif hh.ct_band == Band_D
         row.D = 1
     elseif hh.ct_band == Band_E
         row.E = 1
+        row.E_H = 1
     elseif hh.ct_band == Band_F
         row.F = 1
+        row.E_H = 1
     elseif hh.ct_band == Band_G
         row.G = 1
+        row.E_H = 1
     elseif hh.ct_band == Band_H
         row.H = 1
+        row.E_H = 1
     elseif hh.ct_band == Band_I
         @assert false "wrong band I for hh=$(hh.hid)"
         # row.I = 1
@@ -528,6 +580,8 @@ function make_target_list_2024(
     v.F = all_council_data.F*scale
     v.G = all_council_data.G*scale
     v.H = all_council_data.H*scale
+    v.E_H = all_council_data.E_H*scale
+    v.A_C = all_council_data.A_C*scale
     
     # sums to all people
     v.f_0_15  = all_council_data.f_0_15 
@@ -580,7 +634,7 @@ function make_target_list_2024(
     v.H_J_Transport_and_communication = all_council_data.H_J_Transport_and_communication
     v.K_L_M_N_Financial_real_estate_professional_and_administrative_activities  = all_council_data.K_L_M_N_Financial_real_estate_professional_and_administrative_activities 
     v.O_P_Q_Public_administration_education_and_health = all_council_data.O_P_Q_Public_administration_education_and_health
-    if(INCLUDE_INDUSTRY in which_included)||isempty(which_included)
+    if(INCLUDE_INDUSTRY in which_included)
         # v.A_B_D_E_Agriculture_energy_and_water = all_council_data.A_B_D_E_Agriculture_energy_and_water
         push!( included_fields, :C_Manufacturing )
         push!( included_fields, :F_Construction )
@@ -591,7 +645,7 @@ function make_target_list_2024(
     end
     =#
     # FIXME to own function 
-    if( INCLUDE_HCOMP in which_included)||length(which_included) == 0
+    if( INCLUDE_HCOMP in which_included)
         push!( included_fields, :single_person ) 
         # push!( included_fields, :single_parent ) 
         push!( included_fields, :single_family ) 
@@ -609,12 +663,12 @@ function make_target_list_2024(
     push!( included_fields, :m_35_49 )
     push!( included_fields, :m_50_64 )
     push!( included_fields, :m_65plus )
-    if(INCLUDE_EMPLOYMENT in which_included)||isempty(which_included)
+    if(INCLUDE_EMPLOYMENT in which_included)
         push!( included_fields, :economically_active_employee  ) # collinear with sum if occupation?
         push!( included_fields, :economically_active_self_employed  )
         # push!( included_fields, :economically_inactive  )
     end
-    if(INCLUDE_CT in which_included)||isempty(which_included)
+    if(INCLUDE_CT in which_included)
         push!( included_fields, :A ) 
         push!( included_fields, :B ) 
         push!( included_fields, :C ) 
@@ -623,15 +677,19 @@ function make_target_list_2024(
         push!( included_fields, :F ) 
         push!( included_fields, :G ) 
         push!( included_fields, :H ) 
+    elseif INCLUDE_BROAD_CT in which_included
+        push!( included_fields, :A_C ) 
+        push!( included_fields, :D ) 
+        push!( included_fields, :E_H )         
     end
-    if (INCLUDE_HH_SIZE in which_included)||isempty(which_included)
+    if (INCLUDE_HH_SIZE in which_included)
         # one person
         # push!( included_fields, :Two_people )
         push!( included_fields, :Three_people )
         push!( included_fields, :Four_people )
         push!( included_fields, :Five_plus_people  )
     end
-    if(INCLUDE_OCCUP in which_included)||length(which_included) == 0
+    if(INCLUDE_OCCUP in which_included)
         push!( included_fields, :Soc_Managers_Directors_and_Senior_Officials )
         push!( included_fields, :Soc_Professional_Occupations )
         push!( included_fields, :Soc_Associate_Prof_and_Technical_Occupations )
@@ -642,13 +700,13 @@ function make_target_list_2024(
         push!( included_fields, :Soc_Process_Plant_and_Machine_Operatives )
         push!( included_fields, :Soc_Elementary_Occupations )
     end
-    if(INCLUDE_BEDROOMS in which_included)||isempty(which_included)
+    if(INCLUDE_BEDROOMS in which_included)
         # one bedroom
         push!( included_fields, :bedrooms_2 )
         push!( included_fields, :bedrooms_3 )
         push!( included_fields, :bedrooms_4_plus )
     end
-    if(INCLUDE_HOUSING in which_included)||isempty(which_included)
+    if(INCLUDE_HOUSING in which_included)
         # owner_occupied
         push!( included_fields, :all_mortgaged )
         push!( included_fields, :socially_rented )

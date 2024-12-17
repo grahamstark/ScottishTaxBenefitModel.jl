@@ -29,6 +29,7 @@ const INCLUDE_HCOMP = 5
 const INCLUDE_EMPLOYMENT = 6
 const INCLUDE_INDUSTRY = 7
 const INCLUDE_HH_SIZE = 8
+const INCLUDE_BROAD_CT = 9
 
 const INCLUDE_ALL = Set{Integer}(
     [INCLUDE_OCCUP,
@@ -214,9 +215,10 @@ df = LocalWeightGeneration.create_model_dataset(
     LocalWeightGeneration.initialise_model_dataframe_scotland_la, 
     LocalWeightGeneration.make_model_dataframe_row! )
 
-targets = merged_census_files[merged_census_files.authority_code.==:S12000049,:][1,:]
-# :S12000049
-INCLUDES = Set{Integer}([
+targets = merged_census_files[merged_census_files.authority_code.==:S12000050,:][1,:] 
+# :S12000049 S1200001 3S12000027 North Lanarkshire S12000050
+
+const INCLUDES_URBAN = Set{Integer}([
     LocalWeightGeneration.INCLUDE_OCCUP,
     LocalWeightGeneration.INCLUDE_HOUSING,
     LocalWeightGeneration.INCLUDE_BEDROOMS,
@@ -227,15 +229,44 @@ INCLUDES = Set{Integer}([
     # LocalWeightGeneration.INCLUDE_HH_SIZE,
     ])
 
-settings.lower_multiple = 0.10
-settings.upper_multiple = 30.0  
+const INCLUDES_RURAL = Set{Integer}([
+    LocalWeightGeneration.INCLUDE_OCCUP,
+    LocalWeightGeneration.INCLUDE_HOUSING,
+    LocalWeightGeneration.INCLUDE_BEDROOMS,
+    LocalWeightGeneration.INCLUDE_BROAD_CT,
+    LocalWeightGeneration.INCLUDE_HCOMP,
+    LocalWeightGeneration.INCLUDE_EMPLOYMENT,
+    LocalWeightGeneration.INCLUDE_INDUSTRY,
+    # LocalWeightGeneration.INCLUDE_HH_SIZE,
+    ])
+
+const INCLUDES_SEMI_URBAN = Set{Integer}([
+    LocalWeightGeneration.INCLUDE_OCCUP,
+    LocalWeightGeneration.INCLUDE_HOUSING,
+    LocalWeightGeneration.INCLUDE_BEDROOMS,
+    LocalWeightGeneration.INCLUDE_BROAD_CT,
+    LocalWeightGeneration.INCLUDE_HCOMP,
+    LocalWeightGeneration.INCLUDE_EMPLOYMENT,
+    LocalWeightGeneration.INCLUDE_INDUSTRY,
+    # LocalWeightGeneration.INCLUDE_HH_SIZE,
+    ])
+
+urban_settings = Settings()    
+urban_settings.lower_multiple = 0.10
+urban_settings.upper_multiple = 30.0  
+semi_urban_settings = Settings()    
+semi_urban_settings.lower_multiple = 0.05
+semi_urban_settings.upper_multiple = 50.0  
+rural_settings = Settings()    
+rural_settings.lower_multiple = 0.0
+rural_settings.upper_multiple = 100.0  
     
 wts, targetnames, comparisons =weight_to_la( 
-    settings,
+    semi_urban_settings,
     df, 
     targets.total_hhlds,
     targets,
-    INCLUDES )
+    INCLUDES_SEMI_URBAN )
 
 summarystats(wts)
 summarystats( wts[wts.>0])
