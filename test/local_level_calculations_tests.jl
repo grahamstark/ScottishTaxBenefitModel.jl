@@ -445,6 +445,6 @@ end
             d[j,settings.ccode]=dict[k].ratio
         end
     end
-    CSV.write( "/mnt/data/ScotBen/artifacts/scottish-frs-data/local-nomis-frs-wage-relativities.tab", d; delim='\t')
+    # CSV.write( "/mnt/data/ScotBen/artifacts/scottish-frs-data/local-nomis-frs-wage-relativities.tab", d; delim='\t')
     @show d
 end
