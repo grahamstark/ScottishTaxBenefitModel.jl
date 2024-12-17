@@ -19,7 +19,7 @@ using LinearAlgebra
 
 include( joinpath(SRC_DIR,"targets","scotland-localities-2024.jl") )
 
-export weight_to_la, INCLUDE_ALL, create_model_dataset
+export weight_to_la, INCLUDE_ALL, create_model_dataset, create_la_weights
     
 const INCLUDE_OCCUP = 1
 const INCLUDE_HOUSING = 2
@@ -86,11 +86,9 @@ function weight_to_la(
     @show initial_weights[1:20] household_total nhhlds
     pt = summarise_dfs( data, targets, initial_weights )
     pretty_table(pt)
-    # @show diffs
     @show near_collinear_cols( data; tol=1e-9 )
     mdata = Matrix(data)
     vtargets = Vector(targets)
-    # println( "calculating for $code; hh total $hhtotal")
     weights = do_reweighting(
          data               = mdata,
          initial_weights    = initial_weights,
@@ -109,9 +107,7 @@ function weight_to_la(
             @assert weights[r] >= initial_weights[r]*settings.lower_multiple
         end
     end
-    summarystats( weights )
     overallsums = (weights'*Matrix(model_data))' # so, including things ommitted for colinearity - should add more or less back up 
-    @show full_targets
     overall_compare = DataFrame( names = names(model_data), weighted_populations=overallsums, target_populations = collect(values(full_targets)))
     overall_compare.difference = overall_compare.weighted_populations - overall_compare.target_populations
     return weights, tnames, overall_compare
@@ -150,45 +146,6 @@ function create_model_dataset(
     end
     return df
 end
-#= 
- Row │ Authority              authority_code 
-     │ String?                Symbol         
-─────┼───────────────────────────────────────
-   1 │ Aberdeen City          S12000033
-   2 │ Aberdeenshire          S12000034
-   3 │ Angus                  S12000041
-   4 │ Argyll and Bute        S12000035
-   5 │ City of Edinburgh      S12000036
-   6 │ Clackmannanshire       S12000005
-   7 │ Dumfries and Galloway  S12000006
-   8 │ Dundee City            S12000042
-   9 │ East Ayrshire          S12000008
-  10 │ East Dunbartonshire    S12000045
-  11 │ East Lothian           S12000010
-  12 │ East Renfrewshire      S12000011
-  13 │ Falkirk                S12000014
-  14 │ Fife                   S12000047
-  15 │ Glasgow City           S12000049
-  16 │ Highland               S12000017
-  17 │ Inverclyde             S12000018
-  18 │ Midlothian             S12000019
-  19 │ Moray                  S12000020
-  20 │ Na h-Eileanan Siar     S12000013
-  21 │ North Ayrshire         S12000021
-  22 │ North Lanarkshire      S12000050
-  23 │ Orkney Islands         S12000023
-  24 │ Perth and Kinross      S12000048
-  25 │ Renfrewshire           S12000038
-  26 │ Scottish Borders       S12000026
-  27 │ Shetland Islands       S12000027
-  28 │ South Ayrshire         S12000028
-  29 │ South Lanarkshire      S12000029
-  30 │ Stirling               S12000030
-  31 │ West Dunbartonshire    S12000039
-  32 │ West Lothian           S12000040
-  33 │ Total                  S92000003
-
-=#
 
 #=
 
@@ -217,6 +174,7 @@ df = LocalWeightGeneration.create_model_dataset(
 
 targets = merged_census_files[merged_census_files.authority_code.==:S12000050,:][1,:] 
 # :S12000049 S1200001 3S12000027 North Lanarkshire S12000050
+=#
 
 const INCLUDES_URBAN = Set{Integer}([
     LocalWeightGeneration.INCLUDE_OCCUP,
@@ -251,101 +209,76 @@ const INCLUDES_SEMI_URBAN = Set{Integer}([
     # LocalWeightGeneration.INCLUDE_HH_SIZE,
     ])
 
-urban_settings = Settings()    
-urban_settings.lower_multiple = 0.10
-urban_settings.upper_multiple = 30.0  
-semi_urban_settings = Settings()    
-semi_urban_settings.lower_multiple = 0.05
-semi_urban_settings.upper_multiple = 50.0  
-rural_settings = Settings()    
-rural_settings.lower_multiple = 0.0
-rural_settings.upper_multiple = 100.0  
-    
-wts, targetnames, comparisons =weight_to_la( 
-    semi_urban_settings,
-    df, 
-    targets.total_hhlds,
-    targets,
-    INCLUDES_SEMI_URBAN )
+const URBAN = Set([ :S12000036, :S12000042,  :S12000049 ])
+const SEMI_URBAN = Set([:S12000033, :S12000034, :S12000041, :S12000005,:S12000006,:S12000008,
+    :S12000045, :S12000010, :S12000011, :S12000047, :S12000018, :S12000019,
+    :S12000021, :S12000050, :S12000048, :S12000038, :S12000026, :S12000028,
+    :S12000029, :S12000030, :S12000039, :S12000040, :S12000014])
+const RURAL = Set([:S12000035, :S12000017, :S12000020, :S12000013, 
+    :S12000023, :S12000027])
 
-summarystats(wts)
-summarystats( wts[wts.>0])
+#=
+function make_settings(; lower::Number, upper::Number )::Settings
+    settings = Settings()    
+    settings.lower_multiple = lower
+    settings.upper_multiple = upper
+    return settings
+end
 
-pretty_table( comparisons )
-
+const URBAN_SETTINGS = make_settings( lower = 0.1, upper=30.0 )
+const SEMI_URBAN_SETTINGS = make_settings( lower = 0.05, upper=50.0 )
+const RURAL_SETTINGS = make_settings( lower = 0.00, upper=100.0 )
 =#
 
-function create_la_weights( 
-    settings :: Settings,
-    initialise_target_dataframe :: Function,
-    make_target_row! :: Function )
-    @time settings.num_households, settings.num_people, nhh2 = 
-        FRSHouseholdGetter.initialise( settings; reset=false )
-    # initial version for checking
-    hh_dataframe = create_model_dataset(
-        settings.num_households,
-        initialise_target_dataframe_scotland_la,
-        make_model_dataframe_row! )
-
-
-
-    errors = []
-    wides = Set([:S12000013] ) # h-Eileanan Siar""Angus", "East Lothian", "East Renfrewshire", "Renfrewshire", "East Dunbartonshire", "North Ayrshire", "West Dunbartonshire", "Shetland Islands", "Orkney Islands", "Inverclyde", "Midlothian", "Argyll and Bute", "East Ayrshire", "Dundee City", "Na h-Eileanan Siar", "South Lanarkshire", "Clackmannanshire", "West Lothian", "Falkirk", "Moray", "South Ayrshire", "City of Edinburgh", "Aberdeenshire", "North Lanarkshire"])
-    verywides = Set([:S12000010, :S12000019, :S12000011, :S12000035, :S12000045] ) 
-    #"East Lothian", "Midlothian", "East Renfrewshire", "Argyll and Bute", "East Dunbartonshire"])
-    s = Set()
-    settings.lower_multiple = 0.01
-    settings.upper_multiple = 50.0  
-
+function create_la_weights()
+    merged_census_files = load_census_2024()
+    settings = Settings()
+    settings.num_households, settings.num_people = initialise( settings )
     outweights = DataFrame()
-
-    outweights.data_year = zeros(Int,settings.num_households)
-    outweights.hid = zeros(BigInt,settings.num_households)
-    outweights.uhid = zeros(BigInt,settings.num_households)
+    outweights.data_year = zeros(Int, settings.num_households)
+    outweights.hid = zeros(BigInt, settings.num_households)
+    outweights.uhid = zeros(BigInt, settings.num_households)
     for href in 1:settings.num_households
         mhh = get_household( href )
         outweights.uhid[href] = mhh.uhid
         outweights.hid[href] = mhh.hid
         outweights.data_year[href] = mhh.data_year
     end
-
-    for code in allfs.authority_code
-        println( "on $code")
-
-        council_data = all_councils_census[
-            all_councils_census.authority_code .== council,:][1,:]
-            try
-                # FIXME messing with globals for empl, hhsize, which break some authorities
-                if code in verywides
-                #    INCLUDE_EMPLOYMENT = false
-                #    INCLUDE_HH_SIZE = false
-                elseif code in wides     
-                #    INCLUDE_EMPLOYMENT = true
-                #    INCLUDE_HH_SIZE = true
-                #    settings.lower_multiple = 0.001
-                #    settings.upper_multiple = 100.0            
-                else
-                #    INCLUDE_HH_SIZE = true
-                #    INCLUDE_EMPLOYMENT = true            
-                end
-                w = weight_to_la( settings, allfs, code, settings.num_households )
-                println("OK")
-                outweights[!,code] = w
-            catch e
-                println( "error $e")
-                push!( errors, (; e, code ))
-                push!(s, code )
-            end
-
+    df = create_model_dataset( 
+        settings,
+        initialise_model_dataframe_scotland_la, 
+        make_model_dataframe_row! )
+    
+    for row in eachrow( merged_census_files[1:end-1,:] )
+        targets = merged_census_files[merged_census_files.authority_code.==row.authority_code,:][1,:] 
+        println( "targets.Authority=$(targets.Authority)")
+        incls = INCLUDES_RURAL
+        if row.authority_code in RURAL
+            settings.lower_multiple = 0.0
+            settings.upper_multiple = 100.0
+            incls = INCLUDES_RURAL 
+        elseif row.authority_code in SEMI_URBAN 
+            settings.lower_multiple = 0.00
+            settings.upper_multiple = 50.0
+            incls = INCLUDES_SEMI_URBAN
+        elseif row.authority_code in URBAN 
+            settings.lower_multiple = 0.0
+            settings.upper_multiple = 30.0
+            incls = INCLUDES_URBAN
+        else
+            @assert false "missing $(row.authority_code)"
         end
-    end
-    # println( errors )
-    # println(s)
-end 
+        # if row.authority_code == :S12000049
+            wts, targetnames, comparisons = weight_to_la( 
+                settings,
+                df, 
+                targets.total_hhlds,
+                targets,
+                incls )        
+            outweights[!,row.authority_code] = wts
+        # end
+    end # la loop
+    return outweights 
+end # create_la_weights
 
-# CSV.write( joinpath( DDIR, "la-frs-weights-scotland-2024.tab"), outweights; delim='\t')
-
-# weights = CSV.File( joinpath( DDIR, "la-frs-weights-scotland-2024.tab") ) |> DataFrame 
-
-
-
+end # module

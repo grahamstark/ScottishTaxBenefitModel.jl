@@ -335,7 +335,7 @@ end
 
     num_restricted = 0
     bedroom_tax = 0
-    for hhno in 1:num_households
+    for hhno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household( hhno )
         # TODO UPRATE
         if hhno % 500 == 0
@@ -371,7 +371,7 @@ end
     println( by_la[:S12000019][1] )
     value = 0.0
     dwellings = 0.0
-    for hhno in 1:num_households
+    for hhno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household( hhno )
         intermed = make_intermediate( 
             DEFAULT_NUM_TYPE,
@@ -422,21 +422,29 @@ end
 
 @testset "Local reweighing" begin
     n = length(LA_CODES)
-    # settings = Settings()
     settings.do_local_run = true
-   
-    # rc = @timed begin
-    #     settings.num_households,settings.total_num_people,nhh2 = FRSHouseholdGetter.initialise( 
-    #         settings, reset=true )
-    # end
+    d = DataFrame()
+    nkeys = 0
     for i in 1:n
         reset = i==1
         settings.ccode = LA_CODES[i]
         FRSHouseholdGetter.restore()
         @show settings.ccode
         dict = FRSHouseholdGetter.set_local_weights_and_incomes!( settings, reset=false )
-        # println(dict)
-
-    i+= 1
+        # @show dict
+        @show keys(dict)
+        if i == 1
+            d[!,:keys] = collect(keys(dict))
+            nkeys = length(d.keys)
+        end
+        @show d
+        d[!,settings.ccode] = zeros(nkeys)
+        for j in 1:nkeys 
+            k = d.keys[j]
+            @show k
+            d[j,settings.ccode]=dict[k].ratio
+        end
     end
+    CSV.write( "/mnt/data/ScotBen/artifacts/scottish-frs-data/local-nomis-frs-wage-relativities.tab", d; delim='\t')
+    @show d
 end

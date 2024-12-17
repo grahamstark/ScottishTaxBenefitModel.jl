@@ -239,12 +239,12 @@ module FRSHouseholdGetter
             pw.wage = zeros(0)
             pw.popn = zeros(0)
             wd = WeightingData.get_earnings_data(; sex = sex, is_ft = is_ft, council=ccode )
-            @show pw.mean
-            @show wd.Mean
+            #@show pw.mean
+            #@show wd.Mean
             if ! ismissing( wd.Mean )
                 pw.ratio = wd.Mean/pw.mean
             end
-            @show pw.ratio            
+            #@show pw.ratio            
         end
     end
 
@@ -313,15 +313,13 @@ module FRSHouseholdGetter
         return popns
     end
 
-    function set_local_weights_and_incomes!( settings::Settings; reset::Bool)
-        # wsizes = WeightingData.init_local_weights( settings; reset=reset )
+    function set_local_weights_and_incomes!( settings::Settings; reset::Bool)::Dict
         for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
             MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
-            # ?? FIXME fixup nhs area??
             WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
         end
         ratios = fixup_earnings_data!( settings )
-        # .. something to summarise the ratios if very large
+        return ratios
     end
 
     """
