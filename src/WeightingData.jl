@@ -19,6 +19,7 @@ export init, get_weight,LA_CODES,LA_NAMES
 
 mutable struct WS 
     weights::DataFrame
+    incomes::DataFrame
 end 
 
 # la codes in order
@@ -92,8 +93,8 @@ const LA_NAMES = Dict(
     # reverse lookup
 const LA_NAMES_TO_CCODES = Dict( values(LA_NAMES) .=> keys(LA_NAMES))
 
-const WEIGHTS = WS(DataFrame())
-const WEIGHTS_LA = WS(DataFrame())
+const WEIGHTS = WS(DataFrame(),DataFrame())
+const WEIGHTS_LA = WS(DataFrame(),DataFrame())
 const NULL_CC = :""
 NOMIS_WAGE_DATA = Dict{String,DataFrame}()
 
@@ -266,6 +267,31 @@ function set_weight!( hh :: Household, settings::Settings )
         hno = findfirst( (WEIGHTS.weights.hid .== hh.hid).&(WEIGHTS.weights.data_year.== hh.data_year))
         hh.weight = WEIGHTS.weights[hno,:weight]
     end
+end
+
+function init_local_incomes( settings::Settings; reset :: Bool )
+    dataset_artifact = get_data_artifact( settings )
+    if reset || (size( WEIGHTS_LA.incomes ) == (0,0))
+        ifile = joinpath(dataset_artifact,"weights-la.tab")
+        if isfile( wfile )
+            WEIGHTS_LA.incomes = CSV.File( ifile ) |> DataFrame
+        else # reset to zero
+            WEIGHTS_LA.incomes = DataFrame()
+        end
+    end 
+    return size(WEIGHTS_LA.weights)
+end
+
+function update_local_incomes!( hh :: Household, settings::Settings )
+    if settings.do_local_run && (settings.ccode != NULL_CC)
+        if size( WEIGHTS_LA.incomes )==(0,0)
+            init_local_incomes( settings, reset=true )
+        end
+    end
+    for (pid.pers in hh.people
+
+    end
+
 end
 
 end # WeightingData module

@@ -163,50 +163,51 @@ using StatsBase
 using PrettyTables
 using DataFrames
 
-merged_census_files = LocalWeightGeneration.load_census_2024()
+merged_census_files = load_census_2024()
 settings = Settings()
 
 settings.num_households, settings.num_people = FRSHouseholdGetter.initialise( settings )
-df = LocalWeightGeneration.create_model_dataset( 
+df = create_model_dataset( 
     settings,
-    LocalWeightGeneration.initialise_model_dataframe_scotland_la, 
-    LocalWeightGeneration.make_model_dataframe_row! )
+    initialise_model_dataframe_scotland_la, 
+    make_model_dataframe_row! )
 
 targets = merged_census_files[merged_census_files.authority_code.==:S12000050,:][1,:] 
 # :S12000049 S1200001 3S12000027 North Lanarkshire S12000050
 =#
 
+# FIXME replace hcomp & hh_size with a single fancier hh composition variable
 const INCLUDES_URBAN = Set{Integer}([
-    LocalWeightGeneration.INCLUDE_OCCUP,
-    LocalWeightGeneration.INCLUDE_HOUSING,
-    LocalWeightGeneration.INCLUDE_BEDROOMS,
-    LocalWeightGeneration.INCLUDE_CT,
-    LocalWeightGeneration.INCLUDE_HCOMP,
-    LocalWeightGeneration.INCLUDE_EMPLOYMENT,
-    LocalWeightGeneration.INCLUDE_INDUSTRY,
-    # LocalWeightGeneration.INCLUDE_HH_SIZE,
+    INCLUDE_OCCUP,
+    INCLUDE_HOUSING,
+    INCLUDE_BEDROOMS,
+    INCLUDE_CT,
+    INCLUDE_HCOMP,
+    INCLUDE_EMPLOYMENT,
+    INCLUDE_INDUSTRY,
+    # INCLUDE_HH_SIZE,
     ])
 
 const INCLUDES_RURAL = Set{Integer}([
-    LocalWeightGeneration.INCLUDE_OCCUP,
-    LocalWeightGeneration.INCLUDE_HOUSING,
-    LocalWeightGeneration.INCLUDE_BEDROOMS,
-    LocalWeightGeneration.INCLUDE_BROAD_CT,
-    LocalWeightGeneration.INCLUDE_HCOMP,
-    LocalWeightGeneration.INCLUDE_EMPLOYMENT,
-    LocalWeightGeneration.INCLUDE_INDUSTRY,
-    # LocalWeightGeneration.INCLUDE_HH_SIZE,
+    INCLUDE_OCCUP,
+    INCLUDE_HOUSING,
+    INCLUDE_BEDROOMS,
+    INCLUDE_BROAD_CT,
+    INCLUDE_HCOMP,
+    INCLUDE_EMPLOYMENT,
+    INCLUDE_INDUSTRY,
+    # INCLUDE_HH_SIZE,
     ])
 
 const INCLUDES_SEMI_URBAN = Set{Integer}([
-    LocalWeightGeneration.INCLUDE_OCCUP,
-    LocalWeightGeneration.INCLUDE_HOUSING,
-    LocalWeightGeneration.INCLUDE_BEDROOMS,
-    LocalWeightGeneration.INCLUDE_BROAD_CT,
-    LocalWeightGeneration.INCLUDE_HCOMP,
-    LocalWeightGeneration.INCLUDE_EMPLOYMENT,
-    LocalWeightGeneration.INCLUDE_INDUSTRY,
-    # LocalWeightGeneration.INCLUDE_HH_SIZE,
+    INCLUDE_OCCUP,
+    INCLUDE_HOUSING,
+    INCLUDE_BEDROOMS,
+    INCLUDE_BROAD_CT,
+    INCLUDE_HCOMP,
+    INCLUDE_EMPLOYMENT,
+    INCLUDE_INDUSTRY,
+    # INCLUDE_HH_SIZE,
     ])
 
 const URBAN = Set([ :S12000036, :S12000042,  :S12000049 ])
@@ -216,19 +217,6 @@ const SEMI_URBAN = Set([:S12000033, :S12000034, :S12000041, :S12000005,:S1200000
     :S12000029, :S12000030, :S12000039, :S12000040, :S12000014])
 const RURAL = Set([:S12000035, :S12000017, :S12000020, :S12000013, 
     :S12000023, :S12000027])
-
-#=
-function make_settings(; lower::Number, upper::Number )::Settings
-    settings = Settings()    
-    settings.lower_multiple = lower
-    settings.upper_multiple = upper
-    return settings
-end
-
-const URBAN_SETTINGS = make_settings( lower = 0.1, upper=30.0 )
-const SEMI_URBAN_SETTINGS = make_settings( lower = 0.05, upper=50.0 )
-const RURAL_SETTINGS = make_settings( lower = 0.00, upper=100.0 )
-=#
 
 function create_la_weights()
     merged_census_files = load_census_2024()
@@ -268,15 +256,13 @@ function create_la_weights()
         else
             @assert false "missing $(row.authority_code)"
         end
-        # if row.authority_code == :S12000049
-            wts, targetnames, comparisons = weight_to_la( 
-                settings,
-                df, 
-                targets.total_hhlds,
-                targets,
-                incls )        
-            outweights[!,row.authority_code] = wts
-        # end
+        wts, targetnames, comparisons = weight_to_la( 
+            settings,
+            df, 
+            targets.total_hhlds,
+            targets,
+            incls )        
+        outweights[!,row.authority_code] = wts
     end # la loop
     return outweights 
 end # create_la_weights
