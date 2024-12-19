@@ -272,8 +272,8 @@ end
 function init_local_incomes( settings::Settings; reset :: Bool )
     dataset_artifact = get_data_artifact( settings )
     if reset || (size( WEIGHTS_LA.incomes ) == (0,0))
-        ifile = joinpath(dataset_artifact,"weights-la.tab")
-        if isfile( wfile )
+        ifile = joinpath(dataset_artifact,"local-nomis-frs-wage-relativities.tab")
+        if isfile( ifile )
             WEIGHTS_LA.incomes = CSV.File( ifile ) |> DataFrame
         else # reset to zero
             WEIGHTS_LA.incomes = DataFrame()
@@ -288,10 +288,18 @@ function update_local_incomes!( hh :: Household, settings::Settings )
             init_local_incomes( settings, reset=true )
         end
     end
-    for (pid.pers in hh.people
-
+    for (pid,pers) in hh.people
+        if is_working(pers.employment_status)
+            wage = get( pers.income, wages, 0.0 )
+            se = get( pers.income, self_employment_income, 0.0 )
+            ft = pers.employment_status in [Full_time_Employee,
+                Full_time_Self_Employed]
+            k = make_wage_key(; sex = pers.sex, is_ft=ft )
+            inf = WEIGHTS_LA.incomes[WEIGHTS_LA.incomes.keys.==k,settings.ccode ][1,1]
+            pers.income[self_employment_income] = se*inf
+            pers.income[wages] = wage*inf
+        end
     end
-
 end
 
 end # WeightingData module

@@ -252,7 +252,7 @@ module FRSHouseholdGetter
     Make dictionary of wages from the model to match to the LA NOMIS data from WeightingData.jl+
     and use this to adjust average wages to match the ratio between the two.
     """
-    function fixup_earnings_data!( 
+    function create_earnings_ratios( 
         settings :: Settings )::Dict
         popns = Dict{String,PopAndWage}()
         for sex in [Male,Female,nothing]
@@ -287,6 +287,7 @@ module FRSHouseholdGetter
                 println( "summarising $key ")
             end
         end
+        #=
         for hno in 1:settings.num_households
             hh = get_household(hno)
             for (pid,ad) in hh.people
@@ -310,15 +311,25 @@ module FRSHouseholdGetter
                 end
             end
         end
+        =#
         return popns
     end
 
-    function set_local_weights_and_incomes!( settings::Settings; reset::Bool)::Dict
+    function set_local_weights_and_incomes!( settings::Settings; reset::Bool)
+        for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
+            MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
+            WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
+            WeightingData.update_local_incomes!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
+        end
+        fill_in_deciles!(settings)
+    end
+
+    function create_local_income_ratios(settings::Settings; reset::Bool)::Dict
         for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
             MODEL_HOUSEHOLDS.hhlds[hno].council = settings.ccode
             WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
         end
-        ratios = fixup_earnings_data!( settings )
+        ratios = create_earnings_ratios( settings )
         return ratios
     end
 
@@ -406,12 +417,6 @@ module FRSHouseholdGetter
             nhhlds
         REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
         # Save a copy of the dataset before we maybe mess with council weights
-        # and incomes.
-        # weights: national or local
-        lsummary = nothing
-        # if settings.do_local_run && (settings.ccode != :"")
-        #     lsummary = set_local_weights_and_incomes!( settings, reset )
-        # else
         WeightingData.init_national_weights( settings, reset=reset )
         for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
             WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )

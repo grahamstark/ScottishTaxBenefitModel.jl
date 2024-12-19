@@ -5,6 +5,7 @@ using .ModelHousehold: Household, Person, People_Dict, is_single,
     pers_is_disabled, pers_is_carer, printpids
 using .ExampleHouseholdGetter
 using .Definitions
+using .LocalWeightGeneration
 using .Results: HousingResult
 using .FRSHouseholdGetter
 using .GeneralTaxComponents: WEEKS_PER_YEAR
@@ -430,7 +431,7 @@ end
         settings.ccode = LA_CODES[i]
         FRSHouseholdGetter.restore()
         @show settings.ccode
-        dict = FRSHouseholdGetter.set_local_weights_and_incomes!( settings, reset=false )
+        dict = FRSHouseholdGetter.create_local_income_ratios( settings, reset=false )
         # @show dict
         @show keys(dict)
         if i == 1
@@ -445,6 +446,64 @@ end
             d[j,settings.ccode]=dict[k].ratio
         end
     end
-    # CSV.write( "/mnt/data/ScotBen/artifacts/scottish-frs-data/local-nomis-frs-wage-relativities.tab", d; delim='\t')
+    CSV.write( joinpath( tmpdir, "local-nomis-frs-wage-relativities.tab", d; delim='\t'))
+    # /mnt/data/ScotBen/artifacts
     @show d
+end
+
+@testset "Base Local Runs" begin
+    n = length(LA_CODES)
+    settings.do_local_run = true
+    d = DataFrame()
+    nkeys = 0
+    weighted_data = DataFra = settings.num_households
+    adf = LocalWeightGeneration.initialise_model_dataframe_scotland_la( 
+        n )
+    insertcols!( adf, 1, :ccode => fill( Symbol(""), n ))
+    adf.wage = zeros(n)
+    adf.se = zeros(n)
+    adf.popn = zeros(n)
+    adf.nearners = zeros(n)
+    adf.nses = zeros(n)
+    for i in 1:n
+        reset = i==1
+        settings.ccode = LA_CODES[i]
+        FRSHouseholdGetter.restore()
+        FRSHouseholdGetter.set_local_weights_and_incomes!( settings, reset=false )
+        ldf = LocalWeightGeneration.initialise_model_dataframe_scotland_la( settings.num_households )
+        popn = 0.0
+        wage = 0.0
+        se = 0.0
+        nses = 0.0
+        nearners = 0.0
+        println( "on $(settings.ccode)")
+        for hno in 1:settings.num_households
+            hh = FRSHouseholdGetter.get_household(hno)
+            LocalWeightGeneration.make_model_dataframe_row!( 
+                ldf[hno,:], hh, hh.weight )
+            for (pid,pers) in hh.people
+                w = get(pers.income,wages,0.0)
+                if w > 0
+                    wage += w*hh.weight 
+                    nearners += hh.weight
+                end
+                s = get(pers.income,self_employment_income,0.0) 
+                if s != 0.0
+                    se += s*hh.weight
+                    nses += hh.weight
+                end
+                popn += hh.weight 
+            end
+        end
+        for n in names(ldf)
+            adf[i,n] = sum( ldf[!,n])
+        end
+        adf[i,:ccode] = settings.ccode
+        adf[i,:wage] = wage/nearners
+        adf[i,:se] = se/nses
+        adf[i,:popn] = popn
+        adf[i,:nses] = nses
+        adf[i,:nearners] = nses
+    end
+    @show adf
 end

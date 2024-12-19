@@ -368,57 +368,58 @@ end
 """
 function make_model_dataframe_row!( 
     row :: DataFrameRow, 
-    hh :: Household )
+    hh :: Household,
+    weight = 0.0 )
     bus = get_benefit_units( hh )
     if is_single(hh)
-        row.single_person = 1
-    elseif size(bus)[1] > 1
-        row.multi_family = 1 
+        row.single_person = weight
+    elseif size(bus)[1] > weight
+        row.multi_family = weight
     elseif is_lone_parent(hh) # only dependent children
-        row.single_parent = 1
+        row.single_parent = weight
     else
-        row.single_family = 1 
+        row.single_family = weight
     end
     hsize = num_people(hh)
     if hsize == 1
-        row.One_person = 1
+        row.One_person = weight
     elseif hsize == 2
-        row.Two_people = 1
+        row.Two_people = weight 
     elseif hsize == 3
-        row.Three_people = 1
+        row.Three_people = weight 
     elseif hsize == 4
-        row.Four_people = 1
+        row.Four_people = weight 
     elseif hsize >= 5
-        row.Five_plus_people = 1
+        row.Five_plus_people = weight 
     end
     if hh.ct_band == Band_A
-        row.A = 1
-        row.A_C = 1
+        row.A = weight 
+        row.A_C = weight 
     elseif hh.ct_band == Band_B
-        row.B = 1
-        row.A_C = 1
+        row.B = weight 
+        row.A_C = weight 
     elseif hh.ct_band == Band_C
-        row.C = 1
-        row.A_C = 1
+        row.C = weight 
+        row.A_C = weight 
     elseif hh.ct_band == Band_D
-        row.D = 1
+        row.D = weight 
     elseif hh.ct_band == Band_E
-        row.E = 1
-        row.E_H = 1
+        row.E = weight 
+        row.E_H = weight 
     elseif hh.ct_band == Band_F
-        row.F = 1
-        row.E_H = 1
+        row.F = weight 
+        row.E_H = weight 
     elseif hh.ct_band == Band_G
-        row.G = 1
-        row.E_H = 1
+        row.G = weight 
+        row.E_H = weight 
     elseif hh.ct_band == Band_H
-        row.H = 1
-        row.E_H = 1
+        row.H = weight 
+        row.E_H = weight 
     elseif hh.ct_band == Band_I
         @assert false "wrong band I for hh=$(hh.hid)"
-        # row.I = 1
+        # row.I = weight 
     else hh.ct_band == Household_not_valued_separately
-        row.A = 1 # DODGY!! FIXME
+        row.A = weight  # DODGY!! FIXME
         #
         # @assert false "NO CT BAND"
     end
@@ -426,45 +427,45 @@ function make_model_dataframe_row!(
     for (pid,pers) in hh.people
         if pers.sex == Male
             if pers.age <= 16
-                row.m_0_15 += 1
+                row.m_0_15 += weight 
             elseif pers.age <= 24
-                row.m_16_24 += 1
+                row.m_16_24 += weight 
             elseif pers.age <= 34
-                row.m_25_34 += 1
+                row.m_25_34 += weight 
             elseif pers.age <= 49
-                row.m_35_49 += 1
+                row.m_35_49 += weight 
             elseif pers.age <= 64
-                row.m_50_64 += 1
+                row.m_50_64 += weight 
             else
-                row.m_65plus += 1
+                row.m_65plus += weight 
             end
         else  # female
             if pers.age <= 16
-                row.f_0_15 += 1
+                row.f_0_15 += weight 
             elseif pers.age <= 24
-                row.f_16_24 += 1
+                row.f_16_24 += weight 
             elseif pers.age <= 34
-                row.f_25_34 += 1
+                row.f_25_34 += weight 
             elseif pers.age <= 49
-                row.f_35_49 += 1
+                row.f_35_49 += weight 
             elseif pers.age <= 64
-                row.f_50_64 += 1
+                row.f_50_64 += weight 
             else
-                row.f_65plus += 1
+                row.f_65plus += weight 
             end
         end # female
         # drop inactive 
         if ! pers.is_standard_child 
             if pers.employment_status in [Full_time_Employee, Part_time_Employee]
-                row.economically_active_employee += 1
-                row.working += 1
+                row.economically_active_employee += weight 
+                row.working += weight 
             elseif pers.employment_status in [
                 Full_time_Self_Employed,
                 Part_time_Self_Employed ]
-                row.working += 1
-                row.economically_active_self_employed += 1
+                row.working += weight 
+                row.economically_active_self_employed += weight 
             elseif pers.employment_status !== Unemployed
-                row.economically_inactive += 1
+                row.economically_inactive += weight 
             end
             if pers.years_in_full_time_work > 0 # no children or people who've never been in work
                 p = pers.occupational_classification      
@@ -493,7 +494,7 @@ function make_model_dataframe_row!(
                     Elementary_Occupations ])
                 end
                 psoc = Symbol( "Soc_$(p)")
-                row[psoc] += 1
+                row[psoc] += weight 
             end # occupation
             if pers.employment_status in [
                 Full_time_Employee,
@@ -515,39 +516,39 @@ function make_model_dataframe_row!(
         end # adults 
     end # people loop
     if hh.bedrooms == 1
-        row.bedrooms_1 = 1
+        row.bedrooms_1 = weight 
     elseif hh.bedrooms == 2
-        row.bedrooms_2 = 1
+        row.bedrooms_2 = weight 
     elseif hh.bedrooms == 3
-        row.bedrooms_3 = 1
+        row.bedrooms_3 = weight 
     else
-        row.bedrooms_4_plus = 1
+        row.bedrooms_4_plus = weight 
     end
     if hh.tenure in [Council_Rented, Housing_Association]
-        row.socially_rented = 1
+        row.socially_rented = weight 
     elseif hh.tenure in [Private_Rented_Unfurnished,
         Private_Rented_Furnished,
         Rent_free,
         Squats ]
-        row.private_rented_rent_free = 1
+        row.private_rented_rent_free = weight 
     elseif hh.tenure in [Mortgaged_Or_Shared]
-        row.all_mortgaged = 1
+        row.all_mortgaged = weight 
     elseif hh.tenure == Owned_outright
-        row.owned_outright = 1
+        row.owned_outright = weight 
     end        
     # dwell_na = -1
     if hh.dwelling == detatched
-        row.detached = 1
+        row.detached = weight 
     elseif hh.dwelling == semi_detached
-        row.semi_detached = 1
+        row.semi_detached = weight 
     elseif hh.dwelling == terraced
-        row.terraced = 1
+        row.terraced = weight 
     elseif hh.dwelling == flat_or_maisonette
-        row.flat_or_maisonette = 1
+        row.flat_or_maisonette = weight 
     else # if hh.dwelling == converted_flat merge other with flat conversion since it's often way out
         row.converted_flat_or_other= 1
     # else 
-    #     row.other_accom = 1
+    #     row.other_accom = weight 
     end
 end # proc
 
