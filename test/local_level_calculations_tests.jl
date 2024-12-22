@@ -446,7 +446,7 @@ end
             d[j,settings.ccode]=dict[k].ratio
         end
     end
-    CSV.write( joinpath( tmpdir, "local-nomis-frs-wage-relativities.tab", d; delim='\t'))
+    CSV.write( joinpath( tmpdir, "local-nomis-frs-wage-relativities.tab"), d; delim='\t')
     # /mnt/data/ScotBen/artifacts
     @show d
 end
