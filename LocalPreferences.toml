@@ -1,10 +1,8 @@
 [preferences.ScottishTaxBenefitModel]
-
 public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
 public-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
 local-artifact_server_upload = "stb-artifacts:/var/www/stb-artifacts/"
 local-artifact_server_url = "http://stb-artifacts/"
-
 auto_weight = true
 default_run_name = "default_run"
 use_weighting = true
@@ -49,4 +47,5 @@ data_source = "FRSSource"
 skiplist = ""
 do_local_run = false
 ccode = ""
+annual_rent_to_house_price_multiple = 20.0
 

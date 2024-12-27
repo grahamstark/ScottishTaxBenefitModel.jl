@@ -149,6 +149,7 @@ module RunSettings
         skiplist = @load_preference( "skiplist", "")
         do_local_run = @load_preference( "do_local_run", false )
         ccode = Symbol(@load_preference( "ccode", "" ))
+        annual_rent_to_house_price_multiple = @load_preference( "annual_rent_to_house_price_multiple", 20.0 )
     end
 
     function get_data_artifact( settings::Settings )::AbstractString

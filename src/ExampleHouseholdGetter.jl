@@ -95,6 +95,7 @@ function initialise(
         end
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
         println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
+        infer_house_price!( hh, settings )
     end
     settings.data_source = tmp_data_source
     return KEYMAP

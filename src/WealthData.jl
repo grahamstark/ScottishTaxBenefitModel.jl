@@ -26,7 +26,7 @@ IND_MATCHING = DataFrame()
 WEALTH_DATASET = DataFrame() 
 const WEALTH_COLS = [:net_housing,:net_physical,:total_pensions,:net_financial,
                 :total_value_of_other_property,
-                :total_financial_liabilities,:total_household_wealth]   
+                :total_financial_liabilities,:total_household_wealth,:house_price]   
 function jam_on_float( i :: Int, name )
     return name in WEALTH_COLS ? Float64 : nothing
 end
@@ -41,6 +41,8 @@ function find_wealth_for_hh!( hh :: Household, case :: Integer )
     hh.net_housing_wealth = hh.raw_wealth.net_housing
     hh.net_pension_wealth = hh.raw_wealth.total_pensions
     hh.total_wealth = hh.raw_wealth.total_household_wealth
+    # FIXME make these nanes consistent
+    hh.house_value - hh.raw_wealth.house_price
 end
 
 """
@@ -63,6 +65,7 @@ function uprate_raw_wealth()
     nr = size(WEALTH_DATASET)[1]
     for i in 1:nr
         r = WEALTH_DATASET[i,:]
+        ## FIXME house_price index
         for sym in WEALTH_COLS
             r[sym] = Uprating.uprate( r[sym], r.year, r.q, Uprating.upr_nominal_gdp )
         end
