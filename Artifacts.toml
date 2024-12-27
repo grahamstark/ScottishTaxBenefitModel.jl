@@ -71,12 +71,12 @@ lazy = true
     url = "https://virtual-worlds.biz/artifacts//scottish-synthetic-wealth.tar.gz"
 
 [scottish-was-wealth]
-git-tree-sha1 = "56ad24d4adee3965f683c43b4339ec0c89c4cb68"
+git-tree-sha1 = "f850d06c68ba5e10fe1d9c2eec9100c2e87cd5a9"
 lazy = true
 
     [[scottish-was-wealth.download]]
-    sha256 = "6a6f5a25f22a102bb0b3e770a874b54d19407a1bafbdd6bd7956477c1204fb46"
-    url = "http://stb-artifacts/scottish-was-wealth.tar.gz"
+    sha256 = "261af9f44c20fa4f9f56c059e92b6e869c1b7500add96385ab9fa9482584aa53"
+    url = "http://stb-artifacts//scottish-was-wealth.tar.gz"
 
 [uk-frs-data]
 git-tree-sha1 = "8891ef02ea5dada4ec097ce0a183502cfafb995f"
