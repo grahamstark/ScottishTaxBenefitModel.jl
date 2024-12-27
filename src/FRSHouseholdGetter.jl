@@ -17,6 +17,7 @@ module FRSHouseholdGetter
     
     using .ModelHousehold: 
         Household,
+        infer_house_price!,
         num_people, 
         uprate!
 

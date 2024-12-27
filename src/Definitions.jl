@@ -70,6 +70,27 @@ const NUM_REPEATS = 30 # simulates a longer calculation
 export LegacyOrUC, legacy_bens, uc_bens
 @enum LegacyOrUC legacy_bens uc_bens
 
+export DAYS_PER_YEAR, WEEKS_PER_MONTH, WEEKS_PER_YEAR, annualise, weeklyise
+
+# !! maybe make this 366/365 depending on whether this year is a leap year; see the CPAG guide chapter on WTC amounts, for example
+const DAYS_PER_YEAR = 365.25 
+const WEEKS_PER_YEAR = DAYS_PER_YEAR/7.0
+# needed for e.g. UC - they may use 
+# This is what's used for UC, even though it's
+# not consistent with the above. Possibly
+# switch to WEEKS_PER_YEAR/12
+const WEEKS_PER_MONTH = 4.35 # WEEKS_PER_YEAR/12
+
+function weeklyise( annual_amount )
+   round(annual_amount/WEEKS_PER_YEAR, digits=6) # round( x, digits=2) possibly
+end
+
+function annualise( weekly_amount :: Number )
+   round( weekly_amount*WEEKS_PER_YEAR, digits=2)
+end
+
+
+
 #
 # update this every time you add data, update prices, etc.
 #

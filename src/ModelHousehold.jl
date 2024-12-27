@@ -981,7 +981,7 @@ function infer_house_price!( hh :: Household, settings :: Settings )
     ## wealth_regressions.jl , model 3
     hp = 0.0
     if is_owner_occupier(hh.tenure)
-        if settings.settings.wealth_method == matching 
+        if settings.wealth_method == matching 
             hp = hh.house_value
         else 
             hhincome = max(hh.original_gross_income, 1.0)
@@ -1027,17 +1027,18 @@ function infer_house_price!( hh :: Household, settings :: Settings )
             "managerial"                hrp.socio_economic_grouping in [Managers_Directors_and_Senior_Officials,Professional_Occupations] ? 1 : 0
             "intermediate"              hrp.socio_economic_grouping in [Associate_Prof_and_Technical_Occupations,Admin_and_Secretarial_Occupations] ? 1 : 0
             ]
-            hp = exp( c[:,2]'v[:,2])        
+            hp = exp( c[:,2]'v[:,2])
+        end        
     elseif hh.tenure !== Rent_free
         # @assert hh.gross_rent > 0 "zero rent for hh $(hh.hid) $(hh.tenure) "
         # 1 │  2272       2015         0.0
         # 2 │ 10054       2015         0.0
         # 3 │  5019       2016         0.0
         # assign 50 pw to these 3
-        rent = hh.gross_rent == 0 ? 50.0 : hh.gross_rent # ?? 3 cases of 0 rent
+        rent = hh.gross_rent == 0 ? 100.0 : hh.gross_rent # ?? 3 cases of 0 rent
         hp = rent * WEEKS_PER_YEAR * settings.annual_rent_to_house_price_multiple
     else
-        hp = 80_000
+        hp = 80_000 # FIXME just a made-up number for rent-free accomodation; make this based on ONS house data
     end
     hh.house_value = hp
 end

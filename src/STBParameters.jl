@@ -18,7 +18,7 @@ using LazyArtifacts
 using DataFrames,CSV
 
 using ScottishTaxBenefitModel
-using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR, WEEKS_PER_MONTH
+using .GeneralTaxComponents: RateBands
 using .Definitions
 using .Utils
 using .TimeSeriesUtils: fy, fy_array
