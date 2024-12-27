@@ -83,7 +83,7 @@ function init( settings :: Settings; reset = false )
             source=settings.data_source == SyntheticSource ? "synthetic" : "was", 
             scottish=settings.target_nation == N_Scotland )
         IND_MATCHING = CSV.File( joinpath( w_artifact, "matches.tab" )) |> DataFrame
-        WEALTH_DATASET = CSV.File( joinpath( w_artifact, "data.tab"); types=jam_on_float ) |> DataFrame
+        WEALTH_DATASET = CSV.File( joinpath( w_artifact, "dataset.tab"); types=jam_on_float ) |> DataFrame
         uprate_raw_wealth()
         println( WEALTH_DATASET[1:2,:])
     end
