@@ -451,6 +451,7 @@ end
     @show d
 end
 
+
 @testset "Base Local Runs" begin
     n = length(LA_CODES)
     settings.do_local_run = true
@@ -466,7 +467,7 @@ end
     adf.nearners = zeros(n)
     adf.nses = zeros(n)
     for i in 1:n
-        reset = i==1
+        reset = i == 1
         settings.ccode = LA_CODES[i]
         FRSHouseholdGetter.restore()
         FRSHouseholdGetter.set_local_weights_and_incomes!( settings, reset=false )

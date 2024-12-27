@@ -20,9 +20,7 @@ using StatsBase
 using ScottishTaxBenefitModel
 using .Definitions
 using .Utils
-using .GeneralTaxComponents:
-    WEEKS_PER_YEAR
-
+=
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
