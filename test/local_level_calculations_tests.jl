@@ -517,8 +517,8 @@ end
         lr = ld[i,:]
         ar = adf[i,:]
         @test ar.ccode == Symbol(lr.authority_code)
-        @test abs(ar.popn - lr.total_people) < 10
-        @test abs(ar.num_hhlds - lr.total_hhlds) < 10
+        @test abs(ar.popn - lr.total_people) < 10 # rounding errors
+        @test abs(ar.num_hhlds - lr.total_hhlds) < 10 # - within 10 hhls/people is OK, I hope
         println( "on $(ccode) name=$(lr.Authority) target=$(lr.total_hhlds)")
     end
     @show adf

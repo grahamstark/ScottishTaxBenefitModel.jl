@@ -23,11 +23,11 @@ lazy = true
     url = "https://virtual-worlds.biz/artifacts//exampledata.tar.gz"
 
 [scottish-frs-data]
-git-tree-sha1 = "9e994e36890bde099a2b519ef9ab8d3fdfceecc8"
+git-tree-sha1 = "0bdbf457f2918745f7cfde8f09f9c6d247309141"
 lazy = true
 
     [[scottish-frs-data.download]]
-    sha256 = "5bce0cad525490d76a29a7b08e8e990602053670de55c34711f4d835b4f0390f"
+    sha256 = "4da2349f520220912f21e0c8683d5aabafc1b1f12abb792a95b302da82f94014"
     url = "http://stb-artifacts//scottish-frs-data.tar.gz"
 
 [scottish-lcf-expenditure]
