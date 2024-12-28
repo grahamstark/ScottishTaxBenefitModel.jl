@@ -25,7 +25,7 @@ begin
 	
 	using ScottishTaxBenefitModel
 	using .FRSHouseholdGetter
-	using .GeneralTaxComponents: WEEKS_PER_YEAR
+	using .Definitions
 	using .Monitor: Progress
 	using .RunSettings
 	using .STBParameters: TaxBenefitSystem, get_default_system_for_fin_year

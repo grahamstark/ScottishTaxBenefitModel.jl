@@ -24,7 +24,6 @@ using .Results:
     total
 using .TimeSeriesUtils: FY_2022
 using .TheEqualiser
-using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .Uprating: load_prices
 using .SingleHouseholdCalculations: do_one_calc
 using .STBOutput: 

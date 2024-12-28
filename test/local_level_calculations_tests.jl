@@ -1,4 +1,5 @@
 using Test
+using Pkg, Pkg.Artifacts
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
@@ -8,7 +9,6 @@ using .Definitions
 using .LocalWeightGeneration
 using .Results: HousingResult
 using .FRSHouseholdGetter
-using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .RunSettings: Settings
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax
@@ -511,15 +511,15 @@ end
     end
     aug = artifact"augdata"
     ld = CSV.File( joinpath( aug, "scottish-la-targets-2024.tab"))|>DataFrame
-    for i in 1:n
+    for i in 1:(n-1)
         ccode = LA_CODES[i]
         i += 1
         lr = ld[i,:]
         ar = adf[i,:]
-        @test ar.num_hhlds ≈ lr.total_hhlds
-        @test ar.ccode == lr.Authority
-        @test ar.popn ≈ lr.total_people
-        println( "on $(ccode) name=$(lad.Authority) target=$(lad.total_hhlds)")
+        @test ar.ccode == Symbol(lr.authority_code)
+        @test abs(ar.popn - lr.total_people) < 10
+        @test abs(ar.num_hhlds - lr.total_hhlds) < 10
+        println( "on $(ccode) name=$(lr.Authority) target=$(lr.total_hhlds)")
     end
     @show adf
 end

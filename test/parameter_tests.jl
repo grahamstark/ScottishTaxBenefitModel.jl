@@ -13,7 +13,6 @@ using .STBParameters:
     get_default_system_for_fin_year
 
 using .Utils
-using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .ExampleHelpers
 
 @testset "IT Parameter Tests" begin
