@@ -458,14 +458,14 @@ end
     d = DataFrame()
     nkeys = 0
     weighted_data = DataFra = settings.num_households
-    adf = LocalWeightGeneration.initialise_model_dataframe_scotland_la( 
-        n )
+    adf = LocalWeightGeneration.initialise_model_dataframe_scotland_la( n )
     insertcols!( adf, 1, :ccode => fill( Symbol(""), n ))
     adf.wage = zeros(n)
     adf.se = zeros(n)
     adf.popn = zeros(n)
     adf.nearners = zeros(n)
     adf.nses = zeros(n)
+    adf.num_hhlds = zeros(n)
     for i in 1:n
         reset = i == 1
         settings.ccode = LA_CODES[i]
@@ -477,9 +477,11 @@ end
         se = 0.0
         nses = 0.0
         nearners = 0.0
+        num_hhlds = 0.0
         println( "on $(settings.ccode)")
         for hno in 1:settings.num_households
             hh = FRSHouseholdGetter.get_household(hno)
+            num_hhlds += hh.weight
             LocalWeightGeneration.make_model_dataframe_row!( 
                 ldf[hno,:], hh, hh.weight )
             for (pid,pers) in hh.people
@@ -493,7 +495,7 @@ end
                     se += s*hh.weight
                     nses += hh.weight
                 end
-                popn += hh.weight 
+                popn += hh.weight
             end
         end
         for n in names(ldf)
@@ -505,6 +507,19 @@ end
         adf[i,:popn] = popn
         adf[i,:nses] = nses
         adf[i,:nearners] = nses
+        adf[i,:num_hhlds] = num_hhlds
+    end
+    aug = artifact"augdata"
+    ld = CSV.File( joinpath( aug, "scottish-la-targets-2024.tab"))|>DataFrame
+    for i in 1:n
+        ccode = LA_CODES[i]
+        i += 1
+        lr = ld[i,:]
+        ar = adf[i,:]
+        @test ar.num_hhlds ≈ lr.total_hhlds
+        @test ar.ccode == lr.Authority
+        @test ar.popn ≈ lr.total_people
+        println( "on $(ccode) name=$(lad.Authority) target=$(lad.total_hhlds)")
     end
     @show adf
 end

@@ -369,11 +369,11 @@ end
 function make_model_dataframe_row!( 
     row :: DataFrameRow, 
     hh :: Household,
-    weight = 0.0 )
+    weight = 1.0 )
     bus = get_benefit_units( hh )
     if is_single(hh)
         row.single_person = weight
-    elseif size(bus)[1] > weight
+    elseif size(bus)[1] > 1
         row.multi_family = weight
     elseif is_lone_parent(hh) # only dependent children
         row.single_parent = weight
@@ -419,10 +419,16 @@ function make_model_dataframe_row!(
         @assert false "wrong band I for hh=$(hh.hid)"
         # row.I = weight 
     else hh.ct_band == Household_not_valued_separately
-        row.A = weight  # DODGY!! FIXME
-        #
-        # @assert false "NO CT BAND"
-    end
+        ctband = rand([:A,:B,:C,:D,:E,:F,:G,:H])
+        row[ctband] = weight  # DODGY!! FIXME
+        if ctband in [:A,:B,:C]
+            row.A_C = weight
+        elseif ctband in [:E,:F,:G,:H]
+            row.E_H = weight
+        else 
+            @assert ctband == :D
+        end
+     end
     # these sum to total people
     for (pid,pers) in hh.people
         if pers.sex == Male
@@ -685,10 +691,11 @@ function make_target_list_2024(
     end
     if (INCLUDE_HH_SIZE in which_included)
         # one person
-        # push!( included_fields, :Two_people )
+        push!( included_fields, :One_person )
+        push!( included_fields, :Two_people )
         push!( included_fields, :Three_people )
-        push!( included_fields, :Four_people )
-        push!( included_fields, :Five_plus_people  )
+        # push!( included_fields, :Four_people )
+        # push!( included_fields, :Five_plus_people  )
     end
     if(INCLUDE_OCCUP in which_included)
         push!( included_fields, :Soc_Managers_Directors_and_Senior_Officials )

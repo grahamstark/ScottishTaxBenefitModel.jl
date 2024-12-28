@@ -83,7 +83,7 @@ function weight_to_la(
         all_council_data, included_categories ) 
     data = select(model_data, tnames)
     initial_weights = ones(nhhlds)*household_total/nhhlds
-    @show initial_weights[1:20] household_total nhhlds
+    # @show initial_weights[1:20] household_total nhhlds
     pt = summarise_dfs( data, targets, initial_weights )
     pretty_table(pt)
     @show near_collinear_cols( data; tol=1e-9 )
@@ -182,32 +182,34 @@ const INCLUDES_URBAN = Set{Integer}([
     INCLUDE_HOUSING,
     INCLUDE_BEDROOMS,
     INCLUDE_CT,
-    INCLUDE_HCOMP,
+    # INCLUDE_HCOMP,
     INCLUDE_EMPLOYMENT,
     INCLUDE_INDUSTRY,
-    # INCLUDE_HH_SIZE,
+    INCLUDE_HH_SIZE,
     ])
 
 const INCLUDES_RURAL = Set{Integer}([
     INCLUDE_OCCUP,
     INCLUDE_HOUSING,
     INCLUDE_BEDROOMS,
-    INCLUDE_BROAD_CT,
-    INCLUDE_HCOMP,
+    INCLUDE_CT,
+    # INCLUDE_BROAD_CT,
+    # INCLUDE_HCOMP,
     INCLUDE_EMPLOYMENT,
     INCLUDE_INDUSTRY,
-    # INCLUDE_HH_SIZE,
+    INCLUDE_HH_SIZE,
     ])
 
 const INCLUDES_SEMI_URBAN = Set{Integer}([
     INCLUDE_OCCUP,
     INCLUDE_HOUSING,
     INCLUDE_BEDROOMS,
-    INCLUDE_BROAD_CT,
-    INCLUDE_HCOMP,
+    INCLUDE_CT,
+    # INCLUDE_BROAD_CT,
+    # INCLUDE_HCOMP,
     INCLUDE_EMPLOYMENT,
     INCLUDE_INDUSTRY,
-    # INCLUDE_HH_SIZE,
+    INCLUDE_HH_SIZE,
     ])
 
 const URBAN = Set([ :S12000036, :S12000042,  :S12000049 ])
@@ -220,6 +222,7 @@ const RURAL = Set([:S12000035, :S12000017, :S12000020, :S12000013,
 
 function create_la_weights()
     merged_census_files = load_census_2024()
+    
     settings = Settings()
     settings.num_households, settings.num_people = initialise( settings )
     outweights = DataFrame()
@@ -243,15 +246,15 @@ function create_la_weights()
         incls = INCLUDES_RURAL
         if row.authority_code in RURAL
             settings.lower_multiple = 0.0
-            settings.upper_multiple = 100.0
+            settings.upper_multiple = 20.0
             incls = INCLUDES_RURAL 
         elseif row.authority_code in SEMI_URBAN 
             settings.lower_multiple = 0.00
-            settings.upper_multiple = 50.0
+            settings.upper_multiple = 10.0
             incls = INCLUDES_SEMI_URBAN
         elseif row.authority_code in URBAN 
             settings.lower_multiple = 0.0
-            settings.upper_multiple = 30.0
+            settings.upper_multiple = 7.0
             incls = INCLUDES_URBAN
         else
             @assert false "missing $(row.authority_code)"
