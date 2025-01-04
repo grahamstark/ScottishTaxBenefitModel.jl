@@ -26,6 +26,20 @@
 #set text(font:"ETBembo")
 #show link: underline
 
+#show table.cell.where(x: 2): set text(style: "italic", size:7pt)
+#show table.cell.where(x: 1): set text(size: 4pt, font:"JuliaMono")
+#show table.cell.where(x: 0): set text(size: 7pt)
+
+#set table (
+    columns: (8em, auto, auto),
+    align: (left, left, left),
+    inset: (x: 8pt, y: 4pt),
+    stroke: (x, y) => {if y <= 1 { (top: 0.5pt) }},
+    fill: (x, y) => if y > 0 and calc.rem(y, 2) == 0  { rgb("#dfdfef") },
+  )
+#show table.footer: set text(style: "italic")
+
+
 = Introduction
 
 Scotben @stark_scottish_2024 is a conventionally structured static microsimulation tax-benefit model, 
@@ -44,6 +58,10 @@ ability to capture the effects on individuals of e.g. Corporate Taxes and Green 
 Both devolved taxes and benefits and those reserved to the UK government are included.
 Many hypothetical structural reforms can be modelled without requiring modifications to the code,
 including basic incomes, wealth taxes and various local taxation schemes.
+
+@tab:taxes
+
+== Coverage 
 
 = Design 
 
@@ -143,3 +161,91 @@ The distances were calculated with @sec:implementation that we presented in @sec
 #lorem(240)
 
 #lorem(240)
+
+
+* Last updated: #datetime.today().display(). *
+
+== Appendix: Modelled Taxes And Benefits <model-coverage>
+
+#figure(
+  caption: [Modelled Taxes],
+  placement: none,
+  table(
+    // Table styling is not mandated by the IEEE. Feel free to adjust these
+    // settings and potentially move them into a set rule.
+
+    table.header[Tax][Code Module][Notes],
+    [Income Tax],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/IncomeTaxCalculations.jl")[IncomeTaxCalculations.jl]],[Scottish and reserved UK],
+    [National Insurance],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/NationalInsuranceCalculations.jl")[NationalInsuranceCalculations.jl]],[Employees, Self Employed and Employers (though this needs more thought on incidence)],
+    [Council Tax],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/LocalLevelCalculations.jl")[LocalLevelCalculations.jl]],[plus some simple modelling of local income taxes and domestic rates],
+    [Wealth Taxes],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/OtherTaxes.jl")[OtherTaxes.jl]],[using WAS data],
+    [VAT and excise duties],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/IndirectTaxes.jl")[IndirectTaxes.jl]],[using LCF data; incomplete module],
+    [incidence of essentially any tax incident on wages],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/OtherTaxes.jl")[OtherTaxes.jl]],[],
+  )
+) <tab:taxes> 
+
+
+=== Modelled benefits
+
+#figure(
+  caption: [Modelled Non Means-Tested Benefits@fn-disability],
+  placement: none,
+  table(
+    table.header[Benefit][Code Module][rUK equivalent],
+    [Pension Age Disability Payment],[],[modelled as Attendance Allowance],
+    [Child Benefit],[],[ ],
+    [Adult Disability Payment],[],[modelled as Disability Living Allowance (DLA)],
+    [Carer Support Payment],[],[Carer's Benefit],
+    [pip],[],[Personal Independence Payment],
+    [esa],[],[],
+    [jsa],[],[],
+    [pensions],[],[],
+    [bereavement],[],[],
+    [widows pensions],[],[],
+    [maternity],[],[],
+    [smp],[],[],
+  )
+)
+
+==== Means-Tested
+    - Universal Credit
+
+===== Legacy Benefits
+    - savings credit/pension credit
+    - working tax credit
+    - child tax credit
+    - Housing Benefit
+    - council tax reductions
+
+==== Others
+    - Minimum Wages
+    - Scottish Civil Legal Aid
+
+==== Hypothetical Benefits
+    - Basic Incomes
+    - Wealth Taxes
+    - various Local Taxation schemes
+
+=== Not currently modelled
+    - Any form of Student Support;
+    - Student loans and repayments (working on repayments ATM)
+    - Food banks or similar;
+    - Foster Care payments
+    - Scottish Best Start payments
+    - Child Winter Heating Payment
+    - Winter Heating Payment
+    - Funeral Support Payment
+    - Job Start Payment
+    - any local authority-specific payments
+    - Young Carer Grant
+
+
+#footnote[The Scottish disability benefits:
+    - Carer’s Allowance Supplement
+    - Carer Support Payment
+    - Adult Disability Payment
+    - Child Disability Payment
+    - Pension Age Disability Payment
+are modelled as being equivalent to the rUK benefits, 
+though a mechanism exists to make the disability tests more or less generous.] <fn-disability>
+
