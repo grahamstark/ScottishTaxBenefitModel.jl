@@ -6,7 +6,9 @@
     ScotBen is a new microsimulation tax-benefit model of written
     by Graham Stark of the University of Northumbria and Virtual Worlds Research. The primary scope of ScotBen is
     the Scottish fiscal system, though it is also capable of modelling any of the four nations and the UK as a whole. 
-    This brief note describes the models design, implementation, unique features, and limitations.
+    This brief note describes the models design, implementation, unique features, and limitations. Note that, as with all models
+    of this sort, ScotBen is continually being updated and developed and this note may not
+    always be in sync with the latest version.
     ],
   authors: (
     (
