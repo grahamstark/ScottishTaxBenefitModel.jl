@@ -2515,6 +2515,7 @@ function create_was_subset(; outfilename="was_wave_7_subset.tab" )
             row.q, 
             Uprating.upr_nominal_gdp )
     end
+    subwas.house_price = was.hvaluer7
     CSV.write( "data/$(outfilename)", subwas; delim='\t')
     return subwas
 end

@@ -38,7 +38,7 @@ subwas.total_wealth = was.totwlthr7
 subwas.num_children = was.numchildr7
 subwas.num_adults = was.dvhsizer7 - subwas.num_children
 subwas.sex_head = was.hrpsexr7
-subwas.socio_economic_grouping
+# subwas.socio_economic_grouping
 subwas.empstat_head = was.hrpempstat2r7 
 # rename all thse
 #=
@@ -63,6 +63,7 @@ subwas.net_financial = was.hfinwntr7_sum
 subwas.total_value_of_other_property = was.othpropvalr7_sum
 subwas.total_financial_liabilities = was.hfinlr7_excslc_aggr #   Hhold value of financial liabilities
 subwas.total_household_wealth = was.totwlthr7
+subwas.house_price = was.hvaluer7
 # HFINWNTR7_exSLC_Sum
 
-CSV.write( subwas, "data/was_wave_7_subset.tab"; delim='\t')
+CSV.write( "data/was_wave_7_subset.tab", subwas; delim='\t')
