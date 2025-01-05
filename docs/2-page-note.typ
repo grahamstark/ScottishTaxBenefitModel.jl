@@ -5,7 +5,7 @@
   abstract: [
     ScotBen is a new microsimulation tax-benefit model of written
     by Graham Stark of the University of Northumbria and Virtual Worlds Research. The primary scope of ScotBen is
-    the Scottish fiscal system, though it is also capable of modelling any of the four nations and the UK as a whole. 
+    the Scottish fiscal system, though it is also capable of modelling the other three nations and the UK as a whole. 
     This brief note describes the models design, implementation, unique features, and limitations. 
     ],
   authors: (
@@ -153,13 +153,12 @@ The Public Policy Preference Calculator (TriplePC)@stark_public_2024 is an adapt
 
 First, as well as modelling the outcomes of a policy in the conventional way, our model uses
 Conjoint Analysis of public acceptability data to give an indication of the policy’s popularity. This is
-novel and important. There are measures that might actually be popular with , but which
+novel and important. There are measures that might actually be popular with the electorate, but which
 policymakers have been unwilling to touch because of uncertainty about their electoral
 consequences@nettle_sp21_2023.
 
-Second, we integrate health outcomes into the model@reed_examining_2024 .health measures: mental health and life expectancy, but only the former
-has so far been implemented. We build a model relating SF-12 scores to income and
-demographic characteristics. SF-12 is a widely used measure of an individual’s health-related quality
+Second, we integrate health outcomes into the model@reed_examining_2024. We built a model relating SF-12 scores to income and
+demographic characteristics; SF-12 is a widely used measure of an individual’s health-related quality
 of life, with two summary scores: the Physical Component Summary (PCS-12) and the Mental
 Component Summary (MCS-12). The health model is estimated over 12 waves (2009/11-2020/22) of
 Understanding Society @institute_for_social_and_economic_research_understanding_2018 panel data 
@@ -177,7 +176,7 @@ The module #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob
 encapsulates the means-test rules. Entitlements are estimated by mapping 
 SLAB provided administrative data - the #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/LegalAidData.jl")[LegalAidData.jl]
 module is used for this. The model is actively being used to design reforms to the 
-Legal AId means-tests.
+Legal Aid means-tests.
 
 = Interfaces <sec:interfaces>
 
