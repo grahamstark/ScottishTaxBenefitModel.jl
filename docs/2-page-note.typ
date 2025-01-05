@@ -93,7 +93,7 @@ The model is organised into a series of #link("https://docs.julialang.org/en/v1/
 
 == Data 
 
-The model uses Family Resources Survey (FRS) @dwp_family_2012 data. For Scottish runs, pooled Scottish FRS subsets from 2016-2022 are used (just over 17,000 households); UK-wide
+ScotBen uses Family Resources Survey (FRS) @dwp_family_2012 data. For Scottish runs, pooled Scottish FRS subsets from 2016-2022 are used (just over 17,000 households); UK-wide
 simulations presently use a single full FRS year. The #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/HouseholdMappingFRS_Only.jl")[HouseholdMappingFRS.jl] 
 package creates the main model dataset, and #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/ModelHousehold.jl")[ModelHousehold.jl] encapsulates the model view of a household.
 
