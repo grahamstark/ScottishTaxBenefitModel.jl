@@ -25,7 +25,7 @@
 
 #set text(font:"ETBembo")
 #show link: underline
-
+  
 #show table.cell.where(x: 2): set text(style: "italic", size:7pt)
 #show table.cell.where(x: 1): set text(size: 4pt, font:"JuliaMono")
 #show table.cell.where(x: 0): set text(size: 7pt)
@@ -220,6 +220,8 @@ ScotBen is under active development. As of January 2025, tasks include:
 
 * Last updated: #datetime.today().display(). *
 
+#pagebreak()
+
 == Appendix: Modelled Taxes And Benefits <model-coverage>
 
 #figure(
@@ -242,7 +244,7 @@ ScotBen is under active development. As of January 2025, tasks include:
 === Modelled benefits
 
 #figure(
-  caption: [Modelled Non Means-Tested Benefits@fn-disability],
+  caption: [Modelled Non Means-Tested Benefits],
   placement: none,
   table(
     table.header[Benefit][Code Module][rUK equivalent],
@@ -259,6 +261,14 @@ ScotBen is under active development. As of January 2025, tasks include:
     [Statutory Maternity Pay],[""],[""],
   )
 )
+
+_note:_ The Scottish disability benefits:
+    - Carer’s Allowance Supplement
+    - Carer Support Payment
+    - Adult Disability Payment
+    - Child Disability Payment
+    - Pension Age Disability Payment
+are modelled as being equivalent to the rUK benefits, though a mechanism exists to make the disability tests more or less generous.] <fn-disability>
 
 #figure(
   caption: [Modelled Means-Tested Benefits],
@@ -305,13 +315,5 @@ ScotBen is under active development. As of January 2025, tasks include:
     - any local authority-specific payments
     - Young Carer Grant
 
-
-#footnote[The Scottish disability benefits:
-    - Carer’s Allowance Supplement
-    - Carer Support Payment
-    - Adult Disability Payment
-    - Child Disability Payment
-    - Pension Age Disability Payment
-are modelled as being equivalent to the rUK benefits, 
-though a mechanism exists to make the disability tests more or less generous.] <fn-disability>
+#pagebreak()
 
