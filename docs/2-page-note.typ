@@ -3,9 +3,9 @@
 #show: ieee.with(
   title: [ScotBen: A New Microsimulation Tax-Benefit Model],
   abstract: [
-    ScotBen is a new microsimulation tax-benefit model of written
+    ScotBen is a new microsimulation tax-benefit model written
     by Graham Stark of the University of Northumbria and Virtual Worlds Research. The primary scope of ScotBen is
-    the Scottish fiscal system, though it is also capable of modelling the other three nations and the UK as a whole. 
+    the Scottish fiscal system, though it is also capable of modelling the other three Home nations, and the UK as a whole. 
     This brief note describes the models design, implementation, unique features, and limitations. 
     ],
   authors: (
@@ -45,23 +45,25 @@
 Scotben @stark_scottish_2024 is a conventionally structured static microsimulation tax-benefit model, 
 in the family of models branching out from the Institute for Fiscal Studies' TAXBEN, of which Graham Stark was one of
 the principal authors @johnson_taxben2_1990. Scotben has been used in several projects at the University of Northumbria and elsewhere.
-This note brief is intended as a 'warts and all' summary of the models development, structure, novel features, uses to date,
-and strengths and weaknesses. Note that, as with all models of this sort, ScotBen is continually being updated and developed and this note may not
-always be in sync with the latest version. With the exception of some survey data, Scotben is fully Open Source@open_source_initiative_open_1999, 
+With the exception of some survey data, Scotben is fully Open Source@open_source_initiative_open_1999, 
 and released under a #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/LICENSE")[permissive licence].
+
+This note is intended as a 'warts and all' summary of some key aspects the models development, structure, novel features, uses to date,
+and strengths and weaknesses. 
+
+As with all models of this sort, ScotBen is continually being updated and developed, and so this note may not
+always be in sync with the latest version. 
 
 = Scope <sec:scope>
 
-As the name suggests, the model's primary scope is the the Scottish fiscal system.
+As the name suggests, the ScotBen's primary scope is the the Scottish fiscal system.
 The model covers taxes and benefits that individuals are directly liable for,
-such as income and spending taxes and cash benefits, though it has some limited
-ability to capture the effects on individuals of e.g. Corporate Taxes and Green Levies.
-
+such as income and spending taxes and cash benefits, though it also has some limited
+ability to capture the effects on individuals of e.g. Corporate Taxes and Green Levies. 
 Both devolved taxes and benefits and those reserved to the UK government are included.
 Many hypothetical structural reforms can be modelled without requiring modifications to the code,
 including basic incomes, wealth taxes and various local taxation schemes. See the @model-coverage appendix for 
 a full list of the taxes and benefits included. 
-
 
 = Design and Implementation <sec:implementation>
 
@@ -70,32 +72,36 @@ design of IFS's TAXBEN2, though ScotBen is programmed in a different language (J
 and no TAXBEN code was referred to. 
 
 The model attempts to follow modern program development practices, with short, independently testable,
-functions, a comprehensive test suite @sec:testing, and easily readable code. In places, however, the
+functions, a comprehensive test suite @sec:testing, and readable code. In places, however, the
 scale of the project means that these ideals are honoured in the breach.
 
-Despite it's fundamentally static nature, Scotben's modular design and clean interfaces make it easy to build simulations incorporating 
-behavioural responses or long-term projects on top of it - the explicitly dynamic microsimulation models 
-I'm aware of are, in my view, often 'run before you can walk' exercises which capture the aspects 
-of the fiscal system poorly. 
+Despite its fundamentally static nature, Scotben's modular design and clean interfaces make it easy to 
+build simulations incorporating 
+behavioural responses or long-term projections on top of the base model. 
 
 == Julia<sec:julia>
 
-The model is written in Julia @bezanson_julia_2017. Julia is a relatively new language designed 
-to be equally useful for conventional programming and for exploratory data science, and to produce highly efficient code, comparable in speed with Fortran or C. 
-Although not without problems, this dual nature fits well: Julia has proven a good choice for microsimulation. The model is organised as a Julia package - a bundle of code and
+The model is written in Julia @bezanson_julia_2017. As discussed in that paper, Julia is intended to solve the 
+"Two Language Problem": to be equally useful for conventional large-scale programming and for exploratory data science. Julia produces highly efficient code, 
+comparable in speed with Fortran or C. 
+Although not without its problems, this dual nature means that Julia has proven a good choice for microsimulation. 
+
+The model is organised as a Julia package - a bundle of code and
 data that can be automatically downloaded and run using standard Julia tools. All code and most data is stored and developed on the GitHub code sharing site @stark_scottish_2024.
 
-The model is organised into a series of #link("https://docs.julialang.org/en/v1/manual/modules/")[modules], arranged to minimise cross-dependencies. For example, there are modules that:
+Internally, the model is organised as a series of #link("https://docs.julialang.org/en/v1/manual/modules/")[modules], arranged to minimise cross-dependencies. For example, there are modules that:
 
 - #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/STBParameters.jl")[capture the fiscal system parameters];
 - #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/IncomeTaxCalculations.jl")[calculate income tax]
 
+Many other such modules are referred to below. 
 
 == Data 
 
-ScotBen uses Family Resources Survey (FRS) @dwp_family_2012 data. For Scottish runs, pooled Scottish FRS subsets from 2016-2022 are used (just over 17,000 households); UK-wide
+ScotBen uses Family Resources Survey (FRS) @dwp_family_2012 as its primary data. 
+For Scottish runs, pooled Scottish FRS subsets from 2016-2022 are used (just over 17,000 households); UK-wide
 simulations presently use a single full FRS year. The #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/HouseholdMappingFRS_Only.jl")[HouseholdMappingFRS.jl] 
-package creates the main model dataset, and #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/ModelHousehold.jl")[ModelHousehold.jl] encapsulates the model view of a household.
+package creates the main model dataset, and #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/ModelHousehold.jl")[ModelHousehold.jl] encapsulates the model's view of a household.
 
 The model has a built in #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/Weighting.jl")[weighting system] @creedy_survey_2003 using a native Julia implementation of standard
 survey data weighting algorithms@stark_grahamstarksurveydataweightingjl_2022. As well as standard
@@ -107,26 +113,30 @@ Data is then #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/bl
 and SFC forecast data. Uprating is normally to 1 quarter behind the current quarter. 
 
 The FRS has very limited information on wealth and assets, and no information on consumption. It also has
-no Local Authority identifiers. To allow modelling of e.g wealth and indirect taxes,
+no Local Authority identifiers. To allow modelling of (e.g.) a Wealth tax or indirect taxes such as Fuel Duty or VAT,
 the FRS data is supplemented by the Wealth and Assets Survey (WAS)@statistics_wealth_2019,
 Living Costs and Food Survey (LCF)@statistics_living_2019 and Scottish Household Survey (SHS) @scottish_government_scottish_2008.
-data can either be matched in - #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/MatchingLibs.jl")[picking WAS/LCF/SHS records with similar characteristics to each FRS record], or (https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/regressions/wealth_regressions.jl/)[imputed using linear regression] (SHS is always data-matched).
+These datasets can either be matched in@leulescu_statistical_2013 - #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/MatchingLibs.jl")[picking WAS/LCF/SHS records with similar characteristics to each FRS record], or #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/regressions/wealth_regressions.jl")[imputed using linear regression] (SHS is always data-matched).
 
 == Testing <sec:testing>
 
 ScotBen is developed Test First @version_one_test-driven_2016. A large suite of Individual, Benefit Unit, and Household level 
-level calculations for each tax and benefit was collected and expressed as unit-tests. Code was then written so all the tests pass. 
+level example calculations for each tax and benefit was collected and expressed as unit-tests. Code was then written so all the tests pass. 
 Sources used included official and semi-official online calculators@policy_in_practice_better_2024, taxation textbooks@melville_taxation_nodate, 
-benefit manuals@cpag_welfare_nodate-1, and our own calculations.
+benefit manuals@cpag_welfare_nodate-1, and our own calculations. The test suite also contains numerous aggregate tests
+which check that complete model runs produce plausible aggregate values for revenues, expenditures and caseloads.  
 
 The #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/test/")[testsuite] currently contains over 1,000 individual tests
 and 10,000 lines of code. In addition there are over 150 runtime consistency assertions in the main body of code - these
 will halt a simulation if any abnormal condition is encountered.
 
-= Novel features <sec:novel-features>
+The suite is used as a 'continuous integration' tool @google_inc_introducing_2007: part or all of the tests
+are run before every change to the model is committed. This helps prevent errors being introduced during development.
+
+= Applications And Novel features <sec:novel-features>
 
 Scotben's clean, modular, design makes it easy to incorporate the code into specialised applications. 
-Examples are:
+Examples to date are:
 
 == Budget Constraints
 
@@ -143,8 +153,8 @@ https://stb.virtual-worlds.scot/bcd/
 == Local Taxation 
 
 The weighting system discussed above can be used to weight the FRS dataset
-downwards so that the sample grosses up to the population of a local authority.
-Data is weighted to 2022 Census data on occupation, tenure, accomodation type, employment status, age, sex and household size. 
+so that the sample grosses up to the population of a local authority.
+Data is weighted to 2022 Census data on occupation, tenure, accommodation type, employment status, age, sex and household size. 
 See the module #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/LocalWeightGeneration.jl")[LocalWeightGeneration.jl]
 
 == The Public Preference Calculator (TriplePC) 
@@ -180,7 +190,7 @@ Legal Aid means-tests.
 
 = Interfaces <sec:interfaces>
 
-By design the ScotBen model package has no user interface dependencies. 
+By design, the ScotBen model package has no user interface code. 
 This actually makes it *easier* to build user interfaces, since there are no clashing dependencies.
 
 Several model Web interfaces have been built (not all may be active).
@@ -196,7 +206,7 @@ In addition, the model can be integrated into #link("https://plutojl.org/")[Plut
 #link("https://jupyter.org/")[Jupyter] notebooks - work on this is ongoing
 with a view to using ScotBen in teaching. 
 
-You can also incorporate the model into command-line scripts with a few 
+ScotBen can also be run from conventional command-line scripts with a few 
 lines of code - there are multiple examples of this in the test suite discussed above, 
 
 = TO-dos 
