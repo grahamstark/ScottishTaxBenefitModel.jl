@@ -293,11 +293,12 @@ are modelled as being equivalent to the rUK benefits, though a mechanism exists 
   table(
     table.header[Benefit][Code Module][Notes],
 
-    [Minimum Wages],[ ],[ ],
-    [Scottish Civil Legal Aid],[ ],[ ],
-    [Basic Incomes],[ ],[ ],
-    [Wealth Taxes],[ ],[ ],
-    [various Local Taxation schemes],[ ],[ ],
+    [Minimum Wages],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/HouseholdAdjuster.jl")[HouseholdAdjuster.jl]],[ ],
+    [Scottish Civil Legal Aid],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/LegalAidCalculations.jl")[LegalAidCalculations.jl]],[ ],
+    [Basic Incomes],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/UBI.jl")[UBI.jl]],[],
+    [Wealth Taxes],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/OtherTaxes.jl")[OtherTaxes.jl]],[ ],
+    [Various Local Taxation schemes],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/LocalLevelCalculations.jl")[LocalLevelCalculations.jl]],[ ],
+    [The Benefit Cap],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/BenefitCap.jl")[BenefitCap.jl]],[ ],
   )
 )
 
