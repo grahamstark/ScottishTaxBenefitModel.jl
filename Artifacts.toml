@@ -23,11 +23,11 @@ lazy = true
     url = "https://virtual-worlds.biz/artifacts//exampledata.tar.gz"
 
 [scottish-frs-data]
-git-tree-sha1 = "0bdbf457f2918745f7cfde8f09f9c6d247309141"
+git-tree-sha1 = "48d9b5582cad66a07dba2a9c37384a450ebf0a50"
 lazy = true
 
     [[scottish-frs-data.download]]
-    sha256 = "4da2349f520220912f21e0c8683d5aabafc1b1f12abb792a95b302da82f94014"
+    sha256 = "fe01cf1243b9bac5b5fef72a0c9673c768766c68f52667bf3568836d26998882"
     url = "http://stb-artifacts//scottish-frs-data.tar.gz"
 
 [scottish-lcf-expenditure]
@@ -35,15 +35,15 @@ git-tree-sha1 = "bf18d73b3f48bea065528bf63e43e522f85f5e4b"
 lazy = true
 
     [[scottish-lcf-expenditure.download]]
-    sha256 = "66231a2f9d4cf75d373812e6969e40ffe1dd386dc0b8c577aa3ed67f75e4cc1c"
-    url = "http://stb-artifacts/scottish-lcf-expenditure.tar.gz"
+    sha256 = "ba73be515c2ca617f3588395679326f978bd1172b4cfc226fe55091db0472666"
+    url = "http://stb-artifacts//scottish-lcf-expenditure.tar.gz"
 
 [scottish-slab-legalaid]
 git-tree-sha1 = "6ac253d4e01462d5fb25ba410a91504186c46f9d"
 lazy = true
 
     [[scottish-slab-legalaid.download]]
-    sha256 = "ec6dfe097d4dcceadb457261ff4ca1223f2c95a2642d541766ada87cfb6932e0"
+    sha256 = "7b8ac59ff02fbfe3c7097899a61e94cad1a169dcc2e0bf30fa4c3e4ebd386e41"
     url = "http://stb-artifacts//scottish-slab-legalaid.tar.gz"
 
 [scottish-synthetic-data]
@@ -75,24 +75,24 @@ git-tree-sha1 = "f850d06c68ba5e10fe1d9c2eec9100c2e87cd5a9"
 lazy = true
 
     [[scottish-was-wealth.download]]
-    sha256 = "261af9f44c20fa4f9f56c059e92b6e869c1b7500add96385ab9fa9482584aa53"
+    sha256 = "ce8551f59192129dd03c2b9be45216fca3a9d5c71b63336e456fa3e957f584d5"
     url = "http://stb-artifacts//scottish-was-wealth.tar.gz"
 
 [uk-frs-data]
-git-tree-sha1 = "8891ef02ea5dada4ec097ce0a183502cfafb995f"
+git-tree-sha1 = "89cf56539e72722b34a052ecb48732246f1f909d"
 lazy = true
 
     [[uk-frs-data.download]]
-    sha256 = "8e3efc98a687441085be9ef5e53b663c2bd9abf6e300efa2dd6edb29993d8777"
-    url = "http://stb-artifacts/model-data-2021-2021-v2.tar.gz"
+    sha256 = "edb40910df7d0a46bc425ad773bfcd1a9de307e3195926d29f1a96e97e60129d"
+    url = "http://stb-artifacts//uk-frs-data.tar.gz"
 
 [uk-lcf-expenditure]
 git-tree-sha1 = "aac0e469d51d53ae54dcc2aa54af2d4f2d72a03a"
 lazy = true
 
     [[uk-lcf-expenditure.download]]
-    sha256 = "a2888101e82837d3cf9852fc35f66a36372d579b5660bf5cbf7a70cf11777187"
-    url = "http://stb-artifacts/uk-lcf-expenditure.tar.gz"
+    sha256 = "9da7c224510fcda09d611ce982c8c714bb613b2c8a04ad30b5f561f7cb11159a"
+    url = "http://stb-artifacts//uk-lcf-expenditure.tar.gz"
 
 [uk-synthetic-data]
 git-tree-sha1 = "2bcdf3e7a62bb4bcd282f05008adbe6b63228ab9"
@@ -119,9 +119,9 @@ lazy = true
     url = "https://virtual-worlds.biz/artifacts//uk-synthetic-wealth.tar.gz"
 
 [uk-was-wealth]
-git-tree-sha1 = "8fb7e3a1d9da7de2a9b1f91a05a8c431f8ab4526"
+git-tree-sha1 = "9d6f7de0ddaa34d73228b648503018b6fa0f99f7"
 lazy = true
 
     [[uk-was-wealth.download]]
-    sha256 = "d33b1c51eadb5f4bf8278f716a60b0a37ea7af66b8fe56dca045d50f7674d94f"
-    url = "http://stb-artifacts/uk-was-wealth.tar.gz"
+    sha256 = "b9f06f92f88ba772731979d6ff94b869fd15e42e4acfb79f6911b9e60fb12c72"
+    url = "http://stb-artifacts//uk-was-wealth.tar.gz"
