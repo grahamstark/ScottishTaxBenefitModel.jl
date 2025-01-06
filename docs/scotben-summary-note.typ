@@ -271,13 +271,8 @@ ScotBen is under active development. As of January 2025, tasks include:
   )
 )
 
-_note:_ The Scottish disability benefits:
-    - Carer’s Allowance Supplement
-    - Carer Support Payment
-    - Adult Disability Payment
-    - Child Disability Payment
-    - Pension Age Disability Payment
-are modelled as being equivalent to the rUK benefits, though a mechanism exists to make the disability tests more or less generous.] <fn-disability>
+_note:_ The Scottish disability benefits are modelled as being equivalent 
+to the corresponding rUK benefits, though a mechanism exists to make the disability tests more or less generous.
 
 #figure(
   caption: [Modelled Means-Tested Benefits],
@@ -309,6 +304,7 @@ are modelled as being equivalent to the rUK benefits, though a mechanism exists 
     [Wealth Taxes],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/OtherTaxes.jl")[OtherTaxes.jl]],[ ],
     [Various Local Taxation schemes],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/LocalLevelCalculations.jl")[LocalLevelCalculations.jl]],[ ],
     [The Benefit Cap],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/BenefitCap.jl")[BenefitCap.jl]],[ ],
+    [Bedroom Tax/ Discretionary Housing Allowance],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/ScottishBenefits.jl")[ScottishBenefits.jl]],[Scottish-specific],
   )
 )
 
