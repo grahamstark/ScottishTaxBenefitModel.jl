@@ -29,6 +29,6 @@ PUBLICS = [
 ]
 
 for name in union(PUBLICS,LOCALS)
-    is_local = true #  name in LOCALS
+    is_local = name in LOCALS
     Utils.make_artifact( ; artifact_name=name, is_local=is_local )
 end
