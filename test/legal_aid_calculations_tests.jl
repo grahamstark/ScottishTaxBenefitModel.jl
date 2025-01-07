@@ -562,7 +562,7 @@ end
 end
 
 
-@testset "top rate bug chaser" begin
+@testset "Simple Runner #1" begin
     global tot
     tot = 0
     settings = lasettings()
@@ -576,6 +576,23 @@ end
     LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2 )
 end
 
+@testset "UC Cap Tests" begin
+    global tot
+    tot = 0
+    settings = lasettings()
+    settings.run_name = "top rate bug chaser"
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.civil.uc_limit_type = uc_max_income
+    sys2.legalaid.civil.uc_use_earnings = assessed_net_income
+    sys3 = deepcopy(sys2)
+    sys3.legalaid.civil.uc_use_earnings = tapered_uc_earnings
+    sys4 = deepcopy(sys3)
+    sys4.legalaid.civil.uc_use_earnings = full_uc_earnings    
+    systems = [sys1, sys2, sys3, sy4 ]
+    @time results = Runner.do_one_run( settings, systems, obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=4 )
+end
 
 #=
 @testset "using LegalAidRunner" begin
