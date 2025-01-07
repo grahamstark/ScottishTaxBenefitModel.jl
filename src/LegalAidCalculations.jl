@@ -40,6 +40,10 @@ using .STBParameters:
     OneLegalAidSys,
     NonMeansTestedSys,
     AgeLimits,
+    UCEarningsType, 
+    assessed_net_income, 
+    tapered_uc_earnings, 
+    full_uc_earnings,
     ScottishLegalAidSys
     
 using .Intermediate: 
