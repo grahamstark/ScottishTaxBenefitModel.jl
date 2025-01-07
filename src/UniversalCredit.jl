@@ -334,8 +334,7 @@ function calc_uc_income(
             uc.work_allowance_w_housing : uc.work_allowance_no_housing
         earn = max( 0.0, earn-bur.uc.work_allowance)
     end
-    earned_income = earn*uc.taper
-    return (; other_income=inc, earned_income=earned_income, untapered_earnings = earn )
+    return (; other_income=inc, earned_income=earn*uc.taper, untapered_earnings = earn )
 end
 
 
