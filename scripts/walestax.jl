@@ -211,7 +211,7 @@ end
 
 function get_sett()
     settings = Settings()
-    settings.auto_weight = false
+    settings.auto_weight = dont_use_weights # local
     settings.benefit_generosity_estimates_available = false
     settings.household_name = "model_households_wales"
     settings.people_name    = "model_people_wales"

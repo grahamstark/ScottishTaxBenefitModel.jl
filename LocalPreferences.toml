@@ -1,11 +1,10 @@
 [preferences.ScottishTaxBenefitModel]
+weighting_strategy = "use_precomputed_weights"
 public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
 public-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
 local-artifact_server_upload = "stb-artifacts:/var/www/stb-artifacts/"
 local-artifact_server_url = "http://stb-artifacts/"
-auto_weight = true
 default_run_name = "default_run"
-use_weighting = true
 target_nation = "N_Scotland"
 dump_frames = false
 prices_file="indexes.tab"

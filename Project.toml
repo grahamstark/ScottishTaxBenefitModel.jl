@@ -114,7 +114,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 
 [preferences.ScottishTaxBenefitModel]
-auto_weight = true
+weighting_strategy = "use_precomputed_weights"
 ccode = ""
 default_run_name = "default_run"
 do_legal_aid = false
@@ -135,7 +135,6 @@ replacement_rate_hours = 30
 target_nation = "N_Scotland"
 to_q = 4
 to_y = 2024
-use_weighting = true
 
 [targets]
 test = ["Test"]

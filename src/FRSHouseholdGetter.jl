@@ -143,6 +143,15 @@ module FRSHouseholdGetter
         return df
     end
 
+    function include_this_hh( 
+        hdata :: DataFrameRow, 
+        skiplist :: DataFrame, 
+        settings :: Settings ) :: Bool
+        return not_in_skiplist( hdata, skiplist ) && (( 
+            length(settings.included_data_years) == 0 ) || 
+            (hdata.data_year in settings.settings.included_data_years ))
+    end
+
     """
     Insert into data a pair of basic deciles in the hh data based on actual pre-model income and eq scale
     """
@@ -334,6 +343,8 @@ module FRSHouseholdGetter
         return ratios
     end
 
+    function include_this_hh( hhd :: DataFrameRow, settings::Settings)
+
     """
     Initialise the dataset. If this has already been done, do nothing unless 
     `reset` is true.
@@ -376,7 +387,7 @@ module FRSHouseholdGetter
         hseq = 0
         dseq = 0
         for hdata in eachrow( hh_dataset )            
-            if not_in_skiplist( hdata, skiplist )
+            if include_this_hh( hdata, skiplist, settings )
                 hseq += 1
                 hh = load_hhld_from_frame( dseq, hdata, people_dataset, settings )
                 npeople += num_people(hh)
@@ -419,9 +430,28 @@ module FRSHouseholdGetter
             nhhlds
         REG_DATA = create_regression_dataframe( hh_dataset, people_dataset )
         # Save a copy of the dataset before we maybe mess with council weights
-        WeightingData.init_national_weights( settings, reset=reset )
-        for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
-            WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
+        # FIXME clean this whole bit up & move to a function 
+        if settings.weighting_strategy == use_runtime_computed_weights
+            # regenerate weights
+            @time weight = generate_weights( 
+                nhhlds;
+                weight_type = settings.weight_type,
+                lower_multiple = settings.lower_multiple,
+                upper_multiple = settings.upper_multiple )
+            for i in eachindex( weight ) # just assign weight = weight?
+                MODEL_HOUSEHOLDS.weight[i] = weight[i]
+            end
+        elseif settings.weighting_strategy == use_precomputed_weights  # pre-computed weights
+            WeightingData.init_national_weights( settings, reset=reset )
+            for hno in eachindex(MODEL_HOUSEHOLDS.hhlds) 
+                WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
+            end
+        elseif settings.weighting_strategy == dont_use_weights
+            for i in 1:nhhlds ) # just assign weight = weight?
+                MODEL_HOUSEHOLDS.weight[i] = 1.0
+            end
+        elseif settings.weighting_strategy == use_supplied_weights
+            MODEL_HOUSEHOLDS.weight[hseq] = MODEL_HOUSEHOLDS.hhlds[hseq].weight
         end
         fill_in_deciles!(settings)
         backup()

@@ -103,7 +103,8 @@ TODO add the local authority version of this.
 """
 function run_weighting( settings :: Settings )
     # default weighting using current Scotland settings; otherwise do manually
-    if settings.auto_weight && settings.target_nation == N_Scotland
+    if(settings.weighting_strategy == use_precomputed_weights) && 
+    (settings.target_nation == N_Scotland) 
         @time weight = generate_weights( 
             settings.num_households;
             weight_type = settings.weight_type,

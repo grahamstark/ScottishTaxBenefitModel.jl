@@ -46,8 +46,7 @@ module RunSettings
         # DatasetType,
         # actual_data,
         # synthetic_data,
-        get_skiplist,
-
+        
         get_all_uk_settings_2023,
         get_data_artifact
         
@@ -66,6 +65,14 @@ module RunSettings
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
 
+    export WeightinyStrategy, use_supplied_weights, use_precomputed_weights,
+        use use_runtime_computed_weights, dont_use_weights
+    @enum WeightingStrategy begin 
+        use_supplied_weights
+        use_precomputed_weights
+        use_runtime_computed_weights
+        dont_use_weights
+    end
     #=
     mutable struct MiniSett
         prem :: LMTPremia
@@ -89,8 +96,7 @@ module RunSettings
         uid :: Int = 1 # placeholder for maybe a user somewhere
         run_name = @load_preference( "default_run_name", "default_run" )
         scotland_full :: Bool = true
-        weighted = @load_preference( "use_weighting", true )
-        auto_weight = @load_preference( "auto_weight", true )
+        weighting_strategy :: WeightingStrategy = eval( Symbol(@load_preference( "weighting_strategy", "use_precomputed_weights" )))
         household_name = "model_households_scotland-2015-2021-w-enums-2"
         people_name  = "model_people_scotland-2015-2021-w-enums-2"
         target_nation :: Nation = eval(Symbol(@load_preference("target_nation", "N_Scotland"))) #  N_Scotland
@@ -153,6 +159,10 @@ module RunSettings
         included_data_years = @load_preference( "included_data_years", Int[] )
     end
 
+    """
+    The name, as an artifactString of the main dataset artifact e.g.
+    'artifact"uk-frs-data" and so on.
+    """
     function get_data_artifact( settings::Settings )::AbstractString
         return if settings.data_source == FRSSource
             if settings.target_nation == N_Scotland
@@ -198,7 +208,7 @@ module RunSettings
         settings.prices_file = "indexes-july-2023.tab"
         settings.to_y :: Int = 2024
         settings.to_q :: Int = 3
-        settings.auto_weight = false
+        settings.weighting_strategy = use_supplied_weights
         settings.use_average_band_d = true
         settings.benefit_generosity_estimates_available = false
         settings.requested_threads = 4
