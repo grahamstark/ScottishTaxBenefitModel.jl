@@ -39,8 +39,7 @@ if IS_LOCAL
 	# These will only run if datasets are locally installed
     include( "household_tests.jl")
     include( "consumption_data_tests.jl")
-	# FIXME needs rewritten to match new Weighting code include( "weighting_tests.jl")
-    include( "uc_transition_tests.jl")
+	include( "uc_transition_tests.jl")
     include( "simple_runner_tests.jl")
     include( "crude_takeup_tests.jl")
     include( "equaliser_tests.jl")
@@ -49,5 +48,6 @@ if IS_LOCAL
     include( "all_uk_runner_tests.jl")
     include( "wealth_tests.jl")
     include( "legal_aid_calculations_tests.jl")
+    include( "weighting_tests.jl")
     # include( "indirect_taxes_tests.jl")
 end
