@@ -150,6 +150,7 @@ module RunSettings
         do_local_run = @load_preference( "do_local_run", false )
         ccode = Symbol(@load_preference( "ccode", "" ))
         annual_rent_to_house_price_multiple = @load_preference( "annual_rent_to_house_price_multiple", 20.0 )
+        included_data_years = @load_preference( "included_data_years", Int[] )
     end
 
     function get_data_artifact( settings::Settings )::AbstractString

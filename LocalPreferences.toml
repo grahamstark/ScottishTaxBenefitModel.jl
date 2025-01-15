@@ -48,4 +48,5 @@ skiplist = ""
 do_local_run = false
 ccode = ""
 annual_rent_to_house_price_multiple = 20.0
+included_data_years = []
 
