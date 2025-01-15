@@ -35,6 +35,7 @@ module FRSHouseholdGetter
     using .ConsumptionData
     using .WealthData
     using .WeightingData
+    using .Weighting
 
     export 
         initialise, 
@@ -149,7 +150,7 @@ module FRSHouseholdGetter
         settings :: Settings ) :: Bool
         return not_in_skiplist( hdata, skiplist ) && (( 
             length(settings.included_data_years) == 0 ) || 
-            (hdata.data_year in settings.settings.included_data_years ))
+            (hdata.data_year in settings.included_data_years ))
     end
 
     """
@@ -381,6 +382,10 @@ module FRSHouseholdGetter
         npeople = 0; # size( people_dataset)[1]
         nhhlds = size( hh_dataset )[1]
         resize!( MODEL_HOUSEHOLDS.hhlds, nhhlds )
+        MODEL_HOUSEHOLDS.data_years = []
+        MODEL_HOUSEHOLDS.interview_years = []
+        empty!(  MODEL_HOUSEHOLDS.hh_map )
+        empty!(  MODEL_HOUSEHOLDS.pers_map )
         pseq = 0
         hseq = 0
         dseq = 0
@@ -431,13 +436,13 @@ module FRSHouseholdGetter
         # FIXME clean this whole bit up & move to a function 
         if settings.weighting_strategy == use_runtime_computed_weights
             # regenerate weights
-            @time weight = generate_weights( 
+            @time weights, data = generate_weights( 
                 nhhlds;
                 weight_type = settings.weight_type,
                 lower_multiple = settings.lower_multiple,
                 upper_multiple = settings.upper_multiple )
-            for i in eachindex( weight ) # just assign weight = weight?
-                MODEL_HOUSEHOLDS.weight[i] = weight[i]
+            for i in 1:nhhlds # just assign weight = weight?
+                MODEL_HOUSEHOLDS.hhlds[i].weight = weights[i]
             end
         elseif settings.weighting_strategy == use_precomputed_weights  # pre-computed weights
             WeightingData.init_national_weights( settings, reset=reset )
@@ -445,13 +450,11 @@ module FRSHouseholdGetter
                 WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
             end
         elseif settings.weighting_strategy == dont_use_weights
-            for i in 1:nhhlds # just assign weight = weight?
-                MODEL_HOUSEHOLDS.weight[i] = 1.0
+            for i in 1:nhhlds 
+                MODEL_HOUSEHOLDS.hhlds[i].weight = 1.0
             end
         elseif settings.weighting_strategy == use_supplied_weights
-            for i in 1:nhhlds
-                MODEL_HOUSEHOLDS.weight[i] = MODEL_HOUSEHOLDS.hhlds[i].weight
-            end
+            # do nothing - don't overwrite supplied weight
         end
         fill_in_deciles!(settings)
         backup()

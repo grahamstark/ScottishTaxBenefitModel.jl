@@ -88,7 +88,7 @@ function generate_weights(
     household_total :: Real = NUM_HOUSEHOLDS_SCOTLAND_2024,
     targets :: Vector = DEFAULT_TARGETS_SCOTLAND_2024,
     initialise_target_dataframe :: Function = initialise_target_dataframe_scotland_2022,
-    make_target_row! :: Function = make_target_row_scotland_2022! ) :: Vector
+    make_target_row! :: Function = make_target_row_scotland_2022! ) :: Tuple
 
     function check_data( d, nrows, ncols )
         zrows = Int[]

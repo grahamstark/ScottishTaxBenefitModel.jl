@@ -2,73 +2,86 @@ import Test: @testset, @test
 
 using ScottishTaxBenefitModel
 
-using .FRSHouseholdGetter: 
-    get_household, 
-    get_num_households,
-    initialise
+using .FRSHouseholdGetter
+using .ModelHousehold
 
-using .ModelHousehold: 
-    Household, 
-    Person
-
-using .Weighting: 
-    DEFAULT_TARGETS, 
-    generate_weights, 
-    initialise_target_dataframe,
-    make_target_dataset
+using .Weighting
 using .ExampleHelpers
-    
+using .RunSettings
+
+using Pkg.Artifacts
+using LazyArtifacts
 using CSV
-using Tables
-
-start_year=2015
-
-println( "num_households=$(get_num_households())")
-
+using DataFrames
+   
 #if get_num_households() == 0
-@time nhh,total_num_people,nhh2 = initialise( Settings() )
-
-#end
-
-function lsum(v::Vector)
-    reduce(+,v)
+function wsum(settings::Settings):Number
+    hhlds = 0.0
+    people = 0.0
+    for i in 1:settings.num_households
+        hh = get_household(i)
+        w = hh.weight
+        people += w*num_people(hh)
+        hhlds += w
+    end
+    hhlds, people
 end
 
-@testset "weighting tests" begin
-    nhh = get_num_households()
-    hhlds_in_popn = lsum( DEFAULT_TARGETS[42:48]) # sum of all hhld types
-    data = make_target_dataset( nhh )
-    nr,nc = size(data)
 
-    @test nr == nhh
-    @test nc == size( DEFAULT_TARGETS )[1]
 
-    initial_weights = ones(nhh)*hhlds_in_popn/nr
+@testset "weighting strategies" begin
+    settings = Settings()
 
-    initial_weighted_popn = (initial_weights' * data)'
+    adir = get_data_artifact(settings)
+    raw_hhlds = CSV.File(joinpath(adir,"households.tab"))|>DataFrame
 
-    println( "initial-weighted_popn vs targets" )
-    println( "target\tinitial\t%diff" )
-    for c in 1:nc
-        diffpc = 100*(initial_weighted_popn[c]-DEFAULT_TARGETS[c])/DEFAULT_TARGETS[c]
-        println( "$c $(DEFAULT_TARGETS[c])\t$(initial_weighted_popn[c])\t$diffpc%")
-    end
+    settings.weighting_strategy = dont_use_weights
+    settings.num_households, settings.num_people = 
+        initialise(  settings; reset=true )
+    data_years = get_data_years()
+    @show data_years
+    hhlds, people = wsum(settings)
+    @test hhlds ≈ settings.num_households
+    @test people ≈ settings.num_people 
+    # FIXME this breaks without updates!
+    popns = Weighting.DEFAULT_TARGETS_SCOTLAND_2024
+    
+    target_scot_hhlds = sum( popns[42:47])
+    target_scots_people = sum( popns[8:41])
 
-    open( "scotmat.csv", "w" ) do io
-         CSV.write(io, Tables.table(data))
-    end
+    settings.weighting_strategy = use_runtime_computed_weights
+    settings.num_households, settings.num_people = 
+        initialise(  settings; reset=true )
+    hhlds, people = wsum(settings)
+    @test hhlds ≈ target_scot_hhlds
+    @test people ≈ target_scots_people
 
-    for c in 1:nc
-        @test( sum(data[:,c]) > 0 )
-    end
+    # should be same ...
+    settings.weighting_strategy = use_precomputed_weights
+    settings.num_households, settings.num_people = 
+        initialise(  settings; reset=true )
+    hhlds, people = wsum(settings)
+    @test hhlds ≈ target_scot_hhlds
+    @test people ≈ target_scots_people
+    # FIXME this breaks without updates!
 
-    @time weights = generate_weights(nhh)
+    # same totals, smaller subset
+    settings.included_data_years = [2019,2020,2021]
+    settings.weighting_strategy = use_runtime_computed_weights
+    settings.num_households, settings.num_people = 
+        initialise(  settings; reset=true )
+    hhlds, people = wsum(settings)
+    @test hhlds ≈ target_scot_hhlds
+    @test people ≈ target_scots_people
+    println( "settings.num_people=$(settings.num_people), settings.num_households=$(settings.num_households)")
+    @test get_data_years() ==  settings.included_data_years
 
-    weighted_popn = (weights' * data)'
-    @test weighted_popn ≈ DEFAULT_TARGETS
-    for c in 1:nc
-        diffpc = 100*(weighted_popn[c]-DEFAULT_TARGETS[c])/DEFAULT_TARGETS[c]
-        println( "$c $(DEFAULT_TARGETS[c])\t$(weighted_popn[c])\t$diffpc%")
-    end
-
+    settings.included_data_years = []
+    settings.weighting_strategy = use_supplied_weights
+    dataweights = sum( raw_hhlds.weight )
+    settings.num_households, settings.num_people = 
+    initialise(  settings; reset=true )
+    hhlds, people = wsum(settings)
+    @test dataweights ≈ hhlds
+    
 end
