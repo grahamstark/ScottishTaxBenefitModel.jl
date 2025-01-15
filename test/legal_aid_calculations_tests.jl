@@ -588,7 +588,7 @@ end
     sys3.legalaid.civil.uc_use_earnings = tapered_uc_earnings
     sys4 = deepcopy(sys3)
     sys4.legalaid.civil.uc_use_earnings = full_uc_earnings    
-    systems = [sys1, sys2, sys3, sy4 ]
+    systems = [sys1, sys2, sys3, sys4 ]
     @time results = Runner.do_one_run( settings, systems, obs )
     outf = summarise_frames!( results, settings )
     LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=4 )
