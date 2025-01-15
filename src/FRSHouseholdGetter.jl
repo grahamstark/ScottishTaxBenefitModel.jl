@@ -343,8 +343,6 @@ module FRSHouseholdGetter
         return ratios
     end
 
-    function include_this_hh( hhd :: DataFrameRow, settings::Settings)
-
     """
     Initialise the dataset. If this has already been done, do nothing unless 
     `reset` is true.
@@ -447,11 +445,13 @@ module FRSHouseholdGetter
                 WeightingData.set_weight!( MODEL_HOUSEHOLDS.hhlds[hno], settings )
             end
         elseif settings.weighting_strategy == dont_use_weights
-            for i in 1:nhhlds ) # just assign weight = weight?
+            for i in 1:nhhlds # just assign weight = weight?
                 MODEL_HOUSEHOLDS.weight[i] = 1.0
             end
         elseif settings.weighting_strategy == use_supplied_weights
-            MODEL_HOUSEHOLDS.weight[hseq] = MODEL_HOUSEHOLDS.hhlds[hseq].weight
+            for i in 1:nhhlds
+                MODEL_HOUSEHOLDS.weight[i] = MODEL_HOUSEHOLDS.hhlds[i].weight
+            end
         end
         fill_in_deciles!(settings)
         backup()

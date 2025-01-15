@@ -65,13 +65,13 @@ module RunSettings
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
 
-    export WeightinyStrategy, use_supplied_weights, use_precomputed_weights,
-        use use_runtime_computed_weights, dont_use_weights
+    export WeightingStrategy, use_supplied_weights, use_precomputed_weights,
+        use_runtime_computed_weights, dont_use_weights
     @enum WeightingStrategy begin 
-        use_supplied_weights
-        use_precomputed_weights
-        use_runtime_computed_weights
-        dont_use_weights
+        use_supplied_weights = 1
+        use_precomputed_weights = 2
+        use_runtime_computed_weights = 3
+        dont_use_weights = 4
     end
     #=
     mutable struct MiniSett
