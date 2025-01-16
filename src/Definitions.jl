@@ -54,7 +54,7 @@ const DOCS_DIR         = joinpath( PROJECT_DIR, "docs" )
 const SRC_DIR          = joinpath( PROJECT_DIR, "src" )
 const CONFIG_DIR       = joinpath( PROJECT_DIR, "etc" )
 
-
+# FIXME delete all these-replaced with artifacts
 const DEF_MODEL_DATA_DIR   = joinpath( PROJECT_DIR, "data" )
 const MODEL_DATA_DIR   = load_data_path( which=:model_data_dir, default=DEF_MODEL_DATA_DIR )
 const PRICES_DIR       = joinpath( MODEL_DATA_DIR, "prices", "indexes" )
