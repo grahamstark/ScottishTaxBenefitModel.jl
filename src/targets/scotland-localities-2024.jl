@@ -731,9 +731,3 @@ function make_target_list_2024(
     select!( df, included_fields )
     return v,included_fields,av
 end
-
-
-
-
-
-

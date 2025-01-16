@@ -1,12 +1,14 @@
 
 using CSV
+using Pkg.Artifacts
+using LazyArtifacts
 #
 #
 #
 const WDIR = joinpath(MODEL_DATA_DIR, "wales", "projections")
 
 function loaddf_wales_longterm()::DataFrame
-    CSV.File( joinpath(WDIR,"popn-targets-2020-2040.csv"))|>DataFrame
+    return CSV.File( joinpath(artifact"augdata","popn-targets-wales-2020-2040.csv"))|>DataFrame
 end
 
 const TARGET_DF_LONG_TERM_WALES :: DataFrame = loaddf_wales_longterm()
