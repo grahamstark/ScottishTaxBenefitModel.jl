@@ -30,6 +30,7 @@ const DEFAULT_CHUNK_SIZE = 8
 const DLA_TO_PIP = 1
 const R_EMPLOYERS_PENSION = 7
 const UC_TRANSITION = 9
+const CASELOAD_TAKEUP = 20
 
 """
 extract the chars from start:len-1 and convert to a probability

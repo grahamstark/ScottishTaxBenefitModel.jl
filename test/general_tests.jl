@@ -14,7 +14,7 @@ using .Definitions
 
     pid = 120181906404
     p = from_pid( pid )
-    @test p.datasource == FRS
+    @test p.datasource == FRSSource
     @test p.year == 2018
     @test p.hid == 19064
     @test p.pno == 4

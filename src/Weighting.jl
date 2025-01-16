@@ -88,14 +88,32 @@ function generate_weights(
     household_total :: Real = NUM_HOUSEHOLDS_SCOTLAND_2024,
     targets :: Vector = DEFAULT_TARGETS_SCOTLAND_2024,
     initialise_target_dataframe :: Function = initialise_target_dataframe_scotland_2022,
-    make_target_row! :: Function = make_target_row_scotland_2022! ) :: Vector
+    make_target_row! :: Function = make_target_row_scotland_2022! ) :: Tuple
+
+    function check_data( d, nrows, ncols )
+        zrows = Int[]
+        for r in 1:nrows
+            if sum( d[r,:] ) == 0
+                push!(zrows,r)
+            end
+        end
+        zcols = Int[]
+        @assert length(zrows) == 0 "data has all-zero rows for rows $(zrows)"
+        for c in 1:ncols
+            if sum( d[:,c] ) == 0
+                push!(zcols,c)
+            end
+        end
+        @assert length(zcols) == 0 "data has all-zero cols $(zcols)"
+    end
 
     data :: Matrix = make_target_dataset( 
         nhhlds, 
         initialise_target_dataframe, 
         make_target_row! )
-    nrows = size( data )[1]
-    ncols = size( data )[2]
+    # println( data )
+    nrows, ncols = size( data )
+    check_data( data, nrows, ncols )
     ## FIXME parameterise this
     initial_weights = ones(nhhlds)*household_total/nhhlds
     println( "initial_weights $(initial_weights[1])")
@@ -127,7 +145,7 @@ function generate_weights(
         hh = FRSHouseholdGetter.get_household( hno )
         hh.weight = weights[hno]
     end
-    return weights
+    return weights, data
 end
 
 end # package

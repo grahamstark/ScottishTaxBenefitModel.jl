@@ -13,10 +13,12 @@ using Dates: Date, now, TimeType, Year
 using TimeSeries
 using StaticArrays
 using Parameters
+using Pkg, Pkg.Artifacts
+using LazyArtifacts
 using DataFrames,CSV
 
 using ScottishTaxBenefitModel
-using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR, WEEKS_PER_MONTH
+using .GeneralTaxComponents: RateBands
 using .Definitions
 using .Utils
 using .TimeSeriesUtils: fy, fy_array
@@ -787,6 +789,7 @@ end
 @with_kw mutable struct LocalTaxes{RT<:Real}
     ct = CouncilTax{RT}()
     ppt = ProportionalPropertyTax{RT}()
+    local_income_tax_rates :: RateBands{RT} = zeros(RT,1) # [19.0,20.0,21.0,41.0,46.0]
     # other possible local taxes go here
 end
 
@@ -822,7 +825,7 @@ end
 
     function weeklyise!( hb :: HousingBenefits; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEARs )
     hb.taper /= 100.0
-    end
+end
 
 @with_kw mutable struct LegacyMeansTestedBenefitSystem{RT<:Real}
     # CPAG 2019/bur.pers[pid].20 p335
@@ -863,7 +866,7 @@ function loadBRMAs( N :: Int, T :: Type, file :: String  ) :: Dict{Symbol,BRMA{N
     dict
 end
 
-const DEFAULT_BRMA_2021 = joinpath(MODEL_DATA_DIR,"local", "lha_rates_scotland_2020_21.csv")
+const DEFAULT_BRMA_2021 = joinpath( artifact"augdata", "lha_rates_scotland_2020_21.csv")
 
 @with_kw mutable struct HousingRestrictions{RT<:Real}
     abolished :: Bool = false
@@ -1259,6 +1262,8 @@ include( "$(MODEL_PARAMS_DIR)/sys_2022-23-july-ni.jl" )
 include( "$(MODEL_PARAMS_DIR)/sys_2023_24_ruk.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
 include( "$(MODEL_PARAMS_DIR)/ni_rates_jan_2024.jl" )
+include( "$(MODEL_PARAMS_DIR)/sys_2024_25_ruk.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2024_25_scotland.jl")
 
 """
 return the full system for the given date, weeklyised
@@ -1266,8 +1271,9 @@ return the full system for the given date, weeklyised
 function get_default_system_for_date( 
     date :: Date; scotland = true, 
     RT :: Type = Float64,
-    wpm=WEEKS_PER_MONTH, 
-    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
+    wpm = WEEKS_PER_MONTH, 
+    wpy = WEEKS_PER_YEAR,
+    autoweekly = true  )::TaxBenefitSystem
     #
     # FIXME ALL THE NAMES HERE ARE INCONSISTENT. NO RUK FILES for early years.
     #
@@ -1309,13 +1315,20 @@ function get_default_system_for_date(
         if date >= Date(2024,1,5)
             load_ni_rates_jan_2024!( sys )
         end
+    elseif date in fy(2024)
+        load_sys_2024_25_ruk!( sys )
+        if scotland 
+            load_sys_2024_25_scotland!( sys )
+        end
     else
         # if date in  fy(2024)
         ## TODO
         # else
         error( "system for $date hasn't been created yet")
     end
-    weeklyise!( sys; wpm=wpm, wpy=wpy )
+    if autoweekly
+        weeklyise!( sys; wpm=wpm, wpy=wpy )
+    end
     return sys
 end
 
@@ -1327,9 +1340,10 @@ function get_default_system_for_cal_year(
     scotland = true, 
     RT :: Type = Float64,
     wpm=WEEKS_PER_MONTH, 
-    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
+    wpy=WEEKS_PER_YEAR,
+    autoweekly = true )::TaxBenefitSystem
     d = Date( year, 1, 1 )
-    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy )
+    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy, autoweekly=autoweekly )
 end
 
 """
@@ -1340,10 +1354,17 @@ function get_default_system_for_fin_year(
     scotland = true, 
     RT :: Type = Float64,
     wpm=WEEKS_PER_MONTH, 
-    wpy=WEEKS_PER_YEAR )::TaxBenefitSystem
+    wpy=WEEKS_PER_YEAR,
+    autoweekly = true  )::TaxBenefitSystem
     d = Date( finyear, 4, 6 )
     println( "date $d")
-    return get_default_system_for_date( d; scotland=scotland, RT = RT, wpm=wpm, wpy=wpy )
+    return get_default_system_for_date( 
+        d; 
+        scotland=scotland, 
+        RT = RT, 
+        wpm=wpm, 
+        wpy=wpy, 
+        autoweekly = autoweekly )
 end
 
 end # module

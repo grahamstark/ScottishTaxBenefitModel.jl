@@ -19,6 +19,8 @@ export Net_Or_Gross, net, gross
 @enum Assessment_Period weekly monthly annualHistoric annualForward
 export ContributionType, cont_proportion, cont_fixed
 @enum ContributionType cont_proportion cont_fixed
+export UCEarningsType, assessed_net_income, tapered_uc_earnings, full_uc_earnings
+@enum UCEarningsType assessed_net_income tapered_uc_earnings full_uc_earnings
 
 """
 needed because json (inf) isn't supported and typemax(somefloattype) == Inf
@@ -123,8 +125,13 @@ const  DISREGARDED_BENEFITS_AA = [
     INCAPACITY_BENEFIT,
     PENSION_CREDIT,
     STUDENT_LOANS,
-    SCOTTISH_CARERS_SUPPLEMENT
-]
+    SCOTTISH_CARERS_SUPPLEMENT,
+
+    CONTRIB_JOBSEEKERS_ALLOWANCE,
+    WORKING_TAX_CREDIT,
+    CHILD_TAX_CREDIT,
+    UNIVERSAL_CREDIT,
+    INCOME_SUPPORT ]
 
 function zero_premia( RT :: DataType ) :: Premia
     prems = Premia{RT}()
@@ -171,7 +178,7 @@ function get_default_incomes( systype :: SystemType )::IncludedItems
     else 
         setdiff!( incs.included, DISREGARDED_BENEFITS_AA )
     end
-    @show incs.included
+    # @show incs.included
     incs
 end
 
@@ -199,7 +206,7 @@ end
         UNIVERSAL_CREDIT])
     pensioner_age_limit        = 9999
     # capital from wealth tax
-    included_capital = WealthSet([net_financial_wealth,net_physical_wealth])
+    included_capital = WealthSet([net_financial_wealth,net_physical_wealth,second_homes])
     expenses = Expenses{RT}()
     capital_contribution_rates  :: RateBands{RT} =  [0,100.0]
     capital_contribution_limits :: RateBands{RT} =  [7_853.0, 13_017.0]
@@ -209,7 +216,8 @@ end
     premia = zero_premia(RT)
     uc_limit = zero(RT)
     uc_limit_type :: UCLimitType = uc_no_limit
-    uc_use_earnings = false
+    uc_use_earnings :: UCEarningsType = assessed_net_income 
+    include_mortgage_repayments = true
 end
 
 """

@@ -11,6 +11,8 @@ using Base.Threads
 using ChunkSplitters
 using ArgCheck
 
+using DataFrames, CSV
+
 using ScottishTaxBenefitModel
 
 using .Utils: pretty
@@ -83,21 +85,19 @@ using .STBOutput: LA_TARGETS
 
 using .HTMLLibs
 
-using DataFrames, CSV
-
 import .Runner
 
 sys = get_system( year=2023, scotland=true )
-print = PrintControls()
+xprint = PrintControls()
 
 function lasettings()
     settings = Settings()
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
-    settings.wealth_method = imputation 
+    settings.wealth_method = other_method_1
     settings.requested_threads = 4
-    settings.num_households,  settings.num_people, nhh2 = 
+    settings.num_households, settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
     return settings
 end
@@ -506,6 +506,92 @@ function test_costs(
             @assert isapprox(entcost,actcost/1000; rtol=0.1) "$label : fail cost for $k actual $actcost modelled $entcost" 
         end
     end
+end
+
+@testset "Capital versions" begin
+    settings = lasettings()
+	# Observer as a global.
+	n = settings.num_households 
+    capdf = DataFrame( 
+        hid = fill(BigInt(0), n ),
+        data_year = fill(0, n ),
+        cap_matching = zeros(n),
+        cap_imputation = zeros(n),
+        cap_no_method = zeros(n),
+        cap_other_method_1 = zeros(n))
+    for capt in [ 
+            matching,
+            imputation,
+            no_method,
+            other_method_1]
+        settings.wealth_method = capt        
+        settings.num_households, settings.num_people, nhh = 
+            FRSHouseholdGetter.initialise( settings; reset=true )
+        for hno in 1:n
+            hh = FRSHouseholdGetter.get_household( hno )
+            cf = capdf[hno,:]
+            intermed = make_intermediate( 
+                DEFAULT_NUM_TYPE,
+                settings,
+                hh, 
+                sys.hours_limits, 
+                sys.age_limits, 
+                sys.child_limits )
+            col = Symbol("cap_$capt") 
+            cf[col] = intermed.hhint.net_financial_wealth 
+            cf.hid = hh.hid
+            cf.data_year = hh.data_year  
+        end
+    end
+    pfname = "$(settings.output_dir)/capcompare-w3.tab"
+    CSV.write( pfname, capdf; delim='\t' )
+end
+
+@testset "effect of mortgage" begin
+    global tot
+    tot = 0
+    settings = lasettings()
+
+    settings.run_name = "Include_mortgage_repayments off"
+    sys2 = deepcopy(sys1)
+    systems = [sys1, sys2]
+    sys2.legalaid.civil.include_mortgage_repayments = false
+    @time results = Runner.do_one_run( settings, systems, obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2 )
+end
+
+
+@testset "Simple Runner #1" begin
+    global tot
+    tot = 0
+    settings = lasettings()
+
+    settings.run_name = "top rate bug chaser"
+    sys2 = deepcopy(sys1)
+    systems = [sys1, sys2]
+    sys2.legalaid.civil.income_contribution_limits[end] += 10_000/WEEKS_PER_YEAR
+    @time results = Runner.do_one_run( settings, systems, obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2 )
+end
+
+@testset "UC Cap Tests" begin
+    global tot
+    tot = 0
+    settings = lasettings()
+    settings.run_name = "top rate bug chaser"
+    sys2 = deepcopy(sys1)
+    sys2.legalaid.civil.uc_limit_type = uc_max_income
+    sys2.legalaid.civil.uc_use_earnings = assessed_net_income
+    sys3 = deepcopy(sys2)
+    sys3.legalaid.civil.uc_use_earnings = tapered_uc_earnings
+    sys4 = deepcopy(sys3)
+    sys4.legalaid.civil.uc_use_earnings = full_uc_earnings    
+    systems = [sys1, sys2, sys3, sys4 ]
+    @time results = Runner.do_one_run( settings, systems, obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=4 )
 end
 
 #=

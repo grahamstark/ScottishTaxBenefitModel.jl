@@ -49,29 +49,35 @@ export ModelHousehold
 include("Weighting.jl" )
 export Weighting
 
+include( "WeightingData.jl")
+export WeightingData
+
 include( "HistoricBenefits.jl")
 export HistoricBenefits
 
 include( "Pensions.jl")
 export Pensions
 
-include("HouseholdFromFrame.jl" )
+include("HouseholdFromFrame.jl")
 export HouseholdFromFrame
 
 include( "ConsumptionData.jl")
 export ConsumptionData
 
-include( "MatchingLibs.jl")
-export MatchingLibs
-
 include( "LegalAidData.jl" )
 export LegalAidData
 
-include("ExampleHouseholdGetter.jl" )
-export ExampleHouseholdGetter
+include( "WealthData.jl" )
+export WealthData
 
-include("FRSHouseholdGetter.jl" )
+include( "FRSHouseholdGetter.jl" )
 export FRSHouseholdGetter
+
+include( "MatchingLibs.jl")
+export MatchingLibs
+
+include( "ExampleHouseholdGetter.jl" )
+export ExampleHouseholdGetter
 
 include("STBParameters.jl" )
 export STBParameters
@@ -84,6 +90,9 @@ export Intermediate
 
 include( "Results.jl")
 export Results
+
+include( "CrudeTakeup.jl")
+export CrudeTakeup
 
 include("HouseholdAdjuster.jl" )
 export HouseholdAdjuster
@@ -160,10 +169,16 @@ export Affordability
 include( "HealthRegressions.jl")
 export HealthRegressions
 
+include( "LocalWeightGeneration.jl")
+export LocalWeightGeneration
 # include( "LegalAidRunner.jl")
 # export LegalAidRunner
 
 include( "HTMLLibs.jl")
 export HTMLLibs
+
+function __init__()
+
+end
 
 end

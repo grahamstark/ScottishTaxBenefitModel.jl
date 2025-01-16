@@ -9,7 +9,7 @@ module HistoricBenefits
 # with a series of complete parameter files, once we have 
 # everything defined fully.
 # 
-using CSV, DataFrames, Dates
+using CSV, DataFrames, Dates, Artifacts, LazyArtifacts
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
@@ -41,7 +41,7 @@ function load_historic( file ) :: Dict
 end
 
 function load_pip()
-    pip=CSV.File( "$(MODEL_DATA_DIR)/receipts/pip_2002-2023_from_stat_explore.csv",
+    pip=CSV.File( joinpath(artifact"augdata", "pip_2002-2023_from_stat_explore.csv"),
         missingstring="..",
         types=Dict([:Date=>String]))|>DataFrame
     pip.Date = Date.( pip.Date, dateformat"yyyymm" )
@@ -49,12 +49,15 @@ function load_pip()
 end
 
 function load_dla()
-    dla=CSV.File( "$(MODEL_DATA_DIR)/receipts/dla_2002-2023_from_stat_explore.csv" )|> DataFrame
+    dla=CSV.File( joinpath(artifact"augdata","dla_2002-2023_from_stat_explore.csv" ))|> DataFrame
     dla.Date = Date.( dla.Date, dateformat"u-yy" ) .+Year(2000)
     return dla
 end
 
-const HISTORIC_BENEFITS = load_historic( "$(MODEL_PARAMS_DIR)/historic_benefits.csv" ) 
+const HISTORIC_BENEFITS = load_historic( 
+    joinpath( 
+        artifact"augdata", "historic_benefits.csv" ))
+
 const DLA_RECEIPTS = load_dla()
 const PIP_RECEIPTS =  load_pip()
 
@@ -147,7 +150,8 @@ function switch_dla_to_pip!(
        (pers.dla_mobility_type != missing_lmh)
         if should_switch_dla_to_pip( 
             pers.onerand, interview_year, interview_month )
-            # println("switching person $(pers.pid) year=$interview_year month=$interview_month")
+            # println("switching person $(pers.pid) year=$interview_year month=$interview_month ")
+            # println( "pers.dla_self_care_type $(pers.dla_self_care_type) ")
             pers.pip_daily_living_type = 
                 if pers.dla_self_care_type == missing_lmh
                     no_pip

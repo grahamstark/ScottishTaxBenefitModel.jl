@@ -31,7 +31,7 @@ function make_default_settings() :: Settings
     settings.do_marginal_rates = false
     settings.requested_threads = 4
     settings.means_tested_routing = uc_full
-    settings.do_health_esimates = true
+    settings.do_health_estimates = true
     # settings.ineq_income_measure = bhc_net_income # FIXME TEMP
     return settings
   end

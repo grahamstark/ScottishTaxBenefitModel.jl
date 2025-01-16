@@ -93,7 +93,7 @@ end
         settings.means_tested_routing = modelled_phase_in
         settings.do_marginal_rates = true
         settings.dump_frames = true
-        sys = [get_system(year=2019, scotland=false), get_system( year=2019, scotland=true )]
+        sys = [get_system(year=2024, scotland=true), get_system( year=2024, scotland=true )]
         results = do_one_run( settings, sys, obs )
         settings.poverty_line = make_poverty_line( results.hh[1], settings )
         outf = summarise_frames!( results, settings )

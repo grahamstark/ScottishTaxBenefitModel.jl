@@ -17,6 +17,8 @@ using .Utils:
     todays_date, 
     to_md_table
 
+using .RunSettings: Settings
+
 using .EquivalenceScales:
     EQ_P_Type,
     EQ_Person,
@@ -60,6 +62,7 @@ export
     has_income,
     household_composition_1,
     interview_date, 
+    infer_house_price!,
     is_child,
     is_head,
     is_lone_parent, 
@@ -90,6 +93,7 @@ export
 mutable struct Person{RT<:Real}
     hid::BigInt # == sernum
     pid::BigInt # == unique id (year * 100000)+
+    uhid::BigInt # non compound index to hhld
     pno:: Int # person number in household
     is_hrp :: Bool
     default_benefit_unit:: Int
@@ -184,6 +188,7 @@ Pid_Array = Vector{BigInt}
 mutable struct Household{RT<:Real}
     sequence:: Int # position in current generated dataset
     hid::BigInt
+    uhid::BigInt # single 
     data_year :: Int
     interview_year:: Int
     interview_month:: Int
@@ -225,6 +230,7 @@ mutable struct Household{RT<:Real}
     # lcf_default_data_year :: Int  
     expenditure :: Union{Nothing,DataFrameRow}
     factor_costs :: Union{Nothing,DataFrameRow}
+    raw_wealth :: Union{Nothing,DataFrameRow}
     people::People_Dict{RT}
     onerand :: String
     equivalence_scales :: EQScales{RT}
@@ -290,7 +296,7 @@ function uprate!( pid :: BigInt, year::Integer, quarter::Integer, person :: Pers
     person.cost_of_childcare = uprate( person.cost_of_childcare, year, quarter, upr_earnings )
 end
 
-function uprate!( hh :: Household )
+function uprate!( hh :: Household, settings::Settings )
 
     hh.water_and_sewerage  = uprate( hh.water_and_sewerage , hh.interview_year, hh.quarter, upr_housing_rents )
     hh.mortgage_payment = uprate( hh.mortgage_payment, hh.interview_year, hh.quarter, upr_housing_oo )
@@ -300,12 +306,13 @@ function uprate!( hh :: Household )
     hh.other_housing_charges = uprate( hh.other_housing_charges, hh.interview_year, hh.quarter, upr_nominal_gdp )
     hh.gross_housing_costs = uprate( hh.gross_housing_costs, hh.interview_year, hh.quarter, upr_nominal_gdp )
     # hh.total_income = uprate( hh.total_income, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.total_wealth = uprate( hh.total_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_physical_wealth = uprate( hh.net_physical_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_financial_wealth = uprate( hh.net_financial_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-    hh.net_pension_wealth = uprate( hh.net_pension_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-
+    if settings.wealth_method != matching # since matched wealth data is pre-uprated
+        hh.total_wealth = uprate( hh.total_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_physical_wealth = uprate( hh.net_physical_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_financial_wealth = uprate( hh.net_financial_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_pension_wealth = uprate( hh.net_pension_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+    end
     hh.house_value = uprate( hh.house_value, hh.interview_year, hh.quarter, upr_housing_oo )
     for (pid,person) in hh.people
         uprate!( pid, hh.interview_year, hh.quarter, person )
@@ -349,16 +356,18 @@ end
 For Budget constraints: set the wage and make all the needed
 corrections to employment status, hours worked, pensions(? pensions not done yet)
 """
-function set_wage!( pers :: Person, gross :: Real, wage :: Real )
+function set_wage!( pers :: Person, gross :: Real, wage :: Real; switch_status=true )
     pers.income[wages] = gross
     h = gross/wage
-    pers.usual_hours_worked = h     
-    pers.employment_status = if h < 5 
-        Unemployed
-    elseif h < 30 
-        Part_time_Employee
-    else
-        Full_time_Employee
+    pers.usual_hours_worked = h
+    if switch_status     
+        pers.employment_status = if h <= 0 
+            Unemployed
+        elseif h < 30 
+            Part_time_Employee
+        else
+            Full_time_Employee
+        end
     end
     # println( "made usual_hours_worked = $h gross=$gross wage=$wage pers.employment_status=$(pers.employment_status)")
 end
@@ -432,7 +441,7 @@ function make_benefit_unit(
     palloc = spouse <= 0 ? 2 : 3
     for n in palloc:npeople
         push!(children, people[n].pid)
-        @assert people[n].age <= 21 # vague idiot check
+        @assert people[n].age <= 19 # vague idiot check
     end
     for pers in people
         pd[pers.pid] = pers
@@ -470,7 +479,11 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
             person = bua[buno][p]
             people[person.pid] = person
             if person.pid == hh_head_pid
+                # FIXME: Rewrite so there's no need for this.
                 @assert buno == 1 "head needs to be 1st BU $hh_head_pid"
+                head_pid = person.pid
+                push!( adults, head_pid )
+            elseif person.is_benefit_unit_head
                 head_pid = person.pid
                 push!( adults, head_pid )
             elseif (p == 1) && (buno > 1)
@@ -478,7 +491,7 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
                 push!( adults, head_pid )
             else
                 # println( "on bu $i person $p relationships $(person.relationships)")
-                @assert head_pid > 0 "head pid must be allocated; buno=$buno"
+                @assert head_pid > 0 "head pid must be allocated; buno=$buno person $(person.pid) relationships $(person.relationships)"
                 hp = (buno == 1) ? hh_head_pid : head_pid
                 reltohead = person.relationships[hp]
                 if reltohead in [Spouse,Cohabitee,Civil_Partner]
@@ -503,7 +516,7 @@ function allocate_to_bus( T::Type, hh_head_pid :: BigInt, bua :: BUAllocation ) 
             @assert head.pid == hh_head_pid "mismatched 1st bu head should be $hh_head is: $(head.pid)"
         else
             @assert (! ismissing( head )) "unallocated head for bu $buno"
-            @assert ! head.is_standard_child "head of bu seems to be child for bu $buno"
+            @assert ! head.is_standard_child "head of bu seems to be child for bu $buno pid=$(head.pid) hid=$(head.hid) age=$(head.age)"
         end
     end
     return bus
@@ -962,5 +975,73 @@ function household_composition_1( hh :: Household ) :: HouseholdComposition1
         end # 2 adults
     end 
 end
+
+
+function infer_house_price!( hh :: Household, settings :: Settings )
+    ## wealth_regressions.jl , model 3
+    hp = 0.0
+    if is_owner_occupier(hh.tenure)
+        if settings.wealth_method == matching 
+            hp = hh.house_value
+        else 
+            hhincome = max(hh.original_gross_income, 1.0)
+            c = ["(Intercept)"            10.576
+            "scotland"               -0.279896
+            "wales"                  -0.286636
+            "london"                  0.843206
+            "owner"                   0.0274378
+            "detatched"               0.139247
+            "semi"                   -0.169271
+            "terraced"               -0.257117
+            "purpose_build_flat"     -0.170908
+            "HBedrmr7"                0.242845
+            "hrp_u_25"               -0.334261
+            "hrp_u_35"               -0.266385
+            "hrp_u_45"               -0.206901
+            "hrp_u_55"               -0.159525
+            "hrp_u_65"               -0.10077
+            "hrp_u_75"               -0.0509382
+            "log_weekly_net_income"   0.17728
+            "managerial"              0.227192
+            "intermediate"            0.165209]
+            
+            hrp = get_head( hh )
+
+            v = ["(Intercept)"          1
+            "scotland"                  0
+            "wales"                     1
+            "london"                    0
+            "owner"                     hh.tenure == Owned_outright ? 1 : 0
+            "detatched"                 hh.dwelling == detatched ? 1 : 0
+            "semi"                      hh.dwelling == semi_detached ? 1 : 0
+            "terraced"                  hh.dwelling == terraced ? 1 : 0
+            "purpose_build_flat"        hh.dwelling == flat_or_maisonette ? 1 : 0
+            "HBedrmr7"                  hh.bedrooms
+            "hrp_u_25"                  hrp.age < 25 ? 1 : 0
+            "hrp_u_35"                  hrp.age in [25:44] ? 1 : 0
+            "hrp_u_45"                  hrp.age in [45:54] ? 1 : 0
+            "hrp_u_55"                  hrp.age in [55:64] ? 1 : 0
+            "hrp_u_65"                  hrp.age in [65:74] ? 1 : 0
+            "hrp_u_75"                  hrp.age in [75:999] ? 1 : 0
+            "log_weekly_net_income"     log(hhincome)
+            "managerial"                hrp.socio_economic_grouping in [Managers_Directors_and_Senior_Officials,Professional_Occupations] ? 1 : 0
+            "intermediate"              hrp.socio_economic_grouping in [Associate_Prof_and_Technical_Occupations,Admin_and_Secretarial_Occupations] ? 1 : 0
+            ]
+            hp = exp( c[:,2]'v[:,2])
+        end        
+    elseif hh.tenure !== Rent_free
+        # @assert hh.gross_rent > 0 "zero rent for hh $(hh.hid) $(hh.tenure) "
+        # 1 │  2272       2015         0.0
+        # 2 │ 10054       2015         0.0
+        # 3 │  5019       2016         0.0
+        # assign 50 pw to these 3
+        rent = hh.gross_rent == 0 ? 100.0 : hh.gross_rent # ?? 3 cases of 0 rent
+        hp = rent * WEEKS_PER_YEAR * settings.annual_rent_to_house_price_multiple
+    else
+        hp = 80_000 # FIXME just a made-up number for rent-free accomodation; make this based on ONS house data
+    end
+    hh.house_value = hp
+end
+
 
 end # module

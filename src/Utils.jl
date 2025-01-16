@@ -8,15 +8,19 @@ module Utils
 using BudgetConstraints
 
 using ArgCheck
+using ArtifactUtils
 using Base: Integer, String, Bool
 using Base.Unicode
 using CategoricalArrays
 using CSV
 using DataFrames
 using Dates
+using LazyArtifacts
+using Pkg.Artifacts
+using Preferences
 using Printf
+using PrettyTables
 using StatsBase
-
 
 export 
    @exported_enum, 
@@ -35,6 +39,7 @@ export
    get_if_set,
    get_project_path,
    get_quantiles,
+   glimpse,
    has_non_z, 
    haskeys,
    index_of_field, 
@@ -62,7 +67,71 @@ export
    todays_date, 
    uprate_struct!
 
-   
+"""
+Very simple sampler for the main hh/pers data.
+TODO: add all the joined data.
+"""
+function make_household_sample( 
+   ;
+   hhs :: DataFrame,
+   pers :: DataFrame,
+   sample_size :: Int  ) :: Tuple
+   hids = sample( hhs.uhid, sample_size )
+   shhs = hhs[ hhs.uhid .∈ ( targets, ), : ]
+   spers = pers[ pers.uhid .∈ ( targets, ), : ]
+   sort!( shhs, :uhid )
+   sort!( spers, :uhid )
+   shhs, spers 
+end
+
+"""
+Given a directory in `tmp/` with some data, make a gzipped tar file, upload this to a server 
+defined in Project.toml and add an entry to `Artifacts.toml`. Artifact
+is set to lazy load. Uses `ArtifactUtils`.
+
+main data files should contain: `people.tab` `households.tab` `README.md`, all top-level
+other files can contain anything.
+
+"""
+function make_artifact(;
+   artifact_name :: AbstractString,
+   is_local :: Bool,
+   toml_file = "Artifacts.toml" )::Int 
+   gzip_file_name = "$(artifact_name).tar.gz"
+   dir = "/mnt/data/ScotBen/artifacts/"
+   if is_local 
+      artifact_server_upload = @load_preference( "local-artifact_server_upload" )
+      artifact_server_url = @load_preference( "local-artifact_server_url" )
+   else
+      artifact_server_upload = @load_preference( "public-artifact_server_upload" )
+      artifact_server_url = @load_preference( "public-artifact_server_url" )
+   end
+   tarcmd = `tar zcvf $(dir)/tmp/$(gzip_file_name) -C $(dir)/$(artifact_name)/ .`
+   run( tarcmd )
+   dest = "$(artifact_server_upload)/$(gzip_file_name)"
+   println( "copying |$(dir)/tmp/$gzip_file_name| to |$dest| ")
+   upload = `scp $(dir)/tmp/$(gzip_file_name) $(dest)`
+   println( "upload cmd |$upload|")
+   url = "$(artifact_server_url)/$gzip_file_name"
+   try
+      run( upload )
+      add_artifact!( toml_file, artifact_name, url; force=true, lazy=true )
+   catch e 
+      println( "ERROR UPLOADING $e")
+      return -1
+   end
+   return 0
+end
+
+"""
+Crude version of Tidyverse `glimpse` command - print 1st `n` rows of each
+col in a DataFrame, sideways.
+"""
+function glimpse( d::AbstractDataFrame; n = 10 )
+   n = min(n, size(d)[1])
+   w=permutedims(d)[:,1:n]
+   pretty_table(insertcols( w, 1 ,:name=>names(d)))
+end
 
 """
 crosstab rows vs cols of a categorical arrays using the given weights.
@@ -419,9 +488,6 @@ function nearz( x :: Real, comps ... ) :: Real
     return nearest( x, comps ... )
 end
 
-
-
-
 #
 # this has a higher top income than the BC default
 #
@@ -767,11 +833,11 @@ function pretty(a)
 end
 
 
-"""
+#=
  macro to define an enum and automatically
  add export statements for its elements
  see: https://discourse.julialang.org/t/export-enum/5396
-"""
+=#
 macro exported_enum(name, args...)
    esc(quote
       @enum($name, $(args...))
@@ -885,10 +951,10 @@ function is_a_struct( T::Type )::Bool
    return ! (( T <: AbstractArray)||(T<:AbstractDict)||(T<:Real)||(T<:AbstractString)||(T<:Symbol))
 end
 
-"""
+#=
 Crude but more-or-less effective thing that prints out a struct (which may contain other structs) as
 a markdown table. 
-"""
+=#
 function to_md_table( f; exclude=[], depth=0 ) :: String
     F = typeof(f)
     @assert isstructtype( F )

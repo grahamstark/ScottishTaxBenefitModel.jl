@@ -87,11 +87,11 @@ using .UBI: calc_UBI!, make_ubi_post_adjustments!
 
 using .OtherTaxes: calculate_other_taxes!, calculate_wealth_tax!
 
+using .CrudeTakeup: correct_for_caseload_non_takeup!
+
 export do_one_calc
 
-"""
-One complete calculation for a single household and tb system.
-"""
+"One complete calculation for a single household and tb system."
 function do_one_calc( 
     mhh :: Household{T}, 
     sys :: TaxBenefitSystem{T},
@@ -230,6 +230,9 @@ function do_one_calc(
     calculate_other_taxes!( hres, hh, sys.othertaxes )
     if settings.do_indirect_tax_calculations
         calc_indirect_tax!( hres, hh, sys.indirect )
+    end
+    if settings.do_dodgy_takeup_corrections
+        correct_for_caseload_non_takeup!( hres, hh, intermed )
     end
     aggregate!( hh, hres )
     if settings.do_legal_aid

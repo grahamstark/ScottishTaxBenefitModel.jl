@@ -35,6 +35,8 @@ mutable struct LegalOutput
     crosstab_bu_examples :: Vector{AbstractMatrix}
     crosstab_pers :: Vector{AbstractMatrix} # Vector{Dict{String,AbstractMatrix}}
     crosstab_pers_examples :: Vector{AbstractMatrix}
+    crosstab_adults :: Vector{AbstractMatrix} # Vector{Dict{String,AbstractMatrix}}
+    crosstab_adults_examples :: Vector{AbstractMatrix}
     summary_tables :: Vector{AbstractDataFrame}
 end
 
@@ -125,9 +127,11 @@ end
 =#
         
 """
-This is the base of the costs model
+This is the base of the costs model.
+It for a given set of entitlements (from the base case of a run), it groups all the SLAB costs data
+by status (passported/full/partial), age, sex 
 entitlement = out.civil.data[1]  or out.aa
-
+@return dataframe with mean,mediam count/cost for each age/sex/entitlement
 """
 function create_base_propensities( 
     entitlement :: DataFrame,
@@ -152,6 +156,8 @@ function create_base_propensities(
     costs_grp4 = groupby( costs, [:hsm, :la_status, :age2, :sex])
     # .. and without the subject to get a quick and dirty way to get total costs
     costs_grp3 = groupby( costs, [:la_status, :age2, :sex])
+    costs_grp2 = groupby( costs, [:hsm, :la_status])
+    # .. and without the subject to get a quick and dirty way to get total costs
     # make a dataframe class by types of claim, la entitlement, age & sex
     n = size( entitlement_grp )[1]*(1+length(subjects)) 
     out = DataFrame( 
@@ -172,27 +178,36 @@ function create_base_propensities(
         costs_q25 = zeros(n), 
         costs_q75 = zeros(n))
     i = 0
-    
+    # round the grouped entitlement data (by status, age, sex)
     for (k,v) in pairs( entitlement_grp )
-        for hsm in subjects # divorce ... 
+        # once round for each subject group (divorce, etc ... )
+        for hsm in subjects 
             i += 1
             lout = out[i,:]
+            allcases = costs[costs.hsm .== hsm, :]
+            avcasecost = summarystats( allcases.totalpaid ./ 1000.0 ).mean
             lout.popn = sum( v.weight )
             lout.sex = k.sex
             lout.age2 = k.age2
             lout.hsm = hsm
             lout.la_status = k.la_status
             # now, look up corresponding costs data: first make a key to disagg grouped dataframe
-            costk = make_key( 
+            costk4 = make_key( 
                 la_status = k.la_status, 
                 hsm = hsm,
                 age = k.age2,
                 sex = k.sex )
+            costk2 = make_key( 
+                la_status = k.la_status, 
+                hsm = hsm )
+                # age = k.age2,
+                # sex = k.sex )
             # then look up & fill if there are records for the costs for that combo 
             # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
-            if haskey( costs_grp4, costk ) 
-                cv = costs_grp4[costk] 
-                r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
+            if haskey( costs_grp4, costk4 ) 
+                cv = costs_grp4[costk4] 
+                r = summarystats(
+                      cv.totalpaid ./ 1000.0 ) # in 000s
                 lout.case_count = size(cv)[1]
                 lout.costs_total = sum( cv.totalpaid )
                 lout.costs_max = r.max     
@@ -203,7 +218,24 @@ function create_base_propensities(
                 lout.costs_nobs = r.nobs
                 lout.costs_q25 = r.q25     
                 lout.costs_q75 = r.q75
-                lout.case_freq = r.nobs / lout.popn 
+                lout.case_freq = r.nobs / lout.popn     
+            elseif haskey( costs_grp2, costk2 ) # fallback - average over all cases regardless of age and sex                
+                cv = costs_grp2[costk2] 
+                r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
+                lout.costs_mean = r.mean
+                #=
+                lout.case_count = size(cv)[1]
+                lout.costs_max = r.max     
+                lout.costs_median = r.median  
+                lout.costs_min = r.min
+                lout.costs_nmiss = r.nmiss   
+                lout.costs_nobs = r.nobs
+                lout.costs_q25 = r.q25     
+                lout.costs_q75 = r.q75
+                lout.case_freq = 0 # r.nobs / sum( v.weight ) # lout.popn     
+                =#
+            else # final fallback - just average for this case type                
+                lout.costs_mean = avcasecost
             end
         end # each subject
         # total 
@@ -215,15 +247,15 @@ function create_base_propensities(
         lout.hsm = "aa_total"
         lout.la_status = k.la_status
         # now, look up corresponding costs data: first make a key to disagg grouped dataframe
-        costk = make_key( 
+        costk3 = make_key( 
             la_status = k.la_status, 
             age = k.age2,
             sex = k.sex )
         # then look up & fill if there are records for the costs for that combo 
         # FIXME won't work properly for "Adults with incapacity" since there isn't a status for this in the costs
-        if haskey( costs_grp3, costk ) 
-            cv = costs_grp3[costk] 
-            r = summarystats( cv.totalpaid  ) # in 000s
+        if haskey( costs_grp3, costk3 ) 
+            cv = costs_grp3[costk3] 
+            r = summarystats( cv.totalpaid ./ 1000.0 ) # in 000s
             lout.costs_max = r.max     
             lout.costs_mean = r.mean
             lout.costs_median = r.median  
@@ -258,10 +290,13 @@ function create_base_propensities(
     cost_and_count.adults_with_incapacity_or_mental_health_cost .= awicost/(awicount*1000) # in 000s
     cost_and_count.adults_with_incapacity_or_mental_health_prop .= awicount/popn
 
-    fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
+    # fixup_props!( cost_and_count, Utils.basiccensor.(subjects))
     return (; cost_and_count, long_data=out )
 end
 
+"""
+
+"""
 function create_wide_propensities(
     entitlement :: DataFrame,
     costs :: DataFrame ) :: DataFrame
@@ -404,15 +439,15 @@ function fill_legal_aid_frame_row!(
     pr.age2 = agestr2( pers.age )
     pr.sex = pers.sex
     pr.all_eligible = lr.eligible | lr.passported
-    pr.mt_eligible = lr.eligible
     pr.passported = lr.passported
-    pr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
-    pr.capital_contribution = lr.capital_contribution > 0
-    pr.income_contribution = lr.income_contribution > 0
-
-    pr.income_contribution_amt = lr.income_contribution
-    pr.capital_contribution_amt = lr.capital_contribution
-    
+    if ! lr.passported # needed because we do these tests for passported cases also now.
+        pr.mt_eligible = lr.eligible
+        pr.any_contribution = (lr.capital_contribution + lr.income_contribution) > 0
+        pr.capital_contribution = lr.capital_contribution > 0
+        pr.income_contribution = lr.income_contribution > 0
+        pr.income_contribution_amt = lr.income_contribution
+        pr.capital_contribution_amt = lr.capital_contribution
+    end
     pr.uc_entitlement = lr.uc_entitlement
     pr.uc_income = lr.uc_income
     pr.extra_allowances = lr.extra_allowances
@@ -544,6 +579,7 @@ function make_post_consistent_with_pre!(;
     cost_items :: Vector,
     prop_items :: Vector )
     @argcheck size(pre)[1] == size(post)[1]
+    # return
     n = size(pre)[1]
     for i in 1:n
         r2 = post[i,:]
@@ -674,10 +710,6 @@ function aggregate_all_legal_aid(
 end
 
 """
-
-"""
-
-"""
 Formatter for an all-counts dataframe.
 See PrettyTable documentation for formatter
 """
@@ -768,41 +800,6 @@ function la_crosstab(
     return crosstab, full_examples
 end
 
-"""
-Fixed silly Crosstab with entitlement wired in because my general crosstab is 
-breaking in a way I can't work out.
-pre is the row, post is the col, cells above the diagonal represent gains, below losses.
-"""
-#=
-function crappycrosstab( 
-    pre :: DataFrame, 
-    post :: DataFrame, 
-    problem="no_problem", 
-    estimate="prediction"  ) :: Matrix
-    m = zeros(4,4)
-    s1 = size( pre )
-    s2 = size( post )
-    @assert s1 == s2
-    num_rows = s1[1]
-    weights = Weights(pre.weight) 
-    # @assert pre.weight .≈ post.weight
-    if problem != "no_problem"
-        col = Symbol( "$(problem)_$estimate")
-        weights = Weights( pre[:,col] .* pre.weight)
-    end
-    for r in 1:num_rows
-        prer = pre[r,:]
-        postr = post[r,:]
-        @assert (prer.pid == postr.pid) && (prer.data_year == postr.data_year) && (prer.weight ≈ postr.weight )
-        prev = Int( prer.entitlement )+1
-        postv = Int( postr.entitlement )+1
-        # pre is the row post is the col. Julia arrays are row first, then col
-        m[postv,prev] += weights[r]
-    end
-    return m
-end
-=#
-
 function summarise_la_output!( 
     la :: LegalOutput,
     propensities :: DataFrame, 
@@ -814,6 +811,7 @@ function summarise_la_output!(
         LegalAidData.LA_PROB_DATA,
         propensities )
     budata1 = data1[data1.is_bu_head, : ] 
+    adultsdata1 = data1[ .! data1.is_child, : ] 
     for sysno in 1:la.num_systems
         data = merge_in_probs_and_props( 
             la.data[sysno], 
@@ -826,6 +824,7 @@ function summarise_la_output!(
             prop_items = cost_items.props, 
             cost_items = cost_items.costs )
         budata = data[data.is_bu_head,:] 
+        adultsdata = data[ .! data.is_child,:] 
         la.breakdown_pers[sysno] = aggregate_all_legal_aid( 
             data, 
             :weight, 
@@ -854,6 +853,8 @@ function summarise_la_output!(
         if sysno > 1
             la.crosstab_pers[sysno-1], la.crosstab_pers_examples[sysno-1] = 
                 la_crosstab( data1, data )
+            la.crosstab_adults[sysno-1], la.crosstab_adults_examples[sysno-1] = 
+                la_crosstab( adultsdata1, adultsdata )
             la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
                 la_crosstab( budata1, budata )
 
@@ -938,16 +939,35 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
             laout.aa.summary_tables[ctno], 
             backend = Val(:markdown), 
             cell_first_line_only=true)
-        println( f, "### cross table AA entitlement")
-        pa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
 
-        println( f, "##  System $sysno vs System 1 Personal Level" )
-        pc = Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
-        println( f, "### cross table AA entitlement - Personal Level")
-        pa =  Utils.matrix_to_frame( laout.aa.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f, pa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "## Crosstabs ");
+        println( f, "### Civil $sysno vs System 1" )
+        println( f, "#### BU Level")
+        bu_ci = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table( f, bu_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Level - all people" )
+        ap_ci = Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table( f, ap_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Levels  - adults only" )
+        aa_ci = Utils.matrix_to_frame( laout.civil.crosstab_adults[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table( f, aa_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+
+        println( f, "### AA  $sysno vs System 1")
+        println( f, "#### BU Level")
+        bu_aa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f, bu_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Level - All People")
+        ap_aa =  Utils.matrix_to_frame( laout.aa.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f, ap_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+
+        println( f, "#### Personal Level - Adults Only")
+        aa_aa =  Utils.matrix_to_frame( laout.aa.crosstab_adults[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
+        pretty_table(f, aa_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
 
         #=
         for p in LegalAidData.PROBLEM_TYPES
@@ -1048,13 +1068,16 @@ function make_summary_tab(
                 tcost = Symbol(prop_cols[i]*"_cost")
                 postres = coalesce( po[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
                 postcost = coalesce( po[tcost], 0.0 )
-                tab[1,2] += w*pr[tc]
+                preres = coalesce( pr[tc], 0.0 ) # can be missing if the matching hasn't worked because all removed
+                precost = coalesce( pr[tcost], 0.0 )
+                
+                tab[1,2] += w*preres #[tc]
                 tab[1,3] += w*postres
-                tab[2,2] += w*pr[tc]*pr[tcost]
+                tab[2,2] += w*preres*precost # pr[tc]*pr[tcost]
                 tab[2,3] += w*postres*postcost
                 if (max_contrib_pr > 0)||(max_contrib_po > 0)
                     scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
-                    tab[3,2] += w*pr[tc]*scase_pr/1000.0 #*scase_pr # 
+                    tab[3,2] += w*preres*scase_pr/1000.0 #*scase_pr # 
                     tab[3,3] += w*postres*scase_po/1000.0 # scase_po # 
                 end                
             end
@@ -1076,6 +1099,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
     crosstab_bu_examples = Vector{Matrix}(undef,0)
     crosstab_pers = Vector{Matrix}(undef,0) # Vector{Dict{String,Matrix}}(undef,0)
     crosstab_pers_examples = Vector{Matrix}(undef,0)
+    crosstab_adults = Vector{Matrix}(undef,0) # Vector{Dict{String,Matrix}}(undef,0)
+    crosstab_adults_examples = Vector{Matrix}(undef,0)
     summary_tables = Vector{DataFrame}(undef,0)
     for sysno in 1:num_systems
         push!( datas, make_legal_aid_frame( T, num_people ))
@@ -1085,11 +1110,13 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         push!( costs_pers, Dict())
         push!( breakdown_bu, Dict())
         if sysno < num_systems
-            push!(crosstab_pers, fill(T,4,4)) # Dict()) # )
+            push!( crosstab_pers, fill(T,4,4)) # Dict()) # )
             push!( crosstab_pers_examples, fill(Int[],4,4))    
-            push!(crosstab_bu, fill(T,4,4))
+            push!( crosstab_adults, fill(T,4,4)) # Dict()) # )
+            push!( crosstab_adults_examples, fill(Int[],4,4))    
+            push!( crosstab_bu, fill(T,4,4))
             push!( crosstab_bu_examples, fill(Int[],4,4))    
-            push!(summary_tables, summary_frame());
+            push!( summary_tables, summary_frame());
     
         end
     end
@@ -1104,6 +1131,8 @@ function LegalOutput( T; num_systems::Integer, num_people::Integer )
         crosstab_bu_examples,
         crosstab_pers,
         crosstab_pers_examples,
+        crosstab_adults,
+        crosstab_adults_examples,
         summary_tables )
 end
 
@@ -1113,5 +1142,4 @@ function AllLegalOutput( T; num_systems::Integer, num_people::Integer )
         LegalOutput( T; num_systems=num_systems, num_people=num_people))
 end
     
-
 end # module

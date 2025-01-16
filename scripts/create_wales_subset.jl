@@ -6,14 +6,15 @@ using CSV
 using DataFrames
 using ScottishTaxBenefitModel
 using .Definitions
+using .RunSettings
 
 ADD_IN_MATCHING = false
 
 household_name = "model_households"
 people_name = "model_people"
 
-hh_dataset = CSV.File("$(MODEL_DATA_DIR)/$(household_name).tab", delim='\t' ) |> DataFrame
-people_dataset = CSV.File("$(MODEL_DATA_DIR)/$(people_name).tab", delim='\t') |> DataFrame
+hh_dataset = CSV.File("$(data_dir())/$(household_name).tab", delim='\t' ) |> DataFrame
+people_dataset = CSV.File("$(data_dir())/$(people_name).tab", delim='\t') |> DataFrame
 
 dropmissing!(people_dataset,:data_year) # kill!!! non hbai kids
 
@@ -32,5 +33,5 @@ if ADD_IN_MATCHING
     scottish_hhlds.bedrooms = shs_matches.bedrooms
 end
 
-CSV.write("$(MODEL_DATA_DIR)/model_households_wales.tab", scottish_hhlds, delim = "\t")
-CSV.write("$(MODEL_DATA_DIR)/model_people_wales.tab", scottish_people, delim = "\t")
+CSV.write("$(data_dir())/model_households_wales.tab", scottish_hhlds, delim = "\t")
+CSV.write("$(data_dir())/model_people_wales.tab", scottish_people, delim = "\t")

@@ -63,7 +63,7 @@ module EquivalenceScales
                     eq += 1
                 elseif n == 1
                     eq += 1
-                    println( "only 1 person; non head rel=$rel")
+                    println( "only 1 person; non head rel=$rel $(p.hid)")
                 else
                     if get_age(p) <= 14
                         add = if scale == oxford 
@@ -81,7 +81,7 @@ module EquivalenceScales
                     eq += add
                 end
             end # pers loop
-            @assert eq >= 1 "eq is $eq num people $n scale $scale"
+            @assert eq >= 1 "eq is $eq num people $n scale $scale  $(perss[1].hid)"
         elseif scale == mcclements
             num_extra_adults = 0
             for p in perss

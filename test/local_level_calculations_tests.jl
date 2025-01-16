@@ -1,21 +1,24 @@
 using Test
+using Pkg, Pkg.Artifacts
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
     pers_is_disabled, pers_is_carer, printpids
 using .ExampleHouseholdGetter
 using .Definitions
+using .LocalWeightGeneration
 using .Results: HousingResult
 using .FRSHouseholdGetter
-using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .RunSettings: Settings
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
-    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax,
-    LA_NAMES, LA_CODES
+    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax
+
+using .WeightingData: LA_NAMES, LA_CODES
 
 using .STBParameters
 using .Intermediate: make_intermediate, MTIntermediate
 using .ExampleHelpers
+using CSV,DataFrames
 
 ## FIXME don't need both
 lmt = LegacyMeansTestedBenefitSystem{Float64}()
@@ -23,7 +26,7 @@ sys = get_system( year=2019, scotland=true )
 settings = Settings()
 
 rc = @timed begin
-    num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )
+    settings.num_households,settings.num_people,nhh2 = FRSHouseholdGetter.initialise( Settings(), reset=true )
 end
 
 
@@ -333,7 +336,7 @@ end
 
     num_restricted = 0
     bedroom_tax = 0
-    for hhno in 1:num_households
+    for hhno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household( hhno )
         # TODO UPRATE
         if hhno % 500 == 0
@@ -369,7 +372,7 @@ end
     println( by_la[:S12000019][1] )
     value = 0.0
     dwellings = 0.0
-    for hhno in 1:num_households
+    for hhno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household( hhno )
         intermed = make_intermediate( 
             DEFAULT_NUM_TYPE,
@@ -416,4 +419,107 @@ end
     ct = calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
     @test hh.ct_band == Band_B
     @test ct ≈ 1_078.00/WEEKS_PER_YEAR # glasgow 2020/1 CT band b per week
+end
+
+@testset "Local reweighing" begin
+    n = length(LA_CODES)
+    settings.do_local_run = true
+    d = DataFrame()
+    nkeys = 0
+    for i in 1:n
+        reset = i==1
+        settings.ccode = LA_CODES[i]
+        FRSHouseholdGetter.restore()
+        @show settings.ccode
+        dict = FRSHouseholdGetter.create_local_income_ratios( settings, reset=false )
+        # @show dict
+        @show keys(dict)
+        if i == 1
+            d[!,:keys] = collect(keys(dict))
+            nkeys = length(d.keys)
+        end
+        @show d
+        d[!,settings.ccode] = zeros(nkeys)
+        for j in 1:nkeys 
+            k = d.keys[j]
+            @show k
+            d[j,settings.ccode]=dict[k].ratio
+        end
+    end
+    CSV.write( joinpath( tmpdir, "local-nomis-frs-wage-relativities.tab"), d; delim='\t')
+    # /mnt/data/ScotBen/artifacts
+    @show d
+end
+
+
+@testset "Base Local Runs" begin
+    n = length(LA_CODES)
+    settings.do_local_run = true
+    d = DataFrame()
+    nkeys = 0
+    weighted_data = DataFra = settings.num_households
+    adf = LocalWeightGeneration.initialise_model_dataframe_scotland_la( n )
+    insertcols!( adf, 1, :ccode => fill( Symbol(""), n ))
+    adf.wage = zeros(n)
+    adf.se = zeros(n)
+    adf.popn = zeros(n)
+    adf.nearners = zeros(n)
+    adf.nses = zeros(n)
+    adf.num_hhlds = zeros(n)
+    for i in 1:n
+        reset = i == 1
+        settings.ccode = LA_CODES[i]
+        FRSHouseholdGetter.restore()
+        FRSHouseholdGetter.set_local_weights_and_incomes!( settings, reset=false )
+        ldf = LocalWeightGeneration.initialise_model_dataframe_scotland_la( settings.num_households )
+        popn = 0.0
+        wage = 0.0
+        se = 0.0
+        nses = 0.0
+        nearners = 0.0
+        num_hhlds = 0.0
+        println( "on $(settings.ccode)")
+        for hno in 1:settings.num_households
+            hh = FRSHouseholdGetter.get_household(hno)
+            num_hhlds += hh.weight
+            LocalWeightGeneration.make_model_dataframe_row!( 
+                ldf[hno,:], hh, hh.weight )
+            for (pid,pers) in hh.people
+                w = get(pers.income,wages,0.0)
+                if w > 0
+                    wage += w*hh.weight 
+                    nearners += hh.weight
+                end
+                s = get(pers.income,self_employment_income,0.0) 
+                if s != 0.0
+                    se += s*hh.weight
+                    nses += hh.weight
+                end
+                popn += hh.weight
+            end
+        end
+        for n in names(ldf)
+            adf[i,n] = sum( ldf[!,n])
+        end
+        adf[i,:ccode] = settings.ccode
+        adf[i,:wage] = wage/nearners
+        adf[i,:se] = se/nses
+        adf[i,:popn] = popn
+        adf[i,:nses] = nses
+        adf[i,:nearners] = nses
+        adf[i,:num_hhlds] = num_hhlds
+    end
+    aug = artifact"augdata"
+    ld = CSV.File( joinpath( aug, "scottish-la-targets-2024.tab"))|>DataFrame
+    for i in 1:(n-1)
+        ccode = LA_CODES[i]
+        i += 1
+        lr = ld[i,:]
+        ar = adf[i,:]
+        @test ar.ccode == Symbol(lr.authority_code)
+        @test abs(ar.popn - lr.total_people) < 10 # rounding errors
+        @test abs(ar.num_hhlds - lr.total_hhlds) < 10 # - within 10 hhls/people is OK, I hope
+        println( "on $(ccode) name=$(lr.Authority) target=$(lr.total_hhlds)")
+    end
+    @show adf
 end

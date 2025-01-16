@@ -190,8 +190,11 @@ function working_disabled( pers::Person, hrs :: HoursLimits ) :: Bool
         if pers.registered_blind || pers.registered_partially_sighted || pers.registered_deaf
             return true
         end
+        #FIXME disabilities should be a set
         for (dis, t ) in pers.disabilities
-            return true
+            if t 
+                return true
+            end
         end
         if haskeys( pers.income, 
             [
@@ -260,7 +263,7 @@ mutable struct MTIntermediate{RT<:Real}
     net_financial_wealth :: RT
     net_housing_wealth :: RT
     net_pension_wealth :: RT
-
+    total_value_of_other_property :: RT
 end
 
 
@@ -442,15 +445,16 @@ function add_wealth!(
     bu        :: BenefitUnit,
     buno      :: Int,
     method    :: ExtraDataMethod ) where T
-    if method == imputation 
+    if method in [ imputation, matching ]
         if buno == 1 # use the regression hhld stuff from was & assign all to 1st bu 
             intermed.net_financial_wealth = hh.net_financial_wealth
             intermed.net_physical_wealth = hh.net_physical_wealth
             intermed.net_housing_wealth  = hh.net_housing_wealth 
             intermed.net_pension_wealth = hh.net_pension_wealth
+            if method == matching
+                intermed.total_value_of_other_property = hh.raw_wealth.total_value_of_other_property
+            end
         end
-    elseif method == matching
-        @assert false "FRS matching not implemented yet for get_wealth"
     elseif method == no_method
         head = get_head( bu )
         # println( "add_wealth! method=$method head.wealth_and_assets=$(head.wealth_and_assets)")
@@ -621,13 +625,14 @@ function make_intermediate(
     
     ## fixme parameterise this
     num_allowed_children :: Int = apply_2_child_policy( bu, child_limits )
-    @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0)
+    @assert (!has_children)||(19 >= age_oldest_child >= age_youngest_child >= 0) "pid=$(bu.adults[1]); has_children=$has_children but age_oldest_child=$age_oldest_child age_youngest_child=$age_youngest_child"
           
     
     net_physical_wealth = zero(T)
     net_financial_wealth = zero(T)
     net_housing_wealth = zero(T)
     net_pension_wealth = zero(T)
+    total_value_of_other_property = zero(T)
 
     return MTIntermediate{T}(
         buno,
@@ -676,7 +681,8 @@ function make_intermediate(
         net_physical_wealth,
         net_financial_wealth,
         net_housing_wealth,
-        net_pension_wealth )
+        net_pension_wealth,
+        total_value_of_other_property )
 end
 
 function make_intermediate( 

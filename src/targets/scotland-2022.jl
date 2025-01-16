@@ -1,6 +1,6 @@
-"""
+#=
 Filename notwithstanding, this is also the 2024 target set
-"""
+=#
 const DEFAULT_TARGETS_SCOTLAND_2022 = [
     1_347_880.73,	#	1	M- Total in employment- aged 16+ July 2022 – see LFS\ headline indicators.xls m/f scottish tabs
     63_487.44,	#	2	M- Total unemployed- aged 16+
@@ -138,50 +138,50 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
     459754.0,	#	43	 # 43 - 1 adult: female
     816527.0,	#	44	 # 44 - 2 adults
     157451.0,	#	45	 # 45 - 1 adult 1+ child
-    439260.0,	#	47	 # 47 - 2+ adults 1+ children
-    206824.0,	#	48	 # 48 - 3+ adults
-    80383.0,	#	49	CARERS
-    123909.0,	#	50	AA
-    548628.0,	#	51	PIP/DLA
-    115674.8,	#	52	 # S12000034 - 52 Aberdeenshire  
-    54958.9,	#	53	 # S12000041 - Angus  
-    41440.0,	#	54	 # S12000035 - Argyll and Bute  
-    251104.3,	#	55	 # S12000036 - City of Edinburgh  
-    24278.0,	#	56	 # S12000005 - Clackmannanshire  
-    70003.5,	#	57	 # S12000006 - Dumfries and Galloway  
-    71388.0,	#	58	 # S12000042 - Dundee City  
-    55842.2,	#	59	 # S12000008 - East Ayrshire  
-    47365.6,	#	60	 # S12000045 - East Dunbartonshire  
-    49124.4,	#	61	 # S12000010 - East Lothian  
-    40925.9,	#	62	 # S12000011 - East Renfrewshire  
-    75105.1,	#	63	 # S12000014 - Falkirk  
-    172314.1,	#	64	 # S12000047 - Fife  
-    303711.9,	#	65	 # S12000049 - Glasgow City  
-    112181.5,	#	66	 # S12000017 - Highland  
-    37075.6,	#	67	 # S12000018 - Inverclyde  
-    42978.9,	#	68	 # S12000019 - Midlothian  
-    44070.5,	#	69	 # S12000020 - Moray  
-    12694.0,	#	70	 # S12000013 - Na h-Eileanan Siar  
-    64239.7,	#	71	 # S12000021 - North Ayrshire  
-    155785.2,	#	72	 # S12000050 - North Lanarkshire  
-    10874.7,	#	73	 # S12000023 - Orkney Islands  
-    70834.6,	#	74	 # S12000048 - Perth and KinroS  
-    89297.6,	#	75	 # S12000038 - Renfrewshire  
-    55919.8,	#	76	 # S12000026 - Scottish Borders  
-    10644.4,	#	77	 # S12000027 - Shetland Islands  
-    53093.9,	#	78	 # S12000028 - South Ayrshire  
-    151251.1,	#	79	 # S12000029 - South Lanarkshire  
-    41377.4,	#	80	 # S12000030 - Stirling  
-    43224.2,	#	81	 # S12000039 - West Dunbartonshire  
-    82991.0,	#	82	 # S12000040 - West Lothian  
-    731595.2,	#	83	% all in employment who are - 2: professional occupations (SOC2010)
-    444765.6,	#	84	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
-    252245.9,	#	85	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
-    267228.8,	#	86	% all in employment who are - 5: skilled trades occupations (SOC2010)
-    228129.6,	#	87	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
-    194572.1,	#	88	% all in employment who are - 7: sales and customer service occupations (SOC2010)
-    133409.1,	#	89	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
-    286316.5	#	90	% all in employment who are - 9: elementary occupations (SOC2010)
+    439260.0,	#	46	 # 47 - 2+ adults 1+ children
+    206824.0,	#	47	 # 48 - 3+ adults
+    80383.0,	#	48	CARERS
+    123909.0,	#	49	AA
+    548628.0,	#	50	PIP/DLA
+    115674.8,	#	51	 # S12000034 - 52 Aberdeenshire  
+    54958.9,	#	52	 # S12000041 - Angus  
+    41440.0,	#	53	 # S12000035 - Argyll and Bute  
+    251104.3,	#	54	 # S12000036 - City of Edinburgh  
+    24278.0,	#	55	 # S12000005 - Clackmannanshire  
+    70003.5,	#	56	 # S12000006 - Dumfries and Galloway  
+    71388.0,	#	57	 # S12000042 - Dundee City  
+    55842.2,	#	58	 # S12000008 - East Ayrshire  
+    47365.6,	#	59	 # S12000045 - East Dunbartonshire  
+    49124.4,	#	60	 # S12000010 - East Lothian  
+    40925.9,	#	61	 # S12000011 - East Renfrewshire  
+    75105.1,	#	62	 # S12000014 - Falkirk  
+    172314.1,	#	63	 # S12000047 - Fife  
+    303711.9,	#	64	 # S12000049 - Glasgow City  
+    112181.5,	#	65	 # S12000017 - Highland  
+    37075.6,	#	66	 # S12000018 - Inverclyde  
+    42978.9,	#	67	 # S12000019 - Midlothian  
+    44070.5,	#	68	 # S12000020 - Moray  
+    12694.0,	#	69	 # S12000013 - Na h-Eileanan Siar  
+    64239.7,	#	70	 # S12000021 - North Ayrshire  
+    155785.2,	#	71	 # S12000050 - North Lanarkshire  
+    10874.7,	#	72	 # S12000023 - Orkney Islands  
+    70834.6,	#	73	 # S12000048 - Perth and KinroS  
+    89297.6,	#	74	- # S12000038 - Renfrewshire  
+    55919.8,	#	75	 # S12000026 - Scottish Borders  
+    10644.4,	#	76	 # S12000027 - Shetland Islands  
+    53093.9,	#	77	 # S12000028 - South Ayrshire  
+    151251.1,	#	78	 # S12000029 - South Lanarkshire  
+    41377.4,	#	79	 # S12000030 - Stirling  
+    43224.2,	#	80	 # S12000039 - West Dunbartonshire  
+    82991.0,	#	81	 # S12000040 - West Lothian  
+    731595.2,	#	82	% all in employment who are - 2: professional occupations (SOC2010)
+    444765.6,	#	83	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
+    252245.9,	#	84	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
+    267228.8,	#	85	% all in employment who are - 5: skilled trades occupations (SOC2010)
+    228129.6,	#	86	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
+    194572.1,	#	87	% all in employment who are - 7: sales and customer service occupations (SOC2010)
+    133409.1,	#	88	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
+    286316.5	#	89	% all in employment who are - 9: elementary occupations (SOC2010)
     ]
 
     const NUM_HOUSEHOLDS_SCOTLAND_2022 = sum( DEFAULT_TARGETS_SCOTLAND_2022[42:48]) # 2_537_971
@@ -297,7 +297,6 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
                 num_u_16s += 1;
             end
             if pers.sex == Male
-    
                 if( pers.age >= 16 )
                     num_male_ads += 1;
                 end
@@ -398,9 +397,7 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
                     row.f_75_79 += 1
                 else
                     row.f_80_plus += 1
-                end
-    
-    
+                end    
             end # female
             if get(pers.income,attendance_allowance,0.0) > 0 ### sp!!!!!
                 row.aa += 1
@@ -445,7 +442,6 @@ const DEFAULT_TARGETS_SCOTLAND_2024 = [
                 end
            end
         end
-    
         if is_owner_occupier(hh.tenure)
             # row.owner_occupied = 1
         elseif hh.tenure == Council_Rented

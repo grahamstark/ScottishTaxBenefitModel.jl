@@ -20,9 +20,6 @@ using StatsBase
 using ScottishTaxBenefitModel
 using .Definitions
 using .Utils
-using .GeneralTaxComponents:
-    WEEKS_PER_YEAR
-
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
@@ -886,7 +883,10 @@ function summarise_frames!(
         println( "gain lose")
     end    
     if settings.do_legal_aid
-        LegalAidOutput.create_propensities( frames.legalaid )
+        # note we're now always reseting these propensities
+        # since some base assumptions might change e.g. capital modelling.
+        # FIXME this is not thread-safe
+        LegalAidOutput.create_propensities( frames.legalaid; reset_results = true  )
         LegalAidOutput.summarise_la_output!( frames.legalaid )
     end
     return ( ;
@@ -911,17 +911,17 @@ function dump_frames(
     fbase = basiccensor(settings.run_name)
     mkpath(settings.output_dir)
     for fno in 1:ns
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_hh.csv"
-        CSV.write( fname, frames.hh[fno] ; append=append)
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_bu.csv"
-        CSV.write( fname, frames.bu[fno]; append=append )
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_pers.csv"
-        CSV.write( fname, frames.indiv[fno];append=append )
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_income.csv"
-        CSV.write( fname, frames.income[fno]; append=append )
+        fname = "$(settings.output_dir)/$(fbase)_$(fno)_hh.tab"
+        CSV.write( fname, frames.hh[fno] ; append=append, delim='\t')
+        fname = "$(settings.output_dir)/$(fbase)_$(fno)_bu.tab"
+        CSV.write( fname, frames.bu[fno]; append=append, delim='\t' )
+        fname = "$(settings.output_dir)/$(fbase)_$(fno)_pers.tab"
+        CSV.write( fname, frames.indiv[fno];append=append, delim='\t' )
+        fname = "$(settings.output_dir)/$(fbase)_$(fno)_income.tab"
+        CSV.write( fname, frames.income[fno]; append=append, delim='\t' )
         income_summary = summarise_inc_frame(frames.income[fno])
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.csv"
-        CSV.write( fname, income_summary )
+        fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.tab"
+        CSV.write( fname, income_summary; delim='\t' )
     end
 end
 

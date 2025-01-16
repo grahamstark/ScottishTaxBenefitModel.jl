@@ -24,7 +24,6 @@ using .Results:
     total
 using .TimeSeriesUtils: FY_2022
 using .TheEqualiser
-using .GeneralTaxComponents: WEEKS_PER_YEAR
 using .Uprating: load_prices
 using .SingleHouseholdCalculations: do_one_calc
 using .STBOutput: 
@@ -140,7 +139,7 @@ function infer_house_price!( hh :: Household, hhincome :: Real )
 end
 
 function add_house_price( settings::Settings )
-    hh_dataset = CSV.File("$(settings.data_dir)/$(settings.household_name).tab" ) |> DataFrame
+    hh_dataset = CSV.File("$(data_dir( settings ))/$(settings.household_name).tab" ) |> DataFrame
     obs = Observable( Progress(settings.uuid,"",0,0,0,0))
     # coerce house_value from coltype 'Missing'
     hh_dataset.house_value = zeros(settings.num_households)
@@ -157,7 +156,7 @@ function add_house_price( settings::Settings )
     end
     rent_summary = combine(groupby(hh_dataset,:tenure), [:house_value] .=> [length,mean,median])
     
-    CSV.write( "$(settings.data_dir)/$(settings.household_name).tab", hh_dataset )
+    CSV.write( "$(data_dir( settings ))/$(settings.household_name).tab", hh_dataset )
     rent_summary
 end
 
@@ -212,7 +211,7 @@ end
 
 function get_sett()
     settings = Settings()
-    settings.auto_weight = false
+    settings.auto_weight = dont_use_weights # local
     settings.benefit_generosity_estimates_available = false
     settings.household_name = "model_households_wales"
     settings.people_name    = "model_people_wales"
@@ -668,7 +667,7 @@ end
 
 # output formatters
 countfmt = (v, i, j) -> fmt(v)
-pctfmt = (v, i, j) Format.format(v, precision=2)
+pctfmt = (v, i, j) = Format.format(v, precision=2)
 
 function how_we_doing_fmt(val, row, col )
     if col == 1 # name col

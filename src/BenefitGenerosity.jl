@@ -73,7 +73,7 @@ function load_one( filename :: String ) :: GenVec
             popn += hh.weight
             gv[i] = GenEntry( popn, BigInt(r.pid), r.data_year )            
         else
-            println( "no such hh $(r.pid) $(r.data_year)")
+            # println( "no such hh $(r.pid) $(r.data_year)")
         end
     end    
     return gv

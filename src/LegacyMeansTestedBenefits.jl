@@ -305,7 +305,7 @@ function make_lmt_benefit_applicability(
     elseif intermed.working_disabled
         whichb.wtc = true
     end
-    # FIXME not really true
+   # FIXME not really true
     if( intermed.benefit_unit_number == 1 )
         whichb.hb = ! intermed.all_student_bu
         whichb.ctr = true
@@ -329,6 +329,7 @@ function make_lmt_benefit_applicability(
     whichb.hb &= (! mt_ben_sys.hb.abolished)
     whichb.ctr &= (! mt_ben_sys.ctr.abolished)
     whichb.sc &= (! mt_ben_sys.savings_credit.abolished)
+    # @show whichb
     return whichb
 end # make_lmt_benefit_applicability
 
@@ -491,8 +492,8 @@ function calc_premia(
     # !!! Likewise family premium isn't actually used 
     if intermed.has_children && (prem_sys.family > 0)
         premium += prem_sys.family
-        @show premset
-        @show family_premium
+        # @show premset
+        # @show family_premium
         union!( premset, [family_premium])
     end
     if which_ben in [hb,ctr]
@@ -761,6 +762,7 @@ function calcWTC_CTC!(
     recipient = make_recipient( bu, WORKING_TAX_CREDIT )
     bures.legacy_mtbens.wtc_recipient = recipient
     bures.pers[recipient].income[WORKING_TAX_CREDIT] = wtc_amt
+    # println( "wtc repipient=$recipient amount=$wtc_amt")
 
     recipient = make_recipient( bu, CHILD_TAX_CREDIT )
     bures.pers[recipient].income[CHILD_TAX_CREDIT] = ctc_amt

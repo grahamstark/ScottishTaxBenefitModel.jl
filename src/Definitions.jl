@@ -6,26 +6,23 @@ using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
 using Parameters
 using JSON3
+using ArgCheck
 using Preferences 
 import Base.sum
 
 export 
-   Employment_Status,  # mapped from empstat
-   Employee, 
-   Missing_Employment_Status,
-   Self_employed,   
+   DOCS_DIR,
    FRS_DIR, 
    HBAI_DIR,
    MATCHING_DIR,
    MODEL_DATA_DIR, 
-   MODEL_DATA_DIR, 
    MODEL_PARAMS_DIR, 
    PRICES_DIR, 
    PROJECT_DIR,
-   TEST_DIR,
+   RAW_DATA,
+   SCRIPTS_DIR,
    SRC_DIR,
-   DOCS_DIR,
-   SCRIPTS_DIR 
+   TEST_DIR
 
 
 """
@@ -73,6 +70,27 @@ const NUM_REPEATS = 30 # simulates a longer calculation
 export LegacyOrUC, legacy_bens, uc_bens
 @enum LegacyOrUC legacy_bens uc_bens
 
+export DAYS_PER_YEAR, WEEKS_PER_MONTH, WEEKS_PER_YEAR, annualise, weeklyise
+
+# !! maybe make this 366/365 depending on whether this year is a leap year; see the CPAG guide chapter on WTC amounts, for example
+const DAYS_PER_YEAR = 365.25 
+const WEEKS_PER_YEAR = DAYS_PER_YEAR/7.0
+# needed for e.g. UC - they may use 
+# This is what's used for UC, even though it's
+# not consistent with the above. Possibly
+# switch to WEEKS_PER_YEAR/12
+const WEEKS_PER_MONTH = 4.35 # WEEKS_PER_YEAR/12
+
+function weeklyise( annual_amount )
+   round(annual_amount/WEEKS_PER_YEAR, digits=6) # round( x, digits=2) possibly
+end
+
+function annualise( weekly_amount :: Number )
+   round( weekly_amount*WEEKS_PER_YEAR, digits=2)
+end
+
+
+
 #
 # update this every time you add data, update prices, etc.
 #
@@ -85,6 +103,12 @@ export LegacyOrUC, legacy_bens, uc_bens
    pip_dla_historic = Date(2022, 08, 12 )
    benefit_generosity = Date(2022, 08, 12 )
 end
+
+export 
+   Employment_Status,  # mapped from empstat
+   Employee, 
+   Missing_Employment_Status,
+   Self_employed 
 
 #
 # Legal Aid Stuff. Note *lower* is better here.
@@ -107,7 +131,7 @@ export BereavementType,
    bereavement_allowance,
    widowed_parents,
    bereavement_support
-   
+   # FIXME names 
 @enum BereavementType begin
    missing_bereave = -1
    bereavement_allowance = 1
@@ -122,6 +146,7 @@ export Missing_Illness_Length, RT
 export DwellingType,  dwell_na, detatched, semi_detached, terraced,
    flat_or_maisonette, converted_flat, caravan, other_dwelling
 
+# FIXME _na -> missing ? 
 @enum DwellingType begin
    dwell_na = -1
    detatched = 1
@@ -287,7 +312,6 @@ export Missing_Ethnic_Scotland
    Any_other_ethnic_group = 19
 end
 
-
 export Sex  # mapped from sex
 export Male, Female
 export Missing_Sex
@@ -321,6 +345,7 @@ export Married_or_Civil_Partnership,
        Separated,
        Divorced_or_Civil_Partnership_dissolved
 export Missing_Marital_Status
+export is_coupled
 
 @enum Marital_Status begin  # mapped from marital
    Missing_Marital_Status = -1
@@ -331,6 +356,8 @@ export Missing_Marital_Status
    Separated = 5
    Divorced_or_Civil_Partnership_dissolved = 6
 end
+
+is_coupled( ms :: Marital_Status )::Bool = ms ∈ [Married_or_Civil_Partnership, Cohabiting]
 
 
 export Qualification_Type  # mapped from dvhiqual
@@ -1441,7 +1468,200 @@ end
 
 export Relationship_Dict
 Relationship_Dict = Dict{BigInt,Relationship}
+export is_partner, 
+   is_dependent_child, 
+   is_parent, 
+   is_sibling, 
+   is_other_relative, 
+   is_non_relative,
+   is_not_immediate_family,
+   reciprocal_relationship,
+   one_generation_relationship
 
+is_partner( r :: Relationship ) = r in [
+   Spouse,
+   Cohabitee,
+   Civil_Partner]
+is_dependent_child( r :: Relationship ) = r in [
+   Foster_child,
+   Step_son_or_daughter,
+   Son_or_daughter_incl_adopted]
+is_parent( r :: Relationship ) = r in [
+   Parent,
+   Foster_parent,
+   Step_parent]
+is_sibling( r :: Relationship ) = r in [
+   Brother_or_sister_incl_adopted, 
+   Foster_brother_or_sister,
+   Step_brother_or_sister]
+is_other_relative( r :: Relationship ) = r in [
+   Parent_in_law,
+   Son_in_law_or_daughter_in_law,
+   Brother_or_sister_in_law,
+   Grand_child, 
+   Grand_parent,
+   Other_relative]
+is_non_relative( r :: Relationship ) = r == Other_non_relative
+is_not_immediate_family( r :: Relationship ) = is_other_relative(r)||is_non_relative(r)||(r == Missing_Relationship)
+
+
+
+
+"""
+If x is the son of y, y is the parent of x.
+"""
+function reciprocal_relationship( relationship :: Relationship ) :: Relationship
+   return if relationship == This_Person 
+      This_Person 
+   elseif is_partner(relationship)
+      relationship
+   elseif relationship == Son_or_daughter_incl_adopted
+      Parent
+   elseif relationship == Foster_child
+      Foster_parent
+   elseif relationship == Step_son_or_daughter
+      Step_parent
+   elseif relationship == Parent
+      Son_or_daughter_incl_adopted
+   elseif relationship == Foster_parent
+      Foster_child
+   elseif relationship == Step_parent
+      Step_son_or_daughter  
+   elseif is_sibling( relationship )
+      relationship
+   elseif relationship == Parent_in_law
+      Son_in_law_or_daughter_in_law
+   elseif relationship == Son_in_law_or_daughter_in_law
+      Parent_in_law    
+   elseif relationship == Grand_child
+      Grand_parent
+   elseif relationship == Grand_parent
+      Grand_child
+   elseif relationship == Other_relative
+      Other_relative
+   elseif relationship == Other_non_relative
+      Other_non_relative
+   elseif relationship == Brother_or_sister_in_law
+      Brother_or_sister_in_law
+   elseif relationship == Missing_Relationship
+      Missing_Relationship
+   else 
+      @assert false "unmapped $relationship"
+   end 
+end
+
+
+
+"""
+This convoluted code answers(??) questions like:
+'if x is the son of y, and y is the brother of z, what is 
+the relation of x to z?'
+This is useful for artificially generating households or fixing up synthetic data.
+
+FIXME: this needs checked and rethought.
+"""
+function one_generation_relationship( ; 
+   relationship_to_parent :: Relationship,
+   parents_relationship_to_person :: Relationship ) :: Relationship
+   @argcheck relationship_to_parent in [
+      # This_Person,
+      Foster_child,
+      Step_son_or_daughter,
+      Son_or_daughter_incl_adopted,
+      Missing_Relationship]
+
+   println("relationship_to_parent=$relationship_to_parent parents_relationship_to_person=$parents_relationship_to_person")
+   if relationship_to_parent == Missing_Relationship # not related: just return
+      return parents_relationship_to_person
+   elseif relationship_to_parent == Son_or_daughter_incl_adopted
+      return if parents_relationship_to_person == This_Person
+         Son_or_daughter_incl_adopted
+      elseif is_partner(parents_relationship_to_person)
+         Son_or_daughter_incl_adopted
+      elseif parents_relationship_to_person == Son_or_daughter_incl_adopted
+         Brother_or_sister_incl_adopted
+      elseif parents_relationship_to_person == Foster_child
+         Foster_brother_or_sister
+      elseif parents_relationship_to_person == Step_son_or_daughter
+         Step_brother_or_sister
+      elseif parents_relationship_to_person == Son_in_law_or_daughter_in_law
+         Brother_or_sister_in_law
+      elseif parents_relationship_to_person == Parent
+         Grand_child
+      elseif parents_relationship_to_person in [
+         Foster_parent,
+         Parent_in_law,
+         Brother_or_sister_incl_adopted,
+         Step_brother_or_sister,
+         Foster_brother_or_sister,
+         Brother_or_sister_in_law,
+         Grand_child,
+         Grand_parent,
+         Step_parent,
+         Other_relative]
+         Other_relative 
+      elseif parents_relationship_to_person == Other_non_relative
+         Other_non_relative
+      end
+   elseif relationship_to_parent == Foster_child # Foster_brother_or_sister
+      return if parents_relationship_to_person == This_Person
+         Foster_brother_or_sister
+      elseif is_partner(parents_relationship_to_person)
+         Foster_brother_or_sister
+      elseif parents_relationship_to_person == Son_or_daughter_incl_adopted
+         Foster_brother_or_sister # ??
+      elseif parents_relationship_to_person == Foster_child
+         Brother_or_sister_incl_adopted # not neccesarily
+      elseif parents_relationship_to_person == Step_son_or_daughter
+         Step_brother_or_sister
+      elseif parents_relationship_to_person in [
+         Parent,
+         Foster_parent,
+         Parent_in_law,
+         Brother_or_sister_incl_adopted,
+         Step_brother_or_sister,
+         Foster_brother_or_sister,
+         Son_in_law_or_daughter_in_law,
+         Brother_or_sister_in_law,
+         Grand_child,
+         Grand_parent,
+         Step_parent,
+         Other_relative]
+         Other_relative 
+      elseif parents_relationship_to_person == Other_non_relative
+         Other_non_relative
+      end
+   elseif relationship_to_parent == Step_son_or_daughter      
+      return if parents_relationship_to_person == This_Person
+         Step_son_or_daughter
+      elseif is_partner(parents_relationship_to_person)
+         Son_or_daughter_incl_adopted # step of one, son of other
+      elseif parents_relationship_to_person == Son_or_daughter_incl_adopted
+         Step_brother_or_sister # ??
+      elseif parents_relationship_to_person == Foster_child
+         Other_Relative # not neccesarily
+      elseif parents_relationship_to_person == Step_son_or_daughter
+         Brother_or_sister_incl_adopted # needn't always be
+      elseif parents_relationship_to_person in [
+         Parent,
+         Foster_parent,
+         Parent_in_law,
+         Brother_or_sister_incl_adopted,
+         Step_brother_or_sister,
+         Foster_brother_or_sister,
+         Brother_or_sister_in_law,
+         Grand_child,
+         Grand_parent,
+         Step_parent,
+         Son_in_law_or_daughter_in_law,
+         Other_relative]
+         Other_relative 
+      elseif parents_relationship_to_person == Other_non_relative
+         Other_non_relative
+      end
+   end
+end
+   
 export Employment_Type  # mapped from etype
 export An_Employee,
        Running_a_business_or_prof_practice,
@@ -1713,7 +1933,7 @@ export Playgroup_or_pre_school,
        Other_formal,
        Grand_parents,
        Non_resident_parent_or_ex_spouse_or_ex_partner,
-       Childd_brother_or_sister,
+       Childs_brother_or_sister,
        Other_relatives,
        Childminder,
        Nanny_or_Au_Pair,
@@ -1829,12 +2049,13 @@ export LMTPremia,LMTPremiaDict, LMTPremiaSet, disabled_child,
 export BIG_NOTHING
 const BIG_NOTHING = BigInt(0)
 
-export DataSource, FRS, OtherSource, ExampleSource
+export DataSource, FRSSource, OtherSource, ExampleSource, SyntheticSource
 
 @enum DataSource begin  # mapped from relhrp
-   FRS = 1
+   FRSSource = 1
    OtherSource = 2
    ExampleSource = 3
+   SyntheticSource = 4
 end
 
 export get_pid, safe_assign, safe_inc, from_pid
@@ -2047,9 +2268,9 @@ Only citizens are entitled
 #
 
 export WealthTypes,net_physical_wealth,net_financial_wealth,
-   net_housing_wealth,net_pension_wealth,WealthSet
+   net_housing_wealth,net_pension_wealth,second_homes,WealthSet
 
-@enum WealthTypes net_physical_wealth net_financial_wealth net_housing_wealth net_pension_wealth
+@enum WealthTypes net_physical_wealth net_financial_wealth net_housing_wealth net_pension_wealth second_homes
 WealthSet = Set{WealthTypes}
 
 export AggregationLevel, individual, benefit_unit, household 

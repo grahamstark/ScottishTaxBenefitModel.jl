@@ -21,6 +21,7 @@ using .ModelHousehold:
       get_spouse, 
       has_carer_member, 
       has_disabled_member, 
+      household_composition_1,
       is_lone_parent, 
       num_children,
       num_people,
@@ -236,7 +237,7 @@ end
                   bits = from_pid( pid )
                   @test pid == pers.pid
                   @test bits.year == hh.data_year
-                  @test bits.datasource == FRS
+                  @test bits.datasource == FRSSource
                   @test bits.hid == hh.hid
             end
             bua_people_count = 0

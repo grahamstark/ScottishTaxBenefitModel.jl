@@ -24,7 +24,7 @@ settings.household_name = "model_households_wales"
 settings.people_name    = "model_people_wales"
 settings.lower_multiple = 0.2
 settings.upper_multiple = 5.0
-settings.auto_weight = false
+settings.aweightinhg_strategy = use_runtime_computed_weights
 
 @time nhhx, num_peoplex, nhh2x = initialise( settings; reset=true )
 

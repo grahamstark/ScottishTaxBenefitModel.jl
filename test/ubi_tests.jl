@@ -1,17 +1,17 @@
 using Test
 using ScottishTaxBenefitModel
 using Observables
+using .HealthRegressions
 using .ModelHousehold: count,Household, le_age, ge_age
 using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR, WEEKS_PER_MONTH
-   
 using .Results: aggregate!, init_household_result
-using ScottishTaxBenefitModel.Runner: do_one_run
 using .Intermediate: MTIntermediate, make_intermediate    
 using .UBI: calc_UBI!,make_ubi_post_adjustments! 
 using .STBParameters
 using .STBIncomes
 using .ExampleHelpers
 using .Monitor: Progress
+using .RunSettings
 sys = get_system( year=2019, scotland=true )
 sys.ubi.abolished = false
 
@@ -165,5 +165,57 @@ Only those with incomes less than £125k are entitled to the full benefit
     sys.ubi.entitlement = ub_ent_all
     # todo make_ubi_pre_adjustments
     # toto make_ubi_post_adjustments
+
+end
+
+
+"""
+
+"""
+#=
+
+recreate base numbers for Conjoint paper revisions
+
+=#
+@testset "Conjoint Base Case " begin
+    settings = get_all_uk_settings_2023()
+    settings.do_marginal_rates = false
+    settings.requested_threads = 4
+    settings.means_tested_routing = uc_full
+    settings.do_health_estimates = true
+    # settings.ineq_income_measure = bhc_net_income # FIXME TEMP
+    """
+    load 23/4 
+    """
+    sys1 = STBParameters.get_default_system_for_fin_year( 2023, scotland=false )
+    sys2 = deepcopy( sys1)
+    # end function map_features!( tb :: TaxBenefitSystem, facs :: Factors )
+    sys2.ubi.abolished = false
+    sys2.ubi.mt_bens_treatment = ub_as_is # ub_keep_housing
+        # "Child - £0; Adult - £63; Pensioner - £190"
+    sys2.ubi.adult_amount = 63
+    sys2.ubi.child_amount = 0
+    sys2.ubi.universal_pension = 190
+
+
+    # "Basic rate - 20%; Higher rate - 40%; Additional rate - 45%"
+    sys2.it.non_savings_rates = [0.2, 0.4, 0.45 ]
+    sys2.ubi.entitlement = ub_ent_all
+    sys2.ubi.income_limit = -1.0
+    sys = [sys1,sys2]
+    make_ubi_pre_adjustments!( sys2 )
+    summary,results,settings = do_basic_run( settings, sys; reset=true )
+    health = do_health_regressions!( results, settings ) 
+    #=
+    Base.acquire(HEALTH_SEMAPHORE) do
+        health = do_health_regressions!( results, settings )       
+    end
+    =#
+    ∇mental_health = (health[2].depressed-health[1].depressed)/health[1].depressed
+    ∇poverty = summary.poverty[2].headcount - summary.poverty[1].headcount
+    ∇inequality = summary.inequality[2].gini - summary.inequality[1].gini
+    # println( summary )
+    ∇cost_bn = (summary.income_summary[1][:,:net_cost][2] - summary.income_summary[1][:,:net_cost][1])/1_000_000_000
+    ∇child_poverty_pct = (summary.child_poverty[2].prop -    summary.child_poverty[1].prop)*100
 
 end

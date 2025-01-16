@@ -19,13 +19,14 @@ print( prfr )
 ## changing with update versions
 
 @testset "uprating tests" begin
+    settings = Settings()
     hh = ExampleHouseholdGetter.get_household( "mel_c2_scot" )
     hh.quarter = 1
     hh.interview_year = 2008
     pers = hh.people[SCOT_HEAD]
     # average index 2008 q1=100; 2019 Q4 = 125.9812039916
     pers.income[wages] = 100.0
-    uprate!( hh )
+    uprate!( hh, settings )
     println( hh )
     # FIXME CHANGEME hardly a test & needs changed every time the index changes
     # @test pers.income[wages] ≈ 100*20.31/14.87 # 2022q3 av wages index
@@ -43,7 +44,7 @@ end
     hh.interview_year = 2022
     pers = hh.people[SCOT_HEAD]
     pers.income[wages] = 100.0
-    uprate!( hh )
+    uprate!( hh, settings23 )
     println(hh)
 
 end

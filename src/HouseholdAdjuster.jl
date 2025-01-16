@@ -55,42 +55,57 @@ subtleties of the scheme, uses a crude wage/hours for hourly wage ...
 This is dependent on the FRS data, where anyone earning is counted as employee/self-employed.
 This is intended to be used on the results income array rather than 
 """
-function apply_minimum_wage( pers :: Person, mwsys :: MinimumWage )::Real
+function apply_minimum_wage( 
+    pers :: Person, 
+    mwsys :: MinimumWage )::Real
     # FIXME!! Only apply to people whose main employment is not SE
     # see the note - there are 120-odd cases of both wage and se in Scottish subset
     # we ignore 
-    wage = 0.0
-    if pers.employment_status in [
+    # wage = 0.0
+    wage = get( pers.income, Definitions.wages, 0.0 )
+    hours = if pers.usual_hours_worked > 0
+        pers.usual_hours_worked
+    elseif pers.actual_hours_worked > 0
+        pers.actual_hours_worked
+    elseif pers.employment_status in [
+        Full_time_Employee,
+        Full_time_Self_Employed]
+        40.0
+    elseif pers.employment_status in [
+        Part_time_Employee,
+        Part_time_Self_Employed]
+        20.0
+    else 
+        wage/10.0 # hack 10 per hour
+    end
+    if(wage > 0) && (hours > 0)
+    #= if pers.employment_status in [
         Full_time_Employee,
         Part_time_Employee,
         Full_time_Self_Employed,
         Part_time_Self_Employed]
+
         wage = get( pers.income, Definitions.wages, 0.0 )
+        
         if wage <= 0 # see min wage note - I don't think this can happen, but anyways...
             return wage
         end
+        =# 
         se = get( pers.income, Definitions.self_employment_income, 0.0 )
-        hours = if pers.usual_hours_worked > 0
-            pers.usual_hours_worked
-        elseif pers.actual_hours_worked > 0
-            pers.actual_hours_worked
-        elseif pers.employment_status in [
-            Full_time_Employee,
-            Full_time_Self_Employed]
-            40.0
-        elseif pers.employment_status in [
-            Part_time_Employee,
-            Part_time_Self_Employed]
-            20.0
-        end
-        if wage > 0 && se > 0 # proportionate where both wages and se reported FIXME hours data 
+        if se > wage # main source is SE - don't apply
+            return wage
+        elseif wage > 0 && se > 0 # proportionate where both wages and se reported FIXME hours data 
             hours = hours * (wage/(wage+se))
         end
         hourly_wage = wage / hours
+        # println( "mwsys=$mwsys")
+        
         minwage = get_minimum_wage( mwsys, pers.age )
+        
         if hourly_wage < minwage
             wage = hours*minwage
         end
+        # println("mw: age=$(pers.age) wage=$wage minwage=$minwage hours=$hours")
     end
     return wage
 end

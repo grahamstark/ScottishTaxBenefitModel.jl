@@ -105,6 +105,7 @@ module Results
         work_allowance :: RT = zero(RT)
         earnings_before_allowances :: RT = zero(RT)
         earned_income :: RT = zero(RT)
+        untapered_earnings :: RT = zero(RT)
         other_income :: RT = zero(RT)
         tariff_income :: RT = zero(RT)
         standard_allowance  :: RT = zero(RT)
@@ -596,7 +597,7 @@ module Results
         for pid in keys( bu.people )
             bur.pers[pid] = IndividualResult{T}()
             bur.pers[pid].income = map_incomes( bu.people[pid])
-
+            # println( "incomes of $pid set to $(bur.pers[pid].income)")
         end
         return bur
     end

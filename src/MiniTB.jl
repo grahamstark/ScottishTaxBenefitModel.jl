@@ -49,6 +49,7 @@ const DEFAULT_PERSON = Person()
 const DEFAULT_HOUSEHOLD = Household()
 
 function weeklyise( x :: Real ) :: Real
+   # FIXME DUP
    x / (365.25/7)
 end
 

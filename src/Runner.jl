@@ -6,6 +6,8 @@ module Runner
     #
     using Base.Threads
 
+    using Pkg, Pkg.Artifacts
+    using LazyArtifacts
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow, Not, select!
     using CSV
@@ -75,7 +77,7 @@ module Runner
             @time settings.num_households, settings.num_people, nhh2 = 
                 FRSHouseholdGetter.initialise( settings )
             if settings.benefit_generosity_estimates_available
-                BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" )  
+                BenefitGenerosity.initialise( artifact"disability" )  
             end     
         end
         full_results = Array{HouseholdResult}(undef,0,0)
@@ -96,19 +98,11 @@ module Runner
         observer[] =Progress( settings.uuid, "starting",0, 0, 0, settings.num_households )
         @time @threads for thread in 1:num_threads
             for hno in start[thread]:stop[thread]
-                
                 hh = FRSHouseholdGetter.get_household( hno )
-                #=
-                if hno < 20
-                    println( "getting hh $hno hid=$(hh.hid) datayear=$(hh.data_year)")
-                end
-                =#
                 nation = nation_from_region( hh.region )
-                # println( "nation = $nation; included nations=$(settings.included_nations)")
                 if nation in settings.included_nations
                     if hno % 100 == 0
                         observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
-                        # println( "on household hno $hno hid=$(hh.hid) year=$(hh.interview_year) thread $thread")
                     end
                     for sysno in 1:num_systems
                         res = do_one_calc( hh, params[sysno], settings )

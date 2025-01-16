@@ -1,7 +1,7 @@
-"""
+#=
 This module contains some code for formatting Results and Households as
 Bootstrap-style HTML 
-"""
+=#
 module HTMLLibs
 
 using Parameters: @with_kw

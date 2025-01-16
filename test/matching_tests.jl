@@ -1,10 +1,15 @@
 using Test
 using ScottishTaxBenefitModel
 using .Utils:coarse_match
-
-using DataFrames, CSV
 using .ExampleHelpers
 using .MatchingLibs
+using .Definitions
+using .RunSettings
+using .ModelHousehold
+using .FRSHouseholdGetter
+using .ExampleHouseholdGetter
+
+using DataFrames, CSV
 
 #
 # Donor and Recipient each have 2 fields `a` and `b` filled with random
@@ -83,4 +88,21 @@ end # testset
 @testset "Test LCF Matching" begin
     
     
+end
+
+function compare( name :: String, frs :: Vector, was :: Vector )
+    for i in 1:3
+        if frs[i] .> 1000 # a placeholder 
+            @test all( was[i] == was[1])
+            @test all( frs[i] == frs[1])
+            @test frs[1] !== was[1]
+        else
+
+        end
+    end
+
+end
+
+@testset "WAS Matching" begin
+    settings = Settings()
 end

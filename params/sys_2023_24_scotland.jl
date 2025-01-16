@@ -1,13 +1,16 @@
 """
  SCOTLAND 2023/4
+ IT: https://www.gov.scot/publications/scottish-income-tax-2024-25-factsheet/
+ https://www.socialsecurity.gov.scot/news-events/news/social-security-payment-rates-increased-for-2024   
 """
+
 function load_sys_2023_24_scotland!( sys :: TaxBenefitSystem )
     sys.name = "Scottish System 2023/24"
     sys.it.non_savings_rates = [19.0,20.0,21.0,42.0,47.0]
-    sys.it.non_savings_thresholds = [2_162, 13_118, 31_092, 125_120.0]
+    sys.it.non_savings_thresholds = [2_162, 13_118, 31_092, 112_570.0]
     sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
     sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
-    brmapath = joinpath(MODEL_DATA_DIR, "local", "lha_rates_scotland_2023_24.csv")
+    brmapath = joinpath( artifact"augdata", "lha_rates_scotland_2023_24.csv")
     sys.hr.brmas = loadBRMAs( 4, Float64, brmapath )
     sys.loctax.ct.band_d = Dict(
       [
@@ -43,4 +46,11 @@ function load_sys_2023_24_scotland!( sys :: TaxBenefitSystem )
         :S12000030 =>	1384.58,
         :S12000039 =>	1332.36,
         :S12000040 =>	1314.71] )
+
+   # here so it's always on 
+   sys.scottish_child_payment.abolished = false
+   sys.scottish_child_payment.amount = 25.00
+   sys.scottish_child_payment.maximum_age = 15
+   #
+   
 end

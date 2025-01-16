@@ -4,7 +4,12 @@
 # 
 module LegalAidData
 
-using CSV,DataFrames,CategoricalArrays,StatsBase
+using CSV
+using DataFrames
+using CategoricalArrays
+using StatsBase
+using Artifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .RunSettings
@@ -255,60 +260,77 @@ function load_costs( filename::String )::DataFrame
     cost
 end
 
-#=
-ulia> StatsBase.countmap( LegalAidData.CIVIL_COSTS.sex )
-Dict{Union{Missing, InlineStrings.String7}, Int64} with 3 entries:
-  String7("Female") => 7190
-  String7("Male")   => 4436
-  missing           => 169
+CIVIL_COSTS = DataFrame()
+AA_COSTS = DataFrame()
+CIVIL_AWARDS = DataFrame()
 
-julia> StatsBase.countmap( LegalAidData.CIVIL_AWARDS.sex )
-Dict{Union{Missing, InlineStrings.String7}, Int64} with 3 entries:
-  String7("Female") => 8917
-  String7("Male")   => 5595
-  missing           => 1169
+CIVIL_AWARDS_GRP_NS = DataFrame()
+CIVIL_AWARDS_GRP1 = DataFrame()
+CIVIL_AWARDS_GRP2 = DataFrame()
+CIVIL_AWARDS_GRP3 = DataFrame()
+CIVIL_AWARDS_GRP4 = DataFrame()
+CIVIL_COSTS_GRP_NS = DataFrame()
 
-=#
+CIVIL_COSTS_GRP1 = DataFrame()
+AA_COSTS_GRP1 = DataFrame()
 
-#=
-k = sort(keys(LegalAidData.CIVIL_COSTS_GRP_NS))
-for kk in k
-         if haskey( LegalAidData.CIVIL_COSTS_GRP_NS, kk )
-             v = LegalAidData.CIVIL_COSTS_GRP_NS[kk]
-             @show kk    
-             @show summarystats(v.totalpaid)
-         end
-       end
+CIVIL_COSTS_GRP2 = DataFrame()
+CIVIL_COSTS_GRP3 = DataFrame()
+CIVIL_COSTS_GRP4 = DataFrame()
+CIVIL_SUBJECTS = DataFrame()
 
 
-=#
+function init(settings::Settings; reset=false)
 
-const CIVIL_COSTS = load_costs( joinpath(MODEL_DATA_DIR, "civil-legal-aid-case-costs.tab" ))
-const AA_COSTS = load_aa_costs( joinpath(MODEL_DATA_DIR, "aa-case-costs.tab" ))
-const CIVIL_AWARDS = load_awards( joinpath(MODEL_DATA_DIR, "civil-applications.tab" ))
-const CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
-const CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
-const CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
-const CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
-const CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
-const CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
+    global CIVIL_COSTS
+    global AA_COSTS
+    global CIVIL_AWARDS
+    
+    global CIVIL_AWARDS_GRP_NS 
+    global CIVIL_AWARDS_GRP1 
+    global CIVIL_AWARDS_GRP2 
+    global CIVIL_AWARDS_GRP3 
+    global CIVIL_AWARDS_GRP4 
+    global CIVIL_COSTS_GRP_NS 
+        
+    global CIVIL_COSTS_GRP1 
+    global AA_COSTS_GRP1 
+        
+    global CIVIL_COSTS_GRP2 
+    global CIVIL_COSTS_GRP3 
+    global CIVIL_COSTS_GRP4 
+    global CIVIL_SUBJECTS 
+    global LA_PROB_DATA
+    # FIXME DUPS
+    if size( CIVIL_COSTS ) == (0,0) || size(AA_COSTS) == (0,0) || size(CIVIL_AWARDS) == (0.0)
+        l_artifact = RunSettings.get_artifact(; 
+            name="legalaid", 
+            source=settings.data_source == SyntheticSource ? "synthetic" : "slab", 
+            scottish=settings.target_nation == N_Scotland )
 
-const CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
-const AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
+        CIVIL_COSTS = load_costs( joinpath( l_artifact, "civil-legal-aid-case-costs.tab" ))
+        AA_COSTS = load_aa_costs( joinpath( l_artifact, "aa-case-costs.tab" ))
+        CIVIL_AWARDS = load_awards( joinpath( l_artifact, "civil-applications.tab" ))
 
-const CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
-const CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
-const CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
-const CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
-#= 
-  psa = groupby(awards, [:hsm,:age_banded,:consolidatedsex])
-  k=(hsm = "Discrimination", age_banded = "5 - 9", consolidatedsex = "Male")
-  psa[k]
-  haskey(psa,k)
-  for( k, v ) in pairs( psa )
-   println( "k=$k ")
-  end
-=#
+        CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
+        CIVIL_AWARDS_GRP1 = groupby(CIVIL_AWARDS, [:hsm])
+        CIVIL_AWARDS_GRP2 = groupby(CIVIL_AWARDS, [:hsm, :la_status])
+        CIVIL_AWARDS_GRP3 = groupby(CIVIL_AWARDS, [:hsm, :la_status, :sex])
+        CIVIL_AWARDS_GRP4 = groupby(CIVIL_AWARDS, [:hsm, :la_status,:age2, :sex])
+        CIVIL_COSTS_GRP_NS = groupby(CIVIL_COSTS, [:hsm, :age2, :sex])
+
+        CIVIL_COSTS_GRP1 = groupby(CIVIL_COSTS, [:hsm_censored])
+        AA_COSTS_GRP1 = groupby(AA_COSTS, [:hsm_censored])
+
+        CIVIL_COSTS_GRP2 = groupby(CIVIL_COSTS, [:hsm, :la_status])
+        CIVIL_COSTS_GRP3 = groupby(CIVIL_COSTS, [:hsm, :la_status, :sex])
+        CIVIL_COSTS_GRP4 = groupby(CIVIL_COSTS, [:hsm, :la_status, :age2, :sex])
+        CIVIL_SUBJECTS = sort(levels( CIVIL_AWARDS.hsm ))
+        #=  FIXME legal aid prob data is NOT NEEDED ANYMORE (but should be)- scottish crime survey probs unused at SLAB request. =#
+        LA_PROB_DATA = CSV.File( joinpath( l_artifact, "$(settings.legal_aid_probs_data).tab"))|>DataFrame 
+ 
+    end
+end
 
 function gcounts( gdf :: GroupedDataFrame )
     kk = sort(keys(gdf))
@@ -396,10 +418,7 @@ function make_key(;
     return k
 end
 
-
-
-
-# NOT NEEDED
+# FIXME NOT NEEDED as the scjs data is unused at slab request
 function add_la_probs!( hh :: Household )
     global LA_PROB_DATA
     la_hhdata = LA_PROB_DATA[ (LA_PROB_DATA.data_year .== hh.data_year) .& (LA_PROB_DATA.hid.==hh.hid),: ]
@@ -407,15 +426,6 @@ function add_la_probs!( hh :: Household )
         pdat = la_hhdata[la_hhdata.pid .== pers.pid,:]
         @assert size(pdat)[1] == 1
         pers.legal_aid_problem_probs = pdat[1,:]
-    end
-end
-
-function init( settings::Settings; reset=false )
-    global LA_PROB_DATA
-    if settings.do_legal_aid 
-        if(size( LA_PROB_DATA )[1] == 0) || reset 
-            LA_PROB_DATA = CSV.File( "$(settings.data_dir)/$(settings.legal_aid_probs_data).tab")|>DataFrame 
-        end
     end
 end
 

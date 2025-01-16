@@ -1,0 +1,127 @@
+[augdata]
+git-tree-sha1 = "6e1a9c3c859d6386bee9d6cc584b15bb791a4137"
+lazy = true
+
+    [[augdata.download]]
+    sha256 = "dade3e04d43bc76b35c61a00b542ad883de3af2efb11acb996d44f7bc5bd3e98"
+    url = "https://virtual-worlds.biz/artifacts//augdata.tar.gz"
+
+[disability]
+git-tree-sha1 = "288ef84eac1aad34af423852e64001e75be3b822"
+lazy = true
+
+    [[disability.download]]
+    sha256 = "7ed1e796fc2e09a4c48f772ea3cd06b7c6aab721c183f6905b2fa83890d0184b"
+    url = "http://stb-artifacts/disability.tar.gz"
+
+[exampledata]
+git-tree-sha1 = "7853136d3530ea531e4f45a29f8fcef81d08fc1c"
+lazy = true
+
+    [[exampledata.download]]
+    sha256 = "c426f605704bde8c79df3573a4f150512614480aa00f900893accaf75408463c"
+    url = "https://virtual-worlds.biz/artifacts//exampledata.tar.gz"
+
+[scottish-frs-data]
+git-tree-sha1 = "48d9b5582cad66a07dba2a9c37384a450ebf0a50"
+lazy = true
+
+    [[scottish-frs-data.download]]
+    sha256 = "fe01cf1243b9bac5b5fef72a0c9673c768766c68f52667bf3568836d26998882"
+    url = "https://virtual-worlds.biz/artifacts//scottish-frs-data.tar.gz"
+
+[scottish-lcf-expenditure]
+git-tree-sha1 = "bf18d73b3f48bea065528bf63e43e522f85f5e4b"
+lazy = true
+
+    [[scottish-lcf-expenditure.download]]
+    sha256 = "ba73be515c2ca617f3588395679326f978bd1172b4cfc226fe55091db0472666"
+    url = "https://virtual-worlds.biz/artifacts//scottish-lcf-expenditure.tar.gz"
+
+[scottish-slab-legalaid]
+git-tree-sha1 = "6ac253d4e01462d5fb25ba410a91504186c46f9d"
+lazy = true
+
+    [[scottish-slab-legalaid.download]]
+    sha256 = "7b8ac59ff02fbfe3c7097899a61e94cad1a169dcc2e0bf30fa4c3e4ebd386e41"
+    url = "https://virtual-worlds.biz/artifacts//scottish-slab-legalaid.tar.gz"
+
+[scottish-synthetic-data]
+git-tree-sha1 = "2bcdf3e7a62bb4bcd282f05008adbe6b63228ab9"
+lazy = true
+
+    [[scottish-synthetic-data.download]]
+    sha256 = "701ac0c44fe997b7d4e252dc2bee65e2c8ae2cdb2b6975cf5ae8134c0188e2d5"
+    url = "https://virtual-worlds.biz/artifacts//not-created-yet.tar.gz"
+
+[scottish-synthetic-expenditure]
+git-tree-sha1 = "8fb7e3a1d9da7de2a9b1f91a05a8c431f8ab4526"
+lazy = true
+
+    [[scottish-synthetic-expenditure.download]]
+    sha256 = "38f4f588974a40102a4b9998f9c0cea15001ec3d59f3e6b329a9659201cdb4c0"
+    url = "https://virtual-worlds.biz/artifacts//scottish-synthetic-expenditure.tar.gz"
+
+[scottish-synthetic-wealth]
+git-tree-sha1 = "8fb7e3a1d9da7de2a9b1f91a05a8c431f8ab4526"
+lazy = true
+
+    [[scottish-synthetic-wealth.download]]
+    sha256 = "65a51554a00d8f8edd0f0c2df7cbcf3cbc4ad61428e331611671c8393c2e054d"
+    url = "https://virtual-worlds.biz/artifacts//scottish-synthetic-wealth.tar.gz"
+
+[scottish-was-wealth]
+git-tree-sha1 = "f850d06c68ba5e10fe1d9c2eec9100c2e87cd5a9"
+lazy = true
+
+    [[scottish-was-wealth.download]]
+    sha256 = "ce8551f59192129dd03c2b9be45216fca3a9d5c71b63336e456fa3e957f584d5"
+    url = "https://virtual-worlds.biz/artifacts//scottish-was-wealth.tar.gz"
+
+[uk-frs-data]
+git-tree-sha1 = "89cf56539e72722b34a052ecb48732246f1f909d"
+lazy = true
+
+    [[uk-frs-data.download]]
+    sha256 = "edb40910df7d0a46bc425ad773bfcd1a9de307e3195926d29f1a96e97e60129d"
+    url = "https://virtual-worlds.biz/artifacts//uk-frs-data.tar.gz"
+
+[uk-lcf-expenditure]
+git-tree-sha1 = "aac0e469d51d53ae54dcc2aa54af2d4f2d72a03a"
+lazy = true
+
+    [[uk-lcf-expenditure.download]]
+    sha256 = "9da7c224510fcda09d611ce982c8c714bb613b2c8a04ad30b5f561f7cb11159a"
+    url = "https://virtual-worlds.biz/artifacts//uk-lcf-expenditure.tar.gz"
+
+[uk-synthetic-data]
+git-tree-sha1 = "2bcdf3e7a62bb4bcd282f05008adbe6b63228ab9"
+lazy = true
+
+    [[uk-synthetic-data.download]]
+    sha256 = "701ac0c44fe997b7d4e252dc2bee65e2c8ae2cdb2b6975cf5ae8134c0188e2d5"
+    url = "https://virtual-worlds.biz/artifacts//not-created-yet.tar.gz"
+
+[uk-synthetic-expenditure]
+git-tree-sha1 = "8fb7e3a1d9da7de2a9b1f91a05a8c431f8ab4526"
+lazy = true
+
+    [[uk-synthetic-expenditure.download]]
+    sha256 = "65593965ef048b2f9144b73e109a7dd25756df491929e63b5ff1b70e808e8d50"
+    url = "https://virtual-worlds.biz/artifacts//uk-synthetic-expenditure.tar.gz"
+
+[uk-synthetic-wealth]
+git-tree-sha1 = "8fb7e3a1d9da7de2a9b1f91a05a8c431f8ab4526"
+lazy = true
+
+    [[uk-synthetic-wealth.download]]
+    sha256 = "10fa81da7d1994cb804288cf02f575cdc6cb4a36b959a2d22a5638fa3a8c29a1"
+    url = "https://virtual-worlds.biz/artifacts//uk-synthetic-wealth.tar.gz"
+
+[uk-was-wealth]
+git-tree-sha1 = "9d6f7de0ddaa34d73228b648503018b6fa0f99f7"
+lazy = true
+
+    [[uk-was-wealth.download]]
+    sha256 = "b9f06f92f88ba772731979d6ff94b869fd15e42e4acfb79f6911b9e60fb12c72"
+    url = "https://virtual-worlds.biz/artifacts//uk-was-wealth.tar.gz"

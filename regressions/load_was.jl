@@ -1,3 +1,5 @@
+using GLM,DataFrames,CSV,StatsBase,DataStructures
+
 renames = Dict(
     "log(weekly_gross_income)"=>"log_weekly_gross_income",
     "(Intercept)"=>"cons"

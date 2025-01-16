@@ -40,6 +40,10 @@ using .STBParameters:
     OneLegalAidSys,
     NonMeansTestedSys,
     AgeLimits,
+    UCEarningsType, 
+    assessed_net_income, 
+    tapered_uc_earnings, 
+    full_uc_earnings,
     ScottishLegalAidSys
     
 using .Intermediate: 
@@ -162,10 +166,13 @@ function calc_legal_aid!(
 
     if buno == 1
         # gross housing costs and treating CTB HB as income
+        mp = lasys.include_mortgage_repayments ? 
+            household.mortgage_payment : 0.0
         housing = household.gross_rent +
                 ct + 
                 # max( 0.0, household.gross_rent - hb) +
                 # max( 0.0, ct - ctb ) +
+                mp + # NOTE NOT ACTUALLY PAYMENT - CAPITAL FIX NAME
                 household.mortgage_interest +
                 household.other_housing_charges
                 #!!! FIXME insurance
@@ -197,7 +204,10 @@ function calc_legal_aid!(
         onela.capital += intermed.net_financial_wealth
     end 
     if net_housing_wealth in lasys.included_capital 
+        # one or other of all housing, 2nd homes, not both.
         onela.capital += intermed.net_housing_wealth
+    elseif second_homes in lasys.included_capital
+        onela.capital += intermed.total_value_of_other_property
     end 
     if net_pension_wealth in lasys.included_capital 
         onela.capital += intermed.net_pension_wealth
@@ -262,7 +272,13 @@ function calc_legal_aid!(
         if lasys.uc_limit_type == uc_max_income
             # remove passport based on either uc
             # earnings or assessed net income
-            ucinc = lasys.uc_use_earnings ? bres.uc.earned_income : onela.net_income
+            ucinc = if lasys.uc_use_earnings == assessed_net_income 
+                onela.net_income
+            elseif lasys.uc_use_earnings == tapered_uc_earnings 
+                bres.uc.earned_income 
+            elseif lasys.uc_use_earnings == full_uc_earnings 
+                bres.uc.untapered_earnings
+            end
             if ucinc > lasys.uc_limit
                 onela.passported = false
             end

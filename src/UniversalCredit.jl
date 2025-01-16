@@ -334,8 +334,7 @@ function calc_uc_income(
             uc.work_allowance_w_housing : uc.work_allowance_no_housing
         earn = max( 0.0, earn-bur.uc.work_allowance)
     end
-    earned_income = earn*uc.taper
-    return (; other_income=inc, earned_income=earned_income )
+    return (; other_income=inc, earned_income=earn*uc.taper, untapered_earnings = earn )
 end
 
 
@@ -349,7 +348,8 @@ function calc_uc_income!(
     uc                  :: UniversalCreditSys,
     minwage             :: MinimumWage ) 
     benefit_unit_result.uc.other_income, 
-    benefit_unit_result.uc.earned_income = calc_uc_income( 
+    benefit_unit_result.uc.earned_income,
+    benefit_unit_result.uc.untapered_earnings = calc_uc_income( 
         benefit_unit_result, 
         benefit_unit,
         intermed,
