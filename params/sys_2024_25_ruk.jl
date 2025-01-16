@@ -390,8 +390,8 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
     ] )
 
   # FIXME? No updated publication as of 5/7/2024 ??https://www.gov.uk/government/publications/local-housing-allowance-lha-rates-applicable-from-april-2023-to-march-2024#full-publication-update-history
-  brmapath = joinpath(MODEL_DATA_DIR, "local", "brma-2023-2024-country-averages.csv")
-
+  # brmapath = joinpath(MODEL_DATA_DIR, "local", "brma-2023-2024-country-averages.csv")
+  brmapath = joinpath( artifact"augdata", "brma-2023-2024-country-averages.csv")
   sys.hr.brmas = loadBRMAs( 4, Float64, brmapath )
 
   # here so it's always on 
