@@ -1808,6 +1808,36 @@ function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     return t,incdiff
 end
 
+
+"""
+Produce a comparison between on frs and one lcf row on tenure, region, wages, etc.
+"""
+function model_lcf_match_row( hh :: Household, lcf :: DataFrameRow ) :: Tuple
+    t = 0.0
+    t += score( lcf_tenuremap( lcf.a121 ), frs_tenuremap( frs.tentyp2 ))
+    t += score( lcf_regionmap( lcf.gorx ), frs_regionmap( frs.gvtregn, 9997 ))
+    # !!! both next missing in 2020 LCF FUCKKK 
+    # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
+    # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
+    t += score( lcf_age_hrp(  lcf.a065p ), frs_age_hrp( frs.hhagegr4 ))
+    t += score( lcf_composition_map( lcf.a062 ), frs_composition_map( frs.hhcomps ))
+    t += lcf.any_wages == frs.any_wages ? 1 : 0
+    t += lcf.any_pension_income == frs.any_pension_income ? 1 : 0
+    t += lcf.any_selfemp == frs.any_selfemp ? 1 : 0
+    t += lcf.hrp_unemployed == frs.hrp_unemployed ? 1 : 0
+    t += lcf.hrp_non_white == frs.hrp_non_white ? 1 : 0
+    t += lcf.datayear == frs.datayear ? 0.5 : 0 # - a little on same year FIXME use date range
+    # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
+    t += lcf.has_female_adult == frs.has_female_adult ? 1 : 0
+    t += score( lcf.num_children, frs.num_children )
+    t += score( lcf.num_people, frs.num_people )
+    # fixme should we include this at all?
+    incdiff = compare_income( lcf.income, frs.income )
+    t += 10.0*incdiff
+    return t,incdiff
+end
+
+
 function do_hh_sums( hh :: Household ) :: Tuple
     any_wages = false
     any_selfemp = false
