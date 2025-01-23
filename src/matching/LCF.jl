@@ -1,0 +1,449 @@
+module LCF 
+
+using ..Common 
+import ..Model
+
+"""
+Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
+"""
+function make_subset( lcf :: DataFrame ) :: DataFrame
+    out = DataFrame( 
+        case = lcf.case, 
+        datayear = lcf.datayear, 
+        month = lcf.a055, 
+        year= lcf.year,
+        a121 = lcf.a121,
+        gorx = lcf.gorx,
+        a065p  = lcf.a065p,
+        a062 = lcf.a062,
+
+        any_wages = lcf.any_wages,
+        any_pension_income = lcf.any_pension_income,
+        any_selfemp = lcf.any_selfemp,
+        hrp_unemployed = lcf.hrp_unemployed,
+        num_children = lcf.num_children,
+        hrp_non_white = lcf.hrp_non_white,
+        num_people = lcf.num_people,
+        income = lcf.income,
+        any_disabled = lcf.any_disabled,
+        has_female_adult = lcf.has_female_adult )
+
+    out.sweets_and_icecream = lcf.c11831t + lcf.c11841t + lcf.c11851t
+    out.other_food_and_beverages = lcf.p601t - out.sweets_and_icecream
+    out.hot_and_eat_out_food =  ## CHECK is this counting children's sweets twice?
+        lcf.cb1111t +
+        lcf.cb1112t +
+        lcf.cb1113t +
+        lcf.cb1114t +
+        lcf.cb1115t +
+        lcf.cb1116t +
+        lcf.cb1117c +
+        lcf.cb1118c +
+        lcf.cb1119c +
+        lcf.cb111ac +
+        lcf.cb111bc +
+        lcf.cb1121t +
+        lcf.cb1122t +
+        lcf.cb1123t +
+        lcf.cb1124t +
+        lcf.cb1125t +
+        lcf.cb1126t +
+        lcf.cb1127t +
+        lcf.cb1128t +
+        lcf.cb112bt +
+        lcf.cb1213t
+
+    # 02 Alcoholic Beverages, Tobacco and Narcotics
+
+    out.spirits = lcf.cb111ct + lcf.c21111t
+    out.wine = lcf.cb111dt + lcf.c21211t
+    out.fortified_wine = lcf.cb111et + lcf.c21212t
+    out.cider = lcf.cb111ft + lcf.c21213t 
+    out.alcopops = lcf.cb111gt + lcf.c21214t
+    out.champagne = lcf.cb111ht + lcf.c21221t
+    out.beer = lcf.cb111it + lcf.cb111jt + lcf.c21311t # fixme rounds of drinks are beer!
+
+    out.cigarettes = lcf.c22111t
+    out.cigars = lcf.c22121t
+    out.other_tobacco = lcf.c22131t # ?? Assume Vapes?
+
+    # 03 Clothing and Footwear
+
+    out.childrens_clothing_and_footwear = lcf.c31231t + lcf.c31232t + lcf.c31233t + lcf.c31234t + lcf.c31313t + lcf.c32131t
+    out.helmets_etc = lcf.c31315t
+    out.other_clothing_and_footwear = lcf.p603t - out.helmets_etc - out.childrens_clothing_and_footwear
+
+    # 04	Housing, Water, Electricity, Gas and Other Fuels
+    out.domestic_fuel_electric =(lcf.b175 - lcf.b178) + lcf.b227 + lcf.c45114t
+    out.domestic_fuel_gas = (lcf.b170 - lcf.b173) + lcf.b226 + lcf.b018 + lcf.c45112t + lcf.c45214t + lcf.c45222t
+    out.domestic_fuel_coal = lcf.c45411t
+    out.domestic_fuel_other = lcf.b017 + lcf.c45312t + lcf.c45412t + lcf.c45511t
+    out.other_housing = lcf.p604t - out.domestic_fuel_electric - out.domestic_fuel_gas - out.domestic_fuel_coal - out.domestic_fuel_other
+
+    # 05	Furnishings, Household Equipment and Routine Maintenance of the House
+
+    out.furnishings_etc = lcf.p605t
+
+    out.medical_services = lcf.c62112t + lcf.c62113t + lcf.c62114t + lcf.c62211t + lcf.c62311t + lcf.c62321t + lcf.c63111t + lcf.c62331t + lcf.c62322t + lcf.c62212t + lcf.c62111t# exempt
+    out.prescriptions = lcf.c61111t    # zero
+    out.other_medicinces = lcf.c61112t # vatable
+    out.spectacles_etc = lcf.c61311t + lcf.c61312t # vatable but see: https://www.chapman-opticians.co.uk/vat_on_spectacles
+    out.other_health = lcf.c61211t + lcf.c61313t  # but condoms smoking medicines (?? tampons )
+    checkdiffs( "health", out.medical_services + out.prescriptions + out.other_medicinces + out.spectacles_etc + out.other_health, lcf.p606t )
+    
+    # :c61111t,:c61112t,:c61211t,:c61311t,:c61312t,:c61313t,:c62111t,:c62112t,:c62113t,:c62114t,:c62211t,:c62212t,:c62311t,:c62321t,:c62322t,:c62331t,:c63111t
+    
+    # lcf[399,[:p606t, :c61111t,:c61112t,:c61211t,:c61311t,:c61312t,:c61313t,:c62111t,:c62112t,:c62113t,:c62114t,:c62211t,:c62212t,:c62311t,:c62321t,:c62322t,:c62331t,:c63111t]]
+
+    # 07 Transport  !!1 DURABLES 
+    # ?? how are outright purchases handled?
+    out.bus_boat_and_train = lcf.b216 + lcf.b217 + lcf.b218 + lcf.b219 + lcf.c73212t + lcf.c73411t + lcf.c73512t + lcf.c73513t + lcf.p546c # zero FIXME I don't see why p546c - children's transport - is needed but we don't add up otherwise.
+    out.air_travel = lcf.b487 + lcf.b488
+    out.petrol = lcf.c72211t
+    out.diesel = lcf.c72212t
+    out.other_motor_oils = lcf.c72213t
+    out.other_transport = lcf.p607t - (out.bus_boat_and_train + out.air_travel + out.petrol + out.diesel + out.other_motor_oils)
+
+    # 08 Communication
+    out.communication  = lcf.p608t # Standard 
+
+    # 09 Recreation
+    out.books = lcf.c95111t
+    out.newspapers = lcf.c95211t
+    out.magazines = lcf.c95212t
+    out.gambling = lcf.c94314t  # - winnings? C9431Dt
+    out.museums_etc = lcf.c94221t * 0.5 # FIXME includes theme parks
+    out.postage = lcf.c81111t + lcf.cc6212t 
+    out.other_recreation = lcf.p609t - (out.books + out.newspapers + out.magazines + out.gambling + out.museums_etc + out.postage)
+    # FIXME deaf ebooks ..
+    # 10 (A)	Education
+    out.education = lcf.p610t # exempt
+    # 11 (B)	Restaurant and Hotels
+    out.hotels_and_restaurants = lcf.p611t - out.hot_and_eat_out_food - (lcf.cb111ct+lcf.cb111dt+lcf.cb111et+lcf.cb111ft+lcf.cb111gt+lcf.cb111ht+lcf.cb111it + lcf.cb111jt) # h&r less the food,drink,alcohol
+    # 12 (C)	Miscellaneous Goods and Services
+
+    out.insurance = lcf.b110 +
+        lcf.b168 + 
+        lcf.cc5213t + 
+        lcf.cc5311c + 
+        lcf.cc5411c + 
+        lcf.cc5412t + 
+        lcf.cc5413t + 
+        lcf.cc6211c + 
+        lcf.cc6212t + 
+        lcf.cc6214t + 
+        lcf.cc7111t + 
+        lcf.cc7112t + 
+        lcf.cc7113t + 
+        lcf.cc7115t + 
+        lcf.cc7116t # exempt
+
+    out.other_financial = 
+        lcf.b1802 +
+        lcf.b188 +  
+        lcf.b229 +
+        lcf.b238 +  
+        lcf.b273 +  
+        lcf.b280 +  
+        lcf.b281 +  
+        lcf.b282 +  
+        lcf.b283   # exempt
+
+    out.prams_and_baby_chairs = 
+        lcf.cc3222t +
+        lcf.cc3223t # zero
+
+    out.care_services = lcf.cc4121t + lcf.cc4111t + lcf.cc4112t
+
+    out.trade_union_subs = lcf.cc1317t # fixme rename
+
+    out.nappies = lcf.cc1317t * 0.5 # nappies zero rated, other baby goods standard rated FIXME wild guess
+
+    out.funerals = lcf.cc7114t # exempt https://www.gov.uk/guidance/burial-cremation-and-commemoration-of-the-dead-notice-70132
+
+    out.womens_sanitary = lcf.cc1312t * 0.5 # FIXME wild guess 
+
+    out.other_misc_goods = lcf.p612t - (
+        out.womens_sanitary + 
+        out.insurance + 
+        out.other_financial + 
+        out.prams_and_baby_chairs + 
+        out.care_services + 
+        out.nappies + 
+        out.funerals + 
+        out.trade_union_subs) # rest standard rated
+
+    out.non_consumption = lcf.p620tp 
+
+    out.total_expenditure = lcf.p630tp
+
+    checkdiffs( "total spending",
+        out.sweets_and_icecream + 
+        out.other_food_and_beverages + 
+        out.hot_and_eat_out_food + 
+        out.spirits + 
+        out.wine + 
+        out.fortified_wine + 
+        out.cider + 
+        out.alcopops + 
+        out.champagne + 
+        out.beer + 
+        out.cigarettes + 
+        out.cigars + 
+        out.other_tobacco + 
+        out.childrens_clothing_and_footwear + 
+        out.helmets_etc + 
+        out.other_clothing_and_footwear + 
+        out.domestic_fuel_electric + 
+        out.domestic_fuel_gas + 
+        out.domestic_fuel_coal + 
+        out.domestic_fuel_other+ 
+        out.other_housing + 
+        out.furnishings_etc + 
+        out.medical_services + 
+        out.prescriptions + 
+        out.other_medicinces + 
+        out.spectacles_etc + 
+        out.other_health + 
+        out.bus_boat_and_train  + 
+        out.air_travel + 
+        out.petrol + 
+        out.diesel + 
+        out.other_motor_oils + 
+        out.other_transport + 
+        out.communication + 
+        out.books + 
+        out.newspapers + 
+        out.magazines + 
+        out.museums_etc +
+        out.postage +
+        out.other_recreation + 
+        out.education +
+        out.hotels_and_restaurants + 
+        out.insurance + 
+        out.other_financial + 
+        out.prams_and_baby_chairs + 
+        out.care_services + 
+        out.nappies + 
+        out.funerals +
+        out.womens_sanitary + 
+        out.other_misc_goods + 
+        out.trade_union_subs + 
+        out.gambling + 
+        out.non_consumption, 
+        lcf.p630tp )
+
+    out.repayments = 
+        lcf.b237 + lcf.b238 + lcf.ck5316t + lcf.cc6211c 
+
+    return out
+
+    
+end
+
+
+function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
+    for r in eachrow( frshh )
+        dd = split(r.intdate, "/")
+        y = parse(Int, dd[3])
+        m = parse(Int, dd[1])
+        q = div( m - 1, 3) + 1
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+        println( "r.yearcode $(r.yearcode); r.mnthcode $(r.mnthcode); y=$y q=$q income=$(r.income) orig = $(r.income)")
+    end
+    for r in eachrow( lcfhh )
+        #
+        # This is e.g January REIS and I don't know what REIS means 
+        #
+        if r.a055 > 20
+            r.a055 -= 20
+        end
+        q = ((r.a055-1) ÷ 3) + 1 # 1,2,3=q1 and so on
+        # lcf year seems to be actual interview year 
+        y = r.year
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+    end
+end
+
+
+"""
+Load 2018/9 - 2020/1 LCFs and add some matching fields.
+"""
+function load3lcfs()::Tuple
+    lcfhrows,lcfhcols,lcfhh18 = load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
+    lcfhrows,lcfhcols,lcfhh19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
+    lcfhrows,lcfhcols,lcfhh20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
+    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, cols=:union )
+    lcfhrows = size(lcfhh)[1]
+
+    lcfprows,lcpfcols,lcfpers18 = load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+    lcfprows,lcpfcols,lcfpers19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+    lcfprows,lcpfcols,lcfpers20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, cols=:union )
+    hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
+    lcfhh.any_wages .= lcfhh.p356p .> 0
+    lcfhh.any_pension_income .= lcfhh.p364p .> 0
+    lcfhh.any_selfemp .= lcfhh.p320p .!= 0
+    lcfhh.hrp_unemployed .= lcfhh.p304 .== 1
+    lcfhh.num_children = lcfhh.a040 + lcfhh.a041 + lcfhh.a042
+    # LCF case ids of non white HRPs - convoluted; see: 
+    # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
+    nonwhitepids = hh_pp[(hh_pp.a012p .∈ (["10","2","3","4"],)).&(hh_pp.a003 .== 1),:case]
+    lcfhh.hrp_non_white .= 0
+    lcfhh[lcfhh.case .∈ (nonwhitepids,),:hrp_non_white] .= 1    
+    lcfhh.num_people = lcfhh.a049
+    lcfhh.income = lcfhh.p344p    
+    # not possible in lcf???
+    lcfhh.any_disabled .= 0
+    femalepids = hh_pp[(hh_pp.a004 .== 2),:case]
+    lcfhh.has_female_adult .= 0
+    lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
+    lcfhh.is_selected = fill( false, lcfhrows )
+    lcfhh,lcfpers,hh_pp
+end
+
+#=
+lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
+lcf     | 2020 | dvhh   | A121          | 1     | Local authority rented unfurn | Local_authority_rented_unfurn
+lcf     | 2020 | dvhh   | A121          | 2     | Housing association           | Housing_association
+lcf     | 2020 | dvhh   | A121          | 3     | Other rented unfurnished      | Other_rented_unfurnished
+lcf     | 2020 | dvhh   | A121          | 4     | Rented furnished              | Rented_furnished
+lcf     | 2020 | dvhh   | A121          | 5     | Owned with mortgage           | Owned_with_mortgage
+lcf     | 2020 | dvhh   | A121          | 6     | Owned by rental purchase      | Owned_by_rental_purchase
+lcf     | 2020 | dvhh   | A121          | 7     | Owned outright                | Owned_outright
+lcf     | 2020 | dvhh   | A121          | 8     | Rent free                     | Rent_free
+=#
+function tenuremap( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
+    out = fill( default, 3 )
+    if ismissing( a121 )
+        ;
+    elseif a121 == 1
+        out[1] = 1
+        out[2] = 1
+    elseif a121 == 2
+        out[1] = 2
+        out[2] = 1
+    elseif a121  == 3
+        out[1] = 3
+        out[2] = 1
+    elseif a121 == 4
+        out[1] = 3
+        out[2] = 1
+    elseif a121 in [5,6] 
+        out[1] = 5
+        out[2] = 2
+    elseif a121 == 7
+        out[1] = 6
+        out[2] = 2  
+    elseif a121 == 8
+        out[1] = 7
+        out[2] = 3  
+    else
+        @assert false "unmatched tentyp2 $tentyp2";
+    end 
+    return out
+end
+
+
+"""
+lcf     | 2020 | dvhh            | Gorx          | 1     | North East                | North_East
+lcf     | 2020 | dvhh            | Gorx          | 2     | North West and Merseyside | North_West_and_Merseyside
+lcf     | 2020 | dvhh            | Gorx          | 3     | Yorkshire and the Humber  | Yorkshire_and_the_Humber
+lcf     | 2020 | dvhh            | Gorx          | 4     | East Midlands             | East_Midlands
+lcf     | 2020 | dvhh            | Gorx          | 5     | West Midlands             | West_Midlands
+lcf     | 2020 | dvhh            | Gorx          | 6     | Eastern                   | Eastern
+lcf     | 2020 | dvhh            | Gorx          | 7     | London                    | London
+lcf     | 2020 | dvhh            | Gorx          | 8     | South East                | South_East
+lcf     | 2020 | dvhh            | Gorx          | 9     | South West                | South_West
+lcf     | 2020 | dvhh            | Gorx          | 10    | Wales                     | Wales
+lcf     | 2020 | dvhh            | Gorx          | 11    | Scotland                  | Scotland
+lcf     | 2020 | dvhh            | Gorx          | 12    | Northern Ireland          | Northern_Ireland
+
+load 2 levels of region from LCF into a 3 vector - 1= actual/ 2=London/rEngland/Scot/Wales/Ni
+
+"""
+function regionmap( gorx :: Union{Int,Missing} ) :: Vector{Int}
+    out = fill( 9998, 3 )
+    if ismissing( gorx )
+        ;
+    elseif gorx == 7 # london
+        out[1] = gorx
+        out[2] = 1
+    elseif gorx in 1:9
+        out[1] = gorx
+        out[2] = 2
+    elseif gorx == 10 # wales
+        out[1] = 10 
+        out[2] = 4
+    elseif gorx == 11 # scotland
+        out[1] = 11
+        out[2] = 3
+    elseif gorx == 12
+        out[1] = 12
+        out[2] = 5
+    else
+        @assert false "unmatched gorx $gorx";
+    end 
+    return out
+end
+
+function composition_map( a062 :: Int ) :: Vector{Int}
+    mappings = (lcf1=[1],lcf2=[2],lcf3=[3,4],lcf4=[5,6],lcf5=[7,8],lcf6=[18,23,26,28],lcf7=[9,10],lcf8=[11,12],lcf9=[13,14,15,16,17],lcf10=[19,24,20,21,22,25,27,29,30])
+    return composition_map( a062,  mappings, default=9998 )
+end
+
+"""
+Map accomodation. Unused in the end.
+"""
+function accmap( a116 :: Any, default=9998)  :: Vector{Int}
+    @argcheck a116 in 1:6
+    out = fill( default, 3 )
+    # missing in 2020 f*** 
+    if typeof(a116) <: AbstractString
+        return out
+        # a116 = tryparse( Int, a116 )
+    end
+
+    out[1] = a116
+    if a116 in 1:3
+        out[2] = 1
+    elseif a116 in 4:5
+        out[2] = 2
+    elseif a116 == 6
+        out[2] = 3
+    else
+        @assert false "unmatched a116 $a116"
+    end
+    out
+end
+
+
+
+function match_row( hh :: Household, lcf :: DataFrameRow ) :: Tuple
+    hrp = get_head( hh )
+    t = 0.0
+    t += score( tenuremap( lcf.a121 ), Model.tenuremap( hh.tenure ))
+    t += score( regionmap( lcf.gorx ), Model.regionmap( hh.region ))
+    # !!! both next missing in 2020 LCF FUCKKK 
+    # t += score( accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
+    # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
+    t += score( age_hrp(  lcf.a065p ), age_hrp( Model.age_grp( hrp.age )))
+    t += score( composition_map( lcf.a062 ), Model.composition_map( hh ))
+    any_wages, any_selfemp, any_pension_income, has_female_adult, income = Model.do_hh_sums( hh )
+    t += lcf.any_wages == any_wages ? 1 : 0
+    t += lcf.any_pension_income == any_pension_income ? 1 : 0
+    t += lcf.any_selfemp == any_selfemp ? 1 : 0
+    t += lcf.hrp_unemployed == hrp.employment_status == Unemployed ? 1 : 0
+    t += lcf.hrp_non_white == hrp.ethnic_group !== White ? 1 : 0
+    # t += lcf.datayear == frs.datayear ? 0.5 : 0 # - a little on same year FIXME use date range
+    # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
+    t += Int(lcf.has_female_adult) == Int(has_female_adult) ? 1 : 0
+    t += score( lcf.num_children, num_children( hh) )
+    t += score( lcf.num_people, num_people(hh) )
+    # fixme should we include this at all?
+    incdiff = compare_income( lcf.income, income )
+    t += 10.0*incdiff
+    return t,incdiff
+end
+
+end # module LCF
