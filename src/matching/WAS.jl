@@ -166,6 +166,10 @@ function map_socio( socio :: Int ) :: Vector{Int}
     return Common.map_socio( socio )
 end
 
+function map_marital( marital_status_head :: Int )::Vector{Int}
+    return Common.map_marital( marital_status_head )
+end
+
 """
 Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
 """

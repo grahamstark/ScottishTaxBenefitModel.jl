@@ -47,7 +47,7 @@ end
 
 
 function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
-    
+    @argcheck ie in 1:12X
     out = fill( default, 3 )
     out[1] = ie
     out[2] = ie in 1:2 ? 1 : 2

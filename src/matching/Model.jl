@@ -227,7 +227,7 @@ Missing_Marital_Status = -1
 function map_marital( mar :: Marital_Status ):: Vector{Int} 
     im = Int( mar )
     @assert im in 1:6 "im missing $mar = $im"
-    return map_marital(im)
+    return Common.map_marital(im)
 end
 
 
