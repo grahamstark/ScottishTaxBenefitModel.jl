@@ -1,5 +1,14 @@
 module Common
 
+using ScottishTaxBenefitModel
+using .RunSettings
+
+using CSV,
+    DataFrames,
+    Measures,
+    StatsBase,
+    ArgCheck
+
 export MatchingLocation, score, load, composition_map, composition_map, searchbaddies, person_map 
 export TOPCODE, within, composition_map, makeoutdf, age_hrp, pct, compareone
 export checkall 
@@ -10,6 +19,39 @@ struct MatchingLocation
     score :: Float64
     income :: Float64
     incdiff :: Float64
+end
+
+function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
+    @argcheck socio in 1:10
+    out = fill( default, 3 )
+    out[1] = socio
+    out[2] = if socio in 1:5
+        1
+    elseif socio !== 10
+        2
+    else
+        3
+    end
+    out[3] = socio == 10 ? 2 : 1
+    out
+end
+
+
+function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
+    out = fill( default, 3 )
+    out[1] = ms
+    out[2] = ms in [1,2] ? 1 : 2
+    return out
+end
+
+
+
+function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
+    
+    out = fill( default, 3 )
+    out[1] = ie
+    out[2] = ie in 1:2 ? 1 : 2
+    return out
 end
 
 
@@ -122,6 +164,38 @@ function composition_map( comp :: Int, mappings; default::Int ) :: Vector{Int}
     return out
 end
 
+function map_tenure( tenure :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
+@argcheck tenure in 1:8
+    out = fill( default, 3 )
+    if ismissing( tenure )
+
+    elseif tenure == 1
+        out[1] = 1
+        out[2] = 1
+    elseif tenure == 2
+        out[1] = 2
+        out[2] = 1
+    elseif tenure == 3
+        out[1] = 3
+        out[2] = 1
+    elseif tenure == 4
+        out[1] = 4
+        out[2] = 1
+    elseif tenure == 5 
+        out[1] = 5
+        out[2] = 2
+    elseif tenure == 6
+        out[1] = 6
+        out[2] = 2   
+    elseif tenure in [7,8]
+        out[1] = 7
+        out[2] = 3   
+    else
+        @assert false "unmatched tenure $tenure";
+    end 
+    return out
+end
+
 
 """
 Infuriatingly, this can't be used as rooms is deleted in 19/20 lcf
@@ -131,7 +205,7 @@ function rooms( rooms :: Union{Missing,Int,AbstractString}, def::Int ) :: Vector
     out = fill(def,3)    
     if (typeof(rooms) <: AbstractString) || rooms < 0
         return out
-        # a116 = tryparse( Int, a116 )
+        # acc = tryparse( Int, acc )
     end
 
     rooms = min( 6, rooms )
@@ -179,6 +253,42 @@ function makeoutdf( n :: Int, prefix :: AbstractString ) :: DataFrame
     return d
 end
 
+
+function age_grp( age :: Int ) :: Vector{Int}
+    out = if age < 16 # can't happen?
+        1
+    elseif age < 25
+        2
+    elseif age < 35
+        3
+    elseif age < 45
+        4
+    elseif age < 55
+        5
+    elseif age < 65
+        6
+    elseif age < 75
+        7
+    elseif age >= 75
+        8
+    end
+    return frs_age_map( out, 9998 )
+end
+
+
+function age_map( age:: Int, default=9998 ) :: Vector{Int}
+    out = fill( default, 3 )
+    out[1] = hhagegr4
+    if agein 1:3 # u35
+        out[2] = 1
+    elseif agein 4:5 # 35-64
+        out[2] = 2
+    else
+        out[2] = 3
+    end
+    out
+end
+
 function pct(v)
     round.( 100.0 .* v ./ sum(v), sigdigits=2 )
 end
@@ -221,6 +331,88 @@ function compareone( frs :: DataFrame, was :: DataFrame, name :: String, n :: In
 end
 
 
+"""
+Map accomodation. General case.
+"""
+function map_accom( acc :: Any, default=9998)  :: Vector{Int}
+    @argcheck acc in 1:6
+    out = fill( default, 3 )
+    # missing in 2020 f*** 
+    if typeof(acc) <: AbstractString
+        return out
+        # acc = tryparse( Int, acc )
+    end
+    out[1] = acc
+    if acc in 1:3
+        out[2] = 1
+    elseif acc in 4:5
+        out[2] = 2
+    elseif acc == 6
+        out[2] = 3
+    else
+        @assert false "unmatched acc $acc"
+    end
+    out
+end
+
+"""
+frs age group for hrp - 1st is exact, 2nd u40,40+
+"""
+function map_age_hrp( age:: Int ) :: Vector{Int}
+    @argcheck age in 1:13
+    out = fill( 9998, 3 )
+    out[1] = age
+    if age<= 5
+        out[2] = 1
+    elseif age<= 13
+        out[2] = 2
+    else
+        @assert false "mapping $age not in 1:13"
+    end
+    out
+end
+
+"""
+North_East = 1
+North_West = 2
+Yorks_and_the_Humber = 3
+East_Midlands = 4
+West_Midlands = 5
+East_of_England = 6
+London = 7
+South_East = 8
+South_West = 9
+Scotland = 11 
+Wales = 10
+Northern_Ireland = 12
+"""
+function map_region( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
+    out = fill( default, 3 )
+    if ismissing( gvtregn )
+        return out
+    end
+        # gvtregn = parse(Int, gvtregn )
+    out[1] = gvtregn
+
+    if ismissing( gvtregn )
+        ;
+    elseif gvtregn == 7 # london
+        out[2] = 1
+    elseif gvtregn in 1:9 # rEngland
+        out[2] = 2
+    elseif gvtregn == 11 # scotland
+        out[2] = 3
+    elseif gvtregn == 10 # 
+        out[2] = 4
+    elseif gvtregn == 12 # nire
+        out[2] = 5
+    else
+        @assert false "unmatched gvtregn $gvtregn";
+    end 
+    return out
+end
+
+
 const CHECKING_VAR_LENS = Dict(
     ["age"=>3,
     "region"=>3,
@@ -253,6 +445,8 @@ function create_was_frs_matching_dataset( settings :: Settings  ) :: Tuple
             df[row,k] = data[i]
         end
     end
+
+
 
     settings.num_households, settings.num_people, nhh2 = 
            FRSHouseholdGetter.initialise( settings; reset=false )

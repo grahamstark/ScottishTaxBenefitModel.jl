@@ -1,4 +1,24 @@
 module Model
+
+
+using ScottishTaxBenefitModel
+using .RunSettings
+using .ModelHousehold
+using .Definitions
+    
+
+function age_hrp( age :: Int )::Int
+    head = get_head( hh )
+    Common.age_hrp( age_grp(age))
+end
+
+function map_socio( socio :: Socio_Economic_Group )::Vector{Int}
+    return Common.map_socio( Int( socio ))
+
+function map_tenure(  t :: Tenure_Type, default=9998 ) :: Vector{Int}
+    return Common.map_tenure( Int( t ), default )
+end
+
 """
 North_East = 1
 North_West = 2
@@ -13,7 +33,7 @@ Scotland = 11
 Wales = 10
 Northern_Ireland = 12
 """
-function frs_regionmap( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
+function map_region( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
     out = fill( default, 3 )
     # gvtregn = parse(Int, gvtregn )
     if ismissing( gvtregn )
@@ -39,62 +59,10 @@ function frs_regionmap( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{
     return out
 end
 
-function model_regionmap(  reg :: Standard_Region ) :: Vector{Int}
-    return frs_regionmap( Int( reg ), 9998 )
+function map_region(  reg :: Standard_Region ) :: Vector{Int}
+    return map_region( Int( reg ), 9998 )
 end
 
-
-"""
-frs age group for hrp - 1st is exact, 2nd u40,40+
-"""
-function frs_age_hrp( hhagegr4 :: Int ) :: Vector{Int}
-    out = fill( 9998, 3 )
-    out[1] = hhagegr4
-    if hhagegr4 <= 5
-        out[2] = 1
-    elseif hhagegr4 <= 13
-        out[2] = 2
-    else
-        @assert false "mapping hhagegr4 $hhagegr4"
-    end
-    out
-end
-
-
-function frs_tenuremap( tentyp2 :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
-    out = fill( default, 3 )
-    if ismissing( tentyp2 )
-
-    elseif tentyp2 == 1
-        out[1] = 1
-        out[2] = 1
-    elseif tentyp2 == 2
-        out[1] = 2
-        out[2] = 1
-    elseif tentyp2 == 3
-        out[1] = 3
-        out[2] = 1
-    elseif tentyp2 == 4
-        out[1] = 4
-        out[2] = 1
-    elseif tentyp2 == 5 
-        out[1] = 5
-        out[2] = 2
-    elseif tentyp2 == 6
-        out[1] = 6
-        out[2] = 2   
-    elseif tentyp2 in [7,8]
-        out[1] = 7
-        out[2] = 3   
-    else
-        @assert false "unmatched tentyp2 $tentyp2";
-    end 
-    return out
-end
-
-function tenuremap(  t :: Tenure_Type, default=9998 ) :: Vector{Int}
-    return frs_tenuremap( Int( t ), default )
-end
 
 """
    dwell_na = -1
@@ -113,7 +81,7 @@ function accommap( dwelling :: DwellingType ):: Vector{Int}
         out = rand(1:6)
     end
     out = min( 6, out ) # caravan=>other
-    return lcf_accmap( out, 9998 )
+    return Common.accommap( out, 9998 )
 end
 
 function do_hh_sums( hh :: Household ) :: Tuple
@@ -140,8 +108,6 @@ function do_hh_sums( hh :: Household ) :: Tuple
     income = hh.original_gross_income
     return any_wages, any_selfemp, any_pension_income, has_female_adult, income 
 end
-
-
 
 function age_grp( age :: Int )
     return if age < 16

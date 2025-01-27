@@ -1,5 +1,14 @@
 module LCF 
 
+using ScottishTaxBenefitModel
+using .RunSettings
+
+using CSV,
+    DataFrames,
+    Measures,
+    StatsBase,
+    ArgCheck
+
 using ..Common 
 import ..Model
 
@@ -265,7 +274,6 @@ function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
     end
 end
 
-
 """
 Load 2018/9 - 2020/1 LCFs and add some matching fields.
 """
@@ -313,7 +321,7 @@ lcf     | 2020 | dvhh   | A121          | 6     | Owned by rental purchase      
 lcf     | 2020 | dvhh   | A121          | 7     | Owned outright                | Owned_outright
 lcf     | 2020 | dvhh   | A121          | 8     | Rent free                     | Rent_free
 =#
-function tenuremap( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
+function map_tenure( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
     out = fill( default, 3 )
     if ismissing( a121 )
         ;
@@ -362,7 +370,7 @@ lcf     | 2020 | dvhh            | Gorx          | 12    | Northern Ireland     
 load 2 levels of region from LCF into a 3 vector - 1= actual/ 2=London/rEngland/Scot/Wales/Ni
 
 """
-function regionmap( gorx :: Union{Int,Missing} ) :: Vector{Int}
+function map_region( gorx :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( 9998, 3 )
     if ismissing( gorx )
         ;
@@ -395,62 +403,19 @@ end
 """
 Map accomodation. Unused in the end.
 """
-function accmap( a116 :: Any, default=9998)  :: Vector{Int}
+function map_accom( a116 :: Any, default=9998)  :: Vector{Int}
     @argcheck a116 in 1:6
-    out = fill( default, 3 )
-    # missing in 2020 f*** 
-    if typeof(a116) <: AbstractString
-        return out
-        # a116 = tryparse( Int, a116 )
-    end
-
-    out[1] = a116
-    if a116 in 1:3
-        out[2] = 1
-    elseif a116 in 4:5
-        out[2] = 2
-    elseif a116 == 6
-        out[2] = 3
-    else
-        @assert false "unmatched a116 $a116"
-    end
-    out
+    return Common.map_accom( a116 )
 end
 
 
 
-function match_row( hh :: Household, lcf :: DataFrameRow ) :: Tuple
-    hrp = get_head( hh )
-    t = 0.0
-    t += score( tenuremap( lcf.a121 ), Model.tenuremap( hh.tenure ))
-    t += score( regionmap( lcf.gorx ), Model.regionmap( hh.region ))
-    # !!! both next missing in 2020 LCF FUCKKK 
-    # t += score( accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
-    # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
-    t += score( age_hrp(  lcf.a065p ), age_hrp( Model.age_grp( hrp.age )))
-    t += score( composition_map( lcf.a062 ), Model.composition_map( hh ))
-    any_wages, any_selfemp, any_pension_income, has_female_adult, income = Model.do_hh_sums( hh )
-    t += lcf.any_wages == any_wages ? 1 : 0
-    t += lcf.any_pension_income == any_pension_income ? 1 : 0
-    t += lcf.any_selfemp == any_selfemp ? 1 : 0
-    t += lcf.hrp_unemployed == hrp.employment_status == Unemployed ? 1 : 0
-    t += lcf.hrp_non_white == hrp.ethnic_group !== White ? 1 : 0
-    # t += lcf.datayear == frs.datayear ? 0.5 : 0 # - a little on same year FIXME use date range
-    # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
-    t += Int(lcf.has_female_adult) == Int(has_female_adult) ? 1 : 0
-    t += score( lcf.num_children, num_children( hh) )
-    t += score( lcf.num_people, num_people(hh) )
-    # fixme should we include this at all?
-    incdiff = compare_income( lcf.income, income )
-    t += 10.0*incdiff
-    return t,incdiff
-end
 
 """
 Triple for the age group for the lcf hrp - 1st is groups above to 75, 2nd is 16-39, 40+ 3rd no match.
 See coding frame above.
 """
-function age_hrp( a065p :: Int ) :: Vector{Int}
+function map_age_hrp( a065p :: Int ) :: Vector{Int}
     out = fill( 9998, 3 )
     a065p -= 2
     a065p = min( 13, a065p ) # 75+

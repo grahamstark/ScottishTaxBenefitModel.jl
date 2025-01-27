@@ -116,6 +116,10 @@ function regionmap( wasreg :: Int ) :: Vector{Int}
     return frs_regionmap( out, 9997 )
 end
 
+function map_region( wasreg :: Int ):: Vector{Int}
+    return Common.map_region( wasreg )
+end
+
 """
 Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/ Refusal
@@ -152,6 +156,14 @@ end
 
 function map_empstat( ie :: Int ) :: Vector{Int}
     return map_empstat( ie, 9997 )
+end
+
+function map_age_hrp( age :: Int ) :: Vector{Int}
+    return Common.map_age_hrp( age )
+end
+
+function map_socio( socio :: Int ) :: Vector{Int}
+    return Common.map_socio( socio )
 end
 
 """
@@ -272,9 +284,12 @@ function tenuremap_one( wasf :: DataFrame ) :: Vector{Int}
     out
 end
 
-function tenuremap( was :: DataFrame  ) :: Vector{Int}
-    out = tenuremap_one( was )
-    return lcf_tenuremap( out, 9997 )
+function map_tenure( ten :: Int  ) :: Vector{Int}
+    return Common.map_tenure( ten, 9997 )
+end
+
+function map_accom( accom :: Int ) :: Vector{Int}
+    return Common.map_accom( accom, 9997 )
 end
 
 function accommap_one( wasf :: DataFrame ) :: Vector{Int}
@@ -308,98 +323,5 @@ function accommap_one( wasf :: DataFrame ) :: Vector{Int}
     end
     out
 end 
-
-
-"""
-output:
-lcf     | 2020 | dvhh            | A116          | 1     | Whole house,bungalow-detached | Whole_house_bungalow_detached
-lcf     | 2020 | dvhh            | A116          | 2     | Whole hse,bungalow-semi-dtchd | Whole_hse_bungalow_semi_dtchd
-lcf     | 2020 | dvhh            | A116          | 3     | Whole house,bungalow-terraced | Whole_house_bungalow_terraced
-lcf     | 2020 | dvhh            | A116          | 4     | Purpose-built flat maisonette | Purpose_built_flat_maisonette
-lcf     | 2020 | dvhh            | A116          | 5     | Part of house converted flat  | Part_of_house_converted_flat
-lcf     | 2020 | dvhh            | A116          | 6     | Others                        | Others
-
-
-
-"""
-function accommap( was :: DataFrame ) :: Vector{Int}
-    out = accommap_one( was )
-    return lcf_accmap.( out, 9997 )
-end
-
-
-
-function frs_age_map( hhagegr4 :: Int, default=9998 ) :: Vector{Int}
-    out = fill( default, 3 )
-    out[1] = hhagegr4
-    if hhagegr4 in 1:3 # u35
-        out[2] = 1
-    elseif hhagegr4 in 4:5 # 35-64
-        out[2] = 2
-    else
-        out[2] = 3
-    end
-    out
-end
-
-function model_age_grp( age :: Int ) :: Vector{Int}
-    out = if age < 16 # can't happen?
-        1
-    elseif age < 25
-        2
-    elseif age < 35
-        3
-    elseif age < 45
-        4
-    elseif age < 55
-        5
-    elseif age < 65
-        6
-    elseif age < 75
-        7
-    elseif age >= 75
-        8
-    end
-    return frs_age_map( out, 9998 )
-end
-
-
-
-"""
-We're JUST going to use the model dataset here
-"""
-function model_match( 
-    hh :: Household, 
-    was :: DataFrameRow ) :: Tuple
-    t = 0.0
-    incdiff = 0.0
-    hrp = get_head( hh )
-    t += score( model_age_grp( hrp.age ), frs_age_map(was.age_head, 9997 )) # ok
-    t += region_score_scotland( 
-        model_regionmap( hh.region ), 
-        frs_regionmap( was.region, 9997 ),
-        [1.5,0.8,0.3,0.2,0.1]) 
-    t += score( model_accommap( hh.dwelling ), lcf_accmap( was.accom, 9997 ))
-    t += score( model_tenuremap( hh.tenure ),  frs_tenuremap( was.tenure, 9997 ))
-    t += score( model_map_socio( hrp.socio_economic_grouping ),  
-        map_socio( was.socio_economic_head, 9997 ))
-    t += score( model_map_empstat( hrp.employment_status ), map_empstat( was.empstat_head, 9997 ))
-    t += Int(hrp.sex) == was.sex_head ? 1 : 0
-    t += score( model_map_marital(hrp.marital_status ), map_marital( was.marital_status_head, 9997 ))
-    # t += score( hh.data_year, was.year )
-    any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
-
-    #     hh_composition 
-    t += any_wages == was.any_wages ? 1 : 0
-    t += any_selfemp ==  was.any_selfemp ? 1 : 0
-    t += any_pension_income == was.any_pension_income ? 1 : 0
-     
-    t += highqual_degree_equiv(hrp.highest_qualification) == was.has_degree ? 1 : 0
-
-    t += score( person_map(num_children( hh ),9999), person_map(was.num_children,9997 ))
-    t += score( person_map(num_adults( hh ),9999), person_map(was.num_adults,9997))
-    incdiff = compare_income( income, was.weekly_gross_income )
-    return t, incdiff
-end
 
 end

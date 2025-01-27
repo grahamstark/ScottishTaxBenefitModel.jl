@@ -108,37 +108,6 @@ end
 
 
 
-function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
-    out = fill( default, 3 )
-    out[1] = socio
-    out[2] = if socio in 1:5
-        1
-    elseif socio !== 10
-        2
-    else
-        3
-    end
-    out[3] = socio == 10 ? 2 : 1
-    out
-end
-
-
-function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
-    out = fill( default, 3 )
-    out[1] = ms
-    out[2] = ms in [1,2] ? 1 : 2
-    return out
-end
-
-
-
-function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
-    out = fill( default, 3 )
-    out[1] = ie
-    out[2] = ie in 1:2 ? 1 : 2
-    return out
-end
-
 """
 
 North_East = 1
@@ -199,6 +168,74 @@ end
 =#
 
 
+"""
+We're JUST going to use the model dataset here
+"""
+function model_row_was_match( 
+    hh :: Household, 
+    was :: DataFrameRow ) :: Tuple
+    t = 0.0
+    incdiff = 0.0
+    hrp = get_head( hh )
+    t += score( Model.map_age_hrp( hrp.age ), 
+        WAS.map_age_hrp(was.age_head, 9997 )) # ok
+    t += region_score_scotland( 
+        Model.map_region( hh.region ), 
+        WAS.map_region( was.region, 9997 ),
+        [1.5,0.8,0.3,0.2,0.1]) 
+    t += score( Model.map_accom( hh.dwelling ), WAS.map_accom( was.accom, 9997 ))
+    
+    t += score( Model.map_tenure( hh.tenure ),  WAS.map_tenure( was.tenure, 9997 ))
+
+    t += score( model_map_socio( hrp.socio_economic_grouping ),  
+        map_socio( was.socio_economic_head, 9997 ))
+    t += score( model_map_empstat( hrp.employment_status ), map_empstat( was.empstat_head, 9997 ))
+    t += Int(hrp.sex) == was.sex_head ? 1 : 0
+    t += score( model_map_marital(hrp.marital_status ), map_marital( was.marital_status_head, 9997 ))
+    # t += score( hh.data_year, was.year )
+    any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
+
+    #     hh_composition 
+    t += any_wages == was.any_wages ? 1 : 0
+    t += any_selfemp ==  was.any_selfemp ? 1 : 0
+    t += any_pension_income == was.any_pension_income ? 1 : 0
+     
+    t += highqual_degree_equiv(hrp.highest_qualification) == was.has_degree ? 1 : 0
+
+    t += score( person_map(num_children( hh ),9999), person_map(was.num_children,9997 ))
+    t += score( person_map(num_adults( hh ),9999), person_map(was.num_adults,9997))
+    incdiff = compare_income( income, was.weekly_gross_income )
+    return t, incdiff
+end
+
+
+function match_row_lcf_model( hh :: Household, lcf :: DataFrameRow ) :: Tuple
+    hrp = get_head( hh )
+    t = 0.0
+    t += score( tenuremap( lcf.a121 ), Model.tenuremap( hh.tenure ))
+    t += score( regionmap( lcf.gorx ), Model.regionmap( hh.region ))
+    # !!! both next missing in 2020 LCF FUCKKK 
+    # t += score( accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
+    # t += score( rooms( lcf.a111p, 998 ), rooms( frs.bedroom6, 999 ))
+    t += score( age_hrp(  lcf.a065p ), age_hrp( Model.age_grp( hrp.age )))
+    t += score( composition_map( lcf.a062 ), Model.composition_map( hh ))
+    any_wages, any_selfemp, any_pension_income, has_female_adult, income = Model.do_hh_sums( hh )
+    t += lcf.any_wages == any_wages ? 1 : 0
+    t += lcf.any_pension_income == any_pension_income ? 1 : 0
+    t += lcf.any_selfemp == any_selfemp ? 1 : 0
+    t += lcf.hrp_unemployed == hrp.employment_status == Unemployed ? 1 : 0
+    t += lcf.hrp_non_white == hrp.ethnic_group !== White ? 1 : 0
+    # t += lcf.datayear == frs.datayear ? 0.5 : 0 # - a little on same year FIXME use date range
+    # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
+    t += Int(lcf.has_female_adult) == Int(has_female_adult) ? 1 : 0
+    t += score( lcf.num_children, num_children( hh) )
+    t += score( lcf.num_people, num_people(hh) )
+    # fixme should we include this at all?
+    incdiff = compare_income( lcf.income, income )
+    t += 10.0*incdiff
+    return t,incdiff
+end
+
 
 """
 Map the entire datasets.
@@ -245,4 +282,3 @@ function create_frs_was_matches( data_source :: DataSource = FRSSource )
 end
 
 end # module
-
