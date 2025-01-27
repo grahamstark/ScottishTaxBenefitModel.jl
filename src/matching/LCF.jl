@@ -446,4 +446,23 @@ function match_row( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     return t,incdiff
 end
 
+"""
+Triple for the age group for the lcf hrp - 1st is groups above to 75, 2nd is 16-39, 40+ 3rd no match.
+See coding frame above.
+"""
+function age_hrp( a065p :: Int ) :: Vector{Int}
+    out = fill( 9998, 3 )
+    a065p -= 2
+    a065p = min( 13, a065p ) # 75+
+    out[1] = a065p
+    if a065p <= 5
+        out[2] = 1
+    elseif a065p <= 13
+        out[2] = 2
+    else
+        @assert false "mapping a065p $a065p"
+    end
+    out
+end
+
 end # module LCF

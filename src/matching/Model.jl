@@ -249,5 +249,59 @@ function composition_map( hh :: Household ) :: Vector{Int}
     return frs_composition_map( c )
 end
 
+"""
+Missing_Marital_Status = -1
+   Married_or_Civil_Partnership = 1
+   Cohabiting = 2
+   Single = 3
+   Widowed = 4
+   Separated = 5
+   Divorced_or_Civil_Partnership_dissolved = 6
+"""
+function map_marital( mar :: Marital_Status ):: Vector{Int} 
+    im = Int( mar )
+    @assert im in 1:6 "im missing $mar = $im"
+    return map_marital(im)
+end
+
+
+"""
+   Missing_ILO_Employment = -1
+   Full_time_Employee = 1
+   Part_time_Employee = 2
+   Full_time_Self_Employed = 3
+   Part_time_Self_Employed = 4
+   Unemployed = 5
+   Retired = 6
+   Student = 7
+   Looking_after_family_or_home = 8
+   Permanently_sick_or_disabled = 9
+   Temporarily_sick_or_injured = 10
+   Other_Inactive = 11
+"""
+function map_empstat( ie :: ILO_Employment  ) :: Vector{Int} #  
+    out = if ie in [Full_time_Employee,Part_time_Employee]
+        1
+    elseif ie in [Full_time_Self_Employed,Part_time_Self_Employed ]
+        2
+    elseif ie == Unemployed
+        3
+    elseif ie == Retired 
+        7
+    elseif ie == Student
+        4
+    elseif ie == Looking_after_family_or_home
+        5
+    elseif ie in [Permanently_sick_or_disabled,Temporarily_sick_or_injured]
+        6
+    elseif ie in [Other_Inactive,Missing_ILO_Employment]
+        8
+    else
+        @assert false "unmapped empstat $empstat = $ie"
+    end
+    return map_empstat( Int(out) )
+end
+
+
 
 end # module Model

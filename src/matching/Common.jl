@@ -1,9 +1,10 @@
 module Common
 
-export LCFLocation, score, load, composition_map, composition_map, searchbaddies, person_map 
+export MatchingLocation, score, load, composition_map, composition_map, searchbaddies, person_map 
 export TOPCODE, within, composition_map, makeoutdf, age_hrp, pct, compareone
+export checkall 
 
-struct LCFLocation
+struct MatchingLocation
     case :: Int
     datayear :: Int
     score :: Float64
@@ -11,24 +12,7 @@ struct LCFLocation
     incdiff :: Float64
 end
 
-"""
-Triple for the age group for the lcf hrp - 1st is groups above to 75, 2nd is 16-39, 40+ 3rd no match.
-See coding frame above.
-"""
-function age_hrp( a065p :: Int ) :: Vector{Int}
-    out = fill( 9998, 3 )
-    a065p -= 2
-    a065p = min( 13, a065p ) # 75+
-    out[1] = a065p
-    if a065p <= 5
-        out[2] = 1
-    elseif a065p <= 13
-        out[2] = 2
-    else
-        @assert false "mapping a065p $a065p"
-    end
-    out
-end
+
 
 """
 Score for one of our 3-level matches 1 for exact 0.5 for partial 1, 0.1 for partial 2
@@ -237,4 +221,269 @@ function compareone( frs :: DataFrame, was :: DataFrame, name :: String, n :: In
 end
 
 
+const CHECKING_VAR_LENS = Dict(
+    ["age"=>3,
+    "region"=>3,
+    "accom"=>3,
+    "tenure"=>3,
+    "socio"=>3,
+    "empstat"=>3,
+    "marital"=>3,
+    "year"=>1,
+    "wages"=>1,
+    "selfemp"=>1,
+    "pensions"=>1,
+    "degree"=>1,
+    "children"=>3,
+    "adults"=>3,
+    "sex"=>1,
+    "year"=>1])
+
+
+"""
+The next two are for testing purposes: check the composition of one matched
+dataset against another 
+"""
+function create_was_frs_matching_dataset( settings :: Settings  ) :: Tuple
+
+    function addtodf( df::DataFrame, label, n, row::Int, data::Vector)
+        @assert size(data)[1] == n "data=$(size(data)[1]) n = $n"
+        for i in 1:n
+            k = Symbol( "$(label)_$(i)")
+            df[row,k] = data[i]
+        end
+    end
+
+    settings.num_households, settings.num_people, nhh2 = 
+           FRSHouseholdGetter.initialise( settings; reset=false )
+    was_dataset = CSV.File(joinpath(data_dir( settings ),settings.wealth_dataset))|>DataFrame
+    nwas = size( was_dataset )[1]
+    wasset = DataFrame()
+    frsset = DataFrame()
+    for v in CHECKING_VARS_LENS
+        k = v[1]
+        n = v[2]
+        for i in 1:n
+            key = Symbol( "$(k)_$(i)")
+            wasset[!,key] = zeros( Int, nwas )
+            frsset[!,key] = zeros( Int, settings.num_households )
+        end
+    end
+    println( names(wasset))
+    hno = 0
+    for was in eachrow( was_dataset )
+        hno += 1
+        addtodf( 
+            wasset, 
+            "age",
+            CHECKING_VARS_LENS["age"], 
+            hno, 
+            was_frs_age_map(was.age_head, 9997 ))
+        addtodf( 
+            wasset, 
+            "region",
+            CHECKING_VARS_LENS["region"], 
+            hno,  
+            frs_regionmap( was.region, 9997 ))
+        addtodf( 
+            wasset, 
+            "accom",
+            CHECKING_VARS_LENS["accom"], 
+            hno,  
+            lcf_accmap( was.accom, 9997 ))
+        addtodf( 
+            wasset, 
+            "tenure",
+            CHECKING_VARS_LENS["tenure"], 
+            hno,  
+            frs_tenuremap( was.tenure, 9997 ))
+        addtodf( 
+            wasset, 
+            "socio",
+            CHECKING_VARS_LENS["socio"], 
+            hno, 
+            map_socio( was.socio_economic_head, 9997 ))
+        addtodf( 
+            wasset, 
+            "empstat",
+            CHECKING_VARS_LENS["empstat"], 
+            hno, 
+            map_empstat( was.empstat_head, 9997 ))
+        addtodf( 
+            wasset, 
+            "sex",
+            CHECKING_VARS_LENS["sex"], 
+            hno, 
+            [was.sex_head] )
+        addtodf( 
+            wasset, 
+            "marital",
+            CHECKING_VARS_LENS["marital"], 
+            hno, 
+            map_marital( was.marital_status_head, 9997 ) )
+        addtodf( 
+            wasset, 
+            "year",
+            CHECKING_VARS_LENS["year"], 
+            hno, 
+            [was.year] )
+        addtodf( 
+            wasset, 
+            "wages",
+            CHECKING_VARS_LENS["wages"], 
+            hno, 
+            [was.any_wages] )
+        addtodf( 
+            wasset, 
+            "selfemp",
+            CHECKING_VARS_LENS["selfemp"], 
+            hno, 
+            [was.any_selfemp] )
+        addtodf( 
+            wasset, 
+            "pensions",
+            CHECKING_VARS_LENS["pensions"], 
+            hno, 
+            [was.any_pension_income] )
+        addtodf( 
+            wasset, 
+            "degree",
+            CHECKING_VARS_LENS["degree"], 
+            hno, 
+            [was.has_degree] )
+        addtodf( 
+            wasset, 
+            "children",
+            CHECKING_VARS_LENS["degree"], 
+            hno, 
+            [was.num_children] )
+        addtodf( 
+            wasset, 
+            "children",
+            CHECKING_VARS_LENS["children"], 
+            hno, 
+            person_map(was.num_children, 9997))
+        addtodf( 
+            wasset, 
+            "adults",
+            CHECKING_VARS_LENS["adults"], 
+            hno, 
+            person_map(was.num_adults, 9997))
+    end
+    for hno in 1:settings.num_households
+        hh = FRSHouseholdGetter.get_household(hno)
+        any_wages, any_selfemp, any_pension_income, has_female_adult, income = do_hh_sums( hh )
+        hrp = get_head( hh )
+        addtodf( 
+            frsset, 
+            "age",
+            CHECKING_VARS_LENS["age"], 
+            hno, 
+            was_model_age_grp( hrp.age ))
+        addtodf( 
+            frsset,
+            "region", 
+            CHECKING_VARS_LENS["region"], 
+            hno, 
+            model_regionmap( hh.region ))
+        addtodf( 
+            frsset,
+            "accom", 
+            CHECKING_VARS_LENS["accom"], 
+            hno, 
+            model_accommap( hh.dwelling ))
+        addtodf( 
+            frsset, 
+            "tenure",
+            CHECKING_VARS_LENS["tenure"], 
+            hno,  
+            model_tenuremap( hh.tenure ))
+        addtodf( 
+            frsset, 
+            "socio",
+            CHECKING_VARS_LENS["socio"], 
+            hno, 
+            model_map_socio( hrp.socio_economic_grouping ))
+        addtodf( 
+            frsset, 
+            "empstat",
+            CHECKING_VARS_LENS["empstat"], 
+            hno, 
+            model_map_empstat( hrp.employment_status ))
+        addtodf( 
+            frsset, 
+            "sex",
+            CHECKING_VARS_LENS["sex"], 
+            hno, 
+            [Int(hrp.sex)] )
+        addtodf( 
+            frsset, 
+            "marital",
+            CHECKING_VARS_LENS["marital"], 
+            hno, 
+            model_map_marital(hrp.marital_status ) )
+        addtodf( 
+            frsset, 
+            "year",
+            CHECKING_VARS_LENS["year"], 
+            hno, 
+            [hh.interview_year] )
+        addtodf( 
+            frsset, 
+            "wages",
+            CHECKING_VARS_LENS["wages"], 
+            hno, 
+            [any_wages] )
+        addtodf( 
+            frsset, 
+            "selfemp",
+            CHECKING_VARS_LENS["selfemp"], 
+            hno, 
+            [any_selfemp] )
+        addtodf( 
+            frsset, 
+            "pensions",
+            CHECKING_VARS_LENS["pensions"], 
+            hno, 
+            [any_pension_income] )
+        addtodf( 
+            frsset, 
+            "degree",
+            CHECKING_VARS_LENS["degree"], 
+            hno, 
+            [highqual_degree_equiv(hrp.highest_qualification)] )
+        addtodf( 
+            frsset, 
+            "children",
+            CHECKING_VARS_LENS["children"], 
+            hno, 
+            person_map( num_children(hh), 9999))
+        addtodf( 
+            frsset, 
+            "adults",
+            CHECKING_VARS_LENS["adults"], 
+            hno, 
+            person_map( num_adults( hh ), 9999))
+                                
+        end
+    return frsset,wasset
+end # create_was_frs_matching_dataset
+
+"""
+Driver for testing 
+"""
+function checkall( filename = "was_matchchecks.md" )
+    settings = Settings()
+    frsset, wasset = create_was_frs_matching_dataset( settings )
+    outf = open( joinpath( "tmp", filename), "w")
+    for (k,i) in CHECKING_VARS_LENS
+        tabs = compareone( frsset, wasset, k, i )
+        println( outf, "## $k")
+        for t in tabs
+            println( outf, t )
+            println( outf )
+        end
+    end
+    close( outf )
+end
 end
