@@ -3,25 +3,6 @@ module WAS
 using ..Common 
 import ..Model
 
-const TARGET_VARS = Dict(
-    ["age"=>3,
-    "region"=>3,
-    "accom"=>3,
-    "tenure"=>3,
-    "socio"=>3,
-    "empstat"=>3,
-    "marital"=>3,
-    "year"=>1,
-    "wages"=>1,
-    "selfemp"=>1,
-    "pensions"=>1,
-    "degree"=>1,
-    "children"=>3,
-    "adults"=>3,
-    "sex"=>1,
-    "year"=>1])
-
-
 """
     Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/ Refusal
