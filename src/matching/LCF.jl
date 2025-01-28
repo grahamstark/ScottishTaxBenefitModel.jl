@@ -13,6 +13,102 @@ using ..Common
 import ..Model
 
 """
+
+a094	Not recorded	0
+	Large employers and higher managerial occupations      	1
+	Higher Professional occupations 	2
+	Lower managerial and professional occupations     	3
+	Intermediate occupations       	4
+	Small employers and own account workers       	5
+	Lower supervisory and technical occupations      	6
+	Semi-routine occupations      	7
+	Routine occupations       	8
+	Never worked and long term unemployed 	9
+	Students	10
+	Occupation not stated	11
+	Not classified for other reasons                                      	12
+
+
+a091	Not recorded	0
+	Employers in large organisations 	1
+	Higher managerial 	2
+	Higher professional (traditional ) - employees	3
+	Higher professional (new ) - employees	4
+	Higher professional (traditional ) – self-employed	5
+	Higher professional (new ) – self-employed	6
+	Lower professional & higher technical (traditional) - employees 	7
+	Lower professional & higher technical (new) - employees	8
+	Lower professional & higher technical (traditional) – self-employed 	9
+	Lower professional & higher technical (new) – self-employed	10
+	Lower managerial	11
+	Higher supervisory	12
+	Intermediate clerical and administrative 	13
+	Intermediate sales and service	14
+	Intermediate technical and auxilary	15
+	Intermediate engineering	16
+	Employers (small organisations, non-professional)	17
+	Employers (small - agricultural)	18
+	Own account workers (non-professional)	19
+	Own account workers (agriculture)	20
+	Lower supervisory	21
+	Lower technical craft	22
+	Lower technical process operative	23
+	Semi-routine sales 	24
+	Semi-routine service	25
+	Semi-routine technical	26
+	Semi-routine operative	27
+	Semi-routine agricultural 	28
+	Semi-routine clerical	29
+	Semi-routine childcare	30
+	Routine sales and service	31
+	Routine production	32
+	Routine technical	33
+	Routine operative	34
+	Routine agricultural 	35
+	Never worked	36
+	Long-term unemployed	37
+	Full-time students	38
+	Occupations not stated	39
+	Not classifiable for other reasons 	40
+
+"""
+function map_socio( a091 :: Int )::Vector{Int}
+
+end
+
+"""
+a093	Not recorded             	0
+NOTE 7		
+	ECONOMICALLY ACTIVE	
+	Self-employed	1
+	Full-time employee at work	2
+	Part-time employee at work	3
+	Unemployed	4
+	Work related Government Training Programmes	5
+		
+	ECONOMICALLY INACTIVE	
+	Retired/unoccupied and of minimum NI Pension age	6
+            	Retired/unoccupied but under minimum NI Pension age	7
+
+"""
+function map_empstat( a093 :: Int )::Vector{Int}
+
+end
+"""
+a006p	Marital status; spouse in household	1
+	Marital status; spouse not household	2
+	Single	3
+	Widowed	4
+	Divorced	5
+	Separated	6
+	Civil Partner or Former Civil Partner	7
+"""
+function map_marital( a006p )::Vector{Int}
+
+end
+
+
+"""
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
 function make_subset( lcf :: DataFrame ) :: DataFrame
@@ -22,7 +118,12 @@ function make_subset( lcf :: DataFrame ) :: DataFrame
         month = lcf.a055, 
         year= lcf.year,
         a121 = lcf.a121,
-        gorx = lcf.gorx,
+        a003 = lcf.a003, # is_hrp
+        a006 = lcf.a006p, # marital status!!! anonymised version 
+        a091 = lcf.a091, # socio-economic
+        a093 = lcf.a093, # empstat
+        a094 = lcf.a094, # NS-SEC 12 Class of HRP
+        gorx = lcf.gorx, # govt region
         a065p  = lcf.a065p,
         a062 = lcf.a062,
 
@@ -31,7 +132,7 @@ function make_subset( lcf :: DataFrame ) :: DataFrame
         any_selfemp = lcf.any_selfemp,
         hrp_unemployed = lcf.hrp_unemployed,
         num_children = lcf.num_children,
-        hrp_non_white = lcf.hrp_non_white,
+        # hrp_non_white = lcf.hrp_non_white,
         num_people = lcf.num_people,
         income = lcf.income,
         any_disabled = lcf.any_disabled,
@@ -241,16 +342,13 @@ function make_subset( lcf :: DataFrame ) :: DataFrame
         out.gambling + 
         out.non_consumption, 
         lcf.p630tp )
-
+    # !! 5 mismatched hhlds, can't track down why
     out.repayments = 
         lcf.b237 + lcf.b238 + lcf.ck5316t + lcf.cc6211c 
-
-    return out
-
-    
+    return out    
 end
 
-
+#=
 function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
     for r in eachrow( frshh )
         dd = split(r.intdate, "/")
@@ -264,31 +362,48 @@ function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
         #
         # This is e.g January REIS and I don't know what REIS means 
         #
-        if r.a055 > 20
-            r.a055 -= 20
+        if r.month > 20
+            r.month -= 20
         end
-        q = ((r.a055-1) ÷ 3) + 1 # 1,2,3=q1 and so on
+        q = ((r.month-1) ÷ 3) + 1 # 1,2,3=q1 and so on
+        # lcf year seems to be actual interview year 
+        y = r.year
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+    end
+end
+=#
+
+function uprate_incomes!( lcfsubset :: DataFrame )
+    for r in eachrow( lcfsubset )
+        #
+        # This is e.g January REIS and I don't know what REIS means 
+        #
+        if r.month > 20
+            r.month -= 20
+        end
+        q = ((r.month-1) ÷ 3) + 1 # 1,2,3=q1 and so on
         # lcf year seems to be actual interview year 
         y = r.year
         r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
     end
 end
 
-
 """
 Load 2018/9 - 2020/1 LCFs and add some matching fields.
 """
-function load3lcfs()::Tuple
-    lcfhrows,lcfhcols,lcfhh18 = load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
-    lcfhrows,lcfhcols,lcfhh19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
-    lcfhrows,lcfhcols,lcfhh20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
-    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, cols=:union )
+function load4lcfs()::Tuple
+    lcfhrows,lcfhcols,lcfhh18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
+    lcfhrows,lcfhcols,lcfhh19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
+    lcfhrows,lcfhcols,lcfhh20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
+    lcfhrows,lcfhcols,lcfhh21 = Common.load( "/mnt/data/lcf/2022/tab/dvhh_ukanon_2022.tab", 2021 )
+    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
     lcfhrows = size(lcfhh)[1]
 
-    lcfprows,lcpfcols,lcfpers18 = load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
-    lcfprows,lcpfcols,lcfpers19 = load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
-    lcfprows,lcpfcols,lcfpers20 = load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, cols=:union )
+    lcfprows,lcpfcols,lcfpers18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+    lcfprows,lcpfcols,lcfpers19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+    lcfprows,lcpfcols,lcfpers20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+    lcfprows,lcpfcols,lcfpers21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
+    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, lcfpers21,cols=:union )
     hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
     lcfhh.any_wages .= lcfhh.p356p .> 0
     lcfhh.any_pension_income .= lcfhh.p364p .> 0
@@ -297,18 +412,29 @@ function load3lcfs()::Tuple
     lcfhh.num_children = lcfhh.a040 + lcfhh.a041 + lcfhh.a042
     # LCF case ids of non white HRPs - convoluted; see: 
     # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
-    nonwhitepids = hh_pp[(hh_pp.a012p .∈ (["10","2","3","4"],)).&(hh_pp.a003 .== 1),:case]
-    lcfhh.hrp_non_white .= 0
-    lcfhh[lcfhh.case .∈ (nonwhitepids,),:hrp_non_white] .= 1    
+    # 2025- the STUPID FUCKS have deleted a012 from the 2022 public release.
+    # nonwhitepids = hh_pp[(hh_pp.a012p .∈ (["10","2","3","4"],)).&(hh_pp.a003 .== 1),:case]
+    # lcfhh.hrp_non_white .= 0
+    # lcfhh[lcfhh.case .∈ (nonwhitepids,),:hrp_non_white] .= 1    
     lcfhh.num_people = lcfhh.a049
-    lcfhh.income = lcfhh.p344p    
+    lcfhh.income = lcfhh.p344p  
+    lcfhh.a003 .= 1 # person MUST be hRP
     # not possible in lcf???
     lcfhh.any_disabled .= 0
-    femalepids = hh_pp[(hh_pp.a004 .== 2),:case]
+    # femalepids = hh_pp[(hh_pp.a004 .== 2),:case]
+    pers_hrps = hh_pp[hh_pp.a003.==1,:]
+    lcfhh.a006p = pers_hrps.a006p
     lcfhh.has_female_adult .= 0
-    lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
+    for r in eachrow( hh_pp )
+        pc = (lcfhh.case.== r.case) .& (lcfhh.datayear .== r.datayear)
+        if (r.a004 == 2) && (r.a005p >= 16) # female
+            lcfhh[pc,:has_female_adult] .= 1
+        end
+
+    end
+    # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
     lcfhh.is_selected = fill( false, lcfhrows )
-    lcfhh,lcfpers,hh_pp
+    lcfhh,lcfpers,hh_pp,pers_hrps
 end
 
 #=

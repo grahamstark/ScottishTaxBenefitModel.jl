@@ -11,7 +11,7 @@ using CSV,
 
 export MatchingLocation, score, load, composition_map, composition_map, searchbaddies, person_map 
 export TOPCODE, within, composition_map, makeoutdf, age_hrp, pct, compareone
-export checkall 
+export checkall , checkdiffs
 
 struct MatchingLocation
     case :: Int

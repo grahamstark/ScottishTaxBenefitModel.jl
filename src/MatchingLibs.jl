@@ -9,6 +9,19 @@ module MatchingLibs
 # - write up, so why not just Engel curves?
 #
 
+#=
+example import
+julia> import ScottishTaxBenefitModel.MatchingLibs.LCF as lcf
+
+julia> import ScottishTaxBenefitModel.MatchingLibs.Common as com
+
+julia> import ScottishTaxBenefitModel.MatchingLibs.Model as mm
+
+julia> import ScottishTaxBenefitModel.MatchingLibs.WAS as was
+=#
+
+
+
 using CSV,
     DataFrames,
     Measures,
@@ -24,8 +37,7 @@ using .Definitions,
     .Uprating,
     .RunSettings
 
-export make_lcf_subset, 
-    map_example, 
+export map_example, 
     load, 
     map_all_lcf_frs, 
     frs_lcf_match_row
@@ -230,7 +242,8 @@ function match_row_lcf_model( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     t += lcf.any_pension_income == any_pension_income ? 1 : 0
     t += lcf.any_selfemp == any_selfemp ? 1 : 0
     t += lcf.hrp_unemployed == hrp.employment_status == Unemployed ? 1 : 0
-    t += lcf.hrp_non_white == hrp.ethnic_group !== White ? 1 : 0
+    # !!!!! FUCK ethnic deleted from 2022 lcf public release.
+    # t += lcf.hrp_non_white == hrp.ethnic_group !== White ? 1 : 0
     # t += lcf.datayear == frs.datayear ? 0.5 : 0 # - a little on same year FIXME use date range
     # t += lcf.any_disabled == frs.any_disabled ? 1 : 0 -- not possible in LCF??
     t += Int(lcf.has_female_adult) == Int(has_female_adult) ? 1 : 0
