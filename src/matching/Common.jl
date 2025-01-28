@@ -36,15 +36,12 @@ function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
     out
 end
 
-
 function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
     out = fill( default, 3 )
     out[1] = ms
     out[2] = ms in [1,2] ? 1 : 2
     return out
 end
-
-
 
 function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
     @argcheck ie in 1:12X
@@ -53,8 +50,6 @@ function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
     out[2] = ie in 1:2 ? 1 : 2
     return out
 end
-
-
 
 """
 Score for one of our 3-level matches 1 for exact 0.5 for partial 1, 0.1 for partial 2

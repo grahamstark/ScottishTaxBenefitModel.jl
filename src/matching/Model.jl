@@ -14,6 +14,7 @@ end
 
 function map_socio( socio :: Socio_Economic_Group )::Vector{Int}
     return Common.map_socio( Int( socio ))
+end
 
 function map_tenure(  t :: Tenure_Type, default=9998 ) :: Vector{Int}
     return Common.map_tenure( Int( t ), default )

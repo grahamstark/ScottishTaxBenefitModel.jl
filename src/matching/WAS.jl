@@ -3,6 +3,12 @@ module WAS
 using ..Common 
 import ..Model
 
+using CSV,
+    DataFrames,
+    Measures,
+    StatsBase,
+    ArgCheck
+
 """
     Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/ Refusal

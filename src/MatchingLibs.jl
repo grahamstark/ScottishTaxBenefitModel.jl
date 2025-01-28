@@ -34,10 +34,16 @@ export make_lcf_subset,
 s = instances( Socio_Economic_Group )
 
 include( "matching/Common.jl")
+import .Common 
+import .Common: MatchingLocation
 include( "matching/Model.jl")
+import .Model 
 include( "matching/LCF.jl")
+import .LCF
 include( "matching/WAS.jl")
+import .WAS
 include( "matching/SHS.jl")
+import .SHS
 
 export TOPCODE, within, load, uprate_incomes!, checkdiffs
 
