@@ -29,50 +29,8 @@ a094	Not recorded	0
 	Not classified for other reasons                                      	12
 
 
-a091	Not recorded	0
-	Employers in large organisations 	1
-	Higher managerial 	2
-	Higher professional (traditional ) - employees	3
-	Higher professional (new ) - employees	4
-	Higher professional (traditional ) – self-employed	5
-	Higher professional (new ) – self-employed	6
-	Lower professional & higher technical (traditional) - employees 	7
-	Lower professional & higher technical (new) - employees	8
-	Lower professional & higher technical (traditional) – self-employed 	9
-	Lower professional & higher technical (new) – self-employed	10
-	Lower managerial	11
-	Higher supervisory	12
-	Intermediate clerical and administrative 	13
-	Intermediate sales and service	14
-	Intermediate technical and auxilary	15
-	Intermediate engineering	16
-	Employers (small organisations, non-professional)	17
-	Employers (small - agricultural)	18
-	Own account workers (non-professional)	19
-	Own account workers (agriculture)	20
-	Lower supervisory	21
-	Lower technical craft	22
-	Lower technical process operative	23
-	Semi-routine sales 	24
-	Semi-routine service	25
-	Semi-routine technical	26
-	Semi-routine operative	27
-	Semi-routine agricultural 	28
-	Semi-routine clerical	29
-	Semi-routine childcare	30
-	Routine sales and service	31
-	Routine production	32
-	Routine technical	33
-	Routine operative	34
-	Routine agricultural 	35
-	Never worked	36
-	Long-term unemployed	37
-	Full-time students	38
-	Occupations not stated	39
-	Not classifiable for other reasons 	40
-
 """
-function map_socio( a091 :: Int )::Vector{Int}
+function map_socio( a094 :: Int )::Vector{Int}
 
 end
 
@@ -88,7 +46,24 @@ NOTE 7
 		
 	ECONOMICALLY INACTIVE	
 	Retired/unoccupied and of minimum NI Pension age	6
-            	Retired/unoccupied but under minimum NI Pension age	7
+    Retired/unoccupied but under minimum NI Pension age	7
+
+or .. 
+a206	Not recorded              	0
+NOTE 7		
+	ECONOMICALLY ACTIVE	
+		
+	Self-employed	1
+	Full-time employee at work	2
+	Part-time employee at work	3
+	Unemployed	4
+	Work related Government Training Programmes	5
+		
+	ECONOMICALLY INACTIVE	
+		
+	Retired/unoccupied and of minimum NI Pension age	6
+	Retired/unoccupied but under minimum NI Pension age	7
+
 
 """
 function map_empstat( a093 :: Int )::Vector{Int}
@@ -123,6 +98,7 @@ function make_subset( lcf :: DataFrame ) :: DataFrame
         a091 = lcf.a091, # socio-economic
         a093 = lcf.a093, # empstat
         a094 = lcf.a094, # NS-SEC 12 Class of HRP
+        a206 = lcf.a206, # Economic position
         gorx = lcf.gorx, # govt region
         a065p  = lcf.a065p,
         a062 = lcf.a062,
@@ -430,8 +406,9 @@ function load4lcfs()::Tuple
         if (r.a004 == 2) && (r.a005p >= 16) # female
             lcfhh[pc,:has_female_adult] .= 1
         end
-
     end
+    lcfhh.a093 = pers_hrps.a093
+    lcfhh.a206 = pers_hrps.a206
     # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
     lcfhh.is_selected = fill( false, lcfhrows )
     lcfhh,lcfpers,hh_pp,pers_hrps

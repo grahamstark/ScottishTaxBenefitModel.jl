@@ -12,6 +12,28 @@ function age_hrp( age :: Int )::Int
     Common.age_hrp( age_grp(age))
 end
 
+"""
+@enum Socio_Economic_Group begin  # mapped from nssec
+   Missing_Socio_Economic_Group = -1
+   Employers_in_large_organisations = 1
+   Higher_managerial_occupations = 2
+   Higher_professional_occupations_New_self_employed = 3
+   Lower_prof_and_higher_technical_Traditional_employee = 4
+   Lower_managerial_occupations = 5
+   Higher_supervisory_occupations = 6
+   Intermediate_clerical_and_administrative = 7
+   Employers_in_small_organisations_non_professional = 8
+   Own_account_workers_non_professional = 9
+   Lower_supervisory_occupations = 10
+   Lower_technical_craft = 11
+   Semi_routine_sales = 12
+   Routine_sales_and_service = 13
+   Never_worked = 14
+   Full_time_student = 15
+   Not_classified_or_inadequately_stated = 16
+   Not_classifiable_for_other_reasons = 17
+end
+"""
 function map_socio( socio :: Socio_Economic_Group )::Vector{Int}
     return Common.map_socio( Int( socio ))
 end
