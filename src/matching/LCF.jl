@@ -48,22 +48,24 @@ NOTE 7
 	Retired/unoccupied and of minimum NI Pension age	6
     Retired/unoccupied but under minimum NI Pension age	7
 
-or .. 
-a206	Not recorded              	0
-NOTE 7		
-	ECONOMICALLY ACTIVE	
-		
-	Self-employed	1
-	Full-time employee at work	2
-	Part-time employee at work	3
-	Unemployed	4
-	Work related Government Training Programmes	5
-		
-	ECONOMICALLY INACTIVE	
-		
-	Retired/unoccupied and of minimum NI Pension age	6
-	Retired/unoccupied but under minimum NI Pension age	7
+if a093 == 1 # self-employed	1
 
+elseif a093 == 2 # Full-time employee at work	2
+
+elseif a093 == 3 # Part-time employee at work	3
+
+elseif a093 == 4 # Unemployed	4 
+
+elseif a093 == 5 # Work related Government Training Programmes	5
+
+elseif a093 == 6 # Retired/unoccupied and of minimum NI Pension age	6
+
+elseif a093 == 7 #     Retired/unoccupied but under minimum NI Pension age	6
+
+
+else 
+
+end
 
 """
 function map_empstat( a093 :: Int )::Vector{Int}
@@ -98,7 +100,6 @@ function make_subset( lcf :: DataFrame ) :: DataFrame
         a091 = lcf.a091, # socio-economic
         a093 = lcf.a093, # empstat
         a094 = lcf.a094, # NS-SEC 12 Class of HRP
-        a206 = lcf.a206, # Economic position
         gorx = lcf.gorx, # govt region
         a065p  = lcf.a065p,
         a062 = lcf.a062,
@@ -112,8 +113,17 @@ function make_subset( lcf :: DataFrame ) :: DataFrame
         num_people = lcf.num_people,
         income = lcf.income,
         any_disabled = lcf.any_disabled,
-        has_female_adult = lcf.has_female_adult )
+        has_female_adult = lcf.has_female_adult,
+        num_employees = lcf.num_employees,
+        num_pensioners = lcf.num_pensioners,
+        num_fulltime = lcf.num_fulltime,
+        num_parttime = lcf.num_parttime,
+        num_selfemp = lcf.num_selfemp,
+        num_unemployed = lcf.num_unemployed,
+        num_retired = lcf.num_retired,
+        num_unoccupied = lcf.num_unoccupied )
 
+    
     out.sweets_and_icecream = lcf.c11831t + lcf.c11841t + lcf.c11851t
     out.other_food_and_beverages = lcf.p601t - out.sweets_and_icecream
     out.hot_and_eat_out_food =  ## CHECK is this counting children's sweets twice?
@@ -401,14 +411,42 @@ function load4lcfs()::Tuple
     pers_hrps = hh_pp[hh_pp.a003.==1,:]
     lcfhh.a006p = pers_hrps.a006p
     lcfhh.has_female_adult .= 0
+    lcfhh.num_employees .= 0
+    lcfhh.num_pensioners .= 0
+    lcfhh.num_fulltime .= 0
+    lcfhh.num_parttime .= 0
+    lcfhh.num_selfemp .= 0
+    lcfhh.num_unemployed .= 0
+    lcfhh.num_retired .= 0
+    lcfhh.num_unoccupied .= 0
     for r in eachrow( hh_pp )
         pc = (lcfhh.case.== r.case) .& (lcfhh.datayear .== r.datayear)
         if (r.a004 == 2) && (r.a005p >= 16) # female
             lcfhh[pc,:has_female_adult] .= 1
         end
+        if r.a093 == 1 # self-employed	1
+            lcfhh[pc,:num_selfemp] .+= 1
+        elseif r.a093 == 2 # Full-time employee at work	2
+            lcfhh[pc,:num_employees] .+= 1
+            lcfhh[pc,:num_fulltime] .+= 1
+        elseif r.a093 == 3 # Part-time employee at work	3
+            lcfhh[pc,:num_employees] .+= 1
+            lcfhh[pc,:num_parttime] .+= 1                
+        elseif r.a093 == 4 # Unemployed	4 
+            lcfhh[pc,:num_unemployed] .+= 1
+        elseif r.a093 == 5 # Work related Government Training Programmes	5
+            # lcfhh.num_unemployed .+= 1 # kinda sorta
+        elseif r.a093 == 6 # Retired/unoccupied and of minimum NI Pension age	6
+            lcfhh[pc,:num_retired] .+= 1
+        elseif r.a093 == 7 # Retired/unoccupied and of minimum NI Pension age	6
+            lcfhh[pc,:num_unoccupied] .+= 1        
+        else 
+            @assert "unmatched $(r.a093)"        
+        end
+        
     end
     lcfhh.a093 = pers_hrps.a093
-    lcfhh.a206 = pers_hrps.a206
+    # lcfhh.a206 = pers_hrps.a206
     # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
     lcfhh.is_selected = fill( false, lcfhrows )
     lcfhh,lcfpers,hh_pp,pers_hrps
