@@ -85,10 +85,216 @@ function map_marital( a006p )::Vector{Int}
 end
 
 
+
+#=
+function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
+    for r in eachrow( frshh )
+        dd = split(r.intdate, "/")
+        y = parse(Int, dd[3])
+        m = parse(Int, dd[1])
+        q = div( m - 1, 3) + 1
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+        println( "r.yearcode $(r.yearcode); r.mnthcode $(r.mnthcode); y=$y q=$q income=$(r.income) orig = $(r.income)")
+    end
+    for r in eachrow( lcfhh )
+        #
+        # This is e.g January REIS and I don't know what REIS means 
+        #
+        if r.month > 20
+            r.month -= 20
+        end
+        q = ((r.month-1) ÷ 3) + 1 # 1,2,3=q1 and so on
+        # lcf year seems to be actual interview year 
+        y = r.year
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+    end
+end
+=#
+
+#=
+lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
+lcf     | 2020 | dvhh   | A121          | 1     | Local authority rented unfurn | Local_authority_rented_unfurn
+lcf     | 2020 | dvhh   | A121          | 2     | Housing association           | Housing_association
+lcf     | 2020 | dvhh   | A121          | 3     | Other rented unfurnished      | Other_rented_unfurnished
+lcf     | 2020 | dvhh   | A121          | 4     | Rented furnished              | Rented_furnished
+lcf     | 2020 | dvhh   | A121          | 5     | Owned with mortgage           | Owned_with_mortgage
+lcf     | 2020 | dvhh   | A121          | 6     | Owned by rental purchase      | Owned_by_rental_purchase
+lcf     | 2020 | dvhh   | A121          | 7     | Owned outright                | Owned_outright
+lcf     | 2020 | dvhh   | A121          | 8     | Rent free                     | Rent_free
+=#
+function map_tenure( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
+    out = fill( default, 3 )
+    if ismissing( a121 )
+        ;
+    elseif a121 == 1
+        out[1] = 1
+        out[2] = 1
+    elseif a121 == 2
+        out[1] = 2
+        out[2] = 1
+    elseif a121  == 3
+        out[1] = 3
+        out[2] = 1
+    elseif a121 == 4
+        out[1] = 3
+        out[2] = 1
+    elseif a121 in [5,6] 
+        out[1] = 5
+        out[2] = 2
+    elseif a121 == 7
+        out[1] = 6
+        out[2] = 2  
+    elseif a121 == 8
+        out[1] = 7
+        out[2] = 3  
+    else
+        @assert false "unmatched tentyp2 $tentyp2";
+    end 
+    return out
+end
+
+
+"""
+lcf     | 2020 | dvhh            | Gorx          | 1     | North East                | North_East
+lcf     | 2020 | dvhh            | Gorx          | 2     | North West and Merseyside | North_West_and_Merseyside
+lcf     | 2020 | dvhh            | Gorx          | 3     | Yorkshire and the Humber  | Yorkshire_and_the_Humber
+lcf     | 2020 | dvhh            | Gorx          | 4     | East Midlands             | East_Midlands
+lcf     | 2020 | dvhh            | Gorx          | 5     | West Midlands             | West_Midlands
+lcf     | 2020 | dvhh            | Gorx          | 6     | Eastern                   | Eastern
+lcf     | 2020 | dvhh            | Gorx          | 7     | London                    | London
+lcf     | 2020 | dvhh            | Gorx          | 8     | South East                | South_East
+lcf     | 2020 | dvhh            | Gorx          | 9     | South West                | South_West
+lcf     | 2020 | dvhh            | Gorx          | 10    | Wales                     | Wales
+lcf     | 2020 | dvhh            | Gorx          | 11    | Scotland                  | Scotland
+lcf     | 2020 | dvhh            | Gorx          | 12    | Northern Ireland          | Northern_Ireland
+
+load 2 levels of region from LCF into a 3 vector - 1= actual/ 2=London/rEngland/Scot/Wales/Ni
+
+"""
+function map_region( gorx :: Union{Int,Missing} ) :: Vector{Int}
+    out = fill( 9998, 3 )
+    if ismissing( gorx )
+        ;
+    elseif gorx == 7 # london
+        out[1] = gorx
+        out[2] = 1
+    elseif gorx in 1:9
+        out[1] = gorx
+        out[2] = 2
+    elseif gorx == 10 # wales
+        out[1] = 10 
+        out[2] = 4
+    elseif gorx == 11 # scotland
+        out[1] = 11
+        out[2] = 3
+    elseif gorx == 12
+        out[1] = 12
+        out[2] = 5
+    else
+        @assert false "unmatched gorx $gorx";
+    end 
+    return out
+end
+
+"""
+Load 2018/9 - 2020/1 LCFs and add some matching fields.
+"""
+function load4lcfs()::DataFrame
+    lcfhrows,lcfhcols,lcfhh18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
+    lcfhrows,lcfhcols,lcfhh19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
+    lcfhrows,lcfhcols,lcfhh20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
+    lcfhrows,lcfhcols,lcfhh21 = Common.load( "/mnt/data/lcf/2022/tab/dvhh_ukanon_2022.tab", 2021 )
+    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
+    lcfhrows = size(lcfhh)[1]
+
+    lcfprows,lcpfcols,lcfpers18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+    lcfprows,lcpfcols,lcfpers19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+    lcfprows,lcpfcols,lcfpers20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+    lcfprows,lcpfcols,lcfpers21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
+    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, lcfpers21,cols=:union )
+    hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
+    lcfhh.any_wages .= lcfhh.p356p .> 0
+    lcfhh.any_pension_income .= lcfhh.p364p .> 0
+    lcfhh.any_selfemp .= lcfhh.p320p .!= 0
+    lcfhh.hrp_unemployed .= lcfhh.p304 .== 1
+    lcfhh.num_children = lcfhh.a040 + lcfhh.a041 + lcfhh.a042
+    # LCF case ids of non white HRPs - convoluted; see: 
+    # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
+    # 2025- the STUPID FUCKS have deleted a012 from the 2022 public release.
+    # nonwhitepids = hh_pp[(hh_pp.a012p .∈ (["10","2","3","4"],)).&(hh_pp.a003 .== 1),:case]
+    # lcfhh.hrp_non_white .= 0
+    # lcfhh[lcfhh.case .∈ (nonwhitepids,),:hrp_non_white] .= 1    
+    lcfhh.num_people = lcfhh.a049
+    lcfhh.income = lcfhh.p344p  
+    lcfhh.a003 .= 1 # person MUST be hRP
+    # not possible in lcf???
+    lcfhh.any_disabled .= 0
+    # femalepids = hh_pp[(hh_pp.a004 .== 2),:case]
+    pers_hrps = hh_pp[hh_pp.a003.==1,:]
+    lcfhh.a006p = pers_hrps.a006p
+    lcfhh.has_female_adult .= 0
+    lcfhh.num_employees .= 0
+    lcfhh.num_pensioners .= 0
+    lcfhh.num_fulltime .= 0
+    lcfhh.num_parttime .= 0
+    lcfhh.num_selfemp .= 0
+    lcfhh.num_unemployed .= 0
+    lcfhh.num_retired .= 0
+    lcfhh.num_unoccupied .= 0
+    for r in eachrow( hh_pp )
+        pc = (lcfhh.case.== r.case) .& (lcfhh.datayear .== r.datayear)
+        if (r.a004 == 2) && (r.a005p >= 16) # female
+            lcfhh[pc,:has_female_adult] .= 1
+        end
+        if r.a093 == 1 # self-employed	1
+            lcfhh[pc,:num_selfemp] .+= 1
+        elseif r.a093 == 2 # Full-time employee at work	2
+            lcfhh[pc,:num_employees] .+= 1
+            lcfhh[pc,:num_fulltime] .+= 1
+        elseif r.a093 == 3 # Part-time employee at work	3
+            lcfhh[pc,:num_employees] .+= 1
+            lcfhh[pc,:num_parttime] .+= 1                
+        elseif r.a093 == 4 # Unemployed	4 
+            lcfhh[pc,:num_unemployed] .+= 1
+        elseif r.a093 == 5 # Work related Government Training Programmes	5
+            # lcfhh.num_unemployed .+= 1 # kinda sorta
+        elseif r.a093 == 6 # Retired/unoccupied and of minimum NI Pension age	6
+            lcfhh[pc,:num_retired] .+= 1
+        elseif r.a093 == 7 # Retired/unoccupied and of minimum NI Pension age	6
+            lcfhh[pc,:num_unoccupied] .+= 1       
+        else 
+            @assert "unmatched $(r.a093)"        
+        end
+        
+    end
+    lcfhh.a093 = pers_hrps.a093
+    # lcfhh.a206 = pers_hrps.a206
+    # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
+    lcfhh.is_selected = fill( false, lcfhrows )
+    lcfhh # ,lcfpers,hh_pp,pers_hrps
+end
+
+function uprate_incomes!( lcfsubset :: DataFrame )
+    for r in eachrow( lcfsubset )
+        #
+        # This is e.g January REIS and I don't know what REIS means 
+        #
+        if r.month > 20
+            r.month -= 20
+        end
+        q = ((r.month-1) ÷ 3) + 1 # 1,2,3=q1 and so on
+        # lcf year seems to be actual interview year 
+        y = r.year
+        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
+    end
+end
+
+
 """
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
-function make_subset( lcf :: DataFrame ) :: DataFrame
+function create_subset( ) :: DataFrame
+    lcf =  load4lcfs()    
     out = DataFrame( 
         case = lcf.case, 
         datayear = lcf.datayear, 
@@ -331,210 +537,8 @@ function make_subset( lcf :: DataFrame ) :: DataFrame
     # !! 5 mismatched hhlds, can't track down why
     out.repayments = 
         lcf.b237 + lcf.b238 + lcf.ck5316t + lcf.cc6211c 
+    uprate_incomes!( out )
     return out    
-end
-
-#=
-function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
-    for r in eachrow( frshh )
-        dd = split(r.intdate, "/")
-        y = parse(Int, dd[3])
-        m = parse(Int, dd[1])
-        q = div( m - 1, 3) + 1
-        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
-        println( "r.yearcode $(r.yearcode); r.mnthcode $(r.mnthcode); y=$y q=$q income=$(r.income) orig = $(r.income)")
-    end
-    for r in eachrow( lcfhh )
-        #
-        # This is e.g January REIS and I don't know what REIS means 
-        #
-        if r.month > 20
-            r.month -= 20
-        end
-        q = ((r.month-1) ÷ 3) + 1 # 1,2,3=q1 and so on
-        # lcf year seems to be actual interview year 
-        y = r.year
-        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
-    end
-end
-=#
-
-function uprate_incomes!( lcfsubset :: DataFrame )
-    for r in eachrow( lcfsubset )
-        #
-        # This is e.g January REIS and I don't know what REIS means 
-        #
-        if r.month > 20
-            r.month -= 20
-        end
-        q = ((r.month-1) ÷ 3) + 1 # 1,2,3=q1 and so on
-        # lcf year seems to be actual interview year 
-        y = r.year
-        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
-    end
-end
-
-"""
-Load 2018/9 - 2020/1 LCFs and add some matching fields.
-"""
-function load4lcfs()::Tuple
-    lcfhrows,lcfhcols,lcfhh18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
-    lcfhrows,lcfhcols,lcfhh19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
-    lcfhrows,lcfhcols,lcfhh20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
-    lcfhrows,lcfhcols,lcfhh21 = Common.load( "/mnt/data/lcf/2022/tab/dvhh_ukanon_2022.tab", 2021 )
-    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
-    lcfhrows = size(lcfhh)[1]
-
-    lcfprows,lcpfcols,lcfpers18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
-    lcfprows,lcpfcols,lcfpers19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
-    lcfprows,lcpfcols,lcfpers20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfprows,lcpfcols,lcfpers21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
-    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, lcfpers21,cols=:union )
-    hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
-    lcfhh.any_wages .= lcfhh.p356p .> 0
-    lcfhh.any_pension_income .= lcfhh.p364p .> 0
-    lcfhh.any_selfemp .= lcfhh.p320p .!= 0
-    lcfhh.hrp_unemployed .= lcfhh.p304 .== 1
-    lcfhh.num_children = lcfhh.a040 + lcfhh.a041 + lcfhh.a042
-    # LCF case ids of non white HRPs - convoluted; see: 
-    # https://stackoverflow.com/questions/51046247/broadcast-version-of-in-function-or-in-operator
-    # 2025- the STUPID FUCKS have deleted a012 from the 2022 public release.
-    # nonwhitepids = hh_pp[(hh_pp.a012p .∈ (["10","2","3","4"],)).&(hh_pp.a003 .== 1),:case]
-    # lcfhh.hrp_non_white .= 0
-    # lcfhh[lcfhh.case .∈ (nonwhitepids,),:hrp_non_white] .= 1    
-    lcfhh.num_people = lcfhh.a049
-    lcfhh.income = lcfhh.p344p  
-    lcfhh.a003 .= 1 # person MUST be hRP
-    # not possible in lcf???
-    lcfhh.any_disabled .= 0
-    # femalepids = hh_pp[(hh_pp.a004 .== 2),:case]
-    pers_hrps = hh_pp[hh_pp.a003.==1,:]
-    lcfhh.a006p = pers_hrps.a006p
-    lcfhh.has_female_adult .= 0
-    lcfhh.num_employees .= 0
-    lcfhh.num_pensioners .= 0
-    lcfhh.num_fulltime .= 0
-    lcfhh.num_parttime .= 0
-    lcfhh.num_selfemp .= 0
-    lcfhh.num_unemployed .= 0
-    lcfhh.num_retired .= 0
-    lcfhh.num_unoccupied .= 0
-    for r in eachrow( hh_pp )
-        pc = (lcfhh.case.== r.case) .& (lcfhh.datayear .== r.datayear)
-        if (r.a004 == 2) && (r.a005p >= 16) # female
-            lcfhh[pc,:has_female_adult] .= 1
-        end
-        if r.a093 == 1 # self-employed	1
-            lcfhh[pc,:num_selfemp] .+= 1
-        elseif r.a093 == 2 # Full-time employee at work	2
-            lcfhh[pc,:num_employees] .+= 1
-            lcfhh[pc,:num_fulltime] .+= 1
-        elseif r.a093 == 3 # Part-time employee at work	3
-            lcfhh[pc,:num_employees] .+= 1
-            lcfhh[pc,:num_parttime] .+= 1                
-        elseif r.a093 == 4 # Unemployed	4 
-            lcfhh[pc,:num_unemployed] .+= 1
-        elseif r.a093 == 5 # Work related Government Training Programmes	5
-            # lcfhh.num_unemployed .+= 1 # kinda sorta
-        elseif r.a093 == 6 # Retired/unoccupied and of minimum NI Pension age	6
-            lcfhh[pc,:num_retired] .+= 1
-        elseif r.a093 == 7 # Retired/unoccupied and of minimum NI Pension age	6
-            lcfhh[pc,:num_unoccupied] .+= 1        
-        else 
-            @assert "unmatched $(r.a093)"        
-        end
-        
-    end
-    lcfhh.a093 = pers_hrps.a093
-    # lcfhh.a206 = pers_hrps.a206
-    # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
-    lcfhh.is_selected = fill( false, lcfhrows )
-    lcfhh,lcfpers,hh_pp,pers_hrps
-end
-
-#=
-lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
-lcf     | 2020 | dvhh   | A121          | 1     | Local authority rented unfurn | Local_authority_rented_unfurn
-lcf     | 2020 | dvhh   | A121          | 2     | Housing association           | Housing_association
-lcf     | 2020 | dvhh   | A121          | 3     | Other rented unfurnished      | Other_rented_unfurnished
-lcf     | 2020 | dvhh   | A121          | 4     | Rented furnished              | Rented_furnished
-lcf     | 2020 | dvhh   | A121          | 5     | Owned with mortgage           | Owned_with_mortgage
-lcf     | 2020 | dvhh   | A121          | 6     | Owned by rental purchase      | Owned_by_rental_purchase
-lcf     | 2020 | dvhh   | A121          | 7     | Owned outright                | Owned_outright
-lcf     | 2020 | dvhh   | A121          | 8     | Rent free                     | Rent_free
-=#
-function map_tenure( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
-    out = fill( default, 3 )
-    if ismissing( a121 )
-        ;
-    elseif a121 == 1
-        out[1] = 1
-        out[2] = 1
-    elseif a121 == 2
-        out[1] = 2
-        out[2] = 1
-    elseif a121  == 3
-        out[1] = 3
-        out[2] = 1
-    elseif a121 == 4
-        out[1] = 3
-        out[2] = 1
-    elseif a121 in [5,6] 
-        out[1] = 5
-        out[2] = 2
-    elseif a121 == 7
-        out[1] = 6
-        out[2] = 2  
-    elseif a121 == 8
-        out[1] = 7
-        out[2] = 3  
-    else
-        @assert false "unmatched tentyp2 $tentyp2";
-    end 
-    return out
-end
-
-
-"""
-lcf     | 2020 | dvhh            | Gorx          | 1     | North East                | North_East
-lcf     | 2020 | dvhh            | Gorx          | 2     | North West and Merseyside | North_West_and_Merseyside
-lcf     | 2020 | dvhh            | Gorx          | 3     | Yorkshire and the Humber  | Yorkshire_and_the_Humber
-lcf     | 2020 | dvhh            | Gorx          | 4     | East Midlands             | East_Midlands
-lcf     | 2020 | dvhh            | Gorx          | 5     | West Midlands             | West_Midlands
-lcf     | 2020 | dvhh            | Gorx          | 6     | Eastern                   | Eastern
-lcf     | 2020 | dvhh            | Gorx          | 7     | London                    | London
-lcf     | 2020 | dvhh            | Gorx          | 8     | South East                | South_East
-lcf     | 2020 | dvhh            | Gorx          | 9     | South West                | South_West
-lcf     | 2020 | dvhh            | Gorx          | 10    | Wales                     | Wales
-lcf     | 2020 | dvhh            | Gorx          | 11    | Scotland                  | Scotland
-lcf     | 2020 | dvhh            | Gorx          | 12    | Northern Ireland          | Northern_Ireland
-
-load 2 levels of region from LCF into a 3 vector - 1= actual/ 2=London/rEngland/Scot/Wales/Ni
-
-"""
-function map_region( gorx :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( 9998, 3 )
-    if ismissing( gorx )
-        ;
-    elseif gorx == 7 # london
-        out[1] = gorx
-        out[2] = 1
-    elseif gorx in 1:9
-        out[1] = gorx
-        out[2] = 2
-    elseif gorx == 10 # wales
-        out[1] = 10 
-        out[2] = 4
-    elseif gorx == 11 # scotland
-        out[1] = 11
-        out[2] = 3
-    elseif gorx == 12
-        out[1] = 12
-        out[2] = 5
-    else
-        @assert false "unmatched gorx $gorx";
-    end 
-    return out
 end
 
 function composition_map( a062 :: Int ) :: Vector{Int}

@@ -3,6 +3,9 @@ module WAS
 using ..Common 
 import ..Model
 
+using ScottishTaxBenefitModel
+using .Definitions
+
 using CSV,
     DataFrames,
     Measures,
@@ -177,74 +180,6 @@ function map_marital( marital_status_head :: Int )::Vector{Int}
 end
 
 """
-Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
-"""
-function create_subset(; outfilename="wave_7_subset.tab" )
-    wasp = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/round_7_person_eul_june_2022.tab"; missingstring=["", " "]) |> DataFrame
-    wash = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
-    rename!(wasp,lowercase.(names(wasp)))
-    rename!(wash,lowercase.(names(wash)))
-    wasj = innerjoin( wasp, wash; on=:caser7,makeunique=true)
-    wasj.p_flag4r7 = coalesce.(wasj.p_flag4r7, -1)
-    was = wasj[((wasj.p_flag4r7 .== 1) .| (wasj.p_flag4r7 .== 3)),:]
-    # @assert size( was )[1] == size( wash )[1] " sizes don't match $(size( was )) $(size( wash ))" # selected 1 per hh, missed no hhs
-    # this breaks! (17532, 5534) (17534, 852) - 2 missing, but that's OK??
-    wpy=365.25/7
-
-    subwas = DataFrame()
-    subwas.case = was.caser7
-    subwas.year = was.yearr7
-    subwas.datayear .= 7 # wave 7
-    subwas.month = was.monthr7
-    subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
-    subwas.bedrooms = was.hbedrmr7
-    subwas.region = Int.(regionmap_one.(was.gorr7))
-    subwas.age_head = was.hrpdvage8r7
-    subwas.weekly_gross_income = was.dvtotgirr7./wpy
-    subwas.tenure = tenuremap_one( was )
-    subwas.accom = accommap_one( was )
-
-    subwas.household_type = was.hholdtyper7
-    subwas.occupation =  was.hrpnssec3r7
-    subwas.total_wealth = was.totwlthr7
-    subwas.num_children = was.numchildr7
-    subwas.num_adults = was.dvhsizer7 - subwas.num_children
-    subwas.sex_head = was.hrpsexr7
-    subwas.empstat_head = was.hrpempstat2r7 
-    subwas.socio_economic_head = map_socio_one.( was.nssec8r7 ) # hrpnssec3r7 
-    subwas.marital_status_head = Int.(map_marital_one.(was.hrpdvmrdfr7))
-
-    subwas.any_wages = was.dvgiempr7_aggr .> 0
-    subwas.any_selfemp = was.dvgiser7_aggr .> 0
-    subwas.any_pension_income = was.dvpinpvalr7_aggr .> 0
-    subwas.has_degree = was.hrpedlevelr7 .== 1
-    
-    subwas.net_housing = was.hpropwr7
-    subwas.net_physical = was.hphyswr7
-    subwas.total_pensions = was.totpenr7_aggr
-    subwas.net_financial = was.hfinwntr7_sum
-    subwas.total_value_of_other_property = was.othpropvalr7_sum
-    subwas.total_financial_liabilities = was.hfinlr7_excslc_aggr #   Hhold value of financial liabilities
-    subwas.total_household_wealth = was.totwlthr7
-    for row in eachrow( subwas )
-        row.weekly_gross_income = Uprating.uprate( 
-            row.weekly_gross_income,
-            row.year, 
-            row.q, 
-            Uprating.upr_nominal_gdp )
-    end
-    subwas.house_price = was.hvaluer7
-    CSV.write( "data/$(outfilename)", subwas; delim='\t')
-    return subwas
-end
-# HFINWNTR7_exSLC_Sum
-
-
-function uprate_was!( was :: DataFrame )
-
-end
-
-"""
 Map to FRS i.e 
  Missing_Tenure_Type = -1
    Council_Rented = 1
@@ -333,5 +268,69 @@ function accommap_one( wasf :: DataFrame ) :: Vector{Int}
     end
     out
 end 
+
+
+"""
+Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
+"""
+function create_subset()::DataFrame
+    wasp = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " "]) |> DataFrame
+    wash = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
+    rename!(wasp,lowercase.(names(wasp)))
+    rename!(wash,lowercase.(names(wash)))
+    wasj = innerjoin( wasp, wash; on=:caser7,makeunique=true)
+    wasj.p_flag4r7 = coalesce.(wasj.p_flag4r7, -1)
+    was = wasj[((wasj.p_flag4r7 .== 1) .| (wasj.p_flag4r7 .== 3)),:]
+
+    # @assert size( was )[1] == size( wash )[1] " sizes don't match $(size( was )) $(size( wash ))" # selected 1 per hh, missed no hhs
+    # this breaks! (17532, 5534) (17534, 852) - 2 missing, but that's OK??
+    wpy=365.25/7
+
+    subwas = DataFrame()
+    subwas.case = was.caser7
+    subwas.year = was.yearr7
+    subwas.datayear .= 7 # wave 7
+    subwas.month = was.monthr7
+    subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
+    subwas.bedrooms = was.hbedrmr7
+    subwas.region = Int.(regionmap_one.(was.gorr7))
+    subwas.age_head = was.hrpdvage8r7
+    subwas.weekly_gross_income = was.dvtotgirr7./wpy
+    subwas.tenure = tenuremap_one( was )
+    subwas.accom = accommap_one( was )
+
+    subwas.household_type = was.hholdtyper7
+    subwas.occupation =  was.hrpnssec3r7
+    subwas.total_wealth = was.totwlthr7
+    subwas.num_children = was.numchildr7
+    subwas.num_adults = was.dvhsizer7 - subwas.num_children
+    subwas.sex_head = was.hrpsexr7
+    subwas.empstat_head = was.hrpempstat2r7 
+    subwas.socio_economic_head = map_socio_one.( was.nssec8r7 ) # hrpnssec3r7 
+    subwas.marital_status_head = Int.(map_marital_one.(was.hrpdvmrdfr7))
+
+    subwas.any_wages = was.dvgiempr7_aggr .> 0
+    subwas.any_selfemp = was.dvgiser7_aggr .> 0
+    subwas.any_pension_income = was.dvpinpvalr7_aggr .> 0
+    subwas.has_degree = was.hrpedlevelr7 .== 1
+    
+    subwas.net_housing = was.hpropwr7
+    subwas.net_physical = was.hphyswr7
+    subwas.total_pensions = was.totpenr7_aggr
+    subwas.net_financial = was.hfinwntr7_sum
+    subwas.total_value_of_other_property = was.othpropvalr7_sum
+    subwas.total_financial_liabilities = was.hfinlr7_excslc_aggr #   Hhold value of financial liabilities
+    subwas.total_household_wealth = was.totwlthr7
+    for row in eachrow( subwas )
+        row.weekly_gross_income = Uprating.uprate( 
+            row.weekly_gross_income,
+            row.year, 
+            row.q, 
+            Uprating.upr_nominal_gdp )
+    end
+    subwas.house_price = was.hvaluer7
+    # CSV.write( "data/$(outfilename)", subwas; delim='\t')
+    return subwas
+end
 
 end
