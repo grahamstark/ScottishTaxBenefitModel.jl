@@ -35,7 +35,7 @@ function map_socio( a094 :: Int )::Vector{Int}
 end
 
 """
-a093	Not recorded             	0
+a206	Not recorded             	0
 NOTE 7		
 	ECONOMICALLY ACTIVE	
 	Self-employed	1
@@ -48,19 +48,19 @@ NOTE 7
 	Retired/unoccupied and of minimum NI Pension age	6
     Retired/unoccupied but under minimum NI Pension age	7
 
-if a093 == 1 # self-employed	1
+if a206 == 1 # self-employed	1
 
-elseif a093 == 2 # Full-time employee at work	2
+elseif a206 == 2 # Full-time employee at work	2
 
-elseif a093 == 3 # Part-time employee at work	3
+elseif a206 == 3 # Part-time employee at work	3
 
-elseif a093 == 4 # Unemployed	4 
+elseif a206 == 4 # Unemployed	4 
 
-elseif a093 == 5 # Work related Government Training Programmes	5
+elseif a206 == 5 # Work related Government Training Programmes	5
 
-elseif a093 == 6 # Retired/unoccupied and of minimum NI Pension age	6
+elseif a206 == 6 # Retired/unoccupied and of minimum NI Pension age	6
 
-elseif a093 == 7 #     Retired/unoccupied but under minimum NI Pension age	6
+elseif a206 == 7 #     Retired/unoccupied but under minimum NI Pension age	6
 
 
 else 
@@ -68,7 +68,7 @@ else
 end
 
 """
-function map_empstat( a093 :: Int )::Vector{Int}
+function map_empstat( a206 :: Int )::Vector{Int}
 
 end
 """
@@ -199,7 +199,7 @@ end
 """
 Load 2018/9 - 2020/1 LCFs and add some matching fields.
 """
-function load4lcfs()::DataFrame
+function load4lcfs()::Tuple
     lcfhrows,lcfhcols,lcfhh18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
     lcfhrows,lcfhcols,lcfhh19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
     lcfhrows,lcfhcols,lcfhh20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
@@ -207,12 +207,12 @@ function load4lcfs()::DataFrame
     lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
     lcfhrows = size(lcfhh)[1]
 
-    lcfprows,lcpfcols,lcfpers18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
-    lcfprows,lcpfcols,lcfpers19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
-    lcfprows,lcpfcols,lcfpers20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfprows,lcpfcols,lcfpers21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
-    lcfpers = vcat( lcfpers18, lcfpers19, lcfpers20, lcfpers21,cols=:union )
-    hh_pp = innerjoin( lcfhh, lcfpers, on=[:case,:datayear], makeunique=true )
+    lcfprows,lcpfcols,lcf_pers_stacked18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+    lcfprows,lcpfcols,lcf_pers_stacked19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+    lcfprows,lcpfcols,lcf_pers_stacked20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+    lcfprows,lcpfcols,lcf_pers_stacked21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
+    lcf_pers_stacked = vcat( lcf_pers_stacked18, lcf_pers_stacked19, lcf_pers_stacked20, lcf_pers_stacked21,cols=:union )
+    hh_pp = innerjoin( lcfhh, lcf_pers_stacked, on=[:case,:datayear], makeunique=true )
     lcfhh.any_wages .= lcfhh.p356p .> 0
     lcfhh.any_pension_income .= lcfhh.p364p .> 0
     lcfhh.any_selfemp .= lcfhh.p320p .!= 0
@@ -230,8 +230,9 @@ function load4lcfs()::DataFrame
     # not possible in lcf???
     lcfhh.any_disabled .= 0
     # femalepids = hh_pp[(hh_pp.a004 .== 2),:case]
-    pers_hrps = hh_pp[hh_pp.a003.==1,:]
-    lcfhh.a006p = pers_hrps.a006p
+    # pers - hrp-only
+    hrp_only = hh_pp[hh_pp.a003.==1,:]
+    lcfhh.a006p = hrp_only.a006p
     lcfhh.has_female_adult .= 0
     lcfhh.num_employees .= 0
     lcfhh.num_pensioners .= 0
@@ -246,32 +247,36 @@ function load4lcfs()::DataFrame
         if (r.a004 == 2) && (r.a005p >= 16) # female
             lcfhh[pc,:has_female_adult] .= 1
         end
-        if r.a093 == 1 # self-employed	1
+        if r.a206 == 1 # self-employed	1
             lcfhh[pc,:num_selfemp] .+= 1
-        elseif r.a093 == 2 # Full-time employee at work	2
+        elseif r.a206 == 2 # Full-time employee at work	2
             lcfhh[pc,:num_employees] .+= 1
             lcfhh[pc,:num_fulltime] .+= 1
-        elseif r.a093 == 3 # Part-time employee at work	3
+        elseif r.a206 == 3 # Part-time employee at work	3
             lcfhh[pc,:num_employees] .+= 1
             lcfhh[pc,:num_parttime] .+= 1                
-        elseif r.a093 == 4 # Unemployed	4 
+        elseif r.a206 == 4 # Unemployed	4 
             lcfhh[pc,:num_unemployed] .+= 1
-        elseif r.a093 == 5 # Work related Government Training Programmes	5
+        elseif r.a206 == 5 # Work related Government Training Programmes	5
             # lcfhh.num_unemployed .+= 1 # kinda sorta
-        elseif r.a093 == 6 # Retired/unoccupied and of minimum NI Pension age	6
+        elseif r.a206 == 6 # Retired/unoccupied and of minimum NI Pension age	6
             lcfhh[pc,:num_retired] .+= 1
-        elseif r.a093 == 7 # Retired/unoccupied and of minimum NI Pension age	6
+        elseif r.a206 == 7 # Retired/unoccupied and of minimum NI Pension age	6
             lcfhh[pc,:num_unoccupied] .+= 1       
-        else 
-            @assert "unmatched $(r.a093)"        
+        elseif r.a206 == 0
+            if (r.a005p <= 18) # a child
+                ;
+            else 
+                @assert false "unmatched $(r.a206) age $(r.a005p)"        
+            end
         end
         
     end
-    lcfhh.a093 = pers_hrps.a093
-    # lcfhh.a206 = pers_hrps.a206
+    lcfhh.a206 = hrp_only.a206
+    # lcfhh.a206 = hrp_only.a206
     # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
     lcfhh.is_selected = fill( false, lcfhrows )
-    lcfhh # ,lcfpers,hh_pp,pers_hrps
+    lcfhh,lcf_pers_stacked,hh_pp,hrp_only
 end
 
 function uprate_incomes!( lcfsubset :: DataFrame )
@@ -294,7 +299,7 @@ end
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
 function create_subset( ) :: DataFrame
-    lcf =  load4lcfs()    
+    lcf, lcf_pers, hh_pp, hrp_only =  load4lcfs()    
     out = DataFrame( 
         case = lcf.case, 
         datayear = lcf.datayear, 
@@ -304,7 +309,7 @@ function create_subset( ) :: DataFrame
         a003 = lcf.a003, # is_hrp
         a006 = lcf.a006p, # marital status!!! anonymised version 
         a091 = lcf.a091, # socio-economic
-        a093 = lcf.a093, # empstat
+        a206 = lcf.a206, # empstat
         a094 = lcf.a094, # NS-SEC 12 Class of HRP
         gorx = lcf.gorx, # govt region
         a065p  = lcf.a065p,
