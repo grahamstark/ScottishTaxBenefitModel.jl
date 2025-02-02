@@ -2,6 +2,7 @@ module LCF
 
 using ScottishTaxBenefitModel
 using .RunSettings
+using .Definitions
 
 using CSV,
     DataFrames,
@@ -67,10 +68,85 @@ else
 
 end
 
-"""
-function map_empstat( a206 :: Int )::Vector{Int}
+map to
 
+* se   1
+* ft e 2
+* pt e 3
+* un   4
+* ret  5
+* all others 6
+
+"""
+function recode_lcf_empstat( a206 :: Int )::Int
+    return if a206 in 1:4 # self-employed	1
+        a206
+    elseif a206 == 6 
+        5
+    else
+        6 #everyone else
+    end    
 end
+
+"""
+Map FRS employment down to what we have in LCF
+
+* se   1
+* ft e 2
+* pt e 3
+* un   4
+* ret  5
+* all others 6
+"""
+function recode_frs_empstat( empstat :: ILO_Employment )::Int
+    return if empstat in [Full_time_Self_Employed, Part_time_Self_Employed]
+        1 # self-employed	1
+    elseif empstat == Full_time_Employee 
+        2 # Full-time employee at work	2
+    elseif empstat == Part_time_Employee 
+        3 # Part-time employee at work	3
+    elseif empstat == Unemployed
+        4  # Unemployed	4 
+    elseif empstat == Retired
+        5
+    else # Studet,tLooking_after_family_or_home, Permanently_sick_or_disabled , 
+        6
+    end 
+end
+
+
+function map_empstat( ie :: Int; default=9998 ):: Vector{Int}
+    @argcheck ie in 1:6
+    out = fill( default, 3 )
+    out[1] = ie
+    out[2] = ie in 1:3 ? 1 : 2 # employed
+    return out
+end
+
+
+"""
+recode to FRS categories
+"""
+function recode_marital( a006p::Int, hrp_has_partner::Int )::Vector{Int}
+    return if a006p in [1,2,7]
+        1
+    elseif a006p == 3
+        3
+    elseif a006p == 4
+        4
+    elseif a006p == 5
+        5
+    elseif a006p == 6
+        6
+    else # single cohabiting
+        if hrp_has_partner == 0 # no partner
+            3
+        else # single + has partner -> cohabiting
+            2
+        end
+    end
+end
+
 """
 a006p	Marital status; spouse in household	1
 	Marital status; spouse not household	2
@@ -80,36 +156,9 @@ a006p	Marital status; spouse in household	1
 	Separated	6
 	Civil Partner or Former Civil Partner	7
 """
-function map_marital( a006p )::Vector{Int}
-
+function map_marital( a006p::Int, hrp_has_partner::Int )::Vector{Int}
+    return Common.map_marital( recode_marital( a006,  hrp_has_partner ))
 end
-
-
-
-#=
-function uprate_incomes!( frshh :: DataFrame, lcfhh :: DataFrame )
-    for r in eachrow( frshh )
-        dd = split(r.intdate, "/")
-        y = parse(Int, dd[3])
-        m = parse(Int, dd[1])
-        q = div( m - 1, 3) + 1
-        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
-        println( "r.yearcode $(r.yearcode); r.mnthcode $(r.mnthcode); y=$y q=$q income=$(r.income) orig = $(r.income)")
-    end
-    for r in eachrow( lcfhh )
-        #
-        # This is e.g January REIS and I don't know what REIS means 
-        #
-        if r.month > 20
-            r.month -= 20
-        end
-        q = ((r.month-1) ÷ 3) + 1 # 1,2,3=q1 and so on
-        # lcf year seems to be actual interview year 
-        y = r.year
-        r.income = Uprating.uprate( r.income, y, q, Uprating.upr_nominal_gdp )
-    end
-end
-=#
 
 #=
 lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
@@ -233,6 +282,7 @@ function load4lcfs()::Tuple
     # pers - hrp-only
     hrp_only = hh_pp[hh_pp.a003.==1,:]
     lcfhh.a006p = hrp_only.a006p
+    lcfhh.hrp_has_partner .= 0
     lcfhh.has_female_adult .= 0
     lcfhh.num_employees .= 0
     lcfhh.num_pensioners .= 0
@@ -242,6 +292,8 @@ function load4lcfs()::Tuple
     lcfhh.num_unemployed .= 0
     lcfhh.num_retired .= 0
     lcfhh.num_unoccupied .= 0
+    lcfhh.hrp_a200 .= 0
+
     for r in eachrow( hh_pp )
         pc = (lcfhh.case.== r.case) .& (lcfhh.datayear .== r.datayear)
         if (r.a004 == 2) && (r.a005p >= 16) # female
@@ -270,7 +322,11 @@ function load4lcfs()::Tuple
                 @assert false "unmatched $(r.a206) age $(r.a005p)"        
             end
         end
-        
+        if r.a0031 == 1 # this person is partner of hrp
+            lcfhh[pc,:hrp_has_partner] .= 1
+        elseif r.a003 == 1 # hrp
+            lcfhh[pc,:hrp_a200] .= r.a200 # 2nd stab at economic pos HRP 
+        end
     end
     lcfhh.a206 = hrp_only.a206
     # lcfhh.a206 = hrp_only.a206
@@ -307,14 +363,15 @@ function create_subset( ) :: DataFrame
         year= lcf.year,
         a121 = lcf.a121,
         a003 = lcf.a003, # is_hrp
-        a006 = lcf.a006p, # marital status!!! anonymised version 
+        a006p = lcf.a006p, # marital status!!! anonymised version 
         a091 = lcf.a091, # socio-economic
-        a206 = lcf.a206, # empstat
+        a206 = lcf.a206, # empstat HRP
         a094 = lcf.a094, # NS-SEC 12 Class of HRP
         gorx = lcf.gorx, # govt region
         a065p  = lcf.a065p,
         a062 = lcf.a062,
-
+        hrp_a200 = lcf.hrp_a200,  # Employment status (FES definition) HRP Only
+        hrp_has_partner = lcf.hrp_has_partner, # Partner of Household Reference Person
         any_wages = lcf.any_wages,
         any_pension_income = lcf.any_pension_income,
         any_selfemp = lcf.any_selfemp,

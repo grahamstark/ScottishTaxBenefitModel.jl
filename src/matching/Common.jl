@@ -39,15 +39,15 @@ end
 function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
     out = fill( default, 3 )
     out[1] = ms
-    out[2] = ms in [1,2] ? 1 : 2
+    out[2] = ms in [1,2] ? 1 : 2 # married, civil or cohabiting
     return out
 end
 
 function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
-    @argcheck ie in 1:12X
+    @argcheck ie in 1:12
     out = fill( default, 3 )
     out[1] = ie
-    out[2] = ie in 1:2 ? 1 : 2
+    out[2] = ie in 1:2 ? 1 : 2 # employee
     return out
 end
 
