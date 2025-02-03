@@ -10,8 +10,7 @@ using CSV,
     StatsBase,
     ArgCheck
 
-using ..Common 
-import ..Model
+import ScottishTaxBenefitModel.MatchingLibs.Common as Common
 
 """
 
@@ -32,7 +31,60 @@ a094	Not recorded	0
 
 """
 function map_socio( a094 :: Int )::Vector{Int}
+    return Common.map_socio( a094 )
+end
 
+function recode_frs_socio( socio :: Socio_Economic_Group )::Int
+    return if socio in [
+        Employers_in_large_organisations,
+        Higher_managerial_occupations,
+        Higher_supervisory_occupations]
+            1
+        elseif socio in [
+            Lower_prof_and_higher_technical_Traditional_employee,
+            Lower_managerial_occupations]
+            2
+        elseif socio in [
+            Higher_professional_occupations_New_self_employed]
+            3
+        elseif socio in [
+            Intermediate_clerical_and_administrative]
+            4
+        elseif socio in [
+            Employers_in_small_organisations_non_professional,
+            Own_account_workers_non_professional ]
+            5
+        elseif socio in [
+            Lower_supervisory_occupations,
+            Lower_technical_craft]
+            6
+        elseif socio in [
+            Semi_routine_sales]
+            7
+        elseif socio in [
+            Routine_sales_and_service ]
+            8
+        elseif socio in [
+            Never_worked ]
+            9
+        elseif socio in [
+            Full_time_student]
+            10
+        elseif socio in [
+            Missing_Socio_Economic_Group,
+            Not_classified_or_inadequately_stated,
+            Not_classifiable_for_other_reasons ]
+            11
+        else
+            @assert false "unclassified socio $socio"
+        end
+end
+
+"""
+FRS version for the model.
+"""
+function map_socio( socio :: Socio_Economic_Group )::Vector{Int}
+    return Common.map_socio( recode_frs_socio( socio ))
 end
 
 """
@@ -115,12 +167,24 @@ function recode_frs_empstat( empstat :: ILO_Employment )::Int
 end
 
 
-function map_empstat( ie :: Int; default=9998 ):: Vector{Int}
+
+function common_map_empstat( ie :: Int; default=9998 ):: Vector{Int}
     @argcheck ie in 1:6
     out = fill( default, 3 )
     out[1] = ie
     out[2] = ie in 1:3 ? 1 : 2 # employed
     return out
+end
+
+function map_empstat( a208::Int )::Vector{Int}
+    common_map_empstat( recode_lcf_empstat( a208 ))
+end
+
+"""
+FRS/Model coded to LCF a206 levels.
+"""
+function map_empstat( empstat :: ILO_Employment ):: Vector{Int}
+    return common_map_empstat( recode_frs_empstat( empstat ))
 end
 
 

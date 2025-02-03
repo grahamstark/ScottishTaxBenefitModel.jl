@@ -22,17 +22,17 @@ struct MatchingLocation
 end
 
 function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
-    @argcheck socio in 1:10
+    @argcheck socio in 1:12
     out = fill( default, 3 )
     out[1] = socio
-    out[2] = if socio in 1:5
+    out[2] = if socio in 1:3 # higher & managers
         1
-    elseif socio !== 10
+    elseif socio <= 8 # other jobs
         2
-    else
+    else # none, students, unemployed
         3
     end
-    out[3] = socio == 10 ? 2 : 1
+    out[3] = socio <= 8 ? 1 : 2 # workers/non-workers
     out
 end
 

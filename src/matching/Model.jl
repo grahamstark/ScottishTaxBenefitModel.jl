@@ -1,3 +1,6 @@
+#
+# model dataset-specific mappings for matching
+#
 module Model
 
 
@@ -6,6 +9,7 @@ using .RunSettings
 using .ModelHousehold
 using .Definitions
     
+import ScottishTaxBenefitModel.MatchingLibs.Common as Common
 
 function age_hrp( age :: Int )::Int
     head = get_head( hh )

@@ -11,13 +11,23 @@ module MatchingLibs
 
 #=
 example import
-julia> import ScottishTaxBenefitModel.MatchingLibs.LCF as lcf
 
-julia> import ScottishTaxBenefitModel.MatchingLibs.Common as com
+using CSV,
+    DataFrames,
+    Measures,
+    StatsBase,
+    ArgCheck,
+    PrettyTables
+using ScottishTaxBenefitModel
+using .Definitions, .MatchingLibs, .FRSHouseholdGetter, .RunSettings
 
-julia> import ScottishTaxBenefitModel.MatchingLibs.Model as mm
-
-julia> import ScottishTaxBenefitModel.MatchingLibs.WAS as was
+import ScottishTaxBenefitModel.MatchingLibs.LCF as lcf
+import ScottishTaxBenefitModel.MatchingLibs.Common as com
+import ScottishTaxBenefitModel.MatchingLibs.Model as mm
+import ScottishTaxBenefitModel.MatchingLibs.WAS as was
+# then ..
+settings = Settings()
+FRSHouseholdGetter.initialise( settings; reset=false 
 =#
 
 
