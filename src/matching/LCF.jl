@@ -10,7 +10,7 @@ using CSV,
     StatsBase,
     ArgCheck
 
-import ScottishTaxBenefitModel.MatchingLibs.Common as Common
+import ScottishTaxBenefitModel.MatchingLibs.Common
 
 """
 
@@ -188,27 +188,62 @@ function map_empstat( empstat :: ILO_Employment ):: Vector{Int}
 end
 
 
+
+function map_marital( ms :: Int) :: Vector{Int}
+    default=9998 
+    out = fill( default, 3 )
+    out[1] = ms
+    out[2] = ms in [1] ? 1 : 2 # married, civil or cohabiting
+    return out
+end
+
+
 """
 recode to FRS categories
 """
-function recode_marital( a006p::Int, hrp_has_partner::Int )::Vector{Int}
-    return if a006p in [1,2,7]
-        1
+function recode_marital( a006p::Int, hrp_has_partner::Int )::Int
+    @argcheck (a006p in [1,2,7] && hrp_has_partner==1) || hrp_has_partner==0 "a006p=$a006p hrp_has_partner=$hrp_has_partner"
+    return if a006p in [1,2,7] # spouse in household 1, spouse not household 2, Civil Partner or Former Civil Partner
+        @assert  hrp_has_partner == 1
+        1 # Married_or_Civil_Partnership = 1, Cohabiting = 2
     elseif a006p == 3
-        3
-    elseif a006p == 4
-        4
-    elseif a006p == 5
-        5
-    elseif a006p == 6
-        6
-    else # single cohabiting
+        2 # Single = 3
+    elseif a006p == 4 # Widowed	4
+        3 # Widowed = 4
+    elseif a006p == 5 # Divorced	5
+        4 # Divorced_or_Civil_Partnership_dissolved
+    elseif a006p == 6 # Separated	6
+        5 # Separated = 5
+    elseif a006p == 8 # FIXME ! don't know what 8 means 250 cases.
+        rand([1:5])
+    else 
+        @assert false "unmapped a006p $a006p"
+    end
+    #=
+    else # single / cohabiting
         if hrp_has_partner == 0 # no partner
             3
         else # single + has partner -> cohabiting
             2
         end
     end
+    =#
+end
+
+function recode_frs_marital( mar :: Marital_Status )::Int
+    return if mar in [Married_or_Civil_Partnership,Cohabiting]
+        1
+    else 
+        Int(mar)-1
+    end
+end
+
+function map_marital( mar :: Marital_Status )::Vector{Int}
+    return map_marital(recode_frs_marital( mar ))
+end
+
+function map_marital( a006p::Int, hrp_has_partner::Int )::Vector{Int}
+    return map_marital( recode_marital( a006p, hrp_has_partner ))
 end
 
 """
@@ -220,9 +255,11 @@ a006p	Marital status; spouse in household	1
 	Separated	6
 	Civil Partner or Former Civil Partner	7
 """
+#=
 function map_marital( a006p::Int, hrp_has_partner::Int )::Vector{Int}
-    return Common.map_marital( recode_marital( a006,  hrp_has_partner ))
+    return Common.map_marital( recode_marital( a006p,  hrp_has_partner ))
 end
+=#
 
 #=
 lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
@@ -320,12 +357,24 @@ function load4lcfs()::Tuple
     lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
     lcfhrows = size(lcfhh)[1]
 
-    lcfprows,lcpfcols,lcf_pers_stacked18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
-    lcfprows,lcpfcols,lcf_pers_stacked19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
-    lcfprows,lcpfcols,lcf_pers_stacked20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfprows,lcpfcols,lcf_pers_stacked21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
-    lcf_pers_stacked = vcat( lcf_pers_stacked18, lcf_pers_stacked19, lcf_pers_stacked20, lcf_pers_stacked21,cols=:union )
-    hh_pp = innerjoin( lcfhh, lcf_pers_stacked, on=[:case,:datayear], makeunique=true )
+    lcfprows,lcpfcols,lcf_pers_drv_stk18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+    lcfprows,lcpfcols,lcf_pers_drv_stk19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+    lcfprows,lcpfcols,lcf_pers_drv_stk20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+    lcfprows,lcpfcols,lcf_pers_drv_stk21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
+
+    lcfprows,lcpfcols,lcf_pers_raw_stk18 = Common.load( "/mnt/data/lcf/1819/tab/2018_rawper_ukanon_final.tab", 2018 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_rawper_ukanon_final.tab", 2019 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_rawper_ukanon_final.tab", 2020 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk21 = Common.load( "/mnt/data/lcf/2022/tab/rawper_ukanon_final_2022.tab", 2021 )
+    
+    lcf_pers_drv_stk = vcat( lcf_pers_drv_stk18, lcf_pers_drv_stk19, lcf_pers_drv_stk20, lcf_pers_drv_stk21,cols=:union )
+    lcf_pers_raw_stk = vcat( lcf_pers_raw_stk18, lcf_pers_raw_stk19, lcf_pers_raw_stk20, lcf_pers_raw_stk21,cols=:union )
+    rawp = hcat( lcf_pers_raw_stk, lcf_pers_drv_stk; makeunique=true)
+    println(size(lcf_pers_raw_stk))
+    @assert size( rawp[rawp.case .!= rawp.case_1,:])[1] == 0
+    hh_pp = innerjoin( lcfhh, rawp; on=[:case,:datayear], makeunique=true )
+    println(size(hh_pp))
+    
     lcfhh.any_wages .= lcfhh.p356p .> 0
     lcfhh.any_pension_income .= lcfhh.p364p .> 0
     lcfhh.any_selfemp .= lcfhh.p320p .!= 0
@@ -358,8 +407,8 @@ function load4lcfs()::Tuple
     lcfhh.num_unoccupied .= 0
     lcfhh.hrp_a200 .= 0
 
-    for r in eachrow( hh_pp )
-        pc = (lcfhh.case.== r.case) .& (lcfhh.datayear .== r.datayear)
+    for r in eachrow( hh_pp ) # round the merged hh/pp record, one person at a time
+        pc = (lcfhh.case.== r.case) .& (lcfhh.datayear .== r.datayear) # id of corresponding hh record
         if (r.a004 == 2) && (r.a005p >= 16) # female
             lcfhh[pc,:has_female_adult] .= 1
         end
@@ -379,7 +428,7 @@ function load4lcfs()::Tuple
             lcfhh[pc,:num_retired] .+= 1
         elseif r.a206 == 7 # Retired/unoccupied and of minimum NI Pension age	6
             lcfhh[pc,:num_unoccupied] .+= 1       
-        elseif r.a206 == 0
+        elseif r.a206 == 0 # idiot check for empl status
             if (r.a005p <= 18) # a child
                 ;
             else 
@@ -388,7 +437,7 @@ function load4lcfs()::Tuple
         end
         if r.a0031 == 1 # this person is partner of hrp
             lcfhh[pc,:hrp_has_partner] .= 1
-        elseif r.a003 == 1 # hrp
+        elseif r.a003 == 1 # hrp            
             lcfhh[pc,:hrp_a200] .= r.a200 # 2nd stab at economic pos HRP 
         end
     end
@@ -396,7 +445,7 @@ function load4lcfs()::Tuple
     # lcfhh.a206 = hrp_only.a206
     # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
     lcfhh.is_selected = fill( false, lcfhrows )
-    lcfhh,lcf_pers_stacked,hh_pp,hrp_only
+    lcfhh,lcf_pers_drv_stk,hh_pp,hrp_only
 end
 
 function uprate_incomes!( lcfsubset :: DataFrame )
@@ -517,7 +566,7 @@ function create_subset( ) :: DataFrame
     out.other_medicinces = lcf.c61112t # vatable
     out.spectacles_etc = lcf.c61311t + lcf.c61312t # vatable but see: https://www.chapman-opticians.co.uk/vat_on_spectacles
     out.other_health = lcf.c61211t + lcf.c61313t  # but condoms smoking medicines (?? tampons )
-    checkdiffs( "health", out.medical_services + out.prescriptions + out.other_medicinces + out.spectacles_etc + out.other_health, lcf.p606t )
+    Common.checkdiffs( "health", out.medical_services + out.prescriptions + out.other_medicinces + out.spectacles_etc + out.other_health, lcf.p606t )
     
     # :c61111t,:c61112t,:c61211t,:c61311t,:c61312t,:c61313t,:c62111t,:c62112t,:c62113t,:c62114t,:c62211t,:c62212t,:c62311t,:c62321t,:c62322t,:c62331t,:c63111t
     
@@ -605,7 +654,7 @@ function create_subset( ) :: DataFrame
 
     out.total_expenditure = lcf.p630tp
 
-    checkdiffs( "total spending",
+    Common.checkdiffs( "total spending",
         out.sweets_and_icecream + 
         out.other_food_and_beverages + 
         out.hot_and_eat_out_food + 

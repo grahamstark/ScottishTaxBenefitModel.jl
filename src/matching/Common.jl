@@ -82,7 +82,7 @@ function score( a :: Int, b :: Int ) :: Float64
 end
 
 function load( path::String, datayear :: Int )::Tuple
-    d = CSV.File( path ) |> DataFrame
+    d = CSV.File( path; missingstring=["", " "] ) |> DataFrame
     ns = lowercase.(names( d ))
     rename!( d, ns )
     d.datayear .= datayear
