@@ -41,11 +41,11 @@ function recode_frs_socio( socio :: Socio_Economic_Group )::Int
         Higher_supervisory_occupations]
             1
         elseif socio in [
-            Lower_prof_and_higher_technical_Traditional_employee,
-            Lower_managerial_occupations]
+            Higher_professional_occupations_New_self_employed]
             2
         elseif socio in [
-            Higher_professional_occupations_New_self_employed]
+            Lower_prof_and_higher_technical_Traditional_employee,
+            Lower_managerial_occupations]
             3
         elseif socio in [
             Intermediate_clerical_and_administrative]
@@ -71,10 +71,12 @@ function recode_frs_socio( socio :: Socio_Economic_Group )::Int
             Full_time_student]
             10
         elseif socio in [
-            Missing_Socio_Economic_Group,
-            Not_classified_or_inadequately_stated,
-            Not_classifiable_for_other_reasons ]
+            Not_classified_or_inadequately_stated ]
             11
+        elseif socio in [
+            Missing_Socio_Economic_Group,
+            Not_classifiable_for_other_reasons ]
+            12
         else
             @assert false "unclassified socio $socio"
         end
@@ -200,24 +202,45 @@ end
 
 """
 recode to FRS categories
+    a006	(with counts of heads)
+    Marital status; spouse in household	1 1 => 10063 <- means 'married'
+	Marital status; spouse not household 2  2=>0
+	Cohabitee	3 3 => 2322
+	Single	4 4 => 3294
+	Widowed	5  5 => 1963
+	Divorced	6 6 => 2133
+	Separated	7  7 => 711
+	Civil Partner in HH	8 8 => 285
+	Civil Partner not in HH	9 0
+	Former Civil Partner	10 0
+
 """
-function recode_marital( a006p::Int, hrp_has_partner::Int )::Int
-    @argcheck (a006p in [1,2,7] && hrp_has_partner==1) || hrp_has_partner==0 "a006p=$a006p hrp_has_partner=$hrp_has_partner"
-    return if a006p in [1,2,7] # spouse in household 1, spouse not household 2, Civil Partner or Former Civil Partner
-        @assert  hrp_has_partner == 1
+function recode_marital( a006::Int, hrp_has_partner::Int )::Int
+    @argcheck ((a006 in [1,3,8]) && (hrp_has_partner==1)) || (hrp_has_partner==0) "a006=$a006 hrp_has_partner=$hrp_has_partner"
+    return if a006 in [1,8] # spouse in household 1, spouse not household 2, Civil Partner or Former Civil Partner
+        # @assert hrp_has_partner == 1 " hrp_has_partner=$hrp_has_partner a006=$a006"
+        #= 5 cases where the above assert fails. No fucking idea why.
+          Row │ case   datayear  hrp_has_partner  a006  
+         ─────┼─────────────────────────────────────────
+            1 │  1638      2018                0      8
+            2 │  1958      2018                0      8
+            3 │  2816      2018                0      1
+            4 │  3812      2020                0      8
+            5 │  3835      2020                0      1
+        =#
         1 # Married_or_Civil_Partnership = 1, Cohabiting = 2
-    elseif a006p == 3
-        2 # Single = 3
-    elseif a006p == 4 # Widowed	4
-        3 # Widowed = 4
-    elseif a006p == 5 # Divorced	5
-        4 # Divorced_or_Civil_Partnership_dissolved
-    elseif a006p == 6 # Separated	6
+    elseif a006 == 3
+        2
+    elseif a006 == 4
+        3 # Single = 3
+    elseif a006 == 5 # Widowed	4
+        4 # Widowed = 4
+    elseif a006 == 6 # Divorced	5
+        6 # Divorced_or_Civil_Partnership_dissolved
+    elseif a006 == 7 # Separated	6
         5 # Separated = 5
-    elseif a006p == 8 # FIXME ! don't know what 8 means 250 cases.
-        rand([1:5])
     else 
-        @assert false "unmapped a006p $a006p"
+        @assert false "unmapped a006 $a006"
     end
     #=
     else # single / cohabiting
@@ -239,11 +262,11 @@ function recode_frs_marital( mar :: Marital_Status )::Int
 end
 
 function map_marital( mar :: Marital_Status )::Vector{Int}
-    return map_marital(recode_frs_marital( mar ))
+    return map_marital( Int(mar))
 end
 
-function map_marital( a006p::Int, hrp_has_partner::Int )::Vector{Int}
-    return map_marital( recode_marital( a006p, hrp_has_partner ))
+function map_marital( a006::Int, hrp_has_partner::Int )::Vector{Int}
+    return map_marital( recode_marital( a006, hrp_has_partner ))
 end
 
 """
@@ -395,6 +418,7 @@ function load4lcfs()::Tuple
     # pers - hrp-only
     hrp_only = hh_pp[hh_pp.a003.==1,:]
     lcfhh.a006p = hrp_only.a006p
+    lcfhh.a006 = hrp_only.a006p
     lcfhh.hrp_has_partner .= 0
     lcfhh.has_female_adult .= 0
     lcfhh.num_employees .= 0
@@ -476,7 +500,8 @@ function create_subset( ) :: DataFrame
         year= lcf.year,
         a121 = lcf.a121,
         a003 = lcf.a003, # is_hrp
-        a006p = lcf.a006p, # marital status!!! anonymised version 
+        a006p = lcf.a006p, # marital status!!! anonymised version from derived variables - looks wrong.
+        a006 = lcf.a006, # marital status!!! from raw dataset
         a091 = lcf.a091, # socio-economic
         a206 = lcf.a206, # empstat HRP
         a094 = lcf.a094, # NS-SEC 12 Class of HRP
