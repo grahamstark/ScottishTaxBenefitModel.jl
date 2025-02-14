@@ -31,10 +31,18 @@ a094	Not recorded	0
 
 """
 function map_socio( a094 :: Int )::Vector{Int}
-    return Common.map_socio( a094 )
+    return Common.map_socio( min(11,a094 ))
 end
 
-function recode_frs_socio( socio :: Socio_Economic_Group )::Int
+"""
+recode everyone not in workforce as other, since this is what lcf seems to to.
+"""
+function recode_frs_socio( socio :: Socio_Economic_Group, empstat :: ILO_Employment )::Int
+    if empstat in [ 
+        Retired,
+        Looking_after_family_or_home] # this seems narrow, but roughly matches ths unclassified % in LCF
+        return 11 # doesn't matter which of 11 or 12 since they're joined together in Common.map_socio
+    end
     return if socio in [
         Employers_in_large_organisations,
         Higher_managerial_occupations,
@@ -71,12 +79,9 @@ function recode_frs_socio( socio :: Socio_Economic_Group )::Int
             Full_time_student]
             10
         elseif socio in [
-            Not_classified_or_inadequately_stated ]
-            11
-        elseif socio in [
-            Missing_Socio_Economic_Group,
+            Not_classified_or_inadequately_stated, Missing_Socio_Economic_Group,
             Not_classifiable_for_other_reasons ]
-            12
+            11
         else
             @assert false "unclassified socio $socio"
         end
@@ -85,8 +90,8 @@ end
 """
 FRS version for the model.
 """
-function map_socio( socio :: Socio_Economic_Group )::Vector{Int}
-    return Common.map_socio( recode_frs_socio( socio ))
+function map_socio( socio :: Socio_Economic_Group, empstat :: ILO_Employment )::Vector{Int}
+    return Common.map_socio( recode_frs_socio( socio, empstat ))
 end
 
 """
@@ -132,10 +137,13 @@ map to
 * all others 6
 
 """
-function recode_lcf_empstat( a206 :: Int )::Int
-    return if a206 in 1:4 # self-employed	1
+function recode_lcf_empstat( a206 :: Int, age :: Int )::Int
+    return if a206 in 1:4
         a206
-    elseif a206 == 6 
+    elseif a206 == 5
+        4 # govt-training -> unemployed
+    elseif a206 == 6 # retired over pension age
+        @assert age >= 64
         5
     else
         6 #everyone else
@@ -170,16 +178,16 @@ end
 
 
 
-function common_map_empstat( ie :: Int; default=9998 ):: Vector{Int}
+function common_map_empstat( ie :: Int ):: Vector{Int}
     @argcheck ie in 1:6
-    out = fill( default, 3 )
+    out = zeros( 2 )
     out[1] = ie
     out[2] = ie in 1:3 ? 1 : 2 # employed
     return out
 end
 
-function map_empstat( a208::Int )::Vector{Int}
-    common_map_empstat( recode_lcf_empstat( a208 ))
+function map_empstat( a206::Int, age::Int )::Vector{Int}
+    common_map_empstat( recode_lcf_empstat( a206, age ) )
 end
 
 """
@@ -191,9 +199,8 @@ end
 
 
 
-function map_marital( ms :: Int) :: Vector{Int}
-    default=9998 
-    out = fill( default, 3 )
+function map_marital( ms :: Int; default=9998 ) :: Vector{Int}
+    out = zeros(2)
     out[1] = ms
     out[2] = ms in [1] ? 1 : 2 # married, civil or cohabiting
     return out
@@ -242,15 +249,6 @@ function recode_marital( a006::Int, hrp_has_partner::Int )::Int
     else 
         @assert false "unmapped a006 $a006"
     end
-    #=
-    else # single / cohabiting
-        if hrp_has_partner == 0 # no partner
-            3
-        else # single + has partner -> cohabiting
-            2
-        end
-    end
-    =#
 end
 
 function recode_frs_marital( mar :: Marital_Status )::Int
@@ -262,11 +260,11 @@ function recode_frs_marital( mar :: Marital_Status )::Int
 end
 
 function map_marital( mar :: Marital_Status )::Vector{Int}
-    return map_marital( Int(mar))
+    return map_marital( Int(mar); default=12346)
 end
 
 function map_marital( a006::Int, hrp_has_partner::Int )::Vector{Int}
-    return map_marital( recode_marital( a006, hrp_has_partner ))
+    return map_marital( recode_marital( a006, hrp_has_partner ); default=12347 )
 end
 
 """
@@ -278,11 +276,6 @@ a006p	Marital status; spouse in household	1
 	Separated	6
 	Civil Partner or Former Civil Partner	7
 """
-#=
-function map_marital( a006p::Int, hrp_has_partner::Int )::Vector{Int}
-    return Common.map_marital( recode_marital( a006p,  hrp_has_partner ))
-end
-=#
 
 #=
 lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
@@ -295,8 +288,8 @@ lcf     | 2020 | dvhh   | A121          | 6     | Owned by rental purchase      
 lcf     | 2020 | dvhh   | A121          | 7     | Owned outright                | Owned_outright
 lcf     | 2020 | dvhh   | A121          | 8     | Rent free                     | Rent_free
 =#
-function map_tenure( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
-    out = fill( default, 3 )
+function map_tenure( a121 :: Union{Int,Missing} ) :: Vector{Int}
+    out = zeros( 2 )
     if ismissing( a121 )
         ;
     elseif a121 == 1
@@ -309,7 +302,7 @@ function map_tenure( a121 :: Union{Int,Missing}, default=9997 ) :: Vector{Int}
         out[1] = 3
         out[2] = 1
     elseif a121 == 4
-        out[1] = 3
+        out[1] = 4
         out[2] = 1
     elseif a121 in [5,6] 
         out[1] = 5
@@ -345,7 +338,7 @@ load 2 levels of region from LCF into a 3 vector - 1= actual/ 2=London/rEngland/
 
 """
 function map_region( gorx :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( 9998, 3 )
+    out = zeros( 2 )
     if ismissing( gorx )
         ;
     elseif gorx == 7 # london
@@ -413,7 +406,7 @@ function load4lcfs()::Tuple
     lcfhh.income = lcfhh.p344p  
     lcfhh.a003 .= 1 # person MUST be hRP
     # not possible in lcf???
-    lcfhh.any_disabled .= 0
+    lcfhh.has_disabled_member .= 0
     # femalepids = hh_pp[(hh_pp.a004 .== 2),:case]
     # pers - hrp-only
     hrp_only = hh_pp[hh_pp.a003.==1,:]
@@ -449,7 +442,7 @@ function load4lcfs()::Tuple
         elseif r.a206 == 5 # Work related Government Training Programmes	5
             # lcfhh.num_unemployed .+= 1 # kinda sorta
         elseif r.a206 == 6 # Retired/unoccupied and of minimum NI Pension age	6
-            lcfhh[pc,:num_retired] .+= 1
+            lcfhh[pc,:num_pensioners] .+= 1
         elseif r.a206 == 7 # Retired/unoccupied and of minimum NI Pension age	6
             lcfhh[pc,:num_unoccupied] .+= 1       
         elseif r.a206 == 0 # idiot check for empl status
@@ -466,6 +459,7 @@ function load4lcfs()::Tuple
         end
     end
     lcfhh.a206 = hrp_only.a206
+    lcfhh.a005p = hrp_only.a005p
     # lcfhh.a206 = hrp_only.a206
     # lcfhh[lcfhh.case .∈ (femalepids,),:has_female_adult] .= 1
     lcfhh.is_selected = fill( false, lcfhrows )
@@ -500,6 +494,7 @@ function create_subset( ) :: DataFrame
         year= lcf.year,
         a121 = lcf.a121,
         a003 = lcf.a003, # is_hrp
+        a005p = lcf.a005p, # anonymised age
         a006p = lcf.a006p, # marital status!!! anonymised version from derived variables - looks wrong.
         a006 = lcf.a006, # marital status!!! from raw dataset
         a091 = lcf.a091, # socio-economic
@@ -518,7 +513,7 @@ function create_subset( ) :: DataFrame
         # hrp_non_white = lcf.hrp_non_white,
         num_people = lcf.num_people,
         income = lcf.income,
-        any_disabled = lcf.any_disabled,
+        has_disabled_member = lcf.has_disabled_member,
         has_female_adult = lcf.has_female_adult,
         num_employees = lcf.num_employees,
         num_pensioners = lcf.num_pensioners,
@@ -743,7 +738,7 @@ end
 
 function composition_map( a062 :: Int ) :: Vector{Int}
     mappings = (lcf1=[1],lcf2=[2],lcf3=[3,4],lcf4=[5,6],lcf5=[7,8],lcf6=[18,23,26,28],lcf7=[9,10],lcf8=[11,12],lcf9=[13,14,15,16,17],lcf10=[19,24,20,21,22,25,27,29,30])
-    return composition_map( a062,  mappings, default=9998 )
+    return composition_map( a062,  mappings )
 end
 
 """
@@ -762,7 +757,7 @@ Triple for the age group for the lcf hrp - 1st is groups above to 75, 2nd is 16-
 See coding frame above.
 """
 function map_age_hrp( a065p :: Int ) :: Vector{Int}
-    out = fill( 9998, 3 )
+    out = zeros( 2 )
     a065p -= 2
     a065p = min( 13, a065p ) # 75+
     out[1] = a065p

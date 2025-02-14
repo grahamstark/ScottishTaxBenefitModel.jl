@@ -55,11 +55,13 @@ end
 Score for one of our 3-level matches 1 for exact 0.5 for partial 1, 0.1 for partial 2
 """
 function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
+    @argcheck length(a3) == length(b3)
+    l = length(a3)
     return if a3[1] == b3[1]
         1.0
     elseif a3[2] == b3[2]
         0.5
-    elseif a3[3] == b3[3]
+    elseif (l == 3) && (a3[3] == b3[3])
         0.1
     else
         0.0
@@ -675,4 +677,5 @@ function checkall( filename = "was_matchchecks.md" )
     end
     close( outf )
 end
-end
+
+end # module

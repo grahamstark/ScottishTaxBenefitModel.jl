@@ -156,6 +156,84 @@ function age_grp( age :: Int )
     end
 end
 
+function counts_for_match( hh :: Household )::NamedTuple
+    num_people = ModelHousehold.num_people(hh)
+    has_female_adult = false
+    num_children = 0
+    num_employees = 0
+    num_pensioners = 0
+    num_fulltime = 0
+    num_parttime = 0
+    num_selfemp = 0
+    num_unemployed = 0
+    num_unoccupied = 0
+    hrp_has_partner = false
+    any_wages = false
+    any_pension_income = false
+    any_selfemp = false
+    has_disabled_member = false
+    head = get_head( hh )
+
+    for (pid, pers) in hh.people
+        if pers.is_standard_child
+            num_children += 1    
+        elseif pers.sex == Female        
+            has_female_adult = true
+        end
+        if get(pers.relationships,head.pid, Missing_Relationship ) in [ Spouse, Civil_Partner ]
+            hrp_has_partner = true
+        end
+        if pers.employment_status in [Full_time_Employee, Part_time_Employee]
+            num_employees += 1
+        end
+        if pers.employment_status in [Retired]
+            num_pensioners += 1
+            any_pension_income = true # fixme not really
+        end
+        if pers.employment_status in [Full_time_Employee, Full_time_Self_Employed]
+            num_fulltime += 1
+        end
+        if pers.employment_status in [Part_time_Employee, Part_time_Self_Employed]
+            num_parttime += 1
+        end
+        if pers.employment_status in [Full_time_Self_Employed, Part_time_Self_Employed]
+            num_selfemp += 1
+        end
+        if pers.employment_status in [Unemployed]
+            num_unemployed += 1
+        end
+        if pers.employment_status in [Looking_after_family_or_home,
+            Permanently_sick_or_disabled, Other_Inactive]
+            num_unoccupied += 1
+        end
+        if get(pers.income,wages,0.0) > 0
+            any_wages = true
+        end
+        if get(pers.income,self_employment_income,0.0) > 0
+            any_selfemp = true
+        end
+        if pers_is_disabled( pers )
+            has_disabled_member = true
+        end
+    end
+    return (;
+            num_people,
+            num_children,
+            num_employees,
+            num_pensioners,
+            num_fulltime,
+            num_parttime,
+            num_selfemp,
+            num_unemployed,
+            num_unoccupied,
+            hrp_has_partner,
+            any_wages,
+            any_pension_income,
+            any_selfemp,
+            has_female_adult,
+            has_disabled_member )
+end
+
 
 function frs_composition_map( hhcomps :: Int ) :: Vector{Int}
     mappings=(frs1=[1,3],frs2=[2,4],frs3=[9],frs4=[10],frs5=[5,6,7],frs6=[8],frs7=[12],frs8=[13],frs9=[14],frs10=[11,15,16,17])

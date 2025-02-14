@@ -213,7 +213,8 @@ export Full_time_Employee,
        Other_Inactive
 export Missing_ILO_Employment
 export is_employee,
-       is_working
+       is_working,
+       is_in_workforce
 
 @enum ILO_Employment begin  # mapped from empstati
    Missing_ILO_Employment = -1
@@ -232,7 +233,7 @@ end
 
 
 
-function is_working( employment_status :: ILO_Employment )
+function is_working( employment_status :: ILO_Employment ) :: Bool
    return employment_status in [ 
        Full_time_Employee,
        Part_time_Employee,
@@ -240,12 +241,20 @@ function is_working( employment_status :: ILO_Employment )
        Part_time_Self_Employed ]
 end
 
-function is_employee( employment_status :: ILO_Employment )
+function is_employee( employment_status :: ILO_Employment ) :: Bool
    return employment_status in [ 
        Full_time_Employee,
        Part_time_Employee ]
 end
 
+function is_in_workforce(  employment_status :: ILO_Employment ) :: Bool
+   return employment_status in [Full_time_Employee,
+   Part_time_Employee,
+   Full_time_Self_Employed,
+   Part_time_Self_Employed,
+   Unemployed,
+   Temporarily_sick_or_injured]
+end
 
 export Ethnic_Group  # mapped from ethgr3
 export White,
