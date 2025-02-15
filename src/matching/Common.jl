@@ -21,9 +21,9 @@ struct MatchingLocation
     incdiff :: Float64
 end
 
-function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
+function map_socio( socio :: Int ) :: Vector{Int}
     @argcheck socio in 1:12
-    out = fill( default, 3 )
+    out = fill( 0, 3 )
     out[1] = socio
     out[2] = if socio in 1:3 # higher & managers
         1
@@ -36,16 +36,16 @@ function map_socio( socio :: Int, default=9998 ) :: Vector{Int}
     out
 end
 
-function map_marital( ms :: Int, default=9998 ) :: Vector{Int}
-    out = fill( default, 3 )
+function map_marital( ms :: Int ) :: Vector{Int}
+    out = fill( 0, 2 )
     out[1] = ms
     out[2] = ms in [1,2] ? 1 : 2 # married, civil or cohabiting
     return out
 end
 
-function map_empstat( ie :: Int, default=9998 ):: Vector{Int}
+function map_empstat( ie :: Int ):: Vector{Int}
     @argcheck ie in 1:12
-    out = fill( default, 3 )
+    out = fill( 0, 3 )
     out[1] = ie
     out[2] = ie in 1:2 ? 1 : 2 # employee
     return out
@@ -333,7 +333,7 @@ Map accomodation. General case.
 """
 function map_accom( acc :: Any, default=9998)  :: Vector{Int}
     @argcheck acc in 1:6
-    out = fill( default, 3 )
+    out = fill( 0, 2 )
     # missing in 2020 f*** 
     if typeof(acc) <: AbstractString
         return out
@@ -357,7 +357,7 @@ frs age group for hrp - 1st is exact, 2nd u40,40+
 """
 function map_age_hrp( age:: Int ) :: Vector{Int}
     @argcheck age in 1:13
-    out = fill( 9998, 3 )
+    out = fill( 0, 2 )
     out[1] = age
     if age<= 5
         out[2] = 1
@@ -384,7 +384,7 @@ Wales = 10
 Northern_Ireland = 12
 """
 function map_region( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
-    out = fill( default, 3 )
+    out = fill( 0, 3 )
     if ismissing( gvtregn )
         return out
     end

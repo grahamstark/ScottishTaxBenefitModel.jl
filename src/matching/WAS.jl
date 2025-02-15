@@ -4,7 +4,10 @@ using ..Common
 import ..Model
 
 using ScottishTaxBenefitModel
+using .RunSettings
 using .Definitions
+
+import ScottishTaxBenefitModel.MatchingLibs.Common
 
 using CSV,
     DataFrames,
