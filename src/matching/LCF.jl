@@ -362,6 +362,33 @@ function map_region( gorx :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
+
+#=
+FRS/Model
+@enum DwellingType begin
+    dwell_na = -1
+    detatched = 1
+    semi_detached = 2
+    terraced = 3
+    flat_or_maisonette = 4
+    converted_flat = 5
+    caravan = 6
+    other_dwelling = 7
+ end
+
+a116	Not recorded	0
+	Whole house bungalow-detached	1
+	Whole house bungalow semi-detached	2
+	Whole house bungalow terrace	3
+	Purpose built flat maisonette	4
+	Part of house converted flat	5
+	Others	6
+=#
+
+
+
+
+
 """
 Load 2018/9 - 2020/1 LCFs and add some matching fields.
 """
