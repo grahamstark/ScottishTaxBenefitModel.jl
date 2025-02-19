@@ -161,6 +161,9 @@ function composition_map( comp :: Int, mappings; default::Int ) :: Vector{Int}
     return out
 end
 
+"""
+
+"""
 function map_tenure( tenure :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
 @argcheck tenure in 1:8
     out = fill( default, 3 )

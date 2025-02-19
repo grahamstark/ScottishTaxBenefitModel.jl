@@ -88,38 +88,47 @@ end
      1 -> Owned
      2 -> Rented
      3 -> Other
-     _3
-     1 -> Any
 """
-function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
-    out = fill( 0, 3 )
+function tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
     if ismissing( tenure ) # || tenure >= 5
-        return out;
+        return [rand(Int),rand(Int)];
     end
-    out[3] = 1
-    if tenure == 1 # OO
-        out[1] = 1
-        out[2] = 1
+    t1, t2 = if tenure == 1 # OO
+        1,1
     elseif tenure == 2
-        out[1] = 2
-        out[2] = 1
+        2,1
     elseif tenure == 3
-        out[1] = 3
-        out[2] = 2
+        3,2
     elseif tenure == 4
-        out[1] = 4
-        out[2] = 2
+        4,2
     elseif tenure == 5
-        out[1] = 5
-        out[2] = 2
-    elseif tenure in [6, 7, 999998, 999998] # 7 is poss coding error
-        out[1] = 6
-        out[2] = 3
+        5,2
+    elseif tenure in [6, 7]
+        6,3
     else
-        @assert false "unmatched tenure $tenure";
-    end      
-    out[3] = out[2]
-    return out
+        @assert false "unmatched tenure $tenure"
+    end
+    return [t1,t2]
+end
+
+"""
+Harmonised FRS tenure, as above
+"""
+function shs_model_tenure( tenure :: Tenure_Type )::Vector{Int}
+    t1, t2 = if tenure == Owned_outright
+        1,1
+    elseif tenure == Mortgaged_Or_Shared
+        2,1
+    elseif tenure == Council_Rented
+        3, 2
+    elseif tenure == Housing_Association
+        4, 2
+    elseif tenure in [Private_Rented_Unfurnished,Private_Rented_Furnished]
+        5, 2
+    else
+        6, 3
+    end
+    return [t1,t2]
 end
 
 """
@@ -187,8 +196,11 @@ function age( age  :: Union{Int,Missing} )  :: Vector{Int}
     return out
 end
     
+"""
 
-function shs_empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
+
+"""
+function empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
     out = fill( 0, 3 )
     if ismissing(hihecon) # value 14 not documented 
         return fill( -990, 3 )
@@ -242,7 +254,7 @@ function shs_empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
     return out
 end
 
-function shs_ethnic( hih_eth2012 :: Union{Missing,Int} ) :: Vector{Int}
+function ethnic( hih_eth2012 :: Union{Missing,Int} ) :: Vector{Int}
     out = fill( 1, 3 )
     if ismissing(hih_eth2012) # value 14 not documented 
         return fill( -986, 3 )
@@ -299,25 +311,25 @@ end
      11,000 undefined occs in shs, 263 in FRS
      
 =#
-function map_social( soc :: Int ) :: Vector{Int}
-    out = fill(0,3)    
-    if ! (soc in 1:9) 
-        return [0,0,1]
+function map_social( soc :: Union{Int,Missing} ) :: Vector{Int}
+    if ismissing(soc)
+        return [rand(Int),rand(Int)]
     end
-    out[1] = soc
-    if soc in 1:2
-        out[2] = 1
+    if ! (soc in 1:9) 
+        return [0,0]
+    end
+    s2 = if soc in 1:2
+        1
     elseif soc in [3,4,7]
-        out[2] = 2
+        2
     elseif soc in [5,8]
-         out[2] = 3
+        3
     elseif soc in [6,9]
-         out[2] = 4
+         4
     else
         @assert false "soc=$soc"
     end
-    out[3]=1
-    return out
+    return [soc,s2]
 end
 
 function bedrooms( rooms :: Union{Missing,Int} ) :: Vector{Int}
@@ -331,13 +343,6 @@ function bedrooms( rooms :: Union{Missing,Int} ) :: Vector{Int}
     out[2] = min( rooms, 3)
     out[3] = rooms == 1 ? 1 : 2
     return out
-end
-
-function shs_map_social( hihsoc :: Union{Missing,Int} ) :: Vector{Int}
-    if ismissing(hihsoc)
-        return [0,0,1]
-    end
-    return map_social( hihsoc )
 end
 
 """
@@ -363,7 +368,7 @@ out: detatached = 1
     all other = 5
 
 """
-function shs_btype( hb1 :: Union{Missing,Int}, hb2 :: Union{Missing,Int} ) :: Vector{Int}
+function accomtype( hb1 :: Union{Missing,Int}, hb2 :: Union{Missing,Int} ) :: Vector{Int}
     out = fill( 0, 2 )
     if ismissing(hb1)
         return out
@@ -391,6 +396,7 @@ end
 
 
 """
+In:
    dwell_na = -1
    detatched = 1
    semi_detached = 2
@@ -399,15 +405,27 @@ end
    converted_flat = 5
    caravan = 6
    other_dwelling = 7
+Out:
+   detatched = 1
+   semi_detached = 2
+   terraced = 3
+   flat 4
+   other 5
+   with na distributed randomly
 """
 function model_to_shs_accommap( dwelling :: DwellingType ):: Vector{Int}
-    out = Int( dwelling )
-    if out == -1
-        println( "-1 dwelling ")
-        out = rand(1:6)
+    if dwelling == dwell_na
+        println( "na dwelling ")
+        dwelling = rand(detatched:converted_flat)
     end
-    out = min( 6, out ) # caravan=>other
-    return Common.accommap( out, 9998 )
+    id1, id2 = if dwelling in [detatched,semi_detached,terraced]
+        Int(dwelling), 1
+    elseif dwelling in [flat_or_maisonette,converted_flat ]
+        4, 2
+    else
+        5, 3
+    end
+    return [id1,id2]
 end
 
 

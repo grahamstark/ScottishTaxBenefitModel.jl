@@ -158,6 +158,7 @@ end
 
 function counts_for_match( hh :: Household )::NamedTuple
     num_people = ModelHousehold.num_people(hh)
+    num_adults = 0
     has_female_adult = false
     num_children = 0
     num_employees = 0
@@ -216,8 +217,10 @@ function counts_for_match( hh :: Household )::NamedTuple
             has_disabled_member = true
         end
     end
+    num_adults = num_people - num_children
     return (;
             num_people,
+            num_adults,
             num_children,
             num_employees,
             num_pensioners,
