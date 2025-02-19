@@ -161,7 +161,7 @@ function counts_for_match( hh :: Household )::NamedTuple
     num_adults = 0
     has_female_adult = false
     num_children = 0
-    num_employees = 0
+    num_employees = 0   
     num_pensioners = 0
     num_fulltime = 0
     num_parttime = 0

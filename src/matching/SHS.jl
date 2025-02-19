@@ -197,74 +197,124 @@ function age( age  :: Union{Int,Missing} )  :: Vector{Int}
 end
     
 """
+#   SHS hihecon
+# 	Value = 1.0	Label = A - Self employed
+# 	Value = 2.0	Label = B - Employed full time
+# 	Value = 3.0	Label = C - Employed part time
+# 	Value = 4.0	Label = D - Looking after the home or family
+# 	Value = 5.0	Label = E - Permanently retired from work
+# 	Value = 6.0	Label = F - Unemployed and seeking work
+# 	Value = 7.0	Label = G - At school
+# 	Value = 8.0	Label = H - In further / higher education
+# 	Value = 9.0	Label = I - Gov't work or training scheme
+# 	Value = 10.0	Label = J - Permanently sick or disabled
+# 	Value = 11.0	Label = K - Unable to work because of short-term illness or injury
+# 	Value = 12.0	Label = L - Pre school / Not yet at school
+# 	Value = 13.0	Label = Other (specify)
+# 	FRS EMPSTATI
+#   Value = 1.0	Label = Full-time Employee 
+# 	Value = 2.0	Label = Part-time Employee 
+# 	Value = 3.0	Label = Full-time Self-Employed 
+# 	Value = 4.0	Label = Part-time Self-Employed 
+# 	Value = 5.0	Label = Unemployed 
+# 	Value = 6.0	Label = Retired 
+# 	Value = 7.0	Label = Student 
+# 	Value = 8.0	Label = Looking after family/home 
+# 	Value = 9.0	Label = Permanently sick/disabled 
+# 	Value = 10.0	Label = Temporarily sick/injured 
+# 	Value = 11.0	Label = Other Inactive 
 
+# Level 1
+# 1 Full-time Employee 
+# 2 Part-time Employee
+# 3 Self Employed
+# 4 Unemployed
+# 5 Retired
+# 6 Student
+# 7 Looking after the home or family
+# 8 Permanently sick/disabled
+# 9 Temporarily sick/injured 
+# 10 Other Inactive 
+
+# level 2
+# 1 employed
+# 2 self-employed
+# 3 retired
+# 4 student
+# 5 other, inc unemployed
+
+# level3 
+# 1 working
+# 2 retired
+# 3 not working
 
 """
 function empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
-    out = fill( 0, 3 )
-    if ismissing(hihecon) # value 14 not documented 
-        return fill( -990, 3 )
+    if ismissing(hihecon) || (hihecon > 13 ) # value 14 not documented 
+        return fill( rand(Int,3), 3 )
     end
-    if hihecon > 13 
-        return fill( -989, 3 )
-    end
-    if  hihecon == 1
-        out[1] = 3
-    elseif hihecon == 2
-        out[1] = 1
-    elseif hihecon == 3
-        out[1] = 2
-    elseif hihecon == 4
-        out[1] = 7
-    elseif hihecon == 5
-        out[1] = 5
-    elseif hihecon == 6
-        out[1] = 4
-    elseif hihecon in [7,9,13]
-        out[1] = 10
-    elseif hihecon == 8
-        out[1] = 6
-    elseif hihecon == 10
-        out[1] = 8
-    elseif hihecon == 11
-        out[1] = 9
+    o1, o2, o3 = if  hihecon == 1 # Self employed
+        3 ,2, 1
+    elseif hihecon == 2  # Employed full tim
+        1, 1, 1
+    elseif hihecon == 3 #  Employed part time
+        2, 1, 1
+    elseif hihecon == 4 # Looking after the home or family, 
+        7, 5, 3 
+    elseif hihecon == 5 # Permanently retired from wor
+        5, 3, 2
+    elseif hihecon in [6,9] # Unemployed and seeking work,  Gov't work or training scheme
+        4, 5, 3
+    elseif hihecon == 13 # Other (specify)
+        10, 5, 3
+    elseif hihecon in [7,12,8] # At school,  Pre school / Not yet at school??, In further / higher education
+        6, 4, 3
+    elseif hihecon == 10 # Permanently sick or disabled
+        8, 5, 3
+    elseif hihecon == 11 # Unable to work because of short-term illness or injury
+        9, 5, 3
     else    
         @assert false "hihecon $hihecon"
     end
-    if out[1] in 1:2
-        out[2] = 1
-    elseif out[1] in 3
-        out[2] = 2
-    elseif out[1] in 5
-        out[2] = 3
-    elseif out[1] in 6
-        out[2] = 4
-    elseif out[1] in [4,7,8,9,10]
-        out[2] = 5
-    else
-        @assert false "out[1] $(out[1])"
+    return [o1, o2, o3]
+end
+
+function shs_model_empstat( empl :: ILO_Employment ) :: Vector{Int}
+    o1, o2, o3 = if empl == Full_time_Employee
+        1, 1, 1
+    elseif empl == Part_time_Employee
+        2, 1, 1
+    elseif empl in [Full_time_Self_Employed,Part_time_Self_Employed]
+        3 ,2, 1
+    elseif empl == Unemployed
+        4, 5, 3
+    elseif empl == Retired
+        5, 3, 2
+    elseif empl == Student
+        6, 4, 3
+    elseif empl == Looking_after_family_or_home
+        7, 5, 3 
+    elseif empl == Permanently_sick_or_disabled
+        8, 5, 3
+    elseif empl == Temporarily_sick_or_injured
+        9, 5, 3
+    elseif empl == Other_Inactive
+        10, 5, 3
     end
-    if out[1] in 1:3
-        out[3] = 1
-    elseif out[1] in 4
-        out[3] = 2
-    else
-        out[3] = 3
-    end     
-    return out
+    return [o1, o2, o3]
 end
 
 function ethnic( hih_eth2012 :: Union{Missing,Int} ) :: Vector{Int}
-    out = fill( 1, 3 )
-    if ismissing(hih_eth2012) # value 14 not documented 
-        return fill( -986, 3 )
+    if ismissing(hih_eth2012) 
+        return rand(Int,1)
     end
-    if hih_eth2012 > 2
-        return out
-    end
-    out[1] = hih_eth2012 == 1 ? 1 : 2
-    return out
+    return hih_eth2012 == 1 ? [1] : [2]
 end
+
+function shs_model_ethnic( ethgr :: Ethnic_Group ) :: Vector{Int}
+    return ethgr == White ? [1] : [2]
+end
+
 
 #=
      SHS SOC hihsoc
@@ -331,6 +381,33 @@ function map_social( soc :: Union{Int,Missing} ) :: Vector{Int}
     end
     return [soc,s2]
 end
+
+function shs_model_map_social( socio :: Socio_Economic_Group ) :: Vector{Int}
+    # @argcheck socio in 1:12
+    out = fill( 0, 3 )
+    out[1] = Int(socio)
+    out[2] = if socio in [Employers_in_large_organisations,
+        Higher_managerial_occupations,
+        Higher_professional_occupations_New_self_employed] # higher & managers
+        1
+    elseif socio in [Lower_prof_and_higher_technical_Traditional_employee,
+        Lower_managerial_occupations,
+        Higher_supervisory_occupations,
+        Intermediate_clerical_and_administrative,
+        Employers_in_small_organisations_non_professional,
+        Own_account_workers_non_professional,
+        Lower_supervisory_occupations,
+        Lower_technical_craft,
+        Semi_routine_sales,
+        Routine_sales_and_service] # other jobs
+        2
+    else # none, students, unemployed
+        3
+    end
+    out[3] = socio <= Routine_sales_and_service ? 1 : 2 # workers/non-workers
+    out
+end
+
 
 function bedrooms( rooms :: Union{Missing,Int} ) :: Vector{Int}
     rooms = min(6, rooms )

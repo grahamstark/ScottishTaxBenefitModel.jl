@@ -581,6 +581,7 @@ function assign!( df :: DataFrame, name :: Symbol, vals )
     end
 end
 
+
 #   SHS hihecon
 # 	Value = 1.0	Label = A - Self employed
 # 	Value = 2.0	Label = B - Employed full time
