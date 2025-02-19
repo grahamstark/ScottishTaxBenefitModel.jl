@@ -363,7 +363,7 @@ end
 =#
 function map_social( soc :: Union{Int,Missing} ) :: Vector{Int}
     if ismissing(soc)
-        return [rand(Int),rand(Int)]
+        return rand(Int,3)
     end
     if ! (soc in 1:9) 
         return [0,0]
@@ -382,30 +382,10 @@ function map_social( soc :: Union{Int,Missing} ) :: Vector{Int}
     return [soc,s2]
 end
 
-function shs_model_map_social( socio :: Socio_Economic_Group ) :: Vector{Int}
+function shs_model_map_social( soc :: Standard_Occupational_Classification ) :: Vector{Int}
     # @argcheck socio in 1:12
-    out = fill( 0, 3 )
-    out[1] = Int(socio)
-    out[2] = if socio in [Employers_in_large_organisations,
-        Higher_managerial_occupations,
-        Higher_professional_occupations_New_self_employed] # higher & managers
-        1
-    elseif socio in [Lower_prof_and_higher_technical_Traditional_employee,
-        Lower_managerial_occupations,
-        Higher_supervisory_occupations,
-        Intermediate_clerical_and_administrative,
-        Employers_in_small_organisations_non_professional,
-        Own_account_workers_non_professional,
-        Lower_supervisory_occupations,
-        Lower_technical_craft,
-        Semi_routine_sales,
-        Routine_sales_and_service] # other jobs
-        2
-    else # none, students, unemployed
-        3
-    end
-    out[3] = socio <= Routine_sales_and_service ? 1 : 2 # workers/non-workers
-    out
+    o = Int(soc) ÷ 1000
+    return map_social(o)
 end
 
 
