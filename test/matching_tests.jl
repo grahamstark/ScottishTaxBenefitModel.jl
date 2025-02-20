@@ -24,7 +24,7 @@ import ScottishTaxBenefitModel.MatchingLibs.Model as mm
 import ScottishTaxBenefitModel.MatchingLibs.WAS as was
 # then ..
 settings = Settings()
-FRSHouseholdGetter.initialise( settings; reset=false 
+FRSHouseholdGetter.initialise( settings; reset=false )
 
 using DataFrames, CSV
 

@@ -27,21 +27,32 @@ KEYMAP = Vector{AbstractString}()
 
 function find_consumption_for_example!( hh, settings )
     @argcheck settings.indirect_method == matching
+    #=
     c = MatchingLibs.match_recip_row( 
         hh, 
         ConsumptionData.EXPENDITURE_DATASET, 
         MatchingLibs.example_lcf_match )[1]
     find_consumption_for_hh!( hh, c.case, c.datayear )
+    =#
+    # FIMXE TEMP TEMP
+    case = 1
+    datayear =2018 
+    find_consumption_for_hh!( hh, case, datayear )
 end
 
 function find_wealth_for_example!( hh, settings )
     @argcheck settings.wealth_method == matching
+    #=
     c = MatchingLibs.match_recip_row( 
         hh, 
         WealthData.WEALTH_DATASET, 
         MatchingLibs.model_was_match, 
         :weekly_gross_income )[1]
     find_wealth_for_hh!( hh, c.case )
+    =#
+    # FIMXE TEMP TEMP
+    case = 754
+    find_wealth_for_hh!( hh, case )
 end
 
 
