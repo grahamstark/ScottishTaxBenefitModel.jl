@@ -14,7 +14,7 @@ using CSV,
     StatsBase,
     ArgCheck
 
-const DIR = "/mnt/data/"
+const DIR = "/media/graham_s/Transcend/data/"
 
 function loadshs( dyear::Int )::DataFrame
     year = dyear - 2000
@@ -146,10 +146,10 @@ end
       0 child -> 0
       > 0 child -> 1
 """
-function total_people( n :: Union{Int,Missing}, def :: Int, is_child :: Bool ) :: Vector{Int}
-    out = fill( def, 3 )
+function total_people( n :: Union{Int,Missing}, is_child :: Bool ) :: Vector{Int}
+    out = fill( 0, 3 )
     if ismissing( n )
-        return out
+        return rand(Int,3)
     end
     out[1] = n
     if n == 0
@@ -251,7 +251,7 @@ end
 """
 function empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
     if ismissing(hihecon) || (hihecon > 13 ) # value 14 not documented 
-        return fill( rand(Int,3), 3 )
+        return rand(Int,3)
     end
     o1, o2, o3 = if  hihecon == 1 # Self employed
         3 ,2, 1
@@ -473,7 +473,7 @@ Out:
 function model_to_shs_accommap( dwelling :: DwellingType ):: Vector{Int}
     if dwelling == dwell_na
         println( "na dwelling ")
-        dwelling = rand(detatched:converted_flat)
+        dwelling = rand([detatched,semi_detached,terraced,flat_or_maisonette,converted_flat])
     end
     id1, id2 = if dwelling in [detatched,semi_detached,terraced]
         Int(dwelling), 1
@@ -483,6 +483,78 @@ function model_to_shs_accommap( dwelling :: DwellingType ):: Vector{Int}
         5, 3
     end
     return [id1,id2]
+end
+
+
+"""
+
+hhtype_new
+
+    Value = 1.0	Label = Single adult
+	Value = 2.0	Label = Small adult
+	Value = 3.0	Label = Single parent
+	Value = 4.0	Label = Small family
+	Value = 5.0	Label = Large family
+	Value = 6.0	Label = Large adult
+	Value = 7.0	Label = Older smaller
+	Value = 8.0	Label = Single pensioner
+
+
+out 
+  single_person 1 1
+  single_parent 2 2
+  w_kids        3 2
+  other         4 3
+
+"""
+function map_composition( hhtype_new :: Union{Int,Missing} )::Vector{Int}
+    if ismissing(hhtype_new)
+        return rand(Int,2)
+    end
+    c1, c2 = if hhtype_new == 1
+        1, 1
+    elseif hhtype_new == 3
+        2,2
+    elseif hhtype_new in [4,5]
+        3,2
+    elseif hhtype_new in [2,6,7,8]
+        4,3
+    else
+        @assert false "unmatched hhtype_new $hhtype_new"
+    end 
+    return [c1,c2]
+end
+
+"""
+see map_composition
+   
+Model composition:
+
+   single_person = 1
+   single_parent = 2 
+   couple_wo_children = 3 
+   couple_w_children = 4 
+   mbus_wo_children = 5 
+   mbus_w_children = 6
+
+to:
+  single_person 1 1
+  single_parent 2 2
+  w_kids        3 2
+  other         4 3
+
+"""
+function model_shs_map_composition( comp :: HouseholdComposition1 )::Vector{Int}
+    c1, c2 = if comp == single_person
+        1,1
+    elseif comp == single_parent 
+        2,2
+    elseif comp in [couple_wo_children, mbus_wo_children]
+        4,3 
+    elseif comp in [couple_w_children, mbus_w_children]
+        3,2
+    end
+    return [c1,c2]
 end
 
 

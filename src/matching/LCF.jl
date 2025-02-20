@@ -176,8 +176,6 @@ function recode_frs_empstat( empstat :: ILO_Employment )::Int
     end 
 end
 
-
-
 function common_map_empstat( ie :: Int ):: Vector{Int}
     @argcheck ie in 1:6
     out = zeros( 2 )
@@ -386,29 +384,29 @@ a116	Not recorded	0
 =#
 
 
-
+DIR = "/media/graham_s/Transcend/data/lcf/"
 
 
 """
 Load 2018/9 - 2020/1 LCFs and add some matching fields.
 """
 function load4lcfs()::Tuple
-    lcfhrows,lcfhcols,lcfhh18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvhh_ukanon.tab", 2018 )
-    lcfhrows,lcfhcols,lcfhh19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
-    lcfhrows,lcfhcols,lcfhh20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
-    lcfhrows,lcfhcols,lcfhh21 = Common.load( "/mnt/data/lcf/2022/tab/dvhh_ukanon_2022.tab", 2021 )
+    lcfhrows,lcfhcols,lcfhh18 = Common.load( "$(DIR)/1819/tab/2018_dvhh_ukanon.tab", 2018 )
+    lcfhrows,lcfhcols,lcfhh19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
+    lcfhrows,lcfhcols,lcfhh20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
+    lcfhrows,lcfhcols,lcfhh21 = Common.load( "$(DIR)/2022/tab/dvhh_ukanon_2022.tab", 2021 )
     lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
     lcfhrows = size(lcfhh)[1]
 
-    lcfprows,lcpfcols,lcf_pers_drv_stk18 = Common.load( "/mnt/data/lcf/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
-    lcfprows,lcpfcols,lcf_pers_drv_stk19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
-    lcfprows,lcpfcols,lcf_pers_drv_stk20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfprows,lcpfcols,lcf_pers_drv_stk21 = Common.load( "/mnt/data/lcf/2022/tab/dvper_ukanon_2022-23.tab",2021 )
+    lcfprows,lcpfcols,lcf_pers_drv_stk18 = Common.load( "$(DIR)/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
+    lcfprows,lcpfcols,lcf_pers_drv_stk19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
+    lcfprows,lcpfcols,lcf_pers_drv_stk20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
+    lcfprows,lcpfcols,lcf_pers_drv_stk21 = Common.load( "$(DIR)/2022/tab/dvper_ukanon_2022-23.tab",2021 )
 
-    lcfprows,lcpfcols,lcf_pers_raw_stk18 = Common.load( "/mnt/data/lcf/1819/tab/2018_rawper_ukanon_final.tab", 2018 )
-    lcfprows,lcpfcols,lcf_pers_raw_stk19 = Common.load( "/mnt/data/lcf/1920/tab/lcfs_2019_rawper_ukanon_final.tab", 2019 )
-    lcfprows,lcpfcols,lcf_pers_raw_stk20 = Common.load( "/mnt/data/lcf/2021/tab/lcfs_2020_rawper_ukanon_final.tab", 2020 )
-    lcfprows,lcpfcols,lcf_pers_raw_stk21 = Common.load( "/mnt/data/lcf/2022/tab/rawper_ukanon_final_2022.tab", 2021 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk18 = Common.load( "$(DIR)/1819/tab/2018_rawper_ukanon_final.tab", 2018 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_rawper_ukanon_final.tab", 2019 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_rawper_ukanon_final.tab", 2020 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk21 = Common.load( "$(DIR)/2022/tab/rawper_ukanon_final_2022.tab", 2021 )
     
     lcf_pers_drv_stk = vcat( lcf_pers_drv_stk18, lcf_pers_drv_stk19, lcf_pers_drv_stk20, lcf_pers_drv_stk21,cols=:union )
     lcf_pers_raw_stk = vcat( lcf_pers_raw_stk18, lcf_pers_raw_stk19, lcf_pers_raw_stk20, lcf_pers_raw_stk21,cols=:union )

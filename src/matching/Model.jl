@@ -244,6 +244,8 @@ function frs_composition_map( hhcomps :: Int ) :: Vector{Int}
 end
 
 ## Move to Intermediate 
+#
+# 
 function composition_map( hh :: Household ) :: Vector{Int}
     num_male_pens = 0
     num_female_pens = 0

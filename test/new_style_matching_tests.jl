@@ -7,7 +7,7 @@ using CSV,
     ArgCheck,
     PrettyTables
 using ScottishTaxBenefitModel
-using .Definitions, .MatchingLibs, .FRSHouseholdGetter, .RunSettings
+using .Definitions, .MatchingLibs, .ModelHousehold, .FRSHouseholdGetter, .RunSettings
 
 import ScottishTaxBenefitModel.MatchingLibs.SHS as shs
 import ScottishTaxBenefitModel.MatchingLibs.LCF as lcf
@@ -71,9 +71,9 @@ function one_shs_model_summary_df()::DataFrame
     return DataFrame( 
         shelter_1 = zeros(n),
         tenure_1 = zeros(n),
-        singlepar_1 = zeros(n),
-        numadults_1 = zeros(n),
-        numkids_1 = zeros(n),
+        hh_composition_1 = zeros(n),
+        num_adults_1 = zeros(n),
+        num_children_1 = zeros(n),
         acctype_1 = zeros(n),
         agehigh_1 = zeros(n),
         empstathigh_1 = zeros(n),
@@ -84,9 +84,9 @@ function one_shs_model_summary_df()::DataFrame
         region_1 = zeros(n),
         shelter_2 = zeros(n),
         tenure_2 = zeros(n),
-        singlepar_2 = zeros(n),
-        numadults_2 = zeros(n),
-        numkids_2 = zeros(n),
+        hh_composition_2 = zeros(n),
+        num_adults_2 = zeros(n),
+        num_children_2 = zeros(n),
         acctype_2 = zeros(n),
         agehigh_2 = zeros(n),
         empstathigh_2 = zeros(n),
@@ -97,9 +97,9 @@ function one_shs_model_summary_df()::DataFrame
         region_2 = zeros(n),
         shelter_3 = zeros(n),
         tenure_3 = zeros(n),
-        singlepar_3 = zeros(n),
-        numadults_3 = zeros(n),
-        numkids_3 = zeros(n),
+        hh_composition_3 = zeros(n),
+        num_adults_3 = zeros(n),
+        num_children_3 = zeros(n),
         acctype_3 = zeros(n),
         agehigh_3 = zeros(n),
         empstathigh_3 = zeros(n),
@@ -187,29 +187,29 @@ end
     shs_summaries = one_shs_model_summary_df()
     map_one!.( (shs_summaries,),  (:shelter,),  shss.accsup1 )
     map_one!.( (shs_summaries,),  (:tenure,),  shs.tenuremap.(shss.tenure)) 
-    map_one!.( (shs_summaries,),  (:singlepar,),  shss.hhtype_new )
-    map_one!.((shs_summaries,),  (:numadults,),  shs.total_people.(shss.totads, -888, false )) 
-    map_one!.( (shs_summaries,),  (:numkids,),  shs.total_people.(shss.numkids, -887, true )) 
     map_one!.( (shs_summaries,),  (:acctype,),  shs.accomtype.(shss.hb1, shss.hb2) ) 
+    map_one!.( (shs_summaries,),  (:bedrooms,),  shs.bedrooms.(shss.hc4 )) 
+    map_one!.( (shs_summaries,),  (:hh_composition,),  shs.map_composition.(shss.hhtype_new ))
+    map_one!.((shs_summaries,),  (:num_adults,),  shs.total_people.(shss.totads, false )) 
+    map_one!.( (shs_summaries,),  (:num_children,),  shs.total_people.(shss.numkids, true )) 
     map_one!.( (shs_summaries,),  (:agehigh,),  shs.age.(shss.hihage )) 
     map_one!.( (shs_summaries,),  (:empstathigh,),  shs.empstat.(shss.hihecon )) 
     map_one!.( (shs_summaries,),  (:ethnichigh,),  shs.ethnic.(shss.hih_eth2012 )) 
     map_one!.( (shs_summaries,),  (:sochigh,),  shs.map_social.(shss.hihsoc )) 
     map_one!.( (shs_summaries,),  (:datayear,),  shss.datayear .- 2017 ) 
-    map_one!.( (shs_summaries,),  (:bedrooms,),  shs.bedrooms.(shss.hc4 )) 
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
         map_one!( model_summaries, :region, mm.map_region( hh.region ))
         map_one!( model_summaries, :tenure, shs.shs_model_tenure( hh.tenure ))
-        map_one!.( (model_summaries,),(:acctype,),  shs.model_to_shs_accommap(hh.dwelling)) 
-        map_one!( (model_summaries,), (:bedrooms,),  shs.bedrooms( hh.bedrooms )) 
+        map_one!( model_summaries, :acctype,  shs.model_to_shs_accommap(hh.dwelling)) 
+        map_one!( model_summaries, :bedrooms,  shs.bedrooms( hh.bedrooms )) 
+        map_one!( model_summaries, :hh_composition,  shs.model_shs_map_composition( household_composition_1(hh)))
         for (pno,pers) in hh.people
              if pers.is_hrp
                 map_one!( model_summaries, :num_adults, cts.num_adults )
                 map_one!( model_summaries, :num_children, cts.num_children )
-                map_one!( model_summaries, :any_disabled, cts.has_disabled_member )
-                map_one!( model_summaries,  :agehigh,  shs.age.(pers.age ))
+                map_one!( model_summaries, :agehigh,  shs.age.(pers.age ))
                 map_one!( model_summaries, :empstathigh, shs.shs_model_empstat(pers.employment_status))
                 map_one!( model_summaries, :ethnichigh, shs.shs_model_ethnic(pers.ethnic_group))
                 map_one!( model_summaries,  :sochigh,  shs.shs_model_map_social( pers.occupational_classification )) 
