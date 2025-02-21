@@ -36,6 +36,9 @@ function map_socio( socio :: Int ) :: Vector{Int}
     out
 end
 
+"""
+
+"""
 function map_marital( ms :: Int ) :: Vector{Int}
     out = fill( 0, 2 )
     out[1] = ms
@@ -59,9 +62,9 @@ function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
     l = length(a3)
     return if a3[1] == b3[1]
         1.0
-    elseif a3[2] == b3[2]
+    elseif (l >= 2) && (a3[2] == b3[2])
         0.5
-    elseif (l == 3) && (a3[3] == b3[3])
+    elseif (l >= 3) && (a3[3] == b3[3])
         0.1
     else
         0.0
@@ -162,6 +165,14 @@ function composition_map( comp :: Int, mappings; default::Int ) :: Vector{Int}
 end
 
 """
+   Council_Rented = 1,1
+   Housing_Association = 2,1
+   Private_Rented_Unfurnished = 3,1
+   Private_Rented_Furnished = 4,1
+   Mortgaged_Or_Shared = 5,2
+   Owned_outright = 6,2
+   Rent_free = 7,3
+   Squats = 7,3
 
 """
 function map_tenure( tenure :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
@@ -332,7 +343,14 @@ end
 
 
 """
-Map accomodation. General case.
+Map accommodation. General case.
+1,1 detatched
+2,1 semi
+3,1 terrace
+4,2 purpose-built flat
+5,2 flat conversion
+6,3 other
+
 """
 function map_accom( acc :: Any, default=9998)  :: Vector{Int}
     @argcheck acc in 1:6

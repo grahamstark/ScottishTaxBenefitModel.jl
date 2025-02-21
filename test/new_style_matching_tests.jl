@@ -20,11 +20,6 @@ settings = Settings()
 settings.num_households, settings.num_people, nhh = 
     FRSHouseholdGetter.initialise( settings; reset=false)
 
-@testset "WAS Mappings" begin
-    
-
-
-end
 
 @testset "Model Mappings" begin
     
@@ -179,6 +174,104 @@ function one_lcf_model_summary_df()::DataFrame
         any_pension_income_3 = zeros(n),
         any_selfemp_3 = zeros(n),
         hrp_unemployed_3 = zeros(n))
+end
+
+function one_was_model_summary_df()::DataFrame
+    n = 21
+    return DataFrame( 
+        n = 1:n,
+        marstat_1 = zeros(n),
+        socio_1 = zeros(n),
+        empstat_1 = zeros(n),
+        tenure_1 = zeros(n),
+        acctype_1 = zeros(n),
+        region_1 = zeros(n),
+        num_people_1 = zeros(n),
+        num_children_1 = zeros(n),
+        any_disabled_1 = zeros(n),
+        has_female_adult_1 = zeros(n),
+        num_employees_1 = zeros(n),
+        num_pensioners_1 = zeros(n),
+        num_fulltime_1 = zeros(n),
+        num_parttime_1 = zeros(n),
+        num_selfemp_1 = zeros(n),
+        num_unemployed_1 = zeros(n),
+        num_unoccupied_1 = zeros(n),
+        hrp_has_partner_1 = zeros(n),
+        any_wages_1 = zeros(n),
+        any_pension_income_1 = zeros(n),
+        any_selfemp_1 = zeros(n),
+        hrp_unemployed_1 = zeros(n),
+        marstat_2 = zeros(n),
+        socio_2 = zeros(n),
+        empstat_2 = zeros(n),
+        tenure_2 = zeros(n),
+        acctype_2 = zeros(n),
+        region_2 = zeros(n),
+        num_people_2 = zeros(n),
+        any_disabled_2 = zeros(n),
+        has_female_adult_2 = zeros(n),
+        num_employees_2 = zeros(n),
+        num_pensioners_2 = zeros(n),
+        num_fulltime_2 = zeros(n),
+        num_parttime_2 = zeros(n),
+        num_selfemp_2 = zeros(n),
+        num_unemployed_2 = zeros(n),
+        num_unoccupied_2 = zeros(n),
+        hrp_has_partner_2 = zeros(n),
+        any_wages_2 = zeros(n),
+        any_pension_income_2 = zeros(n),
+        any_selfemp_2 = zeros(n),
+        hrp_unemployed_2 = zeros(n),
+        marstat_3 = zeros(n),
+        socio_3 = zeros(n),
+        empstat_3 = zeros(n),
+        tenure_3 = zeros(n),
+        acctype_3 = zeros(n),
+        region_3 = zeros(n),
+        num_people_3 = zeros(n),
+        any_disabled_3 = zeros(n),
+        has_female_adult_3 = zeros(n),
+        num_employees_3 = zeros(n),
+        num_pensioners_3 = zeros(n),
+        num_fulltime_3 = zeros(n),
+        num_parttime_3 = zeros(n),
+        num_selfemp_3 = zeros(n),
+        num_unemployed_3 = zeros(n),
+        num_unoccupied_3 = zeros(n),
+        hrp_has_partner_3 = zeros(n),
+        any_wages_3 = zeros(n),
+        any_pension_income_3 = zeros(n),
+        any_selfemp_3 = zeros(n),
+        hrp_unemployed_3 = zeros(n))
+end
+
+@testset "WAS Mappings" begin
+    wass = was.create_subset()
+    model_summaries = one_was_model_summary_df()
+    was_summaries = one_was_model_summary_df()
+    map_one!.( (shs_summaries,),  (:tenure,),  was.map_tenure.(wass.tenure)) 
+    map_one!.( (shs_summaries,),  (:acctype,),  was.map_accom.(wass.accom) ) 
+    map_one!.( (shs_summaries,),  (:bedrooms,),  was.bedrooms.(wass.bedrooms)) 
+    #=
+    age_head
+    household_type
+    empstat_head
+    model_map_socio( socio_economic_head
+    map_marital marital_status_head
+    any_wages
+    any_selfemp
+    any_pension_income
+    num_children
+    num_adults
+    for hno in 1:settings.num_households
+        hh = FRSHouseholdGetter.get_household(hno)
+        cts = mm.counts_for_match( hh )
+        mm.age_grp( pers.age )    
+        was.model_was_map_household_composition
+    =#
+    pretty_table( to_pct(was_summaries ))
+    pretty_table( to_pct(model_summaries ))
 end
 
 @testset "SHS Mappings" begin

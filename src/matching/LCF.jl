@@ -384,7 +384,8 @@ a116	Not recorded	0
 =#
 
 
-DIR = "/media/graham_s/Transcend/data/lcf/"
+# DIR = "/media/graham_s/Transcend/data/lcf/"
+DIR = "/mnt/data/lcf/"
 
 
 """

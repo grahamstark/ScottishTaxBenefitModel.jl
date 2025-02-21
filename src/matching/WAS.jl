@@ -16,6 +16,78 @@ using CSV,
     ArgCheck
 
 """
+
+from:
+
+    Pos. = 42Variable = hholdtyper7Variable label = DV - Type of household
+    This variable is    numeric, the SPSS measurement level is NOMINAL
+    Value label information for hholdtyper7
+    Value = 1.0Label = Single person over new SPA
+    Value = 2.0Label = Single person below new SPA
+    Value = 3.0Label = Couple over new SPA
+    Value = 4.0Label = Couple below new SPA
+    Value = 5.0Label = Couple, one over ans one below new SPA
+    Value = 6.0Label = Couple and dependent children
+    Value = 7.0Label = Couple and non-dependent children only
+    Value = 8.0Label = Lone parent and dependent children
+    Value = 9.0Label = Lone parent and non-dependent children only
+    Value = 10.0Label = More than one family, other household types
+    Value = -9.0Label = Not asked / applicable
+    Value = -8.0Label = Don't know/ Refusal
+
+to:
+
+
+@enum HouseholdComposition1 begin
+    single_person = 1,1
+    single_parent = 2,2
+    couple_wo_children = 3,1 
+    couple_w_children = 4,2 
+    mbus_wo_children = 5,3 
+    mbus_w_children = 5,3
+ end 
+"""
+function map_household_composition( htype :: Int )::Vector{Int}
+    if htype <= 0
+        return rand(Int,2)
+    end
+    h1, h2 = if htype in [1,2]
+        1,1
+    elseif htype in [8,9]
+        2,2
+    elseif htype in [3,4,5]
+        3,1
+    elseif htype in [6,7,8]
+        4,2
+    elseif htype in [10]
+        5,3
+    end
+    return [h1,h2]
+end
+
+
+function model_was_map_household_composition( htype :: HouseholdComposition1 ) :: Vector{Int}
+    i = Int( htype )
+    if htype <= 0
+        return rand(Int,2)
+    end
+    h1, h2 == if htype in [1,2]
+        1,1
+    elseif htype in [8,9]
+        2,2
+    elseif htype in [3,4,5]
+        3,1
+    elseif htype in [6,7,8]
+        4,2
+    elseif htype in [10]
+        5,3
+    end
+    return [h1,h2]
+end
+
+
+
+"""
     Value = -9.0	Label = Not asked / applicable
 	Value = -8.0	Label = Don't know/ Refusal
 	Value = 1.1	Label = Large employers and higher managerial occupations
@@ -166,8 +238,44 @@ function map_marital_one( mar :: Int ) :: Marital_Status
     return out
 end
 
+"""
+Pos. = 54Variable = hrpempstat2r7Variable label = Employment status of HRP or partner
+    This variable is    numeric, the SPSS measurement level is SCALE
+    Value label information for hrpempstat2r7
+    Value = 1.0Label = Employee
+    Value = 2.0Label = Self-employed
+    Value = 3.0Label = Unemployed
+    Value = 4.0Label = Student
+    Value = 5.0Label = Looking after family home
+    Value = 6.0Label = Sick or disabled
+    Value = 7.0Label = Retired
+    Value = 8.0Label = Other
+    Value = -9.0Label = Not asked / applicableValue = -8.0Label = Don't know/ Refusal
+
+into:
+
+@enum ILO_Employment begin  # mapped from empstati
+    Missing_ILO_Employment = -1
+    Full_time_Employee = 1
+    Part_time_Employee = 2
+    Full_time_Self_Employed = 3
+    Part_time_Self_Employed = 4
+    Unemployed = 5
+    Retired = 6
+    Student = 7
+    Looking_after_family_or_home = 8
+    Permanently_sick_or_disabled = 9
+    Temporarily_sick_or_injured = 10
+    Other_Inactive = 11
+ end
+ 
+"""
 function map_empstat( ie :: Int ) :: Vector{Int}
-    return map_empstat( ie, 9997 )
+    return Common.map_empstat( ie )
+end
+
+function model_was_map_empstat( empstat :: ILO_Employment ):: Vector{Int}
+
 end
 
 function map_age_hrp( age :: Int ) :: Vector{Int}
@@ -178,6 +286,9 @@ function map_socio( socio :: Int ) :: Vector{Int}
     return Common.map_socio( socio )
 end
 
+"""
+
+"""
 function map_marital( marital_status_head :: Int )::Vector{Int}
     return Common.map_marital( marital_status_head )
 end
@@ -232,14 +343,26 @@ function tenuremap_one( wasf :: DataFrame ) :: Vector{Int}
     out
 end
 
+"""
+
+"""
 function map_tenure( ten :: Int  ) :: Vector{Int}
-    return Common.map_tenure( ten, 9997 )
+    return Common.map_tenure( ten )
 end
 
 function map_accom( accom :: Int ) :: Vector{Int}
     return Common.map_accom( accom, 9997 )
 end
 
+"""
+Fill a whole vector with accomodation type, in the standard 6 class
+1 detatched
+2 semi
+3 terrace
+4 purpose-built flat
+5 flat conversion
+6 other
+"""
 function accommap_one( wasf :: DataFrame ) :: Vector{Int}
     nrows,ncols = size( wasf )
     out = fill(0,nrows)
@@ -273,12 +396,14 @@ function accommap_one( wasf :: DataFrame ) :: Vector{Int}
 end 
 
 
+DIR = "/mnt/data/was/"
+
 """
 Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
 """
 function create_subset()::DataFrame
-    wasp = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " "]) |> DataFrame
-    wash = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
+    wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " "]) |> DataFrame
+    wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
     rename!(wasp,lowercase.(names(wasp)))
     rename!(wash,lowercase.(names(wash)))
     wasj = innerjoin( wasp, wash; on=:caser7,makeunique=true)

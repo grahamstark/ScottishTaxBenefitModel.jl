@@ -42,8 +42,32 @@ function map_socio( socio :: Socio_Economic_Group )::Vector{Int}
     return Common.map_socio( Int( socio ))
 end
 
-function map_tenure(  t :: Tenure_Type, default=9998 ) :: Vector{Int}
-    return Common.map_tenure( Int( t ), default )
+"""
+   Council_Rented = 1
+   Housing_Association = 2
+   Private_Rented_Unfurnished = 3
+   Private_Rented_Furnished = 4
+   Mortgaged_Or_Shared = 5
+   Owned_outright = 6
+   Rent_free = 7
+   Squats = 8
+"""
+function map_tenure(  t :: Tenure_Type ) :: Vector{Int}
+    i = Int(t)
+    if t in 1:8
+        return Common.map_tenure( Int( t ) )
+    else
+        return rand(Int,2)
+    end
+end
+
+function map_accom( acc :: DwellingType ) :: Vector{Int}
+    i = Int( acc )
+    if i in 1:6
+        return Common.map_accom( i )
+    else
+        return rand(Int,2)
+    end
 end
 
 """
@@ -136,6 +160,23 @@ function do_hh_sums( hh :: Household ) :: Tuple
     return any_wages, any_selfemp, any_pension_income, has_female_adult, income 
 end
 
+#= to correspond WAS AGE BANDS - HRPDVAge8r7
+Pos. = 88Variable = HRPDVAge8r7Variable label = Grouped Age of HRP (8 categories)
+This variable is  numeric, the SPSS measurement level is NOMINAL
+Value label information for HRPDVAge8r7
+Value = -9.0Label = Don t know
+Value = -8.0Label = Refusal
+Value = -7.0Label = Does not apply
+Value = -6.0Label = Error/partial
+Value = 1.0Label = 0 to 15
+Value = 2.0Label = 16 to 24
+Value = 3.0Label = 25 to 34
+Value = 4.0Label = 35 to 44
+Value = 5.0Label = 45 to 54
+Value = 6.0Label = 55 to 64
+Value = 7.0Label = 65 to 74
+Value = 8.0Label = 75 and over
+=#
 function age_grp( age :: Int )
     return if age < 16
         1

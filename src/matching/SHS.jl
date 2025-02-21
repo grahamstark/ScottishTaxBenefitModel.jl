@@ -14,7 +14,8 @@ using CSV,
     StatsBase,
     ArgCheck
 
-const DIR = "/media/graham_s/Transcend/data/"
+# DIR = "/media/graham_s/Transcend/data/"
+DIR = "/mnt/data/"
 
 function loadshs( dyear::Int )::DataFrame
     year = dyear - 2000
