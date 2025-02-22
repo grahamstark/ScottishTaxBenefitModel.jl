@@ -124,7 +124,7 @@ function map_socio( socio :: Real ) :: Vector{Int}
     return map_socio( out, 9997 )
 end 
 
-function model_map_socio( soc ) :: Vector{Int}
+function model_was_map_socio( soc ) :: Vector{Int}
     socio = Int( soc )
     out = if socio in [1,2,3] # Employers_in_large_organisations = 0.099% FRS 5.7% WAS so amalgamate
         1

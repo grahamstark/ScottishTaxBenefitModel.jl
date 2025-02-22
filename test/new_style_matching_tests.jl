@@ -250,12 +250,30 @@ end
     wass = was.create_subset()
     model_summaries = one_was_model_summary_df()
     was_summaries = one_was_model_summary_df()
-    map_one!.( (shs_summaries,),  (:tenure,),  was.map_tenure.(wass.tenure)) 
-    map_one!.( (shs_summaries,),  (:acctype,),  was.map_accom.(wass.accom) ) 
-    map_one!.( (shs_summaries,),  (:bedrooms,),  was.bedrooms.(wass.bedrooms)) 
+    map_one!.( (shs_summaries,), (:tenure,), was.map_tenure.(wass.tenure)) 
+    map_one!.( (shs_summaries,), (:acctype,), was.map_accom.(wass.accom) ) 
+    map_one!.( (shs_summaries,), (:bedrooms,), was.bedrooms.(wass.bedrooms)) 
+    map_one!.( (shs_summaries,), (:agehigh,), was.map_age_hrp.(wass.age_head)) 
+    map_one!.( (shs_summaries,), (:hh_composition,), was.map_household_composition.(wass.household_type)) 
+    map_one!.( (shs_summaries,), (:marrstat,), was.map_marital(marital_status_head))
+    map_one!.( (shs_summaries,), (:any_wages,), wass.any_wages )
+    map_one!.( (shs_summaries,), (:any_pension_income,), wass.any_pension_income )
+    map_one!.( (shs_summaries,), (:any_selfemp,), wass.any_selfemp )   
+    #fixme total people to common     
+    map_one!.((lcf_summaries,), (:num_adults,), shs.total_people.(wass.totads, false )) 
+    map_one!.( (lcf_summaries,), (:num_children,), shs.total_people.(wass.numkids, true )) 
+    map_one!.( (shs_summaries,), (:socio,), was.map_socio(wass.occupation ))
+    for hno in 1:settings.num_households
+        hh = FRSHouseholdGetter.get_household(hno)
+        cts = mm.counts_for_match( hh )
+        for (pno,pers) in hh.people
+            if pers.is_hrp
+
+            end
+        end # people
+    end
+   
     #=
-    age_head
-    household_type
     empstat_head
     model_map_socio( socio_economic_head
     map_marital marital_status_head
@@ -264,11 +282,13 @@ end
     any_pension_income
     num_children
     num_adults
-    for hno in 1:settings.num_households
-        hh = FRSHouseholdGetter.get_household(hno)
-        cts = mm.counts_for_match( hh )
+    was.model
+
+    
         mm.age_grp( pers.age )    
         was.model_was_map_household_composition
+        was.model_was_map_socio
+
     =#
     pretty_table( to_pct(was_summaries ))
     pretty_table( to_pct(model_summaries ))
@@ -278,34 +298,34 @@ end
     shss = shs.create_shs(2018:2022)
     model_summaries = one_shs_model_summary_df()
     shs_summaries = one_shs_model_summary_df()
-    map_one!.( (shs_summaries,),  (:shelter,),  shss.accsup1 )
-    map_one!.( (shs_summaries,),  (:tenure,),  shs.tenuremap.(shss.tenure)) 
-    map_one!.( (shs_summaries,),  (:acctype,),  shs.accomtype.(shss.hb1, shss.hb2) ) 
-    map_one!.( (shs_summaries,),  (:bedrooms,),  shs.bedrooms.(shss.hc4 )) 
-    map_one!.( (shs_summaries,),  (:hh_composition,),  shs.map_composition.(shss.hhtype_new ))
-    map_one!.((shs_summaries,),  (:num_adults,),  shs.total_people.(shss.totads, false )) 
-    map_one!.( (shs_summaries,),  (:num_children,),  shs.total_people.(shss.numkids, true )) 
-    map_one!.( (shs_summaries,),  (:agehigh,),  shs.age.(shss.hihage )) 
-    map_one!.( (shs_summaries,),  (:empstathigh,),  shs.empstat.(shss.hihecon )) 
-    map_one!.( (shs_summaries,),  (:ethnichigh,),  shs.ethnic.(shss.hih_eth2012 )) 
-    map_one!.( (shs_summaries,),  (:sochigh,),  shs.map_social.(shss.hihsoc )) 
-    map_one!.( (shs_summaries,),  (:datayear,),  shss.datayear .- 2017 ) 
+    map_one!.( (shs_summaries,), (:shelter,), shss.accsup1 )
+    map_one!.( (shs_summaries,), (:tenure,), shs.tenuremap.(shss.tenure)) 
+    map_one!.( (shs_summaries,), (:acctype,), shs.accomtype.(shss.hb1, shss.hb2) ) 
+    map_one!.( (shs_summaries,), (:bedrooms,), shs.bedrooms.(shss.hc4 )) 
+    map_one!.( (shs_summaries,), (:hh_composition,), shs.map_composition.(shss.hhtype_new ))
+    map_one!.((shs_summaries,), (:num_adults,), shs.total_people.(shss.totads, false )) 
+    map_one!.( (shs_summaries,), (:num_children,), shs.total_people.(shss.numkids, true )) 
+    map_one!.( (shs_summaries,), (:agehigh,), shs.age.(shss.hihage )) 
+    map_one!.( (shs_summaries,), (:empstathigh,), shs.empstat.(shss.hihecon )) 
+    map_one!.( (shs_summaries,), (:ethnichigh,), shs.ethnic.(shss.hih_eth2012 )) 
+    map_one!.( (shs_summaries,), (:sochigh,), shs.map_social.(shss.hihsoc )) 
+    map_one!.( (shs_summaries,), (:datayear,), shss.datayear .- 2017 ) 
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
         map_one!( model_summaries, :region, mm.map_region( hh.region ))
         map_one!( model_summaries, :tenure, shs.shs_model_tenure( hh.tenure ))
-        map_one!( model_summaries, :acctype,  shs.model_to_shs_accommap(hh.dwelling)) 
-        map_one!( model_summaries, :bedrooms,  shs.bedrooms( hh.bedrooms )) 
-        map_one!( model_summaries, :hh_composition,  shs.model_shs_map_composition( household_composition_1(hh)))
+        map_one!( model_summaries, :acctype, shs.model_to_shs_accommap(hh.dwelling)) 
+        map_one!( model_summaries, :bedrooms, shs.bedrooms( hh.bedrooms )) 
+        map_one!( model_summaries, :hh_composition, shs.model_shs_map_composition( household_composition_1(hh)))
         for (pno,pers) in hh.people
              if pers.is_hrp
                 map_one!( model_summaries, :num_adults, cts.num_adults )
                 map_one!( model_summaries, :num_children, cts.num_children )
-                map_one!( model_summaries, :agehigh,  shs.age.(pers.age ))
+                map_one!( model_summaries, :agehigh, shs.age.(pers.age ))
                 map_one!( model_summaries, :empstathigh, shs.shs_model_empstat(pers.employment_status))
                 map_one!( model_summaries, :ethnichigh, shs.shs_model_ethnic(pers.ethnic_group))
-                map_one!( model_summaries,  :sochigh,  shs.shs_model_map_social( pers.occupational_classification )) 
+                map_one!( model_summaries, :sochigh, shs.shs_model_map_social( pers.occupational_classification )) 
             end
         end # people
     end # households
