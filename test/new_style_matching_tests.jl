@@ -263,46 +263,38 @@ end
     was_summaries = one_was_model_summary_df()
     map_one!.( (was_summaries,), (:tenure,), was.map_tenure.(wass.tenure)) 
     map_one!.( (was_summaries,), (:acctype,), was.map_accom.(wass.accom) ) 
-    map_one!.( (was_summaries,), (:empstat,), was.map_empstat.(wass.empstat_head))
     # bedrooms to common
     map_one!.( (was_summaries,), (:bedrooms,), shs.bedrooms.(wass.bedrooms)) 
-    map_one!.( (was_summaries,), (:agehigh,), was.map_age_hrp.(wass.age_head)) 
     map_one!.( (was_summaries,), (:hh_composition,), was.map_household_composition.(wass.household_type)) 
-    map_one!.( (was_summaries,), (:marstat,), was.map_marital.(wass.marital_status_head))
     map_one!.( (was_summaries,), (:any_wages,), wass.any_wages )
     map_one!.( (was_summaries,), (:any_pension_income,), wass.any_pension_income )
     map_one!.( (was_summaries,), (:any_selfemp,), wass.any_selfemp )   
     #fixme total people to common     
     map_one!.( (was_summaries,), (:num_adults,), shs.total_people.(wass.num_adults, false )) 
     map_one!.( (was_summaries,), (:num_children,), shs.total_people.(wass.num_children, true )) 
+    map_one!.( (was_summaries,), (:agehigh,), was.map_age_hrp.(wass.age_head)) 
+    map_one!.( (was_summaries,), (:marstat,), was.map_marital.(wass.marital_status_head))
     map_one!.( (was_summaries,), (:socio,), was.map_socio.(wass.socio_economic_head))
+    map_one!.( (was_summaries,), (:empstat,), was.map_empstat.(wass.empstat_head))
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
-        for (pno,pers) in hh.people
-            if pers.is_hrp
-
-            end
-        end # people
+        map_one!( model_summaries, :region, mm.map_region( hh.region ))
+        map_one!( model_summaries, :tenure, shs.shs_model_tenure( hh.tenure ))
+        map_one!( model_summaries, :acctype, shs.model_to_shs_accommap(hh.dwelling)) 
+        map_one!( model_summaries, :bedrooms, shs.bedrooms( hh.bedrooms )) 
+        map_one!( model_summaries, :hh_composition, shs.model_shs_map_composition( household_composition_1(hh)))
+        map_one!( model_summaries, :num_adults, cts.num_adults )
+        map_one!( model_summaries, :num_children, cts.num_children )
+        map_one!( model_summaries, :any_wages, cts.any_wages )
+        map_one!( model_summaries, :any_pension_income, cts.any_pension_income )
+        map_one!( model_summaries, :any_selfemp, cts.any_selfemp )     
+        head = get_head(hh)   
+        # age!! 
+        map_one!( model_summaries, :empstat, was.model_was_map_empstat( head.employment_status))
+        map_one!( model_summaries, :marstat, mm.map_marital( head.marital_status))
+        map_one!( model_summaries, :socio, was.model_was_map_socio( head.socio_economic_grouping)       
     end
-   
-    #=
-    empstat_head
-    model_map_socio( socio_economic_head
-    map_marital marital_status_head
-    any_wages
-    any_selfemp
-    any_pension_income
-    num_children
-    num_adults
-    was.model
-
-    
-        mm.age_grp( pers.age )    
-        was.model_was_map_household_composition
-        was.model_was_map_socio
-
-    =#
     pretty_table( to_pct(was_summaries ))
     pretty_table( to_pct(model_summaries ))
 end
@@ -331,19 +323,14 @@ end
         map_one!( model_summaries, :acctype, shs.model_to_shs_accommap(hh.dwelling)) 
         map_one!( model_summaries, :bedrooms, shs.bedrooms( hh.bedrooms )) 
         map_one!( model_summaries, :hh_composition, shs.model_shs_map_composition( household_composition_1(hh)))
-        for (pno,pers) in hh.people
-             if pers.is_hrp
-                map_one!( model_summaries, :num_adults, cts.num_adults )
-                map_one!( model_summaries, :num_children, cts.num_children )
-                map_one!( model_summaries, :agehigh, shs.age.(pers.age ))
-                map_one!( model_summaries, :empstathigh, shs.shs_model_empstat(pers.employment_status))
-                map_one!( model_summaries, :ethnichigh, shs.shs_model_ethnic(pers.ethnic_group))
-                map_one!( model_summaries, :sochigh, shs.shs_model_map_social( pers.occupational_classification )) 
-            end
-        end # people
+        map_one!( model_summaries, :num_adults, cts.num_adults )
+        map_one!( model_summaries, :num_children, cts.num_children )
+        head = get_head(hh)   
+        map_one!( model_summaries, :agehigh, shs.age.(head.age ))
+        map_one!( model_summaries, :empstathigh, shs.shs_model_empstat(head.employment_status))
+        map_one!( model_summaries, :ethnichigh, shs.shs_model_ethnic(head.ethnic_group))
+        map_one!( model_summaries, :sochigh, shs.shs_model_map_social( head.occupational_classification )) 
     end # households
-
-
     pretty_table( to_pct(shs_summaries ))
     pretty_table( to_pct(model_summaries ))
 end
@@ -359,49 +346,45 @@ end
     map_one!.( (lcf_summaries,), (:empstat,), lcf.map_empstat.( lcfs.a206, lcfs.a005p ))
     map_one!.( (lcf_summaries,), (:tenure,), lcf.map_tenure.(lcfs.a121 ))
     map_one!.( (lcf_summaries,), (:region,), lcf.map_region.( lcfs.gorx ))
-    map_one!.(  (lcf_summaries,), (:num_people,), lcfs.num_people )
-    map_one!.(  (lcf_summaries,), (:num_children,), lcfs.num_children )
+    map_one!.( (lcf_summaries,), (:num_people,), lcfs.num_people )
+    map_one!.( (lcf_summaries,), (:num_children,), lcfs.num_children )
     map_one!.( (lcf_summaries,), (:any_disabled,), lcfs.has_disabled_member )
-    map_one!.(  (lcf_summaries,), (:has_female_adult,), lcfs.has_female_adult )
-    map_one!.(  (lcf_summaries,), (:num_employees,), lcfs.num_employees )
-    map_one!.(  (lcf_summaries,), (:num_pensioners,), lcfs.num_pensioners )
-    map_one!.(  (lcf_summaries,), (:num_fulltime,), lcfs.num_fulltime )
-    map_one!.(  (lcf_summaries,), (:num_parttime,), lcfs.num_parttime )
-    map_one!.(  (lcf_summaries,), (:num_selfemp,), lcfs.num_selfemp )
-    map_one!.(  (lcf_summaries,), (:num_unemployed,), lcfs.num_unemployed )
-    map_one!.(  (lcf_summaries,), (:num_unoccupied,), lcfs.num_unoccupied )
-    map_one!.(  (lcf_summaries,), (:hrp_has_partner,), lcfs.hrp_has_partner )
-    map_one!.(  (lcf_summaries,), (:any_wages,), lcfs.any_wages )
-    map_one!.(  (lcf_summaries,), (:any_pension_income,), lcfs.any_pension_income )
-    map_one!.(  (lcf_summaries,), (:any_selfemp,), lcfs.any_selfemp )        
+    map_one!.( (lcf_summaries,), (:has_female_adult,), lcfs.has_female_adult )
+    map_one!.( (lcf_summaries,), (:num_employees,), lcfs.num_employees )
+    map_one!.( (lcf_summaries,), (:num_pensioners,), lcfs.num_pensioners )
+    map_one!.( (lcf_summaries,), (:num_fulltime,), lcfs.num_fulltime )
+    map_one!.( (lcf_summaries,), (:num_parttime,), lcfs.num_parttime )
+    map_one!.( (lcf_summaries,), (:num_selfemp,), lcfs.num_selfemp )
+    map_one!.( (lcf_summaries,), (:num_unemployed,), lcfs.num_unemployed )
+    map_one!.( (lcf_summaries,), (:num_unoccupied,), lcfs.num_unoccupied )
+    map_one!.( (lcf_summaries,), (:hrp_has_partner,), lcfs.hrp_has_partner )
+    map_one!.( (lcf_summaries,), (:any_wages,), lcfs.any_wages )
+    map_one!.( (lcf_summaries,), (:any_pension_income,), lcfs.any_pension_income )
+    map_one!.( (lcf_summaries,), (:any_selfemp,), lcfs.any_selfemp )        
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
         map_one!( model_summaries, :region, mm.map_region( hh.region ))
         map_one!( model_summaries, :tenure, mm.map_tenure( hh.tenure ))
-        for (pno,pers) in hh.people
-            # print( pers.socio_economic_grouping); 
-            if pers.is_hrp
-                map_one!( model_summaries, :socio, lcf.map_socio( pers.socio_economic_grouping, pers.employment_status ))
-                map_one!( model_summaries, :empstat, lcf.map_empstat( pers.employment_status ))           
-                map_one!( model_summaries, :marstat, lcf.map_marital( pers.marital_status ))
-                map_one!( model_summaries, :num_people, cts.num_people )
-                map_one!( model_summaries, :num_children, cts.num_children )
-                map_one!( model_summaries, :any_disabled, cts.has_disabled_member )
-                map_one!(  model_summaries, :has_female_adult, cts.has_female_adult )
-                map_one!(  model_summaries, :num_employees, cts.num_employees )
-                map_one!(  model_summaries, :num_pensioners, cts.num_pensioners )
-                map_one!(  model_summaries, :num_fulltime, cts.num_fulltime )
-                map_one!(  model_summaries, :num_parttime, cts.num_parttime )
-                map_one!(  model_summaries, :num_selfemp, cts.num_selfemp )
-                map_one!(  model_summaries, :num_unemployed, cts.num_unemployed )
-                map_one!(  model_summaries, :num_unoccupied, cts.num_unoccupied )
-                map_one!(  model_summaries, :hrp_has_partner, cts.hrp_has_partner )
-                map_one!(  model_summaries, :any_wages, cts.any_wages )
-                map_one!(  model_summaries, :any_pension_income, cts.any_pension_income )
-                map_one!(  model_summaries, :any_selfemp, cts.any_selfemp )        
-            end
-        end
+        head = get_head(hh)   
+        map_one!( model_summaries, :socio, lcf.map_socio( head.socio_economic_grouping, pers.employment_status ))
+        map_one!( model_summaries, :empstat, lcf.map_empstat( head.employment_status ))           
+        map_one!( model_summaries, :marstat, lcf.map_marital( head.marital_status ))
+        map_one!( model_summaries, :num_people, cts.num_people )
+        map_one!( model_summaries, :num_children, cts.num_children )
+        map_one!( model_summaries, :any_disabled, cts.has_disabled_member )
+        map_one!( model_summaries, :has_female_adult, cts.has_female_adult )
+        map_one!( model_summaries, :num_employees, cts.num_employees )
+        map_one!( model_summaries, :num_pensioners, cts.num_pensioners )
+        map_one!( model_summaries, :num_fulltime, cts.num_fulltime )
+        map_one!( model_summaries, :num_parttime, cts.num_parttime )
+        map_one!( model_summaries, :num_selfemp, cts.num_selfemp )
+        map_one!( model_summaries, :num_unemployed, cts.num_unemployed )
+        map_one!( model_summaries, :num_unoccupied, cts.num_unoccupied )
+        map_one!( model_summaries, :hrp_has_partner, cts.hrp_has_partner )
+        map_one!( model_summaries, :any_wages, cts.any_wages )
+        map_one!( model_summaries, :any_pension_income, cts.any_pension_income )
+        map_one!( model_summaries, :any_selfemp, cts.any_selfemp )        
     end
     pretty_table( to_pct(lcf_summaries ))
     pretty_table( to_pct(model_summaries ))
