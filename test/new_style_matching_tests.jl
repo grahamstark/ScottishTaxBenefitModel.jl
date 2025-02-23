@@ -180,12 +180,15 @@ function one_was_model_summary_df()::DataFrame
     n = 21
     return DataFrame( 
         n = 1:n,
+        agehigh_1 = zeros(n),
         marstat_1 = zeros(n),
         socio_1 = zeros(n),
+        hh_composition_1 = zeros(n),
         empstat_1 = zeros(n),
         tenure_1 = zeros(n),
         acctype_1 = zeros(n),
         region_1 = zeros(n),
+        bedrooms_1 = zeros(n),
         num_people_1 = zeros(n),
         num_children_1 = zeros(n),
         any_disabled_1 = zeros(n),
@@ -202,12 +205,15 @@ function one_was_model_summary_df()::DataFrame
         any_pension_income_1 = zeros(n),
         any_selfemp_1 = zeros(n),
         hrp_unemployed_1 = zeros(n),
+        agehigh_2 = zeros(n),
         marstat_2 = zeros(n),
         socio_2 = zeros(n),
+        hh_composition_2 = zeros(n),
         empstat_2 = zeros(n),
         tenure_2 = zeros(n),
         acctype_2 = zeros(n),
         region_2 = zeros(n),
+        bedrooms_2 = zeros(n),
         num_people_2 = zeros(n),
         any_disabled_2 = zeros(n),
         has_female_adult_2 = zeros(n),
@@ -223,12 +229,15 @@ function one_was_model_summary_df()::DataFrame
         any_pension_income_2 = zeros(n),
         any_selfemp_2 = zeros(n),
         hrp_unemployed_2 = zeros(n),
+        agehigh_3 = zeros(n),
         marstat_3 = zeros(n),
         socio_3 = zeros(n),
+        hh_composition_3 = zeros(n),
         empstat_3 = zeros(n),
         tenure_3 = zeros(n),
         acctype_3 = zeros(n),
         region_3 = zeros(n),
+        bedrooms_3 = zeros(n),
         num_people_3 = zeros(n),
         any_disabled_3 = zeros(n),
         has_female_adult_3 = zeros(n),
@@ -250,19 +259,20 @@ end
     wass = was.create_subset()
     model_summaries = one_was_model_summary_df()
     was_summaries = one_was_model_summary_df()
-    map_one!.( (shs_summaries,), (:tenure,), was.map_tenure.(wass.tenure)) 
-    map_one!.( (shs_summaries,), (:acctype,), was.map_accom.(wass.accom) ) 
-    map_one!.( (shs_summaries,), (:bedrooms,), was.bedrooms.(wass.bedrooms)) 
-    map_one!.( (shs_summaries,), (:agehigh,), was.map_age_hrp.(wass.age_head)) 
-    map_one!.( (shs_summaries,), (:hh_composition,), was.map_household_composition.(wass.household_type)) 
-    map_one!.( (shs_summaries,), (:marrstat,), was.map_marital(marital_status_head))
-    map_one!.( (shs_summaries,), (:any_wages,), wass.any_wages )
-    map_one!.( (shs_summaries,), (:any_pension_income,), wass.any_pension_income )
-    map_one!.( (shs_summaries,), (:any_selfemp,), wass.any_selfemp )   
+    map_one!.( (was_summaries,), (:tenure,), was.map_tenure.(wass.tenure)) 
+    map_one!.( (was_summaries,), (:acctype,), was.map_accom.(wass.accom) ) 
+    # bedrooms to common
+    map_one!.( (was_summaries,), (:bedrooms,), shs.bedrooms.(wass.bedrooms)) 
+    map_one!.( (was_summaries,), (:agehigh,), was.map_age_hrp.(wass.age_head)) 
+    map_one!.( (was_summaries,), (:hh_composition,), was.map_household_composition.(wass.household_type)) 
+    map_one!.( (was_summaries,), (:marstat,), was.map_marital.(wass.marital_status_head))
+    map_one!.( (was_summaries,), (:any_wages,), wass.any_wages )
+    map_one!.( (was_summaries,), (:any_pension_income,), wass.any_pension_income )
+    map_one!.( (was_summaries,), (:any_selfemp,), wass.any_selfemp )   
     #fixme total people to common     
-    map_one!.((lcf_summaries,), (:num_adults,), shs.total_people.(wass.totads, false )) 
-    map_one!.( (lcf_summaries,), (:num_children,), shs.total_people.(wass.numkids, true )) 
-    map_one!.( (shs_summaries,), (:socio,), was.map_socio(wass.occupation ))
+    map_one!.( (was_summaries,), (:num_adults,), shs.total_people.(wass.totads, false )) 
+    map_one!.( (was_summaries,), (:num_children,), shs.total_people.(wass.numkids, true )) 
+    map_one!.( (was_summaries,), (:socio,), was.map_socio(wass.occupation ))
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
