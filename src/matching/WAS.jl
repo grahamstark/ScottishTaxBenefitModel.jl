@@ -271,11 +271,40 @@ into:
  
 """
 function map_empstat( ie :: Int ) :: Vector{Int}
-    return Common.map_empstat( ie )
+    if ie < 0
+        return rand(Int,2)
+    end
+    i2 = if ie <= 3
+        1
+    else 
+        2
+    end
+    return [ie, i2]
 end
 
 function model_was_map_empstat( empstat :: ILO_Employment ):: Vector{Int}
-
+    i1, i2 = if empstat == Missing_ILO_Employment 
+        rand(Int), rand(Int)
+    elseif empstat in [Full_time_Employee,0Part_time_Employee]
+        1,1
+    elseif empstat in [Full_time_Self_Employed,Part_time_Self_Employed]
+        2,1
+    elseif empstat == Unemployed 
+        3,1
+    elseif empstat == Retired 
+        7,2
+    elseif empstat == Student
+        4,2
+    elseif empstat == Looking_after_family_or_home
+        5,2
+    elseif empstat == Permanently_sick_or_disabled
+        6,2
+    elseif empstat == Temporarily_sick_or_injured 
+        6,2
+    elseif empstat == Other_Inactive 
+        8,2
+    end
+    return [i1,i2]
 end
 
 function map_age_hrp( age :: Int ) :: Vector{Int}

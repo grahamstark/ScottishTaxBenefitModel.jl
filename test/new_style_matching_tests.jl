@@ -189,7 +189,7 @@ function one_was_model_summary_df()::DataFrame
         acctype_1 = zeros(n),
         region_1 = zeros(n),
         bedrooms_1 = zeros(n),
-        num_people_1 = zeros(n),
+        num_adults_1 = zeros(n),
         num_children_1 = zeros(n),
         any_disabled_1 = zeros(n),
         has_female_adult_1 = zeros(n),
@@ -214,7 +214,8 @@ function one_was_model_summary_df()::DataFrame
         acctype_2 = zeros(n),
         region_2 = zeros(n),
         bedrooms_2 = zeros(n),
-        num_people_2 = zeros(n),
+        num_adults_2 = zeros(n),
+        num_children_2 = zeros(n),
         any_disabled_2 = zeros(n),
         has_female_adult_2 = zeros(n),
         num_employees_2 = zeros(n),
@@ -238,7 +239,8 @@ function one_was_model_summary_df()::DataFrame
         acctype_3 = zeros(n),
         region_3 = zeros(n),
         bedrooms_3 = zeros(n),
-        num_people_3 = zeros(n),
+        num_adults_3 = zeros(n),
+        num_children_3 = zeros(n),
         any_disabled_3 = zeros(n),
         has_female_adult_3 = zeros(n),
         num_employees_3 = zeros(n),
@@ -261,6 +263,7 @@ end
     was_summaries = one_was_model_summary_df()
     map_one!.( (was_summaries,), (:tenure,), was.map_tenure.(wass.tenure)) 
     map_one!.( (was_summaries,), (:acctype,), was.map_accom.(wass.accom) ) 
+    map_one!.( (was_summaries,), (:empstat,), was.map_empstat.(wass.empstat_head))
     # bedrooms to common
     map_one!.( (was_summaries,), (:bedrooms,), shs.bedrooms.(wass.bedrooms)) 
     map_one!.( (was_summaries,), (:agehigh,), was.map_age_hrp.(wass.age_head)) 
@@ -270,9 +273,9 @@ end
     map_one!.( (was_summaries,), (:any_pension_income,), wass.any_pension_income )
     map_one!.( (was_summaries,), (:any_selfemp,), wass.any_selfemp )   
     #fixme total people to common     
-    map_one!.( (was_summaries,), (:num_adults,), shs.total_people.(wass.totads, false )) 
-    map_one!.( (was_summaries,), (:num_children,), shs.total_people.(wass.numkids, true )) 
-    map_one!.( (was_summaries,), (:socio,), was.map_socio(wass.occupation ))
+    map_one!.( (was_summaries,), (:num_adults,), shs.total_people.(wass.num_adults, false )) 
+    map_one!.( (was_summaries,), (:num_children,), shs.total_people.(wass.num_children, true )) 
+    map_one!.( (was_summaries,), (:socio,), was.map_socio.(wass.socio_economic_head))
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
