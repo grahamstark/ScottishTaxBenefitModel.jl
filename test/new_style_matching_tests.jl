@@ -367,7 +367,7 @@ end
         map_one!( model_summaries, :region, mm.map_region( hh.region ))
         map_one!( model_summaries, :tenure, mm.map_tenure( hh.tenure ))
         head = get_head(hh)   
-        map_one!( model_summaries, :socio, lcf.map_socio( head.socio_economic_grouping, pers.employment_status ))
+        map_one!( model_summaries, :socio, lcf.model_lcf_map_socio( head.socio_economic_grouping, head.employment_status ))
         map_one!( model_summaries, :empstat, lcf.map_empstat( head.employment_status ))           
         map_one!( model_summaries, :marstat, lcf.map_marital( head.marital_status ))
         map_one!( model_summaries, :num_people, cts.num_people )

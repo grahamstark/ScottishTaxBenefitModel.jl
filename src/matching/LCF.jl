@@ -90,7 +90,7 @@ end
 """
 FRS version for the model.
 """
-function map_socio( socio :: Socio_Economic_Group, empstat :: ILO_Employment )::Vector{Int}
+function model_lcf_map_socio( socio :: Socio_Economic_Group, empstat :: ILO_Employment )::Vector{Int}
     return Common.map_socio( recode_frs_socio( socio, empstat ))
 end
 

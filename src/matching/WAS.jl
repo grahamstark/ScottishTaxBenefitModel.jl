@@ -285,7 +285,7 @@ end
 function model_was_map_empstat( empstat :: ILO_Employment ):: Vector{Int}
     i1, i2 = if empstat == Missing_ILO_Employment 
         rand(Int), rand(Int)
-    elseif empstat in [Full_time_Employee,0Part_time_Employee]
+    elseif empstat in [Full_time_Employee,Part_time_Employee]
         1,1
     elseif empstat in [Full_time_Self_Employed,Part_time_Self_Employed]
         2,1
