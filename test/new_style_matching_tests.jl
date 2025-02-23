@@ -293,7 +293,7 @@ end
         # age!! 
         map_one!( model_summaries, :empstat, was.model_was_map_empstat( head.employment_status))
         map_one!( model_summaries, :marstat, mm.map_marital( head.marital_status))
-        map_one!( model_summaries, :socio, was.model_was_map_socio( head.socio_economic_grouping)       
+        map_one!( model_summaries, :socio, was.model_was_map_socio( head.socio_economic_grouping))     
     end
     pretty_table( to_pct(was_summaries ))
     pretty_table( to_pct(model_summaries ))
