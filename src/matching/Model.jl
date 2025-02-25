@@ -53,10 +53,10 @@ end
    Squats = 8
 """
 function map_tenure(  t :: Tenure_Type ) :: Vector{Int}
-    if t in 1:8
-        return Common.map_tenure( Int( t ) )
-    else
+    if t == Missing_Tenure_Type
         return rand(Int,2)
+    else 
+        return Common.map_tenure( Int( t ) )
     end
 end
 
