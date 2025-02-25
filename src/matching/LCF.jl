@@ -276,6 +276,9 @@ a006p	Marital status; spouse in household	1
 """
 
 #=
+
+from:
+
 lcf     | 2020 | dvhh   | A121          | 0     | Not Recorded                  | Not_Recorded
 lcf     | 2020 | dvhh   | A121          | 1     | Local authority rented unfurn | Local_authority_rented_unfurn
 lcf     | 2020 | dvhh   | A121          | 2     | Housing association           | Housing_association
@@ -285,11 +288,21 @@ lcf     | 2020 | dvhh   | A121          | 5     | Owned with mortgage           
 lcf     | 2020 | dvhh   | A121          | 6     | Owned by rental purchase      | Owned_by_rental_purchase
 lcf     | 2020 | dvhh   | A121          | 7     | Owned outright                | Owned_outright
 lcf     | 2020 | dvhh   | A121          | 8     | Rent free                     | Rent_free
+
+to:
+   Council_Rented = 1
+   Housing_Association = 2
+   Private_Rented_Unfurnished = 3
+   Private_Rented_Furnished = 4
+   Mortgaged_Or_Shared = 5
+   Owned_outright = 6
+   Rent_free/Squats = 7
+
 =#
 function map_tenure( a121 :: Union{Int,Missing} ) :: Vector{Int}
     out = zeros( 2 )
     if ismissing( a121 )
-        ;
+        return rand(Int,2)
     elseif a121 == 1
         out[1] = 1
         out[2] = 1
@@ -312,9 +325,22 @@ function map_tenure( a121 :: Union{Int,Missing} ) :: Vector{Int}
         out[1] = 7
         out[2] = 3  
     else
-        @assert false "unmatched tentyp2 $tentyp2";
+        @assert false "unmatched a121 $a121";
     end 
     return out
+end
+
+function model_lcf_map_tenure( t:: Tenure_Type ):: Vector{Int}
+    t1,t2 = if t == Missing_Tenure_Type
+        rand(Int), rand(Int)
+    elseif t in [Council_Rented,Housing_Association,Private_Rented_Unfurnished,Private_Rented_Furnished]
+        Int(t), 1
+    elseif t in [Mortgaged_Or_Shared,Owned_outright]
+        Int(t),2
+    elseif t in [Rent_free,Squats]
+        7,3
+    end
+    return [t1,t2]
 end
 
 
@@ -518,7 +544,7 @@ function create_subset( ) :: DataFrame
         datayear = lcf.datayear, 
         month = lcf.a055, 
         year= lcf.year,
-        a121 = lcf.a121,
+        a121 = lcf.a121, # 
         a003 = lcf.a003, # is_hrp
         a005p = lcf.a005p, # anonymised age
         a006p = lcf.a006p, # marital status!!! anonymised version from derived variables - looks wrong.
@@ -529,6 +555,7 @@ function create_subset( ) :: DataFrame
         gorx = lcf.gorx, # govt region
         a065p  = lcf.a065p,
         a062 = lcf.a062,
+        a116 = lcf.a116, # accom type
         hrp_a200 = lcf.hrp_a200,  # Employment status (FES definition) HRP Only
         hrp_has_partner = lcf.hrp_has_partner, # Partner of Household Reference Person
         any_wages = lcf.any_wages,

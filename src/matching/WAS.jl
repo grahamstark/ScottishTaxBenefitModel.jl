@@ -67,19 +67,17 @@ end
 
 
 function model_was_map_household_composition( htype :: HouseholdComposition1 ) :: Vector{Int}
-    i = Int( htype )
-    if htype <= 0
-        return rand(Int,2)
-    end
-    h1, h2 == if htype in [1,2]
+    h1, h2 = if htype == single_person
         1,1
-    elseif htype in [8,9]
-        2,2
-    elseif htype in [3,4,5]
+    elseif htype == single_parent
+        2,1
+    elseif htype == couple_wo_children
         3,1
-    elseif htype in [6,7,8]
-        4,2
-    elseif htype in [10]
+    elseif htype == couple_w_children
+        4,2 
+    elseif htype == mbus_wo_children
+        5,3
+    elseif htype == mbus_w_children
         5,3
     end
     return [h1,h2]

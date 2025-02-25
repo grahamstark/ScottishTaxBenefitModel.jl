@@ -283,7 +283,8 @@ end
         map_one!( model_summaries, :tenure, shs.shs_model_tenure( hh.tenure ))
         map_one!( model_summaries, :acctype, shs.model_to_shs_accommap(hh.dwelling)) 
         map_one!( model_summaries, :bedrooms, shs.bedrooms( hh.bedrooms )) 
-        map_one!( model_summaries, :hh_composition, shs.model_shs_map_composition( household_composition_1(hh)))
+        map_one!( model_summaries, :hh_composition, was.model_was_map_household_composition( household_composition_1(hh)))
+                                                    #   model_was_map_household_composition
         map_one!( model_summaries, :num_adults, cts.num_adults )
         map_one!( model_summaries, :num_children, cts.num_children )
         map_one!( model_summaries, :any_wages, cts.any_wages )
@@ -295,6 +296,7 @@ end
         map_one!( model_summaries, :marstat, mm.map_marital( head.marital_status))
         map_one!( model_summaries, :socio, was.model_was_map_socio( head.socio_economic_grouping))     
     end
+    println("WAS")
     pretty_table( to_pct(was_summaries ))
     pretty_table( to_pct(model_summaries ))
 end
@@ -331,6 +333,7 @@ end
         map_one!( model_summaries, :ethnichigh, shs.shs_model_ethnic(head.ethnic_group))
         map_one!( model_summaries, :sochigh, shs.shs_model_map_social( head.occupational_classification )) 
     end # households
+    println("SHS")
     pretty_table( to_pct(shs_summaries ))
     pretty_table( to_pct(model_summaries ))
 end
@@ -340,11 +343,11 @@ end
     model_summaries = one_lcf_model_summary_df()
     lcf_summaries = one_lcf_model_summary_df()
     lcfs = lcf.create_subset()
-    map_one!.( (lcf_summaries,), (:acctype,), lcf.map_marital.(lcfs.a006p, lcfs.hrp_has_partner ))
+   # map_one!.( (lcf_summaries,), (:acctype,), lcf.map_marital.(lcfs.a006p, lcfs.hrp_has_partner ))
     map_one!.( (lcf_summaries,), (:marstat,), lcf.map_marital.(lcfs.a006p, lcfs.hrp_has_partner ))
     map_one!.( (lcf_summaries,), (:socio,), lcf.map_socio.( lcfs.a094 ))
-    map_one!.( (lcf_summaries,), (:empstat,), lcf.map_empstat.( lcfs.a206, lcfs.a005p ))
     map_one!.( (lcf_summaries,), (:tenure,), lcf.map_tenure.(lcfs.a121 ))
+    map_one!.( (lcf_summaries,), (:empstat,), lcf.map_empstat.( lcfs.a206, lcfs.a005p ))
     map_one!.( (lcf_summaries,), (:region,), lcf.map_region.( lcfs.gorx ))
     map_one!.( (lcf_summaries,), (:num_people,), lcfs.num_people )
     map_one!.( (lcf_summaries,), (:num_children,), lcfs.num_children )
@@ -386,6 +389,10 @@ end
         map_one!( model_summaries, :any_pension_income, cts.any_pension_income )
         map_one!( model_summaries, :any_selfemp, cts.any_selfemp )        
     end
+    println("LCF")
     pretty_table( to_pct(lcf_summaries ))
     pretty_table( to_pct(model_summaries ))
 end
+
+# was tenure acctype has_female_adult
+# lcf tenure accom any_disabled
