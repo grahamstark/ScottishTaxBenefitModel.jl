@@ -330,7 +330,7 @@ function map_tenure( a121 :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
-function model_lcf_map_tenure( t:: Tenure_Type ):: Vector{Int}
+function lcf_model_map_tenure( t:: Tenure_Type ):: Vector{Int}
     t1,t2 = if t == Missing_Tenure_Type
         rand(Int), rand(Int)
     elseif t in [Council_Rented,Housing_Association,Private_Rented_Unfurnished,Private_Rented_Furnished]
@@ -407,7 +407,50 @@ a116	Not recorded	0
 	Purpose built flat maisonette	4
 	Part of house converted flat	5
 	Others	6
+
+    !!!!! MISSING IN 2021 AND 2022
 =#
+
+function map_accom( a116 :: Union{Int,Missing} )::Vector{Int}
+    if ismissing(a116) || (a116 < 0)
+        return rand(Int,2)
+    end
+    d1, d2 = if a116 == 1 # Whole house bungalow-detached	1
+        1, 1
+    elseif a116 == 2 # Whole house bungalow semi-detached	2
+        2, 1
+    elseif a116 == 3 # Whole house bungalow terrace	3
+        3, 1       
+	elseif a116 == 4 # Purpose built flat maisonette	4
+        4, 2
+    elseif a116 == 5 # Part of house converted flat	5
+        5, 2
+    elseif a116 == 6
+        6, 3
+    else
+        @assert false "a116 not 1..6 : $a116"
+    end
+    return [d1,d2]
+end
+
+function lcf_model_map_accom( d :: DwellingType)::Vector{Int}
+    d1, d2 = if d == dwell_na
+        rand(Int), rand(Int)
+    elseif d == detatched
+        1, 1
+    elseif d == semi_detached
+        2, 1
+    elseif d == terraced
+        3, 1
+    elseif d == flat_or_maisonette
+        4, 2
+    elseif d == converted_flat
+        5, 2
+    elseif d in [caravan,other_dwelling]
+        6, 3
+    end
+    return [d1,d2]
+end
 
 
 # DIR = "/media/graham_s/Transcend/data/lcf/"
@@ -421,7 +464,7 @@ function load4lcfs()::Tuple
     lcfhrows,lcfhcols,lcfhh18 = Common.load( "$(DIR)/1819/tab/2018_dvhh_ukanon.tab", 2018 )
     lcfhrows,lcfhcols,lcfhh19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
     lcfhrows,lcfhcols,lcfhh20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
-    lcfhrows,lcfhcols,lcfhh21 = Common.load( "$(DIR)/2022/tab/dvhh_ukanon_2022.tab", 2021 )
+    lcfhrows,lcfhcols,lcfhh21 = Common.load( "$(DIR)/2122/tab/dvhh_ukanon_2022.tab", 2021 )
     lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
     lcfhrows = size(lcfhh)[1]
 
@@ -793,17 +836,6 @@ function composition_map( a062 :: Int ) :: Vector{Int}
     mappings = (lcf1=[1],lcf2=[2],lcf3=[3,4],lcf4=[5,6],lcf5=[7,8],lcf6=[18,23,26,28],lcf7=[9,10],lcf8=[11,12],lcf9=[13,14,15,16,17],lcf10=[19,24,20,21,22,25,27,29,30])
     return composition_map( a062,  mappings )
 end
-
-"""
-Map accomodation. Unused in the end.
-"""
-function map_accom( a116 :: Any, default=9998)  :: Vector{Int}
-    @argcheck a116 in 1:6
-    return Common.map_accom( a116 )
-end
-
-
-
 
 """
 Triple for the age group for the lcf hrp - 1st is groups above to 75, 2nd is 16-39, 40+ 3rd no match.
