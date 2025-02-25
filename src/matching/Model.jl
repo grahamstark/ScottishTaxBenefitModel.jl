@@ -53,7 +53,6 @@ end
    Squats = 8
 """
 function map_tenure(  t :: Tenure_Type ) :: Vector{Int}
-    i = Int(t)
     if t in 1:8
         return Common.map_tenure( Int( t ) )
     else
@@ -84,8 +83,8 @@ Scotland = 11
 Wales = 10
 Northern_Ireland = 12
 """
-function map_region( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int}
-    out = fill( default, 3 )
+function map_region( gvtregn :: Union{Int,Missing} ) :: Vector{Int}
+    out = rand(Int,3)
     # gvtregn = parse(Int, gvtregn )
     if ismissing( gvtregn )
         ;
@@ -111,7 +110,7 @@ function map_region( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int
 end
 
 function map_region(  reg :: Standard_Region ) :: Vector{Int}
-    return map_region( Int( reg ), 9998 )
+    return map_region( Int( reg ) )
 end
 
 
