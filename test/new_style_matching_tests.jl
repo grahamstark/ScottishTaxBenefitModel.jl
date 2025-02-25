@@ -115,6 +115,7 @@ function one_lcf_model_summary_df()::DataFrame
         empstat_1 = zeros(n),
         tenure_1 = zeros(n),
         acctype_1 = zeros(n),
+        agehigh_1 = zeros(n),
         region_1 = zeros(n),
         num_people_1 = zeros(n),
         num_children_1 = zeros(n),
@@ -137,6 +138,7 @@ function one_lcf_model_summary_df()::DataFrame
         empstat_2 = zeros(n),
         tenure_2 = zeros(n),
         acctype_2 = zeros(n),
+        agehigh_2 = zeros(n),
         region_2 = zeros(n),
         num_people_2 = zeros(n),
         any_disabled_2 = zeros(n),
@@ -159,6 +161,7 @@ function one_lcf_model_summary_df()::DataFrame
         tenure_3 = zeros(n),
         acctype_3 = zeros(n),
         region_3 = zeros(n),
+        agehigh_3 = zeros(n),
         num_people_3 = zeros(n),
         any_disabled_3 = zeros(n),
         has_female_adult_3 = zeros(n),
@@ -280,7 +283,7 @@ end
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
         map_one!( model_summaries, :region, mm.map_region( hh.region ))
-        map_one!( model_summaries, :tenure, shs.shs_model_tenure( hh.tenure ))
+        map_one!( model_summaries, :tenure, mm.map_tenure( hh.tenure ))
         map_one!( model_summaries, :acctype, shs.model_to_shs_accommap(hh.dwelling)) 
         map_one!( model_summaries, :bedrooms, shs.bedrooms( hh.bedrooms )) 
         map_one!( model_summaries, :hh_composition, was.model_was_map_household_composition( household_composition_1(hh)))
@@ -364,7 +367,9 @@ end
     map_one!.( (lcf_summaries,), (:hrp_has_partner,), lcfs.hrp_has_partner )
     map_one!.( (lcf_summaries,), (:any_wages,), lcfs.any_wages )
     map_one!.( (lcf_summaries,), (:any_pension_income,), lcfs.any_pension_income )
-    map_one!.( (lcf_summaries,), (:any_selfemp,), lcfs.any_selfemp )        
+    map_one!.( (lcf_summaries,), (:any_selfemp,), lcfs.any_selfemp )     
+    map_one!.( (lcf_summaries,), (:agehigh,), lcfs.a005p ) 
+      
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
@@ -372,6 +377,7 @@ end
         map_one!( model_summaries, :tenure, lcf.lcf_model_map_tenure( hh.tenure ))
         map_one!( model_summaries, :acctype, lcf.lcf_model_map_accom(hh.dwelling)) 
         head = get_head(hh)   
+        map_one!( model_summaries, :agehigh, head.age )
         map_one!( model_summaries, :socio, lcf.model_lcf_map_socio( head.socio_economic_grouping, head.employment_status ))
         map_one!( model_summaries, :empstat, lcf.map_empstat( head.employment_status ))           
         map_one!( model_summaries, :marstat, lcf.map_marital( head.marital_status ))

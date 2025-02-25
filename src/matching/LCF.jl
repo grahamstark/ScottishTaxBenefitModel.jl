@@ -471,12 +471,12 @@ function load4lcfs()::Tuple
     lcfprows,lcpfcols,lcf_pers_drv_stk18 = Common.load( "$(DIR)/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
     lcfprows,lcpfcols,lcf_pers_drv_stk19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
     lcfprows,lcpfcols,lcf_pers_drv_stk20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfprows,lcpfcols,lcf_pers_drv_stk21 = Common.load( "$(DIR)/2022/tab/dvper_ukanon_2022-23.tab",2021 )
+    lcfprows,lcpfcols,lcf_pers_drv_stk21 = Common.load( "$(DIR)/2122/tab/dvper_ukanon_2022-23.tab",2021 )
 
     lcfprows,lcpfcols,lcf_pers_raw_stk18 = Common.load( "$(DIR)/1819/tab/2018_rawper_ukanon_final.tab", 2018 )
     lcfprows,lcpfcols,lcf_pers_raw_stk19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_rawper_ukanon_final.tab", 2019 )
     lcfprows,lcpfcols,lcf_pers_raw_stk20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_rawper_ukanon_final.tab", 2020 )
-    lcfprows,lcpfcols,lcf_pers_raw_stk21 = Common.load( "$(DIR)/2022/tab/rawper_ukanon_final_2022.tab", 2021 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk21 = Common.load( "$(DIR)/2122/tab/rawper_ukanon_final_2022.tab", 2021 )
     
     lcf_pers_drv_stk = vcat( lcf_pers_drv_stk18, lcf_pers_drv_stk19, lcf_pers_drv_stk20, lcf_pers_drv_stk21,cols=:union )
     lcf_pers_raw_stk = vcat( lcf_pers_raw_stk18, lcf_pers_raw_stk19, lcf_pers_raw_stk20, lcf_pers_raw_stk21,cols=:union )
