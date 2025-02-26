@@ -240,7 +240,7 @@ end
 function match_row_lcf_model( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     hrp = get_head( hh )
     t = 0.0
-    t += score( tenuremap( lcf.a121 ), Model.tenuremap( hh.tenure ))
+    t += score( map_tenure( lcf.a121 ), Model.map_tenure( hh.tenure ))
     t += score( regionmap( lcf.gorx ), Model.regionmap( hh.region ))
     # !!! both next missing in 2020 LCF FUCKKK 
     # t += score( accmap( lcf.a116 ), frs_accmap( frs.typeacc ))

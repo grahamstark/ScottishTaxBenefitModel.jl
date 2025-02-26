@@ -124,14 +124,14 @@ end
    caravan = 6
    other_dwelling = 7
 """
-function accommap( dwelling :: DwellingType ):: Vector{Int}
+function map_accom( dwelling :: DwellingType ):: Vector{Int}
     out = Int( dwelling )
     if out == -1
         println( "-1 dwelling ")
         out = rand(1:6)
     end
     out = min( 6, out ) # caravan=>other
-    return Common.accommap( out, 9998 )
+    return Common.map_accom( out, 9998 )
 end
 
 function do_hh_sums( hh :: Household ) :: Tuple

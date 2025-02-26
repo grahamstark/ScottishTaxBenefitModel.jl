@@ -176,23 +176,48 @@ function recode_frs_empstat( empstat :: ILO_Employment )::Int
     end 
 end
 
-function common_map_empstat( ie :: Int ):: Vector{Int}
-    @argcheck ie in 1:6
-    out = zeros( 2 )
-    out[1] = ie
-    out[2] = ie in 1:3 ? 1 : 2 # employed
-    return out
+"""
+level 1
+* se   1
+* ft e 2
+* pt e 3
+* un   4
+* ret  5
+* all others 6
+level 2 : in workfprce (1..4) = 1
+ not in workforce 5..6 = 2
+"""
+function local_map_empstat( e ::Int )::Vector{Int}
+    e2 = if e <= 4
+        1
+    else
+        2
+    end
+    return [e,e2]
 end
 
+"""
+* se   1
+* ft e 2
+* pt e 3
+* un   4
+* ret  5
+* all others 6
+"""
 function map_empstat( a206::Int, age::Int )::Vector{Int}
-    common_map_empstat( recode_lcf_empstat( a206, age ) )
+    local_map_empstat( recode_lcf_empstat( a206, age ) )
 end
 
 """
-FRS/Model coded to LCF a206 levels.
+* se   1
+* ft e 2
+* pt e 3
+* un   4
+* ret  5
+* all others 6
 """
-function map_empstat( empstat :: ILO_Employment ):: Vector{Int}
-    return common_map_empstat( recode_frs_empstat( empstat ))
+function model_lcf_map_empstat( empstat :: ILO_Employment ):: Vector{Int}
+    return local_map_empstat( recode_frs_empstat( empstat ))
 end
 
 

@@ -305,8 +305,79 @@ function model_was_map_empstat( empstat :: ILO_Employment ):: Vector{Int}
     return [i1,i2]
 end
 
-function map_age_hrp( age :: Int ) :: Vector{Int}
-    return Common.map_age_hrp( age )
+
+"""
+was age group for hrp
+
+Pos. = 88	Variable = HRPDVAge8r7	Variable label = Grouped Age of HRP (8 categories)
+This variable is    numeric, the SPSS measurement level is NOMINAL
+	Value label information for HRPDVAge8r7
+	Value = -9.0	Label = Don t know
+	Value = -8.0	Label = Refusal
+	Value = -7.0	Label = Does not apply
+	Value = -6.0	Label = Error/partial
+	Value = 1.0	Label = 0 to 15
+	Value = 2.0	Label = 16 to 24
+	Value = 3.0	Label = 25 to 34
+	Value = 4.0	Label = 35 to 44
+	Value = 5.0	Label = 45 to 54
+	Value = 6.0	Label = 55 to 64
+	Value = 7.0	Label = 65 to 74
+	Value = 8.0	Label = 75 and over
+
+
+"""
+function map_age_bands( age:: Int ) :: Vector{Int}
+    @argcheck age in 1:13
+    out = fill( 0, 2 )
+    out[1] = age
+    if age<= 5
+        out[2] = 1
+    elseif age<= 13
+        out[2] = 2
+    else
+        @assert false "mapping $age not in 1:13"
+    end
+    out
+end
+
+
+function map_age( age :: Int ) :: Vector{Int}
+    return map_age_bands( age )
+end
+
+"""
+into
+
+	Value = 1.0	Label = 0 to 15
+	Value = 2.0	Label = 16 to 24
+	Value = 3.0	Label = 25 to 34
+	Value = 4.0	Label = 35 to 44
+	Value = 5.0	Label = 45 to 54
+	Value = 6.0	Label = 55 to 64
+	Value = 7.0	Label = 65 to 74
+	Value = 8.0	Label = 75 and over
+
+"""
+function model_was_map_age( age :: Int ) :: Vector{Int}
+    b = if age <= 15
+        1
+    elseif age <= 24
+        2
+    elseif age <= 34
+        3
+    elseif age <= 44
+        4
+    elseif age <= 54
+        5
+    elseif age <= 64
+        6
+    elseif age <= 74
+        7
+    else
+        8
+    end
+    return map_age_bands(b)
 end
 
 function map_socio( socio :: Int ) :: Vector{Int}
@@ -331,7 +402,7 @@ Map to FRS i.e
    Owned_outright = 6
    Rent_free/Squat = 7
 """
-function tenuremap_one( wasf :: DataFrame ) :: Vector{Int}
+function map_tenure_one( wasf :: DataFrame ) :: Vector{Int}
     nrows,ncols = size( wasf )
     out = fill(0,nrows)
     row = 0
@@ -390,7 +461,7 @@ Fill a whole vector with accomodation type, in the standard 6 class
 5 flat conversion
 6 other
 """
-function accommap_one( wasf :: DataFrame ) :: Vector{Int}
+function map_accom_one( wasf :: DataFrame ) :: Vector{Int}
     nrows,ncols = size( wasf )
     out = fill(0,nrows)
     row = 0
@@ -422,6 +493,21 @@ function accommap_one( wasf :: DataFrame ) :: Vector{Int}
     out
 end 
 
+#=
+# FIXME _na -> missing ? 
+@enum DwellingType begin
+    dwell_na = -1
+    detatched = 1
+    semi_detached = 2
+    terraced = 3
+    flat_or_maisonette = 4
+    converted_flat = 5
+    caravan = 6
+    other_dwelling = 7
+ end
+ =#
+ 
+
 
 DIR = "/mnt/data/was/"
 
@@ -451,8 +537,8 @@ function create_subset()::DataFrame
     subwas.region = Int.(regionmap_one.(was.gorr7))
     subwas.age_head = was.hrpdvage8r7
     subwas.weekly_gross_income = was.dvtotgirr7./wpy
-    subwas.tenure = tenuremap_one( was )
-    subwas.accom = accommap_one( was )
+    subwas.tenure = map_tenure_one( was )
+    subwas.accom = map_accom_one( was )
 
     subwas.household_type = was.hholdtyper7
     subwas.occupation =  was.hrpnssec3r7

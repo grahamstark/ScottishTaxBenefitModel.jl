@@ -64,7 +64,7 @@ function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
         1.0
     elseif (l >= 2) && (a3[2] == b3[2])
         0.5
-    elseif (l >= 3) && (a3[3] == b3[3])
+   + elseif (l >= 3) && (a3[3] == b3[3])
         0.1
     else
         0.0
@@ -374,23 +374,6 @@ function map_accom( acc :: Any, default=9998)  :: Vector{Int}
 end
 
 """
-frs age group for hrp - 1st is exact, 2nd u40,40+
-"""
-function map_age_hrp( age:: Int ) :: Vector{Int}
-    @argcheck age in 1:13
-    out = fill( 0, 2 )
-    out[1] = age
-    if age<= 5
-        out[2] = 1
-    elseif age<= 13
-        out[2] = 2
-    else
-        @assert false "mapping $age not in 1:13"
-    end
-    out
-end
-
-"""
 North_East = 1
 North_West = 2
 Yorks_and_the_Humber = 3
@@ -430,6 +413,96 @@ function map_region( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int
     return out
 end
 
+"""
+     level 1 -> actual number of people
+     level 2
+       0 -> 0 (for kids)
+       1 -> 1
+       2 -> 2
+       3 -> 3:5
+       4 -> > 5
+     level 3 
+      1 adult -> 0
+      2 adults -> 1
+      > 2 adults -> 2
+      0 child -> 0
+      > 0 child -> 1
+"""
+function map_total_people( n :: Union{Int,Missing} ) :: Vector{Int}
+    out = fill( 0, 3 )
+    if ismissing( n )
+        return rand(Int,3)
+    end
+    out[1] = n
+    if n == 0
+        out[2] = 0
+    elseif n == 1
+        out[2] = 1
+    elseif n == 2
+        out[2] = 2
+    elseif n in 3:5
+        out[2] = 3
+    else
+        out[2] = 4
+    end
+    #=
+    if is_child # any children
+       out[3] = out[2] > 0 ? 1 : 0
+    else
+       @assert out[2] > 0 "no adults"
+       if out[2] == 1
+            out[3] == 0
+       elseif out[2] == 2
+            out[3] = 1
+       else
+           out[3] = 2
+       end
+    end
+    =#
+    return out
+end
+
+
+function map_empstat( ie :: Int ):: Vector{Int}
+    @argcheck ie in 1:6
+    out = zeros( 2 )
+    out[1] = ie
+    out[2] = ie in 1:3 ? 1 : 2 # employed
+    return out
+end
+
+
+function map_bedrooms( rooms :: Union{Missing,Int} ) :: Vector{Int}
+    rooms = min(6, rooms )
+    out = fill(0,3)    
+    if (ismissing(rooms) || (rooms == 0 )) 
+        return [0,0, 1]
+    end
+    out = fill(0,3)   
+    out[1] = rooms
+    out[2] = min( rooms, 3)
+    out[3] = rooms == 1 ? 1 : 2
+    return out
+end
+
+
+"""
+1. age (max 80)
+2. age 5 year bands
+3. age 20 year bands
+"""
+function map_age( age  :: Union{Int,Missing} )  :: Vector{Int}
+    out = fill( 0, 3 )
+    if ismissing( age )
+        return out
+    end
+    age = min( 80, age )
+    out[1] = age 
+    out[2] = Int(trunc(age/5))
+    out[3] = Int(trunc(age/20))
+    return out
+end
+    
 
 const CHECKING_VAR_LENS = Dict(
     ["age"=>3,
@@ -508,7 +581,7 @@ function create_was_frs_matching_dataset( settings :: Settings  ) :: Tuple
             "tenure",
             CHECKING_VARS_LENS["tenure"], 
             hno,  
-            frs_tenuremap( was.tenure, 9997 ))
+            frs_map_tenure( was.tenure, 9997 ))
         addtodf( 
             wasset, 
             "socio",
@@ -603,13 +676,13 @@ function create_was_frs_matching_dataset( settings :: Settings  ) :: Tuple
             "accom", 
             CHECKING_VARS_LENS["accom"], 
             hno, 
-            model_accommap( hh.dwelling ))
+            model_map_accom( hh.dwelling ))
         addtodf( 
             frsset, 
             "tenure",
             CHECKING_VARS_LENS["tenure"], 
             hno,  
-            model_tenuremap( hh.tenure ))
+            model_map_tenure( hh.tenure ))
         addtodf( 
             frsset, 
             "socio",
