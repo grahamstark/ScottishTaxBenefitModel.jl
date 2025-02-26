@@ -341,11 +341,6 @@ function map_age_bands( age:: Int ) :: Vector{Int}
     out
 end
 
-
-function map_age( age :: Int ) :: Vector{Int}
-    return map_age_bands( age )
-end
-
 """
 into
 
@@ -359,7 +354,7 @@ into
 	Value = 8.0	Label = 75 and over
 
 """
-function model_was_map_age( age :: Int ) :: Vector{Int}
+function model_was_map_age_bands( age :: Int ) :: Vector{Int}
     b = if age <= 15
         1
     elseif age <= 24
