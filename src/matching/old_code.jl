@@ -58,7 +58,7 @@ Produce a comparison between on frs and one lcf row on tenure, region, wages, et
 """
 function frs_lcf_match_row( frs :: DataFrameRow, lcf :: DataFrameRow ) :: Tuple
     t = 0.0
-    t += score( lcf_tenuremap( lcf.a121 ), frs_tenuremap( frs.tentyp2 ))
+    t += score( lcf_map_tenure( lcf.a121 ), frs_map_tenure( frs.tentyp2 ))
     t += score( lcf_regionmap( lcf.gorx ), frs_regionmap( frs.gvtregn, 9997 ))
     # !!! both next missing in 2020 LCF FUCKKK 
     # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
@@ -91,7 +91,7 @@ function comparefrslcf( frshh::DataFrame, lcfhh:: DataFrame, frs_sernums, frs_da
         :hrp_non_white,:has_female_adult,:num_children,:num_people,
         :a121,:gorx,:a065p,:a062,:income]]
     println(lcf1)
-    println( "lcf tenure",lcf_tenuremap( lcf1.a121[1] ))
+    println( "lcf tenure",lcf_map_tenure( lcf1.a121[1] ))
     println( "lcf region", lcf_regionmap( lcf1.gorx[1] ))
     println( "lcf age_hrp", lcf_age_hrp( lcf1.a065p[1] ))
     println( "lcf composition", lcf_composition_map( lcf1.a062[1] ))
@@ -101,7 +101,7 @@ function comparefrslcf( frshh::DataFrame, lcfhh:: DataFrame, frs_sernums, frs_da
             [:any_wages,:any_pension_income,:any_selfemp,:hrp_unemployed,:hrp_non_white,:has_female_adult,
             :num_children,:num_people,:tentyp2,:gvtregn,:hhagegr4,:hhcomps,:income]]
         println(frs1)
-        println( "frs tenure", frs_tenuremap( frs1.tentyp2[1]))
+        println( "frs tenure", frs_map_tenure( frs1.tentyp2[1]))
         println( "frs region", frs_regionmap( frs1.gvtregn[1] ))
         println( "frs age hrp", lcf_age_hrp( frs1.hhagegr4[1] ))
         println( "frs composition", frs_composition_map( frs1.hhcomps[1] ))
@@ -147,7 +147,7 @@ Produce a comparison between on frs and one lcf row on tenure, region, wages, et
 
 function match_row( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     t = 0.0
-    t += score( lcf_tenuremap( lcf.a121 ), frs_tenuremap( frs.tentyp2 ))
+    t += score( lcf_map_tenure( lcf.a121 ), frs_map_tenure( frs.tentyp2 ))
     t += score( lcf_regionmap( lcf.gorx ), frs_regionmap( frs.gvtregn, 9997 ))
     # !!! both next missing in 2020 LCF FUCKKK 
     # t += score( lcf_accmap( lcf.a116 ), frs_accmap( frs.typeacc ))
