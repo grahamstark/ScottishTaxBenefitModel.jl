@@ -90,7 +90,7 @@ end
      2 -> Rented
      3 -> Other
 """
-function tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
+function map_tenure( tenure :: Union{Int,Missing} ) :: Vector{Int}
     if ismissing( tenure ) # || tenure >= 5
         return [rand(Int),rand(Int)];
     end
@@ -115,7 +115,7 @@ end
 """
 Harmonised FRS tenure, as above
 """
-function shs_model_tenure( tenure :: Tenure_Type )::Vector{Int}
+function model_to_shs_map_tenure( tenure :: Tenure_Type )::Vector{Int}
     t1, t2 = if tenure == Owned_outright
         1,1
     elseif tenure == Mortgaged_Or_Shared
@@ -132,71 +132,7 @@ function shs_model_tenure( tenure :: Tenure_Type )::Vector{Int}
     return [t1,t2]
 end
 
-"""
-     level 1 -> actual number of people
-     level 2
-       0 -> 0 (for kids)
-       1 -> 1
-       2 -> 2
-       3 -> 3:5
-       4 -> > 5
-     level 3 
-      1 adult -> 0
-      2 adults -> 1
-      > 2 adults -> 2
-      0 child -> 0
-      > 0 child -> 1
-"""
-function total_people( n :: Union{Int,Missing}, is_child :: Bool ) :: Vector{Int}
-    out = fill( 0, 3 )
-    if ismissing( n )
-        return rand(Int,3)
-    end
-    out[1] = n
-    if n == 0
-        out[2] = 0
-    elseif n == 1
-        out[2] = 1
-    elseif n == 2
-        out[2] = 2
-    elseif n in 3:5
-        out[2] = 3
-    else
-        out[2] = 4
-    end
-    if is_child # any children
-       out[3] = out[2] > 0 ? 1 : 0
-    else
-       @assert out[2] > 0 "no adults"
-       if out[2] == 1
-            out[3] == 0
-       elseif out[2] == 2
-            out[3] = 1
-       else
-           out[3] = 2
-       end
-    end
-    return out
-end
 
-
-"""
-1. age (max 80)
-2. age 5 year bands
-3. age 20 year bands
-"""
-function age( age  :: Union{Int,Missing} )  :: Vector{Int}
-    out = fill( 0, 3 )
-    if ismissing( age )
-        return out
-    end
-    age = min( 80, age )
-    out[1] = age 
-    out[2] = Int(trunc(age/5))
-    out[3] = Int(trunc(age/20))
-    return out
-end
-    
 """
 #   SHS hihecon
 # 	Value = 1.0	Label = A - Self employed
@@ -389,20 +325,6 @@ function shs_model_map_social( soc :: Standard_Occupational_Classification ) :: 
     return map_social(o)
 end
 
-
-function bedrooms( rooms :: Union{Missing,Int} ) :: Vector{Int}
-    rooms = min(6, rooms )
-    out = fill(0,3)    
-    if (ismissing(rooms) || (rooms == 0 )) 
-        return [0,0, 1]
-    end
-    out = fill(0,3)   
-    out[1] = rooms
-    out[2] = min( rooms, 3)
-    out[3] = rooms == 1 ? 1 : 2
-    return out
-end
-
 """
 Pos. = 2,761	Variable = hb1	Variable label = hb1 - Is the household's accommodation...
 
@@ -426,7 +348,7 @@ out: detatached = 1
     all other = 5
 
 """
-function accomtype( hb1 :: Union{Missing,Int}, hb2 :: Union{Missing,Int} ) :: Vector{Int}
+function map_accom( hb1 :: Union{Missing,Int}, hb2 :: Union{Missing,Int} ) :: Vector{Int}
     out = fill( 0, 2 )
     if ismissing(hb1)
         return out
@@ -471,7 +393,7 @@ Out:
    other 5
    with na distributed randomly
 """
-function model_to_shs_accommap( dwelling :: DwellingType ):: Vector{Int}
+function model_to_shs_map_accom( dwelling :: DwellingType ):: Vector{Int}
     if dwelling == dwell_na
         println( "na dwelling ")
         dwelling = rand([detatched,semi_detached,terraced,flat_or_maisonette,converted_flat])

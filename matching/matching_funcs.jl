@@ -302,7 +302,7 @@ end
 # 1 -> Any
 
 
-function shs_tenuremap( tenure :: Union{Int,Missing} ) :: Vector{Int}
+function shs_map_tenure( tenure :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( 0, 3 )
     if ismissing( tenure ) # || tenure >= 5
         return out;
@@ -397,7 +397,7 @@ function age( age  :: Union{Int,Missing} )  :: Vector{Int}
     return out
 end
     
-function frs_tenuremap( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
+function frs_map_tenure( tentyp2 :: Union{Int,Missing} ) :: Vector{Int}
     out = fill( 0, 3 )
     out[3] = 1
     if ismissing( tentyp2 )
@@ -889,7 +889,7 @@ function create_donor_and_recip_datasets( frs_all_years_scot_he :: DataFrame, sh
     end
     
     assign!( recip, :shelter, setone.( frs_all_years_scot_he.shelter ))
-    assign!( recip, :tenure, frs_tenuremap.(frs_all_years_scot_he.tentyp2))
+    assign!( recip, :tenure, frs_map_tenure.(frs_all_years_scot_he.tentyp2))
     assign!( recip, :singlepar, setone.(frs_all_years_scot_he.hhcomps, is_sp))
     assign!( recip, :numadults, total_people.( frs_all_years_scot_he.adulth, -777, false ))
     assign!( recip, :numkids, total_people.( frs_all_years_scot_he.depchldh, -776, true ))
@@ -902,7 +902,7 @@ function create_donor_and_recip_datasets( frs_all_years_scot_he :: DataFrame, sh
     assign!( recip, :bedrooms, bedrooms.( frs_all_years_scot_he.bedroom6 ))
      
     assign!( donor, :shelter, setone.( shs_all_years.accsup1 ))
-    assign!( donor, :tenure, shs_tenuremap.(shs_all_years.tenure))
+    assign!( donor, :tenure, shs_map_tenure.(shs_all_years.tenure))
     assign!( donor, :singlepar, setone.( shs_all_years.hhtype_new, 3 ))
     assign!( donor, :numadults, total_people.( shs_all_years.totads, -888, false ))
     
