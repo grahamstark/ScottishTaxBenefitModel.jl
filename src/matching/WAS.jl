@@ -457,6 +457,14 @@ function map_accom( accom :: Int ) :: Vector{Int}
     return Common.map_accom( accom )
 end
 
+function model_to_was_map_accom(dwelling::DwellingType)::Vector{Int}
+    id = Int(dwelling)
+    if id < 0
+        return rand(Int,2)
+    end
+    return Common.map_accom( min(6, id ))
+end
+
 """
 Fill a whole vector with accomodation type, in the standard 6 class
 1 detatched

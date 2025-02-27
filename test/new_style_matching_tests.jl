@@ -297,7 +297,7 @@ end
         cts = mm.counts_for_match( hh )
         map_one!( model_summaries, :region, mm.map_region( hh.region ))
         map_one!( model_summaries, :tenure, mm.map_tenure( hh.tenure ))
-        map_one!( model_summaries, :acctype, shs.model_to_shs_map_accom(hh.dwelling)) 
+        map_one!( model_summaries, :acctype, was.model_to_was_map_accom(hh.dwelling)) 
         map_one!( model_summaries, :bedrooms, common.map_bedrooms( hh.bedrooms )) 
         map_one!( model_summaries, :hh_composition, was.model_was_map_household_composition( household_composition_1(hh)))
                                                     #   model_was_map_household_composition
