@@ -284,6 +284,50 @@ function model_row_was_match(
 end
 
 
+function match_row_shs_model( 
+    hh :: Household, shs :: DataFrameRow ) :: Tuple
+    head = get_head(hh)
+    t = 0.0
+    cts = mm.counts_for_match( hh )
+   
+    map_one!.( (was_summaries,), (:tenure,), was.map_tenure.(wass.tenure)) 
+    map_one!.( (was_summaries,), (:acctype,), was.map_accom.(wass.accom) ) 
+    # bedrooms to common
+    map_one!.( (was_summaries,), (:bedrooms,), common.map_bedrooms.(wass.bedrooms)) 
+    map_one!.( (was_summaries,), (:hh_composition,), was.map_household_composition.(wass.household_type)) 
+    map_one!.( (was_summaries,), (:any_wages,), wass.any_wages )
+    map_one!.( (was_summaries,), (:any_pension_income,), wass.any_pension_income )
+    map_one!.( (was_summaries,), (:any_selfemp,), wass.any_selfemp )   
+    #fixme total people to common     
+    map_one!.( (was_summaries,), (:num_adults,), common.map_total_people.(wass.num_adults )) 
+    map_one!.( (was_summaries,), (:num_children,), common.map_total_people.(wass.num_children )) 
+    map_one!.( (was_summaries,), (:age_head,), was.map_age_bands.(wass.age_head)) 
+    map_one!.( (was_summaries,), (:marstat,), was.map_marital.(wass.marital_status_head))
+    map_one!.( (was_summaries,), (:socio,), was.map_socio.(wass.socio_economic_head))
+    map_one!.( (was_summaries,), (:empstat,), was.map_empstat.(wass.empstat_head))
+
+
+    map_one!( model_summaries, :region, mm.map_region( hh.region ))
+    map_one!( model_summaries, :tenure, mm.map_tenure( hh.tenure ))
+    map_one!( model_summaries, :acctype, was.model_to_was_map_accom(hh.dwelling)) 
+    map_one!( model_summaries, :bedrooms, common.map_bedrooms( hh.bedrooms )) 
+    map_one!( model_summaries, :hh_composition, was.model_was_map_household_composition( household_composition_1(hh)))
+                                                #   model_was_map_household_composition
+    map_one!( model_summaries, :num_adults, common.map_total_people(cts.num_adults ))
+    map_one!( model_summaries, :num_children, common.map_total_people(cts.num_children ))
+    map_one!( model_summaries, :any_wages, cts.any_wages )
+    map_one!( model_summaries, :any_pension_income, cts.any_pension_income )
+    map_one!( model_summaries, :any_selfemp, cts.any_selfemp )     
+    head = get_head(hh)   
+    map_one!( model_summaries, :age_head, was.model_was_map_age_bands( head.age ))
+    map_one!( model_summaries, :empstat, was.model_was_map_empstat( head.employment_status))
+    map_one!( model_summaries, :marstat, mm.map_marital( head.marital_status))
+    map_one!( model_summaries, :socio, was.model_was_map_socio( head.socio_economic_grouping))     
+
+
+    return t, incdiff 
+end
+
 function match_row_lcf_model( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     hrp = get_head( hh )
     t = 0.0
