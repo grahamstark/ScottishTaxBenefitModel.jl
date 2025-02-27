@@ -202,21 +202,30 @@ Heavily weight Scotland, then n england, then midland/wales, 0 London/SE
 NOTE 2.0 1.0 0.5 0.1 
 """
 function region_score_scotland(
-    a3 :: Vector{Int}, b3 :: Vector{Int}, weights = [2.0,1.0,0.5,0.1,0])::Float64
-    @argcheck a3[1] == 11
-    return if a3[1] == b3[1] # scotland
+    region :: Standard_Region, weights = [2.0,1.0,0.5,0.2,0.1])::Float64
+    return if region == Scotland
         weights[1]
-    else 
-        if b3[1] in [1,2,3 ] # neast, nwest, yorks
+        elseif region in [
+            North_East,
+            North_West,
+            Yorks_and_the_Humber,
+            Wales,
+            Northern_Ireland] # neast, nwest, yorks
             weights[2]
-        elseif b3[1] in [ 4, 5, 10, 12] # e/w midlands, wales
+        elseif region in [ 
+            East_of_England,
+            East_Midlands,
+            West_Midlands] # e/w midlands, wales
             weights[3]
-        elseif b3[1] in [8] #South_West
+        elseif region in [
+            South_East,
+            South_West]
             weights[4]
-        else # london, seast
+        elseif region in [London] # London
             weights[5]
+        else
+            @assert false "unmapped region $region"
         end 
-    end
 end
 
 """
@@ -243,9 +252,7 @@ end
 =#
 
 
-"""
-We're JUST going to use the model dataset here
-"""
+#=
 function model_row_was_match( 
     hh :: Household, 
     was :: DataFrameRow ) :: Tuple
@@ -282,49 +289,38 @@ function model_row_was_match(
     incdiff = compare_income( income, was.weekly_gross_income )
     return t, incdiff
 end
+=#
 
-
-function match_row_shs_model( 
-    hh :: Household, shs :: DataFrameRow ) :: Tuple
+function model_row_shs_match(
+    hh :: Household, wass :: DataFrameRow ) :: Tuple
     head = get_head(hh)
     t = 0.0
-    cts = mm.counts_for_match( hh )
-   
-    map_one!.( (was_summaries,), (:tenure,), was.map_tenure.(wass.tenure)) 
-    map_one!.( (was_summaries,), (:acctype,), was.map_accom.(wass.accom) ) 
+
+    return t, incdiff
+end
+
+function model_row_was_match( 
+    hh :: Household, wass :: DataFrameRow ) :: Tuple
+    head = get_head(hh)
+    t = 0.0
+    cts = mm.counts_for_match( hh )   
+    t += score( was.map_tenure(wass.tenure), mm.map_tenure( hh.tenure ))
+    t += score( was.map_accom(wass.accom), was.model_to_was_map_accom(hh.dwelling)) 
     # bedrooms to common
-    map_one!.( (was_summaries,), (:bedrooms,), common.map_bedrooms.(wass.bedrooms)) 
-    map_one!.( (was_summaries,), (:hh_composition,), was.map_household_composition.(wass.household_type)) 
-    map_one!.( (was_summaries,), (:any_wages,), wass.any_wages )
-    map_one!.( (was_summaries,), (:any_pension_income,), wass.any_pension_income )
-    map_one!.( (was_summaries,), (:any_selfemp,), wass.any_selfemp )   
-    #fixme total people to common     
-    map_one!.( (was_summaries,), (:num_adults,), common.map_total_people.(wass.num_adults )) 
-    map_one!.( (was_summaries,), (:num_children,), common.map_total_people.(wass.num_children )) 
-    map_one!.( (was_summaries,), (:age_head,), was.map_age_bands.(wass.age_head)) 
-    map_one!.( (was_summaries,), (:marstat,), was.map_marital.(wass.marital_status_head))
-    map_one!.( (was_summaries,), (:socio,), was.map_socio.(wass.socio_economic_head))
-    map_one!.( (was_summaries,), (:empstat,), was.map_empstat.(wass.empstat_head))
-
-
-    map_one!( model_summaries, :region, mm.map_region( hh.region ))
-    map_one!( model_summaries, :tenure, mm.map_tenure( hh.tenure ))
-    map_one!( model_summaries, :acctype, was.model_to_was_map_accom(hh.dwelling)) 
-    map_one!( model_summaries, :bedrooms, common.map_bedrooms( hh.bedrooms )) 
-    map_one!( model_summaries, :hh_composition, was.model_was_map_household_composition( household_composition_1(hh)))
-                                                #   model_was_map_household_composition
-    map_one!( model_summaries, :num_adults, common.map_total_people(cts.num_adults ))
-    map_one!( model_summaries, :num_children, common.map_total_people(cts.num_children ))
-    map_one!( model_summaries, :any_wages, cts.any_wages )
-    map_one!( model_summaries, :any_pension_income, cts.any_pension_income )
-    map_one!( model_summaries, :any_selfemp, cts.any_selfemp )     
-    head = get_head(hh)   
-    map_one!( model_summaries, :age_head, was.model_was_map_age_bands( head.age ))
-    map_one!( model_summaries, :empstat, was.model_was_map_empstat( head.employment_status))
-    map_one!( model_summaries, :marstat, mm.map_marital( head.marital_status))
-    map_one!( model_summaries, :socio, was.model_was_map_socio( head.socio_economic_grouping))     
-
-
+    t += score( common.map_bedrooms(wass.bedrooms), common.map_bedrooms( hh.bedrooms ))
+    t += score( was.map_household_composition(wass.household_type), 
+                was.model_was_map_household_composition( household_composition_1(hh)))
+    t += score( wass.any_wages, cts.any_wages )
+    t += score( wass.any_pension_income, cts.any_pension_income )  
+    t += score( wass.any_selfemp, cts.any_selfemp )
+    t += score( common.map_total_people( wass.num_adults ), common.map_total_people(cts.num_adults ))
+    t += score( common.map_total_people(wass.num_children ), common.map_total_people(cts.num_children )) 
+    t += score( was.map_age_bands(wass.age_head), was.model_was_map_age_bands( head.age ))
+    t += score( was.map_marital(wass.marital_status_head), mm.map_marital( head.marital_status))
+    t += score( was.map_socio(wass.socio_economic_head), was.model_was_map_socio( head.socio_economic_grouping) )
+    t += score( was.map_empstat(wass.empstat_head), was.model_was_map_empstat( head.employment_status))
+    t += region_score_scotland( Standard_Region(wass.region))
+    incdiff = compare_income( lcf.income, income )
     return t, incdiff 
 end
 
@@ -355,8 +351,6 @@ function match_row_lcf_model( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     t += 10.0*incdiff
     return t,incdiff
 end
-
-const NUM_SAMPLES = 50
 
 """
 Map the entire datasets.

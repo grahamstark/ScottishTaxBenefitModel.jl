@@ -292,6 +292,8 @@ end
     map_one!.( (was_summaries,), (:marstat,), was.map_marital.(wass.marital_status_head))
     map_one!.( (was_summaries,), (:socio,), was.map_socio.(wass.socio_economic_head))
     map_one!.( (was_summaries,), (:empstat,), was.map_empstat.(wass.empstat_head))
+    map_one!.( (was_summaries,), (:region,), wass.region )
+    
     for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household(hno)
         cts = mm.counts_for_match( hh )
@@ -324,7 +326,7 @@ end
     map_one!.( (shs_summaries,), (:acctype,), shs.map_accom.(shss.hb1, shss.hb2) ) 
     map_one!.( (shs_summaries,), (:bedrooms,), common.map_bedrooms.(shss.hc4 )) 
     map_one!.( (shs_summaries,), (:hh_composition,), shs.map_composition.(shss.hhtype_new ))
-    map_one!.((shs_summaries,), (:num_adults,), common.map_total_people.(shss.totads )) 
+    map_one!.( (shs_summaries,), (:num_adults,), common.map_total_people.(shss.totads )) 
     map_one!.( (shs_summaries,), (:num_children,), common.map_total_people.(shss.numkids )) 
     map_one!.( (shs_summaries,), (:age_head,), common.map_age.(shss.hihage )) 
     map_one!.( (shs_summaries,), (:empstat,), shs.map_empstat.(shss.hihecon )) 
