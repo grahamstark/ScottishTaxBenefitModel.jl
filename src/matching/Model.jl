@@ -60,15 +60,6 @@ function map_tenure(  t :: Tenure_Type ) :: Vector{Int}
     end
 end
 
-function map_accom( acc :: DwellingType ) :: Vector{Int}
-    i = Int( acc )
-    if i in 1:6
-        return Common.map_accom( i )
-    else
-        return rand(Int,2)
-    end
-end
-
 """
 North_East = 1
 North_West = 2
@@ -115,6 +106,7 @@ end
 
 
 """
+from:
    dwell_na = -1
    detatched = 1
    semi_detached = 2
@@ -123,6 +115,13 @@ end
    converted_flat = 5
    caravan = 6
    other_dwelling = 7
+to:
+   detatched = 1
+   semi_detached = 2
+   terraced = 3
+   flat_or_maisonette = 4
+   converted_flat = 5
+   caravan/other_dwelling = 6
 """
 function map_accom( dwelling :: DwellingType ):: Vector{Int}
     out = Int( dwelling )
@@ -394,6 +393,17 @@ end
    Permanently_sick_or_disabled = 9
    Temporarily_sick_or_injured = 10
    Other_Inactive = 11
+
+   into: 
+   employee 1
+   se 2
+   Unemployed = 3
+   Student = 4
+   Looking_after_family_or_home = 5
+   sick_or_disabled = 6
+   Retired = 7
+   Other_Inactive = 8
+ 
 """
 function map_empstat( ie :: ILO_Employment  ) :: Vector{Int} #  
     out = if ie in [Full_time_Employee,Part_time_Employee]
@@ -415,7 +425,7 @@ function map_empstat( ie :: ILO_Employment  ) :: Vector{Int} #
     else
         @assert false "unmapped empstat $empstat = $ie"
     end
-    return map_empstat( Int(out) )
+    return Common.map_empstat( out )
 end
 
 

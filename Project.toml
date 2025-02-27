@@ -14,6 +14,7 @@ CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 ChunkSplitters = "ae650224-84b6-46f8-82ea-d812ca08434e"
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DataScienceTraits = "6cb2f572-2d2b-4ba6-bdb3-e710fa044d6c"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -71,6 +72,7 @@ CSV = "0.10, 0.11, 0.12, 0.2, 1"
 ChunkSplitters = "2"
 Colors = "0.12, 0.13, 0.14, 0.2, 1"
 DataFrames = "1, 2"
+DataScienceTraits = "1.0.1"
 Documenter = "1"
 Format = "1"
 FromFile = "0.1, 0.2, 1"
@@ -112,9 +114,7 @@ julia = "1"
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
-
 [preferences.ScottishTaxBenefitModel]
-weighting_strategy = "use_precomputed_weights"
 ccode = ""
 default_run_name = "default_run"
 do_legal_aid = false
@@ -135,6 +135,7 @@ replacement_rate_hours = 30
 target_nation = "N_Scotland"
 to_q = 4
 to_y = 2024
+weighting_strategy = "use_precomputed_weights"
 
 [targets]
 test = ["Test"]

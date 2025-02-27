@@ -443,8 +443,18 @@ function map_tenure( ten :: Int  ) :: Vector{Int}
     return Common.map_tenure( ten )
 end
 
+"""
+into: 
+1,1 detatched
+2,1 semi
+3,1 terrace
+4,2 purpose-built flat
+5,2 flat conversion
+6,3 other
+"""
 function map_accom( accom :: Int ) :: Vector{Int}
-    return Common.map_accom( accom, 9997 )
+@argcheck accom in 1:6
+    return Common.map_accom( accom )
 end
 
 """

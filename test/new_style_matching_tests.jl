@@ -327,8 +327,8 @@ end
     map_one!.((shs_summaries,), (:num_adults,), common.map_total_people.(shss.totads )) 
     map_one!.( (shs_summaries,), (:num_children,), common.map_total_people.(shss.numkids )) 
     map_one!.( (shs_summaries,), (:age_head,), common.map_age.(shss.hihage )) 
-    map_one!.( (shs_summaries,), (:empstat,), shs.empstat.(shss.hihecon )) 
-    map_one!.( (shs_summaries,), (:ethnic,), shs.ethnic.(shss.hih_eth2012 )) 
+    map_one!.( (shs_summaries,), (:empstat,), shs.map_empstat.(shss.hihecon )) 
+    map_one!.( (shs_summaries,), (:ethnic,), shs.map_ethnic.(shss.hih_eth2012 )) 
     map_one!.( (shs_summaries,), (:socio,), shs.map_social.(shss.hihsoc )) 
     map_one!.( (shs_summaries,), (:datayear,), shss.datayear .- 2017 ) 
     for hno in 1:settings.num_households
@@ -343,8 +343,8 @@ end
         map_one!( model_summaries, :num_children, common.map_total_people(cts.num_children ))
         head = get_head(hh)   
         map_one!( model_summaries, :age_head, common.map_age(head.age ))
-        map_one!( model_summaries, :empstat, shs.shs_model_empstat(head.employment_status))
-        map_one!( model_summaries, :ethnic, shs.shs_model_ethnic(head.ethnic_group))
+        map_one!( model_summaries, :empstat, shs.shs_model_map_empstat(head.employment_status))
+        map_one!( model_summaries, :ethnic, shs.shs_model_map_ethnic(head.ethnic_group))
         map_one!( model_summaries, :socio, shs.shs_model_map_social( head.occupational_classification )) 
     end # households
     summarise( "SHS", shs_summaries, model_summaries )

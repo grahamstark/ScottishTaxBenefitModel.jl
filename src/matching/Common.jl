@@ -1,5 +1,8 @@
 module Common
-
+#
+# matching maps shared between our different datasets
+# 
+#
 using ScottishTaxBenefitModel
 using .RunSettings
 
@@ -9,17 +12,9 @@ using CSV,
     StatsBase,
     ArgCheck
 
-export MatchingLocation, score, load, composition_map, composition_map, searchbaddies, person_map 
-export TOPCODE, within, composition_map, makeoutdf, age_hrp, pct, compareone
+export load, composition_map, composition_map, searchbaddies, person_map 
+export composition_map,age_hrp, pct
 export checkall , checkdiffs
-
-struct MatchingLocation
-    case :: Int
-    datayear :: Int
-    score :: Float64
-    income :: Float64
-    incdiff :: Float64
-end
 
 function map_socio( socio :: Int ) :: Vector{Int}
     @argcheck socio in 1:12
@@ -46,45 +41,6 @@ function map_marital( ms :: Int ) :: Vector{Int}
     return out
 end
 
-function map_empstat( ie :: Int ):: Vector{Int}
-    @argcheck ie in 1:12
-    out = fill( 0, 3 )
-    out[1] = ie
-    out[2] = ie in 1:2 ? 1 : 2 # employee
-    return out
-end
-
-"""
-Score for one of our 3-level matches 1 for exact 0.5 for partial 1, 0.1 for partial 2
-"""
-function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
-    @argcheck length(a3) == length(b3)
-    l = length(a3)
-    return if a3[1] == b3[1]
-        1.0
-    elseif (l >= 2) && (a3[2] == b3[2])
-        0.5
-   + elseif (l >= 3) && (a3[3] == b3[3])
-        0.1
-    else
-        0.0
-    end
-end
-
-"""
-Score for comparison between 2 ints: 1 for exact, 0.5 for within 2 steps, 0.1 for within 5. FIXME look at this again.
-"""
-function score( a :: Int, b :: Int ) :: Float64
-    return if a == b
-        1.0
-    elseif abs( a - b ) < 2
-        0.5
-    elseif abs( a - b ) < 5
-        0.1
-    else
-        0.0
-    end
-end
 
 function load( path::String, datayear :: Int )::Tuple
     d = CSV.File( path; missingstring=["", " "] ) |> DataFrame
@@ -132,12 +88,6 @@ function person_map( n::Int, default::Int )::Vector{Int}
         3
     end 
     out
-end
-
-const TOPCODE = 2420.03
-
-function within(x;min=min,max=max) 
-    return if x < min min elseif x > max max else x end
 end
 
 """
@@ -231,40 +181,6 @@ function rooms( rooms :: Union{Missing,Int,AbstractString}, def::Int ) :: Vector
 end
 
 
-"""
-Absolute difference in income, scaled by max difference (TOPCODE,since the possible range is zero to the top-coding)
-"""
-function compare_income( hhinc :: Real, p344p :: Real, topcode=TOPCODE ) :: Real
-    # top & bottom code hhinc to match the lcf p344
-    # hhinc = max( 0, hhinc )
-    # hhinc = min( TOPCODE, hhinc ) 
-    1-abs( hhinc - p344p )/topcode # topcode is also the range 
-end
-
-
-"""
-Create a dataframe for storing all the matches. 
-This has the FRS record and then 20 lcf records, with case,year,income and matching score for each.
-"""
-function makeoutdf( n :: Int, prefix :: AbstractString ) :: DataFrame
-    d = DataFrame(
-    frs_sernum = zeros(Int, n),
-    frs_datayear = zeros(Int, n),
-    frs_income = zeros(n))
-    for i in 1:NUM_SAMPLES
-        case_sym = Symbol( "$(prefix)_case_$i")
-        datayear_sym = Symbol( "$(prefix)_datayear_$i")
-        score_sym = Symbol( "$(prefix)_score_$i")
-        income_sym = Symbol( "$(prefix)_income_$i")
-        d[!,case_sym] .= 0
-        d[!,datayear_sym] .= 0
-        d[!,score_sym] .= 0.0
-        d[!,income_sym] .= 0.0
-    end
-    return d
-end
-
-
 function age_grp( age :: Int ) :: Vector{Int}
     out = if age < 16 # can't happen?
         1
@@ -352,13 +268,11 @@ Map accommodation. General case.
 6,3 other
 
 """
-function map_accom( acc :: Any, default=9998)  :: Vector{Int}
+function map_accom( acc :: Any)  :: Vector{Int}
     @argcheck acc in 1:6
     out = fill( 0, 2 )
-    # missing in 2020 f*** 
     if typeof(acc) <: AbstractString
-        return out
-        # acc = tryparse( Int, acc )
+        return rand(Int,2)
     end
     out[1] = acc
     if acc in 1:3
@@ -401,7 +315,7 @@ function map_region( gvtregn :: Union{Int,Missing}, default=9999 ) :: Vector{Int
         out[2] = 1
     elseif gvtregn in 1:9 # rEngland
         out[2] = 2
-    elseif gvtregn == 11 # scotland
+    elseif gvtregn == 11 # scotlanwith-=d
         out[2] = 3
     elseif gvtregn == 10 # 
         out[2] = 4
@@ -462,14 +376,28 @@ function map_total_people( n :: Union{Int,Missing} ) :: Vector{Int}
     return out
 end
 
+"""
+     employee 1
+   se 2
+   Unemployed = 3
+   Student = 4
+   Looking_after_family_or_home = 5
+   sick_or_disabled = 6
+   Retired = 7
+   Other_Inactive = 8
 
+   level 2
+    working 1
+    non-working 2
+"""
 function map_empstat( ie :: Int ):: Vector{Int}
-    @argcheck ie in 1:6
-    out = zeros( 2 )
+    @argcheck ie in 1:8
+    out = fill( 0, 2 )
     out[1] = ie
-    out[2] = ie in 1:3 ? 1 : 2 # employed
+    out[2] = ie in 1:2 ? 1 : 2 # worker
     return out
 end
+
 
 
 function map_bedrooms( rooms :: Union{Missing,Int} ) :: Vector{Int}

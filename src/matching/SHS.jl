@@ -186,7 +186,7 @@ end
 # 3 not working
 
 """
-function empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
+function map_empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
     if ismissing(hihecon) || (hihecon > 13 ) # value 14 not documented 
         return rand(Int,3)
     end
@@ -216,7 +216,7 @@ function empstat( hihecon :: Union{Missing,Int} ) :: Vector{Int}
     return [o1, o2, o3]
 end
 
-function shs_model_empstat( empl :: ILO_Employment ) :: Vector{Int}
+function shs_model_map_empstat( empl :: ILO_Employment ) :: Vector{Int}
     o1, o2, o3 = if empl == Full_time_Employee
         1, 1, 1
     elseif empl == Part_time_Employee
@@ -241,14 +241,22 @@ function shs_model_empstat( empl :: ILO_Employment ) :: Vector{Int}
     return [o1, o2, o3]
 end
 
-function ethnic( hih_eth2012 :: Union{Missing,Int} ) :: Vector{Int}
+"""
+white=1
+nonwhite = 2
+"""
+function map_ethnic( hih_eth2012 :: Union{Missing,Int} ) :: Vector{Int}
     if ismissing(hih_eth2012) 
         return rand(Int,1)
     end
     return hih_eth2012 == 1 ? [1] : [2]
 end
 
-function shs_model_ethnic( ethgr :: Ethnic_Group ) :: Vector{Int}
+"""
+white=1
+nonwhite = 2
+"""
+function shs_model_map_ethnic( ethgr :: Ethnic_Group ) :: Vector{Int}
     return ethgr == White ? [1] : [2]
 end
 

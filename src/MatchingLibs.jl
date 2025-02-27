@@ -9,29 +9,6 @@ module MatchingLibs
 # - write up, so why not just Engel curves?
 #
 
-#=
-example import
-
-using CSV,
-    DataFrames,
-    Measures,
-    StatsBase,
-    ArgCheck,
-    PrettyTables
-using ScottishTaxBenefitModel
-using .Definitions, .MatchingLibs, .FRSHouseholdGetter, .RunSettings
-
-import ScottishTaxBenefitModel.MatchingLibs.LCF as lcf
-import ScottishTaxBenefitModel.MatchingLibs.Common as com
-import ScottishTaxBenefitModel.MatchingLibs.Model as mm
-import ScottishTaxBenefitModel.MatchingLibs.WAS as was
-# then ..
-settings = Settings()
-FRSHouseholdGetter.initialise( settings; reset=false 
-=#
-
-
-
 using CSV,
     DataFrames,
     Measures,
@@ -43,7 +20,6 @@ using ScottishTaxBenefitModel
 using .Definitions,
     .ModelHousehold,
     .FRSHouseholdGetter,
-    # FIXME cross dependency .ExampleHouseholdGetter,
     .Uprating,
     .RunSettings
 
@@ -53,28 +29,35 @@ export map_example,
     frs_lcf_match_row
 
 
-s = instances( Socio_Economic_Group )
-
 include( "matching/Common.jl")
-import .Common 
-import .Common: MatchingLocation
+import .Common as common
 include( "matching/Model.jl")
-import .Model 
+import .Model as model
 include( "matching/LCF.jl")
-import .LCF
+import .LCF as lcf
 include( "matching/WAS.jl")
-import .WAS
+import .WAS as was
 include( "matching/SHS.jl")
-import .SHS
-
-export TOPCODE, within, load, uprate_incomes!, checkdiffs
+import .SHS as shs
 
 const NUM_SAMPLES = 20
 
-
+struct MatchingLocation{T<: AbstractFloat}
+    case :: Int
+    datayear :: Int
+    score :: T
+    income :: T
+    incdiff :: T
+end
 
 islessscore( l1::MatchingLocation, l2::MatchingLocation ) = l1.score < l2.score
 islessincdiff( l1::MatchingLocation, l2::MatchingLocation ) = l1.incdiff < l2.incdiff
+
+const TOPCODE = 2420.03
+
+function within(x;min=min,max=max) 
+    return if x < min min elseif x > max max else x end
+end
 
 """
 Match one row in the FRS (recip) with all possible lcf matches (donor). Intended to be general
@@ -87,7 +70,7 @@ function match_recip_row( recip, donor :: DataFrame, matcher :: Function, income
     for lr in eachrow(donor)
         i += 1
         score, incdiff = matcher( recip, lr )
-        similar[i] = MatchingLocation( lr.case, lr.datayear, score, lr[incomesym], incdiff )
+        similar[i] = MatchingLocation{Float64}( lr.case, lr.datayear, score, lr[incomesym], incdiff )
     end
     # sort by characteristics   
     similar = sort( similar; lt=islessscore, rev=true )[1:NUM_SAMPLES]
@@ -97,6 +80,70 @@ function match_recip_row( recip, donor :: DataFrame, matcher :: Function, income
 end
 
 
+"""
+Absolute difference in income, scaled by max difference (TOPCODE,since the possible range is zero to the top-coding)
+"""
+function compare_income( hhinc :: Real, p344p :: Real, topcode=TOPCODE ) :: Real
+    # top & bottom code hhinc to match the lcf p344
+    # hhinc = max( 0, hhinc )
+    # hhinc = min( TOPCODE, hhinc ) 
+    1-abs( hhinc - p344p )/topcode # topcode is also the range 
+end
+
+
+"""
+Create a dataframe for storing all the matches. 
+This has the FRS record and then 20 lcf records, with case,year,income and matching score for each.
+"""
+function makeoutdf( n :: Int, prefix :: AbstractString ) :: DataFrame
+    d = DataFrame(
+    frs_sernum = zeros(Int, n),
+    frs_datayear = zeros(Int, n),
+    frs_income = zeros(n))
+    for i in 1:NUM_SAMPLES
+        case_sym = Symbol( "$(prefix)_case_$i")
+        datayear_sym = Symbol( "$(prefix)_datayear_$i")
+        score_sym = Symbol( "$(prefix)_score_$i")
+        income_sym = Symbol( "$(prefix)_income_$i")
+        d[!,case_sym] .= 0
+        d[!,datayear_sym] .= 0
+        d[!,score_sym] .= 0.0
+        d[!,income_sym] .= 0.0
+    end
+    return d
+end
+
+"""
+Score for one of our 3-level matches 1 for exact 0.5 for partial 1, 0.1 for partial 2
+"""
+function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
+    @argcheck length(a3) == length(b3)
+    l = length(a3)
+    return if a3[1] == b3[1]
+        1.0
+    elseif (l >= 2) && (a3[2] == b3[2])
+        0.5
+   + elseif (l >= 3) && (a3[3] == b3[3])
+        0.1
+    else
+        0.0
+    end
+end
+
+"""
+Score for comparison between 2 ints: 1 for exact, 0.5 for within 2 steps, 0.1 for within 5. FIXME look at this again.
+"""
+function score( a :: Int, b :: Int ) :: Float64
+    return if a == b
+        1.0
+    elseif abs( a - b ) < 2
+        0.5
+    elseif abs( a - b ) < 5
+        0.1
+    else
+        0.0
+    end
+end
 
 """
 Map the entire datasets.
@@ -206,7 +253,7 @@ function model_row_was_match(
     incdiff = 0.0
     hrp = get_head( hh )
     t += score( Model.map_age_hrp( hrp.age ), 
-        WAS.map_age_hrp(was.age_head, 9997 )) # ok
+        WAS.map_age_hrp(was.age_head )) # ok
     t += region_score_scotland( 
         Model.map_region( hh.region ), 
         WAS.map_region( was.region, 9997 ),
@@ -265,6 +312,7 @@ function match_row_lcf_model( hh :: Household, lcf :: DataFrameRow ) :: Tuple
     return t,incdiff
 end
 
+const NUM_SAMPLES = 50
 
 """
 Map the entire datasets.
