@@ -257,6 +257,7 @@ function counts_for_match( hh :: Household )::NamedTuple
         end
     end
     num_adults = num_people - num_children
+    income = hh.original_gross_income
     return (;
             num_people,
             num_adults,
@@ -273,7 +274,8 @@ function counts_for_match( hh :: Household )::NamedTuple
             any_pension_income,
             any_selfemp,
             has_female_adult,
-            has_disabled_member )
+            has_disabled_member,
+            income )
 end
 
 
