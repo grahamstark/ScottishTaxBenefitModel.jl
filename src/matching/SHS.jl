@@ -27,8 +27,7 @@ function loadshs( dyear::Int )::DataFrame
         types=Dict(:UNIQIDNEW=>String)) |> DataFrame
     lcnames = Symbol.(lowercase.(string.(names(shs))))
     rename!(shs,lcnames)
-    shs[!,:datayear] .= dyear
-    
+    shs[!,:datayear] .= dyear    
     return shs
 end
 
@@ -45,6 +44,32 @@ function create_shs( years :: UnitRange ) :: DataFrame
         shs[i] = loadshs(year)
     end
     return vcat( shs...; cols=:intersect )
+end
+
+function make_shs_subset( years :: UnitRang):: DataFrame 
+    shss = create_shs( years )
+    return Dataframe(
+        accsup1 = shss.accsup1,
+        tenure = shss.tenure, 
+        hb2 = shss.hb2,
+        hc4 = shss.hc4, 
+        hhtype_new = shss.hhtype_new,
+        totads = shss.totads, 
+        numkids = shss.numkids, 
+        hihage = shss.hihage, 
+        hihecon = shss.hihecon, 
+        hih_eth2012 = shss.hih_eth2012, 
+        hihsoc = shss.hihsoc, 
+        datayear = shss.datayear, 
+        hh_net_income = shss.tothinc,
+        council  = shss.council,	# 18	local authority	nominal	a1	4	left
+        la_groupings = shss.area,	# 19	shs local authority groupings	nominal	f8.2	10	right
+        health_board = shss.hlthbd2019, #	20	health board (2019 classification) - standard geography codes	nominal	a9	9	left
+        health_board_code = shss.hlth19,	# 21	health board (2019 classification)	nominal	f2	8	right
+        simd = shss.md20quin,	# 22	simd 2020 - 1 = 20% most deprived to 5 = 20% least deprived	nominal	f1	8	right
+        geog_code = shss.rtpsegis, #	23	rtp geography code	nominal	a9	9	left
+        rtp_area = shss.rtparea,	# 24	rtp area	scale	f2	8	right
+        hhsize = shss.numbhh )
 end
 
 """
