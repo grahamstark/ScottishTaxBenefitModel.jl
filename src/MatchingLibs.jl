@@ -123,7 +123,7 @@ function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
         1.0
     elseif (l >= 2) && (a3[2] == b3[2])
         0.5
-   + elseif (l >= 3) && (a3[3] == b3[3])
+    elseif (l >= 3) && (a3[3] == b3[3])
         0.1
     else
         0.0
@@ -143,6 +143,10 @@ function score( a :: Int, b :: Int ) :: Float64
     else
         0.0
     end
+end
+
+function score( a :: Bool, b :: Bool ) :: Float64
+    return a == b ? 1 : 0
 end
 
 """
@@ -233,21 +237,6 @@ Match one row in the FRS (recip) with all possible lcf matches (donor). Intended
 but isn't really any more. FIXME: pass in a saving function so we're not tied to case/datayear.
 """
 #=
-function match_recip_row( recip, donor :: DataFrame, matcher :: Function ) :: Vector{MatchingLocation}
-    drows, dcols = size(donor)
-    i = 0
-    similar = Vector{MatchingLocation}( undef, drows )
-    for lr in eachrow(donor)
-        i += 1
-        score, incdiff = matcher( recip, lr )
-        similar[i] = MatchingLocation( lr.case, lr.datayear, score, lr.income, incdiff )
-    end
-    # sort by characteristics   
-    similar = sort( similar; lt=islessscore, rev=true )[1:NUM_SAMPLES]
-    # .. then the nearest income amongst those
-    similar = sort( similar; lt=islessincdiff, rev=true )[1:NUM_SAMPLES]
-    return similar
-end
 
 =#
 
@@ -300,11 +289,11 @@ function model_row_shs_match(
 end
 
 function model_row_was_match( 
-    hh :: Household, wass :: DataFrameRow ) :: Tuple
+    hh :: Household, wass :: DataFrameRow ) :: NamedTuple
     head = get_head(hh)
+    cts = model.counts_for_match( hh )   
     t = 0.0
-    cts = mm.counts_for_match( hh )   
-    t += score( was.map_tenure(wass.tenure), mm.map_tenure( hh.tenure ))
+    t += score( was.map_tenure(wass.tenure), model.map_tenure( hh.tenure ))
     t += score( was.map_accom(wass.accom), was.model_to_was_map_accom(hh.dwelling)) 
     # bedrooms to common
     t += score( common.map_bedrooms(wass.bedrooms), common.map_bedrooms( hh.bedrooms ))
@@ -316,12 +305,28 @@ function model_row_was_match(
     t += score( common.map_total_people( wass.num_adults ), common.map_total_people(cts.num_adults ))
     t += score( common.map_total_people(wass.num_children ), common.map_total_people(cts.num_children )) 
     t += score( was.map_age_bands(wass.age_head), was.model_was_map_age_bands( head.age ))
-    t += score( was.map_marital(wass.marital_status_head), mm.map_marital( head.marital_status))
+    t += score( was.map_marital(wass.marital_status_head), model.map_marital( head.marital_status))
     t += score( was.map_socio(wass.socio_economic_head), was.model_was_map_socio( head.socio_economic_grouping) )
     t += score( was.map_empstat(wass.empstat_head), was.model_was_map_empstat( head.employment_status))
     t += region_score_scotland( Standard_Region(wass.region))
-    incdiff = compare_income( lcf.income, income )
-    return t, incdiff 
+    incdiff = compare_income( wass.weekly_gross_income, cts.income )
+    return (; score=t, incdiff=incdiff, datayear=wass.datayear, id=wass.case, income=wass.weekly_gross_income )
+end
+
+function match_recip_row( hh::Household, donor :: DataFrame, matcher :: Function ) :: Vector{MatchingLocation}
+    drows, dcols = size(donor)
+    i = 0
+    similar = Vector{MatchingLocation}( undef, drows )
+    for lr in eachrow(donor)
+        i += 1
+        score, incdiff = matcher( hh, lr )
+        similar[i] = MatchingLocation( lr.case, lr.datayear, score, lr.income, incdiff )
+    end
+    # sort by characteristics   
+    similar = sort( similar; lt=islessscore, rev=true )[1:NUM_SAMPLES]
+    # .. then the nearest income amongst those
+    similar = sort( similar; lt=islessincdiff, rev=true )[1:NUM_SAMPLES]
+    return similar
 end
 
 function match_row_lcf_model( hh :: Household, lcf :: DataFrameRow ) :: Tuple
@@ -355,7 +360,7 @@ end
 """
 Map the entire datasets.
 """
-function map_all_was( 
+function map_all( 
     settings :: Settings, 
     donor :: DataFrame, 
     matcher :: Function ) :: DataFrame
@@ -371,19 +376,16 @@ function map_all_was(
         df[ hno, :frs_sernum] = hh.hid
         df[ hno, :frs_datayear] = hh.data_year
         df[ hno, :frs_income] = hh.original_gross_income
-        matches = match_recip_row( hh, donor, matcher, :weekly_gross_income ) 
+        matches = match_recip_row( hh, donor, matcher ) 
         for i in 1:NUM_SAMPLES
-            was_case_sym = Symbol( "was_case_$i")
-            was_datayear_sym = Symbol( "was_datayear_$i")
-            was_score_sym = Symbol( "was_score_$i")
-            was_income_sym = Symbol( "was_income_$i")
-            df[ hno, was_case_sym] = matches[i].case
-            df[ hno, was_datayear_sym] = matches[i].datayear
-            df[ hno, was_score_sym] = matches[i].score
-            df[ hno, was_income_sym] = matches[i].income    
-        end
-        if p > 10000000
-            break
+            case_sym = Symbol( "case_$i")
+            datayear_sym = Symbol( "datayear_$i")
+            score_sym = Symbol( "score_$i")
+            income_sym = Symbol( "income_$i")
+            df[ hno, case_sym] = matches[i].case
+            df[ hno, datayear_sym] = matches[i].datayear
+            df[ hno, score_sym] = matches[i].score
+            df[ hno, income_sym] = matches[i].income    
         end
     end
     return df
@@ -393,7 +395,7 @@ function create_frs_was_matches( data_source :: DataSource = FRSSource )
     settings = Settings()
     settings.data_source = data_source
     was_dataset = CSV.File(joinpath(data_dir( settings ),settings.wealth_dataset)*".tab")|>DataFrame    
-    map_all_was( settings, was_dataset, model_was_match )
+    map_all_was( settings, was_dataset, model_was_match, )
 end
 
 end # module
