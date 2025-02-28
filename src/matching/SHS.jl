@@ -46,7 +46,7 @@ function create_shs( years :: UnitRange ) :: DataFrame
     return vcat( shs...; cols=:intersect )
 end
 
-function make_shs_subset( years :: UnitRang):: DataFrame 
+function make_shs_subset( years :: UnitRange ):: DataFrame 
     shss = create_shs( years )
     return Dataframe(
         accsup1 = shss.accsup1,
