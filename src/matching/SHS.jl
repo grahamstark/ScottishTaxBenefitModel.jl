@@ -48,8 +48,8 @@ function create_shs( years :: UnitRange ) :: DataFrame
     return vcat( shs...; cols=:intersect )
 end
 
-function create_subset( years :: UnitRange ):: DataFrame 
-    shss = create_shs( years )
+function create_subset( ):: DataFrame 
+    shss = create_shs( 2018:2022 )
     return Dataframe(
         accsup1 = shss.accsup1,
         tenure = shss.tenure, 
@@ -521,5 +521,37 @@ function model_row_shs_match(
     t = 0.0
     return 
 end
+
+function model_row_match( 
+    hh :: Household, shss :: DataFrameRow ) :: MatchingLocation
+    head = get_head(hh)   
+    cts = mm.counts_for_match( hh )
+    map_one!.( (shs_summaries,), (:shelter,), shss.accsup1 )
+    map_one!.( (shs_summaries,), (:tenure,), shs.map_tenure.(shss.tenure)) 
+    map_one!.( (shs_summaries,), (:acctype,), shs.map_accom.(shss.hb1, shss.hb2) ) 
+    map_one!.( (shs_summaries,), (:bedrooms,), common.map_bedrooms.(shss.hc4 )) 
+    map_one!.( (shs_summaries,), (:hh_composition,), shs.map_composition.(shss.hhtype_new ))
+    map_one!.( (shs_summaries,), (:num_adults,), common.map_total_people.(shss.totads )) 
+    map_one!.( (shs_summaries,), (:num_children,), common.map_total_people.(shss.numkids )) 
+    map_one!.( (shs_summaries,), (:age_head,), common.map_age.(shss.hihage )) 
+    map_one!.( (shs_summaries,), (:empstat,), shs.map_empstat.(shss.hihecon )) 
+    map_one!.( (shs_summaries,), (:ethnic,), shs.map_ethnic.(shss.hih_eth2012 )) 
+    map_one!.( (shs_summaries,), (:socio,), shs.map_social.(shss.hihsoc )) 
+    map_one!.( (shs_summaries,), (:datayear,), shss.datayear .- 2017 ) 
+        map_one!( model_summaries, :region, mm.map_region( hh.region ))
+        map_one!( model_summaries, :tenure, shs.model_to_shs_map_tenure( hh.tenure ))
+        map_one!( model_summaries, :acctype, shs.model_to_shs_map_accom(hh.dwelling)) 
+        map_one!( model_summaries, :bedrooms, common.map_bedrooms( hh.bedrooms )) 
+        map_one!( model_summaries, :hh_composition, shs.model_shs_map_composition( household_composition_1(hh)))
+        map_one!( model_summaries, :num_adults, common.map_total_people( cts.num_adults ))
+        map_one!( model_summaries, :num_children, common.map_total_people(cts.num_children ))
+        map_one!( model_summaries, :age_head, common.map_age(head.age ))
+        map_one!( model_summaries, :empstat, shs.shs_model_map_empstat(head.employment_status))
+        map_one!( model_summaries, :ethnic, shs.shs_model_map_ethnic(head.ethnic_group))
+        map_one!( model_summaries, :socio, shs.shs_model_map_social( head.occupational_classification )) 
+    incdiff = Common.compare_income( wass.weekly_gross_income, cts.income )
+    return  MatchingLocation( wass.case, wass.datayear, t, 0.0, 0.0 ) 
+end # func model_row_match
+
 
 end # Module
