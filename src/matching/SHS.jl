@@ -5,9 +5,11 @@ import ..Model
 using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
+using .ModelHousehold
 
 import ScottishTaxBenefitModel.MatchingLibs.Common
-
+import ScottishTaxBenefitModel.MatchingLibs.Common: score as cscore, MatchingLocation
+import ScottishTaxBenefitModel.MatchingLibs.Model as model
 using CSV,
     DataFrames,
     Measures,
@@ -46,7 +48,7 @@ function create_shs( years :: UnitRange ) :: DataFrame
     return vcat( shs...; cols=:intersect )
 end
 
-function make_shs_subset( years :: UnitRange ):: DataFrame 
+function create_subset( years :: UnitRange ):: DataFrame 
     shss = create_shs( years )
     return Dataframe(
         accsup1 = shss.accsup1,
@@ -513,5 +515,11 @@ function model_shs_map_composition( comp :: HouseholdComposition1 )::Vector{Int}
     return [c1,c2]
 end
 
+function model_row_shs_match(
+    hh :: Household, wass :: DataFrameRow ) :: MatchingLocation
+    head = get_head(hh)
+    t = 0.0
+    return 
+end
 
 end # Module

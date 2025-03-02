@@ -3,6 +3,7 @@ module LCF
 using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
+using .ModelHousehold
 
 using CSV,
     DataFrames,
@@ -11,6 +12,8 @@ using CSV,
     ArgCheck
 
 import ScottishTaxBenefitModel.MatchingLibs.Common
+import ScottishTaxBenefitModel.MatchingLibs.Common: score as cscore, MatchingLocation
+import ScottishTaxBenefitModel.MatchingLibs.Model as model
 
 """
 

@@ -6,9 +6,12 @@ import ..Model
 using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
+using .ModelHousehold
 
 import ScottishTaxBenefitModel.MatchingLibs.Common
-
+import ScottishTaxBenefitModel.MatchingLibs.Common: MatchingLocation
+import ScottishTaxBenefitModel.MatchingLibs.Common: score as cscore
+import ScottishTaxBenefitModel.MatchingLibs.Model as model
 using CSV,
     DataFrames,
     Measures,
@@ -586,5 +589,32 @@ function create_subset()::DataFrame
     # CSV.write( "data/$(outfilename)", subwas; delim='\t')
     return subwas
 end
+
+function model_row_match( 
+    hh :: Household, wass :: DataFrameRow ) :: MatchingLocation
+    head = get_head(hh)
+    cts = model.counts_for_match( hh )   
+    t = 0.0
+    t += cscore( map_tenure(wass.tenure), model.map_tenure( hh.tenure ))
+    t += cscore( map_accom(wass.accom), model_to_was_map_accom(hh.dwelling)) 
+    # bedrooms to common
+    t += cscore( Common.map_bedrooms(wass.bedrooms), 
+        Common.map_bedrooms( hh.bedrooms ))
+    t += cscore( map_household_composition(wass.household_type), 
+                model_was_map_household_composition( household_composition_1(hh)))
+    t += cscore( wass.any_wages, cts.any_wages )
+    t += cscore( wass.any_pension_income, cts.any_pension_income )  
+    t += cscore( wass.any_selfemp, cts.any_selfemp )
+    t += cscore( Common.map_total_people( wass.num_adults ), Common.map_total_people(cts.num_adults ))
+    t += cscore( Common.map_total_people(wass.num_children ), Common.map_total_people(cts.num_children )) 
+    t += cscore( map_age_bands(wass.age_head), model_was_map_age_bands( head.age ))
+    t += cscore( map_marital(wass.marital_status_head), model.map_marital( head.marital_status))
+    t += cscore( map_socio(wass.socio_economic_head), model_was_map_socio( head.socio_economic_grouping) )
+    t += cscore( map_empstat(wass.empstat_head), model_was_map_empstat( head.employment_status))
+    t += Common.region_score_scotland( Standard_Region(wass.region))
+    incdiff = Common.compare_income( wass.weekly_gross_income, cts.income )
+    return  MatchingLocation( wass.case, wass.datayear, t, wass.weekly_gross_income, incdiff ) 
+end
+
 
 end

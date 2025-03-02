@@ -5,6 +5,7 @@ module Common
 #
 using ScottishTaxBenefitModel
 using .RunSettings
+using .Definitions
 
 using CSV,
     DataFrames,
@@ -14,7 +15,100 @@ using CSV,
 
 export load, composition_map, composition_map, searchbaddies, person_map 
 export composition_map,age_hrp, pct
-export checkall , checkdiffs
+export checkall , checkdiffs, MatchingLocation, score
+
+
+struct MatchingLocation{T<: AbstractFloat}
+    case :: Int
+    datayear :: Int
+    score :: T
+    income :: T
+    incdiff :: T
+end
+
+islessscore( l1::MatchingLocation, l2::MatchingLocation ) = l1.score < l2.score
+islessincdiff( l1::MatchingLocation, l2::MatchingLocation ) = l1.incdiff < l2.incdiff
+
+"""
+Score for one of our 3-level matches 1 for exact 0.5 for partial 1, 0.1 for partial 2
+"""
+function score( a3 :: Vector{Int}, b3 :: Vector{Int})::Float64
+    @argcheck length(a3) == length(b3)
+    l = length(a3)
+    return if a3[1] == b3[1]
+        1.0
+    elseif (l >= 2) && (a3[2] == b3[2])
+        0.5
+    elseif (l >= 3) && (a3[3] == b3[3])
+        0.1
+    else
+        0.0
+    end
+end
+
+"""
+Score for comparison between 2 ints: 1 for exact, 0.5 for within 2 steps, 0.1 for within 5. FIXME look at this again.
+"""
+function score( a :: Int, b :: Int ) :: Float64
+    return if a == b
+        1.0
+    elseif abs( a - b ) < 2
+        0.5
+    elseif abs( a - b ) < 5
+        0.1
+    else
+        0.0
+    end
+end
+
+function score( a :: Bool, b :: Bool ) :: Float64
+    return a == b ? 1 : 0
+end
+
+"""
+
+North_East = 1
+North_West = 2
+Yorks_and_the_Humber = 3
+East_Midlands = 4
+West_Midlands = 5
+East_of_England = 6
+London = 7
+South_East = 8
+South_West = 9
+Wales = 10
+Scotland = 11 
+Northern_Ireland = 12
+
+Heavily weight Scotland, then n england, then midland/wales, 0 London/SE
+NOTE 2.0 1.0 0.5 0.1 
+"""
+function region_score_scotland(
+    region :: Standard_Region, weights = [2.0,1.0,0.5,0.2,0.1])::Float64
+    return if region == Scotland
+        weights[1]
+        elseif region in [
+            North_East,
+            North_West,
+            Yorks_and_the_Humber,
+            Wales,
+            Northern_Ireland] # neast, nwest, yorks
+            weights[2]
+        elseif region in [ 
+            East_of_England,
+            East_Midlands,
+            West_Midlands] # e/w midlands, wales
+            weights[3]
+        elseif region in [
+            South_East,
+            South_West]
+            weights[4]
+        elseif region in [London] # London
+            weights[5]
+        else
+            @assert false "unmapped region $region"
+        end 
+end
 
 function map_socio( socio :: Int ) :: Vector{Int}
     @argcheck socio in 1:12
@@ -219,6 +313,21 @@ end
 function pct(v)
     round.( 100.0 .* v ./ sum(v), sigdigits=2 )
 end
+
+
+const TOPCODE = 2420.03
+
+"""
+Absolute difference in income, scaled by max difference (TOPCODE,since the possible range is zero to the top-coding)
+"""
+function compare_income( hhinc :: Real, p344p :: Real, topcode=TOPCODE ) :: Real
+    # top & bottom code hhinc to match the lcf p344
+    # hhinc = max( 0, hhinc )
+    # hhinc = min( TOPCODE, hhinc ) 
+    1-abs( hhinc - p344p )/topcode # topcode is also the range 
+end
+
+
 
 function compareone( frs :: DataFrame, was :: DataFrame, name :: String, n :: Int ) :: Array
     out=[]
