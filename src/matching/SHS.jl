@@ -49,10 +49,13 @@ function create_shs( years :: UnitRange ) :: DataFrame
 end
 
 function create_subset( ):: DataFrame 
-    shss = create_shs( 2018:2022 )
-    return Dataframe(
+    shss = create_shs( 2019:2022 )
+    return DataFrame(
+        uniqidnew = parse.(Int,shss.uniqidnew),
+        datayear = shss.datayear, 
         accsup1 = shss.accsup1,
         tenure = shss.tenure, 
+        hb1 = shss.hb1,
         hb2 = shss.hb2,
         hc4 = shss.hc4, 
         hhtype_new = shss.hhtype_new,
@@ -62,7 +65,6 @@ function create_subset( ):: DataFrame
         hihecon = shss.hihecon, 
         hih_eth2012 = shss.hih_eth2012, 
         hihsoc = shss.hihsoc, 
-        datayear = shss.datayear, 
         hh_net_income = shss.tothinc,
         council  = shss.council,	# 18	local authority	nominal	a1	4	left
         la_groupings = shss.area,	# 19	shs local authority groupings	nominal	f8.2	10	right
@@ -335,7 +337,7 @@ end
 =#
 function map_social( soc :: Union{Int,Missing} ) :: Vector{Int}
     if ismissing(soc)
-        return rand(Int,3)
+        return rand(Int,2)
     end
     if ! (soc in 1:9) 
         return [0,0]
@@ -525,20 +527,20 @@ end
 function model_row_match( 
     hh :: Household, shss :: DataFrameRow ) :: MatchingLocation
     head = get_head(hh)   
-    cts = mm.counts_for_match( hh )
+    cts = model.counts_for_match( hh )
     t = 0.0
     # map_one!.( (shs_summaries,), (:shelter,), shss.accsup1 )
     t += cscore( map_tenure(shss.tenure), model_to_shs_map_tenure( hh.tenure ))
     t += cscore( map_accom(shss.hb1, shss.hb2), model_to_shs_map_accom(hh.dwelling)) 
-    t += cscore( common.map_bedrooms(shss.hc4 ), common.map_bedrooms( hh.bedrooms )) 
+    t += cscore( Common.map_bedrooms(shss.hc4 ), Common.map_bedrooms( hh.bedrooms )) 
     t += cscore( map_composition(shss.hhtype_new ), model_shs_map_composition( household_composition_1(hh)))
-    t += cscore( common.map_total_people(shss.totads ), common.map_total_people( cts.num_adults )) 
-    t += cscore( common.map_total_people( shss.numkids ),common.map_total_people(cts.num_children )) 
-    t += cscore( common.map_age(shss.hihage ), common.map_age(head.age )) 
+    t += cscore( Common.map_total_people(shss.totads ), Common.map_total_people( cts.num_adults )) 
+    t += cscore( Common.map_total_people( shss.numkids ) ,Common.map_total_people(cts.num_children )) 
+    t += cscore( Common.map_age(shss.hihage ), Common.map_age(head.age )) 
     t += cscore( map_empstat(shss.hihecon ), shs_model_map_empstat(head.employment_status)) 
     t += cscore( map_ethnic(shss.hih_eth2012 ), shs_model_map_ethnic(head.ethnic_group))
-    t += cscore( shs.map_social.(shss.hihsoc ), shs_model_map_social( head.occupational_classification )) 
-    return  MatchingLocation( wass.case, wass.datayear, t, 0.0, 0.0 ) 
+    t += cscore( map_social( shss.hihsoc ), shs_model_map_social( head.occupational_classification )) 
+    return  MatchingLocation( shss.uniqidnew, shss.datayear, t, 0.0, 0.0 ) 
 end # func model_row_match
 
 
