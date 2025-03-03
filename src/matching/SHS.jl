@@ -34,6 +34,7 @@ function loadshs( dyear::Int )::DataFrame
 end
 
 
+
 """
 Stack scottish household surveys. 
 """
