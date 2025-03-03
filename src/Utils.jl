@@ -85,7 +85,8 @@ function make_household_sample(
 end
 
 """
-Given a directory in `tmp/` with some data, make a gzipped tar file, upload this to a server 
+Given a directory in the artifacts directory (jammed on to /mnt/data/ScotBen/artifacts/) 
+with some data in it, make a gzipped tar file, upload this to a server 
 defined in Project.toml and add an entry to `Artifacts.toml`. Artifact
 is set to lazy load. Uses `ArtifactUtils`.
 

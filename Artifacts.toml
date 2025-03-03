@@ -1,9 +1,9 @@
 [augdata]
-git-tree-sha1 = "23e7ff4372374716a8e12bed4e521e18cc4eb235"
+git-tree-sha1 = "44fa7650f068924b487b9d011f6341aed182e4f6"
 lazy = true
 
     [[augdata.download]]
-    sha256 = "0f9df38808b80503d08b267e937b78c324e73e0392d3c6dcbc88da272828ec1e"
+    sha256 = "f345e140919d3aa17487533ccb71ba54b790b50b5ec771978b2bf89f0db6a9e9"
     url = "https://virtual-worlds.biz/artifacts//augdata.tar.gz"
 
 [disability]

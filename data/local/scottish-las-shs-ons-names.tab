@@ -1,11 +1,11 @@
-shs_code	 namev1	 lad_2017	 namev2
-1	 South Ayrshire	 S12000028	 South Ayrshire
-2	 South Lanarkshire	 S12000029	 South Lanarkshire
-3	 Stirling	 S12000030	 Stirling
+shs_code	 namev1	lad_2017	 namev2
+1	 South Ayrshire	S12000028	 South Ayrshire
+2	 South Lanarkshire	S12000029	 South Lanarkshire
+3	 Stirling	S12000030	 Stirling
 4	 West Dumbartonshire	S12000039	 West Dunbartonshire
 5	 West Lothian	S12000040	 West Lothian
 6	 Eilean Siar	S12000013	 Na h-Eileanan Siar
-A	 Aberdeen City	 S12000033	 Aberdeen City
+A	 Aberdeen City	S12000033	 Aberdeen City
 B	 Aberdeenshire	S12000034	 Aberdeenshire
 C	 Angus	S12000041	 Angus
 D	 Argyll and Bute	S12000035	 Argyll and Bute
@@ -15,50 +15,19 @@ G	 Dumfries and Galloway	S12000006	 Dumfries and Galloway
 H	 Dundee City	S12000042	 Dundee City
 I	 East Ayrshire	S12000008	 East Ayrshire
 J	 East Dumbartonshire	S12000045	 East Dunbartonshire
-K	 East Lothian	 S12000010	 East Lothian
+K	 East Lothian	S12000010	 East Lothian
 L	 East Renfrewshire	S12000011	 East Renfrewshire
-M	 Edinburgh City	 S12000036	 City of Edinburgh
+M	 Edinburgh City	S12000036	 City of Edinburgh
 N	 Falkirk	S12000014	 Falkirk
 O	 Fife	S12000047	 Fife
 P	 Glasgow City	S12000049	 Glasgow City
 Q	 Highland	S12000017	 Highland
-R	 Inverclyde	 S12000018	 Inverclyde
-S	 Midlothian	 S12000019	 Midlothian
+R	 Inverclyde	S12000018	 Inverclyde
+S	 Midlothian	S12000019	 Midlothian
 T	 Moray	S12000020	 Moray
-U	 North Ayrshire	  S12000021	 North Ayrshire
-V	 North Lanarkshire	 S12000050	 North Lanarkshire
-W	 Orkney	 S12000023	 Orkney Islands
+U	 North Ayrshire	S12000021	 North Ayrshire
+V	 North Lanarkshire	S12000050	 North Lanarkshire
+W	 Orkney	S12000023	 Orkney Islands
 X	 Perth and Kinross	S12000048	 Perth and Kinross
 Y	 Renfrewshire	S12000038	 Renfrewshire
-Z	 Shetland   S12000027	 Shetland Islands
-    
-    
-    
-   
-    
-   
-    
-    
-    
-   
-    
-    
-    
-    
-    
-   
-   
-    
-    
-   
-    
-   
-    
-    
-    
-    
-   
-   
-   
-    
-    )
+Z	 Shetland	S12000027	 Shetland Islands
