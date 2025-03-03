@@ -884,4 +884,64 @@ function map_age_hrp( a065p :: Int ) :: Vector{Int}
     out
 end
 
+function model_row_match( 
+    hh :: Household, lcfs :: DataFrameRow ) :: MatchingLocation
+    head = get_head(hh)
+    cts = model.counts_for_match( hh )   
+    t = 0.0
+    t += cscore(lcf.map_marital(lcfs.a006p, lcfs.hrp_has_partner ), lcf.map_marital( head.marital_status ))
+    t += cscore( lcf.map_socio.( lcfs.a094 ), lcf.model_lcf_map_socio( head.socio_economic_grouping, head.employment_status ))
+    map_one!.( (lcf_summaries,), (:acctype,), lcf.map_accom.(lcfs.a116 )) 
+    map_one!.( (lcf_summaries,), (:tenure,), lcf.map_tenure.(lcfs.a121 ))
+    map_one!.( (lcf_summaries,), (:empstat,), lcf.map_empstat.( lcfs.a206, lcfs.a005p ))
+    map_one!.( (lcf_summaries,), (:region,), lcf.map_region.( lcfs.gorx ))
+    map_one!.( (lcf_summaries,), (:num_people,), common.map_total_people.(lcfs.num_people ))
+    map_one!.( (lcf_summaries,), (:num_children,), common.map_total_people.(lcfs.num_children ))
+    map_one!.( (lcf_summaries,), (:any_disabled,), lcfs.has_disabled_member )
+    map_one!.( (lcf_summaries,), (:has_female_adult,), lcfs.has_female_adult )
+    map_one!.( (lcf_summaries,), (:num_employees,), common.map_total_people.(lcfs.num_employees ))
+    map_one!.( (lcf_summaries,), (:num_pensioners,), common.map_total_people.(lcfs.num_pensioners ))
+    map_one!.( (lcf_summaries,), (:num_fulltime,), common.map_total_people.(lcfs.num_fulltime ))
+    map_one!.( (lcf_summaries,), (:num_parttime,), common.map_total_people.(lcfs.num_parttime ))
+    map_one!.( (lcf_summaries,), (:num_selfemp,), common.map_total_people.(lcfs.num_selfemp ))
+    map_one!.( (lcf_summaries,), (:num_unemployed,), common.map_total_people.(lcfs.num_unemployed ))
+    map_one!.( (lcf_summaries,), (:num_unoccupied,), common.map_total_people.(lcfs.num_unoccupied ))
+    map_one!.( (lcf_summaries,), (:hrp_has_partner,), lcfs.hrp_has_partner )
+    map_one!.( (lcf_summaries,), (:any_wages,), lcfs.any_wages )
+    map_one!.( (lcf_summaries,), (:any_pension_income,), lcfs.any_pension_income )
+    map_one!.( (lcf_summaries,), (:any_selfemp,), lcfs.any_selfemp )     
+    map_one!.( (lcf_summaries,), (:age_head,), common.map_age.(lcfs.a005p )) 
+      
+    for hno in 1:settings.num_households
+        hh = FRSHouseholdGetter.get_household(hno)lcf.model_lcf_map_socio( head.socio_economic_grouping, head.employment_status )
+        cts = mm.counts_for_match( hh )
+        map_one!( model_summaries, :region, mm.map_region( hh.region ))
+        map_one!( model_summaries, :tenure, lcf.lcf_model_map_tenure( hh.tenure ))
+        map_one!( model_summaries, :acctype, lcf.lcf_model_map_accom(hh.dwelling)) 
+        head = get_head(hh)   
+        map_one!( model_summaries, :age_head, common.map_age(head.age ))
+        map_one!( model_summaries, :socio, )
+        map_one!( model_summaries, :empstat, lcf.model_lcf_map_empstat( head.employment_status ))           
+        map_one!( model_summaries, :marstat, )
+        map_one!( model_summaries, :num_people, common.map_total_people(cts.num_people ))
+        map_one!( model_summaries, :num_children, common.map_total_people(cts.num_children ))
+        map_one!( model_summaries, :any_disabled, cts.has_disabled_member )
+        map_one!( model_summaries, :has_female_adult, cts.has_female_adult )
+        map_one!( model_summaries, :num_employees, common.map_total_people(cts.num_employees ))
+        map_one!( model_summaries, :num_pensioners, common.map_total_people(cts.num_pensioners ))
+        map_one!( model_summaries, :num_fulltime, common.map_total_people(cts.num_fulltime ))
+        map_one!( model_summaries, :num_parttime, common.map_total_people(cts.num_parttime ))
+        map_one!( model_summaries, :num_selfemp, common.map_total_people(cts.num_selfemp ))
+        map_one!( model_summaries, :num_unemployed, common.map_total_people(cts.num_unemployed ))
+        map_one!( model_summaries, :num_unoccupied, common.map_total_people(cts.num_unoccupied ))
+        map_one!( model_summaries, :hrp_has_partner, cts.hrp_has_partner )
+        map_one!( model_summaries, :any_wages, cts.any_wages )
+        map_one!( model_summaries, :any_pension_income, cts.any_pension_income )
+        map_one!( model_summaries, :any_selfemp, cts.any_selfemp )        
+
+    incdiff = Common.compare_income( wass.weekly_gross_income, cts.income )
+    return  MatchingLocation( wass.case, wass.datayear, t, wass.weekly_gross_income, incdiff ) 
+end
+
+
 end # module LCF
