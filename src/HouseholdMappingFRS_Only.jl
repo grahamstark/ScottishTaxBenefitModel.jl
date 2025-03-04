@@ -474,6 +474,11 @@ function loadfrsx(which::AbstractString, year )::DataFrame
     df
 end
 
+"""
+
+Main entry point for data creation. Creates UK - wide datasets; scottish subset is made later.
+
+"""
 function create_data(;start_year::Int, end_year::Int)
     for year in start_year:end_year
             print("on year $year ")

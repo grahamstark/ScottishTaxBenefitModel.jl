@@ -6,7 +6,6 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
 using .ModelHousehold
-using .LocalLevelCalculations
 import ScottishTaxBenefitModel.MatchingLibs.Common
 import ScottishTaxBenefitModel.MatchingLibs.Common: score as cscore, MatchingLocation
 import ScottishTaxBenefitModel.MatchingLibs.Model as model
@@ -51,13 +50,13 @@ end
 
 function create_subset( ):: DataFrame 
     shss = create_shs( 2019:2022 )
-    return DataFrame(
+    shss = DataFrame(
         uniqidnew = parse.(Int,shss.uniqidnew),
         datayear = shss.datayear, 
         # accsup1 = shss.accsup1,
         tenure = shss.tenure, 
         hb1 = shss.hb1,
-        # hb2 = shss.hb2,
+        hb2 = coalesce.(shss.hb2,-1), # detatched, terraced .. missing if hn1 != 1
         hc4 = shss.hc4, 
         hhtype_new = shss.hhtype_new,
         totads = shss.totads, 
@@ -75,10 +74,11 @@ function create_subset( ):: DataFrame
         geog_code = shss.rtpsegis, #	23	rtp geography code	nominal	a9	9	left
         rtp_area = shss.rtparea,	# 24	rtp area	scale	f2	8	right
         hhsize = shss.numbhh )
-        # local authirity designation 2017 version, via a wee lookup.
+        # local authority designation 2017 version, via a wee lookup.
         # note this fills in 66 missing cases with a randomly chosen lad_2017 code.
     dropmissing!( shss )
-    shss.lad_2017 = LocalLevelCalculations.scodefind.( shss.council )
+    shss.lad_2017 = Definitions.scodefind.( shss.council )
+    return shss
 end
 
 """
@@ -388,7 +388,7 @@ out: detatached = 1
     terrace = 3
     all flats = 4
     all other = 5
-
+note: hb2 is missing if hb1 != 1 (so not a house)
 """
 function map_accom( hb1 :: Union{Missing,Int}, hb2 :: Union{Missing,Int} ) :: Vector{Int}
     out = fill( 0, 2 )

@@ -46,7 +46,7 @@ export
     lookup, 
     make_la_to_brma_map
 
-    # FIXME hard code this in
+    # FIXME move all this to Definitions? that's where LA_NAMES is.
     function make_la_to_brma_map()
         lacsv = CSV.File( joinpath( artifact"augdata", "la_to_brma_approx_mappings.csv" )) |> DataFrame
         out = Dict{Symbol,Symbol}()
@@ -54,23 +54,6 @@ export
             out[Symbol(r.ccode)] = Symbol(r.bcode)
         end
         return out
-    end
-
-    function make_la_names_lookup()::DataFrame
-        las = CSV.File(joinpath(artifact"augdata", "scottish-las-shs-ons-names.tab" ))|>DataFrame
-        las.lad_2017 = Symbol.(las.lad_2017)
-        las
-    end
-
-    const LA_NAMES :: DataFrame = make_la_names_lookup()
-    # lookup a field for the SHS mapping,
-    function scodefind( c::Union{AbstractString,Missing}; field=:lad_2017) 
-        #= if ismissing(c) # pick something random ... 
-            r = rand( 1:size(LA_NAMES)[1])
-            return LA_NAMES[r,field]
-        end
-        =#
-        LA_NAMES[ LA_NAMES.shs_code .== c, field][1]
     end
 
     struct LA_To_BRMA_Wrap
