@@ -132,7 +132,7 @@ function map_all(
     settings.num_people = 
         FRSHouseholdGetter.initialise( settings; reset=false )
     df = makeoutdf( settings.num_households )
-    for hno in 1:100 # settings.num_households
+    for hno in 1:settings.num_households
         hh = FRSHouseholdGetter.get_household( hno )
         println( "on hh $hno")
         df[ hno, :frs_sernum] = hh.hid
