@@ -188,9 +188,7 @@ end
 function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Tuple
     ad_frs = frs_res[((frs_res.sernum.==sernum ).&
                       (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp,:esatyphd,:esatypsp]]
-    @show ad_frs
-    println( size(ad_frs))
-    @assert size( ad_frs )[1] .== 1
+    @assert size( ad_frs )[1] == 1 "$(size(ad_frs)) should select exactly 1 "
     af = ad_frs[1,:]
     jsa = head ? af.jsatyphd : af.jsatypsp
     # fixme refactor
