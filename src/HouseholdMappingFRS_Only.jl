@@ -1,9 +1,10 @@
 #
 # This contains most of the functions used to create our model dataset from raw FRS/SHS/HBAI data.
 # This has all the HBAI references removed
-# 
+# FIXME too many different assignment and comparison functions - simplify
 #
 using DataFrames
+using Revise # NOTE!! Revise not a ScottishTaxBenefit model direct dependency, but this is script
 using CSV
 using ArgCheck
 using StatsBase
@@ -12,11 +13,10 @@ using .Utils
 using .Definitions
 using .RunSettings
 using .Randoms: mybigrandstr
-using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR
+using .GeneralTaxComponents: RateBands
 
-export CreateData
-
-include( "frs_hbai_creation_libs.jl")
+# note: `includet` needs Revise loaded into the session
+# includet( "frs_hbai_creation_libs.jl")
 
 #
 # BU head is hrp or 1st person interviewed in subsequent BUs
@@ -78,7 +78,7 @@ function create_adults(
         model_adult = adult_model[adno, :]
         model_adult.pno = frs_person.person
         model_adult.hid = frs_person.sernum
-        model_adult.is_hrp = (frs_person.hrpid == 1) 
+        model_adult.is_hrp = to_bool( frs_person.hrpid )
         model_adult.uhid = get_pid( FRSSource, year, frs_person.sernum, 0 ) # unique hhid needed for mostly.ai generator
         model_adult.pid = get_pid( FRSSource, year, frs_person.sernum, frs_person.person )
         model_adult.from_child_record = false
@@ -102,9 +102,9 @@ function create_adults(
             # see the note on capital in `docs/legalaid` - and 
             # assign BU total to head of bu
             # totsav3 us is the only measure in all of 2015-2021 FRSs
-            model_adult.wealth_and_assets = frs_bu.totcapb3
+            model_adult.wealth_and_assets = safe_assign(frs_bu.totcapb3)
             # we'll also store the band 
-            model_adult.totsav= frs_bu.totsav
+            model_adult.totsav= safe_assign(frs_bu.totsav)
         end
         a_job = job[((job.sernum.==frs_person.sernum).&(job.benunit.==frs_person.benunit).&(job.person.==frs_person.person)), :]
         a_benunit = benunit[((frs_person.benunit .== benunit.benunit).&(frs_person.sernum.==benunit.sernum)),:]
@@ -131,12 +131,23 @@ function create_adults(
         nojs = size(a_oddjob)[1]
 
         model_adult.marital_status = Marital_Status(safe_assign(frs_person.marital))
-        model_adult.highest_qualification = Qualification_Type(safe_assign(frs_person.dvhiqual))
+        # random variable rename for (almost) same coding frame in 2022 why, why why
+        qt = if year < 2022 
+            frs_person.dvhiqual
+        elseif xparse(frs_person.educqual;default=-1) <= 86 # no qual/missing is 87 in educqual -1 in our old enum
+            frs_person.educqual
+        else 
+            -1 
+        end
+        model_adult.highest_qualification = Qualification_Type(safe_assign(qt))
         model_adult.sic = SIC_2007(safe_assign(frs_person.sic))
 
         model_adult.socio_economic_grouping = Socio_Economic_Group(safe_assign(Integer(trunc(frs_person.nssec))))
-        model_adult.age_completed_full_time_education = safe_assign(frs_person.tea)
+        if year < 2022 # deleted in 2022 WHY DO THIS !?!?!
+            model_adult.age_completed_full_time_education = safe_assign(frs_person.tea)
+        end
         model_adult.years_in_full_time_work = safe_inc(0, frs_person.ftwk)
+        model_adult.years_in_part_time_work = safe_inc(0, frs_person.ptwk)
         model_adult.employment_status = ILO_Employment(safe_assign(frs_person.empstati))
         model_adult.occupational_classification = Standard_Occupational_Classification(safe_assign(frs_person.soc2010))
 
@@ -164,7 +175,7 @@ function create_adults(
         
         map_investment_income!(model_adult, an_account)
         model_adult.income_property = safe_inc(0.0, frs_person.royyr1)
-        if frs_person.rentprof == 2 # it's a loss
+        if safe_compare_eq(frs_person.rentprof,2) # it's a loss
             model_adult.income_property *= -1 # a loss
         end
         model_adult.income_royalties = safe_inc(0.0, frs_person.royyr2)
@@ -208,26 +219,25 @@ function create_adults(
         process_assets!(model_adult, an_asset)
 
         ## also for child
-        model_adult.registered_blind = (frs_person.spcreg1 == 1)
-        model_adult.registered_partially_sighted = (frs_person.spcreg2 == 1)
-        model_adult.registered_deaf = (frs_person.spcreg3 == 1)
+        model_adult.registered_blind = to_bool( frs_person.spcreg1  )
+        model_adult.registered_partially_sighted = to_bool( frs_person.spcreg2  )
+        model_adult.registered_deaf = to_bool( frs_person.spcreg3  )
 
-        model_adult.disability_vision = (frs_person.disd01 == 1) # cdisd kids ..
-        model_adult.disability_hearing = (frs_person.disd02 == 1)
-        model_adult.disability_mobility = (frs_person.disd03 == 1)
-        model_adult.disability_dexterity = (frs_person.disd04 == 1)
-        model_adult.disability_learning = (frs_person.disd05 == 1)
-        model_adult.disability_memory = (frs_person.disd06 == 1)
-        model_adult.disability_mental_health = (frs_person.disd07 == 1)
-        model_adult.disability_stamina = (frs_person.disd08 == 1)
-        model_adult.disability_socially = (frs_person.disd09 == 1)
-        model_adult.disability_other_difficulty = (frs_person.disd10 == 1)
+        model_adult.disability_vision = to_bool( frs_person.disd01 )# cdisd kids ..
+        model_adult.disability_hearing = to_bool( frs_person.disd02  )
+        model_adult.disability_mobility = to_bool( frs_person.disd03  )
+        model_adult.disability_dexterity = to_bool( frs_person.disd04  )
+        model_adult.disability_learning = to_bool( frs_person.disd05  )
+        model_adult.disability_memory = to_bool( frs_person.disd06  )
+        model_adult.disability_mental_health = to_bool( frs_person.disd07  )
+        model_adult.disability_stamina = to_bool( frs_person.disd08  )
+        model_adult.disability_socially = to_bool( frs_person.disd09  )
+        model_adult.disability_other_difficulty = to_bool( frs_person.disd10  )
 
-        model_adult.has_long_standing_illness = (frs_person.health1 == 1)
-        model_adult.how_long_adls_reduced = Illness_Length(max(-1,frs_person.limitl)) #  < 0 ? -1 : frs_person.limitl)
-        adlr = max(-1,frs_person.condit)
+        model_adult.has_long_standing_illness = to_bool( frs_person.health1  )
+        model_adult.how_long_adls_reduced = Illness_Length(xparse(frs_person.limitl; default=-1)) #  < 0 ? -1 : frs_person.limitl)
+        adlr = max(-1, xparse(frs_person.condit; default=-1))
         model_adult.adls_are_reduced = ADLS_Inhibited(adlr) # missings to 'not at all'
-
         model_adult.age_started_first_job = safe_assign( frs_person.jobbyr )
         # This IGNORES the WID field and should use financial year as changeover
         # FIXME check this
@@ -251,11 +261,12 @@ function create_adults(
         model_adult.hours_of_care_received = safe_inc(0.0, frs_person.hourcare)
         model_adult.hours_of_care_given = infer_hours_of_care(frs_person.hourtot) # also kid
 
-        model_adult.is_informal_carer = (frs_person.carefl == 1) # also kid
+        model_adult.is_informal_carer = to_bool( frs_person.carefl )# also kid
         process_relationships!( model_adult, frs_person )
         #
         # illness benefit levels
         # See the note on this in docs/
+        # FIXME 2025 add Scottish Benefits to this
         model_adult.dlaself_care_type = LowMiddleHigh(map123( model_adult.income_dlaself_care, [30, 60 ] ))
         model_adult.dlamobility_type = LowMiddleHigh(map123(model_adult.income_dlamobility, [30] ))
         model_adult.attendance_allowance_type = LowMiddleHigh(map123( model_adult.income_attendance_allowance, [65] ))
@@ -303,24 +314,24 @@ function create_children(
         # model_child.ethnic_group = safe_assign(frs_person.ethgr3)
         ## also for child
         # println( "frs_person.chlimitl='$(frs_person.chlimitl)'")
-        model_child.has_long_standing_illness = (frs_person.chealth1 == 1)
-        model_child.how_long_adls_reduced = Illness_Length(frs_person.chlimitl < 0 ? -1 : frs_person.chlimitl)
-        model_child.adls_are_reduced = ADLS_Inhibited(frs_person.chcond < 0 ? -1 : frs_person.chcond) # missings to 'not at all'
+        model_child.has_long_standing_illness = to_bool( frs_person.chealth1  )
+        model_child.how_long_adls_reduced = Illness_Length(not_missing_or_negative(frs_person.chlimitl))#  < 0 ? -1 : frs_person.chlimitl)
+        model_child.adls_are_reduced = ADLS_Inhibited(not_missing_or_negative(frs_person.chcond)) # missings to 'not at all'
         model_child.over_20_k_saving = 0
 
-        model_child.registered_blind = (frs_person.spcreg1 == 1)
-        model_child.registered_partially_sighted = (frs_person.spcreg2 == 1)
-        model_child.registered_deaf = (frs_person.spcreg3 == 1 )
+        model_child.registered_blind = to_bool( frs_person.spcreg1  )
+        model_child.registered_partially_sighted = to_bool( frs_person.spcreg2  )
+        model_child.registered_deaf = to_bool( frs_person.spcreg3  )
 
-        model_child.disability_vision = ( frs_person.cdisd01 == 1 ) # cdisd kids ..
-        model_child.disability_hearing = ( frs_person.cdisd02 == 1 )
-        model_child.disability_mobility = ( frs_person.cdisd03 == 1 )
-        model_child.disability_dexterity = ( frs_person.cdisd04 == 1 )
-        model_child.disability_learning = ( frs_person.cdisd05 == 1 )
-        model_child.disability_memory = ( frs_person.cdisd06 == 1 )
-        model_child.disability_mental_health = ( frs_person.cdisd07 == 1 )
-        model_child.disability_stamina = ( frs_person.cdisd08 == 1 )
-        model_child.disability_socially = ( frs_person.cdisd09 == 1 )
+        model_child.disability_vision = to_bool( frs_person.cdisd01 )# cdisd kids ..
+        model_child.disability_hearing = to_bool( frs_person.cdisd02  )
+        model_child.disability_mobility = to_bool( frs_person.cdisd03  )
+        model_child.disability_dexterity = to_bool( frs_person.cdisd04  )
+        model_child.disability_learning = to_bool( frs_person.cdisd05  )
+        model_child.disability_memory = to_bool( frs_person.cdisd06  )
+        model_child.disability_mental_health = to_bool( frs_person.cdisd07  )
+        model_child.disability_stamina = to_bool( frs_person.cdisd08  )
+        model_child.disability_socially = to_bool( frs_person.cdisd09  )
         # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
         model_child.health_status = Health_Status(safe_assign(frs_person.heathch))
         model_child.income_wages = safe_inc( 0.0, frs_person.chearns )
@@ -330,7 +341,7 @@ function create_children(
         for t in [:fsbval,:fsfvval,:fsmlkval,:fsmval]
             model_child.income_free_school_meals = safe_inc( model_child.income_free_school_meals, frs_person[t] )
         end
-        model_child.is_informal_carer = (frs_person.carefl == 1 ) # also kid
+        model_child.is_informal_carer = to_bool( frs_person.carefl )# also kid
         process_relationships!( model_child, frs_person )
         # TODO education grants, all the other good child stuff EMA
 
@@ -340,7 +351,7 @@ function create_children(
             if c == 1 # type of care from 1st instance
                 model_child.childcare_type =
                 Child_Care_Type(map_child_care( year, a_childcare[c, :chlook] ))
-                model_child.employer_provides_child_care = (a_childcare[c, :emplprov] == 2)
+                model_child.employer_provides_child_care = (to_bool(a_childcare[c, :emplprov]; trueval=2))
             end
             model_child.cost_of_childcare = safe_inc(
                 model_child.cost_of_childcare,

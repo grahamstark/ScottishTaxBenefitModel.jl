@@ -1,4 +1,18 @@
 
+using DataFrames
+using Revise # NOTE!! Revise not a ScottishTaxBenefit model direct dependency, but this is script
+using CSV
+using ArgCheck
+using StatsBase
+using ScottishTaxBenefitModel
+using .Utils
+using .Definitions
+using .RunSettings
+using .Randoms: mybigrandstr
+using .GeneralTaxComponents: RateBands
+#
+#
+#
 const MONTHS = Dict(
     "JAN" => 1,
     "FEB" => 2,
@@ -13,10 +27,27 @@ const MONTHS = Dict(
     "NOV" => 11,
     "DEC" => 12 )
 
-
 # FIXME paths in Definitions.jl broken
 const L_HBAI_DIR="/mnt/data/hbai/"
 const L_FRS_DIR="/mnt/data/frs/"
+
+# missing/number handling comparisons FIXME do this with overloads instead
+function safe_compare( a :: Union{Number,Missing}; with::Number, op=Base.:>= )::Bool
+    if ismissing(a)
+        return false
+    end
+    return op( a, with )
+end
+safe_compare_ge( a :: Union{Number,Missing}, b::Number )::Bool = safe_compare(a;with=b, op=Base.:>=)
+safe_compare_le( a :: Union{Number,Missing}, b::Number )::Bool = safe_compare(a;with=b, op=Base.:<=)
+safe_compare_gt( a :: Union{Number,Missing}, b::Number )::Bool = safe_compare(a;with=b, op=Base.:>)
+safe_compare_lt( a :: Union{Number,Missing}, b::Number )::Bool = safe_compare(a;with=b, op=Base.:<)
+safe_compare_eq( a :: Union{Number,Missing}, b::Number )::Bool = safe_compare(a;with=b, op=Base.:≈)
+
+# missing/string handling thing->number conversion
+xparse(s::AbstractString; default=0)::Real = parse(Float64,s)
+xparse(s::Missing; default=0)::Number = default
+xparse(s::Number; default=0)::Number = s
 
 
 """
@@ -99,6 +130,31 @@ function map12( v :: Union{Missing,Real}, amt :: Real ) :: Integer
     return r
 end
 
+function not_missing_or_negative( v :: Union{Missing,Number,AbstractString} ; default=-1)::Number
+    return if ismissing(v) 
+        default
+    elseif ! (typeof(v) <: Number) # some non 
+        default
+    elseif v < 0
+        default
+    else
+        v
+    end
+end
+
+function to_bool( b :: Union{Missing,Number,AbstractString} ; default=false, trueval=1)::Bool
+    return if ismissing(b) 
+        default
+    elseif ! (typeof(b) <: Number) # some non 
+        default
+    elseif b < 0
+        default
+    else
+        b == trueval
+    end
+
+
+end
 
 """
 hacky hack to hack AA, etc into l/m/h, sometimes without the m
@@ -132,6 +188,8 @@ end
 function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Tuple
     ad_frs = frs_res[((frs_res.sernum.==sernum ).&
                       (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp,:esatyphd,:esatypsp]]
+    @show ad_frs
+    println( size(ad_frs))
     @assert size( ad_frs )[1] .== 1
     af = ad_frs[1,:]
     jsa = head ? af.jsatyphd : af.jsatypsp
@@ -214,7 +272,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
 
      jtype = -1
      if ismissing(jsa) || (jsa == -1)
-        jsa == -1
+        jsa == -1 
         #  jtype = -1
      elseif jsa in [1,3]
          jtype = 1
@@ -285,6 +343,7 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         socio_economic_grouping = fill( Missing_Socio_Economic_Group, n ), # Vector{Union{Integer,Missing}}(missing, n),
         age_completed_full_time_education = fill(0,n), # Vector{Union{Integer,Missing}}(missing, n),
         years_in_full_time_work = fill(0,n), # Vector{Union{Integer,Missing}}(missing, n),
+        years_in_part_time_work = fill(0,n), # Vector{Union{Integer,Missing}}(missing, n),
         employment_status = fill( Missing_ILO_Employment, n ), #Vector{Union{Integer,Missing}}(missing, n),
         usual_hours_worked = fill(0.0, n ), # Vector{Union{Real,Missing}}(missing, n),
         actual_hours_worked = fill(0.0, n), # Vector{Union{Real,Missing}}(missing, n),
@@ -562,16 +621,19 @@ function process_penprovs(a_pens::DataFrame)::Tuple
     for p in 1:npens
         pen = a_pens[p,:]
         pc = safe_inc(0.0, pen.penamt)
-        if pen.penamtpd == 95
+        if safe_compare_eq(pen.penamtpd,95)
             pc /= 52.0
         end
-        if pen.pencon in [1,4,5] # ish ...
+        pencon = xparse(pen.pencon)
+        if pencon in [1,4,5] # ish ...
             penconts_employee += pc
-        elseif pen.pencon == 2 # employer
+        elseif pencon == 2 # employer
             penconts_employer += pc
-        elseif pen.pencon == 3 # oth employer and employee
+        elseif pencon == 3 # oth employer and employee
             penconts_employer += pc/2
             penconts_employee += pc/2   
+        elseif pencon !== 0
+            println( "unmapped pencon: $pencon")
         end
     end
     # FIXME something about SERPS
@@ -644,16 +706,16 @@ function map_investment_income!(model_adult::DataFrameRow, accounts::DataFrame)
 
 
     for i in 1:naccts
-        v = max(0.0, accounts[i, :accint]) # FIXME national savings stuff appears to be coded -1 for missing
-        if accounts[i, :invtax] == 1
+        v = max(0.0, xparse(accounts[i, :accint])) # FIXME national savings stuff appears to be coded -1 for missing
+        if safe_compare_eq(accounts[i, :invtax],1)
             # FIXME is this right for dividends anymore?
             v /= 0.8
         end
         # FIXME building society - check with other models
         # FIXME go over assignment to broad types against income
         # tax book
-        atype = Account_Type(accounts[i, :account])
-        nsamt = accounts[i, :nsamt]
+        atype = Account_Type(xparse(accounts[i, :account];default=-1))
+        nsamt = xparse(accounts[i, :nsamt])
         #
         # for national savings, amount held is recorded
         # for the rest acctoint = interest pw from account
@@ -718,8 +780,8 @@ function map_alimony(frs_person::DataFrameRow, a_maint::DataFrame)::Tuple
     nmaints = size(a_maint)[1]
     alimony_paid = 0.0 # note: not including children
     alimony_recieved = 0.0 # note: not including children
-    if frs_person.alimny == 1 # receives alimony
-        if frs_person.alius == 2 # not usual
+    if safe_compare_eq(frs_person.alimny,1) # receives alimony
+        if safe_compare_eq(frs_person.alius,2) # not usual
             alimony_recieved = safe_inc(0.0, frs_person.aluamt)
         else
             alimony_recieved = safe_inc(0.0, frs_person.aliamt)
@@ -728,34 +790,35 @@ function map_alimony(frs_person::DataFrameRow, a_maint::DataFrame)::Tuple
     for c in 1:nmaints
         alimony_paid = safe_inc(alimony_paid, a_maint[c, :mramt])
     end
-    alimony_recieved, alimony_paid
+    return alimony_recieved, alimony_paid
 end
 
-function map_car_value( cv :: Integer ) :: Real
-    v = 0.0
-    @assert cv <= 10 "cv out-of-range = $cv"
-    if cv < 0
-        v = 0.0
+function map_car_value( cv :: Union{Integer,Missing} ) :: Real
+    @argcheck ismissing(cv) || (cv <= 10) "cv out-of-range = $cv"
+    v = if ismissing(cv)
+        0.0
+    elseif cv < 0
+        0.0
     elseif cv == 1
-        v = 5_000.0
+        5_000.0
     elseif cv == 2
-        v = 11_500.0
+        11_500.0
     elseif cv == 3
-        v = 14_500.0
+        14_500.0
     elseif cv == 4
-        v = 17_500.0
+        17_500.0
     elseif cv == 5
-        v = 20_500.0
+        20_500.0
     elseif cv == 6
-        v = 23_500.0
+        23_500.0
     elseif cv == 7
-        v = 27_500.0
+        27_500.0
     elseif cv == 8
-        v = 35_000.0
+        35_000.0
     elseif cv == 9
-        v = 45_000.0
+        45_000.0
     elseif cv == 10
-        v = 20_000 # Don't_know = 10
+        20_000 # Don't_know = 10
     end
     v
 end
@@ -835,30 +898,30 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         student_loan_repayments = safe_inc(student_loan_repayments, jb.udeduc9)
         work_expenses = safe_inc(work_expenses, jb.umotamt)# CARS FIXME add to this
         
-        if jb.inclpay1 == 1
+        if safe_compare_eq(jb.inclpay1,1)
             model_adult.pay_includes_ssp = true
         end
-        if jb.inclpay2 == 1
+        if safe_compare_eq(jb.inclpay2,1)
             model_adult.pay_includes_smp = true
         end
         # it refund .. 3
-        if jb.inclpay4 == 1
+        if safe_compare_eq(jb.inclpay4,1)
             model_adult.pay_includes_mileage = true
         end
-        if jb.inclpay5 == 1
+        if safe_compare_eq(jb.inclpay5,1)
             model_adult.pay_includes_motoring_expenses = true
         end
-        if jb.inclpay6 == 1
+        if safe_compare_eq(jb.inclpay6,1)
             model_adult.pay_includes_spp = true
         end
-        if jb.inclpay7 == 1
+        if safe_compare_eq(jb.inclpay7,1)
             model_adult.pay_includes_sap = true
         end
         
         # self employment
-        if jb.prbefore > 0.0
+        if safe_compare_gt(jb.prbefore,0.0)
             self_employment_income += jb.prbefore
-        elseif jb.profit1 > 0.0 
+        elseif safe_compare_gt(jb.profit1, 0.0)
             if jb.profit2 == -1
                 # println( "jb.profit2 is |$(jb.profit2)| should be 1,2 pid=$(model_adult.pid)")
                 jb.profit2 = 1# jb.profit2 catch 1 weird -1 profit2 pid=120191636601 just treat as profit not loss
@@ -869,7 +932,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
             else
                 self_employment_losses += jb.profit1
             end
-        elseif jb.seincamt > 0.0
+        elseif safe_compare_gt(jb.seincamt,0.0)
             self_employment_income += jb.seincamt
         end
         # setax = safe_inc(0.0, jb.setaxamt)
@@ -877,22 +940,22 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
 
         # earnings
         addBonus = false
-        if jb.ugross > 0.0 # take usual when last not usual
+        if safe_compare_gt(jb.ugross,0.0) # take usual when last not usual
             earnings += jb.ugross
             addBonus = true
-        elseif jb.grwage > 0.0 # then take last
+        elseif safe_compare_gt(jb.grwage,0.0) # then take last
             earnings += jb.grwage
             addBonus = true
-        elseif jb.ugrspay > 0.0 # then take total pay, but don't add bonuses
+        elseif safe_compare_gt(jb.ugrspay,0.0) # then take total pay, but don't add bonuses
             earnings += jb.ugrspay
         end
         if addBonus
             for i in 1:6
                 bon = Symbol(string("bonamt", i))
                 tax = Symbol(string("bontax", i))
-                if a_job[j, bon] > 0.0
+                if safe_compare_gt(a_job[j, bon],0.0)
                     bon = a_job[j, bon]
-                    if a_job[j, tax] == 2
+                    if safe_compare_eq(a_job[j, tax],2)
                         bon /= (1 - 0.22) # fixme hack basic rate
                     end
                     earnings += bon / 52.0 # fixwme weeks per year
@@ -902,7 +965,7 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         # cars
         # assign once
         if company_car_fuel_type < 0
-            company_car_fuel_type = jb.fueltyp
+            company_car_fuel_type = safe_inc(jb.fueltyp)
         end
         mv = map_car_value(jb.carval)
         # println( mv )
@@ -982,7 +1045,7 @@ function process_assets!(model_adult::DataFrameRow, an_asset::DataFrame)
         atype = Asset_Type(ano)
         ikey = make_sym_for_asset(atype)
         v = an_asset[a, :howmuch]
-        if an_asset[a, :howmuche] > 0
+        if safe_compare_gt(an_asset[a, :howmuche], 0.0)
             v = an_asset[a, :howmuche]
         end
         model_adult[ikey] = safe_inc(model_adult[ikey], v)
@@ -1049,18 +1112,6 @@ function map_child_care( year :: Integer, care ) :: Integer
 end
 
 
-function xparse(s::AbstractString)::Real
-    parse(Float64,s)
-end
-
-function xparse(s::Missing)::Number
-    0
-end
-
-function xparse(s::Number)::Number
-    s
-end
-
 """
 Weekly equivalent of annual capital repayment on a mortgage. FIXME: Note the misnamed slot I'm putting this in pro. tem.
 The mortgage record has been murdered in FRS 2021/2
@@ -1097,5 +1148,3 @@ function mortage_capital_payments( frsx :: AbstractDataFrame )::Real
     end
     cappay/WEEKS_PER_YEAR;
 end
-
-

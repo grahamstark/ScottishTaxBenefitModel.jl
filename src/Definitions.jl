@@ -1193,7 +1193,6 @@ export wages,
        child_disability_payment_care,
        child_disability_payment_mobility,
        pupil_development_grant,
-    
        other_benefits
 
 @enum Incomes_Type begin
@@ -1289,7 +1288,6 @@ export wages,
    child_disability_payment_care = 2121
    child_disability_payment_mobility = 2122
    pupil_development_grant = 2123
-
    other_benefits = 3000
 end
 
@@ -1855,8 +1853,16 @@ export DLAself_care,
        Troubles_Permanent_Disablement,
        Child_Disability_Payment_Care,
        Child_Disability_Payment_Mobility,
-       Pupil_Development_Grant
-        
+       Pupil_Development_Grant,
+       Disability_Topup, # 2022 + 
+       Pension_Topup, # 2022 + 
+       ADP_Daily_Living_Scotland_Only,
+       ADP_Mobility_Scotland_Only,
+       Child_Disability_Payment_Care_Scotland_only,
+       Child_Disability_Payment_Mobility_Scotland_only,
+       School_clothing_grant,
+       One_off_IRB_Payment
+            
 export Missing_Benefit_Type
 
 @enum Benefit_Type begin  # mapped from benefit
@@ -1926,11 +1932,16 @@ export Missing_Benefit_Type
    Scottish_Child_Payment = 112
    Job_Start_Payment = 115
    Troubles_Permanent_Disablement = 116
+
+   ADP_Daily_Living_Scotland_Only = 117
+   ADP_Mobility_Scotland_Only = 118
+   One_off_IRB_Payment = 124
+
    Child_Disability_Payment_Care = 121
    Child_Disability_Payment_Mobility = 122
    Pupil_Development_Grant = 123
-
-
+   Disability_Topup = 125 # 2022 only so far
+   Pension_Topup = 126  # 2022 only so far
 end
 
 
