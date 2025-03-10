@@ -409,9 +409,9 @@ function create_household(
         hh_model[hhno, :uhid] = get_pid( FRSSource, year, sernum, 0 ) # unique hhid needed for mostly.ai generator
         
         hh_model[hhno, :data_year] = year
-        hh_model[hhno, :tenure] = Tenure_Type( max(-1,hh.tentyp2))
-        hh_model[hhno, :dwelling] = DwellingType(max(-1,hh.typeacc))
-        hh_model[hhno, :region] = Standard_Region(max(-1,hh.gvtregn))
+        hh_model[hhno, :tenure] = Tenure_Type( max(-1,coalesce(hh.tentyp2,-1)))
+        hh_model[hhno, :dwelling] = DwellingType(max(-1,coalesce(hh.typeacc,-1)))
+        hh_model[hhno, :region] = Standard_Region(max(-1,coalesce(hh.gvtregn,-1)))
         ctb = max(-1,coalesce( hh.ctband, -1 ))
         hh_model[hhno, :ct_band] = CT_Band(ctb)
         hh_model[hhno, :weight] = hh.gross4
