@@ -465,7 +465,7 @@ function create_household(
         hh_model[hhno, :other_housing_charges] = ohc
         hh_model[hhno, :bedrooms] = coalesce(hh.bedroom6,0)
         hh_model[hhno, :onerand] = mybigrandstr()
-        hh_model[hhno, :original_gross_income] = coalesce(hhh.hhinc,0.0)
+        hh_model[hhno, :original_gross_income] = coalesce(hh.hhinc,0.0)
         # TODO
         # gross_housing_costs::Real
         # total_wealth::Real
