@@ -412,7 +412,8 @@ function create_household(
         hh_model[hhno, :tenure] = Tenure_Type( max(-1,hh.tentyp2))
         hh_model[hhno, :dwelling] = DwellingType(max(-1,hh.typeacc))
         hh_model[hhno, :region] = Standard_Region(max(-1,hh.gvtregn))
-        hh_model[hhno, :ct_band] = CT_Band(max(-1,hh.ctband))
+        ctb = max(-1,coalesce( hh.ctband, -1 ))
+        hh_model[hhno, :ct_band] = CT_Band(ctb)
         hh_model[hhno, :weight] = hh.gross4
         # hh_model[hhno, :tenure] = hh.tentyp2 > 0 ? Tenure_Type(hh.tentyp2) :
         #                          Missing_Tenure_Type
@@ -440,13 +441,14 @@ function create_household(
         # mortgage_outstanding::Real
         # year_house_bought::Integer
         # FIXME rounded to £1
-        hh_model[hhno, :gross_rent] = max(0.0, hh.hhrent) #  rentg Gross rent including Housing Benefit  or rent Net amount of last rent payment
+        hh_model[hhno, :gross_rent] = safe_inc(0.0, hh.hhrent) #  rentg Gross rent including Housing Benefit  or rent Net amount of last rent payment
 
         rents = renter[(renter.sernum.==sernum), :]
         nrents = size(rents)[1]
         hh_model[hhno, :rent_includes_water_and_sewerage] = false
         for r in 1:nrents
-            if (rents[r, :wsinc] in [1, 2, 3])
+            rc = coalesce(rents[r, :wsinc],-1)
+            if (rc in [1, 2, 3])
                 hh_model[hhno, :rent_includes_water_and_sewerage] = true
             end
         end
@@ -461,9 +463,9 @@ function create_household(
         ohc = safe_inc(ohc, hh.chrgamt8)
         ohc = safe_inc(ohc, hh.chrgamt9)
         hh_model[hhno, :other_housing_charges] = ohc
-        hh_model[hhno, :bedrooms] = hh.bedroom6
+        hh_model[hhno, :bedrooms] = coalesce(hh.bedroom6,0)
         hh_model[hhno, :onerand] = mybigrandstr()
-        hh_model[hhno, :original_gross_income] = hh.hhinc
+        hh_model[hhno, :original_gross_income] = coalesce(hhh.hhinc,0.0)
         # TODO
         # gross_housing_costs::Real
         # total_wealth::Real

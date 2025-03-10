@@ -188,7 +188,7 @@ end
 function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Tuple
     ad_frs = frs_res[((frs_res.sernum.==sernum ).&
                       (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp,:esatyphd,:esatypsp]]
-    @assert size( ad_frs )[1] == 1 "$(size(ad_frs)) should select exactly 1 "
+    @assert size( ad_frs )[1] == 1 "x $(size(ad_frs)) should select exactly 1 "
     af = ad_frs[1,:]
     jsa = head ? af.jsatyphd : af.jsatypsp
     # fixme refactor
@@ -254,7 +254,8 @@ end
 function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integer, head :: Bool )::Tuple
     ad_frs = frs_res[((frs_res.sernum.==sernum ).&
                       (frs_res.benunit.==benunit)), [:jsatyphd,:jsatypsp,:esatyphd,:esatypsp]]
-    @assert size( ad_frs )[1] .== 1
+    # should always select 1 but 2022 has some weird dups e.g. sernum 347
+    @assert size( ad_frs )[1] >= 1 "$(size( ad_frs )) !== 1 sernum=$sernum benunit=$benunit"
     af = ad_frs[1,:]
     jsa = head ? af.jsatyphd : af.jsatypsp
     # fixme refactor
