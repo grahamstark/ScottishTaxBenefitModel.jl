@@ -452,6 +452,9 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         income_child_disability_payment_care = zeros(n),
         income_child_disability_payment_mobility = zeros(n),
         income_pupil_development_grant = zeros(n),
+        income_adp_daily_living = zeros(n),
+        income_adp_mobility = zeros(n),
+        income_pension_age_disability = zeros(n)
         # FIXME next 4 shouldn't be needed
         wages_frs = zeros(n), # Vector{Union{Real,Missing}}(missing, n),
         self_emp_frs = zeros(n), # Vector{Union{Real,Missing}}(missing, n),
@@ -921,12 +924,13 @@ function process_job_rec!(model_adult::DataFrameRow, a_job::DataFrame)
         if safe_compare_gt(jb.prbefore,0.0)
             self_employment_income += jb.prbefore
         elseif safe_compare_gt(jb.profit1, 0.0)
-            if jb.profit2 == -1
+            profit2 = coalesce( jb.profit2, -1 )
+            if profit2 == -1
                 # println( "jb.profit2 is |$(jb.profit2)| should be 1,2 pid=$(model_adult.pid)")
-                jb.profit2 = 1# jb.profit2 catch 1 weird -1 profit2 pid=120191636601 just treat as profit not loss
+                profit2 = 1# jb.profit2 catch 1 weird -1 profit2 pid=120191636601 just treat as profit not loss
             end
-            @assert jb.profit2 in [1, 2] 
-            if jb.profit2 == 1
+            @assert profit2 in [1, 2] 
+            if profit2 == 1
                 self_employment_income += jb.profit1
             else
                 self_employment_losses += jb.profit1

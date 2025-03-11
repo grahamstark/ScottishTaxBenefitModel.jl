@@ -1193,6 +1193,10 @@ export wages,
        child_disability_payment_care,
        child_disability_payment_mobility,
        pupil_development_grant,
+       adp_daily_living,
+       adp_mobility,
+       pension_age_disability_daily_living,
+       pension_age_disability_care,
        other_benefits
 
 @enum Incomes_Type begin
@@ -1288,7 +1292,11 @@ export wages,
    child_disability_payment_care = 2121
    child_disability_payment_mobility = 2122
    pupil_development_grant = 2123
-   other_benefits = 3000
+   adp_daily_living = 2124
+   adp_mobility = 2125
+   pension_age_disability_daily_living = 2126
+   pension_age_disability_care = 2127
+other_benefits = 3000
 end
 
 Incomes_Dict = Dict{Incomes_Type,T} where T<:Real
@@ -1856,10 +1864,11 @@ export DLAself_care,
        Pupil_Development_Grant,
        Disability_Topup, # 2022 + 
        Pension_Topup, # 2022 + 
-       ADP_Daily_Living_Scotland_Only,
-       ADP_Mobility_Scotland_Only,
-       Child_Disability_Payment_Care_Scotland_only,
-       Child_Disability_Payment_Mobility_Scotland_only,
+       ADP_Daily_Living, # _Scotland_Only,
+       ADP_Mobility, # _Scotland_Only,
+       Child_Disability_Payment_Care, # _Scotland_only,
+       Child_Disability_Payment_Mobility, # _Scotland_only,
+       Pension_Age_Disability,
        School_clothing_grant,
        One_off_IRB_Payment
             
@@ -1933,8 +1942,8 @@ export Missing_Benefit_Type
    Job_Start_Payment = 115
    Troubles_Permanent_Disablement = 116
 
-   ADP_Daily_Living_Scotland_Only = 117
-   ADP_Mobility_Scotland_Only = 118
+   ADP_Daily_Living = 117
+   ADP_Mobility = 118
    One_off_IRB_Payment = 124
 
    Child_Disability_Payment_Care = 121
@@ -1942,6 +1951,7 @@ export Missing_Benefit_Type
    Pupil_Development_Grant = 123
    Disability_Topup = 125 # 2022 only so far
    Pension_Topup = 126  # 2022 only so far
+   Pension_Age_Disability = 998 # FIXME not yet in data - numbers wrong
 end
 
 

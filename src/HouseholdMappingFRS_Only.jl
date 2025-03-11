@@ -142,7 +142,7 @@ function create_adults(
         model_adult.highest_qualification = Qualification_Type(safe_assign(qt))
         model_adult.sic = SIC_2007(safe_assign(frs_person.sic))
 
-        model_adult.socio_economic_grouping = Socio_Economic_Group(safe_assign(Integer(trunc(frs_person.nssec))))
+        model_adult.socio_economic_grouping = Socio_Economic_Group(Integer(trunc(safe_assign(frs_person.nssec))))
         if year < 2022 # deleted in 2022 WHY DO THIS !?!?!
             model_adult.age_completed_full_time_education = safe_assign(frs_person.tea)
         end
@@ -259,16 +259,17 @@ function create_adults(
         # dindividual_savings_accountbility_other_difficulty = Vector{Union{Real,Missing}}(missing, n),
         model_adult.health_status = Health_Status(safe_assign(frs_person.heathad))
         model_adult.hours_of_care_received = safe_inc(0.0, frs_person.hourcare)
-        model_adult.hours_of_care_given = infer_hours_of_care(frs_person.hourtot) # also kid
+        model_adult.hours_of_care_given = infer_hours_of_care(safe_assign(frs_person.hourtot)) # also kid
 
         model_adult.is_informal_carer = to_bool( frs_person.carefl )# also kid
         process_relationships!( model_adult, frs_person )
         #
         # illness benefit levels
         # See the note on this in docs/
-        # FIXME 2025 add Scottish Benefits to this
+        # see docs/scottish-benefit-notes.md
         model_adult.dlaself_care_type = LowMiddleHigh(map123( model_adult.income_dlaself_care, [30, 60 ] ))
         model_adult.dlamobility_type = LowMiddleHigh(map123(model_adult.income_dlamobility, [30] ))
+        # 
         model_adult.attendance_allowance_type = LowMiddleHigh(map123( model_adult.income_attendance_allowance, [65] ))
         model_adult.personal_independence_payment_daily_living_type = PIPType(map12( model_adult.income_personal_independence_payment_daily_living, 65 ))
         model_adult.personal_independence_payment_mobility_type  = PIPType(map12( model_adult.income_personal_independence_payment_mobility, 30 ))
