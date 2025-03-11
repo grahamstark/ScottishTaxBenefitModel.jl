@@ -91,7 +91,7 @@ end
 
 function loadfrs(which::AbstractString, year::Integer)::DataFrame
     filename = "$(L_FRS_DIR)/$(year)/tab/$(which).tab"
-    df = loadtoframe(filename)
+    df = loadtoframe(filename;missings=["", " ","-1","-8"])
     df.data_year .= year
     return df
 end

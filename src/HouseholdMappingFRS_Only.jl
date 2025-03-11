@@ -235,7 +235,7 @@ function create_adults(
         model_adult.disability_other_difficulty = to_bool( frs_person.disd10  )
 
         model_adult.has_long_standing_illness = to_bool( frs_person.health1  )
-        model_adult.how_long_adls_reduced = Illness_Length(xparse(frs_person.limitl; default=-1)) #  < 0 ? -1 : frs_person.limitl)
+        model_adult.how_long_adls_reduced = Illness_Length(max(-1,xparse(frs_person.limitl; default=-1))) #  < 0 ? -1 : frs_person.limitl)
         adlr = max(-1, xparse(frs_person.condit; default=-1))
         model_adult.adls_are_reduced = ADLS_Inhibited(adlr) # missings to 'not at all'
         model_adult.age_started_first_job = safe_assign( frs_person.jobbyr )

@@ -854,9 +854,9 @@ end
 load a file into a dataframe and force all the identifiers into
 lower case
 """
-function loadtoframe(filename::AbstractString)::DataFrame
+function loadtoframe(filename::AbstractString; missings=["", " "])::DataFrame
    println( "loading $filename")
-    df = CSV.File(filename, delim = '\t';missingstring=["", " "]) |> DataFrame #
+    df = CSV.File(filename, delim = '\t';missingstring=missings) |> DataFrame #
     lcnames = Symbol.(lowercase.(string.(names(df))))
     rename!(df, lcnames)
     df
