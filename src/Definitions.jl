@@ -1197,6 +1197,9 @@ export wages,
        adp_mobility,
        pension_age_disability_daily_living,
        pension_age_disability_care,
+       carers_allowance_supplement,
+       carers_support_payment,
+       discretionary_housing_payment,
        other_benefits
 
 @enum Incomes_Type begin
@@ -1294,9 +1297,11 @@ export wages,
    pupil_development_grant = 2123
    adp_daily_living = 2124
    adp_mobility = 2125
-   pension_age_disability_daily_living = 2126
-   pension_age_disability_care = 2127
-other_benefits = 3000
+   pension_age_disability = 2126
+   carers_allowance_supplement = 2028
+   carers_support_payment = 2029
+   discretionary_housing_payment = 2999
+   other_benefits = 3000
 end
 
 Incomes_Dict = Dict{Incomes_Type,T} where T<:Real
@@ -1869,6 +1874,7 @@ export DLAself_care,
        Child_Disability_Payment_Care, # _Scotland_only,
        Child_Disability_Payment_Mobility, # _Scotland_only,
        Pension_Age_Disability,
+       Carers_Allowance_Supplement,
        School_clothing_grant,
        One_off_IRB_Payment
             
@@ -1951,6 +1957,8 @@ export Missing_Benefit_Type
    Pupil_Development_Grant = 123
    Disability_Topup = 125 # 2022 only so far
    Pension_Topup = 126  # 2022 only so far
+   Carers_Allowance_Supplement = 999
+   Carers_Support_Payment = 997 # FIXME not yet in data - numbers wrong
    Pension_Age_Disability = 998 # FIXME not yet in data - numbers wrong
 end
 

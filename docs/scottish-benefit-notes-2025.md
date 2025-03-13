@@ -50,14 +50,14 @@ You’ll be able to apply from 24 March 2025 if you live in: [most areas]
 > You do not need to do anything to start the move to Pension Age Disability Payment. 
 
 ## Carer Support Payment 
-
+https://www.mygov.scot/carer-support-payment
 maps to Carer's Allowance
 
 > Some people’s benefits have already moved to Social Security Scotland. The process started in February 2024. It’ll take until spring 2025 to move everyone’s benefits across.
 
 (not in FRS)
 
-Carers_Allowance = 13
+Carers_Allowance = 13 => CARERS_SUPPORT_PAYMENT => carers_support_payment = 2029
 
 ## CHILD DLA FUCKUP
 
@@ -104,3 +104,15 @@ mpers[(mpers.income_dlamobility.>0).&(mpers.income_personal_independence_payment
 27 cases in pooled UK dataset
 
 ```
+
+## Carer's Allowance Supplement
+
+https://www.mygov.scot/carers-allowance-supplement
+
+SCOTTISH_CARERS_SUPPLEMENT => carers_allowance_supplement => SCOTTISH_CARERS_SUPPLEMENT
+
+Carer's Allowance Supplement is an extra payment for people in Scotland who get Carer Support Payment or Carer's Allowance on a particular date.
+
+Carer's Allowance Supplement is paid 2 times a year.
+
+The Carer’s Allowance Supplement 2025 eligibility dates will be available soon.

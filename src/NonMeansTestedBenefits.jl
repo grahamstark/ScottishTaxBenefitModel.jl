@@ -487,7 +487,7 @@ module NonMeansTestedBenefits
             
                 if hh.region == Scotland
                     if pres.income[sys.carers.slot] > 0
-                        pres.income[SCOTTISH_CARERS_SUPPLEMENT] = sys.carers.scottish_supplement
+                        pres.income[CARERS_ALLOWANCE_SUPPLEMENT] = sys.carers.scottish_supplement
                     end
                 end
                 # NON-overlapping rules p1178 go here 

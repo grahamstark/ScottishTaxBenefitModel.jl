@@ -454,7 +454,10 @@ function make_jsa_type( frs_res::DataFrame, sernum :: Integer, benunit  :: Integ
         income_pupil_development_grant = zeros(n),
         income_adp_daily_living = zeros(n),
         income_adp_mobility = zeros(n),
-        income_pension_age_disability = zeros(n)
+        income_pension_age_disability = zeros(n),
+        income_carers_allowance_supplement = zeros(n),
+        income_carers_support_payment = zeros(n),
+        income_discretionary_housing_payment = zeros(n),
         # FIXME next 4 shouldn't be needed
         wages_frs = zeros(n), # Vector{Union{Real,Missing}}(missing, n),
         self_emp_frs = zeros(n), # Vector{Union{Real,Missing}}(missing, n),

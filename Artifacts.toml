@@ -14,6 +14,14 @@ lazy = true
     sha256 = "7ed1e796fc2e09a4c48f772ea3cd06b7c6aab721c183f6905b2fa83890d0184b"
     url = "http://stb-artifacts/disability.tar.gz"
 
+[example_data]
+git-tree-sha1 = "cb37e530a22923314e5c8a7edc2a55b45783b7f9"
+lazy = true
+
+    [[example_data.download]]
+    sha256 = "c7baac717d0acddae5189cbf0a44ba45b7e7b4074387c51a9446ac6c6ccca02e"
+    url = "https://virtual-worlds.biz/artifacts//example_data.tar.gz"
+
 [exampledata]
 git-tree-sha1 = "7853136d3530ea531e4f45a29f8fcef81d08fc1c"
 lazy = true

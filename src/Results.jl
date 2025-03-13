@@ -901,6 +901,15 @@ module Results
                 out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
             end
 
+            out[SCOTTISH_CHILD_PAYMENT] = get(incd,Definitions.scottish_child_payment , 0.0 )
+            out[CARERS_ALLOWANCE_SUPPLEMENT] = get( incd, Definitions. carers_allowance_supplement, 0.0 )
+            out[DISCRETIONARY_HOUSING_PAYMENT] = get( incd, Definitions.discretionary_housing_payment, 0.0 )
+            out[CARERS_SUPPORT_PAYMENT] = get( incd, Definitions.carers_support_payment, 0.0 )
+            out[CHILD_DISABILITY_PAYMENT_CARE] = get( incd, Definitions.child_disability_payment_care, 0.0 )
+            out[CHILD_DISABILITY_PAYMENT_MOBILITY] = get( incd, Definitions.child_disability_payment_mobility, 0.0 )
+            out[PENSION_AGE_DISABILITY] = get( incd, Definitions.pension_age_disability, 0.0 )
+            out[ADP_DAILY_LIVING] = get( incd, Definitions.adp_daily_living, 0.0 )
+            out[ADP_MOBILITY] = get( incd, Definitions.adp_mobility, 0.0 )
             # FIXME 6/7/2023 add 
             #=
             scottish_child_payment = 2112

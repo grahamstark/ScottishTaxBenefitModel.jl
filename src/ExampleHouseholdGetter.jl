@@ -21,9 +21,9 @@ using .RunSettings
 
 export  initialise, get_household
 
-EXAMPLE_HOUSEHOLDS = Dict{String,Household}()
+const EXAMPLE_HOUSEHOLDS = Dict{String,Household}()
 
-KEYMAP = Vector{AbstractString}()
+const KEYMAP = Vector{AbstractString}()
 
 function find_consumption_for_example!( hh, settings )
     @argcheck settings.indirect_method == matching
@@ -56,6 +56,7 @@ function find_wealth_for_example!( hh, settings )
 end
 
 
+
 """
 return number of households available
 """
@@ -71,7 +72,6 @@ function initialise(
     # lazy load cons data if needs be
     tmp_data_source = settings.data_source 
     settings.data_source = ExampleSource
-    # tmpsource = settings.data_source # hack to work round datasource being wired in to settings
     if settings.indirect_method == matching
         ConsumptionData.init( settings ) 
     end
@@ -79,11 +79,6 @@ function initialise(
         WealthData.init( settings ) 
     end
     KEYMAP = Vector{AbstractString}()
-    
-    # ds = example_datasets( settings )
-    # hh_dataset = CSV.File( ds.hhlds, delim='\t' ) |> DataFrame
-    # people_dataset = CSV.File(ds.people, delim='\t' ) |> DataFrame
-    # @show ds 
     hh_dataset = HouseholdFromFrame.read_hh( 
         joinpath(artifact"exampledata","households.tab" ))# CSV.File( ds.hhlds ) |> DataFrame
     people_dataset = 
@@ -117,12 +112,17 @@ function example_names()
 end
 
 function get_household( pos :: Integer ) :: Household
+    if length(EXAMPLE_HOUSEHOLDS) == 0
+        initialise( Settings())
+    end
     key = KEYMAP[pos]
     return EXAMPLE_HOUSEHOLDS[key]
 end
 
 function get_household( name :: AbstractString ) :: Household
-    # global EXAMPLE_HOUSEHOLDS
+    if length(EXAMPLE_HOUSEHOLDS) == 0
+        initialise( Settings())
+    end
     return EXAMPLE_HOUSEHOLDS[name]
 end
 
