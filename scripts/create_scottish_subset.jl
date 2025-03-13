@@ -4,6 +4,23 @@ using ScottishTaxBenefitModel
 using .Definitions
 using .RunSettings
 
+hhs = CSV.File( "data/actual_data/model_households-2015-2022-w-enums-2.tab")|>DataFrame
+pps = CSV.File( "data/actual_data/model_people-2015-2022-w-enums-2.tab")|>DataFrame
+shhs = hhs[hhs.region.=="Scotland",:]
+spps = semijoin(pps, shhs,on=[:hid,:data_year])
+
+latest_year = maximum( levels(hhs.data_year ))
+hhs1 = hhs[(hhs.data_year .== latest_year ),:]
+pps1 = semijoin( pps, hhs1,on=[:hid,:data_year])
+CSV.write("data/actual_data/model_households-$(latest_year)-$(latest_year)-w-enums-2.tab", hhs1, delim = "\t")
+CSV.write("data/actual_data/model_people-$(latest_year)-$(latest_year)-w-enums-2.tab", pps1, delim = "\t")
+
+# uk 1 year
+
+
+
+#=
+
 ADD_IN_MATCHING = true
 
 settings = Settings()
@@ -43,3 +60,4 @@ uk_latest_people = semijoin( people_dataset, uk_latest_hhlds,on=[:hid,:data_year
 CSV.write("$(data_dir( settings ))/model_households-$(latest_year)-$(latest_year)-w-enums-2.tab", uk_latest_hhlds, delim = "\t")
 CSV.write("$(data_dir( settings ))/model_people-$(latest_year)-$(latest_year)-w-enums-2.tab", uk_latest_people, delim = "\t")
 
+=#

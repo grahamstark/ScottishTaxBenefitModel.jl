@@ -267,12 +267,21 @@ function create_adults(
         # illness benefit levels
         # See the note on this in docs/
         # see docs/scottish-benefit-notes.md
-        model_adult.dlaself_care_type = LowMiddleHigh(map123( model_adult.income_dlaself_care, [30, 60 ] ))
-        model_adult.dlamobility_type = LowMiddleHigh(map123(model_adult.income_dlamobility, [30] ))
-        # 
-        model_adult.attendance_allowance_type = LowMiddleHigh(map123( model_adult.income_attendance_allowance, [65] ))
-        model_adult.personal_independence_payment_daily_living_type = PIPType(map12( model_adult.income_personal_independence_payment_daily_living, 65 ))
-        model_adult.personal_independence_payment_mobility_type  = PIPType(map12( model_adult.income_personal_independence_payment_mobility, 30 ))
+        dlacare = coalesce( model_adult.income_dlaself_care, 0.0 ) +
+            coalesce( model_adult.income_child_disability_payment_care )
+        dlamob = coalesce( model_adult.income_dlamobility, 0.0 ) +
+            coalesce( model_adult.income_child_disability_payment_mobility )
+        aa = coalesce( model_adult.income_attendance_allowance, 0.0 ) +
+            coalesce( model_adult.income_pension_age_disability, 0.0 )
+        pipdaily = coalesce( model_adult.income_personal_independence_payment_daily_living, 0.0 )+
+            coalesce( model_adult.income_adp_daily_living, 0.0 )
+        pipmobility = coalesce( model_adult.income_personal_independence_payment_mobility, 0.0 ) +
+            coalesce( model_adult.income_adp_mobility, 0.0 )
+        model_adult.dlaself_care_type = LowMiddleHigh(map123( dlacare, [30, 60 ] ))
+        model_adult.dlamobility_type = LowMiddleHigh(map123( dlamob, [30] ))
+        model_adult.attendance_allowance_type = LowMiddleHigh(map123( aa, [65] ))
+        model_adult.personal_independence_payment_daily_living_type = PIPType(map12( pipdaily, 65 ))
+        model_adult.personal_independence_payment_mobility_type  = PIPType(map12( pipmobility, 30 ))
     end # adult loop
     println("final adno $adno")
     return adult_model[1:adno, :]

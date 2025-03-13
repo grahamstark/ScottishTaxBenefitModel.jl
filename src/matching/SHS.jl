@@ -18,6 +18,27 @@ using CSV,
 # DIR = "/media/graham_s/Transcend/data/"
 DIR = "/mnt/data/"
 
+function add_sample_freqs!( shs :: DataFrame )
+    nrows,ncols = size( shs )
+    shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
+    target_pops = CSV.File( "data/merging/hhlds_and_people_2022_nrs_estimates.csv" ) |> DataFrame
+    lacounts = sort(countmap(shs.lad_2017))
+    all_hhs = sum(target_pops.hhlds_2022)
+    freqs = Dict{Symbol,Real}()
+    for (la,pop) in lacounts
+        println( "on $la" ); 
+        hhc = target_pops[target_pops.code .== la,:hhlds_2022][1]
+        weight = pop/hhc
+        freqs[la] = weight
+        println( "$la = $invfreq")
+    end
+    shs.council_freq = zeros(nrows)
+    for r in eachrow( shs )
+        r.council_freq = freqs[r.lad_2017]
+    end
+end
+
+
 function loadshs( dyear::Int )::DataFrame
     year = dyear - 2000
     ystr = "$(year)$(year+1)"

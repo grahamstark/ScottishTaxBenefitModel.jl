@@ -153,14 +153,16 @@ function map_all(
     return df
 end
 
+const ODIR = "data/matches/"
+
 function create_was_matches( data_source :: DataSource = FRSSource )
     settings = Settings()
     settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
     settings.data_source = data_source
     wass = MatchingLibs.was.create_subset()
     matches = map_all( settings, wass, was.model_row_match, "was" )
-    CSV.write( "was-matches.tab", matches; delim='\t')
-    CSV.write( "was-subset.tab", wass; delim='\t')
+    CSV.write( "$(ODIR)was-matches.tab", matches; delim='\t')
+    CSV.write( "$(ODIR)was-subset.tab", wass; delim='\t')
 end
 
 function create_shs_matches( data_source :: DataSource = FRSSource )
@@ -169,8 +171,8 @@ function create_shs_matches( data_source :: DataSource = FRSSource )
     settings.data_source = data_source
     shss = MatchingLibs.shs.create_subset()
     matches = map_all( settings, shss, shs.model_row_match, "shs" )
-    CSV.write( "shs-matches.tab", matches; delim='\t')
-    CSV.write( "shs-subset.tab", shss; delim='\t')
+    CSV.write( "$(ODIR)shs-matches.tab", matches; delim='\t')
+    CSV.write( "$(ODIR)shs-subset.tab", shss; delim='\t')
 end
 
 function create_lcf_matches( data_source :: DataSource = FRSSource )
@@ -179,8 +181,8 @@ function create_lcf_matches( data_source :: DataSource = FRSSource )
     settings.data_source = data_source
     lcfs = MatchingLibs.lcf.create_subset()
     matches = map_all( settings, lcfs, lcf.model_row_match, "shs" )
-    CSV.write( "lcf-matches.tab", matches; delim='\t')
-    CSV.write( "lcf-subset.tab", lcfs; delim='\t')
+    CSV.write( "$(ODIR)lcf-matches.tab", matches; delim='\t')
+    CSV.write( "$(ODIR)lcf-subset.tab", lcfs; delim='\t')
 end
 
 end # module
