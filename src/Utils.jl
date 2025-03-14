@@ -100,8 +100,7 @@ function make_artifact(;
    is_local :: Bool,
    toml_file = "Artifacts.toml" )::Int 
    version = Pkg.project().version
-   # -v$(version)
-   gzip_file_name = "$(artifact_name).tar.gz"
+   gzip_file_name = "$(artifact_name)-v$(version).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
    if is_local 
       artifact_server_upload = @load_preference( "local-artifact_server_upload" )
