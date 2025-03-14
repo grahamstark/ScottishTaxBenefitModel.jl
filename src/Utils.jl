@@ -1051,4 +1051,12 @@ function one_of_matches( x::Any, things... )::Bool
    end
 end
 
+function add_cols!( df :: DataFrame, cnames :: Vector{Symbol}, types=nothing )
+   nrows, ncols = size(df)
+   dnames = setdiff(cnames,names(df))
+   for n in dnames
+      df[:,n] = zeros(nrows)
+   end
+end
+
 end # module

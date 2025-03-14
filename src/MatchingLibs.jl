@@ -126,7 +126,8 @@ function map_all(
     settings :: Settings, 
     donor    :: DataFrame, 
     matcher  :: Function,
-    prefix   :: AbstractString ) :: DataFrame
+    prefix   :: AbstractString;
+    num_samples :: Integer ) :: DataFrame
     p = 0
     settings.num_households, 
     settings.num_people = 
@@ -139,7 +140,7 @@ function map_all(
         df[ hno, :frs_datayear] = hh.data_year
         df[ hno, :frs_income] = hh.original_gross_income
         matches = match_recip_row( hh, donor, matcher ) 
-        for i in 1:NUM_SAMPLES
+        for i in 1:num_samples
             case_sym = Symbol( "hhid_$i")
             datayear_sym = Symbol( "datayear_$i")
             score_sym = Symbol( "score_$i")
@@ -155,32 +156,33 @@ end
 
 const ODIR = "data/matches/"
 
-function create_was_matches( data_source :: DataSource = FRSSource )
+function create_was_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = Settings()
     settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
     settings.data_source = data_source
     wass = MatchingLibs.was.create_subset()
-    matches = map_all( settings, wass, was.model_row_match, "was" )
+    matches = map_all( settings, wass, was.model_row_match, "was"; num_samples=num_samples )
     CSV.write( "$(ODIR)was-matches.tab", matches; delim='\t')
     CSV.write( "$(ODIR)was-subset.tab", wass; delim='\t')
 end
 
-function create_shs_matches( data_source :: DataSource = FRSSource )
+function create_shs_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = Settings()
     settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
     settings.data_source = data_source
-    shss = MatchingLibs.shs.create_subset()
-    matches = map_all( settings, shss, shs.model_row_match, "shs" )
+    shss = shs.create_subset()
+    matches = map_all( settings, shss, shs.model_row_match, "shs"; num_samples=num_samples )
+    shs.add_pops_and_codes_to_shs_scores!( matches , shss)
     CSV.write( "$(ODIR)shs-matches.tab", matches; delim='\t')
     CSV.write( "$(ODIR)shs-subset.tab", shss; delim='\t')
 end
 
-function create_lcf_matches( data_source :: DataSource = FRSSource )
+function create_lcf_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = Settings()
     settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
     settings.data_source = data_source
     lcfs = MatchingLibs.lcf.create_subset()
-    matches = map_all( settings, lcfs, lcf.model_row_match, "shs" )
+    matches = map_all( settings, lcfs, lcf.model_row_match, "shs"; num_samples=num_samples )
     CSV.write( "$(ODIR)lcf-matches.tab", matches; delim='\t')
     CSV.write( "$(ODIR)lcf-subset.tab", lcfs; delim='\t')
 end
