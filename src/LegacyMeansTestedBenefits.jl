@@ -421,14 +421,14 @@ function qualifies_for_enhanced_disability(
     end
     for p1 in [
         PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
-        SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING]
+        ADP_DAILY_LIVING]
         if p1 in prem_sys.enhanced_disability_premium_qualifying_benefits
             if pres.income[p1] >= nmt.pip.dl_enhanced
                 return true
             end
         end
     end
-    for p1 in [DLA_SELF_CARE, SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING]
+    for p1 in [DLA_SELF_CARE, CHILD_DISABILITY_PAYMENT_CARE]
         if p1 in prem_sys.enhanced_disability_premium_qualifying_benefits
             if pres.income[p1] >= nmt.dla.care_high
                 return true
@@ -463,11 +463,11 @@ function qualifies_for_severe_disability_premium(
     return qualifies_for_disability_premium( pers, pres, prem_sys ) &&
         any_positive( pres.income, 
             [PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
-            SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
+            ADP_DAILY_LIVING,
             DLA_SELF_CARE, 
-            SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
+            CHILD_DISABILITY_PAYMENT_CARE,
             ATTENDANCE_ALLOWANCE, 
-            SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE] )
+            PENSION_AGE_DISABILITY] )
 end 
 
 function calc_premia(     
@@ -788,7 +788,7 @@ function calc_NDDs(
             [ATTENDANCE_ALLOWANCE,
              DLA_SELF_CARE,
              PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
-             SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
+             ADP_DAILY_LIVING,
              PENSION_CREDIT] )
             pays_ndd = false
         elseif pers.registered_blind || pers.registered_partially_sighted

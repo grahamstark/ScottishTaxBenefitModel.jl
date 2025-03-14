@@ -16,6 +16,7 @@ using CSV
 using DataFrames
 using Dates
 using LazyArtifacts
+using Pkg
 using Pkg.Artifacts
 using Preferences
 using Printf
@@ -98,6 +99,8 @@ function make_artifact(;
    artifact_name :: AbstractString,
    is_local :: Bool,
    toml_file = "Artifacts.toml" )::Int 
+   version = Pkg.project().version
+   # -v$(version)
    gzip_file_name = "$(artifact_name).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
    if is_local 

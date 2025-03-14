@@ -171,7 +171,7 @@ module RunSettings
                 artifact"uk-frs-data"
             end            
         elseif settings.data_source == ExampleSource
-            artifact"exampledata"
+            artifact"example_data"
         elseif settings.data_source == SyntheticSource
             if settings.target_nation == N_Scotland
                 artifact"scottish-synthetic-data"

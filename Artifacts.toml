@@ -22,20 +22,12 @@ lazy = true
     sha256 = "c7baac717d0acddae5189cbf0a44ba45b7e7b4074387c51a9446ac6c6ccca02e"
     url = "https://virtual-worlds.biz/artifacts//example_data.tar.gz"
 
-[exampledata]
-git-tree-sha1 = "7853136d3530ea531e4f45a29f8fcef81d08fc1c"
-lazy = true
-
-    [[exampledata.download]]
-    sha256 = "c426f605704bde8c79df3573a4f150512614480aa00f900893accaf75408463c"
-    url = "https://virtual-worlds.biz/artifacts//exampledata.tar.gz"
-
 [scottish-frs-data]
-git-tree-sha1 = "6061bfb20edffe525f5e322a7c1275a25ff7c6d9"
+git-tree-sha1 = "8308483dd3bd424442c6057a680ad69ea302b617"
 lazy = true
 
     [[scottish-frs-data.download]]
-    sha256 = "4def954fe5012f3afc09c06062ac1f79ed43976d0e75bb1cbcbb8125f853bc3a"
+    sha256 = "3228186960bd138d667995e9c3121efc0197c146aee2ea8f3bc41403b9df4bd7"
     url = "https://virtual-worlds.biz/artifacts//scottish-frs-data.tar.gz"
 
 [scottish-lcf-expenditure]
@@ -87,11 +79,11 @@ lazy = true
     url = "https://virtual-worlds.biz/artifacts//scottish-was-wealth.tar.gz"
 
 [uk-frs-data]
-git-tree-sha1 = "89cf56539e72722b34a052ecb48732246f1f909d"
+git-tree-sha1 = "b0d2d6b2b8813f9e512a0e5a67b20ed4e9259588"
 lazy = true
 
     [[uk-frs-data.download]]
-    sha256 = "edb40910df7d0a46bc425ad773bfcd1a9de307e3195926d29f1a96e97e60129d"
+    sha256 = "a32c0965db26ecea650a05509b5da9e5b2727ab685f906be94afb0fad1d0cf19"
     url = "https://virtual-worlds.biz/artifacts//uk-frs-data.tar.gz"
 
 [uk-lcf-expenditure]

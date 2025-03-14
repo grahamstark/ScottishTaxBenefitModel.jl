@@ -228,8 +228,8 @@ end
    age :: Integer, 
    sex :: Sex;
    buno :: Int = 1 ) :: BigInt
-   
-   np = deepcopy( SPARE_ADULT )
+   spare_adult = get_head( get_example(single_hh))    
+   np = deepcopy( spare_adult )
    np.is_benefit_unit_head = false
    bus = get_benefit_units( hh )
    bu = bus[buno]
