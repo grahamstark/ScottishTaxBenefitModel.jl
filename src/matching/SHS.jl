@@ -13,7 +13,8 @@ using CSV,
     DataFrames,
     Measures,
     StatsBase,
-    ArgCheck
+    ArgCheck,
+    Pkg.Artifacts
 
 # DIR = "/media/graham_s/Transcend/data/"
 DIR = "/mnt/data/"
@@ -27,9 +28,16 @@ If you see what I mean...
 function add_pops_and_codes_to_shs_scores!( shsscore::DataFrame, shs :: DataFrame; nscores = 20 )
     nrows, ncols = size( shsscore )
     # TODO update this.
-    target_pops = CSV.File( "data/merging/hhlds_and_people_2022_nrs_estimates.csv" ) |> DataFrame
-    target_pops.code = Symbol.( target_pops.code )
-    
+    target_pops = CSV.File( joinpath(artifact"augdata","scottish-la-targets-2024.tab" )) |> DataFrame
+    target_pops.code = Symbol.( target_pops.authority_code )
+    # number of each la in shs data 
+    lacounts = sort(countmap(shs.lad_2017))
+    samplefreq = Dict{Symbol,Real}()
+    for (k,v) in lacounts
+        freq = v/target_pops[target_pops.code .== k,:total_hhlds][1]
+        samplefreq[k] = freq
+    end
+
     for i in 1:nscores
         lad_2017 = Symbol("lad_2017_$(i)")
         population = Symbol("population_$(i)")
@@ -38,6 +46,7 @@ function add_pops_and_codes_to_shs_scores!( shsscore::DataFrame, shs :: DataFram
         println("#2")
         shsscore[:,population] = zeros(nrows)
     end
+    
     for sc in eachrow(shsscore)
         for i in 1:nscores
             hid = sc[Symbol("hhid_$(i)")]
@@ -59,7 +68,7 @@ function add_pops_and_codes_to_shs_scores!( shsscore::DataFrame, shs :: DataFram
     end
 end
 
-#=
+
 function add_sample_freqs!( shs :: DataFrame )
     nrows,ncols = size( shs )
     shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
@@ -79,7 +88,6 @@ function add_sample_freqs!( shs :: DataFrame )
         r.council_freq = freqs[r.lad_2017]
     end
 end
-=#
 
 function loadshs( dyear::Int )::DataFrame
     year = dyear - 2000
@@ -141,6 +149,7 @@ function create_subset( ):: DataFrame
         # note this fills in 66 missing cases with a randomly chosen lad_2017 code.
     dropmissing!( shss )
     shss.lad_2017 = Definitions.scodefind.( shss.council )
+    # add_pops_and_codes_to_shs_scores!(shss)
     return shss
 end
 
