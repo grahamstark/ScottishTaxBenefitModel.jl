@@ -162,6 +162,8 @@ function create_was_matches( data_source :: DataSource = FRSSource; num_samples=
     settings.data_source = data_source
     wass = MatchingLibs.was.create_subset()
     matches = map_all( settings, wass, was.model_row_match, "was"; num_samples=num_samples )
+    matches.default_datayear = matches.datayear_1
+    matches.default_hhld = matches.hhid_1
     CSV.write( "$(ODIR)was-matches.tab", matches; delim='\t')
     CSV.write( "$(ODIR)was-subset.tab", wass; delim='\t')
 end
@@ -172,7 +174,7 @@ function create_shs_matches( data_source :: DataSource = FRSSource; num_samples=
     settings.data_source = data_source
     shss = shs.create_subset()
     matches = map_all( settings, shss, shs.model_row_match, "shs"; num_samples=num_samples )
-    shs.add_pops_and_codes_to_shs_scores!( matches , shss)
+    shs.hack_income_field_to_sample_freqs( matches, shss )
     CSV.write( "$(ODIR)shs-matches.tab", matches; delim='\t')
     CSV.write( "$(ODIR)shs-subset.tab", shss; delim='\t')
 end
@@ -183,6 +185,8 @@ function create_lcf_matches( data_source :: DataSource = FRSSource; num_samples=
     settings.data_source = data_source
     lcfs = MatchingLibs.lcf.create_subset()
     matches = map_all( settings, lcfs, lcf.model_row_match, "shs"; num_samples=num_samples )
+    matches.default_datayear = matches.datayear_1 # default selection just the 1st one
+    matches.default_hhld = matches.hhid_1
     CSV.write( "$(ODIR)lcf-matches.tab", matches; delim='\t')
     CSV.write( "$(ODIR)lcf-subset.tab", lcfs; delim='\t')
 end

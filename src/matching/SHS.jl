@@ -19,6 +19,84 @@ using CSV,
 # DIR = "/media/graham_s/Transcend/data/"
 DIR = "/mnt/data/"
 
+function loadpops()
+    CSV.File( joinpath(artifact"augdata","scottish-la-targets-2024.tab" )) |> DataFrame
+    target_pops.code = Symbol.( target_pops.authority_code )
+    target_pops
+end
+
+target_pops = loadpops() 
+
+"""
+the matching datasets have an `income` field. Hack it so it contains the sample pct you need to
+get a representative number of each la in the match dataset. Also, add cols for default_datayear and default_hid
+for the default selections 
+"""
+function hack_income_field_to_sample_freqs( sm::DataFrame, shs :: DataFrame; nscores=20 )
+    smrows,smcols = size(sm)
+    lacounts = sort(countmap(shs.lad_2017))
+    shs.lad_2017 = Symbol.(shs.lad_2017)
+    samplefreq = Dict{Symbol,Real}()
+    for (k,v) in lacounts
+        freq = target_pops[target_pops.code .== k,:total_hhlds][1]/v
+        samplefreq[k] = freq
+    end
+    sm.default_datayear = zeros(Int,smrows)
+    sm.default_hid = zeros(Int,smrows)
+    for sc in eachrow(sm)
+        freqs = zeros(nscores)
+        for i in 1:nscores
+            hid = sc[Symbol("hhid_$(i)")]
+            year = sc[Symbol("datayear_$(i)")]
+            score = sc[Symbol("score_$(i)")]
+            # find the corresponding ssh council Local Identifier
+            lad_2017 = Symbol(shs[(shs.datayear .== year).&(shs.uniqidnew .==hid),:lad_2017][1])
+            freqs[i] = samplefreq[lad_2017]*score # sample freq, adusted by score
+        end
+        # back round: convert the freqs so they sum to 1 and
+        # write a freq in each income_1..  slot
+        freqsum = sum(freqs)
+        # println(freqsum)
+        # println(freqs)
+        freqs ./= freqsum
+        for i in 1:nscores
+            incs = Symbol("income_$(i)")
+            sc[incs] = freqs[i]
+        end
+        # now actually choose one
+        choice=wsample(freqs)
+        hid = sc[Symbol("hhid_$(choice)")]
+        year = sc[Symbol("datayear_$(choice)")]
+        sc.default_datayear = year
+        sc.default_hid = hid
+    end
+end
+
+"""
+Check we get roughly the right number of hhlds in each la in our match dataset
+
+* sm - matched dataset
+* shs - shs subset dataset
+
+@return df with % of hhlds in each LA in reality and % in shs->frs matches
+"""
+function dochecks( sm::DataFrame, shs::DataFrame )::AbstractDataFrame
+    joinchoices = innerjoin(shs,sm; on=[:datayear=>:default_datayear, :uniqidnew=> :default_hid])
+    ccs = sort(combine(groupby(joinchoices,:lad_2017), nrow=>"ccount"))
+    ccs.ccount ./= (0.01.*sum(ccs.ccount))
+    ccs.lacounts = zeros(size(ccs)[1])
+    lacounts = sort(countmap(shs.lad_2017))
+    nc = sum(values(lacounts))
+    for (k,v) in lacounts
+        ccs[ccs.lad_2017 .== k,:lacounts] .= v*100/nc
+    end
+    tp = innerjoin( ccs,target_pops, on=[:lad_2017 => :code])
+    tp.pct_hhlds = tp.total_hhlds .* 100/(sum( tp.total_hhlds ))
+    tp[!,[:lad_2017,:Authority,:ccount,:pct_hhlds]]
+end
+
+
+
 """
 Convoluted. Take the ranked scores from `create_shs_matches` and add to them
 la populations and codes. The idea is to generate a sample frequency that we 
