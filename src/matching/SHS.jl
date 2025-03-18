@@ -95,78 +95,6 @@ function dochecks( sm::DataFrame, shs::DataFrame )::AbstractDataFrame
     tp[!,[:lad_2017,:Authority,:ccount,:pct_hhlds]]
 end
 
-
-
-"""
-Convoluted. Take the ranked scores from `create_shs_matches` and add to them
-la populations and codes. The idea is to generate a sample frequency that we 
-can use so our shs->frs allocations roughly add up to the LA household counts.
-If you see what I mean...
-"""
-function add_pops_and_codes_to_shs_scores!( shsscore::DataFrame, shs :: DataFrame; nscores = 20 )
-    nrows, ncols = size( shsscore )
-    # TODO update this.
-    target_pops = CSV.File( joinpath(artifact"augdata","scottish-la-targets-2024.tab" )) |> DataFrame
-    target_pops.code = Symbol.( target_pops.authority_code )
-    # number of each la in shs data 
-    lacounts = sort(countmap(shs.lad_2017))
-    samplefreq = Dict{Symbol,Real}()
-    for (k,v) in lacounts
-        freq = v/target_pops[target_pops.code .== k,:total_hhlds][1]
-        samplefreq[k] = freq
-    end
-
-    for i in 1:nscores
-        lad_2017 = Symbol("lad_2017_$(i)")
-        population = Symbol("population_$(i)")
-        println("#1")
-        shsscore[:,lad_2017] = fill( Symbol(""), nrows )
-        println("#2")
-        shsscore[:,population] = zeros(nrows)
-    end
-    
-    for sc in eachrow(shsscore)
-        for i in 1:nscores
-            hid = sc[Symbol("hhid_$(i)")]
-            year = sc[Symbol("datayear_$(i)")]
-            score = sc[Symbol("score_$(i)")]
-            # match each score to SHS subset
-            shsr = shs[((shs.uniqidnew .== hid).&(shs.datayear .== year)),:]
-            @assert size(shsr)[1] == 1
-            shsr = shsr[1,:]
-            lad_2017 = Symbol("lad_2017_$(i)")
-            # println( lad_2017 )
-            population = Symbol("population_$(i)")        
-            # println( population )
-            # println( type(shsr.lad_2017))
-            sc[lad_2017] = shsr.lad_2017
-            sc[population] = 
-                target_pops[target_pops.code .== shsr.lad_2017,:hhlds_2022][1]        
-        end
-    end
-end
-
-
-function add_sample_freqs!( shs :: DataFrame )
-    nrows,ncols = size( shs )
-    shs_councils = CSV.File( "data/merging/la_mappings.csv"; delim=',') |> DataFrame
-    target_pops = CSV.File( "data/merging/hhlds_and_people_2022_nrs_estimates.csv" ) |> DataFrame
-    target_pops.code = Symbol.( target_pops.code )
-    lacounts = sort(countmap(shs.lad_2017))
-    all_hhs = sum(target_pops.hhlds_2022)
-    freqs = Dict{Symbol,Real}()
-    for (la,ssh_la_count) in lacounts
-        num_households_in_la = target_pops[target_pops.code .== la,:hhlds_2022][1]
-        weight = num_households_in_la/ssh_la_count
-        freqs[la] = weight
-        println( "$la = $weight")
-    end
-    shs.council_freq = zeros(nrows)
-    for r in eachrow( shs )
-        r.council_freq = freqs[r.lad_2017]
-    end
-end
-
 function loadshs( dyear::Int )::DataFrame
     year = dyear - 2000
     ystr = "$(year)$(year+1)"
@@ -180,8 +108,6 @@ function loadshs( dyear::Int )::DataFrame
     shs[!,:datayear] .= dyear    
     return shs
 end
-
-
 
 """
 Stack scottish household surveys. 
@@ -444,7 +370,6 @@ function shs_model_map_ethnic( ethgr :: Ethnic_Group ) :: Vector{Int}
     return ethgr == White ? [1] : [2]
 end
 
-
 #=
      SHS SOC hihsoc
      Pos. = 1410	Variable = hihsoc	Variable label = HIH Social Occupational Classification
@@ -566,7 +491,6 @@ function map_accom( hb1 :: Union{Missing,Int}, hb2 :: Union{Missing,Int} ) :: Ve
     return out
 end
 
-
 """
 In:
    dwell_na = -1
@@ -599,7 +523,6 @@ function model_to_shs_map_accom( dwelling :: DwellingType ):: Vector{Int}
     end
     return [id1,id2]
 end
-
 
 """
 
@@ -697,6 +620,5 @@ function model_row_match(
     t += cscore( map_social( shss.hihsoc ), shs_model_map_social( head.occupational_classification )) 
     return  MatchingLocation( shss.uniqidnew, shss.datayear, t, 0.0, 0.0 ) 
 end # func model_row_match
-
 
 end # Module
