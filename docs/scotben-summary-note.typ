@@ -23,14 +23,13 @@
   figure-supplement: [Fig.],
 )
 
-#set text(font:"ETBembo")
 #show link: underline
   
 #show table.cell.where(x: 2): set text(style: "italic", size:7pt)
 #show table.cell.where(x: 1): set text(size: 4pt, font:"JuliaMono")
 #show table.cell.where(x: 0): set text(size: 7pt)
 
-#set table (
+#set table(
     columns: (8em, auto, auto),
     align: (left, left, left),
     inset: (x: 8pt, y: 4pt),
@@ -56,7 +55,7 @@ always be in sync with the latest version.
 
 = Scope <sec:scope>
 
-As the name suggests, the ScotBen's primary scope is the the Scottish fiscal system.
+ScotBen's primary scope is the the Scottish fiscal system.
 The model covers taxes and benefits that individuals are directly liable for,
 such as income and spending taxes and cash benefits, though it also has some limited
 ability to capture the effects on individuals of e.g. Corporate Taxes and Green Levies. 
@@ -67,21 +66,20 @@ a full list of the taxes and benefits included.
 
 = Design and Implementation <sec:implementation>
 
-At it's heart, Scotben is a single period, static microsimulation model. It loosely follows the 
-design of IFS's TAXBEN2, though ScotBen is programmed in a different language (Julia@sec:julia vs TAXBEN's Pascal/Delphi)
-and no TAXBEN code was referred to. 
+At its heart, Scotben is a single period, static microsimulation model. It loosely follows the 
+design of IFS's TAXBEN2, though ScotBen is programmed in a different language (#link("https://julialang.org")[Julia] vs TAXBEN's Pascal/Delphi)
+and no TAXBEN code was referred to during development.  
 
 The model attempts to follow modern program development practices, with short, independently testable,
-functions, a comprehensive test suite @sec:testing, and readable code. In places, however, the
+functions, a comprehensive test suite #footnote[see: @sec:testing below], and readable code. In places, however, the
 scale of the project means that these ideals are honoured in the breach.
 
 Despite its fundamentally static nature, Scotben's modular design and clean interfaces make it easy to 
-build simulations incorporating 
-behavioural responses or long-term projections on top of the base model. 
+build simulations incorporating behavioural responses or long-term projections on top of the base model. 
 
 == Julia<sec:julia>
 
-The model is written in Julia @bezanson_julia_2017. As discussed in that paper, Julia is intended to solve the 
+The model is written in #link("https://julialang.org")[the Julia programming language]. As discussed in @bezanson_julia_2017, Julia is intended to solve the 
 "Two Language Problem": to be equally useful for conventional large-scale programming and for exploratory data science. Julia produces highly efficient code, 
 comparable in speed with Fortran or C. 
 Although not without its problems, this dual nature means that Julia has proven a good choice for microsimulation. 
@@ -99,7 +97,7 @@ Many other such modules are referred to below.
 == Data 
 
 ScotBen uses Family Resources Survey (FRS) @dwp_family_2012 as its primary data. 
-For Scottish runs, pooled Scottish FRS subsets from 2016-2022 are used (just over 17,000 households); UK-wide
+For Scottish runs, pooled Scottish FRS subsets from 2015-2022 are used (just over 17,000 households); UK-wide
 simulations presently use a single full FRS year. The #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/HouseholdMappingFRS_Only.jl")[HouseholdMappingFRS.jl] 
 package creates the main model dataset, and #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/ModelHousehold.jl")[ModelHousehold.jl] encapsulates the model's view of a household.
 
@@ -121,7 +119,7 @@ These datasets can either be matched in@leulescu_statistical_2013 - #link("https
 == Testing <sec:testing>
 
 ScotBen is developed Test First @version_one_test-driven_2016. A large suite of Individual, Benefit Unit, and Household level 
-level example calculations for each tax and benefit was collected and expressed as unit-tests. Code was then written so all the tests pass. 
+example calculations for each tax and benefit was collected and expressed as unit-tests. Code was then written so all the tests pass. 
 Sources used included official and semi-official online calculators@policy_in_practice_better_2024, taxation textbooks@melville_taxation_nodate, 
 benefit manuals@cpag_welfare_nodate-1, and our own calculations. The test suite also contains numerous aggregate tests
 which check that complete model runs produce plausible aggregate values for revenues, expenditures and caseloads.  
@@ -162,13 +160,13 @@ See the module #link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/
 The Public Policy Preference Calculator (TriplePC)@stark_public_2024 is an adaption of the model that extends the microsimulation art in two ways:
 
 First, as well as modelling the outcomes of a policy in the conventional way, our model uses
-Conjoint Analysis of public acceptability data to give an indication of the policy’s popularity. This is
+Conjoint Analysis of public acceptability data to give an indication of the policy's popularity. This is
 novel and important. There are measures that might actually be popular with the electorate, but which
 policymakers have been unwilling to touch because of uncertainty about their electoral
 consequences@nettle_sp21_2023.
 
 Second, we integrate health outcomes into the model@reed_examining_2024. We built a model relating SF-12 scores to income and
-demographic characteristics; SF-12 is a widely used measure of an individual’s health-related quality
+demographic characteristics; SF-12 is a widely used measure of an individual's health-related quality
 of life, with two summary scores: the Physical Component Summary (PCS-12) and the Mental
 Component Summary (MCS-12). The health model is estimated over 12 waves (2009/11-2020/22) of
 Understanding Society @institute_for_social_and_economic_research_understanding_2018 panel data 
@@ -198,7 +196,7 @@ Several model Web interfaces have been built (not all may be active).
 - https://scotben.virtual-worlds.scot/ - A simple budget simulator, implemented using the #link("https://genieframework.com/")[Genie] web package;
 - https://ubi.virtual-worlds.scot/ - A basic income sim, implemented with #link("https://go.plotly.com/dash-julia")[Dash]
 - https://stb.virtual-worlds.scot/bcd/ - The Budget Constraint generator discussed above, also implemented with Dash;
-- https://triplepc.northumbria.ac.uk - TriplePC, also implemented with Gini.1
+- https://triplepc.northumbria.ac.uk - TriplePC, also implemented with Gini.
 
 The Legal Aid model also has a web interface, though this is not currently public.
 
@@ -207,7 +205,7 @@ In addition, the model can be integrated into #link("https://plutojl.org/")[Plut
 with a view to using ScotBen in teaching. 
 
 ScotBen can also be run from conventional command-line scripts with a few 
-lines of code - there are multiple examples of this in the test suite discussed above, 
+lines of code - there are multiple examples of this in the test suite discussed above.
 
 = TO-dos 
 
@@ -226,6 +224,7 @@ ScotBen is under active development. As of January 2025, tasks include:
 - #link("https://pretalx.com/juliacon-2022/talk/KPRZAM/")[Video presentation] from the #link("https://juliacon.org/2022/")[Juliacon 2022] conference;
 - #link("https://virtual-worlds.scot/ou/ima-presentation.pdf")[Powerpoint Presentation] from the #link("https://www.microsimulation.org/events/2024_vienna_world_congress/")[2024 International Microsimulation (IMA) Conference];
 - #link("https://stb-blog.virtual-worlds.scot/articles/2022/01/01/IMA.html")[Video] frpm the #link("https://www.microsimulation.org/events/2021_online_world_congrss/")[2022 IMA conference]
+
 
 * Last updated: #datetime.today().display(). *
 
@@ -322,4 +321,3 @@ to the corresponding rUK benefits, though a mechanism exists to make the disabil
     - Young Carer Grant
 
 #pagebreak()
-
