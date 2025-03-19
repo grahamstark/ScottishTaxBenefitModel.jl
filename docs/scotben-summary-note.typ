@@ -223,7 +223,7 @@ ScotBen is under active development. As of January 2025, tasks include:
 - #link("https://stb-blog.virtual-worlds.scot/")[A blog about the model] 
 - #link("https://pretalx.com/juliacon-2022/talk/KPRZAM/")[Video presentation] from the #link("https://juliacon.org/2022/")[Juliacon 2022] conference;
 - #link("https://virtual-worlds.scot/ou/ima-presentation.pdf")[Powerpoint Presentation] from the #link("https://www.microsimulation.org/events/2024_vienna_world_congress/")[2024 International Microsimulation (IMA) Conference];
-- #link("https://stb-blog.virtual-worlds.scot/articles/2022/01/01/IMA.html")[Video] frpm the #link("https://www.microsimulation.org/events/2021_online_world_congrss/")[2022 IMA conference]
+- #link("https://stb-blog.virtual-worlds.scot/articles/2022/01/01/IMA.html")[Video] from the #link("https://www.microsimulation.org/events/2021_online_world_congrss/")[2022 IMA conference]
 
 
 * Last updated: #datetime.today().display(). *
