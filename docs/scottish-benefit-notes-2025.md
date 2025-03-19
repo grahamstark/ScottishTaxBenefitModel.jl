@@ -34,6 +34,14 @@ DLAmobility = 2
 Child_Disability_Payment_Care = 121
 Child_Disability_Payment_Mobility = 122
 
+December 2024:
+
+* Total number of children in receipt: 87,475
+* Number in receipt of care only:28,875
+* Number in receipt of mobility only:280
+* Number in receipt of both care and mobility:58,295
+
+
 ## Pension Age Disability Payment
 
 Maps to Attendance Allowance
@@ -116,3 +124,60 @@ Carer's Allowance Supplement is an extra payment for people in Scotland who get 
 Carer's Allowance Supplement is paid 2 times a year.
 
 The Carer’s Allowance Supplement 2025 eligibility dates will be available soon.
+
+
+## What's in the data
+```julia 
+ps1522 = CSV.File( "data/actual_data/model_people_scotland-2015-2022-w-enums-2.tab")|>DataFrame
+
+
+psaa = ps1522[ps1522.income_attendance_allowance .> 0,:]
+
+sort(countmap(psaa.age))
+OrderedCollections.OrderedDict{Int64, Int64} with 16 entries:
+  65 => 1
+  66 => 5
+  67 => 12
+  68 => 8
+  69 => 15
+  70 => 17
+  71 => 35
+  72 => 28
+  73 => 28
+  74 => 38
+  75 => 27
+  76 => 35
+  77 => 32
+  78 => 40
+  79 => 42
+  80 => 321
+
+pspip = ps1522[(ps1522.income_personal_independence_payment_daily_living .> 0) .| (ps1522.income_personal_independence_payment_mobility .>0),:]
+
+sort( countmap( pspip.data_year))
+
+  2015 => 47
+  2016 => 100
+  2017 => 158
+  2018 => 225
+  2019 => 236
+  2020 => 98
+  2021 => 163
+  2022 => 180
+
+psdla = ps1522[(ps1522.income_dlamobility .> 0) .| (ps1522.income_dlaself_care .>0),:]
+
+sort( countmap( psdla.data_year ))
+OrderedCollections.OrderedDict{Int64, Int64} with 8 entries:
+  2015 => 290
+  2016 => 272
+  2017 => 213
+  2018 => 196
+  2019 => 155
+  2020 => 43
+  2021 => 50
+  2022 => 59
+
+spans the DLA->PIP transition
+
+```
