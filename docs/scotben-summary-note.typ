@@ -240,7 +240,7 @@ ScotBen is under active development. As of January 2025, tasks include:
     // settings and potentially move them into a set rThis actually makes it *easier* to 
     table.header[Tax][Code Module][Notes],
     [Income Tax],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/IncomeTaxCalculations.jl")[IncomeTaxCalculations.jl]],[Scottish and reserved UK],
-    [National Insurance],[#link("https://github.com/grahamstar.k/ScottishTaxBenefitModel.jl/blob/master/src/NationalInsuranceCalculations.jl")[NationalInsuranceCalculations.jl]],[Employees, Self Employed and Employers (though this needs more thought on incidence)],
+    [National Insurance],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/NationalInsuranceCalculations.jl")[NationalInsuranceCalculations.jl]],[Employees, Self Employed and Employers (though this needs more thought on incidence)],
     [Council Tax],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/LocalLevelCalculations.jl")[LocalLevelCalculations.jl]],[plus some simple modelling of local income taxes and domestic rates],
     [Wealth Taxes],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/OtherTaxes.jl")[OtherTaxes.jl]],[using WAS data],
     [VAT and excise duties],[#link("https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/IndirectTaxes.jl")[IndirectTaxes.jl]],[using LCF data; incomplete module],
