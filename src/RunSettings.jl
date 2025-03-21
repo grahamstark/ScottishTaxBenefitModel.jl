@@ -108,6 +108,7 @@ module RunSettings
         to_q :: Int = @load_preference( "to_q", 4 )
         output_dir :: String = joinpath(tempdir(),"output")
         means_tested_routing :: MT_Routing = eval( Symbol(@load_preference( "means_tested_routing", "modelled_phase_in" )))
+        disability_routing :: MT_Routing = eval( Symbol(@load_preference( "disability_routing", "modelled_phase_in" )))
         poverty_line :: Real = -1.0
         poverty_line_source :: PovertyLineSource = eval( Symbol(@load_preference( "poverty_line_source", "pl_first_sys")))
         ineq_income_measure  :: IneqIncomeMeasure = eval( Symbol(@load_preference( "ineq_income_measure", "eq_bhc_net_income" )))

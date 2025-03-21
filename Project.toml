@@ -129,14 +129,15 @@ ineq_income_measure = "eq_bhc_net_income"
 local-artifact_server_upload = "stb-artifacts:/var/www/stb-artifacts/"
 local-artifact_server_url = "http://stb-artifacts/"
 means_tested_routing = "modelled_phase_in"
+enhanced_disability_child_routing = "modelled_phase_in"
 poverty_line_source = "pl_first_sys"
 prem2 = "enhanced_disability_child"
 public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
 public-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
 replacement_rate_hours = 30
 target_nation = "N_Scotland"
-to_q = 4
-to_y = 2024
+to_q = 1
+to_y = 2025
 weighting_strategy = "use_precomputed_weights"
 
 [targets]
