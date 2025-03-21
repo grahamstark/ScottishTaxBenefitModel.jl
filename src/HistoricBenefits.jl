@@ -153,7 +153,7 @@ function switch_dla_to_pip!(
     if (pers.dla_self_care_type != missing_lmh )||
        (pers.dla_mobility_type != missing_lmh)
         if should_switch_dla_to_pip( 
-            pers.onerand, interview_year, interview_month, person.age )
+            pers.onerand, interview_year, interview_month, pers.age )
             # println("switching person $(pers.pid) year=$interview_year month=$interview_month ")
             # println( "pers.dla_self_care_type $(pers.dla_self_care_type) ")
             pers.pip_daily_living_type = 
