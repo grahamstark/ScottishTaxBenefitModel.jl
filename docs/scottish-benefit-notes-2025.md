@@ -181,3 +181,20 @@ OrderedCollections.OrderedDict{Int64, Int64} with 8 entries:
 spans the DLA->PIP transition
 
 ```
+
+## ALL ZERO IN ACTUAL 2015-22 DATA
+
+```julia
+summarystats(pers.income_scottish_child_payment )
+summarystats(pers.income_job_start_payment )
+summarystats(pers.income_troubles_permanent_disablement )
+summarystats(pers.income_child_disability_payment_care )
+summarystats(pers.income_child_disability_payment_mobility )
+summarystats(pers.income_pupil_development_grant )
+summarystats(pers.income_adp_daily_living )
+summarystats(pers.income_adp_mobility )
+summarystats(pers.income_pension_age_disability )
+summarystats(pers.income_carers_allowance_supplement )
+summarystats(pers.income_carers_support_payment )
+summarystats(pers.income_discretionary_housing_payment )
+```

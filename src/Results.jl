@@ -334,6 +334,13 @@ module Results
         return false
     end
 
+    function has_any( bur :: BenefitUnitResult, things :: IncomesSet ) :: Bool
+        for (pid,pers) in bur.pers
+            if any_positive( pers.income, things)
+                return true
+            end
+        end
+        return false/
     @with_kw mutable struct LocalTaxes{RT<:Real}
         # council_tax :: RT = zero(RT) 
         # this isn't really used at present since LOCAL_TAXES

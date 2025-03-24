@@ -454,7 +454,8 @@ const UC_EARNED_INCOME = IncludedItems(
 
 export 
     LEGACY_CAP_BENEFITS,
-    UC_CAP_BENEFITS 
+    UC_CAP_BENEFITS,
+    BEN_CAP_EXEMPTION_BENEFITS
 
 const COMMON_CAP_BENEFITS = IncomesSet([
     CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE,
@@ -476,6 +477,10 @@ const LEGACY_CAP_BENEFITS = IncomesSet(union(
         INCOME_SUPPORT], 
         COMMON_CAP_BENEFITS
 ))
+
+# see CPAG 2024/5 p1131
+const BEN_CAP_EXEMPTION_BENEFITS = IncomesSet(
+    union(SCOTTISH_SICKNESS_BENEFITS, UK_SICKNESS_ILLNESS, [WAR_WIDOWS_PENSION] ))
 
 # FIXME check these lists again very carefully indeed.
 # FIXME the CPAG guide describes a very convoluted way

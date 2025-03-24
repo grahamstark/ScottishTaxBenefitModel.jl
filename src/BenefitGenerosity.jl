@@ -61,6 +61,10 @@ const ENTRIES = EntryWrapper(
     GenVec()
 )
 
+"""
+This loads one of the sets of candidates for inclusion or exclusion from
+one of our disabililty benefits
+"""
 function load_one( filename :: String ) :: GenVec
     d = CSV.File( filename ) |> DataFrame
     n = size(d)[1]
@@ -100,9 +104,11 @@ function make_one_set( extra_people::Number, candidates :: GenVec ) :: Set{OneIn
     end
     return s
 end
-#
-# FIXME just merge with the thing below
-#
+
+"""
+This loads a set of OneIndexes with just enough people to qualify or disqualify
+`extra_people` from the given benefit `which`
+"""
 function to_set( which :: Incomes, extra_people :: Real ) :: Set{OneIndex}
     @argcheck which in SICKNESS_ILLNESS
     s = Set{OneIndex}()
@@ -137,7 +143,6 @@ function adjust_disability_eligibility!( nmt_bens :: NonMeansTestedSys )
     nmt_bens.pip.mobility_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY, nmt_bens.pip.extra_people )
 end
 
-
 function change_status(
     ; 
     candidates::Set{OneIndex}, 
@@ -157,7 +162,6 @@ function change_status(
             return rand(choices)
         end
     end
-end
+end # change_status
 
-
-end
+end # module

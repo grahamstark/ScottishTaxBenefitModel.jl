@@ -15,7 +15,8 @@ using .STBParameters:
     BenefitCapSys
 
 using .Results: 
-    BenefitUnitResult
+    BenefitUnitResult,
+    has_any
 
 using .Definitions
 
@@ -62,6 +63,7 @@ function apply_benefit_cap!(
     if intermed.someone_pension_age || 
         intermed.someone_is_carer ||
         (intermed.num_severely_disabled_adults > 0) ||
+        has_any( bur, BEN_CAP_EXEMPTION_BENEFITS ) ||
         caps.abolished
         # println("pension age bailing out")
         return
