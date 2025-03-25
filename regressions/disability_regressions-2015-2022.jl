@@ -111,15 +111,20 @@ for target in bens
     push!( main_out, v )
     probkey = Symbol( "$(target)_prob" )
     ds[!, probkey] = predict( v )
+    # all those who haven't got the benefit, ranked by highest->lowest modelled prob of receipt. Add these in 1st when modelling
+    # more generous eligibility test.
     positive_candidates = ds[(ds[!,target] .== 0) .& (ds.region .== "Scotland"), [:data_year,:hid,:pid,:weight, probkey, target ]]   
     sort!(positive_candidates, probkey, rev=true )
+
+    # all those who have got the benefit, ranked by lowest->highest modelled prob of receipt. Eliminate these 1st if modelling
+    # a reduction in entitlement.
     negative_candidates = ds[(ds[!,target] .== 1) .& (ds.region .== "Scotland"), [:data_year,:hid,:pid,:weight, probkey, target ]]
     sort!(negative_candidates, probkey )
     CSV.write( "data/actual_data/positive_candidates_$(target).tab", positive_candidates )
     CSV.write( "data/actual_data/negative_candidates_$(target).tab", negative_candidates )
     println( "writing to data/actual_data/negative_candidates_$(target).tab")
 end
-RegressionTables.regtable( main_out ...;  render = LatexTable(), file="disability_regressions.tex" )
+RegressionTables.regtable( main_out ...;  render = LatexTable(), file="docs/disability_regressions-2015-22.tex" )
 RegressionTables.regtable( main_out ... )
 #=
 ##
