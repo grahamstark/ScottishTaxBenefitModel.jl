@@ -340,7 +340,8 @@ module Results
                 return true
             end
         end
-        return false/
+        return false
+    end
     @with_kw mutable struct LocalTaxes{RT<:Real}
         # council_tax :: RT = zero(RT) 
         # this isn't really used at present since LOCAL_TAXES

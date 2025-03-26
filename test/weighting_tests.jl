@@ -44,10 +44,12 @@ end
     @test hhlds ≈ settings.num_households
     @test people ≈ settings.num_people 
     # FIXME this breaks without updates!
-    popns = Weighting.DEFAULT_TARGETS_SCOTLAND_2024
+    popns = Weighting.DEFAULT_TARGETS_SCOTLAND_2025
     
     target_scot_hhlds = sum( popns[42:47])
     target_scots_people = sum( popns[8:41])
+    settings.lower_multiple = 0.2
+    settings.upper_multiple = 7.0
 
     settings.weighting_strategy = use_runtime_computed_weights
     settings.num_households, settings.num_people = 
@@ -55,7 +57,7 @@ end
     hhlds, people = wsum(settings)
     @test hhlds ≈ target_scot_hhlds
     @test people ≈ target_scots_people
-
+    println( "runtime weights OK")
     # should be same ...
     settings.weighting_strategy = use_precomputed_weights
     settings.num_households, settings.num_people = 
@@ -63,6 +65,7 @@ end
     hhlds, people = wsum(settings)
     @test hhlds ≈ target_scot_hhlds
     @test people ≈ target_scots_people
+    println( "precomputed weights OK")
     # FIXME this breaks without updates!
 
     # same totals, smaller subset
@@ -82,6 +85,5 @@ end
     settings.num_households, settings.num_people = 
     initialise(  settings; reset=true )
     hhlds, people = wsum(settings)
-    @test dataweights ≈ hhlds
-    
+    @test dataweights ≈ hhlds    
 end

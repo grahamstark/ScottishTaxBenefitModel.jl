@@ -3,94 +3,94 @@
 sheet 4 of: data/targets/mar-2025-updates/target-generation.ods
 =#
 const DEFAULT_TARGETS_SCOTLAND_2025 = [
-        1396973.33650263	,	#	1	M- Total in employment- aged 16 from nomis summary + rescaled for popn projection 23-24
-        64874.8	,	#	2	M- Total unemployed- aged 16+
-        1335426.8358251	,	#	3	F- Total in employment- aged 16+
-        41671.8	,	#	4	F- Total unemployed- aged 16+
-        338562.8	,	#	5	private rented+rent free
-        295559.9	,	#	6	housing association
-        318971.5	,	#	7	las etc rented
-        117052.1	,	#	8	M – 0 – 4 HOUSEHOLD ONLY
-        131000.3	,	#	9	5 - 9
-        176597.4	,	#	10	10 – 15
-        105393.0	,	#	11	16 - 19
-        164126.8	,	#	12	20 - 24
-        183096.0	,	#	13	25 - 29
-        185695.4	,	#	14	 30 - 34
-        186892.1	,	#	15	 35 - 39
-        182632.7	,	#	16	40 - 44
-        166872.3	,	#	17	 45 - 49
-        182171.8	,	#	18	 50 - 54
-        204498.4	,	#	19	 55 - 59
-        203822.3	,	#	20	 60 - 64
-        176564.2	,	#	21	 65 - 69
-        146086.4	,	#	22	 70 - 74
-        130637.4	,	#	23	 75 - 79
-        154262.2	,	#	24	80+
-        117052.1	,	#	25	F – 0 - 4
-        131000.3	,	#	26	5 - 9
-        176597.4	,	#	27	10 – 15
-        105393.0	,	#	28	16 - 19
-        164126.8	,	#	29	20 - 24
-        183096.0	,	#	30	25 - 29
-        185695.4	,	#	31	 30 - 34
-        186892.1	,	#	32	 35 - 39
-        182632.7	,	#	33	40 - 44
-        166872.3	,	#	34	 45 - 49
-        182171.8	,	#	35	 50 - 54
-        204498.4	,	#	36	 55 - 59
-        203822.3	,	#	37	 60 - 64
-        176564.2	,	#	38	 65 - 69
-        146086.4	,	#	39	 70 - 74
-        130637.4	,	#	40	 75 - 79
-        154262.2	,	#	41	80+
-        485621.0	,	#	42	 # 42 - 1 adult: male
-        461487.0	,	#	43	 # 43 - 1 adult: female
-        821558.0	,	#	44	 # 44 - 2 adults
-        157479.0	,	#	45	 # 45 - 1 adult 1+ child
-        439357.0	,	#	47	 # 47 - 2+ adults 1+ children
-        206033.0	,	#	48	 # 48 - 3+ adults
-        89,620	,	#	49	CARERS
-        706,572	,	#	50	All Disability
-        116323.6	,	#	51	 # S12000034 - 52 Aberdeenshire  
-        55050.3	,	#	52	 # S12000041 - Angus  
-        41290.1	,	#	53	 # S12000035 - Argyll and Bute  
-        253222.8	,	#	54	 # S12000036 - City of Edinburgh  
-        24332.2	,	#	55	 # S12000005 - Clackmannanshire  
-        70025.3	,	#	56	 # S12000006 - Dumfries and Galloway  
-        71427.5	,	#	57	 # S12000042 - Dundee City  
-        55836.5	,	#	58	 # S12000008 - East Ayrshire  
-        47583.5	,	#	59	 # S12000045 - East Dunbartonshire  
-        49565.1	,	#	60	 # S12000010 - East Lothian  
-        41216.1	,	#	61	 # S12000011 - East Renfrewshire  
-        75553.7	,	#	62	 # S12000014 - Falkirk  
-        172710.9	,	#	63	 # S12000047 - Fife  
-        304947.7	,	#	64	 # S12000049 - Glasgow City  
-        112633.0	,	#	65	 # S12000017 - Highland  
-        36942.6	,	#	66	 # S12000018 - Inverclyde  
-        43594.4	,	#	67	 # S12000019 - Midlothian  
-        44228.3	,	#	68	 # S12000020 - Moray  
-        12649.0	,	#	69	 # S12000013 - Na h-Eileanan Siar  
-        64188.8	,	#	70	 # S12000021 - North Ayrshire  
-        156255.8	,	#	71	 # S12000050 - North Lanarkshire  
-        10914.2	,	#	72	 # S12000023 - Orkney Islands  
-        71100.2	,	#	73	 # S12000048 - Perth and KinroS  
-        89621.8	,	#	74	 # S12000038 - Renfrewshire  
-        56104.3	,	#	75	 # S12000026 - Scottish Borders  
-        10673.6	,	#	76	 # S12000027 - Shetland Islands  
-        53113.0	,	#	77	 # S12000028 - South Ayrshire  
-        151812.0	,	#	78	 # S12000029 - South Lanarkshire  
-        41633.4	,	#	79	 # S12000030 - Stirling  
-        43221.6	,	#	80	 # S12000039 - West Dunbartonshire  
-        83687.9	,	#	81	 # S12000040 - West Lothian  
-        698093.7	,	#	82	% all in employment who are - 2: professional occupations (SOC2010)
-        410667.6	,	#	83	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
-        267880.4	,	#	84	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
-        266543.0	,	#	85	% all in employment who are - 5: skilled trades occupations (SOC2010)
-        264999.9	,	#	86	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
-        172208.8	,	#	87	% all in employment who are - 7: sales and customer service occupations (SOC2010)
-        160275.6	,	#	88	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
-        258107.5	,	#	89	% all in employment who are - 9: elementary occupations (SOC2010)
+        1_396_973.33650263	,	#	1	M- Total in employment- aged 16 from nomis summary + rescaled for popn projection 23-24
+         64_874.8	,	#	2	M- Total unemployed- aged 16+
+        1_335_426.8358251	,	#	3	F- Total in employment- aged 16+
+         41_671.8	,	#	4	F- Total unemployed- aged 16+
+        338_562.8	,	#	5	private rented+rent free
+        295_559.9	,	#	6	housing association
+        318_971.5	,	#	7	las etc rented
+        117_052.1	,	#	8	M – 0 – 4 HOUSEHOLD ONLY
+        131_000.3	,	#	9	5 - 9
+        176_597.4	,	#	10	10 – 15
+        105_393.0	,	#	11	16 - 19
+        164_126.8	,	#	12	20 - 24
+        183_096.0	,	#	13	25 - 29
+        185_695.4	,	#	14	 30 - 34
+        186_892.1	,	#	15	 35 - 39
+        182_632.7	,	#	16	40 - 44
+        166_872.3	,	#	17	 45 - 49
+        182_171.8	,	#	18	 50 - 54
+        204_498.4	,	#	19	 55 - 59
+        203_822.3	,	#	20	 60 - 64
+        176_564.2	,	#	21	 65 - 69
+        146_086.4	,	#	22	 70 - 74
+        130_637.4	,	#	23	 75 - 79
+        154_262.2	,	#	24	80+
+        117_052.1	,	#	25	F – 0 - 4
+        131_000.3	,	#	26	5 - 9
+        176_597.4	,	#	27	10 – 15
+        105_393.0	,	#	28	16 - 19
+        164_126.8	,	#	29	20 - 24
+        183_096.0	,	#	30	25 - 29
+        185_695.4	,	#	31	 30 - 34
+        186_892.1	,	#	32	 35 - 39
+        182_632.7	,	#	33	40 - 44
+        166_872.3	,	#	34	 45 - 49
+        182_171.8	,	#	35	 50 - 54
+        204_498.4	,	#	36	 55 - 59
+        203_822.3	,	#	37	 60 - 64
+        176_564.2	,	#	38	 65 - 69
+        146_086.4	,	#	39	 70 - 74
+        130_637.4	,	#	40	 75 - 79
+        154_262.2	,	#	41	80+
+        485_621.0	,	#	42	 # 42 - 1 adult: male
+        461_487.0	,	#	43	 # 43 - 1 adult: female
+        821_558.0	,	#	44	 # 44 - 2 adults
+        157_479.0	,	#	45	 # 45 - 1 adult 1+ child
+        439_357.0	,	#	47	 # 47 - 2+ adults 1+ children
+        206_033.0	,	#	48	 # 48 - 3+ adults
+         89_620	,	#	49	CARERS
+        706_572	,	#	50	All Disability
+        116_323.6	,	#	51	 # S12000034 - 52 Aberdeenshire  
+         55_050.3	,	#	52	 # S12000041 - Angus  
+         41_290.1	,	#	53	 # S12000035 - Argyll and Bute  
+        253_222.8	,	#	54	 # S12000036 - City of Edinburgh  
+         24_332.2	,	#	55	 # S12000005 - Clackmannanshire  
+         70_025.3	,	#	56	 # S12000006 - Dumfries and Galloway  
+         71_427.5	,	#	57	 # S12000042 - Dundee City  
+         55_836.5	,	#	58	 # S12000008 - East Ayrshire  
+         47_583.5	,	#	59	 # S12000045 - East Dunbartonshire  
+         49_565.1	,	#	60	 # S12000010 - East Lothian  
+         41_216.1	,	#	61	 # S12000011 - East Renfrewshire  
+         75_553.7	,	#	62	 # S12000014 - Falkirk  
+        172_710.9	,	#	63	 # S12000047 - Fife  
+        304_947.7	,	#	64	 # S12000049 - Glasgow City  
+        112_633.0	,	#	65	 # S12000017 - Highland  
+         36_942.6	,	#	66	 # S12000018 - Inverclyde  
+         43_594.4	,	#	67	 # S12000019 - Midlothian  
+         44_228.3	,	#	68	 # S12000020 - Moray  
+         12_649.0	,	#	69	 # S12000013 - Na h-Eileanan Siar  
+         64_188.8	,	#	70	 # S12000021 - North Ayrshire  
+        156_255.8	,	#	71	 # S12000050 - North Lanarkshire  
+         10_914.2	,	#	72	 # S12000023 - Orkney Islands  
+         71_100.2	,	#	73	 # S12000048 - Perth and KinroS  
+         89_621.8	,	#	74	 # S12000038 - Renfrewshire  
+         56_104.3	,	#	75	 # S12000026 - Scottish Borders  
+         10_673.6	,	#	76	 # S12000027 - Shetland Islands  
+         53_113.0	,	#	77	 # S12000028 - South Ayrshire  
+        151_812.0	,	#	78	 # S12000029 - South Lanarkshire  
+         41_633.4	,	#	79	 # S12000030 - Stirling  
+         43_221.6	,	#	80	 # S12000039 - West Dunbartonshire  
+         83_687.9	,	#	81	 # S12000040 - West Lothian  
+        698_093.7	,	#	82	% all in employment who are - 2: professional occupations (SOC2010)
+        410_667.6	,	#	83	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
+        267_880.4	,	#	84	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
+        266_543.0	,	#	85	% all in employment who are - 5: skilled trades occupations (SOC2010)
+        264_999.9	,	#	86	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
+        172_208.8	,	#	87	% all in employment who are - 7: sales and customer service occupations (SOC2010)
+        160_275.6	,	#	88	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
+        258_107.5	,	#	89	% all in employment who are - 9: elementary occupations (SOC2010)
     ]
 
     const NUM_HOUSEHOLDS_SCOTLAND_2025 = sum( DEFAULT_TARGETS_SCOTLAND_2025[42:48]) # 2_537_971
