@@ -2,18 +2,17 @@
 
 **TURN OFF ALL 2ndary loading** (because lcf,shs,was indexes need rebuilt )
 
-
-1. upload `augdata`; X
-2. upload `scottish-frs-data`; X
-3. upload `disabilities`; X
-4. julia up
-5. git commit
-6. run `shs` `lcf` `shs` mergers on new frs;
-7. fixup merged shs lcf was code;
-8. run weights generation;
-9. run local weights generation;
-10. weights to  `scottish-frs-data`; rerun 2,3,4
-11. Project.toml tag increment
+1. Project.toml tag increment
+2. upload `augdata`; X
+3. upload `scottish-frs-data`; X
+4. upload `disabilities`; X
+5. julia up
+6. git commit
+7. run `shs` `lcf` `shs` mergers on new frs;
+8. fixup merged shs lcf was code;
+9. run weights generation;
+10. run local weights generation;
+11. weights to  `scottish-frs-data`; rerun 2,3,4
 12. git commit
 13. git tag matching
 
@@ -22,5 +21,6 @@
 Write unit tests for new disabilities generosity
 Write code - switch disability benefits to by age and to Scotland
 
-8. run unit tests
-9. eyeball tests on aggregates 
+14. run unit tests
+15. eyeball tests on aggregates 
+16. current parameter system check the fuck out of it.
