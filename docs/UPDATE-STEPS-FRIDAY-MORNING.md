@@ -1,6 +1,7 @@
 # UPDATE STEPS FRIDAY MORNING 
 
-**TURN OFF ALL 2ndary loading** (because lcf,shs,was indexes need rebuilt )
+* **TURN OFF ALL 2ndary loading** (because lcf,shs,was indexes need rebuilt )
+* **TURN OFF PRECOMPUTED WEIGHTS**
 
 1. Project.toml tag increment
 2. upload `augdata`; X
