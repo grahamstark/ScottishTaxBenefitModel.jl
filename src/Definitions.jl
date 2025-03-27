@@ -2369,4 +2369,9 @@ function scodefind( c::Union{AbstractString,Missing}; field=:lad_2017)
     LA_NAMES[ LA_NAMES.shs_code .== c, field][1]
 end
 
+export DisabilityGroup dis_working_age, dis_children, dis_pensioners, dis_all_adults, dis_all_people
+@enum DisabilityGroup dis_working_age dis_children dis_pensioners dis_all_adults dis_all_people
+
+
+
 end # module
