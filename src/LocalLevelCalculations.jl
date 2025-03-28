@@ -9,7 +9,7 @@ module LocalLevelCalculations
 
 using StaticArrays
 using CSV,DataFrames
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel

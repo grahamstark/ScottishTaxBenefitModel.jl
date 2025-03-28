@@ -3,7 +3,7 @@ module RunSettings
     # This module contains things needed to control one run e.g. the output destination, number of households to use andd so on.
     #
     using Pkg
-    using Pkg.Artifacts
+    using LazyArtifacts
     using LazyArtifacts
     using Parameters
     using Preferences 

@@ -6,7 +6,7 @@ module Runner
     #
     using Base.Threads
 
-    using Pkg, Pkg.Artifacts
+    using Pkg, LazyArtifacts
     using LazyArtifacts
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow, Not, select!

@@ -18,7 +18,7 @@ using ArgCheck
 using CSV
 using DataFrames
 using StatsBase
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel

@@ -13,7 +13,7 @@ using Dates: Date, now, TimeType, Year
 using TimeSeries
 using StaticArrays
 using Parameters
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using LazyArtifacts
 using DataFrames,CSV
 

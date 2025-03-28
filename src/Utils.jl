@@ -17,7 +17,7 @@ using DataFrames
 using Dates
 using LazyArtifacts
 using Pkg
-using Pkg.Artifacts
+using LazyArtifacts
 using Preferences
 using Printf
 using PrettyTables

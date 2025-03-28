@@ -7,7 +7,7 @@ module ExampleHouseholdGetter
 using DataFrames
 using CSV
 using ArgCheck
-using Pkg.Artifacts
+using LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel

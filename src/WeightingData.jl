@@ -7,7 +7,7 @@ TODO add UK,rUK,GB,NIreland,Wales country level weights
 =#
 using CSV
 using DataFrames
-using Pkg, Pkg.Artifacts, LazyArtifacts
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .RunSettings
