@@ -9,7 +9,7 @@ using .Weighting
 using .ExampleHelpers
 using .RunSettings
 
-using Pkg.Artifacts
+using LazyArtifacts
 using LazyArtifacts
 using CSV
 using DataFrames
