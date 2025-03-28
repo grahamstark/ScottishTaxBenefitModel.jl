@@ -70,11 +70,11 @@ export LegalAidData
 include( "WealthData.jl" )
 export WealthData
 
-include( "FRSHouseholdGetter.jl" )
-export FRSHouseholdGetter
-
 include( "SHSData.jl")
 export SHSData
+
+include( "FRSHouseholdGetter.jl" )
+export FRSHouseholdGetter
 
 include( "MatchingLibs.jl")
 export MatchingLibs

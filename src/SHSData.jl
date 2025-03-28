@@ -4,20 +4,17 @@ This module holds both the data for indirect tax calculations. Quickie pro tem t
 for Northumberland, but you know how that goes..
 
 =#
-module ConsumptionData
+module SHSData
 
 using ArgCheck
 using CSV
 using DataFrames
-using StatsBase
 using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
-using .GeneralTaxComponents
 using .ModelHousehold
 using .RunSettings
-using .Uprating
 
 SHS_DATASET = DataFrame() 
 IND_MATCHING = DataFrame()
