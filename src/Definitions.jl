@@ -11,7 +11,7 @@ using CSV
 using DataFrames 
 using JSON3
 using Parameters
-using Pkg.Artifacts
+using LazyArtifacts
 using Preferences 
 
 # FIXME no longer needed?
@@ -2369,7 +2369,7 @@ function scodefind( c::Union{AbstractString,Missing}; field=:lad_2017)
     LA_NAMES[ LA_NAMES.shs_code .== c, field][1]
 end
 
-export DisabilityGroup dis_working_age, dis_children, dis_pensioners, dis_all_adults, dis_all_people
+export DisabilityGroup, dis_working_age, dis_children, dis_pensioners, dis_all_adults, dis_all_people
 @enum DisabilityGroup dis_working_age dis_children dis_pensioners dis_all_adults dis_all_people
 
 
