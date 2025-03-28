@@ -7,10 +7,11 @@
 2. upload `augdata`; X
 3. upload `scottish-frs-data`; X
 4. upload `disabilities`; X
-5. julia up
-6. git commit
-7. run `shs` `lcf` `shs` mergers on new frs;
+5. julia up X
+6. git commit X
+7. run `shs` `lcf` `shs` mergers on new frs; X
 8. fixup merged shs lcf was code;
+8a. fixup Cons/Wealth; copy to SHS
 9. run weights generation;
 10. run local weights generation;
 11. weights to  `scottish-frs-data`; rerun 2,3,4

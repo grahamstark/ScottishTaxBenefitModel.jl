@@ -16,8 +16,8 @@ using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
 using .HistoricBenefits: 
-    make_benefit_ratios!, 
-    switch_dla_to_pip!
+    make_benefit_ratios!
+    # switch_dla_to_pip!
 using .EquivalenceScales: EQScales
 using .Utils: not_zero_or_missing
 using .Randoms: strtobi
@@ -461,7 +461,7 @@ function map_person(
     if settings.benefit_generosity_estimates_available
         make_benefit_ratios!( 
             pers, hh.interview_year, hh.interview_month )
-        switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
+        # switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
     end
     if settings.impute_employer_pension
         impute_employer_pension!( pers )

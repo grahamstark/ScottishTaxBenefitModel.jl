@@ -35,7 +35,6 @@ struct DisabilityChanges
     is_positive  :: Bool
     people :: Set{OneIndex}
 end
-positive_candidates_any_disability_working_age.tab
 
 #
 # FIXME re-arrange to make this immutable
@@ -43,18 +42,14 @@ positive_candidates_any_disability_working_age.tab
 mutable struct EntryWrapper
     negative_candidates_any_disability_working_age::GenVec
     negative_candidates_any_disability_pensioners::GenVec   
-    positive_candidates_care_working_age::GenVec
-    negative_candidates_care_pensioners::GenVec
+    negative_candidates_any_carers_all_adults::GenVec
     positive_candidates_any_disability_working_age::GenVec
     positive_candidates_any_disability_pensioners::GenVec   
-    positive_candidates_care_working_age::GenVec
-    positive_candidates_care_pensioners::GenVec
+    positive_candidates_any_carers_all_adults::GenVec
     child_disabilities_ranked::GenVec
 end
 
 const ENTRIES = EntryWrapper(
-    GenVec(),
-    GenVec(),
     GenVec(),
     GenVec(),
     GenVec(),

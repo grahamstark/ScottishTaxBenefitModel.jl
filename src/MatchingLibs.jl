@@ -156,10 +156,19 @@ end
 
 const ODIR = "data/matches/"
 
-function create_was_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
+function everything_off_settings(data_source :: DataSource = FRSSource)::Settings
     settings = Settings()
+    settings.data_source = data_source
     settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
     settings.data_source = data_source
+    settings.do_indirect_tax_calculations = false
+    settings.wealth_method = no_method
+    settings.weighting_strategy = use_supplied_weights
+    return settings
+end
+
+function create_was_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
+    settings = everything_off_settings(data_source)
     wass = MatchingLibs.was.create_subset()
     matches = map_all( settings, wass, was.model_row_match, "was"; num_samples=num_samples )
     matches.default_datayear = matches.datayear_1
@@ -169,9 +178,7 @@ function create_was_matches( data_source :: DataSource = FRSSource; num_samples=
 end
 
 function create_shs_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
-    settings = Settings()
-    settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
-    settings.data_source = data_source
+    settings = everything_off_settings(data_source)
     shss = shs.create_subset()
     matches = map_all( settings, shss, shs.model_row_match, "shs"; num_samples=num_samples )
     shs.hack_income_field_to_sample_freqs( matches, shss )
@@ -180,9 +187,7 @@ function create_shs_matches( data_source :: DataSource = FRSSource; num_samples=
 end
 
 function create_lcf_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
-    settings = Settings()
-    settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
-    settings.data_source = data_source
+    settings = everything_off_settings(data_source)
     lcfs = MatchingLibs.lcf.create_subset()
     matches = map_all( settings, lcfs, lcf.model_row_match, "shs"; num_samples=num_samples )
     matches.default_datayear = matches.datayear_1 # default selection just the 1st one
