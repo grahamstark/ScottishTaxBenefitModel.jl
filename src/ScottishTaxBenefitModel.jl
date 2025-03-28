@@ -73,6 +73,9 @@ export WealthData
 include( "FRSHouseholdGetter.jl" )
 export FRSHouseholdGetter
 
+include( "SHSData.jl")
+export SHSData
+
 include( "MatchingLibs.jl")
 export MatchingLibs
 

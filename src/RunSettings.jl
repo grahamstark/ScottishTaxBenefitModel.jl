@@ -145,6 +145,7 @@ module RunSettings
         indirect_matching_dataframe = @load_preference( "indirect_matching_dataframe", "lcf-frs-scotland-only-matches-2015-2021")
         expenditure_dataset = @load_preference( "expenditure_dataset", "lcf_subset-2018-2020")
         wealth_method = @load_preference( "wealth_method", no_method)
+        use_shs = @load_preference( "use_shs", true )
         wealth_matching_dataframe = @load_preference( "wealth_matching_dataframe", "was-wave-7-frs-scotland-only-matches-2015-2021-w3")
         wealth_dataset = @load_preference( "wealth_dataset", "was_wave_7_subset")
         do_indirect_tax_calculations = @load_preference( "do_indirect_tax_calculations", false)
@@ -216,7 +217,7 @@ module RunSettings
         settings.impute_employer_pension = false
         settings.included_nations = [N_Scotland,N_England,N_Wales]
         settings.means_tested_routing = modelled_phase_in
-        
+        settings.use_shs = false        
         settings.indirect_method = matching
         settings.indirect_matching_dataframe = "frs2020_lcf2018-20_matches_all_uk"
         settings.expenditure_dataset = "lcf_subset-2018-2020"

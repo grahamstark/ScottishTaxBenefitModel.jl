@@ -231,6 +231,7 @@ mutable struct Household{RT<:Real}
     expenditure :: Union{Nothing,DataFrameRow}
     factor_costs :: Union{Nothing,DataFrameRow}
     raw_wealth :: Union{Nothing,DataFrameRow}
+    shsdata :: Union{Nothing,DataFrameRow}
     people::People_Dict{RT}
     onerand :: String
     equivalence_scales :: EQScales{RT}

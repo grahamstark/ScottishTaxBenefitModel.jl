@@ -32,6 +32,7 @@ module FRSHouseholdGetter
     using .Utils:get_quantiles
 
     using .LegalAidData
+    using .SHSData
     using .ConsumptionData
     using .WealthData
     using .WeightingData
@@ -363,6 +364,9 @@ module FRSHouseholdGetter
             return (MODEL_HOUSEHOLDS.dimensions...,) 
         end
         load_prices( settings )
+        if settings.use_shs 
+            SHSData.init( settings; reset = reset )
+        end
         if settings.indirect_method == matching 
             ConsumptionData.init( settings; reset = reset )
         end

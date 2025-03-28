@@ -139,6 +139,7 @@ target_nation = "N_Scotland"
 to_q = 1
 to_y = 2025
 weighting_strategy = "use_precomputed_weights"
+use_shs = true
 
 [targets]
 test = ["Test"]
