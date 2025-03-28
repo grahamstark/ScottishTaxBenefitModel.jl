@@ -27,15 +27,15 @@ function find_shs_for_hh!( hh :: Household, settings :: Settings, which = -1 )
     @argcheck which <= 20
     match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year) .& 
         (IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
-    lcf_case_sym, lcf_datayear_sym = if which > 0      
+    case_sym, datayear_sym = if which > 0      
          Symbol( "hhid_$(which)" )
          Symbol( "datayear_$(which)")
     else 
         :default_hhld
         :default_datayear    
     end
-    case = match[lcf_case_sym]
-    datayear = match[lcf_datayear_sym]
+    case = match[case_sym]
+    datayear = match[datayear_sym]
     hh.shsdata = SHS_DATASET[(SHS_DATASET.uniqidnew .== case).&(SHS_DATASET.datayear.==datayear),:][1,:]
     hh.council = hh.shsdata.council
     hh.nhs_board = hh.shsdata.health_board

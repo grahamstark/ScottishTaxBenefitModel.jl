@@ -281,20 +281,20 @@ end
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
-function find_consumption_for_hh!( hh :: Household, settings :: Settings, which = 1 )
+function find_consumption_for_hh!( hh :: Household, settings :: Settings, which = -1 )
     @argcheck settings.indirect_method == matching
     @argcheck which <= 20
-    if which > 0      
+    case_sym, datayear_sym = if which > 0      
         match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
-        lcf_case_sym = Symbol( "lcf_case_$(which)" )
-        lcf_datayear_sym = Symbol( "lcf_datayear_$(which)")
-        case = match[lcf_case_sym]
-        datayear = match[lcf_datayear_sym]
+        case_sym = Symbol( "hhid_$(which)" )
+        datayear_sym = Symbol( "datayear_$(which)")
     else # FIXME NOT NEEDED
-        # case = hh.lcf_default_matched_case
-        # datayear = hh.lcf_default_data_year    
+        :default_hhld
+        :default_datayear    
     end
-    find_consumption_for_hh!( hh, case, datayear )
+    case = match[case_sym]
+    datayear = match[datayear_sym]
+find_consumption_for_hh!( hh, case, datayear )
 end
 
 # FIXME FIXME CHAOTIC EVIL this is the diff between actual 157bn and crude modelled VAT receipts of 102mb. 2022

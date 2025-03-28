@@ -51,10 +51,17 @@ Match in the was data using the lookup table constructed in 'matching/was_frs_ma
 """
 function find_wealth_for_hh!( hh :: Household, settings :: Settings, which = 1 )
     @argcheck settings.wealth_method == matching
-    @argcheck which in 1:20
+    @argcheck which in 1:20    
     match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
-    was_case_sym = Symbol( "was_case_$(which)" )
-    case = match[was_case_sym]
+    case_sym, datayear_sym = if which > 0      
+        Symbol( "hhid_$(which)" )
+        Symbol( "datayear_$(which)")
+    else 
+       :default_hhld
+       :default_datayear    
+    end
+    case = match[case_sym]
+    datayear = match[datayear_sym]
     find_wealth_for_hh!( hh, case )
 end
 
