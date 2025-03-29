@@ -399,6 +399,9 @@ module FRSHouseholdGetter
                 hh = load_hhld_from_frame( dseq, hdata, people_dataset, settings )
                 npeople += num_people(hh)
                 MODEL_HOUSEHOLDS.hhlds[hseq] = hh
+                if settings.use_shs 
+                    SHSData.find_shs_for_hh!( hh, settings )
+                end
                 if settings.wealth_method == matching 
                     WealthData.find_wealth_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
                 end

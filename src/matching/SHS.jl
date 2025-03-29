@@ -29,7 +29,7 @@ target_pops = loadpops()
 
 """
 the matching datasets have an `income` field. Hack it so it contains the sample pct you need to
-get a representative number of each la in the match dataset. Also, add cols for default_datayear and default_hid
+get a representative number of each la in the match dataset. Also, add cols for default_datayear and default_hhld
 for the default selections 
 """
 function hack_income_field_to_sample_freqs( sm::DataFrame, shs :: DataFrame; nscores=20 )
@@ -42,7 +42,7 @@ function hack_income_field_to_sample_freqs( sm::DataFrame, shs :: DataFrame; nsc
         samplefreq[k] = freq
     end
     sm.default_datayear = zeros(Int,smrows)
-    sm.default_hid = zeros(Int,smrows)
+    sm.default_hhld = zeros(Int,smrows)
     for sc in eachrow(sm)
         freqs = zeros(nscores)
         for i in 1:nscores
@@ -68,7 +68,7 @@ function hack_income_field_to_sample_freqs( sm::DataFrame, shs :: DataFrame; nsc
         hid = sc[Symbol("hhid_$(choice)")]
         year = sc[Symbol("datayear_$(choice)")]
         sc.default_datayear = year
-        sc.default_hid = hid
+        sc.default_hhld = hid
     end
 end
 
@@ -81,7 +81,7 @@ Check we get roughly the right number of hhlds in each la in our match dataset
 @return df with % of hhlds in each LA in reality and % in shs->frs matches
 """
 function dochecks( sm::DataFrame, shs::DataFrame )::AbstractDataFrame
-    joinchoices = innerjoin(shs,sm; on=[:datayear=>:default_datayear, :uniqidnew=> :default_hid])
+    joinchoices = innerjoin(shs,sm; on=[:datayear=>:default_datayear, :uniqidnew=> :default_hhld])
     ccs = sort(combine(groupby(joinchoices,:lad_2017), nrow=>"ccount"))
     ccs.ccount ./= (0.01.*sum(ccs.ccount))
     ccs.lacounts = zeros(size(ccs)[1])

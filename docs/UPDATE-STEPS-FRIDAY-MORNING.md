@@ -10,7 +10,7 @@
 5. julia up X
 6. git commit X
 7. run `shs` `lcf` `shs` mergers on new frs; X
-8. fixup merged shs lcf was code;
+8. fixup merged shs lcf was code;X
 8a. fixup Cons/Wealth; copy to SHS
 9. run weights generation;
 10. run local weights generation;
@@ -29,3 +29,33 @@ Write code - switch disability benefits to by age and to Scotland
 17. tax credits transition turn credits OFF
 18. ct calculation from https://cpag.org.uk/welfare-rights/benefits-scotland/scottish-benefits/help-council-tax/calculating-working-age-scottish-council-tax-reduction
 19. One-off shs add council healthboard into hh dataframe
+
+
+```julia
+using ScottishTaxBenefitModel,
+    .Definitions,
+    .FRSHouseholdGetter,
+    .MatchingLibs,
+    .ModelHousehold,
+    .RunSettings,
+    .SHSData,
+    .Uprating,
+    .Utils
+
+using CSV,
+    DataFrames,
+    Revise,
+    Definitions
+
+settings = Settings()
+settings.weighting_strategy = dont_use_weights
+
+settings.indirect_method = matching
+
+settings.wealth_method = matching
+settings.do_indirect_tax_calculations = true
+settings.use_shs = true
+ settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings; reset=true)
+
+
+```

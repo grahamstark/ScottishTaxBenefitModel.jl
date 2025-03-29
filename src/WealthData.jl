@@ -54,10 +54,10 @@ function find_wealth_for_hh!( hh :: Household, settings :: Settings, which = 1 )
     @argcheck which in 1:20    
     match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
     case_sym, datayear_sym = if which > 0      
-        Symbol( "hhid_$(which)" )
+        Symbol( "hhid_$(which)" ),
         Symbol( "datayear_$(which)")
     else 
-       :default_hhld
+       :default_hhld,
        :default_datayear    
     end
     case = match[case_sym]
