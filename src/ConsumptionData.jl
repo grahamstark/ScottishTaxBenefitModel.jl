@@ -350,23 +350,21 @@ FIXME DO FACTOR COSTS!!!!
 fixme selectable artifacts
 """
 function init( settings :: Settings; reset = false )
+    @argcheck settings.do_indirect_tax_calculations 
+    @argcheck settings.indirect_method == matching
     global IND_MATCHING
     global EXPENDITURE_DATASET
     global FACTOR_COST_DATASET
-    if settings.do_indirect_tax_calculations 
-        if(settings.indirect_method == matching) 
-            if (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
-                c_artifact = RunSettings.get_artifact(; 
-                    name="expenditure", 
-                    source=settings.data_source == SyntheticSource ? "synthetic" : "lcf", 
-                    scottish=settings.target_nation == N_Scotland )
-                IND_MATCHING = CSV.File( joinpath( c_artifact, "matches.tab" )) |> DataFrame
-                EXPENDITURE_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab")) |> DataFrame
-                FACTOR_COST_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab" )) |> DataFrame
-                println( EXPENDITURE_DATASET[1:2,:])
-                uprate_expenditure( settings )
-            end
-        end
+    if (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
+        c_artifact = RunSettings.get_artifact(; 
+            name="expenditure", 
+            source=settings.data_source == SyntheticSource ? "synthetic" : "lcf", 
+            scottish=settings.target_nation == N_Scotland )
+        IND_MATCHING = CSV.File( joinpath( c_artifact, "matches.tab" )) |> DataFrame
+        EXPENDITURE_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab")) |> DataFrame
+        FACTOR_COST_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab" )) |> DataFrame
+        println( EXPENDITURE_DATASET[1:2,:])
+        uprate_expenditure( settings )
     end
 end
 

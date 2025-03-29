@@ -51,9 +51,10 @@ FIXME This is bad design:
 * we should have the default LA in somehow
 """
 function init( settings :: Settings; reset = false )
+    @argcheck settings.use_shs
+    global IND_MATCHING
+    global SHS_DATASET
     if reset || (size(SHS_DATASET)[1] == 0 )
-        global IND_MATCHING
-        global SHS_DATASET
         c_artifact = RunSettings.get_artifact(; 
             name="data", 
             source=settings.data_source == SyntheticSource ? "synthetic" : "shs", 

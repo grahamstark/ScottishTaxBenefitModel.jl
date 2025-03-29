@@ -82,7 +82,8 @@ end
 """
 """
 function init( settings :: Settings; reset = false )
-    if(settings.wealth_method == matching) && (reset || (size(WEALTH_DATASET)[1] == 0 )) # needed but uninitialised
+    @argcheck settings.wealth_method == matching
+    if(reset || (size(WEALTH_DATASET)[1] == 0 )) # needed but uninitialised
         global IND_MATCHING
         global WEALTH_DATASET
         w_artifact = RunSettings.get_artifact(; 
