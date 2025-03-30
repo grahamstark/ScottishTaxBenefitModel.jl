@@ -40,10 +40,7 @@ function load_data(; load_examples::Bool, load_main :: Bool, start_year = 2015 )
    if load_main
       rc = @timed begin
          num_households,num_people,nhh2 =
-            FRSHouseholdGetter.initialise(
-            household_name = "model_households_scotland",
-            people_name    = "model_people_scotland",
-            start_year = start_year )
+            FRSHouseholdGetter.initialise( start_year = start_year )
       end
       mb = trunc(Integer, rc[3] / 1024^2)
       @info "loaded data; load time $(rc[2]); memory used $(mb)mb; loaded $num_households households\nready..."

@@ -1,3 +1,10 @@
+#=
+
+OBSOLETE VERSION DON'T USE!!!
+use LocalWeightGeneration.jl in src/ instead.
+
+=#
+
 using CSV, DataFrames
 using ScottishTaxBenefitModel
 using .ModelHousehold
@@ -9,7 +16,17 @@ using SurveyDataWeighting
 using CSV
 using StatsBase
 
+INCLUDE_OCCUP = true
+INCLUDE_HOUSING = true
+INCLUDE_BEDROOMS = true
+INCLUDE_CT = true
+INCLUDE_HCOMP = true
+INCLUDE_EMPLOYMENT = true
+INCLUDE_INDUSTRY = false
+INCLUDE_HH_SIZE = true
+
 const DDIR = joinpath("/","mnt","data","ScotBen","data", "local", "local_targets_2024" )
+io = open( "tmp/la-errors-2.out", "w")
 
 function readc(filename::String)::Tuple
     d = (CSV.File( filename; normalizenames=true, header=10, skipto=12)|>DataFrame)
@@ -35,11 +52,11 @@ function read_all()
     for f in fs
         if ! isnothing(match(r".*table.*.csv$",f))
             n += 1
-            println( "on $f")
+            println( io, "on $f")
             data, label, nms = readc(f)
-            println(nms)
-            println(label)
-            println(data)
+            println( io, nms)
+            println( io, label)
+            println( io, data)
             labels.filename[n] = f
             labels.label[n]=label
             labels.start[n]=cols+2        
@@ -117,19 +134,11 @@ function summarise_dfs( data :: DataFrame, targets::DataFrameRow, household_tota
         d[10,n] = v.sd
         d[11,n] = targets[n] / sum(data[!,n],initial_weights)
     end
-    #=
-    max     mean
-median  min
-nmiss   nobs
-q25     q75
-sd
-    =#
-    d
+    return d
 end
-    
-    
-
-DROPS = [
+# stray columns we want to delete in the main target file once
+# it's assembled
+COLS_TO_DELETE = [
     "Authority_1",
     "Total_1",
     "Authority_2",
@@ -231,7 +240,7 @@ ctbase=CSV.File(joinpath( DDIR, "CTAXBASE+2024+-+Tables+-+Chargeable+Dwellings.c
 allfs = hcat( allfs, ctbase; makeunique=true )
 
 rename!( allfs, RENAMES )
-select!( allfs, Not(DROPS))
+select!( allfs, Not(COLS_TO_DELETE))
 allfs.total_cts = sum.(eachrow(allfs[:,[:A,:B,:C,:D,:E,:F,:G,:H]]))
 
 # merged columns 
@@ -248,15 +257,6 @@ allfs.authority_code = authority_codes
 
 CSV.write( joinpath(DDIR,"labels.tab"), labels; delim='\t')
 CSV.write( joinpath(DDIR,"allfs.tab"), allfs; delim='\t' )
-
-const INCLUDE_OCCUP = true
-const INCLUDE_HOUSING = true
-const INCLUDE_BEDROOMS = true
-const INCLUDE_CT = true
-const INCLUDE_HCOMP = true
-INCLUDE_EMPLOYMENT = true
-const INCLUDE_INDUSTRY = false
-INCLUDE_HH_SIZE = true
 
 function initialise_target_dataframe_scotland_la( n :: Integer ) :: DataFrame
     d = DataFrame()
@@ -448,7 +448,6 @@ function make_target_row_scotland_la!(
                 row.economically_active_unemployed += 1
             end
         end
-
         if INCLUDE_OCCUP
             if pers.employment_status in [
                     Full_time_Employee,
@@ -505,8 +504,7 @@ function make_target_row_scotland_la!(
                 d.O_P_Q_Public_administration_education_and_health = zeros(n)
                 =#
             end
-        end
-    
+        end    
     end # pers loop
     if INCLUDE_BEDROOMS
         if hh.bedrooms == 1
@@ -532,7 +530,6 @@ function make_target_row_scotland_la!(
         elseif hh.tenure == Owned_outright
             # row.
         end
-
         # dwell_na = -1
         if hh.dwelling == detatched
             # 
@@ -661,10 +658,11 @@ function weight_to_la(
     code :: Symbol,
     num_households :: Int )
     targets = make_target_list( alldata, code ) 
-
+    println( io, "target list for $code")
+    println( io, targets )
     hhtotal = alldata[alldata.authority_code .== code,:total_hhlds][1]
-    println( "calculating for $code; hh total $hhtotal")
-    weights = generate_weights(
+    println( io, "calculating for $code; hh total $hhtotal")
+    weights,dataset = generate_weights(
         num_households;
         weight_type = settings.weight_type,
         lower_multiple = settings.lower_multiple, # these values can be narrowed somewhat, to around 0.25-4.7
@@ -673,9 +671,7 @@ function weight_to_la(
         targets = targets,
         initialise_target_dataframe = initialise_target_dataframe_scotland_la,
         make_target_row! = make_target_row_scotland_la! )
-    initial_weights( )
-    
-    return weights
+    return weights,dataset
 end
 
 function t_make_target_dataset( 
@@ -704,6 +700,11 @@ function t_make_target_dataset(
 end
 
 settings = Settings()
+settings.weighting_strategy = use_runtime_computed_weights
+settings.lower_multiple = 0.1
+settings.upper_multiple = 7.0
+settings.included_data_years = collect(2015:2021)
+  
 @time settings.num_households, settings.num_people, nhh2 = 
     initialise( settings; reset=false )
 # initial version for checking
@@ -711,7 +712,7 @@ m, tdf = t_make_target_dataset(
     settings.num_households,
     initialise_target_dataframe_scotland_la,
     make_target_row_scotland_la! )
-errors = []
+    errors = []
 const wides = Set([:S12000013] ) # h-Eileanan Siar""Angus", "East Lothian", "East Renfrewshire", "Renfrewshire", "East Dunbartonshire", "North Ayrshire", "West Dunbartonshire", "Shetland Islands", "Orkney Islands", "Inverclyde", "Midlothian", "Argyll and Bute", "East Ayrshire", "Dundee City", "Na h-Eileanan Siar", "South Lanarkshire", "Clackmannanshire", "West Lothian", "Falkirk", "Moray", "South Ayrshire", "City of Edinburgh", "Aberdeenshire", "North Lanarkshire"])
 const verywides = Set([:S12000010, :S12000019, :S12000011, :S12000035, :S12000045] ) 
 #"East Lothian", "Midlothian", "East Renfrewshire", "Argyll and Bute", "East Dunbartonshire"])
@@ -730,10 +731,8 @@ for href in 1:settings.num_households
     outweights.hid[href] = mhh.hid
     outweights.data_year[href] = mhh.data_year
 end
-
 for code in allfs.authority_code
-    global errors, s, INCLUDE_EMPLOYMENT, INCLUDE_HH_SIZE 
-    println( "on $code")
+    println( io, "on $code")
     try
         # FIXME messing with globals for empl, hhsize, which break some authorities
         if code in verywides
@@ -748,23 +747,20 @@ for code in allfs.authority_code
             INCLUDE_HH_SIZE = true
             INCLUDE_EMPLOYMENT = true            
         end
-        w = weight_to_la( settings, allfs, code, settings.num_households )
-        println("OK")
+        #  INCLUDE_EMPLOYMENT = false
+        # INCLUDE_HH_SIZE = false
+        w,data = weight_to_la( settings, allfs, code, settings.num_households )
+        println( io, "size w=$(size(w)) size outweights=$(size(outweights))")
         outweights[!,code] = w
     catch e
-        println( "error $e")
+        println( io, e )
+        println( io, stacktrace())
         push!( errors, (; e, code ))
-        push!(s, code )
+        push!( s, code )
     end
-
 end
-
-println( errors )
-println(s)
-
-CSV.write( joinpath( DDIR, "la-frs-weights-scotland-2024.tab"), outweights; delim='\t')
-
-weights = CSV.File( joinpath( DDIR, "la-frs-weights-scotland-2024.tab") ) |> DataFrame 
-
-
-
+# println( io, "ERRORS=$errors" )
+println( io, "s=$s")
+CSV.write( joinpath( DDIR, "la-frs-weights-scotland-2025.tab"), outweights; delim='\t')
+weights = CSV.File( joinpath( DDIR, "la-frs-weights-scotland-2025.tab") ) |> DataFrame 
+close(io)

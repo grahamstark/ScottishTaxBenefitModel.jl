@@ -110,7 +110,7 @@ SurveyDataWeighting = "1, 2"
 TableTraits = "1, 2"
 Tables = "1, 2"
 TimeSeries = "0.23, 0.24, 0.25, 1"
-XLSX = "0.10.4"
+XLSX = "0.10,0.11,0.12,0.2,0.3,1"
 julia = "1"
 
 [extras]
@@ -119,6 +119,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [preferences.ScottishTaxBenefitModel]
 ccode = ""
 default_run_name = "default_run"
+do_indirect_tax_calculations = false
 do_legal_aid = false
 do_local_run = true
 do_marginal_rates = false
@@ -140,6 +141,9 @@ to_q = 1
 to_y = 2025
 weighting_strategy = "use_precomputed_weights"
 use_shs = true
-
+indirect_method = "no_method"
+lower_multiple = 0.15
+upper_multiple = 7.0
+        
 [targets]
 test = ["Test"]
