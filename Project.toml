@@ -118,10 +118,10 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [preferences.ScottishTaxBenefitModel]
 ccode = ""
-default_run_name = "default_run"
+default_run_name = "sb-0.1.6"
 do_indirect_tax_calculations = false
 do_legal_aid = false
-do_local_run = true
+do_local_run = false
 do_marginal_rates = false
 do_replacement_rates = false
 dump_frames = false

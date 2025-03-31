@@ -122,7 +122,7 @@ function do_local_level_run(;
         @time settings.num_households, settings.num_people, nhh2 = 
             FRSHouseholdGetter.initialise( settings )
         if settings.benefit_generosity_estimates_available
-            BenefitGenerosity.initialise( artifact"disability" )  
+            BenefitGenerosity.initialise()  
             observer[]= Progress( 
                 settings.uuid, "disability_eligibility", 0, 0, 0, settings.num_households )
             for sysno in 1:num_systems

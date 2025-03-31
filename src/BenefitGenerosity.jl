@@ -10,17 +10,20 @@ module BenefitGenerosity
 # This is crazily over/under designed and needs re-doing
 # Je n'ai fait celle-ci plus longue que parce que je n'ai pas eu le loisir de la faire plus courte.
 #
+using ArgCheck
+using CSV 
+using DataFrames 
+using LazyArtifacts
+
 using ScottishTaxBenefitModel
-using .ModelHousehold: OneIndex,Person,Household
 using .Definitions
+using .FRSHouseholdGetter: get_household_of_person
+using .ModelHousehold: OneIndex,Person,Household
+using .RunSettings: Settings
 using .STBIncomes
 using .STBParameters: NonMeansTestedSys
-using .RunSettings: Settings
-using .FRSHouseholdGetter: get_household_of_person
-using DataFrames, CSV 
-using ArgCheck
 
-export initialise, to_set, adjust_disability_eligibility!, change_status
+export initialise, to_set, adjust_disability_eligibility!, change_status, select_candidates
 
 struct GenEntry # FIXME make a concrete type {T} ???
     cum_popn :: Real
@@ -80,14 +83,17 @@ function load_one( filename :: String ) :: GenVec
     return gv
 end
 
-function initialise( dir :: String )
-    ENTRIES.negative_candidates_any_disability_working_age = load_one( "$dir/negative_candidates_any_disability_working_age.tab")
-    ENTRIES.negative_candidates_any_disability_pensioners = load_one( "$dir/negative_candidates_any_disability_pensioners.tab")   
-    ENTRIES.negative_candidates_any_carers_all_adults = load_one( "$dir/negative_candidates_any_carers_all_adults.tab")
-    ENTRIES.positive_candidates_any_disability_working_age = load_one( "$dir/positive_candidates_any_disability_working_age.tab")
-    ENTRIES.positive_candidates_any_disability_pensioners = load_one( "$dir/positive_candidates_any_disability_pensioners.tab")   
-    ENTRIES.positive_candidates_any_carers_all_adults = load_one( "$dir/positive_candidates_any_carers_all_adults")
-    ENTRIES.child_disabilities_ranked = load_one( "$dir/child_disabilities_ranked.tab")
+function initialise()
+    if size( ENTRIES.negative_candidates_any_disability_working_age ) == (0,0)
+        dir = artifact"disability"
+        ENTRIES.negative_candidates_any_disability_working_age = load_one( "$dir/negative_candidates_any_disability_working_age.tab")
+        ENTRIES.negative_candidates_any_disability_pensioners = load_one( "$dir/negative_candidates_any_disability_pensioners.tab")   
+        ENTRIES.negative_candidates_any_carers_all_adults = load_one( "$dir/negative_candidates_any_carers_all_adults.tab")
+        ENTRIES.positive_candidates_any_disability_working_age = load_one( "$dir/positive_candidates_any_disability_working_age.tab")
+        ENTRIES.positive_candidates_any_disability_pensioners = load_one( "$dir/positive_candidates_any_disability_pensioners.tab")   
+        ENTRIES.positive_candidates_any_carers_all_adults = load_one( "$dir/positive_candidates_any_carers_all_adults.tab")
+        ENTRIES.child_disabilities_ranked = load_one( "$dir/child_disabilities_ranked.tab")
+    end
 end
 
 function make_one_set( extra_people::Number, candidates :: GenVec ) :: Set{OneIndex}
@@ -146,18 +152,18 @@ function select_candidates(; extra_people :: Real, is_care::Bool, cgroup :: Disa
             make_one_set( -1*extra_people, ENTRIES.negative_candidates_any_carers_all_adults )
         end
     else
-        @assert cgroup in [dis_all_working_age, dis_pensioners]
+        @assert cgroup in [dis_working_age, dis_pensioners]
         if extra_people > 0
             if cgroup == dis_working_age
-                make_one_set( extra_people, ENTRIES.positive_candidates_care_working_age )
+                make_one_set( extra_people, ENTRIES.positive_candidates_any_disability_working_age )
             else
-                make_one_set( extra_people, ENTRIES.positive_candidates_care_pensioners )
+                make_one_set( extra_people, ENTRIES.positive_candidates_any_disability_pensioners )
             end
         else
             if cgroup == dis_working_age
-                make_one_set( -1*extra_people, ENTRIES.negative_candidates_care_working_age )
+                make_one_set( -1*extra_people, ENTRIES.negative_candidates_any_disability_working_age )
             else
-                make_one_set( -1*extra_people, ENTRIES.negative_candidates_any_care_pensioners )
+                make_one_set( -1*extra_people, ENTRIES.negative_candidates_any_disability_pensioners )
             end
         end
     end
@@ -185,7 +191,7 @@ function adjust_disability_eligibility!( nmt_bens :: NonMeansTestedSys )
     nmt_bens.carers.candidates = select_candidates(;
         extra_people=nmt_bens.carers.extra_people,
         is_care = true,
-        cgroup = dis_dis_all_adults )
+        cgroup = dis_all_adults )
 end
 
 function change_status(

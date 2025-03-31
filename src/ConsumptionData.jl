@@ -350,7 +350,9 @@ FIXME DO FACTOR COSTS!!!!
 fixme selectable artifacts
 """
 function init( settings :: Settings; reset = false )
-    @argcheck settings.do_indirect_tax_calculations 
+    # `do_indirect_tax_calculations` doesn't really need to hold. You
+    # might just want to display something.
+    # @argcheck settings.do_indirect_tax_calculations 
     @argcheck settings.indirect_method == matching
     global IND_MATCHING
     global EXPENDITURE_DATASET

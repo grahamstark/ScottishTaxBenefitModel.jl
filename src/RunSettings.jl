@@ -111,8 +111,8 @@ module RunSettings
         target_mr_rr_income :: TargetBCIncomes = eval(Symbol(@load_preference("target_mr_rr_income", "ahc_hh" )))
         mr_incr = @load_preference( "mr_incr", 0.001 )
         requested_threads = @load_preference( "requested_threads", 1 )
-        impute_employer_pension = @load_preference( "impute_employer_pension", true )
-        benefit_generosity_estimates_available = @load_preference( "benefit_generosity_estimates_available", true )
+        impute_employer_pension  :: Bool = @load_preference( "impute_employer_pension", true )
+        benefit_generosity_estimates_available :: Bool = @load_preference( "benefit_generosity_estimates_available", true )
         #
         # weights
         #
@@ -120,26 +120,27 @@ module RunSettings
         lower_multiple = @load_preference( "lower_multiple", 0.20 )
         upper_multiple = @load_preference( "upper_multiple", 5.0)
         
-        do_health_estimates = @load_preference( "do_health_estimates", false )
+        do_health_estimates :: Bool = @load_preference( "do_health_estimates", false )
         ## Elliot's email of June 21, 2023
         sf12_depression_limit = @load_preference( "sf12_depression_limit", 45.60)
-        create_own_grossing = @load_preference( "create_own_grossing", true)
-        use_average_band_d = @load_preference( "use_average_band_d", false)
+        create_own_grossing :: Bool = @load_preference( "create_own_grossing", true) # ?? not needed?
+        use_average_band_d :: Bool = @load_preference( "use_average_band_d", false)
         included_nations = @load_preference( "included_nations", [N_Scotland])
-        indirect_method = @load_preference( "indirect_method", no_method )
-        impute_fields_from_consumption = @load_preference( "impute_fields_from_consumption", true)
-        expenditure_dataset = @load_preference( "expenditure_dataset", "lcf_subset-2018-2020")
-        wealth_method = @load_preference( "wealth_method", no_method)
-        use_shs = @load_preference( "use_shs", true )
-        do_indirect_tax_calculations = @load_preference( "do_indirect_tax_calculations", false)
-        do_legal_aid = @load_preference( "do_legal_aid", true)
+        impute_fields_from_consumption :: Bool = @load_preference( "impute_fields_from_consumption", true)
+        
+        indirect_method :: ExtraDataMethod = eval(Symbol(@load_preference( "indirect_method", no_method )))
+        wealth_method :: ExtraDataMethod = eval(Symbol(@load_preference( "wealth_method", no_method)))
+        
+        use_shs :: Bool = @load_preference( "use_shs", true )
+        do_indirect_tax_calculations :: Bool = @load_preference( "do_indirect_tax_calculations", false)
+        do_legal_aid  :: Bool = @load_preference( "do_legal_aid", false )
         legal_aid_probs_data = @load_preference( "legal_aid_probs_data", "civil-legal-aid-probs-scotland-2015-2012")
-        export_full_results = @load_preference( "export_full_results", false)
-        do_dodgy_takeup_corrections = @load_preference( "do_dodgy_takeup_corrections", false)
+        export_full_results :: Bool = @load_preference( "export_full_results", false)
+        do_dodgy_takeup_corrections :: Bool  = @load_preference( "do_dodgy_takeup_corrections", false)
         data_source = @load_preference( "data_source", FRSSource)
         skiplist = @load_preference( "skiplist", "")
-        do_local_run = @load_preference( "do_local_run", false )
-        ccode = Symbol(@load_preference( "ccode", "" ))
+        do_local_run :: Bool  = @load_preference( "do_local_run", false )
+        ccode :: Symbol = Symbol(@load_preference( "ccode", "" ))
         annual_rent_to_house_price_multiple = @load_preference( "annual_rent_to_house_price_multiple", 20.0 )
         included_data_years = @load_preference( "included_data_years", Int[] )
     end
