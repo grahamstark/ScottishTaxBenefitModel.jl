@@ -75,7 +75,7 @@ module RunSettings
     end
 
     # @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
-
+    
     # settings loaded automatically from the Project.toml section 'preferences.ScottishTaxBenefitModel' 
     # and maybe overwritten in LocalPreferences.toml
     # FIXME clear out all the duplications of Scotland in this

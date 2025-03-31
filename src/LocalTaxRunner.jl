@@ -54,21 +54,21 @@ const SYSTEM_NAMES = [
     "Council Tax With Revalued House Prices and compensating band D cuts", 
     "Council Tax With Revalued House Prices & Fairer Bands" ]
 
-function revenues_table()
-    return DataFrame( 
-        name=CTLEVELS.name, 
-        code=Symbol.(CTLEVELS.code), 
-        actual_revenues=CTLEVELS.to_be_collected, 
-        modelled_ct=zeros(22), 
-        modelled_ctb=zeros(22), 
-        net_modelled=zeros(22),
-        local_income_tax = zeros(22),
-        fairer_bands_band_d = zeros(22),
-        proportional_property_tax = zeros(22),
-        revalued_housing_band_d = zeros(22),
-        revalued_housing_band_d_w_fairer_bands = zeros(22))
-end
-
+    function revenues_table()
+        return DataFrame( 
+            name=CTLEVELS.name, 
+            code=Symbol.(CTLEVELS.code), 
+            actual_revenues=CTLEVELS.to_be_collected, 
+            modelled_ct=zeros(22), 
+            modelled_ctb=zeros(22), 
+            net_modelled=zeros(22),
+            local_income_tax = zeros(22),
+            fairer_bands_band_d = zeros(22),
+            proportional_property_tax = zeros(22),
+            revalued_housing_band_d = zeros(22),
+            revalued_housing_band_d_w_fairer_bands = zeros(22))
+    end
+    
 
 function get_base_cost( ;
     settings::Settings, 
@@ -102,20 +102,20 @@ function do_local_level_run(;
     target :: EqTargets,
     systems :: Vector{TaxBenefitSystem}, 
     settings::Settings, 
-    ccode :: Symbol,
     observer :: Observable,
     reset = false,
     restore = false )::DataFrame
-@argcheck settings.target_nation == N_Scotland
+    @argcheck settings.target_nation == N_Scotland
     # lazy load reweights
     observer[]=Progress( settings.uuid, "do-one-run-start", 0, 0, 0, 0 )     
     
     revtab = revenues_table()
-
+    #=
     if size( WEIGHTS.weights ) == (0,0)
         fname = joinpath( artifact"augdata", "la-frs-weights-scotland-2024.tab")
         WEIGHTS.weights = CSV.File(fname) |> DataFrame
     end
+    =#
     num_threads = min( nthreads(), settings.requested_threads )
     # always load data
     if reset || (settings.num_households == 0)
@@ -133,14 +133,6 @@ function do_local_level_run(;
     start,stop = make_start_stops( settings.num_households, num_threads )
     observer[] =Progress( settings.uuid, "starting",0, 0, 0, settings.num_households )
     observer[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
-    weight = WEIGHTS.weights[!,ccode] 
-    for i in 1:settings.num_households
-        hh = get_household(i)
-        hh.council = ccode
-        hh.weight = weight[i]
-        # FRSHouseholdGetter.MODEL_HOUSEHOLDS.weight[i] = weight[i]
-    end
-     
     base_cost = get_base_cost( ;
         settings = settings, base_sys=system[1], observer = observer )
 
