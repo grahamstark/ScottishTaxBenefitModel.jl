@@ -6,6 +6,7 @@ using .LocalLevelCalculations
 using .LocalTaxRunner
 using .RunSettings
 using .STBParameters
+using .TimeSeriesUtils: FY_2024
 using .WeightingData
 
 using CSV
@@ -52,6 +53,38 @@ function revenues_table()
         revalued_housing_band_d_w_fairer_bands = zeros(n))
 end
 
+function infer_house_price!( hh :: Household, hhincome :: Real )
+    ## wealth_regressions.jl , model 3
+    hhincome = max(hhincome, 1.0)
+
+    hp = if is_owner_occupier(hh.tenure)
+        hh.house_value
+    elseif hh.tenure !== Rent_free
+        # @assert hh.gross_rent > 0 "zero rent for hh $(hh.hid) $(hh.tenure) "
+        # 1 │  2272       2015         0.0
+        # 2 │ 10054       2015         0.0
+        # 3 │  5019       2016         0.0
+        # assign 50 pw to these 3
+        rent = hh.gross_rent == 0 ? 50.0 : hh.gross_rent # ?? 3 cases of 0 rent
+        hp = rent * WEEKS_PER_YEAR * 20
+    else
+        hp = 80_000
+    end
+    hh.house_value = hp
+end
+
+PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
+    # halved below D, doubled above
+    Band_A=>120/360,
+    Band_B=>140/360,
+    Band_C=>160/360,
+    Band_D=>360/360,
+    Band_E=>473/180,
+    Band_F=>585/180,                                                                      
+    Band_G=>705/180,
+    Band_H=>882/180,
+    Band_I=>-1,
+    Household_not_valued_separately => 0.0 ) 
 
 SYSTEM_NAMES = [
     "Current System", 
@@ -70,8 +103,8 @@ function make_parameter_set(;
     revalued_housing_band_d_w_fairer_bands :: Real,
     code :: Symbol )
 
-    base_sys = get_system(year=2024)
-
+    base_sys = get_default_system_for_date( FY_2024, scotland=true )
+        
     no_ct_sys = deepcopy( base_sys )
     no_ct_sys.loctax.ct.abolished = true
     setct!( no_ct_sys, 0.0 )
@@ -189,22 +222,28 @@ settings.do_local_run = true
 settings.weighting_strategy = use_precomputed_weights
 FRSHouseholdGetter.initialise( settings; reset=true )
 FRSHouseholdGetter.backup()
+revtab = revenues_table()
 
 for ccode in LA_CODES
-
-    revtab = revenues_table()
+    base_sys,
+    no_ct_sys,
+    local_it_sys,
+    progressive_ct_sys,
+    ppt_sys, 
+    revalued_prices_sys,
+    revalued_prices_w_prog_bands_sys = make_parameter_set(
+        local_income_tax = 0.0, 
+        fairer_bands_band_d = 0.0,  
+        proportional_property_tax = 0.0,
+        revalued_housing_band_d = 0.0,
+        revalued_housing_band_d_w_fairer_bands = 0.0,
+        code = ccode )
     println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
     settings.ccode = ccode
     FRSHouseholdGetter.restore()
     FRSHouseholdGetter.set_local_weights_and_incomes!( settings; reset=false )
 
+
 end
-        base_sys,
-        no_ct_sys,
-        local_it_sys,
-        progressive_ct_sys,
-        ppt_sys, 
-        revalued_prices_sys,
-        revalued_prices_w_prog_bands_sys = 
 
 

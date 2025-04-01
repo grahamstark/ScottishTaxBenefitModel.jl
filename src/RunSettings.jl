@@ -128,8 +128,8 @@ module RunSettings
         included_nations = @load_preference( "included_nations", [N_Scotland])
         impute_fields_from_consumption :: Bool = @load_preference( "impute_fields_from_consumption", true)
         
-        indirect_method :: ExtraDataMethod = eval(Symbol(@load_preference( "indirect_method", no_method )))
-        wealth_method :: ExtraDataMethod = eval(Symbol(@load_preference( "wealth_method", no_method)))
+        indirect_method :: ExtraDataMethod = eval(Symbol(@load_preference( "indirect_method", matching )))
+        wealth_method :: ExtraDataMethod = eval(Symbol(@load_preference( "wealth_method", matching )))
         
         use_shs :: Bool = @load_preference( "use_shs", true )
         do_indirect_tax_calculations :: Bool = @load_preference( "do_indirect_tax_calculations", false)
