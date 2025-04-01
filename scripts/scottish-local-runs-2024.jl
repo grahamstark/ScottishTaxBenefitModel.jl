@@ -16,6 +16,7 @@ using .WeightingData
 using CSV
 using DataFrames
 using Format
+using PrettyTables
 using CairoMakie
 
 function setct!( sys, value )
@@ -233,18 +234,19 @@ function do_equalising_runs( settings )
         revalued_housing_band_d_w_fairer_bands )
 end
 
-observer = Observable( Progress(settings.uuid,"",0,0,0,0))
-
 settings = Settings()
 settings.do_local_run = true
 settings.requested_threads = 4
 settings.weighting_strategy = use_precomputed_weights
+
+observer = Observable( Progress(settings.uuid,"",0,0,0,0))
+
 FRSHouseholdGetter.initialise( settings; reset=true )
 FRSHouseholdGetter.backup()
 revtab = revenues_table()
 all_summaries = Dict()
 all_frames = Dict()
-for ccode in LA_CODES[1:5]
+for ccode in LA_CODES
     base_sys,
     no_ct_sys,
     local_it_sys,
@@ -275,4 +277,12 @@ for ccode in LA_CODES[1:5]
     # all_frames[ccode] = frames
 end
 
+for ccode in LA_CODES
+    basect = all_summaries[ccode].income_summary[1]
+    ctdist = all_summaries[ccode].income_summary[2]
+    r = revtab[revtab.code .== ccode,:]
+    revtab[revtab.code .== ccode,:modelled_ct] .= basect.local_taxes[1]/1_000
+    revtab[revtab.code .== ccode,:modelled_ctb] .= basect.council_tax_benefit[1]/1_000
+    revtab[revtab.code .== ccode,:net_modelled] .= (basect.local_taxes[1] - basect.council_tax_benefit[1])/1_000
+end
 
