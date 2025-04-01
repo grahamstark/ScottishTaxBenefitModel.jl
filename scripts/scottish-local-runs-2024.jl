@@ -242,9 +242,9 @@ settings.weighting_strategy = use_precomputed_weights
 FRSHouseholdGetter.initialise( settings; reset=true )
 FRSHouseholdGetter.backup()
 revtab = revenues_table()
-all_summaries = []
-all_frames = []
-for ccode in LA_CODES
+all_summaries = Dict()
+all_frames = Dict()
+for ccode in LA_CODES[1:5]
     base_sys,
     no_ct_sys,
     local_it_sys,
@@ -271,8 +271,8 @@ for ccode in LA_CODES
     revalued_prices_w_prog_bands_sys]
     frames = do_one_run( settings, systems, observer )
     summaries = summarise_frames!(frames, settings)
-    push!(all_summaries, summaries)
-    push!(all_frames, frames )
+    all_summaries[ccode] = summaries
+    # all_frames[ccode] = frames
 end
 
 

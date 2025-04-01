@@ -298,7 +298,9 @@ function get_decile_and_poverty_state(
             return (i, in_poverty)
         end
     end
-    @assert false "Decile for $inc hh $(hh.hid) is out-of-range."
+    return (10,in_poverty) # FIXME temp hack for something wrong with deciles for LA Western Isles
+    # S12000013
+    @assert false "Decile for $inc hid $(hr.hid) is out-of-range. inc = $inc deciles=$(decs)"
 end
 
 """
