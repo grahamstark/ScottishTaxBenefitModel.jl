@@ -2,9 +2,13 @@ using ScottishTaxBenefitModel
 
 using .Definitions
 using .FRSHouseholdGetter
+using .ModelHousehold
 using .LocalLevelCalculations
-using .LocalTaxRunner
+using .Monitor: Progress
+using .Results
+using .Runner: do_one_run
 using .RunSettings
+using .STBOutput
 using .STBParameters
 using .TimeSeriesUtils: FY_2024
 using .WeightingData
@@ -51,26 +55,6 @@ function revenues_table()
         proportional_property_tax = zeros(n),
         revalued_housing_band_d = zeros(n),
         revalued_housing_band_d_w_fairer_bands = zeros(n))
-end
-
-function infer_house_price!( hh :: Household, hhincome :: Real )
-    ## wealth_regressions.jl , model 3
-    hhincome = max(hhincome, 1.0)
-
-    hp = if is_owner_occupier(hh.tenure)
-        hh.house_value
-    elseif hh.tenure !== Rent_free
-        # @assert hh.gross_rent > 0 "zero rent for hh $(hh.hid) $(hh.tenure) "
-        # 1 │  2272       2015         0.0
-        # 2 │ 10054       2015         0.0
-        # 3 │  5019       2016         0.0
-        # assign 50 pw to these 3
-        rent = hh.gross_rent == 0 ? 50.0 : hh.gross_rent # ?? 3 cases of 0 rent
-        hp = rent * WEEKS_PER_YEAR * 20
-    else
-        hp = 80_000
-    end
-    hh.house_value = hp
 end
 
 PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
@@ -151,9 +135,41 @@ function make_parameter_set( code :: Symbol )
         code = code )
 end
 
+function incremented_params( code :: Symbol, pct_change = false )
+    base_sys,
+    no_ct_sys,
+    local_it_sys,
+    progressive_ct_sys,
+    ppt_sys, 
+    revalued_prices_sys,
+    revalued_prices_w_prog_bands_sys = make_parameter_set( code )
+    if( ! pct_change )
+        base_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
+        # no_ct_sys
+        local_it_sys.it.non_savings_rates .+= 0.01
+        progressive_ct_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
+        ppt_sys.loctax.ppt.rate  += 0.1/(100*WEEKS_PER_YEAR)
+        revalued_prices_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
+        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
+    else
+        base_sys.loctax.ct.band_d[code] *= 1.01
+        # no_ct_sys
+        local_it_sys.it.non_savings_rates *= 1.01
+        progressive_ct_sys.loctax.ct.band_d[code] *= 1.01
+        ppt_sys.loctax.ppt.rate  += 1.01
+        revalued_prices_sys.loctax.ct.band_d[code] *= 1.01
+        revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] *= 1.01
+    end
+    return base_sys,
+        no_ct_sys,
+        local_it_sys,
+        progressive_ct_sys,
+        ppt_sys, 
+        revalued_prices_sys,
+        revalued_prices_w_prog_bands_sys
+end
 
-function get_base_cost( base_sys :: TaxBenefitSystem ) :: Real
-    settings = get_sett()
+function get_base_cost( settings, base_sys :: TaxBenefitSystem ) :: Real
     frames = do_one_run( settings, [base_sys], obs )        
     settings.poverty_line = make_poverty_line( frames.hh[1], settings )
     pc_frames = summarise_frames!(frames, settings)
@@ -217,13 +233,17 @@ function do_equalising_runs( settings )
         revalued_housing_band_d_w_fairer_bands )
 end
 
+observer = Observable( Progress(settings.uuid,"",0,0,0,0))
+
 settings = Settings()
 settings.do_local_run = true
+settings.requested_threads = 4
 settings.weighting_strategy = use_precomputed_weights
 FRSHouseholdGetter.initialise( settings; reset=true )
 FRSHouseholdGetter.backup()
 revtab = revenues_table()
-
+all_summaries = []
+all_frames = []
 for ccode in LA_CODES
     base_sys,
     no_ct_sys,
@@ -242,8 +262,17 @@ for ccode in LA_CODES
     settings.ccode = ccode
     FRSHouseholdGetter.restore()
     FRSHouseholdGetter.set_local_weights_and_incomes!( settings; reset=false )
-
-
+    systems = [base_sys,
+    no_ct_sys,
+    local_it_sys,
+    progressive_ct_sys,
+    ppt_sys, 
+    revalued_prices_sys,
+    revalued_prices_w_prog_bands_sys]
+    frames = do_one_run( settings, systems, observer )
+    summaries = summarise_frames!(frames, settings)
+    push!(all_summaries, summaries)
+    push!(all_frames, frames )
 end
 
 

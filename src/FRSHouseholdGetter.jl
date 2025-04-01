@@ -428,6 +428,7 @@ module FRSHouseholdGetter
                 if ! (hh.interview_year in MODEL_HOUSEHOLDS.interview_years )
                     push!( MODEL_HOUSEHOLDS.interview_years, hh.interview_year )
                 end
+
                 infer_house_price!( hh, settings )
             end # don't skip
         end
