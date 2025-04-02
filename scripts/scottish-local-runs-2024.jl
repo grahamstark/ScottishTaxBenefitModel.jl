@@ -144,7 +144,7 @@ function make_parameter_set( initr :: InitialIncrements, ccode :: Symbol )
 
     progressive_ct_sys = deepcopy( base_sys )
     progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    progressive_ct_sys.loctax.ct.band_d[code] *= initr.fairer_bands_band_d
+    progressive_ct_sys.loctax.ct.band_d[ccode] *= initr.fairer_bands_band_d
 
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
@@ -164,12 +164,40 @@ function make_parameter_set( initr :: InitialIncrements, ccode :: Symbol )
         Band_H=>99999999999999999999999.999, # 424_000.00,
         Band_I=>-1, # wales only
         Household_not_valued_separately => 0.0 )
-    revalued_prices_sys.loctax.ct.band_d[code] *= initr.revalued_housing_band_d
+    revalued_prices_sys.loctax.ct.band_d[ccode] *= initr.revalued_housing_band_d
 
     revalued_prices_w_prog_bands_sys = deepcopy( revalued_prices_sys )
     revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] *= initr.revalued_housing_band_d_w_fairer_bands
+    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode] *= initr.revalued_housing_band_d_w_fairer_bands
         
+    return base_sys,
+        no_ct_sys,
+        local_it_sys,
+        progressive_ct_sys,
+        ppt_sys, 
+        revalued_prices_sys,
+        revalued_prices_w_prog_bands_sys
+end
+
+"""
+
+This is a mess because the initial make_parameter_sets multiplies 
+but this adds...
+
+"""
+function make_parameter_set( initial::InitialIncrements, increments::InitialIncrements, ccode :: Symbol )
+    base_sys,
+        no_ct_sys,
+        local_it_sys,
+        progressive_ct_sys,
+        ppt_sys, 
+        revalued_prices_sys,
+        revalued_prices_w_prog_bands_sys = make_parameter_set( initial, ccode )
+    local_it_sys.it.non_savings_rates .+= increments.local_income_tax
+    progressive_ct_sys.loctax.ct.band_d[ccode] += increments.fairer_bands_band_d
+    ppt_sys.loctax.ppt.rate += increments.proportional_property_tax
+    revalued_prices_sys.loctax.ct.band_d[ccode] += increments.revalued_housing_band_d
+    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode] += increments.revalued_housing_band_d_w_fairer_bands
     return base_sys,
         no_ct_sys,
         local_it_sys,
@@ -260,6 +288,7 @@ all_summaries = Dict()
 all_frames = Dict()
 all_params = Dict{Symbol, InitialIncrements}()
 for ccode in LA_CODES[1:1]
+    println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
     settings.ccode = ccode
     FRSHouseholdGetter.restore()
     FRSHouseholdGetter.set_local_weights_and_incomes!( settings; reset=false )
@@ -270,8 +299,7 @@ for ccode in LA_CODES[1:1]
     progressive_ct_sys,
     ppt_sys, 
     revalued_prices_sys,
-    revalued_prices_w_prog_bands_sys = make_parameter_set( increments, ccode )
-    println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
+    revalued_prices_w_prog_bands_sys = make_parameter_set( InitialIncrements(), increments, ccode )
     systems = [base_sys, # 1
         no_ct_sys, # 2
         local_it_sys, # 3
@@ -282,7 +310,12 @@ for ccode in LA_CODES[1:1]
     frames = do_one_run( settings, systems, observer )
     summaries = summarise_frames!(frames, settings)
     all_summaries[ccode] = summaries
-    all_params[ccode] = increments
+    all_params[ccode] = (; 
+        local_it_sys,
+        progressive_ct_sys,
+        ppt_sys, 
+        revalued_prices_sys,
+        revalued_prices_w_prog_bands_sys )
     # all_frames[ccode] = frames
 end
 
@@ -314,12 +347,12 @@ function draw_graphs_for_system( all_summaries::Dict, system :: Int )
     r = 1
     c = 1
     s = SYSTEM_NAMES[system]
-    council = WeightingData.LA_NAMES[ccode]
+    # council = WeightingData.LA_NAMES[ccode]
     Label(f[0, 1:2], s.label, fontsize = 16)
-    for la in WeightingData.LA_CODES[1:1]
-        sm = all_summaries[la]
+    for ccode in WeightingData.LA_CODES[1:1]
+        sm = all_summaries[ccode]
         dch = sm.deciles[s.pos][:,3] - sm.deciles[1][:,3]
-        ax = Axis(f[r,c]; title=WeightingData.LA_NAMES[la], 
+        ax = Axis(f[r,c]; title=WeightingData.LA_NAMES[ccode], 
             xlabel="Decile", 
             ylabel="Δ £s pw", 
             titlesize=8)
@@ -381,14 +414,11 @@ for ccode in LA_CODES[1:1]
     add_one!( revtab, sm.income_summary[7], :revalued_housing_w_fairer_bands, ccode )
     revtab[revtab.code .== ccode,:local_income_tax] .= 
         (sm.income_summary[3].income_tax[1] - sm.income_summary[1].income_tax[1])./1000
-
-    revtab[revtab.code .== ccode,eq_local_income_tax] .= sp.local_income_tax
-    revtab[revtab.code .== ccode,eq_fairer_bands_band_d] .= sp.fairer_bands_band_d
-    revtab[revtab.code .== ccode,eq_proportional_property_tax] .= sp.proportional_property_tax
-    revtab[revtab.code .== ccode,eq_revalued_housing_band_d] .= sp.revalued_housing_band_d
-    revtab[revtab.code .== ccode,eq_revalued_housing_band_d_w_fairer_bands] .= sp.revalued_housing_band_d_w_fairer_bands
-    
-
+    revtab[revtab.code .== ccode,:eq_local_income_tax] .= sp.local_it_sys.it.non_savings_rates[1]-sp.base_sys.it.non_savings_rates[1]
+    revtab[revtab.code .== ccode,:eq_fairer_bands_band_d] .= sp.progressive_ct_sys.loctax.ct.band_d[ccode]
+    revtab[revtab.code .== ccode,:eq_proportional_property_tax] .= sp.ppt_sys.loctax.ppt.rate
+    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d] .= sp.revalued_prices_sys.loctax.ct.band_d[ccode]
+    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d_w_fairer_bands] .= sp.revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode]    
     draw_graphs_for_la( ccode, sm )
 end
 
@@ -417,7 +447,7 @@ insert = """
 * Progressive rates need defined;
 * Thresholds for CT bands with revalued houses;
 * How to value rented accomodation, esp Council/HA (currently 20x annual rent);
-
+* Revenue Neutrality ?? Or equal for median (whatever)?
 
 """
 
