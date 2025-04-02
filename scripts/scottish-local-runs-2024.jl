@@ -286,8 +286,8 @@ FRSHouseholdGetter.backup()
 revtab = revenues_table()
 all_summaries = Dict()
 all_frames = Dict()
-all_params = Dict{Symbol, InitialIncrements}()
-for ccode in LA_CODES[1:1]
+all_params = Dict()
+for ccode in LA_CODES
     println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
     settings.ccode = ccode
     FRSHouseholdGetter.restore()
@@ -311,6 +311,7 @@ for ccode in LA_CODES[1:1]
     summaries = summarise_frames!(frames, settings)
     all_summaries[ccode] = summaries
     all_params[ccode] = (; 
+        base_sys,
         local_it_sys,
         progressive_ct_sys,
         ppt_sys, 
@@ -349,7 +350,7 @@ function draw_graphs_for_system( all_summaries::Dict, system :: Int )
     s = SYSTEM_NAMES[system]
     # council = WeightingData.LA_NAMES[ccode]
     Label(f[0, 1:2], s.label, fontsize = 16)
-    for ccode in WeightingData.LA_CODES[1:1]
+    for ccode in WeightingData.LA_CODES
         sm = all_summaries[ccode]
         dch = sm.deciles[s.pos][:,3] - sm.deciles[1][:,3]
         ax = Axis(f[r,c]; title=WeightingData.LA_NAMES[ccode], 
@@ -403,7 +404,7 @@ function format_gainlose(io::IOStream, title::String, gl::DataFrame)
             "Av. Change"])
 end
 
-for ccode in LA_CODES[1:1]
+for ccode in LA_CODES
     sm = all_summaries[ccode]
     sp = all_params[ccode]
     ctincidence = sm.deciles[2][:,3] - sm.deciles[1][:,3]
@@ -414,7 +415,7 @@ for ccode in LA_CODES[1:1]
     add_one!( revtab, sm.income_summary[7], :revalued_housing_w_fairer_bands, ccode )
     revtab[revtab.code .== ccode,:local_income_tax] .= 
         (sm.income_summary[3].income_tax[1] - sm.income_summary[1].income_tax[1])./1000
-    revtab[revtab.code .== ccode,:eq_local_income_tax] .= sp.local_it_sys.it.non_savings_rates[1]-sp.base_sys.it.non_savings_rates[1]
+    revtab[revtab.code .== ccode,:eq_local_income_tax] .= sp.local_it_sys.it.non_savings_rates[1]-sp.progressive_ct_sys.it.non_savings_rates[1]
     revtab[revtab.code .== ccode,:eq_fairer_bands_band_d] .= sp.progressive_ct_sys.loctax.ct.band_d[ccode]
     revtab[revtab.code .== ccode,:eq_proportional_property_tax] .= sp.ppt_sys.loctax.ppt.rate
     revtab[revtab.code .== ccode,:eq_revalued_housing_band_d] .= sp.revalued_prices_sys.loctax.ct.band_d[ccode]
@@ -451,7 +452,7 @@ insert = """
 
 """
 
-for ccode in WeightingData.LA_CODES[1:1]
+for ccode in WeightingData.LA_CODES
     laname = WeightingData.LA_NAMES[ccode]
     io = open( "tmp/fes-tables-$(ccode).md","w")
     println( io, "# Distributional Effects of Local Finance Schemes, by LA\n")
