@@ -303,8 +303,8 @@ for ccode in LA_CODES[1:1]
         local_income_tax = 4.4/110.45,  # pts increase in all IT bands rough calc based on Aberdeen City
         fairer_bands_band_d_prop = 0.7522830358234829,  # % diff 
         proportional_property_tax = 5.0*0.7623012130712663,
-        revalued_housing_band_d_prop = 1.0,
-        revalued_housing_band_d_w_fairer_bands_prop = 1.0,
+        revalued_housing_band_d_prop = 1.0/1.6588543231593292,
+        revalued_housing_band_d_w_fairer_bands_prop = 1.0/1.9282500675989838,
         code = ccode )
     println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
     settings.ccode = ccode
