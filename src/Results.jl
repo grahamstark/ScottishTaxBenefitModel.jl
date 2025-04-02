@@ -545,6 +545,10 @@ module Results
         bures.net_income = calc_net_income( bures.income )
     end
 
+    """
+    NOTE: FIXME?? We're treating net local taxes as part of housing costs here. Does
+    HBAI do that??
+    """
     function aggregate!( hh :: Household{T}, hres :: HouseholdResult{T} ) where T
         hres.income .= zero(T)
         for bu in hres.bus

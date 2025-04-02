@@ -48,14 +48,27 @@ function revenues_table()
         ctr=cts.ctr, 
         ct_net_of_discounts=cts.ct_net_of_discounts, 
         netct=cts.netct,
-        modelled_ct=zeros(n), 
-        modelled_ctb=zeros(n), 
-        net_modelled=zeros(n),
+        modelled_ct_gross=zeros(n), 
+        modelled_ct_rebates=zeros(n), 
+        modelled_ct_net=zeros(n),
+        
         local_income_tax = zeros(n),
-        fairer_bands_band_d = zeros(n),
-        proportional_property_tax = zeros(n),
-        revalued_housing_band_d = zeros(n),
-        revalued_housing_band_d_w_fairer_bands = zeros(n))
+
+        fairer_bands_gross = zeros(n),
+        fairer_bands_rebates = zeros(n),
+        fairer_bands_net = zeros(n),
+
+        proportional_property_tax_gross = zeros(n),
+        proportional_property_tax_rebates = zeros(n),
+        proportional_property_tax_net = zeros(n),
+
+        revalued_housing_gross = zeros(n),
+        revalued_housing_rebates = zeros(n),
+        revalued_housing_net = zeros(n),
+
+        revalued_housing_w_fairer_bands_gross = zeros(n),
+        revalued_housing_w_fairer_bands_rebates = zeros(n),
+        revalued_housing_w_fairer_bands_net = zeros(n))
 end
 
 PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
@@ -72,20 +85,40 @@ PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
     Household_not_valued_separately => 0.0 ) 
 
 SYSTEM_NAMES = [
-    "Current System", 
-    "CT Incidence",
-    "Local Income Tax",
-    "Progressive Bands", 
-    "Proportional Property Tax",
-    "Council Tax With Revalued House Prices and compensating band D cuts", 
-    "Council Tax With Revalued House Prices & Fairer Bands" ]
+    (;code=:modelled_ct,label="Current System",pos=1),
+    (;code=:zero_ct,label="CT Incidence",pos=2),
+    (;code=:local_income_tax,label="Local Income Tax",pos=3),
+    (;code=:fairer_bands,label="Progressive Bands", pos=4),
+    (;code=:proportional_property_tax,label="Proportional Property Tax",pos=5),
+    (;code=:revalued_housing,label="Council Tax With Revalued House Prices and compensating band D cuts", pos=6),
+    (;code=:revalued_housing_w_fairer_bands,label="Council Tax With Revalued House Prices & Fairer Bands",pos=7) ]
 
+function to_pct( revtab :: DataFrame )
+    revpc = deepcopy(revtab)
+    for r in eachrow( revpc )
+        r[:local_income_tax] /= r[:modelled_ct_net]/100
+        for s in SYSTEM_NAMES[4:end] # after LIT
+            for n in ["gross","rebates", "net"]
+                r[Symbol("$(s.code)_$(n)")] /= r[Symbol("modelled_ct_$(n)")]/100
+            end            
+        end
+    end
+    revpc
+end
+
+"""
+
+* `local_income_tax`: pts increase in all IT band
+* `fairer_bands_band_d_pct` rel change in % to current band d
+* `proportional_property_tax` in pct
+
+"""
 function make_parameter_set(;
     local_income_tax :: Real, 
-    fairer_bands_band_d :: Real,  
+    fairer_bands_band_d_prop :: Real,  
     proportional_property_tax :: Real,
-    revalued_housing_band_d :: Real,
-    revalued_housing_band_d_w_fairer_bands :: Real,
+    revalued_housing_band_d_prop :: Real,
+    revalued_housing_band_d_w_fairer_bands_prop :: Real,
     code :: Symbol )
 
     base_sys = get_default_system_for_date( FY_2024, scotland=true )
@@ -99,7 +132,7 @@ function make_parameter_set(;
 
     progressive_ct_sys = deepcopy( base_sys )
     progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    progressive_ct_sys.loctax.ct.band_d[code] += fairer_bands_band_d / WEEKS_PER_YEAR
+    progressive_ct_sys.loctax.ct.band_d[code] *= (fairer_bands_band_d_prop)
 
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
@@ -108,12 +141,12 @@ function make_parameter_set(;
     
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
-    revalued_prices_sys.loctax.ct.band_d[code] += revalued_housing_band_d/WEEKS_PER_YEAR
+    revalued_prices_sys.loctax.ct.band_d[code] *= revalued_housing_band_d_prop
 
     revalued_prices_w_prog_bands_sys = deepcopy( base_sys )
     revalued_prices_w_prog_bands_sys.loctax.ct.revalue = true
     revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += revalued_housing_band_d_w_fairer_bands/WEEKS_PER_YEAR
+    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += revalued_housing_band_d_w_fairer_bands_prop
         
     return base_sys,
         no_ct_sys,
@@ -237,6 +270,9 @@ end
 settings = Settings()
 settings.do_local_run = true
 settings.requested_threads = 4
+# FIXME we need ahc here because we treat *all* local taxes as a housing cost
+# and I need to check if HBAI does this.
+settings.ineq_income_measure = eq_ahc_net_income    
 settings.weighting_strategy = use_precomputed_weights
 
 observer = Observable( Progress(settings.uuid,"",0,0,0,0))
@@ -246,7 +282,7 @@ FRSHouseholdGetter.backup()
 revtab = revenues_table()
 all_summaries = Dict()
 all_frames = Dict()
-for ccode in LA_CODES
+for ccode in LA_CODES[1:1]
     base_sys,
     no_ct_sys,
     local_it_sys,
@@ -254,21 +290,21 @@ for ccode in LA_CODES
     ppt_sys, 
     revalued_prices_sys,
     revalued_prices_w_prog_bands_sys = make_parameter_set(
-        local_income_tax = 0.0, 
-        fairer_bands_band_d = 0.0,  
-        proportional_property_tax = 0.0,
-        revalued_housing_band_d = 0.0,
-        revalued_housing_band_d_w_fairer_bands = 0.0,
+        local_income_tax = 4.4/110.45,  # pts increase in all IT bands rough calc based on Aberdeen City
+        fairer_bands_band_d_prop = 0.7522830358234829,  # % diff 
+        proportional_property_tax = 5.0/0.949219962009270,
+        revalued_housing_band_d_prop = 1/9492199620092701,
+        revalued_housing_band_d_w_fairer_bands_prop = 1/1160320145358364,
         code = ccode )
     println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
     settings.ccode = ccode
     FRSHouseholdGetter.restore()
     FRSHouseholdGetter.set_local_weights_and_incomes!( settings; reset=false )
-    systems = [base_sys,
-    no_ct_sys,
-    local_it_sys,
-    progressive_ct_sys,
-    ppt_sys, 
+    systems = [base_sys, # 1
+    no_ct_sys, # 2
+    local_it_sys, # 3
+    progressive_ct_sys, #4
+    ppt_sys, #5
     revalued_prices_sys,
     revalued_prices_w_prog_bands_sys]
     frames = do_one_run( settings, systems, observer )
@@ -277,12 +313,31 @@ for ccode in LA_CODES
     # all_frames[ccode] = frames
 end
 
-for ccode in LA_CODES
-    basect = all_summaries[ccode].income_summary[1]
-    ctdist = all_summaries[ccode].income_summary[2]
-    r = revtab[revtab.code .== ccode,:]
-    revtab[revtab.code .== ccode,:modelled_ct] .= basect.local_taxes[1]/1_000
-    revtab[revtab.code .== ccode,:modelled_ctb] .= basect.council_tax_benefit[1]/1_000
-    revtab[revtab.code .== ccode,:net_modelled] .= (basect.local_taxes[1] - basect.council_tax_benefit[1])/1_000
+function add_one!( revtab :: DataFrame, incsum::DataFrame, sys :: Symbol, ccode :: Symbol )
+    revtab[revtab.code .== ccode,Symbol("$(sys)_gross")] .= incsum.local_taxes[1]/1_000
+    revtab[revtab.code .== ccode,Symbol("$(sys)_rebates")] .= incsum.council_tax_benefit[1]/1_000
+    revtab[revtab.code .== ccode,Symbol("$(sys)_net")] .= (incsum.local_taxes[1] - incsum.council_tax_benefit[1])/1_000
 end
 
+#=
+
+    "Current System", 
+    "CT Incidence",
+    "Local Income Tax",
+    "Progressive Bands", 
+    "Proportional Property Tax",
+    "Council Tax With Revalued House Prices and compensating band D cuts", 
+    "Council Tax With Revalued House Prices & Fairer Bands" ]
+
+=#
+for ccode in LA_CODES[1:1]
+    sm = all_summaries[ccode]
+    ctincidence = sm.deciles[2][:,3] - sm.deciles[1][:,3]
+    add_one!( revtab, sm.income_summary[1], :modelled_ct, ccode )
+    add_one!( revtab, sm.income_summary[4], :fairer_bands, ccode )
+    add_one!( revtab, sm.income_summary[5], :proportional_property_tax, ccode )
+    add_one!( revtab, sm.income_summary[6], :revalued_housing, ccode )
+    add_one!( revtab, sm.income_summary[7], :revalued_housing_w_fairer_bands, ccode )
+    revtab[revtab.code .== ccode,:local_income_tax] .= 
+        (sm.income_summary[3].income_tax[1] - sm.income_summary[1].income_tax[1])./1000
+end
