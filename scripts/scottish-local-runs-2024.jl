@@ -141,12 +141,22 @@ function make_parameter_set(;
     
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
+    revalued_prices_sys.loctax.ct.house_values = Dict{CT_Band,Float64}(
+        Band_A=>44_000.0,
+        Band_B=>65_000.0,
+        Band_C=>91_000.0,
+        Band_D=>123_000.0,
+        Band_E=>162_000.0,
+        Band_F=>223_000.0,                                                                      
+        Band_G=>324_000.0,
+        Band_H=>99999999999999999999999.999, # 424_000.00,
+        Band_I=>-1, # wales only
+        Household_not_valued_separately => 0.0 )
     revalued_prices_sys.loctax.ct.band_d[code] *= revalued_housing_band_d_prop
 
-    revalued_prices_w_prog_bands_sys = deepcopy( base_sys )
-    revalued_prices_w_prog_bands_sys.loctax.ct.revalue = true
+    revalued_prices_w_prog_bands_sys = deepcopy( revalued_prices_sys )
     revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += revalued_housing_band_d_w_fairer_bands_prop
+    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] *= revalued_housing_band_d_w_fairer_bands_prop
         
     return base_sys,
         no_ct_sys,
@@ -292,9 +302,9 @@ for ccode in LA_CODES[1:1]
     revalued_prices_w_prog_bands_sys = make_parameter_set(
         local_income_tax = 4.4/110.45,  # pts increase in all IT bands rough calc based on Aberdeen City
         fairer_bands_band_d_prop = 0.7522830358234829,  # % diff 
-        proportional_property_tax = 5.0/0.949219962009270,
-        revalued_housing_band_d_prop = 1/9492199620092701,
-        revalued_housing_band_d_w_fairer_bands_prop = 1/1160320145358364,
+        proportional_property_tax = 5.0*0.7623012130712663,
+        revalued_housing_band_d_prop = 1.0,
+        revalued_housing_band_d_w_fairer_bands_prop = 1.0,
         code = ccode )
     println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
     settings.ccode = ccode
@@ -341,3 +351,5 @@ for ccode in LA_CODES[1:1]
     revtab[revtab.code .== ccode,:local_income_tax] .= 
         (sm.income_summary[3].income_tax[1] - sm.income_summary[1].income_tax[1])./1000
 end
+
+revpc = to_pct( revtab )

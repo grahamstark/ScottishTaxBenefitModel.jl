@@ -42,7 +42,10 @@ function find_wealth_for_hh!( hh :: Household, case :: Integer )
     hh.net_pension_wealth = hh.raw_wealth.total_pensions
     hh.total_wealth = hh.raw_wealth.total_household_wealth
     # FIXME make these nanes consistent
-    hh.house_value - hh.raw_wealth.house_price
+    hh.house_value = hh.raw_wealth.house_price
+    if hh.house_value < 0 && hh.tenure in [5,6]# idiot check for missing values (-8,-9..) slipping through
+        hh.house_value = 100_000 # FIXME SOME arbitrary value.
+    end
 end
 
 """

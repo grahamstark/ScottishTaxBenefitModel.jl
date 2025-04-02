@@ -531,8 +531,8 @@ DIR = "/mnt/data/was/"
 Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
 """
 function create_subset()::DataFrame
-    wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " "]) |> DataFrame
-    wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " "]) |> DataFrame
+    wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
+    wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
     rename!(wasp,lowercase.(names(wasp)))
     rename!(wash,lowercase.(names(wash)))
     wasj = innerjoin( wasp, wash; on=:caser7,makeunique=true)
