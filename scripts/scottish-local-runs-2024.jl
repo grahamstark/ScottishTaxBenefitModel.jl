@@ -415,11 +415,11 @@ for ccode in LA_CODES
     add_one!( revtab, sm.income_summary[7], :revalued_housing_w_fairer_bands, ccode )
     revtab[revtab.code .== ccode,:local_income_tax] .= 
         (sm.income_summary[3].income_tax[1] - sm.income_summary[1].income_tax[1])./1000
-    revtab[revtab.code .== ccode,:eq_local_income_tax] .= sp.local_it_sys.it.non_savings_rates[1]-sp.progressive_ct_sys.it.non_savings_rates[1]
-    revtab[revtab.code .== ccode,:eq_fairer_bands_band_d] .= sp.progressive_ct_sys.loctax.ct.band_d[ccode]
-    revtab[revtab.code .== ccode,:eq_proportional_property_tax] .= sp.ppt_sys.loctax.ppt.rate
-    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d] .= sp.revalued_prices_sys.loctax.ct.band_d[ccode]
-    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d_w_fairer_bands] .= sp.revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode]    
+    revtab[revtab.code .== ccode,:eq_local_income_tax] .= 100.0 * (sp.local_it_sys.it.non_savings_rates[1]-sp.progressive_ct_sys.it.non_savings_rates[1])
+    revtab[revtab.code .== ccode,:eq_fairer_bands_band_d] .= sp.progressive_ct_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
+    revtab[revtab.code .== ccode,:eq_proportional_property_tax] .= sp.ppt_sys.loctax.ppt.rate*100.0
+    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d] .= sp.revalued_prices_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
+    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d_w_fairer_bands] .= sp.revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
     draw_graphs_for_la( ccode, sm )
 end
 
@@ -442,6 +442,7 @@ insert = """
 * 2015/6 benefit system;
 * Transition - credits all 0 from April;
 * Council Tax Needs revised, especially the 2017 reduction and a takeup fix;
+* Island Councils look strange - small samples, difficult to fit weights, lots of zeros.
 
 ### Questions:
 
