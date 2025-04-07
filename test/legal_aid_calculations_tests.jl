@@ -114,28 +114,16 @@ function blank_incomes!( hh, wage; annual=true )
         income /= WEEKS_PER_YEAR
     end
     hhead.income[wages] = income 
+    hh.net_pension_wealth = 0.0
+    hh.net_physical_wealth = 0.0
+    hh.net_housing_wealth = 0.0
+    hh.raw_wealth.total_value_of_other_property = 0.0
 end
 
 sys1 = deepcopy(sys)
 sys1.legalaid.civil.included_capital = WealthSet([net_financial_wealth, net_physical_wealth ])
 sys2 = deepcopy( sys1 )
 # sys2.legalaid.civil.income_living_allowance = 1_000/WEEKS_PER_YEAR
-
-@testset "Run From Standard Runner" begin
-    settings = lasettings()
-    settings.run_name="Test of LA running just in full model."
-    settings.requested_threads = 4
-    settings.wealth_method = other_method_1
-    settings.run_name = "Direct Run"
-    sys2 = deepcopy(sys1)
-    settings.do_legal_aid = true
-
-    results = Runner.do_one_run( settings, [sys1,sys2], obs )
-    outf = summarise_frames!( results, settings )
-    LegalAidOutput.dump_frames( outf.legalaid, settings; num_systems=2 )
-    # @show results.legalaid
-    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2)
-end
 
 @testset "LA utils tests" begin
     exp1 = Expense( false, 1.0, typemax(Float64))
@@ -145,19 +133,17 @@ end
 end
 
 @testset "AA from spreadsheet" begin
+    settings = Settings()
+    settings.wealth_method = imputation #no_method
     hh = make_hh( adults = 1 )
     @test num_std_bus(hh) == 1
     @test household_composition_1(hh) == single_person
-    settings = Settings()
-    settings.wealth_method = imputation 
     head = get_head( hh )
     head.age = 45
     println( "hhage $(head.age)")
     blank_incomes!( hh, 100; annual=false )
     hh.gross_rent = 0.0
-    hh.net_housing_wealth = 0.0
     hh.net_financial_wealth = 1_000.0
-    hh.net_pension_wealth = 0.0
     hres = init_household_result( hh )
     intermed = make_intermediate( 
         DEFAULT_NUM_TYPE,
@@ -193,8 +179,9 @@ end
         sys.child_limits )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
-    @test ! ares.eligible
+    println(ares)
     @test ! ares.eligible_on_capital 
+    @test ! ares.eligible
     @test ares.eligible_on_income 
 
     hh.net_financial_wealth = 1_700.0
@@ -239,9 +226,13 @@ end
     # https://www.slab.org.uk/app/uploads/2023/04/Civil-assistance-Keycard-2023-24-1.pdf
     #
     hh = make_hh( adults = 1 )
+    hh.net_pension_wealth = 0.0
+    hh.net_housing_wealth = 0.0
+
     head = get_head( hh )
     head.age = 65
-    hh.net_financial_wealth = 21_500 
+    hh.net_financial_wealth = 21_500.0
+
     blank_incomes!( hh, 20; annual=false )
     println( "total hh after blank $(hh)" )
     hres = init_household_result( hh )
@@ -254,15 +245,14 @@ end
         sys.child_limits )
     calc_legal_aid!( hres, hh, intermed, sys.legalaid.aa, sys.nmt_bens, sys.age_limits )
     ares = hres.bus[1].legalaid.aa    
-    @test ares.disposable_capital ≈ 1_500 
-    @test ares.capital_allowances ≈ 20_000
+    @test ares.disposable_capital ≈ 1_500.0
+    @test ares.capital_allowances ≈ 20_000.0
     @test ares.eligible
     @test ares.eligible_on_capital 
     @test ares.eligible_on_income 
-    @test to_nearest_p(ares.income_contribution,0.0)
+    @test to_nearest_p(ares.income_contribution, 0.0)
     println( "ares pen $ares")
-
-    hh.net_financial_wealth = 25_000 
+    hh.net_financial_wealth = 25_000.0
     blank_incomes!( hh, 20; annual=false )
     hres = init_household_result( hh )
     intermed = make_intermediate( 
@@ -593,6 +583,22 @@ end
     outf = summarise_frames!( results, settings )
     LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=4 )
 end
+@testset "Run From Standard Runner" begin
+    settings = lasettings()
+    settings.run_name="Test of LA running just in full model."
+    settings.requested_threads = 4
+    settings.wealth_method = other_method_1
+    settings.run_name = "Direct Run"
+    sys2 = deepcopy(sys1)
+    settings.do_legal_aid = true
+
+    results = Runner.do_one_run( settings, [sys1,sys2], obs )
+    outf = summarise_frames!( results, settings )
+    LegalAidOutput.dump_frames( outf.legalaid, settings; num_systems=2 )
+    # @show results.legalaid
+    LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2)
+end
+
 
 #=
 @testset "using LegalAidRunner" begin
