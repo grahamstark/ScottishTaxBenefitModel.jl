@@ -79,6 +79,8 @@ settings = Settings()
 
 @testset "2 child policy" begin
     sph = get_example(single_parent_hh)
+    sph.net_financial_wealth = 0.0 
+    
     sparent = get_benefit_units(sph)[1]
     println( "keys of initial children  $(sparent.children)" )
 
@@ -89,12 +91,12 @@ settings = Settings()
     sparent = get_benefit_units(sph)[1]
     println( "keys of children after 10yo added $(sparent.children) new pid = $np" )
     @test num_children( sparent ) == 3
-    @test apply_2_child_policy( sparent, sys.child_limits ) == 3
+    @test apply_2_child_policy( sparent, sys.child_limits ) == 2 # !!! was 3 before April 2025!!
 
     np = add_child!( sph, 1, Female )
     sparent = get_benefit_units(sph)[1]
     @test num_children( sparent ) == 4  
-    @test apply_2_child_policy( sparent, sys.child_limits ) == 3
+    @test apply_2_child_policy( sparent, sys.child_limits ) == 2
     child_limits = ChildLimits(Date( 2017, 4, 6 ),5)
     @test apply_2_child_policy( sparent, child_limits ) == 4
 
@@ -200,6 +202,7 @@ end
 
     # Evan and Mia example p 433
     e_and_m = get_benefit_units( get_example( cpl_w_2_children_hh ) )[1]
+    
     evan = get_head( e_and_m )
     mia = get_spouse( e_and_m )
     intermed = make_intermediate( 
@@ -1136,8 +1139,10 @@ end
     empty!( head.income )
     employ!( spouse )
     unemploy!( head )
+
     joplings.gross_rent = 120.00 # eligible rent
     joplings.bedrooms = 1
+    joplings.net_financial_wealth = 0.0
     spouse.income[wages] = 201.75
     spouse.usual_hours_worked = 21
     head.income[wages] = 73.10 # FIXME needs to be jobseekers_allowance] = 73.10
@@ -1166,6 +1171,7 @@ end
     @test hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT] ≈ 22.50
     
     mr_h = get_example(single_hh)
+    mr_h.net_financial_wealth = 0.0 # override whatever is matched from WAS
     mrhbu = get_benefit_units(mr_h)[1]
     head = get_head( mrhbu )
     println( "mr h:: initial: head.pip_daily_living_type $(head.pip_daily_living_type)" )
@@ -1217,6 +1223,7 @@ end
     @test length( hhres.bus[1].legacy_mtbens.premia ) == 0 
     # "premia should be 0; got $(hhres.bus[1].legacy_mtbens.premia)"
     @test hhres.bus[1].legacy_mtbens.hb_allowances == 181.00
+    println( "head age $(head.age)")
     println( "hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT]=$(hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT])")
     @test to_nearest_p( hhres.bus[1].pers[head.pid].income[HOUSING_BENEFIT], 84.11 )
 
@@ -1394,6 +1401,7 @@ end
     # cpag19/20 EXAMPLES on p274
     sys = get_system( year=2019, scotland=true )
     bhh= get_example(single_hh)
+    bhh.net_financial_wealth = 0.0
     barbara = get_head(bhh)
     retire!( barbara )
     disable_seriously!( barbara )
@@ -1439,6 +1447,8 @@ end
     @test lmt.ctr_passported
 
     m_and_j= get_example(childless_couple_hh)
+    m_and_j.net_financial_wealth = 11_500 # clear whatever's been matched in.
+    
     maria = get_head( m_and_j )
     maria.age = 67
     retire!( maria )
@@ -1500,6 +1510,7 @@ end
     # from CPAG 2011/12 updated by me.
 
     t_and_j= get_example(childless_couple_hh)
+    t_and_j.net_financial_wealth = 0.0 
     june = get_head( t_and_j )
     retire!( june )
     june.age = 75
@@ -1576,6 +1587,7 @@ end
 
     
     tracyh = get_example(single_parent_hh)
+    tracyh.net_financial_wealth = 0.0 
     @test num_children( tracyh ) == 2
     for pid in child_pids( tracyh )
         tracyh.people[pid].hours_of_childcare = 40

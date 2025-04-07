@@ -138,19 +138,19 @@ function make_parameter_set( initr :: InitialIncrements, ccode :: Symbol )
     no_ct_sys = deepcopy( base_sys )
     no_ct_sys.loctax.ct.abolished = true
     setct!( no_ct_sys, 0.0 )
-    
+    #
     local_it_sys = deepcopy( no_ct_sys )
     local_it_sys.it.non_savings_rates .+= initr.local_income_tax/100.0
-
+    #
     progressive_ct_sys = deepcopy( base_sys )
     progressive_ct_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
     progressive_ct_sys.loctax.ct.band_d[ccode] *= initr.fairer_bands_band_d
-
+    #
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
     ppt_sys.loctax.ppt.abolished = false
     ppt_sys.loctax.ppt.rate = initr.proportional_property_tax/(100.0*WEEKS_PER_YEAR)
-    
+    #
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
     revalued_prices_sys.loctax.ct.house_values = Dict{CT_Band,Float64}(
@@ -165,11 +165,10 @@ function make_parameter_set( initr :: InitialIncrements, ccode :: Symbol )
         Band_I=>-1, # wales only
         Household_not_valued_separately => 0.0 )
     revalued_prices_sys.loctax.ct.band_d[ccode] *= initr.revalued_housing_band_d
-
+    #
     revalued_prices_w_prog_bands_sys = deepcopy( revalued_prices_sys )
     revalued_prices_w_prog_bands_sys.loctax.ct.relativities = PROGRESSIVE_RELATIVITIES
-    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode] *= initr.revalued_housing_band_d_w_fairer_bands
-        
+    revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode] *= initr.revalued_housing_band_d_w_fairer_bands        
     return base_sys,
         no_ct_sys,
         local_it_sys,
@@ -216,10 +215,8 @@ function get_base_cost( settings, base_sys :: TaxBenefitSystem ) :: Real
 end
 
 function do_equalising_runs( settings )::InitialIncrements
-
     # not acually using revenue and total here
     obs = obs = Observable( Progress(settings.uuid,"",0,0,0,0))
-
     base_sys,
     no_ct_sys,
     local_it_sys,
@@ -269,55 +266,6 @@ function do_equalising_runs( settings )::InitialIncrements
         proportional_property_tax, 
         revalued_housing_band_d, 
         revalued_housing_band_d_w_fairer_bands )
-end
-
-settings = Settings()
-settings.do_local_run = true
-settings.requested_threads = 4
-# FIXME we need ahc here because we treat *all* local taxes as a housing cost
-# and I need to check if HBAI does this.
-settings.ineq_income_measure = eq_ahc_net_income    
-settings.weighting_strategy = use_precomputed_weights
-
-observer = Observable( Progress(settings.uuid,"",0,0,0,0))
-
-FRSHouseholdGetter.initialise( settings; reset=true )
-FRSHouseholdGetter.backup()
-revtab = revenues_table()
-all_summaries = Dict()
-all_frames = Dict()
-all_params = Dict()
-for ccode in LA_CODES
-    println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
-    settings.ccode = ccode
-    FRSHouseholdGetter.restore()
-    FRSHouseholdGetter.set_local_weights_and_incomes!( settings; reset=false )
-    increments = do_equalising_runs( settings )
-    base_sys,
-    no_ct_sys,
-    local_it_sys,
-    progressive_ct_sys,
-    ppt_sys, 
-    revalued_prices_sys,
-    revalued_prices_w_prog_bands_sys = make_parameter_set( InitialIncrements(), increments, ccode )
-    systems = [base_sys, # 1
-        no_ct_sys, # 2
-        local_it_sys, # 3
-        progressive_ct_sys, #4
-        ppt_sys, #5
-        revalued_prices_sys,
-        revalued_prices_w_prog_bands_sys]
-    frames = do_one_run( settings, systems, observer )
-    summaries = summarise_frames!(frames, settings)
-    all_summaries[ccode] = summaries
-    all_params[ccode] = (; 
-        base_sys,
-        local_it_sys,
-        progressive_ct_sys,
-        ppt_sys, 
-        revalued_prices_sys,
-        revalued_prices_w_prog_bands_sys )
-    # all_frames[ccode] = frames
 end
 
 function draw_graphs_for_la( ccode :: Symbol, sm :: NamedTuple )
@@ -404,72 +352,127 @@ function format_gainlose(io::IOStream, title::String, gl::DataFrame)
             "Av. Change"])
 end
 
-for ccode in LA_CODES
-    sm = all_summaries[ccode]
-    sp = all_params[ccode]
-    ctincidence = sm.deciles[2][:,3] - sm.deciles[1][:,3]
-    add_one!( revtab, sm.income_summary[1], :modelled_ct, ccode )
-    add_one!( revtab, sm.income_summary[4], :fairer_bands, ccode )
-    add_one!( revtab, sm.income_summary[5], :proportional_property_tax, ccode )
-    add_one!( revtab, sm.income_summary[6], :revalued_housing, ccode )
-    add_one!( revtab, sm.income_summary[7], :revalued_housing_w_fairer_bands, ccode )
-    revtab[revtab.code .== ccode,:local_income_tax] .= 
-        (sm.income_summary[3].income_tax[1] - sm.income_summary[1].income_tax[1])./1000
-    revtab[revtab.code .== ccode,:eq_local_income_tax] .= 100.0 * (sp.local_it_sys.it.non_savings_rates[1]-sp.progressive_ct_sys.it.non_savings_rates[1])
-    revtab[revtab.code .== ccode,:eq_fairer_bands_band_d] .= sp.progressive_ct_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
-    revtab[revtab.code .== ccode,:eq_proportional_property_tax] .= sp.ppt_sys.loctax.ppt.rate*100.0
-    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d] .= sp.revalued_prices_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
-    revtab[revtab.code .== ccode,:eq_revalued_housing_band_d_w_fairer_bands] .= sp.revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
-    draw_graphs_for_la( ccode, sm )
-end
-
-for sno in 2:7
-    draw_graphs_for_system(all_summaries, sno )
-end
-
-revpc = to_pct( revtab )
-
-insert = """
-
-### DONE
-
-* A *huge* upgrade to data, inc rewritten matching. 2022 FRS, LCF, SHS data.
-* Rewritten Disability Benefit system (not fully finished).
-
-### TODOs
-
-* Disability Benefits routine still not revised fully;
-* 2015/6 benefit system;
-* Transition - credits all 0 from April;
-* Council Tax Needs revised, especially the 2017 reduction and a takeup fix;
-* Island Councils look strange - small samples, difficult to fit weights, lots of zeros.
-
-### Questions:
-
-* Progressive rates need defined;
-* Thresholds for CT bands with revalued houses;
-* How to value rented accomodation, esp Council/HA (currently 20x annual rent);
-* Revenue Neutrality ?? Or equal for median (whatever)?
-
 """
+FIXME break this up. Too long.
+"""
+function do_local_runs()
+    settings = Settings()
+    settings.do_local_run = true
+    settings.requested_threads = 4
+    # FIXME we need ahc here because we treat *all* local taxes as a housing cost
+    # and I need to check if HBAI does this.
+    settings.ineq_income_measure = eq_ahc_net_income    
+    settings.weighting_strategy = use_precomputed_weights
 
-for ccode in WeightingData.LA_CODES
-    laname = WeightingData.LA_NAMES[ccode]
-    io = open( "tmp/fes-tables-$(ccode).md","w")
-    println( io, "# Distributional Effects of Local Finance Schemes, by LA\n")
-    println( io, insert )
-    println(io, "<div style='page-break-after: always;'></div>" )
-        println( io, "\n## $laname")
-    sm = all_summaries[ccode]
-    println( io, "![Image of $laname]($(ccode).svg)")
-    for sno in 2:7
-        s = SYSTEM_NAMES[sno]
-        println( io, "\n### $(s.label)\n")
-        println( io, "\n### By Decile\n\n" )        
-        format_gainlose(io, "By Decile", sm.gain_lose[s.pos].dec_gl)
-        println( io, "\n### By Tenure\n\n" )        
-        format_gainlose(io, "By Tenure", sm.gain_lose[s.pos].ten_gl)
+    observer = Observable( Progress(settings.uuid,"",0,0,0,0))
+
+    FRSHouseholdGetter.initialise( settings; reset=true )
+    FRSHouseholdGetter.backup()
+    revtab = revenues_table()
+    all_summaries = Dict()
+    all_frames = Dict()
+    all_params = Dict()
+    for ccode in LA_CODES
+        println( "on council $(ccode) : $(WeightingData.LA_NAMES[ccode])")
+        settings.ccode = ccode
+        FRSHouseholdGetter.restore()
+        FRSHouseholdGetter.set_local_weights_and_incomes!( settings; reset=false )
+        increments = do_equalising_runs( settings )
+        base_sys,
+        no_ct_sys,
+        local_it_sys,
+        progressive_ct_sys,
+        ppt_sys, 
+        revalued_prices_sys,
+        revalued_prices_w_prog_bands_sys = make_parameter_set( InitialIncrements(), increments, ccode )
+        systems = [base_sys, # 1
+            no_ct_sys, # 2
+            local_it_sys, # 3
+            progressive_ct_sys, #4
+            ppt_sys, #5
+            revalued_prices_sys,
+            revalued_prices_w_prog_bands_sys]
+        frames = do_one_run( settings, systems, observer )
+        summaries = summarise_frames!(frames, settings)
+        all_summaries[ccode] = summaries
+        all_params[ccode] = (; 
+            base_sys,
+            local_it_sys,
+            progressive_ct_sys,
+            ppt_sys, 
+            revalued_prices_sys,
+            revalued_prices_w_prog_bands_sys )
+        # all_frames[ccode] = frames
     end
-    println(io, "<div style='page-break-after: always;'></div>" )
-    close(io)
+
+    for ccode in LA_CODES
+        sm = all_summaries[ccode]
+        sp = all_params[ccode]
+        ctincidence = sm.deciles[2][:,3] - sm.deciles[1][:,3]
+        add_one!( revtab, sm.income_summary[1], :modelled_ct, ccode )
+        add_one!( revtab, sm.income_summary[4], :fairer_bands, ccode )
+        add_one!( revtab, sm.income_summary[5], :proportional_property_tax, ccode )
+        add_one!( revtab, sm.income_summary[6], :revalued_housing, ccode )
+        add_one!( revtab, sm.income_summary[7], :revalued_housing_w_fairer_bands, ccode )
+        revtab[revtab.code .== ccode,:local_income_tax] .= 
+            (sm.income_summary[3].income_tax[1] - sm.income_summary[1].income_tax[1])./1000
+        revtab[revtab.code .== ccode,:eq_local_income_tax] .= 100.0 * (sp.local_it_sys.it.non_savings_rates[1]-sp.progressive_ct_sys.it.non_savings_rates[1])
+        revtab[revtab.code .== ccode,:eq_fairer_bands_band_d] .= sp.progressive_ct_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
+        revtab[revtab.code .== ccode,:eq_proportional_property_tax] .= sp.ppt_sys.loctax.ppt.rate*100.0
+        revtab[revtab.code .== ccode,:eq_revalued_housing_band_d] .= sp.revalued_prices_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
+        revtab[revtab.code .== ccode,:eq_revalued_housing_band_d_w_fairer_bands] .= sp.revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode]*WEEKS_PER_YEAR
+        draw_graphs_for_la( ccode, sm )
+    end
+
+    for sno in 2:7
+        draw_graphs_for_system(all_summaries, sno )
+    end
+
+    revpc = to_pct( revtab )
+
+    insert = """
+
+    ### DONE
+
+    * A *huge* upgrade to data, inc rewritten matching. 2022 FRS, LCF, SHS data.
+    * Rewritten Disability Benefit system (not fully finished).
+
+    ### TODOs
+
+    * Disability Benefits routine still not revised fully;
+    * 2015/6 benefit system;
+    * Transition - credits all 0 from April;
+    * Council Tax Needs revised, especially the 2017 reduction and a takeup fix;
+    * Island Councils look strange - small samples, difficult to fit weights, lots of zeros.
+
+    ### Questions:
+
+    * Progressive rates need defined;
+    * Thresholds for CT bands with revalued houses;
+    * How to value rented accomodation, esp Council/HA (currently 20x annual rent);
+    * Revenue Neutrality ?? Or equal for median (whatever)?
+
+    """
+
+    for ccode in WeightingData.LA_CODES
+        laname = WeightingData.LA_NAMES[ccode]
+        io = open( "tmp/fes-tables-$(ccode).md","w")
+        println( io, "# Distributional Effects of Local Finance Schemes, by LA\n")
+        println( io, insert )
+        println(io, "<div style='page-break-after: always;'></div>" )
+            println( io, "\n## $laname")
+        sm = all_summaries[ccode]
+        println( io, "![Image of $laname]($(ccode).svg)")
+        for sno in 2:7
+            s = SYSTEM_NAMES[sno]
+            println( io, "\n### $(s.label)\n")
+            println( io, "\n### By Decile\n\n" )        
+            format_gainlose(io, "By Decile", sm.gain_lose[s.pos].dec_gl)
+            println( io, "\n### By Tenure\n\n" )        
+            format_gainlose(io, "By Tenure", sm.gain_lose[s.pos].ten_gl)
+        end
+        println(io, "<div style='page-break-after: always;'></div>" )
+        close(io)
+    end # do local runs
+
 end

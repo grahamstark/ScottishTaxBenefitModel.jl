@@ -74,7 +74,9 @@ function get_ss_examples()::Dict{SS_Examples, Household}
 end
 
 function get_example( which :: SS_Examples ) :: Household
-   return deepcopy(get_ss_examples()[ which ])
+   hh = deepcopy(get_ss_examples()[ which ])
+   hh.net_financial_wealth = 0.0 # FIXME override matched in financial wealth for now.
+   return hh
 end
 
 function get_all_examples()
