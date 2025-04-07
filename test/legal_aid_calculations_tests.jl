@@ -95,7 +95,7 @@ function lasettings()
     settings.run_name = "Local Legal Aid Runner Test - base case"
     settings.export_full_results = true
     settings.do_legal_aid = true
-    settings.wealth_method = other_method_1
+    # settings.wealth_method = other_method_1
     settings.requested_threads = 4
     settings.num_households, settings.num_people, nhh2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
