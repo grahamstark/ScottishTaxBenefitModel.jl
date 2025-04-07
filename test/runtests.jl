@@ -45,7 +45,7 @@ if IS_LOCAL
     include( "equaliser_tests.jl")
     include( "expenditure_tests.jl")
     include( "health_regressions_tests.jl")
-    include( "all_uk_runner_tests.jl")
+    # include( "all_uk_runner_tests.jl") # FIXME NEED UK matching 07/04/2025
     include( "wealth_tests.jl")
     include( "legal_aid_calculations_tests.jl")
     include( "weighting_tests.jl")
