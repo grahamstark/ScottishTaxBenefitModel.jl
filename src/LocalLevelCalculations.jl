@@ -62,7 +62,7 @@ export
 
     const LA_BRMA_MAP = LA_To_BRMA_Wrap( make_la_to_brma_map() )
 
-    function lookup( data , key :: Symbol ) :: T where T
+    function lookup( data , key :: Symbol )
         return data[key]
     end
 

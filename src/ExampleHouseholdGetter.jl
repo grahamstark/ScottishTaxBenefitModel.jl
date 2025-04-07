@@ -27,30 +27,21 @@ const KEYMAP = Vector{AbstractString}()
 
 function find_consumption_for_example!( hh, settings )
     @argcheck settings.indirect_method == matching
-    #=
-    c = MatchingLibs.match_recip_row( 
-        hh, 
-        ConsumptionData.EXPENDITURE_DATASET, 
-        MatchingLibs.example_lcf_match )[1]
-    find_consumption_for_hh!( hh, c.case, c.datayear )
-    =#
-    # FIMXE TEMP TEMP
-    case = 1
-    datayear =2018 
-    find_consumption_for_hh!( hh, case, datayear )
+    # FIXME TODO TEMP HACK since examples are not in the frs/lcf matching dataset just pick a hid/datayear that *is there*
+    tmp_data_year = hh.data_year
+    tmp_hid = hh.hid
+    hh.data_year = 2022 # just the last 
+    hh.hid = 25045 
+    find_consumption_for_hh!( hh, settings, 1 )
+    hh.data_year = tmp_data_year
+    hh.hid = tmp_hid
+    if settings.impute_fields_from_consumption
+        ConsumptionData.impute_stuff_from_consumption!(hh,settings)
+    end
 end
 
 function find_wealth_for_example!( hh, settings )
     @argcheck settings.wealth_method == matching
-    #=
-    c = MatchingLibs.match_recip_row( 
-        hh, 
-        WealthData.WEALTH_DATASET, 
-        MatchingLibs.model_was_match, 
-        :weekly_gross_income )[1]
-    find_wealth_for_hh!( hh, c.case )
-    =#
-    # FIMXE TEMP TEMP
     case = 754
     find_wealth_for_hh!( hh, case )
 end

@@ -423,7 +423,7 @@ module FRSHouseholdGetter
                     push!( MODEL_HOUSEHOLDS.data_years, hh.data_year )
                 end
                 if settings.do_legal_aid
-                    LegalAidData.add_la_probs!( hh )
+                    # LegalAidData.add_la_probs!( hh )
                 end
                 if ! (hh.interview_year in MODEL_HOUSEHOLDS.interview_years )
                     push!( MODEL_HOUSEHOLDS.interview_years, hh.interview_year )
