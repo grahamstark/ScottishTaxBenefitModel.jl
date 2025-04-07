@@ -18,9 +18,12 @@ settings.means_tested_routing = modelled_phase_in
 
 @testset "Transition Tests on Example HHlds" begin
     examples = get_all_examples()
+    sys1 = get_system(year=2024, scotland=true)
+    sys2 = get_system(year=2024, scotland=true)
     for (hht,hh) in examples 
         println( "on hhld '$hht'")
         lhh = deepcopy( hh )
+        hres = init_household_result( lhh )
         bus = get_benefit_units( lhh )
         nbus = size(bus)[1]
         for bno in eachindex(bus)
@@ -37,9 +40,9 @@ settings.means_tested_routing = modelled_phase_in
                 nbus )
             route = route_to_uc_or_legacy(
                 settings,
-                hh.tenure,
                 bus[bno],
-                intermed )
+                hres.bus[bno]
+                 )
         end
     end
 end # example tests
@@ -57,6 +60,7 @@ end # example tests
         @time for hhno in 1:num_households
             hh = FRSHouseholdGetter.get_household( hhno )
             bus = get_benefit_units(hh)
+            hres = init_household_result( hh )
             r += 1
             intermed = make_intermediate( 
                 DEFAULT_NUM_TYPE,
@@ -66,13 +70,13 @@ end # example tests
                 sys.age_limits, 
                 sys.child_limits )
             im = intermed.hhint
+
             if on_mt_benefits( hh ) && ! (im.someone_pension_age) 
                 # on actual data !! FIXME the HoC thing is actually Benefit Units
                 route = route_to_uc_or_legacy( 
                     settings, 
-                    hh.tenure,
                     bus[1], 
-                    im )
+                    hres.bus[1] )
                 col = route == uc_bens ? :uc : :legacy
                 n = 1
                 if im.num_job_seekers > 0
