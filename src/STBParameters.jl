@@ -1343,6 +1343,11 @@ function get_default_system_for_date(
         if scotland 
             load_sys_2024_25_scotland!( sys )
         end
+    elseif date in fy(2025)
+        load_sys_2025_26_ruk!( sys )
+        if scotland 
+            load_sys_2025_26_scotland!( sys )
+        end
     else
         # if date in  fy(2024)
         ## TODO
