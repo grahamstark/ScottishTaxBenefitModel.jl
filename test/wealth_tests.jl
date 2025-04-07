@@ -36,12 +36,16 @@ using StatsBase
     sys.wealth.payment_years = 5
     weeklyise!( sys.wealth )
     hh = make_hh()
+    hh.net_financial_wealth = 0
+    hh.net_housing_wealth = 0
+    hh.net_pension_wealth = 0
     hd = get_head( hh )
     println( INCOME_TAXES )
     println( sys.wealth )
     t = [0,0,0.0,0.0,90_000.00]
     for w in [0,1_000,100_000.0,1_000_000.0,10_000_000.0]
         hh.net_physical_wealth = w
+    
         hres = init_household_result( hh )
         calculate_wealth_tax!( hres, hh, sys.wealth )
         aggregate!( hh, hres )
@@ -64,7 +68,7 @@ end
 @testset "Wealth Tax Live Data" begin
       
     tot = 0
-    settings = get_all_uk_settings_2023()
+    settings = Settings() # FIXME GET UK DATASET workimng get_all_uk_settings_2023()
     # observer = Observer(Progress("",0,0,0))
     obs = Observable( Progress(settings.uuid,"",0,0,0,0))
     of = on(obs) do p
@@ -76,7 +80,7 @@ end
     @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
     settings.requested_threads = 4
     settings.ineq_income_measure = eq_bhc_net_income
-    sys1 = get_system(year=2023, scotland=false)
+    sys1 = get_system(year=2023, scotland=true) # FIXME ENGLAND NEEDS ME
     sys2 = deepcopy(sys1)
     sys2.wealth.rates = [0.05]
     sys2.wealth.thresholds = []

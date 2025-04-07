@@ -177,13 +177,13 @@ module NonMeansTestedBenefits
     end
 
     function dla_greater_of( dlat :: LowMiddleHigh, pipt :: PIPType )::LowMiddleHigh
-        return if dlat !==  missing_lmf 
+        return if dlat !==  missing_lmh
             dlat
         else 
             if pipt == enhanced_pip 
                 high
-            else if pipt == standard_pip
-                rand([med,low])
+            elseif pipt == standard_pip
+                rand([mid,low])
             else
                 missing_lmh
             end
@@ -214,7 +214,7 @@ module NonMeansTestedBenefits
         pip  :: PersonalIndependencePayment{T}) :: Tuple{T,T} where T
         pl = zero(T)
         pm = zero(T)
-        daily_type = pip_greater_of( pers.pip_daily_living_type, pers.dla_daily_living_type )
+        daily_type = pip_greater_of( pers.pip_daily_living_type, pers.dla_self_care_type )
         mob_type = pip_greater_of( pers.pip_mobility_type, pers.dla_mobility_type )
         # println( "calc_pip initial: daily_type=$daily_type mob_type = $mob_type")
         if pip.abolished
@@ -284,7 +284,7 @@ module NonMeansTestedBenefits
         if dla.abolished
             return (dc,dm)
         end
-        dla_s = dla_greater_of( pers.dla_self_care_type, pers.pip_self_care_type )
+        dla_s = dla_greater_of( pers.dla_self_care_type, pers.pip_daily_living_type )
         dla_m = dla_greater_of( pers.dla_mobility_type, pers.pip_mobility_type )
         # FIXME we use the same list for both mob and self
         # I think because of small sample size (kids only)
@@ -465,7 +465,7 @@ module NonMeansTestedBenefits
                 # but claims can run on indefinitely and for now we're just using 
                 # receipts, so ignore any upper age limits until we model these fully.
                 #
-                if person.age <= 16
+                if pers.age <= 16
                         pres.income[sys.dla.care_slot],
                         pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla );
                 else 
