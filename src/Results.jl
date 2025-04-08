@@ -325,7 +325,7 @@ module Results
         return s
     end
 
-    function has_any( bur :: BenefitUnitResult, things ... ) :: Bool
+    function has_any( bur :: BenefitUnitResult, things... ) :: Bool
         for (pid,pers) in bur.pers
             if any_positive( pers.income, IncomesSet(things))
                 return true

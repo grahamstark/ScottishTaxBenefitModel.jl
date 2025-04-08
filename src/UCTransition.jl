@@ -65,21 +65,27 @@ function route_to_uc_or_legacy(
         return settings.means_tested_routing == uc_full ? uc_bens : legacy_bens
     end
     # FIXME make historic
-    targets = if settings.to_y == 2025 && settings.to_q > 1
+    targets = if settings.to_y >= 2025 && settings.to_q > 1
         PROPS_ON_UC_V2._2025
     else
         PROPS_ON_UC_V2._2024
     end
-    prob = if has_any( bures, INCOME_SUPPORT, NON_CONTRIB_JOBSEEKERS_ALLOWANCE, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE )
-        targets.UNEMPLOYED_BENS
-    elseif has_any( bures, CHILD_TAX_CREDIT, WORKING_TAX_CREDIT )
+    #println( "targets as $targets")
+    prob = if has_any( bures, WORKING_TAX_CREDIT, CHILD_TAX_CREDIT )
+        # println( "IS route ")
         targets.TAX_CREDITS
+    elseif has_any( bures, INCOME_SUPPORT, NON_CONTRIB_JOBSEEKERS_ALLOWANCE, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE )
+        # println( "Credits route $(Results.to_string(bures))")
+        targets.UNEMPLOYED_BENS
     else 
-        prob = 0.0
+        1.0
     end
+    # println( "final prob $prob")
     head = get_head( bu )
     switch = testp( head.onerand, prob, Randoms.UC_TRANSITION )
-    return switch ? uc_bens : legacy_bens
+    route = switch ? uc_bens : legacy_bens
+    # println("route $route")
+    return route
 end
 
 #=
@@ -122,7 +128,7 @@ function route_to_uc_or_legacy!(
     for bno in eachindex( bus )
         im = intermed.buint[bno]
         bres = results.bus[bno]
-        if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
+        # if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
             bres.route = route_to_uc_or_legacy( settings, bus[bno], bres )
             if bres.route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
@@ -137,15 +143,20 @@ function route_to_uc_or_legacy!(
             elseif bres.route == uc_bens
                 # nuke every old thing for everyone who's in scope for UC
                 tozero!( bres, LEGACY_MTBS...)
+                tozero!( bres, 
+                    NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, 
+                    NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
+                    INCOME_SUPPORT, 
+                    WORKING_TAX_CREDIT, 
+                    CHILD_TAX_CREDIT )
                 tozero!( bres, COUNCIL_TAX_BENEFIT )
                 bres.legacy_mtbens = LMTResults{RT}()
                 
                 if( bno == 1 ) && ( bres.uc.recipient > 0 )# ctr assignment hack
                     bres.pers[bres.uc.recipient].income[COUNCIL_TAX_BENEFIT] = bres.uc.ctr
                 end
-                ## FIXME TRANSITIONAL PAYMENTS
             end
-        end
+        # end
         # .. so some futher nuking ..
         if settings.means_tested_routing == uc_full
             # these cease to exist, even for pensioners and students

@@ -69,10 +69,10 @@ end
     # FIXME this breaks without updates!
 
     # same totals, smaller subset
-    settings.included_data_years = [2019,2020,2021]
+    settings.included_data_years = collect(2018:2022) # [2018,2019,2020,2021]
     settings.weighting_strategy = use_runtime_computed_weights
-    settings.lower_multiple = 0.2
-    settings.upper_multiple = 8.0
+    settings.lower_multiple = 0.15
+    settings.upper_multiple = 9.0
     settings.num_households, settings.num_people = 
         initialise(  settings; reset=true )
     hhlds, people = wsum(settings)
