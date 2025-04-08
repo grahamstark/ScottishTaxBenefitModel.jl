@@ -13,24 +13,29 @@ date: 8 April 2025
 
 ## Julia
 
-To install, use [JuliaUp](https://julialang.org/downloads/).
+The model is written in [Julia](https://julialang.org/). To install Julia, use [JuliaUp](https://julialang.org/downloads/). ScotBen is developed against the latest public julia release, currently `v1.11.4` - please don't use an earlier version. 
 
 ## The Model
 
-The model is a [Julia package](https://docs.julialang.org/en/v1/stdlib/Pkg/). It's not an official registered package however, though three of its main components are. (Until I have a plausible synthetic dataset I don't feel I can register it). This makes it slightly more awkward to install and work with.
+The model is a [Julia package](https://docs.julialang.org/en/v1/stdlib/Pkg/). It's not an official registered package however, though three of its main components are. (Until I have a plausible synthetic dataset I don't feel I can register it). This makes it slightly more awkward to install and work with using Julia's standard package management features.
 
-The model lives on [GitHub](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/`).
+The model is open source and lives on [GitHub](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/`). Data is *not* in the repository and is managed separately.
 
-2 ways:
+There are 2 ways to use ScotBen: 1) grab the Scotben package directly from GitHub and interact with it 'old school' using Julia's very nice command line 'REPL', or 2) download one of the packages that uses ScotBen as a component and interact with that.
 
 ### 1. Install the model directly
 
-Pick a [Git Client](https://git-scm.com/downloads). 
+You'll need a [GIT Client](https://git-scm.com/downloads). (You can also download git repositories as `.zip` files but updating is easier using GIT).
 
-Clone the repository: command line version `git clone git@github.com:grahamstark/ScottishTaxBenefitModel.jl.git`. Presumably something similar for GUI GIT clients.
+To clone the repository, using the command line GIT version , type:
 
-Should create `ScottishTaxBenefitModel.jl` with everything.
-cd to that directory. Run:
+    git clone git@github.com:grahamstark/ScottishTaxBenefitModel.jl.git
+    
+And something similar for GUI GIT clients - I've never used one.
+
+Should create `ScottishTaxBenefitModel.jl` directory with all the code and support files.
+
+change to that directory. Run:
 
     julia --project=. -t auto
 
@@ -51,27 +56,26 @@ This may take a while 1st time.
 
 #### Run the Test suite
 
-This is huge and may take up to 1/2 hour to complete
+This is huge and may take up to 1/2 hour to complete. Please get back straight away if any errors are reported.
+
 
 ```julia
 
 Pkg.test()
 
 ```
+This runs everything; tests can also be run individually.
 
 #### Directory Structure
 
 * `README.md` : the file you see in the GitHub front page
-Manifest.toml
 * `Project.toml`: the main project file; specifies required libraries, version information, etc.;
 * `Artifacts.toml` : controls downloading of datasets
-* `CITATION.cff` : 
-* `LocalPreferences.toml` : not really used
-LICENSE
+* `CITATION.cff` : reference file for citations;
+* `LICENSE`: MIT licence;
 * `params/` : default parameter files and some supporting docs
 * `docs/` : vast incoherent collection of documentation including the source for the model bog, IMA articles, working notes, etc. Mostly in markdown;
 * `src/` : main source code files
-web/
 * `data/` : working files for data creation - NOT actual FRS/WAS, etc.
 * `etc/` : configuration files e.g. for web enabled version
 * `regressions/` : various regressions (engel curves, pip entitlement, etc.);
@@ -80,12 +84,15 @@ web/
 * `book/` : tutorial material for Northumbria and OU microsim courses
 * `matching/` : **NOT USED** replaced with code in `src` 
 * `simPop/` : one of several attempts at creating a synthetic dataset;
-* `tmp/` : 
+* `web/`: not used and should be deleted;
+* `tmp/` : working directory - should be empty.
 
 
 #### Simple Model Run
 
-Here's an example of a simple model run. You need to:
+Here's an example of a simple model run from the REPL. 
+
+The steps are:
 
 * import all the libraries you need;
 * create a settings structure - tells the model which data to use, how to uprate. and so on.
@@ -113,8 +120,8 @@ using .STBOutput
 # default run settings
 settings = Settings()
 settings.to_y = 2025
-settings.to_q = 2
-settings.means_tested_routing = modelled_phase_in # or uc_full
+settings.to_q = 2 # targetting 2025 q2 should turn off WTC and CTC
+settings.means_tested_routing = modelled_phase_in # attempt model the Legacy->UC transition; alternative is uc_full
 settings.requested_threads = 4 # multiprocesses if avaliable
 # initialise the model data
 @time settings.num_households, settings.num_people, nhh2 = 
@@ -180,7 +187,11 @@ You can use `pretty_table` command in the REPL to display any of these, (except 
 
 #### Parameters
 
-`get_default_system_for_fin_year( 2024; scotland=true )` 
+The example above creates two sets of tax-benefit parameters and modifies the second of them. The call:
+
+```julia
+get_default_system_for_fin_year( 2024; scotland=true )
+```
 
 loads the 2024 system. Refer to `src/STBParameters.jl` for the exact structure. 
 
