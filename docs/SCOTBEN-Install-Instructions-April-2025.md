@@ -19,7 +19,7 @@ The model is written in [Julia](https://julialang.org/). To install Julia, use [
 
 The model is a [Julia package](https://docs.julialang.org/en/v1/stdlib/Pkg/). It's not an official registered package however, though three of its main components are. (Until I have a plausible synthetic dataset I don't feel I can register it). This makes it slightly more awkward to install and work with using Julia's standard package management features.
 
-The model is open source and lives on [GitHub](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/`). Data is *not* in the repository and is managed separately.
+The model is open source and lives on [GitHub](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/). Data is *not* in the repository and is managed separately.
 
 There are two principle ways to use ScotBen:
 
