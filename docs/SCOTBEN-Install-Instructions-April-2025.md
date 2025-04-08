@@ -177,13 +177,20 @@ the `summary` struct holds arrays of results, one per system. Fields are:
 * `deciles` : matrix with 10 quantiles with popn share, income share, average income and income cut
 * `quantiles` : as above with 50 quantiles
 
-plus a couple of fields not needed here.
+plus a couple of fields not needed here. 
 
-so, for example:
+So, for example:
 
 * `summary.deciles[1]` gives you the deciles for the 1st (base) system
 
-You can use `pretty_table` command in the REPL to display any of these, (except poverty and inequality). But just typing the name prints everything reasonable clearly.
+There are 3 types of data structure here:
+
+1. [DataFrames](https://dataframes.juliadata.org/stable/) - spreadsheet-like structures similar to Python's[Pandas](https://pandas.pydata.org/) (but better);
+2. Fortran-like matrices; and
+3. [structs](https://docs.julialang.org/en/v1/manual/types/#Composite-Types) - c-like structs with fixed fields.
+
+
+You can use `pretty_table` command in the REPL to display any of these, (except poverty and inequality structs). But just typing the name prints everything reasonable clearly.
 
 #### Parameters
 
@@ -232,7 +239,7 @@ Main fields are:
 
 The model is designed to be used as a component in other systems, such as web services or larger models.
 
-I've been working on a teaching microsimulation course for Northumbria, based on a IMA 2024 conference workshop. That uses [Pluto Notebooks](https://plutojl.org/). 
+I've been working on a teaching microsimulation course for Northumbria, based on a IMA 2024 conference workshop. That uses [Pluto Notebooks](https://plutojl.org/) and embeds ScotBen.
 
 Download the course from [GitHub](https://github.com/grahamstark/MicrosimTraining). 
 
