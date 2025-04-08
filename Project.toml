@@ -135,11 +135,11 @@ public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
 public-artifact_server_url = "https://virtual-worlds.biz/artifacts/"
 replacement_rate_hours = 30
 target_nation = "N_Scotland"
-to_q = 1
+to_q = 2
 to_y = 2025
 upper_multiple = 7.0
 use_shs = true
-weighting_strategy = "use_precomputed_weights"
+weighting_strategy = "use_runtime_computed_weights"
 wealth_method = "matching"
 indirect_method = "matching"
 [targets]
