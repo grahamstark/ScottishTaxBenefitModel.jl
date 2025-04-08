@@ -124,7 +124,7 @@ using .STBOutput
 settings = Settings()
 settings.to_y = 2025
 settings.to_q = 2 # targetting 2025 q2 should turn off WTC and CTC
-settings.means_tested_routing = modelled_phase_in # attempt model the Legacy->UC transition; alternative is uc_full
+settings.means_tested_routing = uc_full # or modelled_phase_in # attempt model the Legacy->UC transition; alternative is uc_full
 settings.requested_threads = 4 # multiprocesses if avaliable
 # initialise the model data
 @time settings.num_households, settings.num_people, nhh2 = 
