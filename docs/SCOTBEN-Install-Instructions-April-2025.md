@@ -21,7 +21,10 @@ The model is a [Julia package](https://docs.julialang.org/en/v1/stdlib/Pkg/). It
 
 The model is open source and lives on [GitHub](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/`). Data is *not* in the repository and is managed separately.
 
-There are 2 ways to use ScotBen: 1) grab the Scotben package directly from GitHub and interact with it 'old school' using Julia's very nice command line 'REPL', or 2) download one of the packages that uses ScotBen as a component and interact with that.
+There are two principle ways to use ScotBen:
+
+1. grab the Scotben package directly from GitHub and interact with it 'old school' using Julia's very nice command line [REPL](https://docs.julialang.org/en/v1/stdlib/REPL/), or 
+2. download one of the packages that uses ScotBen as a component and interact with that.
 
 ### 1. Install the model directly
 
@@ -39,7 +42,7 @@ change to that directory. Run:
 
     julia --project=. -t auto
 
-This starts the [REPL](https://docs.julialang.org/en/v1/stdlib/REPL/). 
+This starts the REPL. 
 
 Do an initial build. This downloads all the needed libraries and compiles them. Also grabs data:
 
