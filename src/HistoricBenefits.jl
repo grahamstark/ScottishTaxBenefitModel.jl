@@ -8,6 +8,8 @@ module HistoricBenefits
 # FIXME the intention is to replace much of this
 # with a series of complete parameter files, once we have 
 # everything defined fully.
+# FIXME the switch stuff is turned off for now because it's getting too complicated
+# to deal both with DLA->PIP and the transition to Scottish disability benefits
 # 
 using CSV, DataFrames, Dates, Artifacts, LazyArtifacts
 using ScottishTaxBenefitModel
@@ -58,8 +60,8 @@ const HISTORIC_BENEFITS = load_historic(
     joinpath( 
         artifact"augdata", "historic_benefits.csv" ))
 
-const DLA_RECEIPTS = load_dla()
-const PIP_RECEIPTS =  load_pip()
+# const DLA_RECEIPTS = load_dla()
+# const PIP_RECEIPTS =  load_pip()
 
 
 function benefit_ratio( 
@@ -119,12 +121,18 @@ dla/pip ratio. This is needed to model the DLA->PIP transition.
 function should_switch_dla_to_pip( 
     onerand  :: String,
     interview_year :: Integer, 
-    interview_month :: Integer) :: Bool
+    interview_month :: Integer,
+    age :: Int) :: Bool
+    return false
+    #=
     #
     # This weird-looking calculation gives the proportion of
     # dla cases we need to switch to PIP for the ratio at the
     # interview point to (roughly) match the latest DLA/PIP ratio.
     #
+    if(age < 16) || (age >= 66)
+        return false
+    end
     latest_dla = last(DLA_RECEIPTS).Scotland
     latest_pip = last(PIP_RECEIPTS).Scotland
     d = Date( interview_year, interview_month, 1 )
@@ -139,6 +147,7 @@ function should_switch_dla_to_pip(
     # this should make 30% of DLAs change in that example
     switch = testp( onerand, sw_prop, Randoms.DLA_TO_PIP )
     # println( "switch=$switch")
+    =#
     return switch
 end
 
@@ -149,7 +158,7 @@ function switch_dla_to_pip!(
     if (pers.dla_self_care_type != missing_lmh )||
        (pers.dla_mobility_type != missing_lmh)
         if should_switch_dla_to_pip( 
-            pers.onerand, interview_year, interview_month )
+            pers.onerand, interview_year, interview_month, pers.age )
             # println("switching person $(pers.pid) year=$interview_year month=$interview_month ")
             # println( "pers.dla_self_care_type $(pers.dla_self_care_type) ")
             pers.pip_daily_living_type = 
@@ -179,6 +188,7 @@ end # proc
 # FIXME historic bit should be the whole parameter system eventually.
 #
 """
+ ADD New State Pension
  Return a dict of either ratios of recorded receipt to actual values or an indicator of which
  level of benefit is closest.
 """

@@ -178,16 +178,21 @@ recreate base numbers for Conjoint paper revisions
 
 =#
 @testset "Conjoint Base Case " begin
-    settings = get_all_uk_settings_2023()
+    settings = Settings()# get_all_uk_settings_2023()
+    # FIXME haven't had time to create UK datasets so TEMP TEMP
+    # jam on Scottish but leave the RUK tax system for now.
+    # settings.target_nation = N_Scotland
+    # settings.included_nations = [N_Scotland]
+
     settings.do_marginal_rates = false
     settings.requested_threads = 4
     settings.means_tested_routing = uc_full
     settings.do_health_estimates = true
     # settings.ineq_income_measure = bhc_net_income # FIXME TEMP
     """
-    load 23/4 
+    load 23/4 SCOTLAND for now, because no latest UK wide data prepared
     """
-    sys1 = STBParameters.get_default_system_for_fin_year( 2023, scotland=false )
+    sys1 = STBParameters.get_default_system_for_fin_year( 2023, scotland=true )
     sys2 = deepcopy( sys1)
     # end function map_features!( tb :: TaxBenefitSystem, facs :: Factors )
     sys2.ubi.abolished = false
@@ -199,7 +204,7 @@ recreate base numbers for Conjoint paper revisions
 
 
     # "Basic rate - 20%; Higher rate - 40%; Additional rate - 45%"
-    sys2.it.non_savings_rates = [0.2, 0.4, 0.45 ]
+    # FIXME reinstate when using England sys2.it.non_savings_rates = [0.2, 0.4, 0.45 ]
     sys2.ubi.entitlement = ub_ent_all
     sys2.ubi.income_limit = -1.0
     sys = [sys1,sys2]

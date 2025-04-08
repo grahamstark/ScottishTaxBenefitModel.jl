@@ -32,6 +32,7 @@ module FRSHouseholdGetter
     using .Utils:get_quantiles
 
     using .LegalAidData
+    using .SHSData
     using .ConsumptionData
     using .WealthData
     using .WeightingData
@@ -363,6 +364,9 @@ module FRSHouseholdGetter
             return (MODEL_HOUSEHOLDS.dimensions...,) 
         end
         load_prices( settings )
+        if settings.use_shs 
+            SHSData.init( settings; reset = reset )
+        end
         if settings.indirect_method == matching 
             ConsumptionData.init( settings; reset = reset )
         end
@@ -395,6 +399,9 @@ module FRSHouseholdGetter
                 hh = load_hhld_from_frame( dseq, hdata, people_dataset, settings )
                 npeople += num_people(hh)
                 MODEL_HOUSEHOLDS.hhlds[hseq] = hh
+                if settings.use_shs 
+                    SHSData.find_shs_for_hh!( hh, settings )
+                end
                 if settings.wealth_method == matching 
                     WealthData.find_wealth_for_hh!( hh, settings, 1 ) # fixme allow 1 to vary somehow Lee Chung..
                 end
@@ -416,11 +423,12 @@ module FRSHouseholdGetter
                     push!( MODEL_HOUSEHOLDS.data_years, hh.data_year )
                 end
                 if settings.do_legal_aid
-                    LegalAidData.add_la_probs!( hh )
+                    # LegalAidData.add_la_probs!( hh )
                 end
                 if ! (hh.interview_year in MODEL_HOUSEHOLDS.interview_years )
                     push!( MODEL_HOUSEHOLDS.interview_years, hh.interview_year )
                 end
+
                 infer_house_price!( hh, settings )
             end # don't skip
         end

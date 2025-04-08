@@ -168,11 +168,11 @@ function do_health_regressions!( results :: NamedTuple, settings :: Settings ) :
 end
 =# 
 @testset "big merged data" begin
-    settings = get_all_uk_settings_2023()
+    settings = Settings() # FIXME we need UK daataset get_all_uk_settings_2023()
     @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
     uk_data = get_regression_dataset() # alias
     uk_data_ads = uk_data[(uk_data.from_child_record .== 0).&(uk_data.gor_ni.==0),:]
-    sys = [get_system(year=2023, scotland=false), get_system( year=2023, scotland=false )]    
+    sys = [get_system(year=2023, scotland=true), get_system( year=2023, scotland=true )]    
     results = do_one_run( settings, sys, obs )
     outf = summarise_frames!( results, settings )    
 

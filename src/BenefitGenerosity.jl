@@ -10,17 +10,20 @@ module BenefitGenerosity
 # This is crazily over/under designed and needs re-doing
 # Je n'ai fait celle-ci plus longue que parce que je n'ai pas eu le loisir de la faire plus courte.
 #
+using ArgCheck
+using CSV 
+using DataFrames 
+using LazyArtifacts
+
 using ScottishTaxBenefitModel
-using .ModelHousehold: OneIndex,Person,Household
 using .Definitions
+using .FRSHouseholdGetter: get_household_of_person
+using .ModelHousehold: OneIndex,Person,Household
+using .RunSettings: Settings
 using .STBIncomes
 using .STBParameters: NonMeansTestedSys
-using .RunSettings: Settings
-using .FRSHouseholdGetter: get_household_of_person
-using DataFrames, CSV 
-using ArgCheck
 
-export initialise, to_set, adjust_disability_eligibility!, change_status
+export initialise, to_set, adjust_disability_eligibility!, change_status, select_candidates
 
 struct GenEntry # FIXME make a concrete type {T} ???
     cum_popn :: Real
@@ -40,14 +43,13 @@ end
 # FIXME re-arrange to make this immutable
 #
 mutable struct EntryWrapper
-    negative_candidates_aa::GenVec
-    negative_candidates_pip_mob::GenVec   
-    positive_candidates_pip_care::GenVec
-    negative_candidates_dla_children::GenVec
-    positive_candidates_aa::GenVec
-    positive_candidates_pip_mob::GenVec
-    negative_candidates_pip_care::GenVec
-    positive_candidates_dla_children::GenVec
+    negative_candidates_any_disability_working_age::GenVec
+    negative_candidates_any_disability_pensioners::GenVec   
+    negative_candidates_any_carers_all_adults::GenVec
+    positive_candidates_any_disability_working_age::GenVec
+    positive_candidates_any_disability_pensioners::GenVec   
+    positive_candidates_any_carers_all_adults::GenVec
+    child_disabilities_ranked::GenVec
 end
 
 const ENTRIES = EntryWrapper(
@@ -57,10 +59,12 @@ const ENTRIES = EntryWrapper(
     GenVec(),
     GenVec(),
     GenVec(),
-    GenVec(),
-    GenVec()
-)
+    GenVec())
 
+"""
+This loads one of the sets of candidates for inclusion or exclusion from
+one of our disabililty benefits
+"""
 function load_one( filename :: String ) :: GenVec
     d = CSV.File( filename ) |> DataFrame
     n = size(d)[1]
@@ -79,15 +83,17 @@ function load_one( filename :: String ) :: GenVec
     return gv
 end
 
-function initialise( dir :: String )
-    ENTRIES.negative_candidates_aa = load_one( "$dir/negative_candidates_aa.csv" )
-    ENTRIES.negative_candidates_pip_mob = load_one( "$dir/negative_candidates_pip_mob.csv" )
-    ENTRIES.positive_candidates_pip_care = load_one( "$dir/positive_candidates_pip_care.csv" )
-    ENTRIES.negative_candidates_dla_children = load_one( "$dir/negative_candidates_dla_children.csv" )
-    ENTRIES.positive_candidates_aa = load_one( "$dir/positive_candidates_aa.csv" )
-    ENTRIES.positive_candidates_pip_mob = load_one( "$dir/positive_candidates_pip_mob.csv" )
-    ENTRIES.negative_candidates_pip_care = load_one( "$dir/negative_candidates_pip_care.csv" )
-    ENTRIES.positive_candidates_dla_children = load_one( "$dir/positive_candidates_dla_children.csv" )
+function initialise()
+    if size( ENTRIES.negative_candidates_any_disability_working_age ) == (0,0)
+        dir = artifact"disability"
+        ENTRIES.negative_candidates_any_disability_working_age = load_one( "$dir/negative_candidates_any_disability_working_age.tab")
+        ENTRIES.negative_candidates_any_disability_pensioners = load_one( "$dir/negative_candidates_any_disability_pensioners.tab")   
+        ENTRIES.negative_candidates_any_carers_all_adults = load_one( "$dir/negative_candidates_any_carers_all_adults.tab")
+        ENTRIES.positive_candidates_any_disability_working_age = load_one( "$dir/positive_candidates_any_disability_working_age.tab")
+        ENTRIES.positive_candidates_any_disability_pensioners = load_one( "$dir/positive_candidates_any_disability_pensioners.tab")   
+        ENTRIES.positive_candidates_any_carers_all_adults = load_one( "$dir/positive_candidates_any_carers_all_adults.tab")
+        ENTRIES.child_disabilities_ranked = load_one( "$dir/child_disabilities_ranked.tab")
+    end
 end
 
 function make_one_set( extra_people::Number, candidates :: GenVec ) :: Set{OneIndex}
@@ -100,9 +106,12 @@ function make_one_set( extra_people::Number, candidates :: GenVec ) :: Set{OneIn
     end
     return s
 end
-#
-# FIXME just merge with the thing below
-#
+
+#=
+"""
+This loads a set of OneIndexes with just enough people to qualify or disqualify
+`extra_people` from the given benefit `which`
+"""
 function to_set( which :: Incomes, extra_people :: Real ) :: Set{OneIndex}
     @argcheck which in SICKNESS_ILLNESS
     s = Set{OneIndex}()
@@ -129,14 +138,61 @@ function to_set( which :: Incomes, extra_people :: Real ) :: Set{OneIndex}
     end
     return s
 end
+=#
 
-function adjust_disability_eligibility!( nmt_bens :: NonMeansTestedSys )
-    nmt_bens.attendance_allowance.candidates = to_set(  ATTENDANCE_ALLOWANCE, nmt_bens.attendance_allowance.extra_people )
-    nmt_bens.dla.candidates= to_set( DLA_SELF_CARE, nmt_bens.dla.extra_people )
-    nmt_bens.pip.dl_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING, nmt_bens.pip.extra_people )
-    nmt_bens.pip.mobility_candidates = to_set( PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY, nmt_bens.pip.extra_people )
+"""
+FIXME how do to children
+"""
+function select_candidates(; extra_people :: Real, is_care::Bool, cgroup :: DisabilityGroup ):: Set{OneIndex}
+    return if is_care
+        @assert cgroup == dis_all_adults
+        if extra_people > 0
+            make_one_set( extra_people, ENTRIES.positive_candidates_any_carers_all_adults )
+        else
+            make_one_set( -1*extra_people, ENTRIES.negative_candidates_any_carers_all_adults )
+        end
+    else
+        @assert cgroup in [dis_working_age, dis_pensioners]
+        if extra_people > 0
+            if cgroup == dis_working_age
+                make_one_set( extra_people, ENTRIES.positive_candidates_any_disability_working_age )
+            else
+                make_one_set( extra_people, ENTRIES.positive_candidates_any_disability_pensioners )
+            end
+        else
+            if cgroup == dis_working_age
+                make_one_set( -1*extra_people, ENTRIES.negative_candidates_any_disability_working_age )
+            else
+                make_one_set( -1*extra_people, ENTRIES.negative_candidates_any_disability_pensioners )
+            end
+        end
+    end
 end
 
+function adjust_disability_eligibility!( nmt_bens :: NonMeansTestedSys )
+    nmt_bens.attendance_allowance.candidates = select_candidates(;
+        extra_people=nmt_bens.attendance_allowance.extra_people,
+        is_care = false,
+        cgroup = dis_pensioners )
+    #= FIXME CHILDREN select_candidates(;
+        nmt_bens.dla.candidates = 0.0
+            extra_people=nmt_bens.attendance_allowance.extra_people,
+            is_care = false,
+            cgroup = dis_pensioners ) 
+    =#
+    nmt_bens.pip.mobility_candidates = select_candidates(;
+        extra_people=nmt_bens.pip.extra_people,
+        is_care = false,
+        cgroup = dis_working_age )
+    nmt_bens.pip.dl_candidates = select_candidates(;
+        extra_people=nmt_bens.pip.extra_people,
+        is_care = false,
+        cgroup = dis_working_age )
+    nmt_bens.carers.candidates = select_candidates(;
+        extra_people=nmt_bens.carers.extra_people,
+        is_care = true,
+        cgroup = dis_all_adults )
+end
 
 function change_status(
     ; 
@@ -157,7 +213,6 @@ function change_status(
             return rand(choices)
         end
     end
-end
+end # change_status
 
-
-end
+end # module

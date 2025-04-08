@@ -7,7 +7,7 @@ module Uprating
 #
 using DataFrames
 using CSV
-using Pkg,Pkg.Artifacts
+using Pkg,LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel

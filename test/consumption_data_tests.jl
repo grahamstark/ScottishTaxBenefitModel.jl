@@ -32,7 +32,8 @@ end
 
 
 @testset "test load indirect" begin
-    settings = get_all_uk_settings_2023()
+    settings = Settings() # FIXME meed matches for UK  get_all_uk_settings_2023()
+    settings.do_indirect_tax_calculations = true
     # Uprating.load_prices( settings )
     # ConsumptionData.init( settings, reset=true )
     println( settings.indirect_method )
@@ -54,7 +55,8 @@ end
 end
 
 @testset "test examples consumption" begin
-    settings = get_all_uk_settings_2023() # so, with expenditure == matching jammed on
+    settings = Settings() # FIXME UK get_all_uk_settings_2023() # so, with expenditure == matching jammed on
+    settings.do_indirect_tax_calculations = true
     @test settings.indirect_method == matching
     keys = ExampleHouseholdGetter.initialise( settings )
     for k in keys

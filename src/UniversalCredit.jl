@@ -496,10 +496,10 @@ function calc_uc_housing_element!(
                                 PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
                                 DLA_SELF_CARE,
                                 CARERS_ALLOWANCE,
-                                SCOTTISH_CARERS_SUPPLEMENT,
-                                SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
-                                SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE,
-                                SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING] )
+                                CARERS_ALLOWANCE_SUPPLEMENT,
+                                CHILD_DISABILITY_PAYMENT_CARE,
+                                PENSION_AGE_DISABILITY,
+                                ADP_DAILY_LIVING] )
                         if ! exempt
                             ndds += uc.ndd
                         end

@@ -6,7 +6,7 @@ module Runner
     #
     using Base.Threads
 
-    using Pkg, Pkg.Artifacts
+    using Pkg, LazyArtifacts
     using LazyArtifacts
     using Parameters: @with_kw
     using DataFrames: DataFrame, DataFrameRow, Not, select!
@@ -77,7 +77,7 @@ module Runner
             @time settings.num_households, settings.num_people, nhh2 = 
                 FRSHouseholdGetter.initialise( settings )
             if settings.benefit_generosity_estimates_available
-                BenefitGenerosity.initialise( artifact"disability" )  
+                BenefitGenerosity.initialise()  
             end     
         end
         full_results = Array{HouseholdResult}(undef,0,0)

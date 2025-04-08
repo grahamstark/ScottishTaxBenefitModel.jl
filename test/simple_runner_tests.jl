@@ -25,6 +25,9 @@ BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 tot = 0
 
 settings = Settings()
+settings.do_marginal_rates = false
+settings.dump_frames = true
+@time settings.num_households, settings.num_people, nhh2 = FRSHouseholdGetter.initialise( settings; reset=true )
 
 # observer = Observer(Progress("",0,0,0))
 obs = Observable( Progress(settings.uuid,"",0,0,0,0))
@@ -38,12 +41,11 @@ end
 
 # FIXME DELETE THIS AND USE THE ONE IN testutils
 function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
-    settings = Settings()
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [
-        get_default_system_for_fin_year(2023; scotland=true), 
-        get_default_system_for_fin_year( 2023; scotland=true )]
+        get_default_system_for_fin_year(2024; scotland=true), 
+        get_default_system_for_fin_year( 2024; scotland=true )]
     tot = 0
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]
@@ -61,14 +63,11 @@ end
 
 
 @testset "Extreme Income Changes from Flat tax" begin    
-    settings = Settings()
     sys = [
-        get_default_system_for_fin_year(2023; scotland=true), 
-        get_default_system_for_fin_year( 2023; scotland=true )]
+        get_default_system_for_fin_year(2024; scotland=true), 
+        get_default_system_for_fin_year( 2024; scotland=true )]
     
-    settings.do_marginal_rates = false
     # flat tax - 
-    @time settings.num_households, settings.num_people, nhh2 = initialise( settings; reset=true )
     sys[2].it.non_savings_basic_rate = 1
     sys[2].it.non_savings_rates = [0.19]
     sys[2].it.non_savings_thresholds = [9999999999999999999999.999]
@@ -89,15 +88,13 @@ end
 
 @testset "MR test" begin
     @time begin
-        settings = Settings()
-        settings.means_tested_routing = modelled_phase_in
         settings.do_marginal_rates = true
-        settings.dump_frames = true
         sys = [get_system(year=2024, scotland=true), get_system( year=2024, scotland=true )]
         results = do_one_run( settings, sys, obs )
         settings.poverty_line = make_poverty_line( results.hh[1], settings )
         outf = summarise_frames!( results, settings )
         println( outf.metrs[1] )
+        settings.do_marginal_rates = false
     end
 end
 
@@ -116,25 +113,5 @@ end
     settings = Settings()
     settings.requested_threads = 4
     @time basic_run( print_test=true, mtrouting = modelled_phase_in )
-
-    settings.do_marginal_rates = false
     @time basic_run( print_test=true, mtrouting = modelled_phase_in )
 end
-
-#=
-if print_test
-    summary_output = summarise_results!( results=results, base_results=base_results )
-    print( "   deciles = $( summary_output.deciles)\n\n" )
-    print( "   poverty_line = $(summary_output.poverty_line)\n\n" )
-    print( "   inequality = $(summary_output.inequality)\n\n" )        
-    print( "   poverty = $(summary_output.poverty)\n\n" )
-    print( "   gainlose_by_sex = $(summary_output.gainlose_by_sex)\n\n" )
-    print( "   gainlose_by_thing = $(summary_output.gainlose_by_thing)\n\n" )
-    print( "   metr_histogram= $(summary_output.metr_histogram)\n\n")
-    println( "SUMMARY OUTPUT")
-    println( summary_output )
-    println( "as JSON")
-    println( JSON.json( summary_output ))
-end
-
-=#

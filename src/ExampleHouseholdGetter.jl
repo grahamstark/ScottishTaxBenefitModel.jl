@@ -7,7 +7,7 @@ module ExampleHouseholdGetter
 using DataFrames
 using CSV
 using ArgCheck
-using Pkg.Artifacts
+using LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel
@@ -21,46 +21,44 @@ using .RunSettings
 
 export  initialise, get_household
 
-EXAMPLE_HOUSEHOLDS = Dict{String,Household}()
+const EXAMPLE_HOUSEHOLDS = Dict{String,Household}()
 
-KEYMAP = Vector{AbstractString}()
+const KEYMAP = Vector{AbstractString}()
 
 function find_consumption_for_example!( hh, settings )
     @argcheck settings.indirect_method == matching
-    c = MatchingLibs.match_recip_row( 
-        hh, 
-        ConsumptionData.EXPENDITURE_DATASET, 
-        MatchingLibs.example_lcf_match )[1]
-    find_consumption_for_hh!( hh, c.case, c.datayear )
+    # FIXME TODO TEMP HACK since examples are not in the frs/lcf matching dataset just pick a hid/datayear that *is there*
+    tmp_data_year = hh.data_year
+    tmp_hid = hh.hid
+    hh.data_year = 2022 # just the last 
+    hh.hid = 25045 
+    find_consumption_for_hh!( hh, settings, 1 )
+    hh.data_year = tmp_data_year
+    hh.hid = tmp_hid
+    if settings.impute_fields_from_consumption
+        ConsumptionData.impute_stuff_from_consumption!(hh,settings)
+    end
 end
 
 function find_wealth_for_example!( hh, settings )
     @argcheck settings.wealth_method == matching
-    c = MatchingLibs.match_recip_row( 
-        hh, 
-        WealthData.WEALTH_DATASET, 
-        MatchingLibs.model_was_match, 
-        :weekly_gross_income )[1]
-    find_wealth_for_hh!( hh, c.case )
+    case = 754
+    find_wealth_for_hh!( hh, case )
 end
+
 
 
 """
 return number of households available
 """
 function initialise(
-    settings       :: Settings
-    ;
-    # fixme move these to settings
-    household_name :: AbstractString = "example_households",
-    people_name    :: AbstractString = "example_people" ) :: Vector{AbstractString}
+    settings       :: Settings ) :: Vector{AbstractString}
 
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
     # lazy load cons data if needs be
     tmp_data_source = settings.data_source 
     settings.data_source = ExampleSource
-    # tmpsource = settings.data_source # hack to work round datasource being wired in to settings
     if settings.indirect_method == matching
         ConsumptionData.init( settings ) 
     end
@@ -68,16 +66,11 @@ function initialise(
         WealthData.init( settings ) 
     end
     KEYMAP = Vector{AbstractString}()
-    
-    # ds = example_datasets( settings )
-    # hh_dataset = CSV.File( ds.hhlds, delim='\t' ) |> DataFrame
-    # people_dataset = CSV.File(ds.people, delim='\t' ) |> DataFrame
-    # @show ds 
     hh_dataset = HouseholdFromFrame.read_hh( 
-        joinpath(artifact"exampledata","households.tab" ))# CSV.File( ds.hhlds ) |> DataFrame
+        joinpath(artifact"example_data","households.tab" ))# CSV.File( ds.hhlds ) |> DataFrame
     people_dataset = 
         HouseholdFromFrame.read_pers( 
-            joinpath(artifact"exampledata","people.tab" )) # CSV.File( ds.people ) |> DataFrame
+            joinpath(artifact"example_data","people.tab" )) # CSV.File( ds.people ) |> DataFrame
 
     npeople = size( people_dataset)[1]
     nhhlds = size( hh_dataset )[1]
@@ -106,12 +99,17 @@ function example_names()
 end
 
 function get_household( pos :: Integer ) :: Household
+    if length(EXAMPLE_HOUSEHOLDS) == 0
+        initialise( Settings())
+    end
     key = KEYMAP[pos]
     return EXAMPLE_HOUSEHOLDS[key]
 end
 
 function get_household( name :: AbstractString ) :: Household
-    # global EXAMPLE_HOUSEHOLDS
+    if length(EXAMPLE_HOUSEHOLDS) == 0
+        initialise( Settings())
+    end
     return EXAMPLE_HOUSEHOLDS[name]
 end
 

@@ -18,7 +18,8 @@ using CSV
 using .GeneralTaxComponents:
     WEEKS_PER_YEAR
 
-settings = get_all_uk_settings_2023()
+settings = Settings()# get_all_uk_settings_2023()
+settings.do_indirect_tax_calculations = true
 settings.do_marginal_rates = false
 settings.poverty_line=100.0 # arbit
 
@@ -34,8 +35,8 @@ of = on(obs) do p
 end
 
 @testset "Eq UBI with income tax Tests" begin
-    base = get_system(year=2023, scotland=false )
-    sys = get_system(year=2023, scotland=false )
+    base = get_system(year=2023, scotland=true ) # FIXME WE NEED ENGLAND 
+    sys = get_system(year=2023, scotland=true )
     sys.ubi.abolished = false
     sys.it.personal_allowance = 0.0
     settings.num_households, settings.num_people, nhh2 = 
@@ -73,8 +74,8 @@ end
 end
 
 @testset "Eq UBI With Wealth Tests" begin
-    base = get_system(year=2023, scotland=false )
-    sys = get_system(year=2023, scotland=false )
+    base = get_system(year=2023, scotland=true )
+    sys = get_system(year=2023, scotland=true )
     sys.ubi.abolished = false
     sys.it.personal_allowance = 0.0
     make_ubi_pre_adjustments!( sys )
@@ -113,8 +114,8 @@ end
 end
 
 @testset "Eq UBI With VAT" begin
-    base = get_system(year=2023, scotland=false )
-    sys = get_system(year=2023, scotland=false )
+    base = get_system(year=2023, scotland=true )
+    sys = get_system(year=2023, scotland=true )
     sys.ubi.abolished = false
     # sys.it.personal_allowance = 0.0
     make_ubi_pre_adjustments!( sys )

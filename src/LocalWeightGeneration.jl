@@ -220,10 +220,9 @@ const SEMI_URBAN = Set([:S12000033, :S12000034, :S12000041, :S12000005,:S1200000
 const RURAL = Set([:S12000035, :S12000017, :S12000020, :S12000013, 
     :S12000023, :S12000027])
 
-function create_la_weights()
+function create_la_weights( settings :: Settings )
     merged_census_files = load_census_2024()
     
-    settings = Settings()
     settings.num_households, settings.num_people = initialise( settings )
     outweights = DataFrame()
     outweights.data_year = zeros(Int, settings.num_households)
@@ -269,40 +268,5 @@ function create_la_weights()
     end # la loop
     return outweights 
 end # create_la_weights
-
-#=
-TODO make this into a script
-function create xxx()
-    settings = Settings()
-    ...
-    n = length(LA_CODES)
-    settings.do_local_run = true
-    d = DataFrame()
-    nkeys = 0
-    for i in 1:n
-        reset = i==1
-        settings.ccode = LA_CODES[i]
-        FRSHouseholdGetter.restore()
-        @show settings.ccode
-        dict = FRSHouseholdGetter.set_local_weights_and_incomes!( settings, reset=false )
-        # @show dict
-        @show keys(dict)
-        if i == 1
-            d[!,:keys] = collect(keys(dict))
-            nkeys = length(d.keys)
-        end
-        @show d
-        d[!,settings.ccode] = zeros(nkeys)
-        for j in 1:nkeys 
-            k = d.keys[j]
-            @show k
-            d[j,settings.ccode]=dict[k].ratio
-        end
-    end
-    CSV.write( "/mnt/data/ScotBen/artifacts/scottish-frs-data/local-nomis-frs-wage-relativities.tab", d; delim='\t')
-    @show d
-end
-
-=#
 
 end # module

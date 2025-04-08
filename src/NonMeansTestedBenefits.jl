@@ -176,6 +176,34 @@ module NonMeansTestedBenefits
         return wid
     end
 
+    function dla_greater_of( dlat :: LowMiddleHigh, pipt :: PIPType )::LowMiddleHigh
+        return if dlat !==  missing_lmh
+            dlat
+        else 
+            if pipt == enhanced_pip 
+                high
+            elseif pipt == standard_pip
+                rand([mid,low])
+            else
+                missing_lmh
+            end
+        end
+    end
+
+    function pip_greater_of( pipt :: PIPType, dlat :: LowMiddleHigh)::PIPType
+        return if pipt !== no_pip
+            pipt
+        else 
+            if dlat == low
+                standard_pip
+            elseif dlat in [mid,high]
+                enhanced_pip
+            else
+                no_pip
+            end
+        end
+    end
+
     """
     PIP and DLA (below) rely on all the types being sorted out earlier
     either in some kind of probit or by being inferred from receipts (see [HistoricBenefits.jl] for
@@ -186,8 +214,8 @@ module NonMeansTestedBenefits
         pip  :: PersonalIndependencePayment{T}) :: Tuple{T,T} where T
         pl = zero(T)
         pm = zero(T)
-        daily_type = pers.pip_daily_living_type
-        mob_type = pers.pip_mobility_type
+        daily_type = pip_greater_of( pers.pip_daily_living_type, pers.dla_self_care_type )
+        mob_type = pip_greater_of( pers.pip_mobility_type, pers.dla_mobility_type )
         # println( "calc_pip initial: daily_type=$daily_type mob_type = $mob_type")
         if pip.abolished
             return (pl, pm )
@@ -256,8 +284,8 @@ module NonMeansTestedBenefits
         if dla.abolished
             return (dc,dm)
         end
-        dla_s = pers.dla_self_care_type
-        dla_m = pers.dla_mobility_type
+        dla_s = dla_greater_of( pers.dla_self_care_type, pers.pip_daily_living_type )
+        dla_m = dla_greater_of( pers.dla_mobility_type, pers.pip_mobility_type )
         # FIXME we use the same list for both mob and self
         # I think because of small sample size (kids only)
         dla_s = change_status( 
@@ -437,11 +465,13 @@ module NonMeansTestedBenefits
                 # but claims can run on indefinitely and for now we're just using 
                 # receipts, so ignore any upper age limits until we model these fully.
                 #
-                pres.income[sys.dla.care_slot],
-                pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla );
-                pres.income[sys.pip.care_slot],
-                pres.income[sys.pip.mob_slot] = calc_pip( pers, sys.pip )
-                
+                if pers.age <= 16
+                        pres.income[sys.dla.care_slot],
+                        pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla );
+                else 
+                    pres.income[sys.pip.care_slot],
+                    pres.income[sys.pip.mob_slot] = calc_pip( pers, sys.pip )
+                end
                 #
                 # .. conversely, this age limit seems safe: a 62 yo female recieving
                 # in the data should be disallowed now the pension age has increased.
@@ -487,7 +517,7 @@ module NonMeansTestedBenefits
             
                 if hh.region == Scotland
                     if pres.income[sys.carers.slot] > 0
-                        pres.income[SCOTTISH_CARERS_SUPPLEMENT] = sys.carers.scottish_supplement
+                        pres.income[CARERS_ALLOWANCE_SUPPLEMENT] = sys.carers.scottish_supplement
                     end
                 end
                 # NON-overlapping rules p1178 go here 

@@ -9,7 +9,7 @@ module LocalLevelCalculations
 
 using StaticArrays
 using CSV,DataFrames
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel
@@ -46,7 +46,7 @@ export
     lookup, 
     make_la_to_brma_map
 
-    # FIXME hard code this in
+    # FIXME move all this to Definitions? that's where LA_NAMES is.
     function make_la_to_brma_map()
         lacsv = CSV.File( joinpath( artifact"augdata", "la_to_brma_approx_mappings.csv" )) |> DataFrame
         out = Dict{Symbol,Symbol}()
@@ -56,15 +56,13 @@ export
         return out
     end
 
-
-
     struct LA_To_BRMA_Wrap
         map :: Dict{Symbol,Symbol}
     end
 
     const LA_BRMA_MAP = LA_To_BRMA_Wrap( make_la_to_brma_map() )
 
-    function lookup( data , key :: Symbol ) :: T where T
+    function lookup( data , key :: Symbol )
         return data[key]
     end
 

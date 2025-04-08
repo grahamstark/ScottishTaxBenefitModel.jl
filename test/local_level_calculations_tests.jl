@@ -1,5 +1,5 @@
 using Test
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using ScottishTaxBenefitModel
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,

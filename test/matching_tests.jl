@@ -9,6 +9,23 @@ using .ModelHousehold
 using .FRSHouseholdGetter
 using .ExampleHouseholdGetter
 
+using CSV,
+    DataFrames,
+    Measures,
+    StatsBase,
+    PrettyTables
+
+using ScottishTaxBenefitModel
+using .Definitions, .MatchingLibs, .FRSHouseholdGetter, .RunSettings
+
+import ScottishTaxBenefitModel.MatchingLibs.LCF as lcf
+import ScottishTaxBenefitModel.MatchingLibs.Common as com
+import ScottishTaxBenefitModel.MatchingLibs.Model as mm
+import ScottishTaxBenefitModel.MatchingLibs.WAS as was
+# then ..
+settings = Settings()
+FRSHouseholdGetter.initialise( settings; reset=false )
+
 using DataFrames, CSV
 
 #

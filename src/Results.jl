@@ -325,7 +325,7 @@ module Results
         return s
     end
 
-    function has_any( bur :: BenefitUnitResult, things ... ) :: Bool
+    function has_any( bur :: BenefitUnitResult, things... ) :: Bool
         for (pid,pers) in bur.pers
             if any_positive( pers.income, IncomesSet(things))
                 return true
@@ -334,6 +334,14 @@ module Results
         return false
     end
 
+    function has_any( bur :: BenefitUnitResult, things :: IncomesSet ) :: Bool
+        for (pid,pers) in bur.pers
+            if any_positive( pers.income, things)
+                return true
+            end
+        end
+        return false
+    end
     @with_kw mutable struct LocalTaxes{RT<:Real}
         # council_tax :: RT = zero(RT) 
         # this isn't really used at present since LOCAL_TAXES
@@ -537,6 +545,10 @@ module Results
         bures.net_income = calc_net_income( bures.income )
     end
 
+    """
+    NOTE: FIXME?? We're treating net local taxes as part of housing costs here. Does
+    HBAI do that??
+    """
     function aggregate!( hh :: Household{T}, hres :: HouseholdResult{T} ) where T
         hres.income .= zero(T)
         for bu in hres.bus
@@ -901,6 +913,15 @@ module Results
                 out[GUARDIANS_ALLOWANCE] = incd[Definitions.guardians_allowance]
             end
 
+            out[SCOTTISH_CHILD_PAYMENT] = get(incd,Definitions.scottish_child_payment , 0.0 )
+            out[CARERS_ALLOWANCE_SUPPLEMENT] = get( incd, Definitions. carers_allowance_supplement, 0.0 )
+            out[DISCRETIONARY_HOUSING_PAYMENT] = get( incd, Definitions.discretionary_housing_payment, 0.0 )
+            out[CARERS_SUPPORT_PAYMENT] = get( incd, Definitions.carers_support_payment, 0.0 )
+            out[CHILD_DISABILITY_PAYMENT_CARE] = get( incd, Definitions.child_disability_payment_care, 0.0 )
+            out[CHILD_DISABILITY_PAYMENT_MOBILITY] = get( incd, Definitions.child_disability_payment_mobility, 0.0 )
+            out[PENSION_AGE_DISABILITY] = get( incd, Definitions.pension_age_disability, 0.0 )
+            out[ADP_DAILY_LIVING] = get( incd, Definitions.adp_daily_living, 0.0 )
+            out[ADP_MOBILITY] = get( incd, Definitions.adp_mobility, 0.0 )
             # FIXME 6/7/2023 add 
             #=
             scottish_child_payment = 2112

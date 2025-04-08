@@ -13,7 +13,7 @@ using Dates: Date, now, TimeType, Year
 using TimeSeries
 using StaticArrays
 using Parameters
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using LazyArtifacts
 using DataFrames,CSV
 
@@ -527,18 +527,18 @@ end
         ATTENDANCE_ALLOWANCE,
         SEVERE_DISABILITY_ALLOWANCE,
         INCAPACITY_BENEFIT,
-        SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
-        SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_MOBILITY,
-        SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE,
-        SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
-        SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_MOBILITY ]
+        CHILD_DISABILITY_PAYMENT_CARE,
+        CHILD_DISABILITY_PAYMENT_MOBILITY,
+        PENSION_AGE_DISABILITY,
+        ADP_DAILY_LIVING,
+        ADP_MOBILITY ]
     enhanced_disability_premium_qualifying_benefits = [
         PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
         DLA_SELF_CARE,
         ATTENDANCE_ALLOWANCE,
-        SCOTTISH_DISABILITY_ASSISTANCE_WORKING_AGE_DAILY_LIVING,
-        SCOTTISH_DISABILITY_ASSISTANCE_CHILDREN_DAILY_LIVING,
-        SCOTTISH_DISABILITY_ASSISTANCE_OLDER_PEOPLE
+        ADP_DAILY_LIVING,
+        CHILD_DISABILITY_PAYMENT_CARE,
+        PENSION_AGE_DISABILITY # FIXME 11/03/25 CHECK THESE
     ]
 end
 
@@ -704,6 +704,10 @@ function default_band_ds( RT :: Type ) :: Dict
         :S12000040  =>  1_276.42 )
 end
     
+"""
+From 2017/18 onwards. See:
+https://digitalpublications.parliament.scot/ResearchBriefings/Report/2017/6/21/Local-Government-Finance--facts-and-figures-2010-11-to-2017-18#Council-Tax-reform
+"""
 function default_ct_ratios(RT)
     return Dict{CT_Band,RT}(
         Band_A=>240/360,
@@ -714,6 +718,25 @@ function default_ct_ratios(RT)
         Band_F=>585/360,                                                                      
         Band_G=>705/360,
         Band_H=>882/360,
+        Band_I=>-1, # wales only
+        Household_not_valued_separately => 0.0 ) # see CT note
+end
+
+"""
+Pre 2017/8 rebanding. Needed for extra bit of CT rebates;
+See: https://digitalpublications.parliament.scot/ResearchBriefings/Report/2017/6/21/Local-Government-Finance--facts-and-figures-2010-11-to-2017-18#Council-Tax-reform
+See: https://www.aberdeenshire.gov.uk/benefits-and-grants/council-tax-benefit/council-tax-reduction-band-e-f-g-and-h/
+"""
+function ct_ratios_2016(RT) 
+    return Dict{CT_Band,RT}(
+        Band_A=>240/360,
+        Band_B=>280/360,
+        Band_C=>320/360,
+        Band_D=>360/360,
+        Band_E=>440/360,
+        Band_F=>520/360,                                                                      
+        Band_G=>600/360,
+        Band_H=>720/360,
         Band_I=>-1, # wales only
         Household_not_valued_separately => 0.0 ) # see CT note
 end
@@ -1319,6 +1342,11 @@ function get_default_system_for_date(
         load_sys_2024_25_ruk!( sys )
         if scotland 
             load_sys_2024_25_scotland!( sys )
+        end
+    elseif date in fy(2025)
+        load_sys_2025_26_ruk!( sys )
+        if scotland 
+            load_sys_2025_26_scotland!( sys )
         end
     else
         # if date in  fy(2024)

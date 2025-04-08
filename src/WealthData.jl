@@ -10,7 +10,7 @@ using ArgCheck
 using CSV
 using DataFrames
 using StatsBase
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel
@@ -42,7 +42,10 @@ function find_wealth_for_hh!( hh :: Household, case :: Integer )
     hh.net_pension_wealth = hh.raw_wealth.total_pensions
     hh.total_wealth = hh.raw_wealth.total_household_wealth
     # FIXME make these nanes consistent
-    hh.house_value - hh.raw_wealth.house_price
+    hh.house_value = hh.raw_wealth.house_price
+    if hh.house_value < 0 && hh.tenure in [5,6]# idiot check for missing values (-8,-9..) slipping through
+        hh.house_value = 100_000 # FIXME SOME arbitrary value.
+    end
 end
 
 """
@@ -51,10 +54,17 @@ Match in the was data using the lookup table constructed in 'matching/was_frs_ma
 """
 function find_wealth_for_hh!( hh :: Household, settings :: Settings, which = 1 )
     @argcheck settings.wealth_method == matching
-    @argcheck which in 1:20
+    @argcheck which in 1:20    
     match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
-    was_case_sym = Symbol( "was_case_$(which)" )
-    case = match[was_case_sym]
+    case_sym, datayear_sym = if which > 0      
+        Symbol( "hhid_$(which)" ),
+        Symbol( "datayear_$(which)")
+    else 
+       :default_hhld,
+       :default_datayear    
+    end
+    case = match[case_sym]
+    datayear = match[datayear_sym]
     find_wealth_for_hh!( hh, case )
 end
 
@@ -75,7 +85,8 @@ end
 """
 """
 function init( settings :: Settings; reset = false )
-    if(settings.wealth_method == matching) && (reset || (size(WEALTH_DATASET)[1] == 0 )) # needed but uninitialised
+    @argcheck settings.wealth_method == matching
+    if(reset || (size(WEALTH_DATASET)[1] == 0 )) # needed but uninitialised
         global IND_MATCHING
         global WEALTH_DATASET
         w_artifact = RunSettings.get_artifact(; 

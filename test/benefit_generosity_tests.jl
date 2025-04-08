@@ -1,11 +1,12 @@
 using Test
 using DataFrames
 using PrettyTables
+using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .ModelHousehold
-using .BenefitGenerosity: initialise, to_set, change_status, adjust_disability_eligibility!
+using .BenefitGenerosity: initialise, to_set, change_status, adjust_disability_eligibility!, select_candidates
 using .NonMeansTestedBenefits: calc_pip, calc_dla, calc_attendance_allowance
 using .Definitions
 using .RunSettings
@@ -32,14 +33,24 @@ FRSHouseholdGetter.initialise( settings )
             println()
         end
     end
-    BenefitGenerosity.initialise( "$(MODEL_DATA_DIR)/disability/")
-
-    for ben in [ATTENDANCE_ALLOWANCE, PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
-        PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY, DLA_SELF_CARE]
-        for peeps in [-100_000, -10_000, -1000, 0, 1000, 10_000, 100_000 ]
-            s = to_set( ben, peeps )
-            println( "set for $peeps $ben = $(s)")
+    BenefitGenerosity.initialise()
+    for peeps in [-100_000, -10_000, -1000, 0, 1000, 10_000, 100_000 ]
+        is_care = false
+        for cgroup in [dis_working_age, dis_pensioners]
+            s = select_candidates(;
+                extra_people=peeps,
+                is_care = is_care,
+                cgroup = cgroup )        
+        println( "set for $peeps cgroup=$cgroup is_care=$is_care")
         end
+        is_care = true
+        cgroup = dis_all_adults
+        s = select_candidates(;
+            extra_people=peeps,
+            is_care = is_care,
+            cgroup = cgroup )        
+        println( "set for $peeps cgroup=$cgroup is_care=$is_care")
+
     end
 end
 
@@ -111,7 +122,7 @@ end
         num_households,total_num_people,nhh2 = FRSHouseholdGetter.initialise( Settings() )
     end
     println( "num_households=$num_households, num_people=$(total_num_people)")
-    BenefitGenerosity.initialise( MODEL_DATA_DIR*"/disability/" ) 
+    BenefitGenerosity.initialise() 
     
     out = DataFrame(
         which = ["RUK","-50,000","0","50,000"],

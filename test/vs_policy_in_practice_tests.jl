@@ -43,7 +43,12 @@ settings = Settings()
         age = 50,
         tenure = Private_Rented_Furnished,
         council = :S12000049 ) # glasgow
-    
+    # FIXME put this in make
+    hh.net_physical_wealth = 0
+    hh.net_financial_wealth = 0
+    hh.net_housing_wealth =0 
+    hh.net_pension_wealth = 0
+
     head = get_head( hh )
     
     # ================= unemploy 0 rent band b ct
@@ -86,6 +91,7 @@ settings = Settings()
     settings.means_tested_routing = uc_full 
     hres = do_one_calc( hh, sys21_22, settings )
     println(  inctostr(  hres.bus[1].pers[head.pid].income ))
+    
     @test compare_w_2_m(hres.bhc_net_income,975.68)
     # println(  to_md_table(hres.bus[1].legacy_mtbens ))
 

@@ -48,35 +48,41 @@ export SS_Examples, cpl_w_2_children_hh, single_parent_hh, single_hh, childless_
 
 @enum SS_Examples cpl_w_2_children_hh single_parent_hh single_hh childless_couple_hh mbu
 
+const EXAMPLES = Dict{SS_Examples, Household}()
+
 """
 
 """
-function get_ss_examples( settings = Settings() )::Dict{SS_Examples, Household}
-    d = Dict{SS_Examples, Household}()
+function make_ss_examples( settings = Settings() )
     settings = Settings() 
     settings.benefit_generosity_estimates_available = false
     settings.indirect_method = matching # force loading indirect tax stuff
     @time names = ExampleHouseholdGetter.initialise( settings )
-    d[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
-    d[single_parent_hh] = ExampleHouseholdGetter.get_household( "single_parent_1" )
-    d[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )
-    d[childless_couple_hh] = ExampleHouseholdGetter.get_household("mel_c2_scot")
-    d[mbu] =  ExampleHouseholdGetter.get_household("mbu_example")
-    return d
+    EXAMPLES[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
+    EXAMPLES[single_parent_hh] = ExampleHouseholdGetter.get_household( "single_parent_1" )
+    EXAMPLES[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )
+    EXAMPLES[childless_couple_hh] = ExampleHouseholdGetter.get_household("mel_c2_scot")
+    EXAMPLES[mbu] =  ExampleHouseholdGetter.get_household("mbu_example")
 end
 
-const EXAMPLES = get_ss_examples()
+
+function get_ss_examples()::Dict{SS_Examples, Household}
+   if length( EXAMPLES) == 0 
+      make_ss_examples()
+   end
+   return EXAMPLES
+end
 
 function get_example( which :: SS_Examples ) :: Household
-   return deepcopy(EXAMPLES[ which ])
+   hh = deepcopy(get_ss_examples()[ which ])
+   hh.net_financial_wealth = 0.0 # FIXME override matched in financial wealth for now.
+   return hh
 end
 
 function get_all_examples()
-   return deepcopy( EXAMPLES )
+   return deepcopy(get_ss_examples())
 end
 
-const SPARE_CHILD = get_example(cpl_w_2_children_hh).people[320190000104]
-const SPARE_ADULT = get_head( get_example(single_hh))
     
 function unemploy!( pers::Person )
     pers.usual_hours_worked = 0
@@ -171,8 +177,9 @@ end
  Add a child to the 1st benefit unit
  """
  function add_child!( hh :: Household, age :: Integer, sex :: Sex )::BigInt
-    head = get_head(hh)   
-    np = deepcopy( SPARE_CHILD )
+    head = get_head(hh)  
+    spare_child = get_example(cpl_w_2_children_hh).people[320190000104] 
+    np = deepcopy( spare_child )
     empty!( np.income )
     np.relationships[head.pid] = Son_or_daughter_incl_adopted
     # TODO fill in other relationships
@@ -199,7 +206,8 @@ end
     sex :: Sex ) :: BigInt
  
     head = get_head(hh)
-    np = deepcopy( SPARE_ADULT )
+    spare_adult = get_head( get_example(single_hh))
+    np = deepcopy( spare_adult )
     bus = get_benefit_units( hh )
     nbus = size(bus)[1]
     np.pid = maximum( keys( hh.people ))+1
@@ -222,8 +230,8 @@ end
    age :: Integer, 
    sex :: Sex;
    buno :: Int = 1 ) :: BigInt
-   
-   np = deepcopy( SPARE_ADULT )
+   spare_adult = get_head( get_example(single_hh))    
+   np = deepcopy( spare_adult )
    np.is_benefit_unit_head = false
    bus = get_benefit_units( hh )
    bu = bus[buno]

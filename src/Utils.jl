@@ -16,7 +16,8 @@ using CSV
 using DataFrames
 using Dates
 using LazyArtifacts
-using Pkg.Artifacts
+using Pkg
+using LazyArtifacts
 using Preferences
 using Printf
 using PrettyTables
@@ -85,7 +86,8 @@ function make_household_sample(
 end
 
 """
-Given a directory in `tmp/` with some data, make a gzipped tar file, upload this to a server 
+Given a directory in the artifacts directory (jammed on to /mnt/data/ScotBen/artifacts/) 
+with some data in it, make a gzipped tar file, upload this to a server 
 defined in Project.toml and add an entry to `Artifacts.toml`. Artifact
 is set to lazy load. Uses `ArtifactUtils`.
 
@@ -97,7 +99,8 @@ function make_artifact(;
    artifact_name :: AbstractString,
    is_local :: Bool,
    toml_file = "Artifacts.toml" )::Int 
-   gzip_file_name = "$(artifact_name).tar.gz"
+   version = Pkg.project().version
+   gzip_file_name = "$(artifact_name)-v$(version).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
    if is_local 
       artifact_server_upload = @load_preference( "local-artifact_server_upload" )
@@ -853,9 +856,9 @@ end
 load a file into a dataframe and force all the identifiers into
 lower case
 """
-function loadtoframe(filename::AbstractString)::DataFrame
+function loadtoframe(filename::AbstractString; missings=["", " "])::DataFrame
    println( "loading $filename")
-    df = CSV.File(filename, delim = '\t') |> DataFrame #
+    df = CSV.File(filename, delim = '\t';missingstring=missings) |> DataFrame #
     lcnames = Symbol.(lowercase.(string.(names(df))))
     rename!(df, lcnames)
     df
@@ -1047,6 +1050,14 @@ function one_of_matches( x::Any, things... )::Bool
       true
    else        
       false
+   end
+end
+
+function add_cols!( df :: DataFrame, cnames :: Vector{Symbol}, types=nothing )
+   nrows, ncols = size(df)
+   dnames = setdiff(cnames,names(df))
+   for n in dnames
+      df[:,n] = zeros(nrows)
    end
 end
 

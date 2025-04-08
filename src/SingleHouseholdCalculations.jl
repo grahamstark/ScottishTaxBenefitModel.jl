@@ -167,9 +167,8 @@ function do_one_calc(
     if ! sys.loctax.ppt.abolished       
         hres.bus[1].pers[hd].income[LOCAL_TAXES] += 
             calc_proportional_property_tax( hh, intermed.hhint, sys.loctax.ppt )
-
     end
- 
+    
     calc_legacy_means_tested_benefits!(
         hres,
         hh,
@@ -189,9 +188,8 @@ function do_one_calc(
         sys.hours_limits,
         sys.child_limits,
         sys.hr,
-        sys.minwage
-    )
-    
+        sys.minwage )
+
     route_to_uc_or_legacy!( 
         hres,
         settings,
@@ -216,7 +214,7 @@ function do_one_calc(
             hres.bus[buno].route )
     end
     # do this after the benefit cap
-    # since the DISCRESIONARY_HOUSING_PAYMENT must be <= hb/uc housing costs
+    # since the DISCRETIONARY_HOUSING_PAYMENT must be <= hb/uc housing costs
     if hh.region == Scotland
         calc_bedroom_tax_mitigation!( hres, hh )
     end

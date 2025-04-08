@@ -4,12 +4,17 @@ module Definitions
 #
 using ScottishTaxBenefitModel
 using ScottishTaxBenefitModel.Utils
-using Parameters
-using JSON3
-using ArgCheck
-using Preferences 
-import Base.sum
 
+import Base.sum
+using ArgCheck
+using CSV
+using DataFrames 
+using JSON3
+using Parameters
+using LazyArtifacts
+using Preferences 
+
+# FIXME no longer needed?
 export 
    DOCS_DIR,
    FRS_DIR, 
@@ -54,7 +59,7 @@ const DOCS_DIR         = joinpath( PROJECT_DIR, "docs" )
 const SRC_DIR          = joinpath( PROJECT_DIR, "src" )
 const CONFIG_DIR       = joinpath( PROJECT_DIR, "etc" )
 
-
+# FIXME delete all these-replaced with artifacts
 const DEF_MODEL_DATA_DIR   = joinpath( PROJECT_DIR, "data" )
 const MODEL_DATA_DIR   = load_data_path( which=:model_data_dir, default=DEF_MODEL_DATA_DIR )
 const PRICES_DIR       = joinpath( MODEL_DATA_DIR, "prices", "indexes" )
@@ -213,7 +218,8 @@ export Full_time_Employee,
        Other_Inactive
 export Missing_ILO_Employment
 export is_employee,
-       is_working
+       is_working,
+       is_in_workforce
 
 @enum ILO_Employment begin  # mapped from empstati
    Missing_ILO_Employment = -1
@@ -232,7 +238,7 @@ end
 
 
 
-function is_working( employment_status :: ILO_Employment )
+function is_working( employment_status :: ILO_Employment ) :: Bool
    return employment_status in [ 
        Full_time_Employee,
        Part_time_Employee,
@@ -240,12 +246,20 @@ function is_working( employment_status :: ILO_Employment )
        Part_time_Self_Employed ]
 end
 
-function is_employee( employment_status :: ILO_Employment )
+function is_employee( employment_status :: ILO_Employment ) :: Bool
    return employment_status in [ 
        Full_time_Employee,
        Part_time_Employee ]
 end
 
+function is_in_workforce(  employment_status :: ILO_Employment ) :: Bool
+   return employment_status in [Full_time_Employee,
+   Part_time_Employee,
+   Full_time_Self_Employed,
+   Part_time_Self_Employed,
+   Unemployed,
+   Temporarily_sick_or_injured]
+end
 
 export Ethnic_Group  # mapped from ethgr3
 export White,
@@ -1179,7 +1193,13 @@ export wages,
        child_disability_payment_care,
        child_disability_payment_mobility,
        pupil_development_grant,
-    
+       adp_daily_living,
+       adp_mobility,
+       pension_age_disability_daily_living,
+       pension_age_disability_care,
+       carers_allowance_supplement,
+       carers_support_payment,
+       discretionary_housing_payment,
        other_benefits
 
 @enum Incomes_Type begin
@@ -1275,7 +1295,12 @@ export wages,
    child_disability_payment_care = 2121
    child_disability_payment_mobility = 2122
    pupil_development_grant = 2123
-
+   adp_daily_living = 2124
+   adp_mobility = 2125
+   pension_age_disability = 2126
+   carers_allowance_supplement = 2028
+   carers_support_payment = 2029
+   discretionary_housing_payment = 2999
    other_benefits = 3000
 end
 
@@ -1841,8 +1866,18 @@ export DLAself_care,
        Troubles_Permanent_Disablement,
        Child_Disability_Payment_Care,
        Child_Disability_Payment_Mobility,
-       Pupil_Development_Grant
-        
+       Pupil_Development_Grant,
+       Disability_Topup, # 2022 + 
+       Pension_Topup, # 2022 + 
+       ADP_Daily_Living, # _Scotland_Only,
+       ADP_Mobility, # _Scotland_Only,
+       Child_Disability_Payment_Care, # _Scotland_only,
+       Child_Disability_Payment_Mobility, # _Scotland_only,
+       Pension_Age_Disability,
+       Carers_Allowance_Supplement,
+       School_clothing_grant,
+       One_off_IRB_Payment
+            
 export Missing_Benefit_Type
 
 @enum Benefit_Type begin  # mapped from benefit
@@ -1912,11 +1947,19 @@ export Missing_Benefit_Type
    Scottish_Child_Payment = 112
    Job_Start_Payment = 115
    Troubles_Permanent_Disablement = 116
+
+   ADP_Daily_Living = 117
+   ADP_Mobility = 118
+   One_off_IRB_Payment = 124
+
    Child_Disability_Payment_Care = 121
    Child_Disability_Payment_Mobility = 122
    Pupil_Development_Grant = 123
-
-
+   Disability_Topup = 125 # 2022 only so far
+   Pension_Topup = 126  # 2022 only so far
+   Carers_Allowance_Supplement = 999
+   Carers_Support_Payment = 997 # FIXME not yet in data - numbers wrong
+   Pension_Age_Disability = 998 # FIXME not yet in data - numbers wrong
 end
 
 
@@ -2306,5 +2349,29 @@ export ExtraDataMethod,
 
 export WhichBUAdult, ad_head, ad_spouse, ad_both 
 @enum WhichBUAdult ad_head ad_spouse ad_both 
+
+export LA_NAMES, scorefind
+
+function make_la_names_lookup()::DataFrame
+   las = CSV.File(joinpath(artifact"augdata", "scottish-las-shs-ons-names.tab" ))|>DataFrame
+   las.lad_2017 = Symbol.(las.lad_2017)
+   las
+end
+
+const LA_NAMES :: DataFrame = make_la_names_lookup()
+# lookup a field for the SHS mapping,
+function scodefind( c::Union{AbstractString,Missing}; field=:lad_2017) 
+    #= if ismissing(c) # pick something random ... 
+        r = rand( 1:size(LA_NAMES)[1])
+        return LA_NAMES[r,field]
+    end
+    =#
+    LA_NAMES[ LA_NAMES.shs_code .== c, field][1]
+end
+
+export DisabilityGroup, dis_working_age, dis_children, dis_pensioners, dis_all_adults, dis_all_people
+@enum DisabilityGroup dis_working_age dis_children dis_pensioners dis_all_adults dis_all_people
+
+
 
 end # module

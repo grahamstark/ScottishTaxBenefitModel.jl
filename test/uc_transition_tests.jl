@@ -15,35 +15,7 @@ using .ExampleHelpers
 sys = get_system( year=2019, scotland=true )
 settings = Settings()
 settings.means_tested_routing = modelled_phase_in
-
-@testset "Transition Tests on Example HHlds" begin
-    examples = get_all_examples()
-    for (hht,hh) in examples 
-        println( "on hhld '$hht'")
-        lhh = deepcopy( hh )
-        bus = get_benefit_units( lhh )
-        nbus = size(bus)[1]
-        for bno in eachindex(bus)
-            @test typeof(bus[bno]) <: BenefitUnit
-            intermed = make_intermediate( 
-                DEFAULT_NUM_TYPE,
-                settings,                
-                Scotland,
-                bno,
-                bus[bno],  
-                sys.lmt.hours_limits,
-                sys.age_limits,
-                sys.child_limits,
-                nbus )
-            route = route_to_uc_or_legacy(
-                settings,
-                hh.tenure,
-                bus[bno],
-                intermed )
-        end
-    end
-end # example tests
-
+settings.to_y = 2025
 
 @testset "Live Data Transitions" begin
 
@@ -57,6 +29,7 @@ end # example tests
         @time for hhno in 1:num_households
             hh = FRSHouseholdGetter.get_household( hhno )
             bus = get_benefit_units(hh)
+            hres = init_household_result( hh )
             r += 1
             intermed = make_intermediate( 
                 DEFAULT_NUM_TYPE,
@@ -66,13 +39,13 @@ end # example tests
                 sys.age_limits, 
                 sys.child_limits )
             im = intermed.hhint
+
             if on_mt_benefits( hh ) && ! (im.someone_pension_age) 
                 # on actual data !! FIXME the HoC thing is actually Benefit Units
                 route = route_to_uc_or_legacy( 
                     settings, 
-                    hh.tenure,
                     bus[1], 
-                    im )
+                    hres.bus[1] )
                 col = route == uc_bens ? :uc : :legacy
                 n = 1
                 if im.num_job_seekers > 0
@@ -138,3 +111,39 @@ end
         @test bres.pers[hpid].income[i] == 1.0 
     end
 end
+
+@testset "Transition Tests on Example HHlds" begin
+    examples = get_all_examples()
+    sys1 = get_system(year=2024, scotland=true)
+    sys2 = get_system(year=2024, scotland=true)
+    for q in 1:2
+        for (hht,hh) in examples 
+            settings.to_q = q
+            println( "on hhld '$hht'")
+            lhh = deepcopy( hh )
+            hres = init_household_result( lhh )
+            bus = get_benefit_units( lhh )
+            nbus = size(bus)[1]
+            for bno in eachindex(bus)
+                @test typeof(bus[bno]) <: BenefitUnit
+                hres.bus[bno].income[CHILD_TAX_CREDIT] = 1.0
+                route = route_to_uc_or_legacy(
+                    settings,
+                    bus[bno],
+                    hres.bus[bno])
+                if q == 2
+                    @assert route == uc_bens
+                end
+                route = route_to_uc_or_legacy(
+                    settings,
+                    bus[bno],
+                    hres.bus[bno])
+                hres.bus[bno].income[CHILD_TAX_CREDIT] = 0
+                hres.bus[bno].income[UNIVERSAL_CREDIT] = 1
+                @assert route == uc_bens
+
+            end # bus
+        end # hhlds
+    end # qs 1::2
+end # example tests
+

@@ -16,8 +16,8 @@ using .Definitions
 using .ModelHousehold
 using .TimeSeriesUtils
 using .HistoricBenefits: 
-    make_benefit_ratios!, 
-    switch_dla_to_pip!
+    make_benefit_ratios!
+    # switch_dla_to_pip!
 using .EquivalenceScales: EQScales
 using .Utils: not_zero_or_missing
 using .Randoms: strtobi
@@ -461,7 +461,7 @@ function map_person(
     if settings.benefit_generosity_estimates_available
         make_benefit_ratios!( 
             pers, hh.interview_year, hh.interview_month )
-        switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
+        # switch_dla_to_pip!( pers, hh.interview_year, hh.interview_month )
     end
     if settings.impute_employer_pension
         impute_employer_pension!( pers )
@@ -499,7 +499,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         frs_hh.total_wealth,
         frs_hh.house_value,
         frs_hh.weight,
-        frs_hh.council ,
+        frs_hh.council,
         frs_hh.nhs_board ,
         frs_hh.bedrooms,
         head_of_household,
@@ -515,6 +515,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         nothing, # Recorded expenditure; loaded afterwards as needed.
         nothing, # Expenditure factor costs i.e. minus taxes.
         nothing, # raw_wealth
+        nothing,
         people,        
         strtobi(frs_hh.onerand),
         ZERO_EQ_SCALE )

@@ -18,7 +18,7 @@ using ArgCheck
 using CSV
 using DataFrames
 using StatsBase
-using Pkg, Pkg.Artifacts
+using Pkg, LazyArtifacts
 using LazyArtifacts
 
 using ScottishTaxBenefitModel
@@ -215,6 +215,7 @@ const DEFAULT_STANDARD_RATE = default_standard_rate()
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
+#=
 function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int)
     # println( "find_consumption_for_hh! matching to case $case datayear $datayear")
     hh.expenditure = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
@@ -222,6 +223,7 @@ function find_consumption_for_hh!( hh :: Household, case :: Int, datayear :: Int
     @assert ! isnothing( hh.expenditure )
     @assert ! isnothing( hh.factor_costs )
 end
+=#
 
 """
 allocate
@@ -281,20 +283,23 @@ end
 Match in the lcf data using the lookup table constructed in 'matching/lcf_frs_matching.jl'
 'which' best, 2nd best etc match (<=20)
 """
-function find_consumption_for_hh!( hh :: Household, settings :: Settings, which = 1 )
+function find_consumption_for_hh!( hh :: Household, settings :: Settings, which = -1 )
     @argcheck settings.indirect_method == matching
     @argcheck which <= 20
-    if which > 0      
-        match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
-        lcf_case_sym = Symbol( "lcf_case_$(which)" )
-        lcf_datayear_sym = Symbol( "lcf_datayear_$(which)")
-        case = match[lcf_case_sym]
-        datayear = match[lcf_datayear_sym]
-    else # FIXME NOT NEEDED
-        # case = hh.lcf_default_matched_case
-        # datayear = hh.lcf_default_data_year    
+    match = IND_MATCHING[(IND_MATCHING.frs_datayear .== hh.data_year).&(IND_MATCHING.frs_sernum .== hh.hid),:][1,:]
+    case_sym, datayear_sym = if which > 0      
+        Symbol( "hhid_$(which)" ),
+        Symbol( "datayear_$(which)")
+    else
+        :default_hhld,
+        :default_datayear    
     end
-    find_consumption_for_hh!( hh, case, datayear )
+    case = match[case_sym]
+    datayear = match[datayear_sym]
+    hh.expenditure = EXPENDITURE_DATASET[(EXPENDITURE_DATASET.case .== case).&(EXPENDITURE_DATASET.datayear.==datayear),:][1,:]
+    hh.factor_costs = FACTOR_COST_DATASET[(FACTOR_COST_DATASET.case .== case).&(FACTOR_COST_DATASET.datayear.==datayear),:][1,:]
+    @assert ! isnothing( hh.expenditure )
+    @assert ! isnothing( hh.factor_costs )
 end
 
 # FIXME FIXME CHAOTIC EVIL this is the diff between actual 157bn and crude modelled VAT receipts of 102mb. 2022
@@ -345,22 +350,23 @@ FIXME DO FACTOR COSTS!!!!
 fixme selectable artifacts
 """
 function init( settings :: Settings; reset = false )
-    if settings.do_indirect_tax_calculations 
-        if(settings.indirect_method == matching) && (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
-            global IND_MATCHING
-            global EXPENDITURE_DATASET
-            global FACTOR_COST_DATASET
-            c_artifact = RunSettings.get_artifact(; 
-                name="expenditure", 
-                source=settings.data_source == SyntheticSource ? "synthetic" : "lcf", 
-                scottish=settings.target_nation == N_Scotland )
-
-            IND_MATCHING = CSV.File( joinpath( c_artifact, "matches.tab" )) |> DataFrame
-            EXPENDITURE_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab")) |> DataFrame
-            FACTOR_COST_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab" )) |> DataFrame
-            println( EXPENDITURE_DATASET[1:2,:])
-            uprate_expenditure( settings )
-        end
+    # `do_indirect_tax_calculations` doesn't really need to hold. You
+    # might just want to display something.
+    # @argcheck settings.do_indirect_tax_calculations 
+    @argcheck settings.indirect_method == matching
+    global IND_MATCHING
+    global EXPENDITURE_DATASET
+    global FACTOR_COST_DATASET
+    if (reset || (size(EXPENDITURE_DATASET)[1] == 0 )) # needed but uninitialised
+        c_artifact = RunSettings.get_artifact(; 
+            name="expenditure", 
+            source=settings.data_source == SyntheticSource ? "synthetic" : "lcf", 
+            scottish=settings.target_nation == N_Scotland )
+        IND_MATCHING = CSV.File( joinpath( c_artifact, "matches.tab" )) |> DataFrame
+        EXPENDITURE_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab")) |> DataFrame
+        FACTOR_COST_DATASET = CSV.File( joinpath( c_artifact, "dataset.tab" )) |> DataFrame
+        println( EXPENDITURE_DATASET[1:2,:])
+        uprate_expenditure( settings )
     end
 end
 

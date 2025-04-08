@@ -5,6 +5,7 @@ module ModelHousehold
 # are predominantly based on the FRS, but could in principle come from other sources
 # such as SHS, LCF and so on, or perhaps from a web form.
 #
+using ArgCheck
 using Base: String
 using Dates
 using DataFrames
@@ -231,6 +232,7 @@ mutable struct Household{RT<:Real}
     expenditure :: Union{Nothing,DataFrameRow}
     factor_costs :: Union{Nothing,DataFrameRow}
     raw_wealth :: Union{Nothing,DataFrameRow}
+    shsdata :: Union{Nothing,DataFrameRow}
     people::People_Dict{RT}
     onerand :: String
     equivalence_scales :: EQScales{RT}
@@ -976,7 +978,6 @@ function household_composition_1( hh :: Household ) :: HouseholdComposition1
     end 
 end
 
-
 function infer_house_price!( hh :: Household, settings :: Settings )
     ## wealth_regressions.jl , model 3
     hp = 0.0
@@ -1042,6 +1043,5 @@ function infer_house_price!( hh :: Household, settings :: Settings )
     end
     hh.house_value = hp
 end
-
 
 end # module

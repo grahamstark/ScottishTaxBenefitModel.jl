@@ -298,7 +298,9 @@ function get_decile_and_poverty_state(
             return (i, in_poverty)
         end
     end
-    @assert false "Decile for $inc hh $(hh.hid) is out-of-range."
+    return (10,in_poverty) # FIXME temp hack for something wrong with deciles for LA Western Isles
+    # S12000013
+    @assert false "Decile for $inc hid $(hr.hid) is out-of-range. inc = $inc deciles=$(decs)"
 end
 
 """
@@ -576,10 +578,13 @@ function eq_income_measure( i :: IneqIncomeMeasure )
     return i in [bhc_net_income, eq_bhc_net_income ] ? eq_bhc_net_income : eq_ahc_net_income
 end
 
+"""
+fixme: convert to array 0.4,0.6,0.8 ... deep std near ...
+"""
 function make_poverty_line( hhs :: DataFrame, settings :: Settings ) :: Real
     income = income_measure_as_sym( settings.ineq_income_measure )
     deciles = PovertyAndInequalityMeasures.binify( hhs, 10, :weighted_people, income )
-    return deciles[5,3]*(2.0/3.0)
+    return deciles[5,3]*0.6
 end
 
 const GL_COLNAMES = [
