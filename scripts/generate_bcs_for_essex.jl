@@ -26,9 +26,9 @@ function getbc(
     settings :: Settings )::Tuple
     defroute = settings.means_tested_routing
     settings.means_tested_routing = lmt_full 
-    lbc = BCCalcs.makebc( hh, sys, settings, wage )
+    lbc = BCCalcs.makebc( hh, sys, settings, wage; to_html=false )
     settings.means_tested_routing = uc_full 
-    ubc = BCCalcs.makebc( hh, sys, settings, wage )
+    ubc = BCCalcs.makebc( hh, sys, settings, wage; to_html=false )
     settings.means_tested_routing = defroute
     (lbc,ubc)
 end
@@ -105,20 +105,20 @@ function get_hh( ;
 end
 
 function do_everything(sys :: TaxBenefitSystem, settings::Settings)::Dict
-    tenures = ["private", "council", "owner"]
+    tenures = ["private", "owner"]
     country = "scotland"
-    hcosts = [0.0,100,200,300,400.0,500]
+    hcosts = [200,400.0]
     marrstats = ["single", "couple"]
     out = Dict()
     processed = 0
-    num_bedrooms = 1:6
-    for wage in [10,20,30]
+    num_bedrooms = [1,4]
+    for wage in [10,30]
         for tenure in tenures
             for marrstat in marrstats
                 for hcost in hcosts
                     for bedrooms in num_bedrooms
-                        for chu6 in 0:2:4
-                            for ch6p in 0:2:4
+                        for chu6 in [0,3]
+                            for ch6p in [0,4]
                                 processed += 1
                                 hh =  get_hh( ;
                                     country = country,
@@ -132,7 +132,7 @@ function do_everything(sys :: TaxBenefitSystem, settings::Settings)::Dict
                                 key = (wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
                                 println( "on $key")
                                 println( "processed $processed")
-                                out[key] = (; lbc, ubc )
+                                out[key] = (; lbc, ubc )                                
                             end
                         end
                     end
@@ -141,6 +141,18 @@ function do_everything(sys :: TaxBenefitSystem, settings::Settings)::Dict
         end
     end
     return out
+end
+
+function draw_bc( df :: DataFrame )::Figure
+    f = Figure(title="The title")
+    nrows,ncols = size(df)
+    xmax = maximum(df.gross)*1.1
+    ymax = maximum(df.net)*1.1
+    ax = Axis(f[1,1]; xlabel="Earnings £s pw", ylabel="Net Income £s pw", limits=(0,xmax, 0, ymax))
+    lines!(ax, df.gross, df.net )
+    scatter!( ax, df.gross, df.net; marker=labs[1:nrows], marker_offset=(0,10), markersize=8, color=:black )
+    scatter!( ax, df.gross, df.net, markersize=5, color=:red )
+    f
 end
 #=
 settings = Settings()

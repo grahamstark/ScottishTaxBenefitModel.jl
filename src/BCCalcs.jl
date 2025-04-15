@@ -18,6 +18,22 @@ using .Utils
 
 export makebc
 
+# lowecase roman, greek, uppercase roman
+const LABELS = string.(collect(union('a':'z','α':'ω','A':'Z','Α':'Ω')))
+
+"""
+return up to 102 1 chars from Roman and Greek, lower then upper. Repeat once if n>102 die if > 204.
+"""
+function get_char_labels( n :: Int )
+    l = length(LABELS)
+    return if n <= l
+        LABELS[1:n]
+    else 
+        nx = n-l
+        vcat(LABELS,LABELS[1:nx])
+    end
+end
+
 function local_getnet( data::Dict, gross::Real ) :: HouseholdResult
     settings = data[:settings]
     hh = data[:hh]
@@ -43,6 +59,43 @@ function getnet( data::Dict, gross::Real ) :: Real
     net = get_net_income( hres; target = data[:settings].target_bc_income )  
     # println( "got net as $net")
     return net
+end
+
+function to_md_list( r :: DataFrameRow, hres :: HouseholdResult )::String
+    s = """
+
+    """
+    m = md_format(r.net)
+    s *= s *= "* **Net Income (after housing costs)** = $m\n"
+    for i in instances(Incomes)
+        if hres.income[i] != 0
+            m = md_format(hres.income[i])
+            n = iname(i)
+            s *= "* **$n** = $m\n"
+        end
+    end
+    s *= "\n"
+    if r.reduction > 0
+        m = md_format(r.cap)
+        s *= "* **Benefit Cap** = $m\n"    
+        m = md_format(r.reduction)
+        s *= "* **Benefits Reduced By:** = $m\n"    
+    end
+    m = md_format(hres.net_housing_costs)
+    s *= "* **Net Housing Costs** = $m\n"
+    if abs(r.mr) < 9999
+        m = md_format(r.mr*100)
+        s *= "* **Marginal Tax Rate** = $(m)%\n"
+        m = md_format(r.credit)
+        s *= "* **Tax Credit** = $m\n"
+    else
+        s *= "* **Discontinuity**"
+    end
+
+    s *= """
+
+    """
+    s
 end
 
 """
@@ -91,7 +144,8 @@ function makebc(
     settings   :: Settings,
     wage       :: Real = 10.0,  
     pid        :: BigInt = BigInt(-1),
-    bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS ) :: DataFrame
+    bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS;
+    to_html = true ) :: DataFrame
     max_gross = wage*120
     lbcset = BCSettings(
         bcsettings.mingross,
@@ -122,6 +176,13 @@ function makebc(
         simplelabel=Array{String}(undef,N),
         label_p1 = Array{String}(undef,N),
         label_pch = Array{Any}(undef,N))
+
+    for i in 1:30
+        lk = Symbol( "item_$(i)")
+        vk = Symbol( "value_$(i)")
+        out[!,lk] = Array{String}(undef,N)
+        out[!,vk] = zeros( N )
+    end
     # fill the data frame
     for i in 1:N
         r = out[i,:]
@@ -137,16 +198,32 @@ function makebc(
         hres = local_getnet( data, a[i,1] ) 
         # FIXME add a really nice labelling thing here with changes between gross and gross+1
         r.label = inctostr( hres.income; round_inc=false )
+        lv = 0
+        for i in instances(Incomes)
+            if hres.income[i] != 0
+                lv += 1
+                lk = Symbol( "item_$(lv)")
+                vk = Symbol( "value_$(lv)")
+                r[lk] = iname(i)
+                r[vk] = hres.income[i]
+            end
+        end
         # FIXME aggregate this to HH Level
         r.cap = hres.bus[1].bencap.cap
         r.reduction = hres.bus[1].bencap.reduction
-        r.simplelabel = tosimplelabel( r, hres )
+        if to_html 
+            r.simplelabel = tosimplelabel( r, hres )
+        else
+            r.simplelabel = to_md_list(r, hres )
+        end
         hres2 = local_getnet( data, a[i,1]+bcsettings.increment ) 
         r.label_p1 = inctostr( hres2.income; round_inc=false )
         diffpct =  100*(hres2.income - hres.income)./bcsettings.increment
         r.label_pch = non_zeros(diffpct) # ; round_inc=false )      
     end
+    out.char_labels = get_char_labels(N)
     return out
 end
+
 
 end # module
