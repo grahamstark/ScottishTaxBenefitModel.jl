@@ -16,13 +16,13 @@ using .STBIncomes
 using .Results
 using .Utils
 
-export makebc
+export makebc, recensor
 
-# lowecase roman, greek, uppercase roman
-const LABELS = string.(collect(union('a':'z','α':'ω','A':'Z','Α':'Ω')))
+# character labels for charts; lower roman, greek, then upper 
+const LABELS = collect(union('a':'z','α':'ω','A':'Z','Α':'Ω'))
 
 """
-return up to 102 1 chars from Roman and Greek, lower then upper. Repeat once if n>102 die if > 204.
+return up to 102 1 chars from Roman and Greek, upper then lower. Repeat once if n>102 die if > 204.
 """
 function get_char_labels( n :: Int )
     l = length(LABELS)
@@ -136,6 +136,44 @@ function tosimplelabel(
     return s
 end
 
+"""
+Non-table html version of the point labelling thing for plotlyjs labels, since pjs only 
+accepts br,b,i and a few others html tags. FIXME FINISH THIS
+"""
+function tohtmltable( 
+    r :: DataFrameRow,
+    hres :: HouseholdResult ) :: String
+    
+    s = "<table class='table'>"
+    m = md_format(r.net)
+    s *= s *= "<tr><th>Net Income (after housing costs)</th><td>$m</td></tr>"
+    for i in instances(Incomes)
+        if hres.income[i] != 0
+            m = md_format(hres.income[i])
+            n = iname(i)
+            s *= "<b>$n</b> = $m<br>"
+        end
+    end
+    s *= "<br>"
+    if r.reduction > 0
+        m = md_format(r.cap)
+        s *= "<b>Benefit Cap</b> = $m<br>"    
+        m = md_format(r.reduction)
+        s *= "<b>Benefits Reduced By:</b> = $m<br>"    
+    end
+    m = md_format(hres.net_housing_costs)
+    s *= "<b>Net Housing Costs</b> = $m<br>"
+    if abs(r.mr) < 9999
+        m = md_format(r.mr*100)
+        s *= "<b>Marginal Tax Rate</b> = $(m)%<br>"
+        m = md_format(r.credit)
+        s *= "<b>Tax Credit</b> = $m<br>"
+    else
+        s *= "<b>Discontinuity</b><br>"
+    end
+    s *= "</table>"
+    return s
+end
 
 
 function makebc(
@@ -173,14 +211,14 @@ function makebc(
         cap = zeros(N),
         reduction = zeros(N), 
         label=Array{String}(undef,N),
-        simplelabel=Array{String}(undef,N),
-        label_p1 = Array{String}(undef,N),
+        simplelabel=fill("",N),
+        label_p1 = fill("",N),
         label_pch = Array{Any}(undef,N))
 
     for i in 1:30
         lk = Symbol( "item_$(i)")
         vk = Symbol( "value_$(i)")
-        out[!,lk] = Array{String}(undef,N)
+        out[!,lk] = fill("",N)
         out[!,vk] = zeros( N )
     end
     # fill the data frame
@@ -205,7 +243,7 @@ function makebc(
                 lk = Symbol( "item_$(lv)")
                 vk = Symbol( "value_$(lv)")
                 r[lk] = iname(i)
-                r[vk] = hres.income[i]
+                r[vk] = round(hres.income[i];digits=2)
             end
         end
         # FIXME aggregate this to HH Level
@@ -225,5 +263,28 @@ function makebc(
     return out
 end
 
+
+"""
+Re-censor the data, since permissive in BCCalcs
+"""
+function recensor(df::DataFrame)::DataFrame
+    nrows,ncols = size(df)
+    dfo = similar(df)
+    or = 0
+    # println( "#1 nrows=$nrows")
+    for r in 1:nrows-1
+        r1=df[r,:]
+        r2=df[r+1,:]
+        # println( "$(r1.gross) $(r2.gross) $(r1.net) $(r2.net)")
+        if isapprox(r1.gross,r2.gross; atol=0.001)&&(isapprox(r1.net,r2.net; atol=0.001))
+            ; # println( "same row $r $(r+1)")
+        else
+            or += 1
+            dfo[or,:] = r1
+        end
+    end
+    dfo[!,:char_labels] = get_char_labels(nrows)
+    return dfo[1:or,:]
+end
 
 end # module

@@ -12,7 +12,8 @@ using .Utils
 using BudgetConstraints
 using DataFrames
 using CairoMakie
-
+using Format
+using PrettyTables
 using CSV
 
 
@@ -26,9 +27,15 @@ function getbc(
     settings :: Settings )::Tuple
     defroute = settings.means_tested_routing
     settings.means_tested_routing = lmt_full 
-    lbc = BCCalcs.makebc( hh, sys, settings, wage; to_html=false )
+    lbc = BCCalcs.makebc( hh, sys, settings, wage; to_html=true )
+    lbc = recensor(lbc)
+    lbc.mr .*= 100.0
+    lbc.char_labels = BCCalcs.get_char_labels(size(lbc)[1])
     settings.means_tested_routing = uc_full 
-    ubc = BCCalcs.makebc( hh, sys, settings, wage; to_html=false )
+    ubc = BCCalcs.makebc( hh, sys, settings, wage; to_html=true )
+    ubc = recensor(ubc)
+    ubc.mr .*= 100.0 # MR to percent
+    ubc.char_labels = BCCalcs.get_char_labels(size(ubc)[1])
     settings.means_tested_routing = defroute
     (lbc,ubc)
 end
@@ -46,6 +53,10 @@ function get_hh( ;
     ch6p      :: Integer ) :: Household
     hh = get_example( single_hh )
     head = get_head(hh)
+    hh.net_financial_wealth = 0.0
+    hh.net_housing_wealth = 0.0
+    hh.net_pension_wealth = 0.0
+    hh.net_physical_wealth = 0.0
     head.age = 30
     sp = get_spouse(hh)
     enable!(head) # clear dla stuff from example
@@ -104,21 +115,22 @@ function get_hh( ;
     return hh
 end
 
-function do_everything(sys :: TaxBenefitSystem, settings::Settings)::Dict
-    tenures = ["private", "owner"]
+function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
+    tenures = ["private"] #, "owner"]
     country = "scotland"
-    hcosts = [200,400.0]
-    marrstats = ["single", "couple"]
+    hcosts = [200] #,400.0]
+    marrstats = ["single"] # "couple"]
     out = Dict()
     processed = 0
     num_bedrooms = [1,4]
+    keys = []
     for wage in [10,30]
         for tenure in tenures
             for marrstat in marrstats
                 for hcost in hcosts
                     for bedrooms in num_bedrooms
                         for chu6 in [0,3]
-                            for ch6p in [0,4]
+                            for ch6p in [0,3]
                                 processed += 1
                                 hh =  get_hh( ;
                                     country = country,
@@ -129,10 +141,11 @@ function do_everything(sys :: TaxBenefitSystem, settings::Settings)::Dict
                                     chu6     = chu6, 
                                     ch6p     = ch6p )
                                 lbc, ubc = getbc( hh, sys, wage, settings )
-                                key = (wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
+                                key = (; wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
                                 println( "on $key")
                                 println( "processed $processed")
                                 out[key] = (; lbc, ubc )                                
+                                push!( keys, key )
                             end
                         end
                     end
@@ -140,22 +153,147 @@ function do_everything(sys :: TaxBenefitSystem, settings::Settings)::Dict
             end
         end
     end
-    return out
+    return keys, out
 end
 
-function draw_bc( df :: DataFrame )::Figure
-    f = Figure(title="The title")
+function fm(v, r,c) 
+    return if c in [1,7]
+        v
+    elseif c == 4
+        if abs(v) > 4000
+            "Discontinuity"
+        else
+            Format.format(v, precision=3, commas=false)
+        end
+    else
+        Format.format(v, precision=2, commas=true)
+    end
+    s
+end
+
+function add_hidden_to_label( lab :: String )::String
+    i = rand(100000:100000000)
+    id = "id-$i"
+    return "<button class='btn btn-primary' type='button' data-bs-toggle='collapse' data-bs-target='#$(id)' aria-expanded='false' aria-controls='collapseExample'>More Detail</button><div class='collapse' id='$id'><div class='card card-body'>$(lab)</div></div>"
+end
+
+function format_bc_df( title::String, bc::DataFrame)
+    # gl[!,1] = pretty.(gl[!,1])
+    bc[!,:simplelabel_hide] = add_hidden_to_label.( bc.simplelabel )
+    pretty_table( 
+        String,
+        bc[!,[:char_labels,:gross,:net,:mr,:cap,:reduction,:simplelabel_hide]]; 
+        backend = Val(:html),
+        formatters=fm,
+        allow_html_in_cells=true,
+        table_class="table table-sm table-striped table-responsive",
+        header = ["ID", "Earnings £pw","Net Income AHC £pw", "METR", "Benefit Cap", "Benefits Reduced By", "Breakdown"], 	
+        alignment=[fill(:r,6)...,:l],
+        title = title )
+end
+
+
+function title_from_key(k::NamedTuple, legstr::String )::String
+    s = []
+    push!( s, k.marrstat == "single" ? "Single Person" : "Couple")
+    push!( s, "Wage: £$(k.wage)p.h")
+    push!( s, k.tenure == "private" ? "Private Renting" : "Owner Occupier")
+    push!( s, "Housing Costs: £$(k.hcost)p.w")
+    push!( s, "$(k.bedrooms) bedroom(s)")
+    push!( s, "$(k.chu6) children under 6")
+    push!( s, "$(k.ch6p) children 6+")
+    return legstr*" : " *join(s,", ", " and ")
+end
+
+function id_from_key( k :: NamedTuple, legacy::Bool )::String
+    leg = legacy ? "legacy" : "uc"
+    return "$(leg)-$(k.wage)-$(k.tenure)-$(k.marrstat)-$(k.hcost)-$(k.bedrooms)-$(k.chu6)-$(k.ch6p)" 
+end
+
+# convoluted way of making pairs of (0,-10),(0,10) for label offsets
+const OFFSETS = collect( Iterators.flatten(fill([(0,-10),(0,10)],50)))
+
+function draw_bc( title :: String, df :: DataFrame )::Figure
+    f = Figure(size=(1200,1200))
     nrows,ncols = size(df)
     xmax = maximum(df.gross)*1.1
     ymax = maximum(df.net)*1.1
-    ax = Axis(f[1,1]; xlabel="Earnings £s pw", ylabel="Net Income £s pw", limits=(0,xmax, 0, ymax))
-    lines!(ax, df.gross, df.net )
-    scatter!( ax, df.gross, df.net; marker=labs[1:nrows], marker_offset=(0,10), markersize=8, color=:black )
+    ymin = minimum(df.net)
+    ax = Axis(f[1,1]; xlabel="Earnings £s pw", ylabel="Net Income (AHC) £s pw", title=title)
+    ylims!( ax, 0, ymax )
+    xlims!( ax, -10, xmax )
+    lines!( ax, df.gross, df.net )
+    scatter!( ax, df.gross, df.net; marker=df.char_labels, marker_offset=OFFSETS[1:nrows], markersize=15, color=:black )
+    lines!( ax, [0,xmax], [0, ymax]; color=:lightgrey)
     scatter!( ax, df.gross, df.net, markersize=5, color=:red )
     f
 end
+
+"""
+:label, :simplelabel, :label_p1, :label_pch
+
+"""
+
+function draw_one( dir::String, key::NamedTuple, bc :: DataFrame, legacy :: Bool )::String
+    legstr = legacy ? "Old Benefit System" : "Universal Credit"
+    title = title_from_key(key, legstr )
+    id = id_from_key( key, legacy )
+    table = format_bc_df( "", bc )
+    f = draw_bc( "After Housing Costs, $legstr", bc )
+    save( "$(dir)/img/$(id).svg", f )
+    CSV.write( "$(dir)/data/$(id).tab", bc[!,Not(r"label")]; delim='\t')
+    return """
+<div class='row justify-content-center text-secondary pt-3 pb-3' id=$(id)>
+    <h3>$title</h3>
+    <div class="col-6">
+        $(table)
+   </div>  
+    <div class="col-6">
+    <img src='img/$(id).svg'>
+    <br/>
+    <a href="data/$(id).tab" download="$(id).tab">Dataset (tab-delimited)</a>
+    </div>
+</div>
+    """
+end
+
+function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
+    keys, dfs = do_everything(sys, settings )
+    dir = joinpath("/", "home", "graham_s", "tmp","essex")
+    io = open( joinpath(dir, "budget-constraints-v1.html"), "w")
+    header = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+        <title>Sample Budget Constraints</title>
+        <link rel="stylesheet" href="css/bisite-bootstrap.css"/>
+        <script type='text/javascript' src='js/jquery.js'></script>
+        <script type='text/javascript' src='js/bootstrap.bundle.js'></script>
+    </head>
+    <body class='text-primary p-2'>
+    <h1>Sample Budget Constraints</h1>
+    """
+
+    footer = """
+    <footer>
+
+    </footer>
+    </body>
+    </html>
+    """
+    println(io, header)
+
+    for k in keys
+        print( io, draw_one( dir, k, dfs[k].lbc, true ))
+        print( io, draw_one( dir, k, dfs[k].ubc, false ))
+    end
+
+    println(io, footer )
+    close(io)
+end
+
+
 #=
 settings = Settings()
 sys = STBParameters.get_default_system_for_fin_year( 2024 )
 =#
-    
