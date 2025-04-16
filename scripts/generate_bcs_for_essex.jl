@@ -219,7 +219,7 @@ function draw_bc( title :: String, df :: DataFrame )::Figure
     xmax = maximum(df.gross)*1.1
     ymax = maximum(df.net)*1.1
     ymin = minimum(df.net)
-    ax = Axis(f[1,1]; xlabel="Earnings &pound;s pw", ylabel="Net Income (AHC) &pound;s pw", title=title)
+    ax = Axis(f[1,1]; xlabel="Earnings £s pw", ylabel="Net Income (AHC) £s pw", title=title)
     ylims!( ax, 0, ymax )
     xlims!( ax, -10, xmax )
     lines!( ax, df.gross, df.net )
