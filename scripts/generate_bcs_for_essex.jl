@@ -124,7 +124,7 @@ function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
     processed = 0
     num_bedrooms = [1,4]
     keys = []
-    for wage in [10,30]
+    for wage in [12,30] # !! above mw or mr results look weird (though they're ight)
         for tenure in tenures
             for marrstat in marrstats
                 for hcost in hcosts

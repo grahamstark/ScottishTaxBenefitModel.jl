@@ -79,18 +79,6 @@ function apply_minimum_wage(
         wage/10.0 # hack 10 per hour
     end
     if(wage > 0) && (hours > 0)
-    #= if pers.employment_status in [
-        Full_time_Employee,
-        Part_time_Employee,
-        Full_time_Self_Employed,
-        Part_time_Self_Employed]
-
-        wage = get( pers.income, Definitions.wages, 0.0 )
-        
-        if wage <= 0 # see min wage note - I don't think this can happen, but anyways...
-            return wage
-        end
-        =# 
         se = get( pers.income, Definitions.self_employment_income, 0.0 )
         if se > wage # main source is SE - don't apply
             return wage
@@ -98,14 +86,10 @@ function apply_minimum_wage(
             hours = hours * (wage/(wage+se))
         end
         hourly_wage = wage / hours
-        # println( "mwsys=$mwsys")
-        
         minwage = get_minimum_wage( mwsys, pers.age )
-        
         if hourly_wage < minwage
             wage = hours*minwage
-        end
-        # println("mw: age=$(pers.age) wage=$wage minwage=$minwage hours=$hours")
+        end        
     end
     return wage
 end
