@@ -288,7 +288,8 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     println( io, "<ul class='list-group' id='home'>")
     for key in keys
         for legacy in [true, false]
-            title = title_from_key(key, legacy )
+            legstr = legacy ? "Old Benefit System" : "Universal Credit"
+            title = title_from_key(key, legstr )
             id = id_from_key( key, legacy )
             println(io, "<li class='list-group-item'><a href='#$id'>$title</li>")
         end
