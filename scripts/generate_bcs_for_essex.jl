@@ -132,6 +132,8 @@ function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
                         for chu6 in [0,3]
                             for ch6p in [0,3]
                                 if((ch6p + chu6) > 0)&&(bedrooms <2)
+                                    ; # skip pointless examples
+                                elseif((ch6p + chu6) == 0)&&(bedrooms > 1)
                                     ;
                                 else
                                     processed += 1
