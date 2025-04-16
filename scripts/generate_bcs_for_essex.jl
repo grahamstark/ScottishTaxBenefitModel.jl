@@ -187,7 +187,7 @@ function format_bc_df( title::String, bc::DataFrame)
         formatters=fm,
         allow_html_in_cells=true,
         table_class="table table-sm table-striped table-responsive",
-        header = ["ID", "Earnings £pw","Net Income AHC £pw", "METR", "Benefit Cap", "Benefits Reduced By", "Breakdown"], 	
+        header = ["ID", "Earnings &pound;pw","Net Income AHC &pound;pw", "METR", "Benefit Cap", "Benefits Reduced By", "Breakdown"], 	
         alignment=[fill(:r,6)...,:l],
         title = title )
 end
@@ -196,9 +196,9 @@ end
 function title_from_key(k::NamedTuple, legstr::String )::String
     s = []
     push!( s, k.marrstat == "single" ? "One Adult" : "Couple")
-    push!( s, "Wage: £$(k.wage)p.h")
+    push!( s, "Wage: &pound;$(k.wage)p.h")
     push!( s, k.tenure == "private" ? "Private Renting" : "Owner Occupier")
-    push!( s, "Housing Costs: £$(k.hcost)p.w")
+    push!( s, "Housing Costs: &pound;$(k.hcost)p.w")
     push!( s, "$(k.bedrooms) bedroom(s)")
     push!( s, "$(k.chu6) children under 6")
     push!( s, "$(k.ch6p) children 6+")
@@ -219,7 +219,7 @@ function draw_bc( title :: String, df :: DataFrame )::Figure
     xmax = maximum(df.gross)*1.1
     ymax = maximum(df.net)*1.1
     ymin = minimum(df.net)
-    ax = Axis(f[1,1]; xlabel="Earnings £s pw", ylabel="Net Income (AHC) £s pw", title=title)
+    ax = Axis(f[1,1]; xlabel="Earnings &pound;s pw", ylabel="Net Income (AHC) &pound;s pw", title=title)
     ylims!( ax, 0, ymax )
     xlims!( ax, -10, xmax )
     lines!( ax, df.gross, df.net )
