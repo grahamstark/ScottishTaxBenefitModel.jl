@@ -297,8 +297,8 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     println( io, "</ul>")
 
     for key in keys
-        print( io, draw_one( dir, key, dfs[k].lbc, true ))
-        print( io, draw_one( dir, key, dfs[k].ubc, false ))
+        print( io, draw_one( dir, key, dfs[key].lbc, true ))
+        print( io, draw_one( dir, key, dfs[key].ubc, false ))
     end
 
     println(io, footer )
