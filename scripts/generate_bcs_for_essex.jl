@@ -116,10 +116,10 @@ function get_hh( ;
 end
 
 function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
-    tenures = ["private"] #, "owner"]
+    tenures = ["private", "owner"]
     country = "scotland"
-    hcosts = [200] #,400.0]
-    marrstats = ["single"] # "couple"]
+    hcosts = [200,400.0]
+    marrstats = ["single", "couple"]
     out = Dict()
     processed = 0
     num_bedrooms = [1,4]
@@ -195,7 +195,7 @@ end
 
 function title_from_key(k::NamedTuple, legstr::String )::String
     s = []
-    push!( s, k.marrstat == "single" ? "Single Person" : "Couple")
+    push!( s, k.marrstat == "single" ? "One Adult" : "Couple")
     push!( s, "Wage: £$(k.wage)p.h")
     push!( s, k.tenure == "private" ? "Private Renting" : "Owner Occupier")
     push!( s, "Housing Costs: £$(k.hcost)p.w")
