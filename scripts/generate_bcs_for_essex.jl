@@ -253,6 +253,7 @@ function draw_one( dir::String, key::NamedTuple, bc :: DataFrame, legacy :: Bool
     <br/>
     <a href="data/$(id).tab" download="$(id).tab">Dataset (tab-delimited)</a>
     </div>
+    <p><a href='#home'>Top</a></p>
 </div>
     """
 end
@@ -282,6 +283,17 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     </html>
     """
     println(io, header)
+
+    println( "<h3>Index</h3>")
+    println( "<ul class='list-group' id='home'>")
+    for k in keys
+        for legacy in [true, false]
+            title = title_from_key(key, legacy )
+            id = id_from_key( key, legacy )
+            println("<li class='list-group-item'><a href='#$id'>$title</li>")
+        end
+    end 
+    println( "</ul>")
 
     for k in keys
         print( io, draw_one( dir, k, dfs[k].lbc, true ))
