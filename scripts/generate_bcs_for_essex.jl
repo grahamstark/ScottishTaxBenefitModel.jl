@@ -131,21 +131,25 @@ function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
                     for bedrooms in num_bedrooms
                         for chu6 in [0,3]
                             for ch6p in [0,3]
-                                processed += 1
-                                hh =  get_hh( ;
-                                    country = country,
-                                    tenure  = tenure,
-                                    bedrooms = bedrooms,
-                                    hcost    = hcost,
-                                    marrstat = marrstat, 
-                                    chu6     = chu6, 
-                                    ch6p     = ch6p )
-                                lbc, ubc = getbc( hh, sys, wage, settings )
-                                key = (; wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
-                                println( "on $key")
-                                println( "processed $processed")
-                                out[key] = (; lbc, ubc )                                
-                                push!( keys, key )
+                                if((ch6p + chu6) > 0)&&(bedrooms <2)
+                                    ;
+                                else
+                                    processed += 1
+                                    hh =  get_hh( ;
+                                        country = country,
+                                        tenure  = tenure,
+                                        bedrooms = bedrooms,
+                                        hcost    = hcost,
+                                        marrstat = marrstat, 
+                                        chu6     = chu6, 
+                                        ch6p     = ch6p )
+                                    lbc, ubc = getbc( hh, sys, wage, settings )
+                                    key = (; wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
+                                    println( "on $key")
+                                    println( "processed $processed")
+                                    out[key] = (; lbc, ubc )                                
+                                    push!( keys, key )
+                                end
                             end
                         end
                     end
@@ -271,8 +275,26 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
         <script type='text/javascript' src='js/jquery.js'></script>
         <script type='text/javascript' src='js/bootstrap.bundle.js'></script>
     </head>
-    <body class='text-primary p-2'>
+    <body class='p-2'>
     <h1>Sample Budget Constraints</h1>
+    <p>
+    Assumptions:
+    </p>
+    <ul>
+        <li>Lives in Glasgow (for ct, lha);
+        <li>CT Band C;</li>
+        <li>No other source of income;</li>
+        <li>zero personal wealth;</li>
+        <li>no disabilities;</li>
+        <li>age 30</li>
+        <li>Spouse is 30; does not earn</li>
+        <li>Expenses (pension contribs, etc) are 0 and do not change as earnings change;
+    </ul>
+    <p>
+    All these assumptions can be changed but there's a lot here as it is.
+    The tables show combinations of (AHC, unequivalised) net income and wages for the household
+    for various (too many!) combinations of numbers of children, bedrooms, tenure, coupledom and housing costs.
+    </p>
     """
 
     footer = """
@@ -285,13 +307,13 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     println(io, header)
 
     println( io, "<h3>Index</h3>")
-    println( io, "<ul class='list-group' id='home'>")
+    println( io, "<ul id='home'>")
     for key in keys
         for legacy in [true, false]
             legstr = legacy ? "Old Benefit System" : "Universal Credit"
             title = title_from_key(key, legstr )
             id = id_from_key( key, legacy )
-            println(io, "<li class='list-group-item'><a href='#$id'>$title</li>")
+            println(io, "<li><a href='#$id'>$title</li>")
         end
     end 
     println( io, "</ul>")
