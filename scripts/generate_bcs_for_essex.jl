@@ -261,7 +261,7 @@ end
 function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     keys, dfs = do_everything(sys, settings )
     dir = joinpath("/", "home", "graham_s", "tmp","essex")
-    io = open( joinpath(dir, "budget-constraints-v1.html"), "w")
+    io = open( joinpath(dir, "index.html"), "w")
     header = """
     <!DOCTYPE html>
     <html>
@@ -284,20 +284,20 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     """
     println(io, header)
 
-    println( "<h3>Index</h3>")
-    println( "<ul class='list-group' id='home'>")
-    for k in keys
+    println( io, "<h3>Index</h3>")
+    println( io, "<ul class='list-group' id='home'>")
+    for key in keys
         for legacy in [true, false]
             title = title_from_key(key, legacy )
             id = id_from_key( key, legacy )
-            println("<li class='list-group-item'><a href='#$id'>$title</li>")
+            println(io, "<li class='list-group-item'><a href='#$id'>$title</li>")
         end
     end 
-    println( "</ul>")
+    println( io, "</ul>")
 
-    for k in keys
-        print( io, draw_one( dir, k, dfs[k].lbc, true ))
-        print( io, draw_one( dir, k, dfs[k].ubc, false ))
+    for key in keys
+        print( io, draw_one( dir, key, dfs[k].lbc, true ))
+        print( io, draw_one( dir, key, dfs[k].ubc, false ))
     end
 
     println(io, footer )
