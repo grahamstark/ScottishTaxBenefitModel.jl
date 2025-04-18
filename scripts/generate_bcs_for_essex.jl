@@ -116,10 +116,10 @@ function get_hh( ;
 end
 
 function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
-    tenures = ["private"] #, "owner"]
+    tenures = ["private", "owner"]
     country = "scotland"
-    hcosts = [200] #,400.0]
-    marrstats = ["single"] # "couple"]
+    hcosts = [200,400.0]
+    marrstats = ["single", "couple"]
     out = Dict()
     processed = 0
     num_bedrooms = [1,4]
@@ -131,21 +131,27 @@ function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
                     for bedrooms in num_bedrooms
                         for chu6 in [0,3]
                             for ch6p in [0,3]
-                                processed += 1
-                                hh =  get_hh( ;
-                                    country = country,
-                                    tenure  = tenure,
-                                    bedrooms = bedrooms,
-                                    hcost    = hcost,
-                                    marrstat = marrstat, 
-                                    chu6     = chu6, 
-                                    ch6p     = ch6p )
-                                lbc, ubc = getbc( hh, sys, wage, settings )
-                                key = (; wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
-                                println( "on $key")
-                                println( "processed $processed")
-                                out[key] = (; lbc, ubc )                                
-                                push!( keys, key )
+                                if((ch6p + chu6) > 0)&&(bedrooms <2)
+                                    ; # skip pointless examples
+                                elseif((ch6p + chu6) == 0)&&(bedrooms > 1)
+                                    ;
+                                else
+                                    processed += 1
+                                    hh =  get_hh( ;
+                                        country = country,
+                                        tenure  = tenure,
+                                        bedrooms = bedrooms,
+                                        hcost    = hcost,
+                                        marrstat = marrstat, 
+                                        chu6     = chu6, 
+                                        ch6p     = ch6p )
+                                    lbc, ubc = getbc( hh, sys, wage, settings )
+                                    key = (; wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
+                                    println( "on $key")
+                                    println( "processed $processed")
+                                    out[key] = (; lbc, ubc )                                
+                                    push!( keys, key )
+                                end
                             end
                         end
                     end
@@ -178,7 +184,6 @@ function add_hidden_to_label( lab :: String )::String
 end
 
 function format_bc_df( title::String, bc::DataFrame)
-    # gl[!,1] = pretty.(gl[!,1])
     bc[!,:simplelabel_hide] = add_hidden_to_label.( bc.simplelabel )
     pretty_table( 
         String,
@@ -195,7 +200,11 @@ end
 
 function title_from_key(k::NamedTuple, legstr::String )::String
     s = []
+<<<<<<< HEAD
     push!( s, k.marrstat == "single" ? "Single Person" : "Couple")
+=======
+    push!( s, k.marrstat == "single" ? "One Adult" : "Couple")
+>>>>>>> b73a8712c74e5b0443d59caf4eff81e07f1ead91
     push!( s, "Wage: &pound;$(k.wage)p.h")
     push!( s, k.tenure == "private" ? "Private Renting" : "Owner Occupier")
     push!( s, "Housing Costs: &pound;$(k.hcost)p.w")
@@ -229,11 +238,6 @@ function draw_bc( title :: String, df :: DataFrame )::Figure
     f
 end
 
-"""
-:label, :simplelabel, :label_p1, :label_pch
-
-"""
-
 function draw_one( dir::String, key::NamedTuple, bc :: DataFrame, legacy :: Bool )::String
     legstr = legacy ? "Old Benefit System" : "Universal Credit"
     title = title_from_key(key, legstr )
@@ -253,6 +257,7 @@ function draw_one( dir::String, key::NamedTuple, bc :: DataFrame, legacy :: Bool
     <br/>
     <a href="data/$(id).tab" download="$(id).tab">Dataset (tab-delimited)</a>
     </div>
+    <p><a href='#home'>Top</a></p>
 </div>
     """
 end
@@ -266,12 +271,31 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     <html>
         <head>
         <title>Sample Budget Constraints</title>
-        <link rel="stylesheet" href="css/bisite-bootstrap.css"/>
-        <script type='text/javascript' src='js/jquery.js'></script>
-        <script type='text/javascript' src='js/bootstrap.bundle.js'></script>
+        <link rel="stylesheet" href="css/northumbria-bootstrap.css"/>
+        <script src='js/jquery.js'></script>
+        <script src='js/bootstrap.bundle.js'></script>
     </head>
-    <body class='text-primary p-2'>
+    <body class='p-2'>
     <h1>Sample Budget Constraints</h1>
+    <p>
+    Assumptions:
+    </p>
+    <ul>
+        <li>2024/5 Scottish system;<li>
+        <li>Lives in Glasgow (for ct, lha);
+        <li>CT Band C;</li>
+        <li>No other source of income;</li>
+        <li>zero personal wealth;</li>
+        <li>no disabilities;</li>
+        <li>Head is aged 30;</li>
+        <li>Where present, Spouse is also 30; does not earn; and</li>
+        <li>Expenses (pension contributions, etc) are 0 and do not change as earnings change.
+    </ul>
+    <p>
+    All these assumptions can be changed but there's a lot here as it is.
+    The tables show combinations of (AHC, unequivalised) net income and wages for the household
+    for various (too many!) combinations of numbers of children, bedrooms, tenure, coupledom and housing costs.
+    </p>
     """
 
     footer = """
@@ -283,9 +307,21 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     """
     println(io, header)
 
-    for k in keys
-        print( io, draw_one( dir, k, dfs[k].lbc, true ))
-        print( io, draw_one( dir, k, dfs[k].ubc, false ))
+    println( io, "<h3>Index</h3>")
+    println( io, "<ul id='home'>")
+    for key in keys
+        for legacy in [true, false]
+            legstr = legacy ? "Old Benefit System" : "Universal Credit"
+            title = title_from_key(key, legstr )
+            id = id_from_key( key, legacy )
+            println(io, "<li><a href='#$id'>$title</a></li>")
+        end
+    end 
+    println( io, "</ul>")
+
+    for key in keys
+        print( io, draw_one( dir, key, dfs[key].lbc, true ))
+        print( io, draw_one( dir, key, dfs[key].ubc, false ))
     end
 
     println(io, footer )
