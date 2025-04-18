@@ -184,7 +184,6 @@ function add_hidden_to_label( lab :: String )::String
 end
 
 function format_bc_df( title::String, bc::DataFrame)
-    # gl[!,1] = pretty.(gl[!,1])
     bc[!,:simplelabel_hide] = add_hidden_to_label.( bc.simplelabel )
     pretty_table( 
         String,
@@ -235,11 +234,6 @@ function draw_bc( title :: String, df :: DataFrame )::Figure
     f
 end
 
-"""
-:label, :simplelabel, :label_p1, :label_pch
-
-"""
-
 function draw_one( dir::String, key::NamedTuple, bc :: DataFrame, legacy :: Bool )::String
     legstr = legacy ? "Old Benefit System" : "Universal Credit"
     title = title_from_key(key, legstr )
@@ -273,9 +267,9 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     <html>
         <head>
         <title>Sample Budget Constraints</title>
-        <link rel="stylesheet" href="css/bisite-bootstrap.css"/>
-        <script type='text/javascript' src='js/jquery.js'></script>
-        <script type='text/javascript' src='js/bootstrap.bundle.js'></script>
+        <link rel="stylesheet" href="css/northumbria-bootstrap.css"/>
+        <script src='js/jquery.js'></script>
+        <script src='js/bootstrap.bundle.js'></script>
     </head>
     <body class='p-2'>
     <h1>Sample Budget Constraints</h1>
@@ -283,14 +277,15 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     Assumptions:
     </p>
     <ul>
+        <li>2024/5 Scottish system;<li>
         <li>Lives in Glasgow (for ct, lha);
         <li>CT Band C;</li>
         <li>No other source of income;</li>
         <li>zero personal wealth;</li>
         <li>no disabilities;</li>
-        <li>age 30</li>
-        <li>Spouse is 30; does not earn</li>
-        <li>Expenses (pension contribs, etc) are 0 and do not change as earnings change;
+        <li>Head is aged 30;</li>
+        <li>Where present, Spouse is also 30; does not earn; and</li>
+        <li>Expenses (pension contributions, etc) are 0 and do not change as earnings change.
     </ul>
     <p>
     All these assumptions can be changed but there's a lot here as it is.
@@ -315,7 +310,7 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
             legstr = legacy ? "Old Benefit System" : "Universal Credit"
             title = title_from_key(key, legstr )
             id = id_from_key( key, legacy )
-            println(io, "<li><a href='#$id'>$title</li>")
+            println(io, "<li><a href='#$id'>$title</a></li>")
         end
     end 
     println( io, "</ul>")
