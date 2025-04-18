@@ -200,11 +200,7 @@ end
 
 function title_from_key(k::NamedTuple, legstr::String )::String
     s = []
-<<<<<<< HEAD
     push!( s, k.marrstat == "single" ? "Single Person" : "Couple")
-=======
-    push!( s, k.marrstat == "single" ? "One Adult" : "Couple")
->>>>>>> b73a8712c74e5b0443d59caf4eff81e07f1ead91
     push!( s, "Wage: &pound;$(k.wage)p.h")
     push!( s, k.tenure == "private" ? "Private Renting" : "Owner Occupier")
     push!( s, "Housing Costs: &pound;$(k.hcost)p.w")
