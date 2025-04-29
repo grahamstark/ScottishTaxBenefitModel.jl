@@ -309,7 +309,7 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     println(io, header)
 
     println( io, "<h3>Index</h3>")
-    println( io, "<ul id='home'>")
+    println( io, "<ol id='home'>")
     for key in keys
         for legacy in [true, false]
             legstr = legacy ? "Old Benefit System" : "Universal Credit"
@@ -318,7 +318,7 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
             println(io, "<li><a href='#$id'>$title</li>")
         end
     end 
-    println( io, "</ul>")
+    println( io, "</ol>")
 
     for key in keys
         print( io, draw_one( dir, key, dfs[key].lbc, true ))
