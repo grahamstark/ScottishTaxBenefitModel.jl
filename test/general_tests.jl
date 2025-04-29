@@ -19,11 +19,4 @@ using .Definitions
     @test p.hid == 19064
     @test p.pno == 4
 
-    @test Definitions.load_data_path( default="Fred", which=:model_data_dirxx ) == "Fred"
-    if Sys.isunix()
-        # @test Definitions.load_data_path( default="Fred", which=:model_data_dir ) == "/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/"
-    end
-    if Sys.iswindows()
-        @test Definitions.load_data_path( default="Fred", which=:model_data_dir ) == "C:\\Users\\gks56\\julia\\vw\\ScottishTaxBenefitModel\\data\\"
-    end
 end

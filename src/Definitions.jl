@@ -80,7 +80,7 @@ export DAYS_PER_YEAR, WEEKS_PER_MONTH, WEEKS_PER_YEAR, annualise, weeklyise
 # !! maybe make this 366/365 depending on whether this year is a leap year; see the CPAG guide chapter on WTC amounts, for example
 const DAYS_PER_YEAR = 365.25 
 const WEEKS_PER_YEAR = DAYS_PER_YEAR/7.0
-# needed for e.g. UC - they may use 
+# needed for e.g. UC
 # This is what's used for UC, even though it's
 # not consistent with the above. Possibly
 # switch to WEEKS_PER_YEAR/12
