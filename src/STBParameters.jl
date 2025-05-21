@@ -1129,7 +1129,7 @@ end
 
 """
 If a basic income is set, apply the rules of the UB components - 
-add UB to benefitr incomes, make taxable, abolish mt benefits depending 
+add UB to benefit incomes, make taxable, abolish mt benefits depending 
 on UB settings.
 """
 function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
