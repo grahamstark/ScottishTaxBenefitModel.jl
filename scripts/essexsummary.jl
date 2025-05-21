@@ -138,115 +138,181 @@ end
 """
 reload data from a mapped household back into an original dataframe
 """
-function writeback!( hhdata :: DataFrame, persdata::DataFrame, hh :: Household )
-    hhrow = hhdata[ (hhdata.hid .== hh.hid) .& ( hhdata.data_year .== hh.data_year ), :]
-    @assert size(hhrow)[1] == 1
-    hhrow = hhrow[1,:]
-    hhrow.weight = hh.weight
-    hhrow.water_and_sewerage  = hh.water_and_sewerage 
-    hhrow.mortgage_payment = hh.mortgage_payment
-    hhrow.mortgage_interest = hh.mortgage_interest
-    hhrow.gross_rent = hh.gross_rent
-    hhrow.total_wealth = hh.total_wealth
-    hhrow.house_value = hh.house_value
-    hhrow.net_physical_wealth  = hh.net_physical_wealth 
-    hhrow.net_financial_wealth  = hh.net_financial_wealth 
-    hhrow.net_housing_wealth  = hh.net_housing_wealth 
-    hhrow.net_pension_wealth  = hh.net_pension_wealth 
-    hhrow.original_gross_income  = hh.original_gross_income 
-        #=
- hhrow.original_income_decile  = hh.original_income_decile 
- hhrow.equiv_original_income_decile  = hh.equiv_original_income_decile 
-    =#
-
+function writeback!( phhs :: DataFrame, hh :: Household )
+    phhr = @view phhs[ (phhs.hid .== hh.hid) .& ( phhs.data_year .== hh.data_year ), :]
+    @assert size(phhr)[1] >= 1
+    # phhr = phhr[1,:]
+    phhr.weight .= hh.weight
+    phhr.water_and_sewerage .= hh.water_and_sewerage 
+    phhr.mortgage_payment .= hh.mortgage_payment
+    phhr.mortgage_interest .= hh.mortgage_interest
+    phhr.gross_rent .= hh.gross_rent
+    phhr.total_wealth .= hh.total_wealth
+    phhr.house_value .= hh.house_value
+    phhr.net_physical_wealth .= hh.net_physical_wealth 
+    phhr.net_financial_wealth .= hh.net_financial_wealth 
+    phhr.net_housing_wealth .= hh.net_housing_wealth 
+    phhr.net_pension_wealth .= hh.net_pension_wealth 
+    phhr.original_gross_income .= hh.original_gross_income 
     for (pid,pers) in hh.people
-        persrow =  persdata[(persdata.hid .== pers.hid) .& ( persdata.data_year .== pers.data_year ) .& (persdata.pno .== pers.pno ),:]
+        persrow = @view phhs[(phhs.pid .== pers.pid),:]
         @assert size( persrow)[1] == 1
         persrow = persrow[1,:]
-
         for i in instances(Incomes_Type)
-            ikey = make_sym_for_frame("income", i)
-            if model_person[ikey] != 0.0
-                persrow[ikey] = pers.income[i]
-            end
+            ikey = Symbol("income_", i)
+            persrow[ikey] = get(pers.income, i, 0.0 )
         end
-
-
-
-        #
-        # override wages and se
-        # wage needs to be set
-        if settings.income_data_source == ds_frs
-            income[wages] = model_person.wages_frs
-            income[self_employment_income] = model_person.self_emp_frs
-        else # not really needed since hbai is the default
-            income[wages] = model_person.wages_hbai
-            income[self_employment_income] = model_person.self_emp_hbai
-        end
-        assets = Dict{Asset_Type,Float64}() # fixme asset_type_dict
         for i in instances(Asset_Type)
             if i != Missing_Asset_Type
-                ikey = make_sym_for_asset( i )
-                # println(ikey)
-                if model_person[ikey] != 0
-                    assets[i] = model_person[ikey]
-                end
+                ikey = make_sym_for_asset(i)
+                persrow[ikey] = get(pers.assets,i,0.0)
             end
         end
-
+        persrow.cost_of_childcare = pers.cost_of_childcare
+        persrow.work_expenses = pers.work_expenses 
+        persrow.travel_to_work = pers.work_expenses 
+        persrow.debt_repayments = pers.debt_repayments
+        persrow.wealth_and_assets = pers.wealth_and_assets    
     end
 end
 
-function summarise( v :: Vector, w :: AbstractWeights )
+function overwrite_raw!( phhs :: DataFrame, nhhs :: Int )
+    for hno in 1:nhhs
+        hh = FRSHouseholdGetter.get_household( hno )
+        writeback!( phhs, hh )
+    end
+end
+
+function summarise( key::Symbol, v :: AbstractVector, w :: AbstractWeights )
     v = coalesce.(v,0.0)
     n = length(v)
     wn = sum(w)
     pv = v[ v .> 0 ]
     pw = w[ v .> 0 ]
-    u_mean = mean( pv )
-    w_mean = mean( pv, pw )
-    u_median = median( pv )
-    w_median = median( pv, pw )
-    u_non_zeros = length( pv )
-    w_non_zeros = sum( pw)
-    u_std = std( pv )
-    w_std = std( pv, pw )
-    mn = minimum( pv )
-    mx = maximum(pv)
-    u_hist = fit(Histogram, pv, nbins=10)
-    w_hist = fit(Histogram, pv, pw, nbins=10)
-    (; count=n,weighted_count=wn,u_mean,u_median,u_non_zeros,u_std, u_hist, w_mean,w_median,w_non_zeros,w_std, w_hist, minimum=mn, maximum=mx)
+    out = (; key=key, type="allzero", msg = "No non-zeros")
+    if length(pv) > 0
+        u_mean = mean( pv )
+        w_mean = mean( pv, pw )
+        u_median = median( pv )
+        w_median = median( pv, pw )
+        u_non_zeros = length( pv )
+        w_non_zeros = sum( pw)
+        u_std = std( pv )
+        w_std = std( pv, pw )
+        mn = minimum( pv )
+        mx = maximum(pv)
+        u_hist = fit(Histogram, pv, nbins=10)
+        w_hist = fit(Histogram, pv, pw, nbins=10)
+        out = (; key=key, type="full", count=n,weighted_count=wn,u_mean,u_median,u_non_zeros,u_std, u_hist, w_mean,w_median,w_non_zeros,w_std, w_hist, minimum=mn, maximum=mx)
+    end
+    out
 end
 
-function make_summaries( df :: DataFrame, skiplist=[:hid, :buno, :pid, :pno])::DataFrame
+function dict_to_dataframe( out :: Vector )::Tuple
+    l = length( out )
+    out1 = DataFrame( 
+        varname = fill( Symbol(""),l),
+        notes = fill("",l),
+        count=fill(0,l),
+        weighted_count=fill(0.0,l),
+        u_mean=fill(0.0,l),
+        u_median=fill(0.0,l),
+        u_non_zeros=fill(0.0,l),
+        u_std=fill(0.0,l), 
+        # u_hist=fill(0.0,l), 
+        w_mean=fill(0.0,l),
+        w_median=fill(0.0,l),
+        w_non_zeros=fill(0.0,l),
+        w_std=fill(0.0,l), 
+        # w_hist=fill(0.0,l), 
+        minimum=fill(0.0,l), 
+        maximum=fill(0.0,l))
+    l20 = l*20
+    out2 = DataFrame(
+        varname = fill( Symbol(""), l20),
+        notes = fill( "", l20),
+        label = fill( "", l20),
+        u_count = fill(0, l20),
+        w_count = fill(0.0, l20))
+    o1pos = 0
+    o2pos = 0
+    for v in out
+        if v.type == "full"
+            o1pos += 1
+            r = @view out1[o1pos,:]
+            r.varname = v.key
+            # r.notes = ""
+            r.count = v.count
+            r.weighted_count = v.weighted_count
+            r.u_mean = v.u_mean
+            r.u_median = v.u_median
+            r.u_non_zeros = v.u_non_zeros
+            r.u_std = v.u_std
+            # r.u_hist = v.u_hist
+            r.w_mean = v.w_mean
+            r.w_median = v.w_median
+            r.w_non_zeros = v.w_non_zeros
+            r.w_std = v.w_std
+            # r.w_hist = v.w_hist
+            r.minimum = v.minimum
+            r.maximum = v.maximum
+        elseif v.type == "enum"
+            ln = length( v.weighted )
+            labs = collect(keys(v.weighted))
+            uv = collect(values( v.unweighted ))
+            wv = collect(values( v.weighted ))
+            for i in 1:ln
+                o2pos += 1
+                if i == 1
+                    out2[o2pos,:varname] = v.key
+                end
+                out2[o2pos,:label] = string(labs[i])
+                out2[o2pos,:u_count] = uv[i]
+                out2[o2pos,:w_count] = wv[i]
+            end
+        elseif v.type == "allzero"
+            o1pos += 1
+            r = @view out1[o1pos,:]
+            r.varname = v.key
+            r.notes = "All zero/missing."
+        end
+    end
+    out1[1:o1pos,:], out2[1:o2pos,:]
+end
+
+function make_summaries( df :: DataFrame, skiplist=[:hid, :buno, :pid, :pno,:onerand,:uhid_1, :onerand_1, :data_year, :interview_year ])::Tuple
     nms = setdiff(OrderedSet(Symbol.(names( df ))), Set(skiplist ))
-    weights = Weights( df.weight )
+    out = []
     for k in nms 
+        print( "on $k")
         r = df[!,k]
         et = eltype(r)
-        print( "on $k")
+        if et isa Union # {Missing,Any}
+            println( "Union type $et ")
+            et = et.b # Union{Missing,X}; b is 2nd one
+        end
         if et <: Integer
             println( "Int")
-            ss = summaries( r )
-            w_ss = summar(r, weights=weights)
-                
-            if match(r"age.*",string(k)) != nothing # an age of some kind - convert to 10 year intervals
+            ss = summarise( k, r, df.weight )
+            #=
+            if match(r"^age.*",string(k)) != nothing # an age of some kind - convert to 10 year intervals
                 r = 10 * (r .÷ 10) # 10 year ages
             end
             u_cm = sort(countmap( r ))
             w_cm = sort(countmap( r ), weights=weights)
+            =#
         elseif et <: AbstractFloat
-            u_ss = summarystats( r )
-            w_ss = summarystats(r, weights=weights)
-            u_hist = hist
             println( "Float")
-        elseif et <: Enum 
+            ss = summarise( k, r, df.weight )
+        elseif (et <: Enum) || (et <: Symbol) || (et <: Bool )
             println( "Enum")
+            ss = ( ; key=k, type="enum", weighted = sort( countmap( r, df.weight)), unweighted = sort( countmap( r )))
         else
             println( "unmatched $k")
         end
-        typeof(a) <: Enum
+        push!(out, ss)
     end
+    return dict_to_dataframe( out )
 end
 
 function initialise(; 
@@ -280,14 +346,17 @@ people = HouseholdFromFrame.read_pers(
 
 settings, sys, nhhs = initialise( included_data_years=included_data_years, lower_multiple=0.15, upper_multiple=9)
 
+# restrict to Essex's three years
 people = people[ people.data_year .∈ ( included_data_years, ) , :]
 hhs = hhs[ hhs.data_year .∈ ( included_data_years, ) , :]
 interframe = make_intermed_dataframe( settings, 
     sys, 
     nhhs )
+# this seems to be what they work with.. weird
 phhs = leftjoin( hhs, people, on=[:hid,:data_year], makeunique=true)
-# won't work phhs = leftjoin( hpps, people, on=[:hid,:data_year], makeunique=true)
-
-sum( interframe.num_people)
-
-# settings, sys, nhhs = initialise() #  included_data_years=[2019,2020,2022], lower_multiple=0.15, upper_multiple=8.2)
+# Write the uprated and whatevered mode hhld data back into the frame we're comparing with.
+overwrite_raw!( phhs, nhhs )
+# Cast weights as StatsBase weights type - this doesn't persist well.
+phhs.weight = Weights( phhs.weight )
+interframe.weight = Weights( interframe.weight )
+df1, df2 = make_summaries( phhs )
