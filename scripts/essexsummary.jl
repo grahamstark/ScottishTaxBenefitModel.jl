@@ -197,7 +197,8 @@ function writeback!( hhdata :: DataFrame, persdata::DataFrame, hh :: Household )
     end
 end
 
-function summaries( v :: Vector, w :: AbstractWeights )
+function summarise( v :: Vector, w :: AbstractWeights )
+    v = coalesce.(v,0.0)
     n = length(v)
     wn = sum(w)
     pv = v[ v .> 0 ]
@@ -212,7 +213,9 @@ function summaries( v :: Vector, w :: AbstractWeights )
     w_std = std( pv, pw )
     mn = minimum( pv )
     mx = maximum(pv)
-    (; count=n,weighted_count=wn,u_mean,u_median,u_non_zeros,u_std, w_mean,w_median,w_non_zeros,w_std, minimum=mn, maximum=mx)
+    u_hist = fit(Histogram, pv, nbins=10)
+    w_hist = fit(Histogram, pv, pw, nbins=10)
+    (; count=n,weighted_count=wn,u_mean,u_median,u_non_zeros,u_std, u_hist, w_mean,w_median,w_non_zeros,w_std, w_hist, minimum=mn, maximum=mx)
 end
 
 function make_summaries( df :: DataFrame, skiplist=[:hid, :buno, :pid, :pno])::DataFrame
@@ -269,11 +272,13 @@ end
 
 included_data_years = [2019,2021,2022]
 # dup load but hard to avoid..
-dataset_artifact = get_data_artifact( settings )
+dataset_artifact = get_data_artifact( Settings() )
 hhs = HouseholdFromFrame.read_hh( 
     joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame
 people = HouseholdFromFrame.read_pers( 
     joinpath( dataset_artifact, "people.tab"))
+
+settings, sys, nhhs = initialise( included_data_years=included_data_years, lower_multiple=0.15, upper_multiple=9)
 
 people = people[ people.data_year .∈ ( included_data_years, ) , :]
 hhs = hhs[ hhs.data_year .∈ ( included_data_years, ) , :]
@@ -282,8 +287,6 @@ interframe = make_intermed_dataframe( settings,
     nhhs )
 phhs = leftjoin( hhs, people, on=[:hid,:data_year], makeunique=true)
 # won't work phhs = leftjoin( hpps, people, on=[:hid,:data_year], makeunique=true)
-
-settings, sys, nhhs = initialise( included_data_years=included_data_years, lower_multiple=0.15, upper_multiple=9)
 
 sum( interframe.num_people)
 

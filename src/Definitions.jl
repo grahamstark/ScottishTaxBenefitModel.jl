@@ -2353,6 +2353,7 @@ export WhichBUAdult, ad_head, ad_spouse, ad_both
 export LA_NAMES, scorefind
 
 function make_la_names_lookup()::DataFrame
+   println( pwd())
    las = CSV.File(joinpath(artifact"augdata", "scottish-las-shs-ons-names.tab" ))|>DataFrame
    las.lad_2017 = Symbol.(las.lad_2017)
    las
