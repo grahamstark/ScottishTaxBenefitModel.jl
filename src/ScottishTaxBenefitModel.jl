@@ -174,8 +174,9 @@ export HealthRegressions
 
 include( "LocalWeightGeneration.jl")
 export LocalWeightGeneration
-# include( "LegalAidRunner.jl")
-# export LegalAidRunner
+
+include( "DataSummariser.jl")
+export DataSummariser
 
 include( "HTMLLibs.jl")
 export HTMLLibs
