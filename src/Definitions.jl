@@ -2373,6 +2373,75 @@ end
 export DisabilityGroup, dis_working_age, dis_children, dis_pensioners, dis_all_adults, dis_all_people
 @enum DisabilityGroup dis_working_age dis_children dis_pensioners dis_all_adults dis_all_people
 
+export Age_Range, get_age_band
+
+# these are the Scottish Census bands 
+@enum Age_Range begin
+    age_0_4
+    age_5_9
+    age_10_14
+    age_15
+    age_16_17
+    age_18_19
+    age_20_24
+    age_25_29
+    age_30_34
+    age_35_39
+    age_40_44
+    age_45_49
+    age_50_54
+    age_55_59
+    age_60_64
+    age_65_69
+    age_70_74
+    age_75_79
+    age_80_84
+    age_85_plus
+end
+
+function get_age_band( age :: Int )::Age_Range
+    return if age <= 4
+        age_0_4
+    elseif age <= 9
+            age_5_9
+    elseif age <= 14
+        age_10_14
+    elseif age <= 15
+        age_15
+    elseif age <= 17
+        age_16_17
+    elseif age <= 19
+        age_18_19
+    elseif age <= 24
+        age_20_24
+    elseif age <= 29
+        age_25_29
+    elseif age <= 34
+        age_30_34
+    elseif age <= 39
+        age_35_39
+    elseif age <= 44
+        age_40_44
+    elseif age <= 49
+        age_45_49
+    elseif age <= 54
+        age_50_54
+    elseif age <= 59
+        age_55_59
+    elseif age <= 64
+        age_60_64
+    elseif age <= 69
+        age_65_69
+    elseif age <= 74
+        age_70_74
+    elseif age <= 79
+        age_75_79
+    elseif age <= 84
+        age_80_84
+    else
+        age_85_plus
+    end
+end
 
 
 end # module
