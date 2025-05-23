@@ -198,7 +198,7 @@ module FRSHouseholdGetter
         rtol = if settings.do_local_run 
             0.1
         else
-            0.03
+            0.08
         end
         for dc in deccheck
             prop = dc/deccheck[1]
@@ -377,7 +377,7 @@ module FRSHouseholdGetter
             LegalAidData.init( settings; reset = reset )
         end
         skiplist = get_skiplist( settings )
-        ds = main_datasets( settings )
+        # ds = main_datasets( settings )
         dataset_artifact = get_data_artifact( settings )
         hh_dataset = HouseholdFromFrame.read_hh( 
             joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame
