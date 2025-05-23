@@ -1,6 +1,12 @@
 module DataSummariser 
 #=
 
+This was made as part of the Essex validation exercise.
+
+Produce summary stats for each variable in the dataframe version of the model dataframes
+(any dataset, really). Also code to generate dataframes from the intermediate data and to
+overwrite income and other variables in the model dataset with uprated versions from
+the model structs.
 
 =#
 
@@ -16,8 +22,11 @@ using .Weighting
 
 using CSV,DataFrames,StatsBase,DataStructures
 
-export make_intermed_dataframe, make_data_summaries
+export make_intermed_dataframe, make_data_summaries, overwrite_raw!
 
+"""
+
+"""
 function make_intermed_dataframe( 
     settings :: Settings, 
     sys :: TaxBenefitSystem{RT}, 
