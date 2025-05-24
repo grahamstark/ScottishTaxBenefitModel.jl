@@ -58,6 +58,9 @@ overwrite_raw!( phhs, nhhs )
 phhs.weight = Weights( phhs.weight )
 interframe.weight = Weights( interframe.weight )
 df1, df2 = make_data_summaries( phhs )
-
-CSV.write( "/mnt/data/ScotBen/data/scotben-numeric-variable-summaries.tab", df1; delim='\t')
-CSV.write( "/mnt/data/ScotBen/data/scotben-enum-variable-summaries.tab", df2; delim='\t')
+tmpdir = joinpath( tempdir(), "output" )
+if ! isdir( tmpdir )
+   mkdir( tmpdir )
+end
+CSV.write( joinpath( tmpdir, "scotben-numeric-variable-summaries.tab" ), df1; delim='\t')
+CSV.write( joinpath( tmpdir, "scotben-enum-variable-summaries.tab"), df2; delim='\t')
