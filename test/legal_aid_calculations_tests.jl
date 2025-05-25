@@ -587,8 +587,8 @@ end
     settings = lasettings()
     settings.run_name="Test of LA running just in full model."
     settings.requested_threads = 4
-    settings.wealth_method = other_method_1
-    settings.run_name = "Direct Run"
+    settings.wealth_method = matching # other_method_1
+    settings.run_name = "Direct Run w Matching Capital"
     sys2 = deepcopy(sys1)
     settings.do_legal_aid = true
 

@@ -201,7 +201,7 @@ module RunSettings
         settings.means_tested_routing = modelled_phase_in
         settings.use_shs = false        
         settings.indirect_method = matching
-        settings.wealth_method=imputation
+        settings.wealth_method = imputation
         settings.do_indirect_tax_calculations = true
         settings.do_legal_aid = false
         settings.legal_aid_probs_data = ""
