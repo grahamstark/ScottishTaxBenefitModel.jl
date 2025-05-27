@@ -219,8 +219,8 @@ function summarise( key::Symbol, v :: AbstractVector, w :: AbstractWeights )
         w_std = std( pv, pw )
         mn = minimum( pv )
         mx = maximum(pv)
-        u_hist = fit(Histogram, pv, nbins=10)
-        w_hist = fit(Histogram, pv, pw, nbins=10)
+        u_hist = fit(Histogram, pv, nbins=20)
+        w_hist = fit(Histogram, pv, pw, nbins=20)
         out = (; key=key, type="full", count=n,weighted_count=wn,u_mean,u_median,u_non_zeros,u_std, u_hist, w_mean,w_median,w_non_zeros,w_std, w_hist, minimum=mn, maximum=mx)
     end
     out
@@ -329,7 +329,7 @@ function make_data_summaries( df :: DataFrame, skiplist=[:hid, :buno, :pid, :uhi
         end
         push!(out, ss)
     end
-    return dict_to_dataframe( out )
+    return (dict_to_dataframe( out )..., out )
 end
 
 end # module
