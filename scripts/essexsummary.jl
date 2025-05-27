@@ -79,6 +79,9 @@ function do_one_summary_set(;
         settings.num_households )
     # this seems to be what they work with.. weird
     phhs = leftjoin( hhs, people, on=[:hid,:data_year], makeunique=true)
+    
+    phhs.income_self_employment_net = phhs.income_self_employment_income - phhs.income_self_employment_losses
+    phhs.age_band = Definitions.get_age_band.( phhs.age )
     # Write the uprated and whatevered mode hhld data back into the frame we're comparing with.
     overwrite_raw!( phhs, settings.num_households )
     if settings.weighting_strategy == use_supplied_weights # average out supplied weights if we're not recomputed.
@@ -100,6 +103,7 @@ function do_one_summary_set(;
     for v in raw
         draw_hist( tmpdir, v, year_str, weight_str, match_str )
     end
+    CSV.write( joinpath( tmpdir, "scotben-joined-data.tab" ), phhs; delim='\t')
     CSV.write( joinpath( tmpdir, "scotben-numeric-variable-summaries.tab" ), df_numvars; delim='\t')
     CSV.write( joinpath( tmpdir, "scotben-enum-variable-summaries.tab"), df_enums; delim='\t')
 end

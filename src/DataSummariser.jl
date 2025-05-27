@@ -205,8 +205,8 @@ function summarise( key::Symbol, v :: AbstractVector, w :: AbstractWeights )
     v = coalesce.(v,0.0)
     n = length(v)
     wn = sum(w)
-    pv = v[ v .> 0 ]
-    pw = w[ v .> 0 ]
+    pv = v[ v .!= 0 ]
+    pw = w[ v .!= 0 ]
     out = (; key=key, type="allzero", msg = "No non-zeros")
     if length(pv) > 0
         u_mean = mean( pv )
