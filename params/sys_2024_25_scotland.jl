@@ -27,7 +27,7 @@ function load_sys_2024_25_scotland!( sys :: TaxBenefitSystem{T} ) where T
     sys.nmt_bens.carers.scottish_supplement = 231.40 # FROM APRIL 2021
   
     ## !!! FIXME the Welsh ones in this file are not updated 
-    brmapath = joinpath( artifact"augdata", "lha_rates_scotland_2024_25.csv")
+    brmapath = joinpath( get_artifact_str( "augdata" ), "lha_rates_scotland_2024_25.csv")
     sys.hr.brmas = loadBRMAs( 4, T, brmapath )
     sys.loctax.ct.band_d = Dict(
         [:S12000033 => 1_489.55, # Aberdeen City

@@ -169,6 +169,7 @@ module RunSettings
 
     function get_artifact(; name::String, source::String, scottish :: Bool )::AbstractString
         scuk = scottish ? "scottish" : "uk"
+        name = get_artifact_name( name )
         return LazyArtifacts.@artifact_str("$(scuk)-$(source)-$(name)")
     end
 

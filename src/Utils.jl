@@ -37,6 +37,7 @@ export
    df_diff,
    eq_nearest_p,  
    extract_digits,
+   get_artifact_name,
    get_if_set,
    get_project_path,
    get_quantiles,
@@ -85,18 +86,18 @@ function make_household_sample(
    shhs, spers 
 end
 
-function get_artifact_name( artname :: String, is_windows :: Bool )
-    version = Pkg.project().version
-    osname = if is_windows
-        "windows"
-    else
-        "unix"
-    end
-    return @artifact"$artname-$osname-$version"
+function get_artifact_name( artname :: String, is_windows :: Bool )::Tuple
+   version = Pkg.project().version
+   osname = if is_windows
+      "windows"
+   else
+      "unix"
+   end
+   return "$(artname)-$(osname)-v$(version)", "$(artname)-v$(version)"
 end
 
-function get_artifact_name( artname :: String )
-    return get_artifact_name( artname, Sys.iswindows())
+function get_artifact_name( artname :: String )::AbstractString
+    return get_artifact_name( artname, Sys.iswindows())[1]
 end
 
 """
@@ -114,13 +115,18 @@ function make_artifact(;
    is_local :: Bool,
    is_windows :: Bool,
    toml_file = "Artifacts.toml" )::Int 
-   artifact_name = get_artifact_name( artifact_name, is_windows )
-   version = Pkg.project().version
-   gzip_file_name = "$(artifact_name)-v$(version).tar.gz"
+   full_artifact_name, filename = get_artifact_name( artifact_name, is_windows )
+   # version = Pkg.project().version
+   gzip_file_name = "$(filename).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
    if is_local 
-      artifact_server_upload = @load_preference( "local-artifact_server_upload" )
-      artifact_server_url = @load_preference( "local-artifact_server_url" )
+      if is_windows
+         artifact_server_upload = @load_preference( "local-artifact_server_upload_windows" )
+         artifact_server_url = @load_preference( "local-artifact_server_url_windows" )
+      else
+         artifact_server_upload = @load_preference( "local-artifact_server_upload_unix" )
+         artifact_server_url = @load_preference( "local-artifact_server_url_unix" )
+      end
    else
       artifact_server_upload = @load_preference( "public-artifact_server_upload" )
       artifact_server_url = @load_preference( "public-artifact_server_url" )
@@ -133,8 +139,10 @@ function make_artifact(;
    println( "upload cmd |$upload|")
    url = "$(artifact_server_url)/$gzip_file_name"
    try
-      run( upload )
-      add_artifact!( toml_file, artifact_name, url; force=true, lazy=true )
+      if ! is_windows # we'll handle windows ad. hoc
+         run( upload )
+      end
+      add_artifact!( toml_file, full_artifact_name, url; force=true, lazy=true )
    catch e 
       println( "ERROR UPLOADING $e")
       return -1
