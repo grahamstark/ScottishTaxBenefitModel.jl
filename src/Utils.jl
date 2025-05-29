@@ -135,11 +135,11 @@ function make_artifact(;
    run( tarcmd )
    dest = "$(artifact_server_upload)/$(gzip_file_name)"
    println( "copying |$(dir)/tmp/$gzip_file_name| to |$dest| ")
-   upload = `scp $(dir)/tmp/$(gzip_file_name) $(dest)`
-   println( "upload cmd |$upload|")
    url = "$(artifact_server_url)/$gzip_file_name"
    try
       if ! is_windows # we'll handle windows ad. hoc
+         upload = `scp $(dir)/tmp/$(gzip_file_name) $(dest)`
+         println( "upload cmd |$upload|")
          run( upload )
       end
       add_artifact!( toml_file, full_artifact_name, url; force=true, lazy=true )
