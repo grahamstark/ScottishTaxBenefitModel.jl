@@ -4,7 +4,7 @@ lazy = true
 
     [[augdata.download]]
     sha256 = "e14ebf651f528a22c70a80912d649e5225f6e9159fb32132c6adff6dd3509017"
-    url = "file:///c:/DATA/ugdata-v0.1.6.tar.gz"
+    url = "file:///c:/DATA/augdata-v0.1.6.tar.gz"
 
 [disability]
 git-tree-sha1 = "16472baac59a1614322cfe56237d37b2ababf05d"
