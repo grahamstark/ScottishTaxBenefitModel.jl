@@ -3,6 +3,7 @@ Bulk upload all the various ScotBen data artifacts
 =#
 using ScottishTaxBenefitModel
 using .Utils
+using ArtifactUtils
 
 LOCALS = [
     "scottish-frs-data", 
@@ -28,7 +29,9 @@ PUBLICS = [
     "example_data",
 ]
 
-for name in union(PUBLICS,LOCALS)
-    is_local = name in LOCALS
-    Utils.make_artifact( ; artifact_name=name, is_local=is_local )
+for is_windows in [false, true]
+    for name in union(PUBLICS,LOCALS)
+        is_local = name in LOCALS
+        Utils.make_artifact( ; artifact_name=name, is_windows=is_windows, is_local=is_local )
+    end
 end
