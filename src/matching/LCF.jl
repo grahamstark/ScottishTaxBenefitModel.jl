@@ -488,29 +488,32 @@ DIR = "/mnt/data/lcf/"
 """
 Load 2018/9 - 2020/1 LCFs and add some matching fields.
 """
-function load4lcfs()::Tuple
+function load5lcfs()::Tuple
     lcfhrows,lcfhcols,lcfhh18 = Common.load( "$(DIR)/1819/tab/2018_dvhh_ukanon.tab", 2018 )
     lcfhrows,lcfhcols,lcfhh19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_dvhh_ukanon.tab", 2019 )
     lcfhrows,lcfhcols,lcfhh20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_dvhh_ukanon.tab", 2020 )
-    lcfhrows,lcfhcols,lcfhh21 = Common.load( "$(DIR)/2122/tab/dvhh_ukanon_2022.tab", 2021 )
-    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,cols=:union )
+    lcfhrows,lcfhcols,lcfhh21 = Common.load( "$(DIR)/2122/tab/lcfs_2021_dvhh_ukanon.tab", 2021 )
+    lcfhrows,lcfhcols,lcfhh22 = Common.load( "$(DIR)/2223/tab/dvhh_ukanon_2022.tab", 2022 )
+    lcfhh = vcat( lcfhh18, lcfhh19, lcfhh20, lcfhh21,lcfhh22,cols=:union )
     lcfhrows = size(lcfhh)[1]
 
     lcfprows,lcpfcols,lcf_pers_drv_stk18 = Common.load( "$(DIR)/1819/tab/2018_dvper_ukanon201819.tab", 2018 )
     lcfprows,lcpfcols,lcf_pers_drv_stk19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_dvper_ukanon201920.tab", 2019 )
     lcfprows,lcpfcols,lcf_pers_drv_stk20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_dvper_ukanon202021.tab",2020)
-    lcfprows,lcpfcols,lcf_pers_drv_stk21 = Common.load( "$(DIR)/2122/tab/dvper_ukanon_2022-23.tab",2021 )
+    lcfprows,lcpfcols,lcf_pers_drv_stk21 = Common.load( "$(DIR)/2122/tab/lcfs_2020_dvper_ukanon202021.tab",2021)
+    lcfprows,lcpfcols,lcf_pers_drv_stk22 = Common.load( "$(DIR)/2223/tab/dvper_ukanon_2022-23.tab",2022 )
 
     lcfprows,lcpfcols,lcf_pers_raw_stk18 = Common.load( "$(DIR)/1819/tab/2018_rawper_ukanon_final.tab", 2018 )
     lcfprows,lcpfcols,lcf_pers_raw_stk19 = Common.load( "$(DIR)/1920/tab/lcfs_2019_rawper_ukanon_final.tab", 2019 )
     lcfprows,lcpfcols,lcf_pers_raw_stk20 = Common.load( "$(DIR)/2021/tab/lcfs_2020_rawper_ukanon_final.tab", 2020 )
-    lcfprows,lcpfcols,lcf_pers_raw_stk21 = Common.load( "$(DIR)/2122/tab/rawper_ukanon_final_2022.tab", 2021 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk21 = Common.load( "$(DIR)/2122/tab/lcfs_2020_rawper_ukanon_final.tab", 2021 )
+    lcfprows,lcpfcols,lcf_pers_raw_stk22 = Common.load( "$(DIR)/2223/tab/rawper_ukanon_final_2022.tab", 2022 )
     
-    lcf_pers_drv_stk = vcat( lcf_pers_drv_stk18, lcf_pers_drv_stk19, lcf_pers_drv_stk20, lcf_pers_drv_stk21,cols=:union )
-    lcf_pers_raw_stk = vcat( lcf_pers_raw_stk18, lcf_pers_raw_stk19, lcf_pers_raw_stk20, lcf_pers_raw_stk21,cols=:union )
+    lcf_pers_drv_stk = vcat( lcf_pers_drv_stk18, lcf_pers_drv_stk19, lcf_pers_drv_stk20, lcf_pers_drv_stk21,lcf_pers_drv_stk22, cols=:union )
+    lcf_pers_raw_stk = vcat( lcf_pers_raw_stk18, lcf_pers_raw_stk19, lcf_pers_raw_stk20, lcf_pers_raw_stk21,lcf_pers_raw_stk22, cols=:union )
     rawp = hcat( lcf_pers_raw_stk, lcf_pers_drv_stk; makeunique=true)
     println(size(lcf_pers_raw_stk))
-    @assert size( rawp[rawp.case .!= rawp.case_1,:])[1] == 0
+    @assert size( rawp[rawp.case .!= rawp.case_1,:])[1] == 0 # check all matched
     hh_pp = innerjoin( lcfhh, rawp; on=[:case,:datayear], makeunique=true )
     println(size(hh_pp))
     
@@ -609,7 +612,7 @@ end
 Small, easier to use, subset of lfs expenditure codes kinda sorta matching the tax system we're modelling.
 """
 function create_subset( ) :: DataFrame
-    lcf, lcf_pers, hh_pp, hrp_only =  load4lcfs()    
+    lcf, lcf_pers, hh_pp, hrp_only =  load5lcfs()    
     out = DataFrame( 
         case = lcf.case, 
         datayear = lcf.datayear, 
