@@ -85,6 +85,20 @@ function make_household_sample(
    shhs, spers 
 end
 
+function get_artifact_name( artname :: String, is_windows :: Bool )
+    version = Pkg.project().version
+    osname = if is_windows
+        "windows"
+    else
+        "unix"
+    end
+    return @artifact"$artname-$osname-$version"
+end
+
+function get_artifact_name( artname :: String )
+    return get_artifact_name( artname, Sys.iswindows())
+end
+
 """
 Given a directory in the artifacts directory (jammed on to /mnt/data/ScotBen/artifacts/) 
 with some data in it, make a gzipped tar file, upload this to a server 
@@ -98,7 +112,9 @@ other files can contain anything.
 function make_artifact(;
    artifact_name :: AbstractString,
    is_local :: Bool,
+   is_windows :: Bool,
    toml_file = "Artifacts.toml" )::Int 
+   artifact_name = get_artifact_name( artifact_name, is_windows )
    version = Pkg.project().version
    gzip_file_name = "$(artifact_name)-v$(version).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
