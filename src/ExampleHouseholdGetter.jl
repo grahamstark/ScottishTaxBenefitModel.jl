@@ -18,6 +18,7 @@ using .WealthData: find_wealth_for_hh!
 using .HouseholdFromFrame: load_hhld_from_frame
 using .MatchingLibs
 using .RunSettings
+using .Utils
 
 export  initialise, get_household
 

@@ -6,6 +6,7 @@ module Utils
 #
 
 using BudgetConstraints
+using ScottishTaxBenefitModel
 
 using ArgCheck
 using ArtifactUtils
@@ -87,13 +88,14 @@ function make_household_sample(
    shhs, spers 
 end
 
-function get_artifact_name( artname :: String, is_windows :: Bool )::Tuple
-   version = Pkg.project().version
+function get_artifact_name( artname :: String, is_windows :: Bool )::Tuple   
    osname = if is_windows
       "windows"
    else
       "unix"
    end
+   version = ScottishTaxBenefitModel.get_version()
+   # println( "got version as |$version|")
    return "$(artname)-$(osname)-v$(version)", "$(artname)-v$(version)"
 end
 

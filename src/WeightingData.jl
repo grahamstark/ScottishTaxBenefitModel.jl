@@ -13,6 +13,7 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .ModelHousehold 
 using .Definitions
+using .Utils
 using .Weighting
 
 export init, get_weight,LA_CODES,LA_NAMES

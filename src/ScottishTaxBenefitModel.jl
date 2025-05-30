@@ -1,19 +1,26 @@
 module ScottishTaxBenefitModel
+#=
 
+A microsimulation tax benefit model of Scotland.
+This is the `parent module` that just imports (and re-exports) all its child modules.
+
+=#
 using Random
 using Pkg
 
 #
-# A microsimulation tax benefit model of Scotland.
-#
-# This is the `parent module` that just imports (and re-exports) all its child modules.
-#
-
-#
 # Seed the random engine
 #
-# Pkg.instantiate() # I think this is needed for artiifacts to load 
 Random.seed!( 1 )
+
+function get_version() 
+    version = Pkg.project().version
+    if isnothing( version )
+        version = v"0.1.6"
+    end
+    version
+end
+export get_version
 
 include("Utils.jl" )
 export Utils
