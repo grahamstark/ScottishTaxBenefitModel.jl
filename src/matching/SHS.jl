@@ -20,7 +20,7 @@ using CSV,
 DIR = "/mnt/data/"
 
 function loadpops()
-    target_pops = CSV.File( joinpath(artifact"augdata","scottish-la-targets-2024.tab" )) |> DataFrame
+    target_pops = CSV.File( joinpath(qualified_artifact( "augdata" ),"scottish-la-targets-2024.tab" )) |> DataFrame
     target_pops.code = Symbol.( target_pops.authority_code )
     target_pops
 end

@@ -147,30 +147,30 @@ module RunSettings
 
     """
     The name, as an artifactString of the main dataset artifact e.g.
-    'artifact"uk-frs-data" and so on.
+    'qualified_artifact( uk-frs-data ) and so on.
     """
     function get_data_artifact( settings::Settings )::AbstractString
         return if settings.data_source == FRSSource
             if settings.target_nation == N_Scotland
-                artifact"scottish-frs-data"
+                qualified_artifact( "scottish-frs-data" )
             elseif settings.target_nation == N_UK
-                artifact"uk-frs-data"
+                qualified_artifact( "uk-frs-data" )
             end            
         elseif settings.data_source == ExampleSource
-            artifact"example_data"
+            qualified_artifact( "example_data" )
         elseif settings.data_source == SyntheticSource
             if settings.target_nation == N_Scotland
-                artifact"scottish-synthetic-data"
+                qualified_artifact( "scottish-synthetic-data" )
             elseif settings.target_nation == N_UK
-                artifact"uk-synthetic-data"
+                qualified_artifact( "uk-synthetic-data" )
             end            
         end
     end
 
     function get_artifact(; name::String, source::String, scottish :: Bool )::AbstractString
         scuk = scottish ? "scottish" : "uk"
-        name = get_artifact_name( name )
-        return LazyArtifacts.@artifact_str("$(scuk)-$(source)-$(name)")
+        # name = get_artifact_name( name )
+        return qualified_artifact("$(scuk)-$(source)-$(name)")
     end
 
     function main_datasets( settings :: Settings ) :: NamedTuple

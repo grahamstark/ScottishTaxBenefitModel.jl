@@ -8,8 +8,6 @@ module HistoricBenefits
 # FIXME the intention is to replace much of this
 # with a series of complete parameter files, once we have 
 # everything defined fully.
-# FIXME the switch stuff is turned off for now because it's getting too complicated
-# to deal both with DLA->PIP and the transition to Scottish disability benefits
 # 
 using CSV, DataFrames, Dates, Artifacts, LazyArtifacts
 using ScottishTaxBenefitModel
@@ -43,7 +41,7 @@ function load_historic( file ) :: Dict
 end
 
 function load_pip()
-    pip=CSV.File( joinpath(artifact"augdata", "pip_2002-2023_from_stat_explore.csv"),
+    pip=CSV.File( joinpath(qualified_artifact( "augdata" ), "pip_2002-2023_from_stat_explore.csv"),
         missingstring="..",
         types=Dict([:Date=>String]))|>DataFrame
     pip.Date = Date.( pip.Date, dateformat"yyyymm" )
@@ -51,17 +49,17 @@ function load_pip()
 end
 
 function load_dla()
-    dla=CSV.File( joinpath(artifact"augdata","dla_2002-2023_from_stat_explore.csv" ))|> DataFrame
+    dla=CSV.File( joinpath(qualified_artifact( "augdata" ),"dla_2002-2023_from_stat_explore.csv" ))|> DataFrame
     dla.Date = Date.( dla.Date, dateformat"u-yy" ) .+Year(2000)
     return dla
 end
 
 const HISTORIC_BENEFITS = load_historic( 
     joinpath( 
-        artifact"augdata", "historic_benefits.csv" ))
+        qualified_artifact( "augdata" ), "historic_benefits.csv" ))
 
-# const DLA_RECEIPTS = load_dla()
-# const PIP_RECEIPTS =  load_pip()
+const DLA_RECEIPTS = load_dla()
+const PIP_RECEIPTS =  load_pip()
 
 
 function benefit_ratio( 
@@ -123,8 +121,6 @@ function should_switch_dla_to_pip(
     interview_year :: Integer, 
     interview_month :: Integer,
     age :: Int) :: Bool
-    return false
-    #=
     #
     # This weird-looking calculation gives the proportion of
     # dla cases we need to switch to PIP for the ratio at the
@@ -147,7 +143,6 @@ function should_switch_dla_to_pip(
     # this should make 30% of DLAs change in that example
     switch = testp( onerand, sw_prop, Randoms.DLA_TO_PIP )
     # println( "switch=$switch")
-    =#
     return switch
 end
 

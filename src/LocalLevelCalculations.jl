@@ -48,7 +48,7 @@ export
 
     # FIXME move all this to Definitions? that's where LA_NAMES is.
     function make_la_to_brma_map()
-        lacsv = CSV.File( joinpath( artifact"augdata", "la_to_brma_approx_mappings.csv" )) |> DataFrame
+        lacsv = CSV.File( joinpath( qualified_artifact( "augdata" ), "la_to_brma_approx_mappings.csv" )) |> DataFrame
         out = Dict{Symbol,Symbol}()
         for r in eachrow( lacsv )
             out[Symbol(r.ccode)] = Symbol(r.bcode)

@@ -67,6 +67,7 @@ export
    to_md_table,
    to_categorical,
    todays_date, 
+   qualified_artifact,
    uprate_struct!
 
 """
@@ -100,6 +101,10 @@ function get_artifact_name( artname :: String )::AbstractString
     return get_artifact_name( artname, Sys.iswindows())[1]
 end
 
+function qualified_artifact( artname :: String )
+   ars = get_artifact_name( artname )
+   return LazyArtifacts.@artifact_str(ars)
+
 """
 Given a directory in the artifacts directory (jammed on to /mnt/data/ScotBen/artifacts/) 
 with some data in it, make a gzipped tar file, upload this to a server 
@@ -119,17 +124,17 @@ function make_artifact(;
    # version = Pkg.project().version
    gzip_file_name = "$(filename).tar.gz"
    dir = "/mnt/data/ScotBen/artifacts/"
-   if is_local 
-      if is_windows
+   if is_windows # windows defender 
          artifact_server_upload = @load_preference( "local-artifact_server_upload_windows" )
          artifact_server_url = @load_preference( "local-artifact_server_url_windows" )
-      else
+   else 
+      if is_local 
          artifact_server_upload = @load_preference( "local-artifact_server_upload_unix" )
          artifact_server_url = @load_preference( "local-artifact_server_url_unix" )
+      else
+         artifact_server_upload = @load_preference( "public-artifact_server_upload" )
+         artifact_server_url = @load_preference( "public-artifact_server_url" )
       end
-   else
-      artifact_server_upload = @load_preference( "public-artifact_server_upload" )
-      artifact_server_url = @load_preference( "public-artifact_server_url" )
    end
    tarcmd = `tar zcvf $(dir)/tmp/$(gzip_file_name) -C $(dir)/$(artifact_name)/ .`
    run( tarcmd )

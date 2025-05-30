@@ -889,7 +889,7 @@ function loadBRMAs( N :: Int, T :: Type, file :: String  ) :: Dict{Symbol,BRMA{N
     dict
 end
 
-const DEFAULT_BRMA_2021 = joinpath( artifact"augdata", "lha_rates_scotland_2020_21.csv")
+const DEFAULT_BRMA_2021 = joinpath( qualified_artifact( "augdata" ), "lha_rates_scotland_2020_21.csv")
 
 @with_kw mutable struct HousingRestrictions{RT<:Real}
     abolished :: Bool = false

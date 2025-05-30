@@ -168,7 +168,7 @@ end
 
 function load_wage_data()
     global NOMIS_WAGE_DATA
-    fname = joinpath( artifact"augdata","nomis-annual-hours-and-earnings-by-la.tab" )
+    fname = joinpath( qualified_artifact( "augdata" ),"nomis-annual-hours-and-earnings-by-la.tab" )
     starts = get_nomis_start_stops( fname )
     for (k,v) in starts
         println( "k=$k v=$v")

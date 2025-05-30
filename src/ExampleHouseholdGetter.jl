@@ -67,10 +67,10 @@ function initialise(
     end
     KEYMAP = Vector{AbstractString}()
     hh_dataset = HouseholdFromFrame.read_hh( 
-        joinpath(artifact"example_data","households.tab" ))# CSV.File( ds.hhlds ) |> DataFrame
+        joinpath(qualified_artifact( "example_data" ),"households.tab" ))# CSV.File( ds.hhlds ) |> DataFrame
     people_dataset = 
         HouseholdFromFrame.read_pers( 
-            joinpath(artifact"example_data","people.tab" )) # CSV.File( ds.people ) |> DataFrame
+            joinpath(qualified_artifact( "example_data" ),"people.tab" )) # CSV.File( ds.people ) |> DataFrame
 
     npeople = size( people_dataset)[1]
     nhhlds = size( hh_dataset )[1]

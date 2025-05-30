@@ -85,7 +85,7 @@ end
 
 function initialise()
     if size( ENTRIES.negative_candidates_any_disability_working_age ) == (0,0)
-        dir = artifact"disability"
+        dir = qualified_artifact( "disability" )
         ENTRIES.negative_candidates_any_disability_working_age = load_one( "$dir/negative_candidates_any_disability_working_age.tab")
         ENTRIES.negative_candidates_any_disability_pensioners = load_one( "$dir/negative_candidates_any_disability_pensioners.tab")   
         ENTRIES.negative_candidates_any_carers_all_adults = load_one( "$dir/negative_candidates_any_carers_all_adults.tab")

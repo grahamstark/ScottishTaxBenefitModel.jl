@@ -124,7 +124,7 @@ function load_prices( settings :: Settings, reload :: Bool = false )
         return
     end
 
-    upr = CSV.File(joinpath(artifact"augdata","indexes.tab"); delim = '\t', comment = "#") |> DataFrame
+    upr = CSV.File(joinpath(qualified_artifact( augdata ),"indexes.tab"); delim = '\t', comment = "#") |> DataFrame
 
     nrows = size(upr)[1]
     ncols = size(upr)[2]

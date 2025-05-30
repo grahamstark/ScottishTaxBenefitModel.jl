@@ -110,12 +110,6 @@ function do_local_level_run(;
     observer[]=Progress( settings.uuid, "do-one-run-start", 0, 0, 0, 0 )     
     
     revtab = revenues_table()
-    #=
-    if size( WEIGHTS.weights ) == (0,0)
-        fname = joinpath( artifact"augdata", "la-frs-weights-scotland-2024.tab")
-        WEIGHTS.weights = CSV.File(fname) |> DataFrame
-    end
-    =#
     num_threads = min( nthreads(), settings.requested_threads )
     # always load data
     if reset || (settings.num_households == 0)
