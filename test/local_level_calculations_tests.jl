@@ -509,7 +509,7 @@ end
         adf[i,:nearners] = nses
         adf[i,:num_hhlds] = num_hhlds
     end
-    aug = artifact"augdata"
+    aug = qualified_artifact( "augdata" )
     ld = CSV.File( joinpath( aug, "scottish-la-targets-2024.tab"))|>DataFrame
     for i in 1:(n-1)
         ccode = LA_CODES[i]
