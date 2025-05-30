@@ -12,7 +12,7 @@ using Pkg
 #
 # Seed the random engine
 #
-Pkg.instantiate() # I think this is needed for artiifacts to load 
+# Pkg.instantiate() # I think this is needed for artiifacts to load 
 Random.seed!( 1 )
 
 include("Utils.jl" )
