@@ -4,6 +4,7 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
 using .ModelHousehold
+using .Utils
 
 using CSV,
     DataFrames,

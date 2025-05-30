@@ -14,6 +14,7 @@ using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
+using .Utils
 using .WeightingData
 
 using .ModelHousehold: 

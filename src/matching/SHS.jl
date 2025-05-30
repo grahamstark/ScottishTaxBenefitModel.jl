@@ -6,6 +6,7 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
 using .ModelHousehold
+using .Utils
 import ScottishTaxBenefitModel.MatchingLibs.Common
 import ScottishTaxBenefitModel.MatchingLibs.Common: score as cscore, MatchingLocation
 import ScottishTaxBenefitModel.MatchingLibs.Model as model

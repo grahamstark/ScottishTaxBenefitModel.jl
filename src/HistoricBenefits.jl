@@ -13,7 +13,7 @@ using CSV, DataFrames, Dates, Artifacts, LazyArtifacts
 using ScottishTaxBenefitModel
 using .Definitions 
 using .ModelHousehold: Person
-using .Utils: nearesti, nearest
+using .Utils: nearesti, nearest, qualified_artifact
 using .Randoms: testp
 using .TimeSeriesUtils: fy_from_bits
 export benefit_ratio, HISTORIC_BENEFITS, RATIO_BENS, make_benefit_ratios!
@@ -58,8 +58,8 @@ const HISTORIC_BENEFITS = load_historic(
     joinpath( 
         qualified_artifact( "augdata" ), "historic_benefits.csv" ))
 
-const DLA_RECEIPTS = load_dla()
-const PIP_RECEIPTS =  load_pip()
+# const DLA_RECEIPTS = load_dla()
+# const PIP_RECEIPTS =  load_pip()
 
 
 function benefit_ratio( 

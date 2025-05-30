@@ -8,6 +8,7 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .ModelHousehold
 using .Definitions
+using .Utils
     
 import ScottishTaxBenefitModel.MatchingLibs.Common as Common
 

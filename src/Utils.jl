@@ -103,7 +103,8 @@ end
 
 function qualified_artifact( artname :: String )
    ars = get_artifact_name( artname )
-   return LazyArtifacts.@artifact_str(ars)
+   return @artifact_str(ars)
+end
 
 """
 Given a directory in the artifacts directory (jammed on to /mnt/data/ScotBen/artifacts/) 

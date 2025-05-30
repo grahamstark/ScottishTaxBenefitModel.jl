@@ -1,6 +1,7 @@
 module ScottishTaxBenefitModel
 
 using Random
+using Pkg
 
 #
 # A microsimulation tax benefit model of Scotland.
@@ -11,6 +12,7 @@ using Random
 #
 # Seed the random engine
 #
+Pkg.instantiate() # I think this is needed for artiifacts to load 
 Random.seed!( 1 )
 
 include("Utils.jl" )

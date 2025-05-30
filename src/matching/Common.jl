@@ -6,6 +6,7 @@ module Common
 using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
+using .Utils
 
 using CSV,
     DataFrames,

@@ -7,6 +7,7 @@ using ScottishTaxBenefitModel
 using .RunSettings
 using .Definitions
 using .ModelHousehold
+using .Utils
 
 import ScottishTaxBenefitModel.MatchingLibs.Common
 import ScottishTaxBenefitModel.MatchingLibs.Common: MatchingLocation
