@@ -359,7 +359,7 @@ function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
       :NIRELAND => -99999.99
     ] )
 
-  brmapath = joinpath( get_artifact_str( "augdata" ), "brma-2023-2024-country-averages.csv" )
+  brmapath = joinpath( qualified_artifact( "augdata" ), "brma-2023-2024-country-averages.csv" )
 
   sys.hr.brmas = loadBRMAs( 4, Float64, brmapath )
 

@@ -9,9 +9,10 @@ module RunSettings
     using Preferences 
     using UUIDs
     using SurveyDataWeighting
-    
+
     using ScottishTaxBenefitModel
     using .Definitions
+    using .Utils    
 
 
     export 

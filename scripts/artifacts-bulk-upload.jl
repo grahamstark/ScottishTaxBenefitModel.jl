@@ -7,6 +7,7 @@ using ArtifactUtils
 
 LOCALS = [
     "scottish-frs-data", 
+    "scottish-shs-data",
     "scottish-slab-legalaid", 
     "scottish-lcf-expenditure", 
     "scottish-was-wealth",
