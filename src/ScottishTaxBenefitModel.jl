@@ -13,14 +13,6 @@ using Pkg
 #
 Random.seed!( 1 )
 
-function get_version() 
-    version = Pkg.project().version
-    if isnothing( version )
-        version = v"0.1.6"
-    end
-    version
-end
-export get_version
 
 include("Utils.jl" )
 export Utils
