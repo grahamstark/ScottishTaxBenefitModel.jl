@@ -1,3 +1,4 @@
+using ShareAdd
 
 using ScottishTaxBenefitModel
 using .DataSummariser
@@ -11,8 +12,7 @@ using .STBParameters
 using .Utils
 using .Weighting
 
-using CSV,DataFrames,StatsBase,DataStructures
-
+@usingany  CairoMakie,CSV,DataFrames,StatsBase,DataStructures
 
 function draw_hist( path :: String, data :: NamedTuple, year_str::String, weight_str::String, match_str::String )
 
