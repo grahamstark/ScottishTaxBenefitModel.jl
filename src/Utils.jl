@@ -72,6 +72,26 @@ export
    uprate_struct!
 
 """
+Current ScotBen version.
+Borrowed from https://stackoverflow.com/questions/25635508/determine-version-of-a-specific-package  
+This is all weird stuff.
+"""
+function get_version()::VersionNumber
+   version = v"0.0.0"
+   pkg = Pkg.Operations.Context().env.pkg
+   if (! isnothing(pkg)) && (pkg.name == "ScottishTaxBenefitModel") # Scotben is the project - just get the version directly.
+      version = pkg.version
+   else # part of another project: look ourself up in that project's manifest. This is also what Pkg.test() sees, evidently.
+      man = Pkg.Operations.Context().env.manifest
+      uuid = findfirst(v -> v.name == "ScottishTaxBenefitModel", man)
+      version = VersionNumber(man[uuid].version) # a string, not a versionNumber
+   end
+   @assert version >= v"0.1.6" # has to be since I wrote this in v0.1.6
+   return version
+end
+export get_version
+
+"""
 Very simple sampler for the main hh/pers data.
 TODO: add all the joined data.
 """
@@ -94,7 +114,7 @@ function get_artifact_name( artname :: String, is_windows :: Bool )::Tuple
    else
       "unix"
    end
-   version = ScottishTaxBenefitModel.get_version()
+   version = get_version()
    # println( "got version as |$version|")
    return "$(artname)-$(osname)-v$(version)", "$(artname)-v$(version)"
 end

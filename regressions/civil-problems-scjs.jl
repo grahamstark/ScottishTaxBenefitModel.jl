@@ -52,10 +52,12 @@ rename!( mm23, lcnames ) # jam lowercase names
 mm23.date = parse_ons_date.( mm23.cdid )
 =#
 
+const DDIR = "/media/graham_s/Transcend/data/" #scjs
+
 const SCJS_FILES = [
-	"/mnt/data/scjs/1718/tab/scjs1718__nvf-main_y2_eul_20190508.tab",
-	"/mnt/data/scjs/1819/tab/scjs1819_nvf-main_y3_eul-safeguarded_20210316_nvf.tab",
-	"/mnt/data/scjs/1920/tab/scjs1920_nvf-main_y4_eul-safeguarded_20210322_nvf.tab"
+	"$(DDIR)/scjs/1718/tab/scjs1718__nvf-main_y2_eul_20190508.tab",
+	"$(DDIR)/scjs/1819/tab/scjs1819_nvf-main_y3_eul-safeguarded_20210316_nvf.tab",
+	"$(DDIR)/scjs/1920/tab/scjs1920_nvf-main_y4_eul-safeguarded_20210322_nvf.tab"
 	]
 
 function loadtab( filename, datayear )
@@ -84,6 +86,8 @@ include( "scjs-mappings.jl")
 # only those asked module 3: CIVIL; 
 # see Userguide 4.6.4 Module C: Civil Law
 scjsciv = scjsraw[scjsraw.qmodule.==3,:] 
+CSV.write( "$(DDIR)/NINE/datasets/scjs-2017-20.tab", scjsraw; delim='\t')
+CSV.write( "$(DDIR)/NINE/datasets/scjs-civil-only-2017-20.tab", scjsciv; delim='\t')
 
 # size checks should be 1,363 in 19/20 see table 3.1 tech report
 by_year = groupby( scjsciv, :datayear )
