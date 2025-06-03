@@ -10,15 +10,16 @@ My shared environments:
 * @MakieGraphs
 * @Maths
 * @Data
+* @WebIO
 
 ```julia
 
-pkg> activate --shared Maths
-(@Maths) pkg> add DifferentialEquations, LinearSolve, Roots
+activate --shared Maths
+add DifferentialEquations, LinearSolve, Roots
 
 activate --shared Stats
 # see: 
-(@Stats) pkg> add StatsKit
+add StatsKit
 #=
     Bootstrap
     CategoricalArrays
@@ -37,12 +38,16 @@ activate --shared Stats
     ShiftedArrays
     TimeSeries
 =#
+add RegressionTables
 
 activate --shared MakieGraphs
 add Makie, CairoMakie, GLMakie, Observables, WGLMakie, Bonito
 
 activate --shared Data
 add DataFrames, DataFramesMeta, CSV, IterableTables, PrettyTables, MarkdownTables
+
+activate --shared WebIO
+add Genie, Pluto, PlutoUI, IJulia, Mux, HTTP, PlutoExtras
 
 ```
 
@@ -57,4 +62,15 @@ using ShareAdd
 
 ```
 
+## updating
+
+```julia
+
+using Pkg
+for env in ["MakieGraphs","Maths","Data","WebIO"]
+    Pkg.activate(env, shared=true)
+    Pkg.update()
+end
+
+```
 
