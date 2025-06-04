@@ -14,12 +14,18 @@ My shared environments:
 
 ```julia
 
-activate --shared GMaths
-add DifferentialEquations, LinearSolve, Roots
+using Pkg
+Pkg.activate("GMaths", shared=true)
+for p in ["DifferentialEquations", "LinearSolve", "Roots"]
+    Pkg.add(p)
+end
 
-activate --shared GStats
+Pkg.activate("GStats", shared=true)
+for p in ["StatsKit", "RegressionTables"]
+    Pkg.add(p)
+end
+
 # see: 
-add StatsKit, RegressionTables
 #= ... which adds:
     Bootstrap
     CategoricalArrays
@@ -38,14 +44,25 @@ add StatsKit, RegressionTables
     ShiftedArrays
     TimeSeries
 =#
-activate --shared GMakie
-add Makie, CairoMakie, GLMakie, Observables, WGLMakie, Bonito
+Pkg.activate("GMakie", shared=true)
+for p in ["Makie", "CairoMakie", "GLMakie", "Observables", "WGLMakie", "Bonito", "AlgebraOfGraphics"]
+    Pkg.add(p)
+end
 
-activate --shared GData
-add DataFrames, DataFramesMeta, CSV, IterableTables, PrettyTables, MarkdownTables
+Pkg.activate("GData", shared=true )
+for p in ["DataFrames", "DataFramesMeta", "CSV", "IterableTables", "PrettyTables", "MarkdownTables"]
+    Pkg.add(p)
+end
 
-activate --shared GWebIO
-add Genie, Pluto, PlutoUI, IJulia, Mux, HTTP, PlutoExtras
+Pkg.activate("GWebIO", shared=true )
+for p in ["Genie", "Pluto", "PlutoUI", "IJulia", "Mux", "HTTP", "PlutoExtras", "Observables"]
+    Pkg.add(p)
+end
+
+Pkg.activate("GTest", shared=true)
+for p in ["BenchmarkTools", "Chairmarks", "PrettyChairmarks"]
+    Pkg.add(p)
+end
 
 ```
 
@@ -65,7 +82,7 @@ using ShareAdd
 ```julia
 
 using Pkg
-for env in ["GMakieGraphs","GMaths","GData","GWebIO"]
+for env in ["GMakie","GMaths","GData","GWebIO", "GTests"]
     Pkg.activate(env, shared=true)
     Pkg.update()
 end
