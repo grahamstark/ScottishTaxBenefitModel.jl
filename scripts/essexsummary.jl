@@ -51,7 +51,12 @@ function do_one_summary_set(;
     settings.use_shs = true
     if use_essex_years
         settings.included_data_years = [2019,2021,2022]
-        settings.upper_multiple=9 # doesn't converge with 7 with just these 3 years
+        # weights from the commented out little loop at bottom - FIXME set up a grid search?
+        settings.lower_multiple=0.640000000000000
+        settings.upper_multiple=5.86000000000000
+    else
+        settings.lower_multiple=0.630000000000000
+        settings.upper_multiple=4.72000000000000
     end
     settings.weighting_strategy = use_essex_weights ? use_supplied_weights : use_runtime_computed_weights
     if do_matching 
@@ -73,18 +78,20 @@ function do_one_summary_set(;
     if use_essex_years
         people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
         hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
+    
     end
+    # not actually used .. 
     interframe = make_intermed_dataframe( settings, 
         sys, 
         settings.num_households )
     # this seems to be what they work with.. weird
     phhs = leftjoin( hhs, people, on=[:hid,:data_year], makeunique=true)
-    
+    # .. add some fields: 
     phhs.income_self_employment_net = phhs.income_self_employment_income - phhs.income_self_employment_losses
     phhs.age_band = Definitions.get_age_band.( phhs.age )
     # Write the uprated and whatevered mode hhld data back into the frame we're comparing with.
     overwrite_raw!( phhs, settings.num_households )
-    if settings.weighting_strategy == use_supplied_weights # average out supplied weights if we're not recomputed.
+    if settings.weighting_strategy == use_supplied_weights # average out supplied weights if we've not recomputed.
         nyears = length( unique( phhs.data_year )) # silly count of number of data years
         phhs.weight ./= nyears
     end
@@ -118,3 +125,20 @@ for essex_years in [true, false ]
         end
     end
 end
+
+#=
+weights mult search
+
+out = open("/tmp/weights-3.out","w")
+inc = 0.02
+for i in 1:40
+    settings.lower_multiple += inc
+    settings.upper_multiple -= inc
+    settings.num_households, settings.num_people, nhhs2 = 
+        FRSHouseholdGetter.initialise( settings; reset=true )
+    println(out,"$i,$(settings.lower_multiple),$(settings.upper_multiple)")
+    flush(out)
+end
+close(out)
+
+=#

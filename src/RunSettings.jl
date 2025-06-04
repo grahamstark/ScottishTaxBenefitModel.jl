@@ -118,9 +118,9 @@ module RunSettings
         # weights
         #
         weight_type = eval(Symbol(@load_preference( "weight_type", "constrained_chi_square")))
-        lower_multiple = @load_preference( "lower_multiple", 0.20 )
-        upper_multiple = @load_preference( "upper_multiple", 5.0)
-        
+        lower_multiple = @load_preference( "lower_multiple", 0.64 )
+        upper_multiple = @load_preference( "upper_multiple", 5.9)
+ 
         do_health_estimates :: Bool = @load_preference( "do_health_estimates", false )
         ## Elliot's email of June 21, 2023
         sf12_depression_limit = @load_preference( "sf12_depression_limit", 45.60)

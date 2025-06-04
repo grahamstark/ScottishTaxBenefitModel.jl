@@ -6,21 +6,21 @@
 
 My shared environments:
 
-* @Stats
-* @MakieGraphs
-* @Maths
-* @Data
-* @WebIO
+* @GStats
+* @GMakieGraphs
+* @GMaths
+* @GData
+* @GWebIO
 
 ```julia
 
-activate --shared Maths
+activate --shared GMaths
 add DifferentialEquations, LinearSolve, Roots
 
-activate --shared Stats
+activate --shared GStats
 # see: 
-add StatsKit
-#=
+add StatsKit, RegressionTables
+#= ... which adds:
     Bootstrap
     CategoricalArrays
     Clustering
@@ -38,15 +38,13 @@ add StatsKit
     ShiftedArrays
     TimeSeries
 =#
-add RegressionTables
-
-activate --shared MakieGraphs
+activate --shared GMakie
 add Makie, CairoMakie, GLMakie, Observables, WGLMakie, Bonito
 
-activate --shared Data
+activate --shared GData
 add DataFrames, DataFramesMeta, CSV, IterableTables, PrettyTables, MarkdownTables
 
-activate --shared WebIO
+activate --shared GWebIO
 add Genie, Pluto, PlutoUI, IJulia, Mux, HTTP, PlutoExtras
 
 ```
@@ -67,10 +65,25 @@ using ShareAdd
 ```julia
 
 using Pkg
-for env in ["MakieGraphs","Maths","Data","WebIO"]
+for env in ["GMakieGraphs","GMaths","GData","GWebIO"]
     Pkg.activate(env, shared=true)
     Pkg.update()
 end
 
 ```
 
+## sample startup.jl
+
+```julia
+if isinteractive()     
+    using Revise
+    using OhMyREPL
+    using TruncatedStacktraces
+# using BenchmarkTools
+    TruncatedStacktraces.VERBOSE_MSG=""
+    using ShareAdd
+    using TerminalPager
+end
+``` 
+
+~    
