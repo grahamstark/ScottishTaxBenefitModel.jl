@@ -34,3 +34,7 @@ Should you needed it, I have (technical term here) a shit ton of additional stat
 For reference, the main code used is the Julia module [DataSummariser.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/DataSummariser.jl), driven by the script [essexsummary.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/scripts/essexsummary.jl).
 
 As I mentioned last time, I would very much like to see individual level data from Euromod, on (at least) wages, self-employment income and housing costs, or at least a note on how you derive and uprate these things. My average wages and se income are above yours, and there's no rent data I cans see in the sheet you sent. Much easier to sort out differences that way.
+
+Most benefit incomes are un-uprated in this data - they're either not used at all or used to infer e.g. the level of disability benefits. Everything else is uprated to 2025 q2 using the code and data in [Uprating.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/Uprating.jl). 
+
+Derivation of our model dataset from the raw FRS is in the file [frs_hbai_creation_libs.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/frs_hbai_creation_libs.jl) and the module [HouseholdMappingFRS_Only.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/HouseholdMappingFRS_Only.jl). No HBAI high income adjustments are used.
