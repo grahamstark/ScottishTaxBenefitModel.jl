@@ -169,6 +169,8 @@ function writeback!( phhs :: DataFrame, hh :: Household )
     phhr.net_housing_wealth .= hh.net_housing_wealth 
     phhr.net_pension_wealth .= hh.net_pension_wealth 
     phhr.original_gross_income .= hh.original_gross_income 
+    phhr.council .= hh.council
+    phhr.nhs_board .= hh.nhs_board
     for (pid,pers) in hh.people
         persrow = @view phhs[(phhs.pid .== pers.pid),:]
         @assert size( persrow)[1] == 1
@@ -201,27 +203,32 @@ end
 """
 summarise a single vector and return a tuple with means, medians etc.
 """
-function summarise( key::Symbol, v :: AbstractVector, w :: AbstractWeights )
+function summarise( key::Symbol, v :: AbstractVector, w :: AbstractWeights; skipnonzeros::Bool )
     v = coalesce.(v,0.0)
     n = length(v)
     wn = sum(w)
     pv = v[ v .!= 0 ]
     pw = w[ v .!= 0 ]
     out = (; key=key, type="allzero", msg = "No non-zeros")
+    upv, upw = if skipnonzeros
+        pv,pw
+    else
+        v, w
+    end
     if length(pv) > 0
-        u_mean = mean( pv )
-        w_mean = mean( pv, pw )
-        u_median = median( pv )
-        w_median = median( pv, pw )
+        u_mean = mean( upv )
+        w_mean = mean( upv, upw )
+        u_median = median( upv )
+        w_median = median( upv, upw )
         u_non_zeros = length( pv )
         w_non_zeros = sum( pw)
-        u_std = std( pv )
-        w_std = std( pv, pw )
-        mn = minimum( pv )
-        mx = maximum(pv)
-        u_hist = fit(Histogram, pv, nbins=20)
-        w_hist = fit(Histogram, pv, pw, nbins=20)
-        out = (; key=key, type="full", count=n,weighted_count=wn,u_mean,u_median,u_non_zeros,u_std, u_hist, w_mean,w_median,w_non_zeros,w_std, w_hist, minimum=mn, maximum=mx)
+        u_std = std( upv )
+        w_std = std( upv, upw )
+        mn = minimum( upv )
+        mx = maximum( upv )
+        u_hist = fit( Histogram, upv, nbins=20 )
+        w_hist = fit( Histogram, upv, upw, nbins=20 )
+        out = (; key=key, type="full", count=n,weighted_count=wn,u_mean,u_median,u_non_zeros,u_std, u_hist, w_mean,w_median,w_non_zeros,w_std, w_hist, minimum=mn, maximum=mx, skipnonzeros )
     end
     out
 end
@@ -233,6 +240,7 @@ function dict_to_dataframe( out :: Vector )::Tuple
     l = length( out )
     out1 = DataFrame( 
         varname = fill( Symbol(""),l),
+        skipnonzeros = fill( false, l ),
         notes = fill("",l),
         count=fill(0,l),
         weighted_count=fill(0.0,l),
@@ -263,6 +271,7 @@ function dict_to_dataframe( out :: Vector )::Tuple
             r = @view out1[o1pos,:]
             r.varname = v.key
             # r.notes = ""
+            r.skipnonzeros = v.skipnonzeros
             r.count = v.count
             r.weighted_count = v.weighted_count
             r.u_mean = v.u_mean
@@ -284,9 +293,9 @@ function dict_to_dataframe( out :: Vector )::Tuple
             wv = collect(values( v.weighted ))
             for i in 1:ln
                 o2pos += 1
-                if i == 1
-                    out2[o2pos,:varname] = v.key
-                end
+                # if i == 1
+                out2[o2pos,:varname] = v.key
+                # end
                 out2[o2pos,:label] = string(labs[i])
                 out2[o2pos,:u_count] = uv[i]
                 out2[o2pos,:w_count] = wv[i]
@@ -304,11 +313,15 @@ end
 """
 summarise one of our datasets, returns 2 dataframes, one for enums, one for rest
 """
-function make_data_summaries( df :: DataFrame, skiplist=[:hid, :buno, :pid, :uhid, :pno,:onerand,:uhid_1, :onerand_1 ])::Tuple
+function make_data_summaries( 
+    df :: DataFrame, 
+    from_zero_vars :: Set{Symbol}, 
+    skiplist=[:hid, :buno, :pid, :uhid, :pno,:onerand,:uhid_1, :onerand_1 ])::Tuple
     nms = setdiff(OrderedSet(Symbol.(names( df ))), Set(skiplist ))
     out = []
     for k in nms 
-        print( "on $k")
+        skipnonzeros = ! in( k, from_zero_vars )            
+        print( "on $k; skipnonzeros=$skipnonzeros")
         r = df[!,k]
         et = eltype(r)
         if et isa Union # {Missing,Any}
@@ -317,10 +330,10 @@ function make_data_summaries( df :: DataFrame, skiplist=[:hid, :buno, :pid, :uhi
         end
         if et <: Integer
             println( "Int")
-            ss = summarise( k, r, df.weight )
+            ss = summarise( k, r, df.weight, skipnonzeros=skipnonzeros )
         elseif et <: AbstractFloat
             println( "Float")
-            ss = summarise( k, r, df.weight )
+            ss = summarise( k, r, df.weight, skipnonzeros=skipnonzeros )
         elseif (et <: Enum) || (et <: Symbol) || (et <: Bool )
             println( "Enum")
             ss = ( ; key=k, type="enum", weighted = sort( countmap( r, df.weight)), unweighted = sort( countmap( r )))

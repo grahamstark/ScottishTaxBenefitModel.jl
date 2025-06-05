@@ -14,6 +14,15 @@ using .Weighting
 
 @usingany  CairoMakie,CSV,DataFrames,StatsBase,DataStructures
 
+const TEMPDIR = joinpath( "/", "home", "graham_s", "tmp")
+
+function make_dirname( use_essex_years, use_essex_weights, do_matching )    
+    year_str = use_essex_years ? "essex-data-years" : "full-data-years"
+    weight_str = use_essex_weights ? "frs-weights" : "computed-weights"
+    match_str = do_matching ? "matched-was-lcf-data" : "frs-data-only"
+    return joinpath( TEMPDIR, "output", year_str, weight_str, match_str ), year_str, weight_str, match_str
+end
+
 function draw_hist( path :: String, data :: NamedTuple, year_str::String, weight_str::String, match_str::String )
 
     function onehist!( ax, histd, mn, md, colour )
@@ -98,11 +107,8 @@ function do_one_summary_set(;
     # Cast weights as StatsBase weights type - this doesn't persist well.
     phhs.weight = Weights( phhs.weight )
     interframe.weight = Weights( interframe.weight )
-    df_numvars, df_enums, raw = make_data_summaries( phhs )
-    year_str = use_essex_years ? "essex-data-years" : "full-data-years"
-    weight_str = use_essex_weights ? "frs-weights" : "computed-weights"
-    match_str = do_matching ? "matched-was-lcf-data" : "frs-data-only"
-    tmpdir = joinpath( tempdir(), "output", year_str, weight_str, match_str )
+    df_numvars, df_enums, raw = make_data_summaries( phhs, FROM_ZERO_VARS )
+    tmpdir, year_str, weight_str, match_str = make_dirname( use_essex_years, use_essex_weights, do_matching  )
     if ! isdir( tmpdir )
         path = mkpath( tmpdir )
         println( "writing to $path")
@@ -115,30 +121,177 @@ function do_one_summary_set(;
     CSV.write( joinpath( tmpdir, "scotben-enum-variable-summaries.tab"), df_enums; delim='\t')
 end
 
-for essex_years in [true, false ]
-    for essex_weights in [true, false ]
-        for matching in [true, false]
-            do_one_summary_set( 
-                use_essex_years = essex_years,
-                use_essex_weights = essex_weights,
-                do_matching = matching )
+function compute_all()
+    for essex_years in [true, false ]
+        for essex_weights in [true, false ]
+            for matching in [true, false]
+                do_one_summary_set( 
+                    use_essex_years = essex_years,
+                    use_essex_weights = essex_weights,
+                    do_matching = matching )
+            end
         end
     end
 end
 
-#=
-weights mult search
+function merge_enums( d1::DataFrame, d2::DataFrame, leftname, rightname )
 
-out = open("/tmp/weights-3.out","w")
-inc = 0.02
-for i in 1:40
-    settings.lower_multiple += inc
-    settings.upper_multiple -= inc
-    settings.num_households, settings.num_people, nhhs2 = 
-        FRSHouseholdGetter.initialise( settings; reset=true )
-    println(out,"$i,$(settings.lower_multiple),$(settings.upper_multiple)")
-    flush(out)
+    d3 = outerjoin( d1, d2; order=:left, on=[:varname,:label], renamecols = leftname => rightname )
 end
-close(out)
 
-=#
+function make_merged_enums()
+    d_3_frs = CSV.File(joinpath( make_dirname( true, true, true )[1], "scotben-enum-variable-summaries.tab"); delim='\t')|>DataFrame
+    d_3_gen = CSV.File(joinpath( make_dirname( true, false, true )[1], "scotben-enum-variable-summaries.tab"); delim='\t')|>DataFrame
+    d_5_gen = CSV.File(joinpath( make_dirname( false, false, true )[1], "scotben-enum-variable-summaries.tab"); delim='\t')|>DataFrame
+    d_3_merged = merge_enums( d_3_frs, d_3_gen, "_frs_weights", "_scotben_weights" )
+    allmerged = merge_enums( d_3_merged, d_5_gen, "_3_year", "_full_sample" )
+    allmerged = select( allmerged, Not([
+        :u_count_scotben_weights_3_year,
+        :notes_frs_weights_3_year,
+        :u_count_scotben_weights_3_year, 
+        :notes_scotben_weights_3_year,
+        :notes_full_sample ]))
+    # sort!( allmerged, [:varname, :label])
+    allmerged.u_count_frs_weights_3_year = coalesce.( allmerged.u_count_frs_weights_3_year, 0 )
+    allmerged.w_count_frs_weights_3_year  = coalesce.(allmerged.w_count_frs_weights_3_year, 0.0 )
+    allmerged.w_count_scotben_weights_3_year = coalesce.(allmerged.w_count_scotben_weights_3_year, 0.0)
+    allmerged[!,:frs_sb_3] .= 100.0 .* (allmerged.w_count_scotben_weights_3_year./allmerged.w_count_frs_weights_3_year)
+    allmerged[!,:sb_3_sb_full] .= 100.0 .* (allmerged.w_count_scotben_weights_3_year./allmerged.w_count_full_sample)
+    allmerged.label = pretty.(allmerged.label)
+    allmerged.varname = pretty.(allmerged.varname)
+    rename!( allmerged,Dict([
+        :varname => "Type",
+        :label => "Value",
+        :u_count_frs_weights_3_year  => "a) Unweighted - 3 year sample",
+        :w_count_frs_weights_3_year  => "b) FRS Weighted - 3 year sample",
+        :w_count_scotben_weights_3_year => "c) Scotben Weighted - 3 year sample",
+        :u_count_full_sample => "d) Unweighted - Full Sample",
+        :w_count_full_sample => "e) Weighted - Full Sample",
+        :frs_sb_3 => "c/b (%)",
+        :sb_3_sb_full => "c/e (%)"]))
+    allmerged
+end
+
+
+const FROM_ZERO_VARS = Set([
+    :registered_blind,
+    :registered_partially_sighted,
+    :registered_deaf,
+    :disability_vision,
+    :disability_hearing,
+    :disability_mobility,
+    :disability_dexterity,
+    :disability_learning,
+    :disability_memory,
+    :disability_mental_health,
+    :disability_stamina,
+    :disability_socially,
+    :disability_other_difficulty,
+    :has_long_standing_illness,
+    :is_informal_carer,
+    :is_hrp,
+    :is_bu_head,
+    :from_child_record,
+    :age,
+    :bedrooms,
+    :employer_provides_child_care,
+    :age_completed_full_time_education,
+    :had_children_when_bereaved,
+    :pay_includes_ssp,
+    :pay_includes_smp,
+    :pay_includes_spp,
+    :pay_includes_mileage,
+    :pay_includes_motoring_expenses ])
+
+const SELECT_COLS = [
+    "varname"
+    "skipnonzeros_frs_weights_3_year"
+
+    "count_frs_weights_3_year"
+    "count_full_sample"
+
+    "u_non_zeros_frs_weights_3_year"
+    "u_non_zeros_full_sample"
+
+    "u_mean_frs_weights_3_year"
+    "u_mean_full_sample"
+
+    "u_median_frs_weights_3_year"
+    "u_median_full_sample"
+
+    "u_std_frs_weights_3_year"
+    "u_std_full_sample"
+
+    "weighted_count_frs_weights_3_year"
+    "weighted_count_scotben_weights_3_year"
+    "weighted_count_full_sample"
+
+    "w_non_zeros_frs_weights_3_year"
+    "w_non_zeros_scotben_weights_3_year"
+    "w_non_zeros_full_sample"
+
+    "w_mean_frs_weights_3_year"
+    "w_mean_scotben_weights_3_year"
+    "w_mean_full_sample"
+
+    "w_median_frs_weights_3_year"
+    "w_median_scotben_weights_3_year"
+    "w_median_full_sample"
+
+    "w_std_frs_weights_3_year"
+    "w_std_scotben_weights_3_year"
+    "w_std_full_sample"
+
+    "minimum_scotben_weights_3_year"
+    "minimum_full_sample"
+
+    "maximum_scotben_weights_3_year"
+    "maximum_full_sample"
+    
+    ]
+
+const RENAME_COLS = Dict([
+    "skipnonzeros_frs_weights_3_year" => "Skip Non-Zeros?",
+    "count_frs_weights_3_year" => "Count - 3 Years",
+    "count_full_sample" => "Count - All Years",
+    "u_non_zeros_frs_weights_3_year" => "Non Zeros - 3 Years",
+    "u_non_zeros_full_sample" => "Non Zeros - All Years",
+    "u_mean_frs_weights_3_year" => "Unweighted Mean - 3 Years",
+    "u_mean_full_sample" => "Unweighted Mean - All Years",
+    "u_median_frs_weights_3_year" => "Unweighed Median - 3 Years",
+    "u_median_full_sample" => "Unweighed Median - All Years",
+    "u_std_frs_weights_3_year" => "Unweighted Std. - 3 Years",
+    "u_std_full_sample" => "Unweighted Std. - All Years",
+    "weighted_count_frs_weights_3_year" => "FRS Weighted Count 3 Years",
+    "weighted_count_scotben_weights_3_year" => "ScotBen Weighted Count - 3 Years",
+    "weighted_count_full_sample" => "ScotBen Weighted Count - Full Sample",
+    "w_mean_frs_weights_3_year"=> "Mean : Frs Weights 3 Year",
+    "w_mean_scotben_weights_3_year" => "Mean : Scotben Weights - 3 Year",
+    "w_mean_full_sample"=> "Mean : Scotben Weights, Full Sample",
+    "w_median_frs_weights_3_year"=> "Median : Frs Weights, - 3 Years",
+    "w_median_scotben_weights_3_year"=> "Median : Scotben Weights - 3 Years",
+    "w_median_full_sample"=> "Median : Scotben Weights, Full Sample",
+    "w_non_zeros_frs_weights_3_year" => "Non Zeros : Frs Weights - 3 Years",
+    "w_non_zeros_scotben_weights_3_year" => "Non Zeros : Scotben Weights - 3 Years",
+    "w_non_zeros_full_sample"=> "Non Zeros : Full Sample",
+    "w_std_frs_weights_3_year" => "Std : Frs Weights - 3 Years",
+    "w_std_scotben_weights_3_year" => "Std : Scotben Weights - 3 Years",
+    "w_std_full_sample" => "Std : Scotben Weights, Full Sample",
+    "minimum_scotben_weights_3_year" => "Min value - 3 Years",
+    "minimum_full_sample" => "Min value - Full Sample",
+    "maximum_scotben_weights_3_year"=> "Max value - 3 Years",
+    "maximum_full_sample"=> "Max value - Full Sample"])
+
+
+function make_merged_stats()
+    d_3_frs = CSV.File(joinpath( make_dirname( true, true, true )[1], "scotben-numeric-variable-summaries.tab"); delim='\t')|>DataFrame
+    d_3_frs = d_3_frs[ ismissing.(d_3_frs.notes),:]
+    d_3_gen = CSV.File(joinpath( make_dirname( true, false, true )[1], "scotben-numeric-variable-summaries.tab"); delim='\t')|>DataFrame
+    d_5_gen = CSV.File(joinpath( make_dirname( false, false, true )[1], "scotben-numeric-variable-summaries.tab"); delim='\t')|>DataFrame
+    allmerged = innerjoin( d_3_frs, d_3_gen, order=:left, on=:varname, renamecols="_frs_weights"=>"_scotben_weights")
+    allmerged = innerjoin( allmerged, d_5_gen, order=:left, on=:varname, renamecols="_3_year"=>"_full_sample")
+    select!(allmerged, SELECT_COLS)
+    rename!(allmerged, RENAME_COLS)
+    allmerged.varname = pretty.( allmerged.varname )
+    allmerged
+end
