@@ -27,14 +27,10 @@ All WAS numbers are much higher than FRS equivalents.
 
 ## STATS
 
-For most variables I've followed what I think you're doing and provided statistics only over the non-zero values. For some variables (e.g. 1/0 values, ages) the stats include zeros - this is marked in the 2nd column of sheet 2.
+For most variables I've followed what I think you're doing and provided statistics only over the non-zero values. For some variables (e.g. 1/0 values, ages) the stats include zeros - these is marked in the 2nd column of sheet 2.
 
 Should you needed it, I have (technical term here) a shit ton of additional statistics and raw data I can put somewhere you can download.
 
-As I mentioned last time I would very much like to see individual level data from Euromod, on (at least) wages, self-employment income and housing costs, or at least a note on how you derive and uprate these things. My average wages and se income are above yours, and there's no rent data I cans see in the sheet you sent. Much easier to sort out differences that way.
+For reference, the main code used is the Julia module [DataSummariser.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/src/DataSummariser.jl), driven by the script [essexsummary.jl](https://github.com/grahamstark/ScottishTaxBenefitModel.jl/blob/master/scripts/essexsummary.jl).
 
-
-
-
-
-
+As I mentioned last time, I would very much like to see individual level data from Euromod, on (at least) wages, self-employment income and housing costs, or at least a note on how you derive and uprate these things. My average wages and se income are above yours, and there's no rent data I cans see in the sheet you sent. Much easier to sort out differences that way.
