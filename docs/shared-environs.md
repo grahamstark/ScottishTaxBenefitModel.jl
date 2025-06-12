@@ -15,54 +15,20 @@ My shared environments:
 ```julia
 
 using Pkg
-Pkg.activate("GMaths", shared=true)
-for p in ["DifferentialEquations", "LinearSolve", "Roots"]
-    Pkg.add(p)
+
+function make_shared_package( name :: String, packages :: Vector{String})
+    Pkg.activate( name, shared=true)
+    for p in packages
+        Pkg.add(p)
+    end
 end
 
-Pkg.activate("GStats", shared=true)
-for p in ["StatsKit", "RegressionTables"]
-    Pkg.add(p)
-end
-
-# see: 
-#= ... which adds:
-    Bootstrap
-    CategoricalArrays
-    Clustering
-    CSV
-    DataFrames
-    Distances
-    Distributions
-    GLM
-    HypothesisTests
-    KernelDensity
-    Loess
-    MultivariateStats
-    MixedModels
-    StatsBase
-    ShiftedArrays
-    TimeSeries
-=#
-Pkg.activate("GMakie", shared=true)
-for p in ["Makie", "CairoMakie", "GLMakie", "Observables", "WGLMakie", "Bonito", "AlgebraOfGraphics"]
-    Pkg.add(p)
-end
-
-Pkg.activate("GData", shared=true )
-for p in ["DataFrames", "DataFramesMeta", "CSV", "IterableTables", "PrettyTables", "MarkdownTables"]
-    Pkg.add(p)
-end
-
-Pkg.activate("GWebIO", shared=true )
-for p in ["Genie", "Pluto", "PlutoUI", "IJulia", "Mux", "HTTP", "PlutoExtras", "Observables"]
-    Pkg.add(p)
-end
-
-Pkg.activate("GTest", shared=true)
-for p in ["BenchmarkTools", "Chairmarks", "PrettyChairmarks"]
-    Pkg.add(p)
-end
+make_shared_package( "GMaths", ["DifferentialEquations", "LinearSolve", "Roots"])
+make_shared_package( "GStats", ["StatsKit", "RegressionTables","FixedEffectsModels"])
+make_shared_package( "GEecon", ["Agents" ])
+make_shared_package( "GMakie", ["Makie", "CairoMakie", "GLMakie", "Observables", "WGLMakie", "Bonito"])  make_shared_package( "GData", ["DataFrames", "DataFramesMeta", "CSV", "IterableTables", "PrettyTables", "MarkdownTables"])
+make_shared_package( "GWebIO", ["Genie", "Pluto", "PlutoUI", "IJulia", "Mux", "HTTP", "PlutoExtras", "Observables", "PlutoSliderServer"])
+make_shared_package( "GTest", ["BenchmarkTools", "Chairmarks", "PrettyChairmarks"])
 
 ```
 
@@ -82,7 +48,7 @@ using ShareAdd
 ```julia
 
 using Pkg
-for env in ["GMakie","GMaths","GData","GWebIO", "GTests"]
+for env in ["GMakie","GMaths","GData","GWebIO", "GTests", "GEcon"]
     Pkg.activate(env, shared=true)
     Pkg.update()
 end

@@ -72,10 +72,11 @@ export
    uprate_struct!
 
 """
-Current ScotBen version.
+Current ScotBen version. Actually.... pkgversion(ScottishTaxBenefitModel) is built in.
 Borrowed from https://stackoverflow.com/questions/25635508/determine-version-of-a-specific-package  
 This is all weird stuff.
 """
+#=
 function get_version()::VersionNumber
    version = v"0.0.0"
    pkg = Pkg.Operations.Context().env.pkg
@@ -90,6 +91,7 @@ function get_version()::VersionNumber
    return version
 end
 export get_version
+=#
 
 """
 Very simple sampler for the main hh/pers data.
@@ -114,7 +116,7 @@ function get_artifact_name( artname :: String, is_windows :: Bool )::Tuple
    else
       "unix"
    end
-   version = get_version()
+   version = pkgversion(ScottishTaxBenefitModel) # get_version()
    # println( "got version as |$version|")
    return "$(artname)-$(osname)-v$(version)", "$(artname)-v$(version)"
 end
