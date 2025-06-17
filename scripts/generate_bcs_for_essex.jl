@@ -16,6 +16,7 @@ using Format
 using PrettyTables
 using CSV
 
+const DIR = joinpath("/","mnt", "data", "FES-Project", "Essex", "bc-comparisons", "web") 
 
 """
 Generate a pair of budget constraints (as Dataframes) for the given household.
@@ -152,13 +153,13 @@ function do_everything( sys :: TaxBenefitSystem, settings::Settings)::Tuple
                                     out[key] = (; lbc, ubc )                                
                                     push!( keys, key )
                                 end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
+                            end # ch6p
+                        end # chu6
+                    end # bedrooms
+                end # hcost
+            end # marr
+        end # tenure
+    end # wage
     return keys, out
 end
 
@@ -233,15 +234,15 @@ function draw_bc( title :: String, df :: DataFrame )::Figure
     scatter!( ax, df.gross, df.net, markersize=5, color=:red )
     f
 end
-
-function draw_one( dir::String, key::NamedTuple, bc :: DataFrame, legacy :: Bool )::String
+  
+function draw_one( key::NamedTuple, bc :: DataFrame, legacy :: Bool )::String
     legstr = legacy ? "Old Benefit System" : "Universal Credit"
     title = title_from_key(key, legstr )
     id = id_from_key( key, legacy )
     table = format_bc_df( "", bc )
     f = draw_bc( "After Housing Costs, $legstr", bc )
-    save( "$(dir)/img/$(id).svg", f )
-    CSV.write( "$(dir)/data/$(id).tab", bc[!,Not(r"label")]; delim='\t')
+    save( "$(DIR)/img/$(id).svg", f )
+    CSV.write( "$(DIR)/data/$(id).tab", bc[!,Not(r"label")]; delim='\t')
     return """
 <div class='row justify-content-center text-secondary pt-3 pb-3' id=$(id)>
     <h3>$title</h3>
@@ -257,11 +258,10 @@ function draw_one( dir::String, key::NamedTuple, bc :: DataFrame, legacy :: Bool
 </div>
     """
 end
-
+  
 function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     keys, dfs = do_everything(sys, settings )
-    dir = joinpath("/", "home", "graham_s", "tmp","essex")
-    io = open( joinpath(dir, "index.html"), "w")
+    io = open( joinpath(DIR, "index.html"), "w")
     header = """
     <!DOCTYPE html>
     <html>
@@ -316,8 +316,8 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     println( io, "</ol>")
 
     for key in keys
-        print( io, draw_one( dir, key, dfs[key].lbc, true ))
-        print( io, draw_one( dir, key, dfs[key].ubc, false ))
+        print( io, draw_one( key, dfs[key].lbc, true ))
+        print( io, draw_one( key, dfs[key].ubc, false ))
     end
 
     println(io, footer )
