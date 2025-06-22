@@ -90,10 +90,14 @@ function calc_bedroom_tax_mitigation!(
     if urep > 0
         uc = hr.bus[1].pers[urep].income[UNIVERSAL_CREDIT]
     end
-    rrd = hr.housing.rooms_rent_reduction 
-    if rrd > 0 
+    # see:
+    # https://www.gov.scot/publications/scottish-discretionary-housing-payment-guidance-manual/pages/3/
+    # 
+    rrd = hr.housing.rooms_rent_reduction + benred 
+    if (rrd > 0) 
         # the > housing tests here are kinda redundant, but still ..
-        if uc > 0
+        if uc > 0 
+            hr.bus[1].pers[urep].income[DISCRETIONARY_HOUSING_PAYMENT] = max(0.0,rrd)
             # !!! FIXME!! Assume uc housing element is the 1st part to be withdrawn
             # with income so eligibiliity for DHP ceases
             # when income > housing element.
@@ -101,17 +105,20 @@ function calc_bedroom_tax_mitigation!(
             # any documentation I have that this is right
             # uc itself is here in case this hhls is caught
             # by the benefit cap. 
+            #=
             uchousing = max(
                 0.0, 
                 uche - hr.bus[1].uc.total_income - benred ) 
             hr.bus[1].pers[urep].income[DISCRETIONARY_HOUSING_PAYMENT] = 
                 min( uchousing, rrd )
+            =#
         elseif hrep > 0 && hb > 0 
             # can't exceed housing benefit
             hr.bus[1].pers[hrep].income[DISCRETIONARY_HOUSING_PAYMENT] = 
-                min( hb , rrd )    
+                min( hb , rrd )
         end
     end
+    =#
 end # calc_ ..
  
 end # module 
