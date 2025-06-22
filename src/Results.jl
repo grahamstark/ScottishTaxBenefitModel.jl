@@ -573,12 +573,6 @@ module Results
                 hres.bhc_net_income += pers.it.pension_relief_at_source
             end
         end
-        if hres.bhc_net_income <= -999999 # FIXME            
-            println("zero bhc_net_income for seq=$(hh.sequence); hid=$(hh.hid) year=$(hh.interview_year) ")
-            println("income")
-            println( inctostr( hres.income ))
-            println( "bhc_net_income $(hres.bhc_net_income) HOUSING_BENEFIT=$(hres.income[HOUSING_BENEFIT]) COUNCIL_TAX_BENEFIT=$(hres.income[COUNCIL_TAX_BENEFIT]) hres.income[COUNCIL_TAX_BENEFIT]=$(hres.income[COUNCIL_TAX_BENEFIT])")
-        end
         # FIXME this doesn't work with Universal Credit
         hres.net_housing_costs = hh.gross_rent + 
             hres.income[LOCAL_TAXES] +
@@ -586,6 +580,7 @@ module Results
             hh.other_housing_charges + 
             hh.water_and_sewerage -
             hres.income[HOUSING_BENEFIT] - 
+            hres.income[DISCRETIONARY_HOUSING_PAYMENT] -
             hres.income[COUNCIL_TAX_BENEFIT] - 0
             # hres.bus[1].uc.housing_element
             
