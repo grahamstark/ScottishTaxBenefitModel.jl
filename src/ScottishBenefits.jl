@@ -117,8 +117,5 @@ function calc_bedroom_tax_mitigation!(
             hr.bus[1].pers[hrep].income[DISCRETIONARY_HOUSING_PAYMENT] = 
                 min( hb , rrd )
         end
-    end
-    =#
-end # calc_ ..
- 
+    end 
 end # module 
