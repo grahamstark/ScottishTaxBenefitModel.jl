@@ -75,9 +75,9 @@ function calc_bedroom_tax_mitigation!(
     hr    :: HouseholdResult, 
     hh    :: Household )
     # DISCRETIONARY_HOUSING_PAYMENT
-    if ! is_social_renter( hh.tenure )
-        return
-    end
+    # if ! is_social_renter( hh.tenure )
+    #    return
+    # end
     hrep = hr.bus[1].legacy_mtbens.hb_recipient
     urep = hr.bus[1].uc.recipient
     uche = hr.bus[1].uc.housing_element
@@ -94,6 +94,7 @@ function calc_bedroom_tax_mitigation!(
     # https://www.gov.scot/publications/scottish-discretionary-housing-payment-guidance-manual/pages/3/
     # 
     rrd = hr.housing.rooms_rent_reduction + benred 
+
     if (rrd > 0) 
         # the > housing tests here are kinda redundant, but still ..
         if uc > 0 
@@ -119,5 +120,5 @@ function calc_bedroom_tax_mitigation!(
         end
     end
 end # func
- 
+
 end # module 
