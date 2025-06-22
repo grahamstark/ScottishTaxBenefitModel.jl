@@ -16,6 +16,166 @@ include( "generate_bcs_for_essex.jl")
 const WPM = 4.354
 const DIR = joinpath("/","mnt", "data", "FES-Project", "Essex", "bc-comparisons" ) 
 
+function eu_index( key :: NamedTuple, legacy :: Bool, n :: Int ):: NamedTuple
+    sbid = id_from_key( key, legacy )
+    legstr = legacy ? "Old Benefit System" : "Universal Credit"
+    label = title_from_key( key, legstr )
+    euid = 0
+    if key.marrstat == "couple"	euid += 32 end
+    if key.chu6 == 3 euid += 16 end	
+    if key.ch6p == 3 euid += 8 end
+    if key.hcost == 400 euid += 4 end
+    if key.tenure == "owner" euid += 2 end
+    if key.wage == 30 euid += 2 else euid += 1 end
+    euid = n + (131*(euid-1))
+    num_people = key.ch6p + key.chu6 + (if key.marrstat == "couple" 2 else 1 end)
+    return (; euid, sbid, label, num_people )
+end
+
+function load_essex( fname="essex-uc-all.tab", legacy=false )::DataFrame
+    edf = CSV.File( joinpath( DIR, fname ), delim='\t', limit=37729) |> DataFrame
+    # edf = edf[1:37728,:]
+    @show names(edf)
+    nrows,ncols = size(edf)
+    edf.idhh_1 = coalesce.(edf.idhh_1,-9999999) # 2nd ihdd has only heads, so... 
+    edf.sbid = fill("",nrows)
+    edf.obs_num = fill(0,nrows)
+    edf.wage = fill(0,nrows)
+    edf.tenure = fill("",nrows)
+    edf.marrstat = fill("",nrows)
+    edf.hcost = fill(0.0,nrows)
+    edf.bedrooms = fill(0,nrows)
+    edf.chu6 = fill(0,nrows)
+    edf.ch6p = fill(0,nrows)
+    tenures = ["private", "owner"]
+    hcosts = [200,400]
+    marrstats = ["single", "couple"]
+    num_bedrooms = [1,4]
+    for wage in [12,30] # !! above mw or mr results look weird (though they're ight)
+        for tenure in tenures
+            for marrstat in marrstats
+                for hcost in hcosts
+                    for bedrooms in num_bedrooms
+                        for chu6 in [0,3]
+                            for ch6p in [0,3]
+                                if((ch6p + chu6) > 0)&&(bedrooms <2)
+                                    ; # skip pointless examples
+                                elseif((ch6p + chu6) == 0)&&(bedrooms > 1)
+                                    ;
+                                else
+                                    key = (; wage, tenure, marrstat, hcost, bedrooms, chu6, ch6p )
+                                    println( "on $key")
+                                    for n in 1:131
+                                        eukey = eu_index( key, legacy, n )
+                                        edfra = @view edf[ edf.idhh_1 .== eukey.euid, : ]
+                                        @assert size(edfra)[1] == 1 "mismatch for $(eukey.label) id=$(eukey.euid) size=$(size(edfra)[1])" # eukey.num_people
+                                        edfra.sbid .= eukey.sbid
+                                        edfra.obs_num .= n
+                                        edfra.wage .= wage
+                                        edfra.tenure .= tenure
+                                        edfra.marrstat .= marrstat
+                                        edfra.hcost .= hcost
+                                        edfra.bedrooms .= bedrooms
+                                        edfra.chu6 .= chu6
+                                        edfra.ch6p .= ch6p                                        
+                                    end
+                                end
+                            end # ch6p
+                        end # chu6
+                    end # bedrooms
+                end # hcost
+            end # marr
+        end # tenure
+    end # wage
+    edf = edf[edf.idhh_1.>0,:] # return heads only
+    edf
+end
+
+function match_sb_essex_full()
+    edf = load_essex()
+    nrows,ncols = size(edf)
+    for i in instances( Incomes )
+        c = Symbol( string(i))
+        edf[!,c] = zeros(nrows)
+    end
+    edf.Scotben_Net = zeros(nrows)
+    edf.uc_work_allowance = zeros(nrows)
+    edf.uc_earnings_before_allowances = zeros(nrows)
+    edf.uc_earned_income = zeros(nrows)
+    edf.uc_untapered_earnings = zeros(nrows)
+    edf.uc_other_income = zeros(nrows)
+    edf.uc_tariff_income = zeros(nrows)
+    edf.uc_standard_allowance  = zeros(nrows)
+    edf.uc_child_element = zeros(nrows)
+    edf.uc_limited_capacity_for_work_activity_element = zeros(nrows)
+    edf.uc_carer_element = zeros(nrows)
+    edf.uc_childcare_costs = zeros(nrows)
+    edf.uc_housing_element = zeros(nrows)
+    edf.cap = zeros(nrows)
+    edf.reduction = zeros(nrows)
+    settings = Settings()
+    sys = STBParameters.get_default_system_for_fin_year( 2024 )
+
+    for r in eachrow(edf)
+        hh = get_hh( ;
+            country="scotland", 
+            tenure = r.tenure, 
+            bedrooms = r.bedrooms, 
+            hcost = r.hcost, 
+            marrstat = r.marrstat, 
+            chu6 = r.chu6, 
+            ch6p = r.ch6p )
+        head = get_head( hh )
+        data = Dict([
+            :pid  => head.pid,
+            :wage => r.wage,
+            :hh   => deepcopy(hh),
+            :sys  => sys,
+            :settings => settings ])
+        hres = BCCalcs.local_getnet( data, r.ils_origy_1/WPM )
+        r.Scotben_Net = get_net_income( hres; target = data[:settings].target_bc_income )
+        for i in instances( Incomes )
+            c = Symbol( string(i))
+            r[c] = hres.income[i]*WEEKS_PER_MONTH
+        end
+        # store UC components
+        # CAREFUL BREAKS with > 1  bu!!!! 
+        uc = hres.bus[1].uc
+        r.uc_work_allowance = uc.work_allowance*WEEKS_PER_MONTH
+        r.uc_earnings_before_allowances = uc.earnings_before_allowances*WEEKS_PER_MONTH
+        r.uc_earned_income = uc.earned_income*WEEKS_PER_MONTH
+        r.uc_untapered_earnings = uc.untapered_earnings*WEEKS_PER_MONTH
+        r.uc_other_income = uc.other_income*WEEKS_PER_MONTH
+        r.uc_tariff_income = uc.tariff_income*WEEKS_PER_MONTH
+        r.uc_standard_allowance  = uc.standard_allowance*WEEKS_PER_MONTH
+        r.uc_child_element = uc.child_element*WEEKS_PER_MONTH
+        r.uc_limited_capacity_for_work_activity_element = uc.limited_capacity_for_work_activity_element*WEEKS_PER_MONTH
+        r.uc_carer_element = uc.carer_element*WEEKS_PER_MONTH
+        r.uc_childcare_costs = uc.childcare_costs*WEEKS_PER_MONTH
+        r.uc_housing_element = uc.housing_element*WEEKS_PER_MONTH
+        r.cap = hres.bus[1].bencap.cap*WEEKS_PER_MONTH
+        r.reduction = hres.bus[1].bencap.reduction*WEEKS_PER_MONTH
+    end
+    # report only non-zero colums
+    # try catch is because of missing union nonsense
+    nms = names(edf)
+    non_zero_cols = []
+    for n in nms # non-empy cols only
+        sn = Symbol(n)
+        col = edf[:,sn]
+        try
+            s = sum(col)
+            if s != 0
+                push!(non_zero_cols, sn )
+            end
+        catch e
+            push!(non_zero_cols, sn )
+        end 
+    end
+    select!(edf,non_zero_cols)
+    CSV.write("$(DIR)/essex-uc-all-edited.tab",edf;delim='\t')
+end
+
 # convoluted way of making pairs of (0,-10),(0,10) for label offsets
 const OFFSETS = collect( Iterators.flatten(fill([(0,-10),(0,10)],100)))
 
