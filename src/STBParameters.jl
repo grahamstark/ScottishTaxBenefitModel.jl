@@ -210,7 +210,8 @@ end
 end
 
 function weeklyise!( bc :: BenefitCapSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-    bc.uc_incomes_limit /= wpm
+   # now weekly and 16x minwage 21+
+    # bc.uc_incomes_limit /= wpm
 end
 #
 # initial version - will be progressively replaced

@@ -371,7 +371,8 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   # not really needed, but anyway ..
   sys.bencap.inside_london_single = 326.29
   sys.bencap.inside_london_couple = 486.98
-  sys.bencap.uc_incomes_limit = 722.0
+  # see: xxx
+  sys.bencap.uc_incomes_limit = sys.minwage.wage_per_hour[4]*16
 
   sys.ubi.abolished = true
   sys.ubi.adult_amount = 4_800.0

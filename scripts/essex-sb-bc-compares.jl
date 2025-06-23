@@ -91,14 +91,40 @@ function load_essex( fname="essex-uc-all.tab", legacy=false )::DataFrame
     edf
 end
 
+const IN_ORDER_COLS = [
+    :euromod_wages, :scotben_wages,
+    :euromod_income_tax, :scotben_income_tax,
+    :euromod_national_insurance, :scotben_national_insurance,
+    :euromod_discretionary_housing_payment, :scotben_discretionary_housing_payment,
+    :euromod_universal_credit, :scotben_universal_credit,
+    :euromod_local_taxes, :scotben_local_taxes,
+    :euromod_council_tax_benefit, :scotben_council_tax_benefit,
+    :euromod_net_ahc_income, :scotben_net_ahc_income,
+    :euromod_benefit_reduction, :scotben_benefit_reduction,
+    :euromod_scottish_child_payment, :scotben_scottish_child_payment
+     ]
+
+
 function match_sb_essex_full()
     edf = load_essex()
     nrows,ncols = size(edf)
     for i in instances( Incomes )
-        c = Symbol( string(i))
+        c = Symbol( "scotben_"*lowercase(string(i)))
         edf[!,c] = zeros(nrows)
     end
-    edf.Scotben_Net = zeros(nrows)
+
+    edf.euromod_income_tax = copy( edf.ils_taxsim)
+    edf.euromod_national_insurance = copy( edf.ils_sicdy)
+    edf.euromod_discretionary_housing_payment = copy( edf.bhosc01_s)
+    edf.euromod_universal_credit = copy( edf.bsauc_s)
+    edf.euromod_local_taxes = copy( edf.i_bmu_tmu)
+    edf.euromod_council_tax_benefit = copy( edf.bmu_s)
+    edf.euromod_net_ahc_income = copy( edf.il_dispy_ahc_1)
+    edf.euromod_benefit_reduction = copy( edf.brduc_s )
+    edf.euromod_scottish_child_payment = copy( edf.brduc_s )
+    edf.euromod_wages = copy(edf.ils_origy_1)
+
+    edf.scotben_net_ahc_income = zeros(nrows)
     edf.uc_work_allowance = zeros(nrows)
     edf.uc_earnings_before_allowances = zeros(nrows)
     edf.uc_earned_income = zeros(nrows)
@@ -112,7 +138,7 @@ function match_sb_essex_full()
     edf.uc_childcare_costs = zeros(nrows)
     edf.uc_housing_element = zeros(nrows)
     edf.cap = zeros(nrows)
-    edf.reduction = zeros(nrows)
+    edf.scotben_benefit_reduction = zeros(nrows)
     settings = Settings()
     sys = STBParameters.get_default_system_for_fin_year( 2024 )
 
@@ -133,9 +159,9 @@ function match_sb_essex_full()
             :sys  => sys,
             :settings => settings ])
         hres = BCCalcs.local_getnet( data, r.ils_origy_1/WPM )
-        r.Scotben_Net = get_net_income( hres; target = data[:settings].target_bc_income )
+        r.scotben_net_ahc_income = get_net_income( hres; target = data[:settings].target_bc_income )
         for i in instances( Incomes )
-            c = Symbol( string(i))
+            c = Symbol( "scotben_"*lowercase(string(i)))
             r[c] = hres.income[i]*WEEKS_PER_MONTH
         end
         # store UC components
@@ -154,10 +180,11 @@ function match_sb_essex_full()
         r.uc_childcare_costs = uc.childcare_costs*WEEKS_PER_MONTH
         r.uc_housing_element = uc.housing_element*WEEKS_PER_MONTH
         r.cap = hres.bus[1].bencap.cap*WEEKS_PER_MONTH
-        r.reduction = hres.bus[1].bencap.reduction*WEEKS_PER_MONTH
+        r.scotben_benefit_reduction = hres.bus[1].bencap.reduction*WEEKS_PER_MONTH
     end
     # report only non-zero colums
-    # try catch is because of missing union nonsense
+    # try catch is because of missing union nonsense - 
+    # just add up and see if we crash..
     nms = names(edf)
     non_zero_cols = []
     for n in nms # non-empy cols only
@@ -172,8 +199,12 @@ function match_sb_essex_full()
             push!(non_zero_cols, sn )
         end 
     end
+    # clear uo irrelevent cols
     select!(edf,non_zero_cols)
-    CSV.write("$(DIR)/essex-uc-all-edited.tab",edf;delim='\t')
+    # put the comparisons on the far side
+    select!(edf,Not(IN_ORDER_COLS),IN_ORDER_COLS...)
+    CSV.write("$(DIR)/essex-uc-all-edited-v2.tab",edf;delim='\t')
+    return edf
 end
 
 # convoluted way of making pairs of (0,-10),(0,10) for label offsets
