@@ -235,7 +235,7 @@ function calc_elements!(
 
     # child elements
     
-    if intermed.num_allowed_children > 0
+    if intermed.num_allowed_children >  0
         if born_before( 
             intermed.age_oldest_child, 
             child_limits.policy_start, 

@@ -1078,7 +1078,7 @@ function calc_legacy_means_tested_benefits!(
                 else
                     scent = max( 0.0, sc_maximum - (1-scsys.withdrawal_rate)*income_over_mig)
                 end
-                bures.pers[recipient].income[PENSION_CREDIT] = scent
+                bures.pers[recipient].income[SAVINGS_CREDIT] = scent
                 bures.legacy_mtbens.sc_incomes = sc_incomes  
             end
         end

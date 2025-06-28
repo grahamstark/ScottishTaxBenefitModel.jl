@@ -87,8 +87,9 @@ end
 
 function to_nearest_p( x, y :: Real, ps :: Real = 1 ) :: Bool
    diff = abs(x-y)
-   if diff > 0.01*ps
-      throw( ErrorException( "x=$x y=$y aren't within 1p diff is |$diff|")) 
+   pdiff = 0.01*ps
+   if diff > pdiff
+      throw( ErrorException( "x=$x y=$y aren't within $(pdiff)p diff is |$diff|")) 
    end
    # round(x, digits=2) == round(y, digits=2)
    return true
