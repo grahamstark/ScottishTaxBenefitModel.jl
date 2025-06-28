@@ -101,7 +101,7 @@ function get_hh( ;
             age += 1
             add_child!( hh, age, sex )
     end
-    age = 7
+    age = 9
     for ch in 1:ch6p
             sex = ch % 1 == 0 ? Male : Female
             age += 1

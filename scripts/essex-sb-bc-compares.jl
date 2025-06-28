@@ -14,7 +14,8 @@ using .Results
 include( "generate_bcs_for_essex.jl")
 
 const WPM = 4.354
-const DIR = joinpath("/","mnt", "data", "FES-Project", "Essex", "bc-comparisons" ) 
+# const DIR = joinpath("/","mnt", "data", "FES-Project", "Essex", "bc-comparisons" ) 
+const DIR = joinpath("/", "home", "graham_s", "VirtualWorlds", "projects", "FES-Project", "Essex", "bc-comparisons" ) 
 
 function eu_index( key :: NamedTuple, legacy :: Bool, n :: Int ):: NamedTuple
     sbid = id_from_key( key, legacy )
@@ -101,6 +102,7 @@ const IN_ORDER_COLS = [
     :euromod_council_tax_benefit, :scotben_council_tax_benefit,
     :euromod_net_ahc_income, :scotben_net_ahc_income,
     :euromod_benefit_reduction, :scotben_benefit_reduction,
+    :euromod_child_benefit, :scotben_child_benefit,
     :euromod_scottish_child_payment, :scotben_scottish_child_payment
      ]
 
@@ -122,6 +124,7 @@ function match_sb_essex_full()
     edf.euromod_net_ahc_income = copy( edf.il_dispy_ahc_1)
     edf.euromod_benefit_reduction = copy( edf.brduc_s )
     edf.euromod_scottish_child_payment = copy( edf.brduc_s )
+    edf.euromod_child_benefit = copy( edf.bch_s )
     edf.euromod_wages = copy(edf.ils_origy_1)
 
     edf.scotben_net_ahc_income = zeros(nrows)
@@ -142,6 +145,18 @@ function match_sb_essex_full()
     settings = Settings()
     sys = STBParameters.get_default_system_for_fin_year( 2024 )
 
+    edf.euromod_derived_income = 
+        edf.euromod_wages - 
+        (edf.hcost.*4.354) - 
+        edf.euromod_income_tax -
+        edf.euromod_national_insurance +
+        edf.euromod_discretionary_housing_payment +
+        edf.euromod_universal_credit -
+        edf.euromod_local_taxes +
+        edf.euromod_council_tax_benefit +
+        edf.euromod_scottish_child_payment +
+        edf.euromod_child_benefit
+
     for r in eachrow(edf)
         hh = get_hh( ;
             country="scotland", 
@@ -159,7 +174,7 @@ function match_sb_essex_full()
             :sys  => sys,
             :settings => settings ])
         hres = BCCalcs.local_getnet( data, r.ils_origy_1/WPM )
-        r.scotben_net_ahc_income = get_net_income( hres; target = data[:settings].target_bc_income )
+        r.scotben_net_ahc_income = get_net_income( hres; target = data[:settings].target_bc_income )*WEEKS_PER_MONTH
         for i in instances( Incomes )
             c = Symbol( "scotben_"*lowercase(string(i)))
             r[c] = hres.income[i]*WEEKS_PER_MONTH
@@ -182,6 +197,24 @@ function match_sb_essex_full()
         r.cap = hres.bus[1].bencap.cap*WEEKS_PER_MONTH
         r.scotben_benefit_reduction = hres.bus[1].bencap.reduction*WEEKS_PER_MONTH
     end
+    edf.scotben_derived_income = 
+        edf.scotben_wages - 
+        (edf.hcost.*WEEKS_PER_MONTH) - 
+        edf.scotben_income_tax -
+        edf.scotben_national_insurance +
+        edf.scotben_discretionary_housing_payment +
+        edf.scotben_universal_credit -
+        edf.scotben_local_taxes +
+        edf.scotben_council_tax_benefit +
+        edf.scotben_scottish_child_payment +
+        edf.scotben_child_benefit
+    edf.euromod_check = edf.euromod_net_ahc_income -
+        edf.euromod_derived_income
+    edf.scotben_check = edf.scotben_net_ahc_income -
+        edf.scotben_derived_income
+    edf.scotben_vs_euromod = edf.euromod_net_ahc_income -
+        edf.scotben_net_ahc_income
+
     # report only non-zero colums
     # try catch is because of missing union nonsense - 
     # just add up and see if we crash..
@@ -203,7 +236,7 @@ function match_sb_essex_full()
     select!(edf,non_zero_cols)
     # put the comparisons on the far side
     select!(edf,Not(IN_ORDER_COLS),IN_ORDER_COLS...)
-    CSV.write("$(DIR)/essex-uc-all-edited-v2.tab",edf;delim='\t')
+    CSV.write("$(DIR)/essex-uc-all-edited-v3.tab",edf;delim='\t')
     return edf
 end
 

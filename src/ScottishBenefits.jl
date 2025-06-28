@@ -98,7 +98,11 @@ function calc_bedroom_tax_mitigation!(
     if (rrd > 0) 
         # the > housing tests here are kinda redundant, but still ..
         if uc > 0 
-            hr.bus[1].pers[urep].income[DISCRETIONARY_HOUSING_PAYMENT] = max(0.0,rrd)
+            # weird but I think this is it - 
+
+            hda = hh.gross_rent - 
+                max( 0.0, hr.bus[1].uc.housing_element - benred )
+            hr.bus[1].pers[urep].income[DISCRETIONARY_HOUSING_PAYMENT] = hda
             # !!! FIXME!! Assume uc housing element is the 1st part to be withdrawn
             # with income so eligibiliity for DHP ceases
             # when income > housing element.
