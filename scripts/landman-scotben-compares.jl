@@ -74,6 +74,37 @@ iq_scotben_22_ahc = pv.make_inequality( scotben_base_22, :weighted_people, :eq_a
 iq_scotben_22_x_bhc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_bhc_net_income )
 iq_scotben_22_x_ahc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_ahc_net_income )
 
+line = 0.6 * median( landman_base_scot.EqDisposableIncomeAHC, Weights(landman_base_scot.weighted_people ))
+pov_landman_scot_ahc = pv.make_poverty( landman_base_scot, line, 0.02, :weighted_people, :EqDisposableIncomeAHC )
+
+line = 0.6 * median( landman_base_scot.EqDisposableIncomeBHC, Weights(landman_base_scot.weighted_people ))
+pov_landman_scot_bhc = pv.make_poverty( landman_base_scot, line, 0.02, :weighted_people, :EqDisposableIncomeBHC )
+# UK
+line = 0.6 * median( landman_base.EqDisposableIncomeAHC, Weights(landman_base.weighted_people ))
+pov_landman_uk_ahc = pv.make_poverty( landman_base, line, 0.02, :weighted_people, :EqDisposableIncomeAHC )
+
+line = 0.6 * median( landman_base.EqDisposableIncomeBHC, Weights(landman_base.weighted_people ))
+pov_landman_uk_bhc = pv.make_poverty( landman_base, line, 0.02, :weighted_people, :EqDisposableIncomeBHC )
+
+line = 0.6 * median( scotben_base.eq_bhc_net_income, Weights(scotben_base.weighted_people ))
+pov_scotben_bhc = pv.make_poverty( scotben_base, line, 0.02, :weighted_people, :eq_bhc_net_income )
+
+line = 0.6 * median( scotben_base.eq_ahc_net_income, Weights(scotben_base.weighted_people ))
+pov_scotben_ahc = pv.make_poverty( scotben_base, line, 0.02, :weighted_people, :eq_ahc_net_income )
+
+line = 0.6 * median( scotben_base_22.eq_bhc_net_income, Weights(scotben_base_22.weighted_people ))
+pov_scotben_22_bhc = pv.make_poverty( scotben_base_22, line, 0.02, :weighted_people, :eq_bhc_net_income )
+
+line = 0.6 * median( scotben_base_22.eq_ahc_net_income, Weights(scotben_base_22.weighted_people ))
+pov_scotben_22_ahc = pv.make_poverty( scotben_base_22, line, 0.02, :weighted_people, :eq_ahc_net_income )
+
+line = 0.6 * median( scotben_base_22_x.eq_bhc_net_income, Weights(scotben_base_22_x.weighted_people ))
+pov_scotben_22_x_bhc = pv.make_poverty( scotben_base_22_x, line, 0.02, :weighted_people, :eq_bhc_net_income )
+
+line = 0.6 * median( scotben_base_22_x.eq_ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
+pov_scotben_22_x_ahc = pv.make_poverty( scotben_base_22_x, line, 0.02, :weighted_people, :eq_ahc_net_income )
+
+
 landman_base_scot.eqscale = landman_base_scot.DisposableIncomeAHC./landman_base_scot.EqDisposableIncomeAHC
 scotben_base_22.eqscale = scotben_base_22.ahc_net_income ./ scotben_base_22.eq_ahc_net_income
 
@@ -81,8 +112,6 @@ scotben_landman = innerjoin( landman_base_scot, scotben_base_22; on=[:sernum=>:h
 
 sum(scotben_landman.weighted_people_1.*scotben_landman.bhc_net_income)
 sum( scotben_landman.weighted_people.*scotben_landman.DisposableIncomeBHC)
-
-scotben_landman.eqscale_1 ./= 1.72
 
 scotben_landman[!,[:num_people_1,:num_people,:num_children_1,:num_children,:weighted_people_1,:weighted_people,:bhc_net_income,:DisposableIncomeBHC,:eqscale_1,:eqscale]]
 
@@ -102,3 +131,36 @@ scotben_landman[!,[:num_people_1,:num_people,:num_children_1,:num_children,:weig
 # sb 22 frs weights
 @show iq_scotben_22_x_bhc.gini
 @show iq_scotben_22_x_ahc.gini
+
+# landman sco 22
+@show iq_landman_scot_bhc.palma
+@show iq_landman_scot_ahc.palma
+# landman UK 22
+@show iq_landman_uk_bhc.palma
+@show iq_landman_uk_ahc.palma
+# scotben 2019-22
+@show iq_scotben_bhc.palma
+@show iq_scotben_ahc.palma
+# scotben 2022, sb weights
+@show iq_scotben_22_bhc.palma
+@show iq_scotben_22_ahc.palma
+# sb 22 frs weights
+@show iq_scotben_22_x_bhc.palma
+@show iq_scotben_22_x_ahc.palma
+
+# landman sco 22
+@show pov_landman_scot_bhc.headcount
+@show pov_landman_scot_ahc.headcount
+# landman UK 22
+@show pov_landman_uk_bhc.headcount
+@show pov_landman_uk_ahc.headcount
+# scotben 2019-22
+@show pov_scotben_bhc.headcount
+@show pov_scotben_ahc.headcount
+# scotben 2022, sb weights
+@show pov_scotben_22_bhc.headcount
+@show pov_scotben_22_ahc.headcount
+# sb 22 frs weights
+@show pov_scotben_22_x_bhc.headcount
+@show pov_scotben_22_x_ahc.headcount
+
