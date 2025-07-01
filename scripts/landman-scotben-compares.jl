@@ -74,36 +74,35 @@ iq_scotben_22_ahc = pv.make_inequality( scotben_base_22, :weighted_people, :eq_a
 iq_scotben_22_x_bhc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_bhc_net_income )
 iq_scotben_22_x_ahc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_ahc_net_income )
 
-line = 0.6 * median( landman_base_scot.EqDisposableIncomeAHC, Weights(landman_base_scot.weighted_people ))
-pov_landman_scot_ahc = pv.make_poverty( landman_base_scot, line, 0.02, :weighted_people, :EqDisposableIncomeAHC )
+line_scot_ahc = 0.6 * median( landman_base_scot.EqDisposableIncomeAHC, Weights(landman_base_scot.weighted_people ))
+pov_landman_scot_ahc = pv.make_poverty( landman_base_scot, line_scot_ahc, 0.02, :weighted_people, :EqDisposableIncomeAHC )
 
-line = 0.6 * median( landman_base_scot.EqDisposableIncomeBHC, Weights(landman_base_scot.weighted_people ))
-pov_landman_scot_bhc = pv.make_poverty( landman_base_scot, line, 0.02, :weighted_people, :EqDisposableIncomeBHC )
+line_scot_bhc = 0.6 * median( landman_base_scot.EqDisposableIncomeBHC, Weights(landman_base_scot.weighted_people ))
+pov_landman_scot_bhc = pv.make_poverty( landman_base_scot, line_scot_bhc, 0.02, :weighted_people, :EqDisposableIncomeBHC )
 # UK
-line = 0.6 * median( landman_base.EqDisposableIncomeAHC, Weights(landman_base.weighted_people ))
-pov_landman_uk_ahc = pv.make_poverty( landman_base, line, 0.02, :weighted_people, :EqDisposableIncomeAHC )
+line_uk_ahc = 0.6 * median( landman_base.EqDisposableIncomeAHC, Weights(landman_base.weighted_people ))
+pov_landman_uk_ahc = pv.make_poverty( landman_base, line_uk_ahc, 0.02, :weighted_people, :EqDisposableIncomeAHC )
 
-line = 0.6 * median( landman_base.EqDisposableIncomeBHC, Weights(landman_base.weighted_people ))
-pov_landman_uk_bhc = pv.make_poverty( landman_base, line, 0.02, :weighted_people, :EqDisposableIncomeBHC )
+line_uk_bhc = 0.6 * median( landman_base.EqDisposableIncomeBHC, Weights(landman_base.weighted_people ))
+pov_landman_uk_bhc = pv.make_poverty( landman_base, line_uk_bhc, 0.02, :weighted_people, :EqDisposableIncomeBHC )
 
-line = 0.6 * median( scotben_base.eq_bhc_net_income, Weights(scotben_base.weighted_people ))
-pov_scotben_bhc = pv.make_poverty( scotben_base, line, 0.02, :weighted_people, :eq_bhc_net_income )
+line_bhc = 0.6 * median( scotben_base.eq_bhc_net_income, Weights(scotben_base.weighted_people ))
+pov_scotben_bhc = pv.make_poverty( scotben_base, line_bhc, 0.02, :weighted_people, :eq_bhc_net_income )
 
-line = 0.6 * median( scotben_base.eq_ahc_net_income, Weights(scotben_base.weighted_people ))
-pov_scotben_ahc = pv.make_poverty( scotben_base, line, 0.02, :weighted_people, :eq_ahc_net_income )
+line_ahc = 0.6 * median( scotben_base.eq_ahc_net_income, Weights(scotben_base.weighted_people ))
+pov_scotben_ahc = pv.make_poverty( scotben_base, line_ahc, 0.02, :weighted_people, :eq_ahc_net_income )
 
-line = 0.6 * median( scotben_base_22.eq_bhc_net_income, Weights(scotben_base_22.weighted_people ))
-pov_scotben_22_bhc = pv.make_poverty( scotben_base_22, line, 0.02, :weighted_people, :eq_bhc_net_income )
+line_22_bhc = 0.6 * median( scotben_base_22.eq_bhc_net_income, Weights(scotben_base_22.weighted_people ))
+pov_scotben_22_bhc = pv.make_poverty( scotben_base_22, line_22_bhc, 0.02, :weighted_people, :eq_bhc_net_income )
 
-line = 0.6 * median( scotben_base_22.eq_ahc_net_income, Weights(scotben_base_22.weighted_people ))
-pov_scotben_22_ahc = pv.make_poverty( scotben_base_22, line, 0.02, :weighted_people, :eq_ahc_net_income )
+line_22_ahc = 0.6 * median( scotben_base_22.eq_ahc_net_income, Weights(scotben_base_22.weighted_people ))
+pov_scotben_22_ahc = pv.make_poverty( scotben_base_22, line_22_ahc, 0.02, :weighted_people, :eq_ahc_net_income )
 
-line = 0.6 * median( scotben_base_22_x.eq_bhc_net_income, Weights(scotben_base_22_x.weighted_people ))
-pov_scotben_22_x_bhc = pv.make_poverty( scotben_base_22_x, line, 0.02, :weighted_people, :eq_bhc_net_income )
+line_22_x_bhc = 0.6 * median( scotben_base_22_x.eq_bhc_net_income, Weights(scotben_base_22_x.weighted_people ))
+pov_scotben_22_x_bhc = pv.make_poverty( scotben_base_22_x, line_22_x_bhc, 0.02, :weighted_people, :eq_bhc_net_income )
 
-line = 0.6 * median( scotben_base_22_x.eq_ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
-pov_scotben_22_x_ahc = pv.make_poverty( scotben_base_22_x, line, 0.02, :weighted_people, :eq_ahc_net_income )
-
+line_22_x_ahc = 0.6 * median( scotben_base_22_x.eq_ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
+pov_scotben_22_x_ahc = pv.make_poverty( scotben_base_22_x, line_22_x_ahc, 0.02, :weighted_people, :eq_ahc_net_income )
 
 landman_base_scot.eqscale = landman_base_scot.DisposableIncomeAHC./landman_base_scot.EqDisposableIncomeAHC
 scotben_base_22.eqscale = scotben_base_22.ahc_net_income ./ scotben_base_22.eq_ahc_net_income
