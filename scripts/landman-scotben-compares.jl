@@ -3,12 +3,16 @@
 @usingany DataFrames
 @usingany StatsBase
 @usingany PovertyAndInequalityMeasures
+@usingany Observables
+pv = PovertyAndInequalityMeasures # shortcut
 
-using .RunSettings,.STBParameters,.FRSHouseholdGetter,.Runner, .Monitor
+using ScottishTaxBenefitModel
+using .RunSettings,.STBParameters,.FRSHouseholdGetter,.Runner, .Monitor, .Definitions
 
 # one run of scotben 24 sys
 sys = STBParameters.get_default_system_for_fin_year( 2024 )
-
+settings = Settings()
+tot = 0
 obs = Observable( Progress(settings.uuid,"",0,0,0,0))
 Observable(Progress(Base.UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e"), "", 0, 0, 0, 0))
 of = on(obs) do p
@@ -19,25 +23,38 @@ of = on(obs) do p
     println(tot)
 end
 
-settings = Settings()
 settings.included_data_years = [2019,2021,2022]
 settings.lower_multiple=0.640000000000000
 settings.upper_multiple=5.86000000000000
+settings.requested_threads = 4
 
 settings.num_households, settings.num_people, nhhs2 = 
            FRSHouseholdGetter.initialise( settings; reset=true )
 res = Runner.do_one_run( settings, [sys,sys], obs )
+
 settings22 = Settings()
+settings22.requested_threads = 4
 settings22.included_data_years = [2022]
 settings22.lower_multiple=0.45000000000000
 settings22.upper_multiple=7.6000000000000
 settings22.num_households, settings22.num_people, nhhs2 = 
            FRSHouseholdGetter.initialise( settings22; reset=true )
 res_22 = Runner.do_one_run( settings22, [sys,sys], obs )
+settings22_x = Settings()
+settings22_x.requested_threads = 4
+settings22_x.included_data_years = [2022]
+settings22_x.lower_multiple=0.45000000000000
+settings22_x.upper_multiple=7.6000000000000
+settings22_x.weighting_strategy = use_supplied_weights
+settings22_x.num_households, settings22_x.num_people, nhhs2 = 
+           FRSHouseholdGetter.initialise( settings22_x; reset=true )
+res_22_x = Runner.do_one_run( settings22_x, [sys,sys], obs )
+
 
 # hhlevel results
 scotben_base = res.hh[1]
 scotben_base_22 = res_22.hh[1]
+scotben_base_22_x = res_22_x.hh[1]
 
 
 # load landman base results
@@ -54,6 +71,8 @@ iq_scotben_bhc = pv.make_inequality( scotben_base, :weighted_people, :eq_bhc_net
 iq_scotben_ahc = pv.make_inequality( scotben_base, :weighted_people, :eq_ahc_net_income )
 iq_scotben_22_bhc = pv.make_inequality( scotben_base_22, :weighted_people, :eq_bhc_net_income )
 iq_scotben_22_ahc = pv.make_inequality( scotben_base_22, :weighted_people, :eq_ahc_net_income )
+iq_scotben_22_x_bhc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_bhc_net_income )
+iq_scotben_22_x_ahc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_ahc_net_income )
 
 landman_base_scot.eqscale = landman_base_scot.DisposableIncomeAHC./landman_base_scot.EqDisposableIncomeAHC
 scotben_base_22.eqscale = scotben_base_22.ahc_net_income ./ scotben_base_22.eq_ahc_net_income
@@ -66,3 +85,20 @@ sum( scotben_landman.weighted_people.*scotben_landman.DisposableIncomeBHC)
 scotben_landman.eqscale_1 ./= 1.72
 
 scotben_landman[!,[:num_people_1,:num_people,:num_children_1,:num_children,:weighted_people_1,:weighted_people,:bhc_net_income,:DisposableIncomeBHC,:eqscale_1,:eqscale]]
+
+
+# landman sco 22
+@show iq_landman_scot_bhc.gini
+@show iq_landman_scot_ahc.gini
+# landman UK 22
+@show iq_landman_uk_bhc.gini
+@show iq_landman_uk_ahc.gini
+# scotben 2019-22
+@show iq_scotben_bhc.gini
+@show iq_scotben_ahc.gini
+# scotben 2022, sb weights
+@show iq_scotben_22_bhc.gini
+@show iq_scotben_22_ahc.gini
+# sb 22 frs weights
+@show iq_scotben_22_x_bhc.gini
+@show iq_scotben_22_x_ahc.gini
