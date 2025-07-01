@@ -19,11 +19,26 @@ of = on(obs) do p
     println(tot)
 end
 
+settings = Settings()
+settings.included_data_years = [2019,2021,2022]
+settings.lower_multiple=0.640000000000000
+settings.upper_multiple=5.86000000000000
+
+settings.num_households, settings.num_people, nhhs2 = 
+           FRSHouseholdGetter.initialise( settings; reset=true )
 res = Runner.do_one_run( settings, [sys,sys], obs )
+settings22 = Settings()
+settings22.included_data_years = [2022]
+settings22.lower_multiple=0.45000000000000
+settings22.upper_multiple=7.6000000000000
+settings22.num_households, settings22.num_people, nhhs2 = 
+           FRSHouseholdGetter.initialise( settings22; reset=true )
+res_22 = Runner.do_one_run( settings22, [sys,sys], obs )
 
 # hhlevel results
 scotben_base = res.hh[1]
-scotben_base_22 = scotben_base[scotben_base.data_year.==2022,:]
+scotben_base_22 = res_22.hh[1]
+
 
 # load landman base results
 landman_base = CSV.File("/home/graham_s/VirtualWorlds/projects/northumbria/Landman/model/data/default_results/2024-25/base-hh-results.tab")|>DataFrame
