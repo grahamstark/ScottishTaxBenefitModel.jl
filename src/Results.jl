@@ -28,6 +28,7 @@ module Results
     using .Utils:
         to_md_table,
         make_crosstab
+    using .EquivalenceScales
 
     export
         BenefitCapResults,
@@ -58,6 +59,10 @@ module Results
         to_string,
         total,
         tozero!
+
+    const TWO_ADS_EQ_SCALES = get_equivalence_scales(Float64,[
+           EQ_Person(30,eq_head),
+           EQ_Person(30,eq_spouse_of_head) ] )
 
     @with_kw mutable struct BenefitCapResults{RT<:Real}
         cap :: RT = zero(RT)
@@ -350,19 +355,13 @@ module Results
         thing_just_to_make_with_kw_work :: RT = -99
     end
 
-    # TODO 23/1/23 - replicate income definition here *carefully*
+    # TODO 1/7/25 - replicate income definition here *carefully*
     # https://www.gov.uk/government/statistics/households-below-average-income-for-financial-years-ending-1995-to-2021/household-below-average-income-series-quality-and-methodology-information-report-fye-2021#income-definition
 
-
     function calc_net_income(incs::AbstractArray{T})::T where T
-        # HB/CT treated seperately at household level
-        # println( "incs="*inctostr( incs ))
-        # println( ALL_INCOMES_EXCEPT_HOUSING_BENEFITS )
-        # println( DIRECT_TAXES_AND_DEDUCTIONS )
         n :: T = isum(incs, 
             ALL_INCOMES, # _EXCEPT_HOUSING_BENEFITS, 
             deducted=DIRECT_TAXES_AND_DEDUCTIONS )
-        # println( "n=$n")
         return n
     end
 
@@ -591,9 +590,9 @@ module Results
             hh.other_housing_charges -
             hh.water_and_sewerage
     
-        # hres.net_housing_costs        
-        hres.eq_bhc_net_income = hres.bhc_net_income/hh.equivalence_scales.oecd_bhc
-        hres.eq_ahc_net_income = hres.ahc_net_income/hh.equivalence_scales.oecd_ahc        
+        # eq incomes, but relative to 2 adults oecd
+        hres.eq_bhc_net_income = hres.bhc_net_income/(hh.equivalence_scales.oecd_bhc/TWO_ADS_EQ_SCALES.oecd_bhc)
+        hres.eq_ahc_net_income = hres.ahc_net_income/(hh.equivalence_scales.oecd_ahc/TWO_ADS_EQ_SCALES.oecd_ahc)   
     end
 
 
