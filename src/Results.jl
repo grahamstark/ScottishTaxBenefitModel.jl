@@ -591,8 +591,8 @@ module Results
             hh.water_and_sewerage
     
         # eq incomes, but relative to 2 adults oecd
-        hres.eq_bhc_net_income = hres.bhc_net_income/(hh.equivalence_scales.oecd_bhc/TWO_ADS_EQ_SCALES.oecd_bhc)
-        hres.eq_ahc_net_income = hres.ahc_net_income/(hh.equivalence_scales.oecd_ahc/TWO_ADS_EQ_SCALES.oecd_ahc)   
+        hres.eq_bhc_net_income = hres.bhc_net_income/hh.equivalence_scales.oecd_bhc
+        hres.eq_ahc_net_income = hres.ahc_net_income/(hh.equivalence_scales.oecd_ahc)/TWO_ADS_EQ_SCALES.oecd_ahc)   
     end
 
 

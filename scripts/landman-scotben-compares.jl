@@ -7,7 +7,13 @@
 pv = PovertyAndInequalityMeasures # shortcut
 
 using ScottishTaxBenefitModel
-using .RunSettings,.STBParameters,.FRSHouseholdGetter,.Runner, .Monitor, .Definitions
+using .Definitions,
+    .FRSHouseholdGetter,
+    .Monitor, 
+    .Results,
+    .Runner, 
+    .RunSettings,
+    .STBParameters
 
 # one run of scotben 24 sys
 sys = STBParameters.get_default_system_for_fin_year( 2024 )
@@ -59,6 +65,11 @@ scotben_base_22_x = res_22_x.hh[1]
 
 # load landman base results
 landman_base = CSV.File("/home/graham_s/VirtualWorlds/projects/northumbria/Landman/model/data/default_results/2024-25/base-hh-results.tab")|>DataFrame
+
+# Howard's eq scales are relative to 2 adults, not one like HBAI, so...
+landman_base.EqDisposableIncomeAHC ./ Results.TWO_ADS_EQ_SCALES.oecd_ahc
+landman_base.EqDisposableIncomeBHC ./ Results.TWO_ADS_EQ_SCALES.oecd_bhc
+
 landman_base_scot = landman_base[landman_base.Region.=="Scotland",:]
 
 iq_landman_scot_ahc = pv.make_inequality( landman_base_scot, :weighted_people, :EqDisposableIncomeAHC )
