@@ -17,7 +17,8 @@ using
     .Runner, 
     .RunSettings,
     .STBIncomes,
-    .STBParameters
+    .STBParameters,
+    .Utils
 
 function make_pov( df :: DataFrame, incf::Symbol, growth=0.02 )::Tuple
     povline = 0.6 * median( df[!,incf], Weights( df.weighted_people ))
@@ -25,11 +26,6 @@ function make_pov( df :: DataFrame, incf::Symbol, growth=0.02 )::Tuple
     povstats, povline   
 end
 
-dataset_artifact = get_data_artifact( Settings() )
-hhs = HouseholdFromFrame.read_hh( 
-    joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame
-people = HouseholdFromFrame.read_pers( 
-    joinpath( dataset_artifact, "people.tab"))
 
 
 # one run of scotben 24 sys
@@ -53,6 +49,21 @@ settings.requested_threads = 4
 
 settings.num_households, settings.num_people, nhhs2 = 
            FRSHouseholdGetter.initialise( settings; reset=true )
+# overwrite raw data with uprated/matched versions
+dataset_artifact = get_data_artifact( Settings() )
+hhs = HouseholdFromFrame.read_hh( 
+    joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame
+people = HouseholdFromFrame.read_pers( 
+    joinpath( dataset_artifact, "people.tab"))
+hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
+people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
+
+DataSummariser.overwrite_raw!( hhs, people, settings.num_households )
+
+# scales rel to 2 adults
+hhs.eqscale_bhc = round.( hhs.eqscale_bhc/Results.TWO_ADS_EQ_SCALES.oecd_bhc, digits=2)
+hhs.eqscale_ahc = round.( hhs.eqscale_ahc/Results.TWO_ADS_EQ_SCALES.oecd_ahc, digits=2)
+
 res = Runner.do_one_run( settings, [sys,sys], obs )
 
 
@@ -83,8 +94,10 @@ scotben_base_22_x = res_22_x.hh[1]
 landman_base = CSV.File("/home/graham_s/VirtualWorlds/projects/northumbria/Landman/model/data/default_results/2024-25/base-hh-results.tab")|>DataFrame
 
 # Howard's eq scales are relative to 2 adults, not one like HBAI, so...
-landman_base.EqDisposableIncomeAHC ./ Results.TWO_ADS_EQ_SCALES.oecd_ahc
-landman_base.EqDisposableIncomeBHC ./ Results.TWO_ADS_EQ_SCALES.oecd_bhc
+# landman_base.EqDisposableIncomeAHC ./= Results.TWO_ADS_EQ_SCALES.oecd_ahc
+# landman_base.EqDisposableIncomeBHC ./= Results.TWO_ADS_EQ_SCALES.oecd_bhc
+# landman_base.esAHC .*= Results.TWO_ADS_EQ_SCALES.oecd_ahc
+# landman_base.esBHC .*= Results.TWO_ADS_EQ_SCALES.oecd_bhc
 
 landman_base_scot = landman_base[landman_base.Region.=="Scotland",:]
 
@@ -114,7 +127,10 @@ pov_scotben_22_x_ahc, line_22_x_ahc = make_pov( scotben_base_22_x, :eq_ahc_net_i
 
 scotben_base_22.eqscale = scotben_base_22.ahc_net_income ./ scotben_base_22.eq_ahc_net_income
 
+# join landman output to scotben hh level output
 scotben_landman = innerjoin( landman_base_scot, scotben_base_22; on=[:sernum=>:hid], makeunique=true)
+# .. then join to raw ScotBen data
+scotben_landman = innerjoin( scotben_landman, hhs; on=[:data_year=>:data_year,:sernum=>:hid], makeunique=true)
 
 sum(scotben_landman.weighted_people_1.*scotben_landman.bhc_net_income)
 sum( scotben_landman.weighted_people.*scotben_landman.DisposableIncomeBHC)
@@ -122,14 +138,15 @@ sum( scotben_landman.weighted_people.*scotben_landman.DisposableIncomeBHC)
 main_compares = [
     :num_people_1,:num_people,
     :num_children_1,:num_children,
+    :eqscale_bhc,:esBHC, 
+    :eqscale_ahc,:esAHC, 
     :weighted_people_1,:weighted_people,
-    :ahc_net_income,:DisposableIncomeAHC,
     :bhc_net_income,:DisposableIncomeBHC,
-    :eq_ahc_net_income,:EqDisposableIncomeAHC,
-    :eq_bhc_net_income,:EqDisposableIncomeBHC]
+    :ahc_net_income,:DisposableIncomeAHC,
+    :eq_bhc_net_income,:EqDisposableIncomeBHC,
+    :eq_ahc_net_income,:EqDisposableIncomeAHC]
 
-compares = scotben_landman[!,main_compares]
-
+comparedf = scotben_landman[!,main_compares]
 
 
 n = 5
@@ -230,4 +247,5 @@ compares[5,:median_ahc] = median( scotben_base_22_x.ahc_net_income, Weights(scot
 
 CSV.write("landman-vs-scotben.tab", compares; delim='\t')
 pp = permutedims( compares, 1 )
-pp.label = pretty.( pp.label )^
+pp.label = pretty.( pp.label )
+CSV.write("landman-vs-scotben-transposed.tab", pp; delim='\t')

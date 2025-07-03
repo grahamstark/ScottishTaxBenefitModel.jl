@@ -27,7 +27,7 @@ make_shared_package( "GMaths", ["DifferentialEquations", "LinearSolve", "Roots"]
 make_shared_package( "GStats", ["StatsKit", "RegressionTables","FixedEffectsModels"])
 make_shared_package( "GEecon", ["Agents" ])
 make_shared_package( "GMakie", ["Makie", "CairoMakie", "GLMakie", "Observables", "WGLMakie", "Bonito"])  
-make_shared_package( "GData", ["Format", "DataFrames", "DataFramesMeta", "CSV", "IterableTables", "PrettyTables", "MarkdownTables", "Format"])
+make_shared_package( "GData", ["Format", "DataFrames", "DataFramesMeta", "CSV", "IterableTables", "PrettyTables", "MarkdownTables", "Format", "FileIO"])
 make_shared_package( "GWebIO", ["Genie", "Pluto", "PlutoUI", "IJulia", "Mux", "HTTP", "PlutoExtras", "Observables", "PlutoSliderServer"])
 make_shared_package( "GTest", ["BenchmarkTools", "Chairmarks", "PrettyChairmarks"])
 
@@ -53,6 +53,20 @@ for env in ["GMakie","GMaths","GData","GWebIO", "GTests", "GEcon"]
     Pkg.activate(env, shared=true)
     Pkg.update()
 end
+Pkg.activate(".")
+
+## Adding 
+
+Example - add `FileIO` to `GData`.
+
+```julia
+
+using Pkg
+Pkg.activate("GData", shared=true)
+Pkg.add("FileIO")
+Pkg.activate(".")
+
+```
 
 ```
 

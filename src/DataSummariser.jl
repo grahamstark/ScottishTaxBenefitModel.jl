@@ -193,10 +193,74 @@ function writeback!( phhs :: DataFrame, hh :: Household )
     end
 end
 
+"""
+Reload data from a mapped household back into an original hh/personal dataframes.
+Note we're adding eqscale cols which should be added to the frame.
+"""
+function writeback!( hhs :: DataFrame, people :: DataFrame, hh :: Household )
+    phhr = @view hhs[ (hhs.hid .== hh.hid) .& ( hhs.data_year .== hh.data_year ), :]
+    @assert size(phhr)[1] >= 1
+    # phhr = phhr[1,:]
+    phhr.weight .= hh.weight
+    phhr.water_and_sewerage .= hh.water_and_sewerage 
+    phhr.mortgage_payment .= hh.mortgage_payment
+    phhr.mortgage_interest .= hh.mortgage_interest
+    phhr.gross_rent .= hh.gross_rent
+    phhr.total_wealth .= hh.total_wealth
+    phhr.house_value .= hh.house_value
+    phhr.net_physical_wealth .= hh.net_physical_wealth 
+    phhr.net_financial_wealth .= hh.net_financial_wealth 
+    phhr.net_housing_wealth .= hh.net_housing_wealth 
+    phhr.net_pension_wealth .= hh.net_pension_wealth 
+    phhr.original_gross_income .= hh.original_gross_income 
+    phhr.council .= hh.council
+    phhr.nhs_board .= hh.nhs_board
+    phhr.eqscale_bhc .= hh.equivalence_scales.oecd_bhc
+    phhr.eqscale_ahc .= hh.equivalence_scales.oecd_ahc
+    for (pid,pers) in hh.people
+        persrow = @view people[(people.pno .== pers.pno) .& ( people.data_year .== hh.data_year ).& ( people.hid .== hh.hid ),:]
+        @assert size( persrow)[1] == 1 "didn't select single person ; $(size( persrow)[1]) !== 1 people.pid = $(pers.pid)"
+        persrow = persrow[1,:]
+        for i in instances(Incomes_Type)
+            ikey = Symbol("income_", i)
+            persrow[ikey] = get(pers.income, i, 0.0 )
+        end
+        for i in instances(Asset_Type)
+            if i != Missing_Asset_Type
+                ikey = make_sym_for_asset(i)
+                persrow[ikey] = get(pers.assets,i,0.0)
+            end
+        end
+        persrow.cost_of_childcare = pers.cost_of_childcare
+        persrow.work_expenses = pers.work_expenses 
+        persrow.travel_to_work = pers.work_expenses 
+        persrow.debt_repayments = pers.debt_repayments
+        persrow.wealth_and_assets = pers.wealth_and_assets    
+    end
+end
+
+"""
+Joined dataset version for Essex.
+"""
 function overwrite_raw!( phhs :: DataFrame, nhhs :: Int )
     for hno in 1:nhhs
         hh = FRSHouseholdGetter.get_household( hno )
         writeback!( phhs, hh )
+    end
+end
+
+"""
+overwrite our data with our uprated, merged, whatevered version.
+"""
+function overwrite_raw!( hhs :: DataFrame, people :: DataFrame, nhhs :: Int )
+    # add some eq rows as needed
+    if ! ("eqscale_bhc" in names( hhs ))
+        hhs.eqscale_bhc = zeros( nhhs )
+        hhs.eqscale_ahc = zeros( nhhs )
+    end
+    for hno in 1:nhhs
+        hh = FRSHouseholdGetter.get_household( hno )
+        writeback!( hhs, people, hh )
     end
 end
 
