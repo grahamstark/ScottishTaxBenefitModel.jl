@@ -7,14 +7,30 @@
 pv = PovertyAndInequalityMeasures # shortcut
 
 using ScottishTaxBenefitModel
-using .Definitions,
+using 
+    .DataSummariser,
+    .Definitions,
     .FRSHouseholdGetter,
+    .HouseholdFromFrame,
     .Monitor, 
     .Results,
     .Runner, 
     .RunSettings,
     .STBIncomes,
     .STBParameters
+
+function make_pov( df :: DataFrame, incf::Symbol, growth=0.02 )::Tuple
+    povline = 0.6 * median( df[!,incf], Weights( df.weighted_people ))
+    povstats = make_poverty( df, povline, growth, :weighted_people, incf )
+    povstats, povline   
+end
+
+dataset_artifact = get_data_artifact( Settings() )
+hhs = HouseholdFromFrame.read_hh( 
+    joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame
+people = HouseholdFromFrame.read_pers( 
+    joinpath( dataset_artifact, "people.tab"))
+
 
 # one run of scotben 24 sys
 sys = STBParameters.get_default_system_for_fin_year( 2024 )
@@ -39,6 +55,7 @@ settings.num_households, settings.num_people, nhhs2 =
            FRSHouseholdGetter.initialise( settings; reset=true )
 res = Runner.do_one_run( settings, [sys,sys], obs )
 
+
 settings22 = Settings()
 settings22.requested_threads = 4
 settings22.included_data_years = [2022]
@@ -57,12 +74,10 @@ settings22_x.num_households, settings22_x.num_people, nhhs2 =
            FRSHouseholdGetter.initialise( settings22_x; reset=true )
 res_22_x = Runner.do_one_run( settings22_x, [sys,sys], obs )
 
-
 # hhlevel results
 scotben_base = res.hh[1]
 scotben_base_22 = res_22.hh[1]
 scotben_base_22_x = res_22_x.hh[1]
-
 
 # load landman base results
 landman_base = CSV.File("/home/graham_s/VirtualWorlds/projects/northumbria/Landman/model/data/default_results/2024-25/base-hh-results.tab")|>DataFrame
@@ -86,37 +101,17 @@ iq_scotben_22_ahc = pv.make_inequality( scotben_base_22, :weighted_people, :eq_a
 iq_scotben_22_x_bhc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_bhc_net_income )
 iq_scotben_22_x_ahc = pv.make_inequality( scotben_base_22_x, :weighted_people, :eq_ahc_net_income )
 
-line_scot_ahc = 0.6 * median( landman_base_scot.EqDisposableIncomeAHC, Weights(landman_base_scot.weighted_people ))
-pov_landman_scot_ahc = pv.make_poverty( landman_base_scot, line_scot_ahc, 0.02, :weighted_people, :EqDisposableIncomeAHC )
+pov_landman_scot_ahc, line_scot_ahc = make_pov( landman_base_scot, :EqDisposableIncomeAHC) 
+pov_landman_scot_bhc, line_scot_bhc = make_pov( landman_base_scot, :EqDisposableIncomeBHC  )
+pov_landman_uk_ahc, line_uk_ahc = make_pov( landman_base, :EqDisposableIncomeAHC  ) # uk
+pov_landman_uk_bhc, line_uk_bhc = make_pov( landman_base, :EqDisposableIncomeBHC  )
+pov_scotben_bhc, line_bhc = make_pov( scotben_base, :eq_bhc_net_income  )
+pov_scotben_ahc, line_ahc = make_pov( scotben_base, :eq_ahc_net_income  )
+pov_scotben_22_bhc, line_22_bhc = make_pov( scotben_base_22, :eq_bhc_net_income  )
+pov_scotben_22_ahc, line_22_ahc = make_pov( scotben_base_22, :eq_ahc_net_income  )
+pov_scotben_22_x_bhc, line_22_x_bhc = make_pov( scotben_base_22_x, :eq_bhc_net_income  ) # 1 year sb,frs weights
+pov_scotben_22_x_ahc, line_22_x_ahc = make_pov( scotben_base_22_x, :eq_ahc_net_income  )
 
-line_scot_bhc = 0.6 * median( landman_base_scot.EqDisposableIncomeBHC, Weights(landman_base_scot.weighted_people ))
-pov_landman_scot_bhc = pv.make_poverty( landman_base_scot, line_scot_bhc, 0.02, :weighted_people, :EqDisposableIncomeBHC )
-# UK
-line_uk_ahc = 0.6 * median( landman_base.EqDisposableIncomeAHC, Weights(landman_base.weighted_people ))
-pov_landman_uk_ahc = pv.make_poverty( landman_base, line_uk_ahc, 0.02, :weighted_people, :EqDisposableIncomeAHC )
-
-line_uk_bhc = 0.6 * median( landman_base.EqDisposableIncomeBHC, Weights(landman_base.weighted_people ))
-pov_landman_uk_bhc = pv.make_poverty( landman_base, line_uk_bhc, 0.02, :weighted_people, :EqDisposableIncomeBHC )
-
-line_bhc = 0.6 * median( scotben_base.eq_bhc_net_income, Weights(scotben_base.weighted_people ))
-pov_scotben_bhc = pv.make_poverty( scotben_base, line_bhc, 0.02, :weighted_people, :eq_bhc_net_income )
-
-line_ahc = 0.6 * median( scotben_base.eq_ahc_net_income, Weights(scotben_base.weighted_people ))
-pov_scotben_ahc = pv.make_poverty( scotben_base, line_ahc, 0.02, :weighted_people, :eq_ahc_net_income )
-
-line_22_bhc = 0.6 * median( scotben_base_22.eq_bhc_net_income, Weights(scotben_base_22.weighted_people ))
-pov_scotben_22_bhc = pv.make_poverty( scotben_base_22, line_22_bhc, 0.02, :weighted_people, :eq_bhc_net_income )
-
-line_22_ahc = 0.6 * median( scotben_base_22.eq_ahc_net_income, Weights(scotben_base_22.weighted_people ))
-pov_scotben_22_ahc = pv.make_poverty( scotben_base_22, line_22_ahc, 0.02, :weighted_people, :eq_ahc_net_income )
-
-line_22_x_bhc = 0.6 * median( scotben_base_22_x.eq_bhc_net_income, Weights(scotben_base_22_x.weighted_people ))
-pov_scotben_22_x_bhc = pv.make_poverty( scotben_base_22_x, line_22_x_bhc, 0.02, :weighted_people, :eq_bhc_net_income )
-
-line_22_x_ahc = 0.6 * median( scotben_base_22_x.eq_ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
-pov_scotben_22_x_ahc = pv.make_poverty( scotben_base_22_x, line_22_x_ahc, 0.02, :weighted_people, :eq_ahc_net_income )
-
-landman_base_scot.eqscale = landman_base_scot.DisposableIncomeAHC./landman_base_scot.EqDisposableIncomeAHC
 scotben_base_22.eqscale = scotben_base_22.ahc_net_income ./ scotben_base_22.eq_ahc_net_income
 
 scotben_landman = innerjoin( landman_base_scot, scotben_base_22; on=[:sernum=>:hid], makeunique=true)
@@ -131,8 +126,7 @@ main_compares = [
     :ahc_net_income,:DisposableIncomeAHC,
     :bhc_net_income,:DisposableIncomeBHC,
     :eq_ahc_net_income,:EqDisposableIncomeAHC,
-    :eq_bhc_net_income,:EqDisposableIncomeBHC,
-    :eqscale_1,:eqscale]
+    :eq_bhc_net_income,:EqDisposableIncomeBHC]
 
 compares = scotben_landman[!,main_compares]
 
@@ -234,4 +228,6 @@ compares[4,:median_ahc] = median( scotben_base_22.ahc_net_income, Weights(scotbe
 compares[5,:median_bhc] = median( scotben_base_22_x.bhc_net_income, Weights(scotben_base_22_x.weighted_people ))
 compares[5,:median_ahc] = median( scotben_base_22_x.ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
 
-
+CSV.write("landman-vs-scotben.tab", compares; delim='\t')
+pp = permutedims( compares, 1 )
+pp.label = pretty.( pp.label )^

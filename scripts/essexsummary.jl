@@ -87,7 +87,6 @@ function do_one_summary_set(;
     if use_essex_years
         people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
         hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
-    
     end
     # not actually used .. 
     interframe = make_intermed_dataframe( settings, 
