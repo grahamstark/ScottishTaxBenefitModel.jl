@@ -13,6 +13,7 @@ using .Definitions,
     .Results,
     .Runner, 
     .RunSettings,
+    .STBIncomes,
     .STBParameters
 
 # one run of scotben 24 sys
@@ -123,54 +124,114 @@ scotben_landman = innerjoin( landman_base_scot, scotben_base_22; on=[:sernum=>:h
 sum(scotben_landman.weighted_people_1.*scotben_landman.bhc_net_income)
 sum( scotben_landman.weighted_people.*scotben_landman.DisposableIncomeBHC)
 
-scotben_landman[!,[:num_people_1,:num_people,:num_children_1,:num_children,:weighted_people_1,:weighted_people,:bhc_net_income,:DisposableIncomeBHC,:eqscale_1,:eqscale]]
+main_compares = [
+    :num_people_1,:num_people,
+    :num_children_1,:num_children,
+    :weighted_people_1,:weighted_people,
+    :ahc_net_income,:DisposableIncomeAHC,
+    :bhc_net_income,:DisposableIncomeBHC,
+    :eq_ahc_net_income,:EqDisposableIncomeAHC,
+    :eq_bhc_net_income,:EqDisposableIncomeBHC,
+    :eqscale_1,:eqscale]
 
+compares = scotben_landman[!,main_compares]
+
+
+
+n = 5
+compares = DataFrame( 
+    #               1                 2             3                 4               5
+    label = ["Landman Scotland", "Landman UK", "ScotBen 3 Year", "ScotBen 2022", "ScotBen 2022/FRS Weights"],
+    weight = zeros(n),
+    gini_bhc = zeros(n),
+    gini_ahc = zeros(n),
+    palma_bhc = zeros(n),
+    palma_ahc = zeros(n),
+    headcount_bhc = zeros(n),
+    headcount_ahc = zeros(n),
+    mean_bhc = zeros(n),
+    mean_ahc = zeros(n),
+    median_bhc = zeros(n),
+    median_ahc = zeros(n),
+    mean_eq_bhc = zeros(n),
+    mean_eq_ahc = zeros(n),
+    median_eq_bhc = zeros(n),
+    median_eq_ahc = zeros(n))
 
 # landman sco 22
-@show iq_landman_scot_bhc.gini
-@show iq_landman_scot_ahc.gini
-# landman UK 22
-@show iq_landman_uk_bhc.gini
-@show iq_landman_uk_ahc.gini
-# scotben 2019-22
-@show iq_scotben_bhc.gini
-@show iq_scotben_ahc.gini
-# scotben 2022, sb weights
-@show iq_scotben_22_bhc.gini
-@show iq_scotben_22_ahc.gini
-# sb 22 frs weights
-@show iq_scotben_22_x_bhc.gini
-@show iq_scotben_22_x_ahc.gini
 
-# landman sco 22
-@show iq_landman_scot_bhc.palma
-@show iq_landman_scot_ahc.palma
-# landman UK 22
-@show iq_landman_uk_bhc.palma
-@show iq_landman_uk_ahc.palma
-# scotben 2019-22
-@show iq_scotben_bhc.palma
-@show iq_scotben_ahc.palma
-# scotben 2022, sb weights
-@show iq_scotben_22_bhc.palma
-@show iq_scotben_22_ahc.palma
-# sb 22 frs weights
-@show iq_scotben_22_x_bhc.palma
-@show iq_scotben_22_x_ahc.palma
+compares[1,:gini_bhc] = iq_landman_scot_bhc.gini
+compares[1,:gini_ahc] = iq_landman_scot_ahc.gini
+compares[2,:gini_bhc] = iq_landman_uk_bhc.gini
+compares[2,:gini_ahc] = iq_landman_uk_ahc.gini
+compares[3,:gini_bhc] = iq_scotben_bhc.gini
+compares[3,:gini_ahc] = iq_scotben_ahc.gini
+compares[4,:gini_bhc] = iq_scotben_22_bhc.gini
+compares[4,:gini_ahc] = iq_scotben_22_ahc.gini
+compares[5,:gini_bhc] = iq_scotben_22_x_bhc.gini
+compares[5,:gini_ahc] = iq_scotben_22_x_ahc.gini
+compares[1,:palma_bhc] = iq_landman_scot_bhc.palma
+compares[1,:palma_ahc] = iq_landman_scot_ahc.palma
+compares[2,:palma_bhc] = iq_landman_uk_bhc.palma
+compares[2,:palma_ahc] = iq_landman_uk_ahc.palma
+compares[3,:palma_bhc] = iq_scotben_bhc.palma
+compares[3,:palma_ahc] = iq_scotben_ahc.palma
+compares[4,:palma_bhc] = iq_scotben_22_bhc.palma
+compares[4,:palma_ahc] = iq_scotben_22_ahc.palma
+compares[5,:palma_bhc] = iq_scotben_22_x_bhc.palma
+compares[5,:palma_ahc] = iq_scotben_22_x_ahc.palma
+compares[1,:headcount_bhc] = pov_landman_scot_bhc.headcount
+compares[1,:headcount_ahc] = pov_landman_scot_ahc.headcount
+compares[2,:headcount_bhc] = pov_landman_uk_bhc.headcount
+compares[2,:headcount_ahc] = pov_landman_uk_ahc.headcount
+compares[3,:headcount_bhc] = pov_scotben_bhc.headcount
+compares[3,:headcount_ahc] = pov_scotben_ahc.headcount
+compares[4,:headcount_bhc] = pov_scotben_22_bhc.headcount
+compares[4,:headcount_ahc] = pov_scotben_22_ahc.headcount
+compares[5,:headcount_bhc] = pov_scotben_22_x_bhc.headcount
+compares[5,:headcount_ahc] = pov_scotben_22_x_ahc.headcount
 
-# landman sco 22
-@show pov_landman_scot_bhc.headcount
-@show pov_landman_scot_ahc.headcount
-# landman UK 22
-@show pov_landman_uk_bhc.headcount
-@show pov_landman_uk_ahc.headcount
-# scotben 2019-22
-@show pov_scotben_bhc.headcount
-@show pov_scotben_ahc.headcount
-# scotben 2022, sb weights
-@show pov_scotben_22_bhc.headcount
-@show pov_scotben_22_ahc.headcount
-# sb 22 frs weights
-@show pov_scotben_22_x_bhc.headcount
-@show pov_scotben_22_x_ahc.headcount
+compares[1,:mean_eq_bhc] = iq_landman_scot_bhc.average_income
+compares[1,:mean_eq_ahc] = iq_landman_scot_ahc.average_income
+compares[2,:mean_eq_bhc] = iq_landman_uk_bhc.average_income
+compares[2,:mean_eq_ahc] = iq_landman_uk_ahc.average_income
+compares[3,:mean_eq_bhc] = iq_scotben_bhc.average_income
+compares[3,:mean_eq_ahc] = iq_scotben_ahc.average_income
+compares[4,:mean_eq_bhc] = iq_scotben_22_bhc.average_income
+compares[4,:mean_eq_ahc] = iq_scotben_22_ahc.average_income
+compares[5,:mean_eq_bhc] = iq_scotben_22_x_bhc.average_income
+compares[5,:mean_eq_ahc] = iq_scotben_22_x_ahc.average_income
+compares[1,:median_eq_bhc] = iq_landman_scot_bhc.median
+compares[1,:median_eq_ahc] = iq_landman_scot_ahc.median
+compares[2,:median_eq_bhc] = iq_landman_uk_bhc.median
+compares[2,:median_eq_ahc] = iq_landman_uk_ahc.median
+compares[3,:median_eq_bhc] = iq_scotben_bhc.median
+compares[3,:median_eq_ahc] = iq_scotben_ahc.median
+compares[4,:median_eq_bhc] = iq_scotben_22_bhc.median
+compares[4,:median_eq_ahc] = iq_scotben_22_ahc.median
+compares[5,:median_eq_bhc] = iq_scotben_22_x_bhc.median
+compares[5,:median_eq_ahc] = iq_scotben_22_x_ahc.median
+
+compares[1,:mean_bhc] = mean( landman_base.DisposableIncomeBHC, Weights(landman_base.weighted_people ))
+compares[1,:mean_ahc] = mean( landman_base.DisposableIncomeAHC, Weights(landman_base.weighted_people ))
+compares[2,:mean_bhc] = mean( landman_base_scot.DisposableIncomeBHC, Weights(landman_base_scot.weighted_people ))
+compares[2,:mean_ahc] = mean( landman_base_scot.DisposableIncomeAHC, Weights(landman_base_scot.weighted_people ))
+compares[3,:mean_bhc] = mean( scotben_base.bhc_net_income, Weights(scotben_base.weighted_people ))
+compares[3,:mean_ahc] = mean( scotben_base.ahc_net_income, Weights(scotben_base.weighted_people ))
+compares[4,:mean_bhc] = mean( scotben_base_22.bhc_net_income, Weights(scotben_base_22.weighted_people ))
+compares[4,:mean_ahc] = mean( scotben_base_22.ahc_net_income, Weights(scotben_base_22.weighted_people ))
+compares[5,:mean_bhc] = mean( scotben_base_22_x.bhc_net_income, Weights(scotben_base_22_x.weighted_people ))
+compares[5,:mean_ahc] = mean( scotben_base_22_x.ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
+
+compares[1,:median_bhc] = median( landman_base.DisposableIncomeBHC, Weights(landman_base.weighted_people ))
+compares[1,:median_ahc] = median( landman_base.DisposableIncomeAHC, Weights(landman_base.weighted_people ))
+compares[2,:median_bhc] = median( landman_base_scot.DisposableIncomeBHC, Weights(landman_base_scot.weighted_people ))
+compares[2,:median_ahc] = median( landman_base_scot.DisposableIncomeAHC, Weights(landman_base_scot.weighted_people ))
+compares[3,:median_bhc] = median( scotben_base.bhc_net_income, Weights(scotben_base.weighted_people ))
+compares[3,:median_ahc] = median( scotben_base.ahc_net_income, Weights(scotben_base.weighted_people ))
+compares[4,:median_bhc] = median( scotben_base_22.bhc_net_income, Weights(scotben_base_22.weighted_people ))
+compares[4,:median_ahc] = median( scotben_base_22.ahc_net_income, Weights(scotben_base_22.weighted_people ))
+compares[5,:median_bhc] = median( scotben_base_22_x.bhc_net_income, Weights(scotben_base_22_x.weighted_people ))
+compares[5,:median_ahc] = median( scotben_base_22_x.ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
+
 
