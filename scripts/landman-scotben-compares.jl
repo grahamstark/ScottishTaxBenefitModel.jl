@@ -37,7 +37,6 @@ Observable(Progress(Base.UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e"), "", 0, 0,
 of = on(obs) do p
     global tot
     println(p)
-
     tot += p.step
     println(tot)
 end
@@ -46,9 +45,9 @@ settings.included_data_years = [2019,2021,2022]
 settings.lower_multiple=0.640000000000000
 settings.upper_multiple=5.86000000000000
 settings.requested_threads = 4
-
 settings.num_households, settings.num_people, nhhs2 = 
            FRSHouseholdGetter.initialise( settings; reset=true )
+
 # overwrite raw data with uprated/matched versions
 dataset_artifact = get_data_artifact( Settings() )
 hhs = HouseholdFromFrame.read_hh( 
@@ -57,16 +56,16 @@ people = HouseholdFromFrame.read_pers(
     joinpath( dataset_artifact, "people.tab"))
 hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
 people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
-
 DataSummariser.overwrite_raw!( hhs, people, settings.num_households )
 
-# scales rel to 2 adults
+# eq scales rel to 2 adults
 hhs.eqscale_bhc = round.( hhs.eqscale_bhc/Results.TWO_ADS_EQ_SCALES.oecd_bhc, digits=2)
 hhs.eqscale_ahc = round.( hhs.eqscale_ahc/Results.TWO_ADS_EQ_SCALES.oecd_ahc, digits=2)
 
 res = Runner.do_one_run( settings, [sys,sys], obs )
 
-
+# run over subsets
+# a) 1 year, my weights 
 settings22 = Settings()
 settings22.requested_threads = 4
 settings22.included_data_years = [2022]
@@ -75,6 +74,8 @@ settings22.upper_multiple=7.6000000000000
 settings22.num_households, settings22.num_people, nhhs2 = 
            FRSHouseholdGetter.initialise( settings22; reset=true )
 res_22 = Runner.do_one_run( settings22, [sys,sys], obs )
+
+# 1 year, same weights as Landman
 settings22_x = Settings()
 settings22_x.requested_threads = 4
 settings22_x.included_data_years = [2022]
@@ -85,22 +86,16 @@ settings22_x.num_households, settings22_x.num_people, nhhs2 =
            FRSHouseholdGetter.initialise( settings22_x; reset=true )
 res_22_x = Runner.do_one_run( settings22_x, [sys,sys], obs )
 
-# hhlevel results
+# hhlevel results shortcuts
 scotben_base = res.hh[1]
 scotben_base_22 = res_22.hh[1]
 scotben_base_22_x = res_22_x.hh[1]
 
 # load landman base results
 landman_base = CSV.File("/home/graham_s/VirtualWorlds/projects/northumbria/Landman/model/data/default_results/2024-25/base-hh-results.tab")|>DataFrame
-
-# Howard's eq scales are relative to 2 adults, not one like HBAI, so...
-# landman_base.EqDisposableIncomeAHC ./= Results.TWO_ADS_EQ_SCALES.oecd_ahc
-# landman_base.EqDisposableIncomeBHC ./= Results.TWO_ADS_EQ_SCALES.oecd_bhc
-# landman_base.esAHC .*= Results.TWO_ADS_EQ_SCALES.oecd_ahc
-# landman_base.esBHC .*= Results.TWO_ADS_EQ_SCALES.oecd_bhc
-
 landman_base_scot = landman_base[landman_base.Region.=="Scotland",:]
 
+# inequal, pov over each set of results
 iq_landman_scot_ahc = pv.make_inequality( landman_base_scot, :weighted_people, :EqDisposableIncomeAHC )
 iq_landman_scot_bhc = pv.make_inequality( landman_base_scot, :weighted_people, :EqDisposableIncomeBHC )
 # UK
@@ -125,16 +120,12 @@ pov_scotben_22_ahc, line_22_ahc = make_pov( scotben_base_22, :eq_ahc_net_income 
 pov_scotben_22_x_bhc, line_22_x_bhc = make_pov( scotben_base_22_x, :eq_bhc_net_income  ) # 1 year sb,frs weights
 pov_scotben_22_x_ahc, line_22_x_ahc = make_pov( scotben_base_22_x, :eq_ahc_net_income  )
 
-scotben_base_22.eqscale = scotben_base_22.ahc_net_income ./ scotben_base_22.eq_ahc_net_income
-
 # join landman output to scotben hh level output
 scotben_landman = innerjoin( landman_base_scot, scotben_base_22; on=[:sernum=>:hid], makeunique=true)
 # .. then join to raw ScotBen data
 scotben_landman = innerjoin( scotben_landman, hhs; on=[:data_year=>:data_year,:sernum=>:hid], makeunique=true)
 
-sum(scotben_landman.weighted_people_1.*scotben_landman.bhc_net_income)
-sum( scotben_landman.weighted_people.*scotben_landman.DisposableIncomeBHC)
-
+# little subframe for viewing main variables sb vs lm
 main_compares = [
     :num_people_1,:num_people,
     :num_children_1,:num_children,
@@ -145,10 +136,9 @@ main_compares = [
     :ahc_net_income,:DisposableIncomeAHC,
     :eq_bhc_net_income,:EqDisposableIncomeBHC,
     :eq_ahc_net_income,:EqDisposableIncomeAHC]
-
 comparedf = scotben_landman[!,main_compares]
 
-
+# comparisons in a dataframe
 n = 5
 compares = DataFrame( 
     #               1                 2             3                 4               5
@@ -168,8 +158,6 @@ compares = DataFrame(
     mean_eq_ahc = zeros(n),
     median_eq_bhc = zeros(n),
     median_eq_ahc = zeros(n))
-
-# landman sco 22
 
 compares[1,:gini_bhc] = iq_landman_scot_bhc.gini
 compares[1,:gini_ahc] = iq_landman_scot_ahc.gini
@@ -246,6 +234,7 @@ compares[5,:median_bhc] = median( scotben_base_22_x.bhc_net_income, Weights(scot
 compares[5,:median_ahc] = median( scotben_base_22_x.ahc_net_income, Weights(scotben_base_22_x.weighted_people ))
 
 CSV.write("landman-vs-scotben.tab", compares; delim='\t')
+# same, but rows -> cols
 pp = permutedims( compares, 1 )
 pp.label = pretty.( pp.label )
 CSV.write("landman-vs-scotben-transposed.tab", pp; delim='\t')
