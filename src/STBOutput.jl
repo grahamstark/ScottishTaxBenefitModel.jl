@@ -422,11 +422,11 @@ function fill_inc_frame_row!(
     STBIncomes.fill_inc_frame_row!( 
         ir, pers.pid, hh.hid, hh.weight, pres.income )
     # some aggregate income fields    
-    ir.income_tax -=  pres.it.pension_relief_at_source   
+    # ir.income_tax -=  pres.it.pension_relief_at_source   
     ir.employers_ni = pres.ni.class_1_secondary
     
     ## FIXME the pension_relief thing might not be quite right
-    ir.scottish_income_tax = pres.it.non_savings_tax - pres.it.pension_relief_at_source
+    ir.scottish_income_tax = pres.it.non_savings_tax # - pres.it.pension_relief_at_source
 
     ir.total_benefits = isum( pres.income, BENEFITS ) 
     ir.legacy_mtbs  = isum( pres.income, LEGACY_MTBS )
