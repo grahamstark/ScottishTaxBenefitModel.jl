@@ -26,7 +26,10 @@ function make_pov( df :: DataFrame, incf::Symbol, growth=0.02 )::Tuple
     povstats, povline   
 end
 
-
+# Raw FRS
+hhold = CSV.File( "/mnt/data/frs/2022/tab/househol.tab"; missingstring=[" ", ""])|>DataFrame
+rename!( hhold, lowercase.(names(hhold)))
+hhold_scot = @view hhold[hhold.gvtregn .== 299999999,:]
 
 # one run of scotben 24 sys
 sys = STBParameters.get_default_system_for_fin_year( 2024 )
@@ -238,3 +241,25 @@ CSV.write("landman-vs-scotben.tab", compares; delim='\t')
 pp = permutedims( compares, 1 )
 pp.label = pretty.( pp.label )
 CSV.write("landman-vs-scotben-transposed.tab", pp; delim='\t')
+
+incomes = res.income[1]
+# !!! cols set manually here
+hhincs = combine(groupby( incomes, [:hid,:data_year] ), Cols(2:112).=>sum )
+hhids = combine(groupby( incomes, [:hid,:data_year] ), Cols(113:124).=>first )
+hhincs = hcat( hhids, hhincs; makeunique=true )
+hhincs = select( hhincs, Not(:hid_sum, :hid_1, :data_year_first, :data_year_1))
+function ren_incs(s)
+    ss = split(s,"_")
+    if ss[end] in ["1","first","sum"]
+        ss[end] = "sbhhinc"
+    else
+        push!(ss, "sbhhinc" )
+    end; 
+    return join( ss, "_" )
+end
+
+rename!( ren_incs, hhincs )
+
+hhincs22 = @view hhincs[hhincs.data_year_sbhhinc .== 2022,:]
+
+scotben_landman = innerjoin( scotben_landman, hhincs22; on=[:sernum=>:hid_sbhhinc], makeunique=true)
