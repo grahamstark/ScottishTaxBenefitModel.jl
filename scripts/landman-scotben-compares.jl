@@ -4,6 +4,12 @@
 @usingany StatsBase
 @usingany PovertyAndInequalityMeasures
 @usingany Observables
+@usingany CairoMakie
+
+@usingany GLM
+
+include("landman-to-sb-mappings.jl")
+
 pv = PovertyAndInequalityMeasures # shortcut
 
 using ScottishTaxBenefitModel
@@ -12,10 +18,12 @@ using
     .Definitions,
     .FRSHouseholdGetter,
     .HouseholdFromFrame,
+    .ModelHousehold,
     .Monitor, 
     .Results,
     .Runner, 
     .RunSettings,
+    .SingleHouseholdCalculations,
     .STBIncomes,
     .STBParameters,
     .Utils
@@ -263,3 +271,34 @@ rename!( ren_incs, hhincs )
 hhincs22 = @view hhincs[hhincs.data_year_sbhhinc .== 2022,:]
 
 scotben_landman = innerjoin( scotben_landman, hhincs22; on=[:sernum=>:hid_sbhhinc], makeunique=true)
+
+function agg( df, cols )
+    nrows, ncols = size( df )
+    t = zeros(nrows)
+    for c in cols
+        t += df[!,c]
+    end
+    t
+end
+
+function zero_anoms( df, la_cols, sb_cols )
+    s1 = agg(df, la_cols)
+    s2 = agg(df, sb_cols)
+    ids = ((s1 .> 0) .& (s2 .== 0)) .| ((s1 .== 0) .& (s2 .> 0))
+    targs = union( Symbol.(names(df)[1:14]), la_cols, sb_cols )
+    return df[ids,targs]
+end
+
+for i in 1:2:60
+    landman = agg(scotben_landman, la_stb_matches[i])
+    sben = agg( scotben_landman, la_stb_matches[i+1])
+    f = Figure()
+    ax = Axis(f[1,1]; title = pretty( la_stb_matches[i][1]), xlabel="Landman £pw", ylabel="ScotBen £pw" )# , xmin=0, ymin=0, xmax=500, ymax=500)
+    scatter!( ax, landman, sben )
+    dir = "/home/graham_s/tmp/sb_vs_landman/$(la_stb_matches[i][1])"
+    CSV.write( "$(dir).tab", zero_anoms( scotben_landman, la_stb_matches[i], la_stb_matches[i+1]); delim='\t')
+    save( "$(dir).svg", f )
+end
+
+bens = CSV.File("/mnt/data/frs/2022/tab/benefits.tab") |> DataFrame
+rename!( lowercase, bens )
