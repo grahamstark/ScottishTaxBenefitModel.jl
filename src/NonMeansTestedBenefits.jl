@@ -120,10 +120,28 @@ module NonMeansTestedBenefits
                 recipient = pid
             end
         end
-        if max_inc > cb.high_income_thresh
-            # this should really be done in steps £1 for every £100, but since
+        excess_income = max_inc - cb.high_income_thresh
+        if excess_income > 0
+            withdrawal_rate = excess_income * cb.withdrawal # use '*' rather than integer division here to
+            # get a consident marginal rate.
+            withdrawn = c*withdrawal_rate
+            # this should really be done in steps £1 for every £200, but since
             # everything is weekly here we'll just multiply
-            withdrawn = cb.withdrawal*(max_inc - cb.high_income_thresh)
+            #= 
+            
+            Specifically, affected taxpayers will pay back one per cent of their family’s 
+            Child Benefit for every £100 by which taxable income exceeds £50,000. 
+            One per cent of Child Benefit is £10.56 per year for a 1-child family, and an 
+            additional £6.97 per child for larger families. 
+            
+            Hence the marginal tax rate between £50,000 and £60,000 is increased by about 11 
+            percentage points for the first child and by an additional 7 percentage points 
+            for each subsequent one. So, for example, while about 320,000 people will find 
+            that their marginal income tax rate increases to more than 50%, about 40,000 of them - 
+            those with three or more children - will find that it jumps to at least 65%. 
+            
+            =#
+            # withdrawn = c*cb.withdrawal*excess_income
             c = max(0.0, c-withdrawn)
         end
         bures.pers[recipient].income[CHILD_BENEFIT] = c       

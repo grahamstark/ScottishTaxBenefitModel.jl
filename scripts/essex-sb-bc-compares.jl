@@ -14,8 +14,8 @@ using .Results
 include( "generate_bcs_for_essex.jl")
 
 const WPM = 4.354
-# const DIR = joinpath("/","mnt", "data", "FES-Project", "Essex", "bc-comparisons" ) 
-const DIR = joinpath("/", "home", "graham_s", "VirtualWorlds", "projects", "FES-Project", "Essex", "bc-comparisons" ) 
+const DIR = joinpath("/","mnt", "data", "FES-Project", "Essex", "bc-comparisons" ) 
+# const DIR = joinpath("/", "home", "graham_s", "VirtualWorlds", "projects", "FES-Project", "Essex", "bc-comparisons" ) 
 
 function eu_index( key :: NamedTuple, legacy :: Bool, n :: Int ):: NamedTuple
     sbid = id_from_key( key, legacy )
@@ -77,8 +77,10 @@ function load_essex( fname="essex-uc-all.tab", legacy=false )::DataFrame
                                         edfra.marrstat .= marrstat
                                         edfra.hcost .= hcost
                                         edfra.bedrooms .= bedrooms
-                                        edfra.chu6 .= chu6
-                                        edfra.ch6p .= ch6p                                        
+                                        # fix: just take euromod's children 
+                                        edfra.chu6 .= edfra.i_ftype_hh_nkidsu5
+                                        edfra.ch6p .= edfra.i_ftype_hh_nChildren - edfra.i_ftype_hh_nkidsu5
+                                        # @assert each( edfra.ch6p .>= 0   
                                     end
                                 end
                             end # ch6p
@@ -108,7 +110,7 @@ const IN_ORDER_COLS = [
 
 
 function match_sb_essex_full()
-    edf = load_essex()
+    edf = load_essex("essex-uc-all-v2.tab")
     nrows,ncols = size(edf)
     for i in instances( Incomes )
         c = Symbol( "scotben_"*lowercase(string(i)))
@@ -123,9 +125,11 @@ function match_sb_essex_full()
     edf.euromod_council_tax_benefit = copy( edf.bmu_s)
     edf.euromod_net_ahc_income = copy( edf.il_dispy_ahc_1)
     edf.euromod_benefit_reduction = copy( edf.brduc_s )
-    edf.euromod_scottish_child_payment = copy( edf.brduc_s )
+    edf.euromod_scottish_child_payment = copy( edf.bchmt_s )
     edf.euromod_child_benefit = copy( edf.bch_s )
     edf.euromod_wages = copy(edf.ils_origy_1)
+    edf.euromod_num_children =  copy(edf.i_ftype_hh_nChildren)
+    edf.euromod_num_children_u5 =  copy(edf.i_ftype_hh_nkidsu5)
 
     edf.scotben_net_ahc_income = zeros(nrows)
     edf.uc_work_allowance = zeros(nrows)
@@ -143,6 +147,7 @@ function match_sb_essex_full()
     edf.cap = zeros(nrows)
     edf.scotben_benefit_reduction = zeros(nrows)
     settings = Settings()
+    # settings.means_tested_routing = uc_full
     sys = STBParameters.get_default_system_for_fin_year( 2024 )
 
     edf.euromod_derived_income = 
@@ -232,6 +237,10 @@ function match_sb_essex_full()
             push!(non_zero_cols, sn )
         end 
     end
+    for n in non_zero_cols
+        println(n)
+    end
+    @show settings
     # clear uo irrelevent cols
     select!(edf,non_zero_cols)
     # put the comparisons on the far side
@@ -370,6 +379,7 @@ function match_essex( exdf :: DataFrame ) :: Tuple
     outd, outx
 end
 
+#=
 sbdf = CSV.File( "$(DIR)/uc-12-private-single-200.0-1-0-0.tab"; delim='\t')|>DataFrame
 exdf = CSV.File( "$(DIR)/euromod-bc-summary-1.tab"; delim='\t')|>DataFrame
 sbdf.char_labels = BCCalcs.get_char_labels(size(sbdf)[1])    
@@ -391,3 +401,12 @@ rename!( pretty, outd )
 
 CSV.write( "$(DIR)/euromod-sb-comparison-1.tab", outd; delim='\t' )
 save( "$(DIR)/euromod-sb-comparison-1.svg", f1 )
+
+=#
+
+
+# edf = load_essex( "essex-uc-all-v2.tab", false  )
+
+# CSV.write( "$(DIR)/essex-uc-all-edited-v3.tab", edf; delim='\t' )
+
+

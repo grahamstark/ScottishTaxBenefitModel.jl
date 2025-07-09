@@ -245,7 +245,7 @@ function weeklyise!( nmt :: NonMeansTestedSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PE
     # this is unintuitive, but the weekly amount of CB
     # is withdrawn by 1% of the annual excess of income,
     # and the whole model is weekly, so ...
-    nmt.child_benefit.withdrawal *= wpy
+    nmt.child_benefit.withdrawal *= wpy/100
 end
 
 @with_kw mutable struct IncomeTaxSys{RT<:Real}
@@ -839,7 +839,7 @@ function weeklyise!( sc :: SavingsCredit; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEA
     sc.withdrawal_rate /= 100.0
 end
 
-    @with_kw mutable struct HousingBenefits{RT<:Real}
+@with_kw mutable struct HousingBenefits{RT<:Real}
     abolished :: Bool = false
     taper :: RT = 65.0
     passported_bens = DEFAULT_PASSPORTED_BENS
@@ -945,7 +945,18 @@ end
     capital_tariff :: RT = 250.0/4.35
     taper  :: RT= 63.0
     ctr_taper  :: RT = 20.0 # not really part of UC, I suppose, but still...
-end    
+end   
+
+function weeklyise!( ctrsys :: CTRSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+    ctrsys.taper /= 100.0
+end
+
+@with_kw mutable struct CTRSys{RT<:Real}
+    abilished = false
+    taper :: RT = 20.0
+    ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
+    ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,99999999999999.9]
+end
 
 function weeklyise!( uc :: UniversalCreditSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     uc.threshold /= wpm
@@ -1110,6 +1121,7 @@ include( "legal_aid_parameters.jl")
     ni   = NationalInsuranceSys{RT}()
     lmt  = LegacyMeansTestedBenefitSystem{RT}()
     uc   = UniversalCreditSys{RT}()
+    ctr  = CTRSys{RT}()
     scottish_child_payment = ScottishChildPayment{RT}()
     age_limits = AgeLimits()
     # just a copy of standard ft/pt hours; mt benefits may have their own copy
@@ -1217,6 +1229,7 @@ function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_
     weeklyise!( tb.loctax; wpm=wpm, wpy=wpy )
     weeklyise!( tb.nmt_bens; wpm=wpm, wpy=wpy )
     weeklyise!( tb.uc; wpm=wpm, wpy=wpy )
+    weeklyise!( tb.ctr; wpm=wpm, wpy=wpy )
     weeklyise!( tb.bencap; wpm=wpm, wpy=wpy )
     weeklyise!( tb.ubi; wpm=wpm, wpy=wpy )
     weeklyise!( tb.othertaxes; wpm=wpm, wpy=wpy)

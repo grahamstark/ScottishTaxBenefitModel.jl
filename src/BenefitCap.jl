@@ -29,6 +29,9 @@ export apply_benefit_cap!
 
 """
 Apply a benefit cap to a benefit unit.
+
+09/07 !!! FIXME: may well never be needed, but we need to make sure pensioners are 
+treated as legacy benefits route her
 """
 function apply_benefit_cap!( 
     benefit_unit_result :: BenefitUnitResult,
@@ -40,7 +43,6 @@ function apply_benefit_cap!(
     # println( "apply_benefit_cap entered; route = $route")
     bu = benefit_unit # shortcut
     bur = benefit_unit_result # shortcut
-    
     if route == legacy_bens 
         for pid in bu.adults
             if bur.pers[pid].income[WORKING_TAX_CREDIT] > 0

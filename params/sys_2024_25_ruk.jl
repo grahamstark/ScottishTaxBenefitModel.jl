@@ -294,7 +294,7 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.nmt_bens.child_benefit.first_child = 25.60
   sys.nmt_bens.child_benefit.other_children = 16.95
   sys.nmt_bens.child_benefit.high_income_thresh = 60_000.0
-  sys.nmt_bens.child_benefit.withdrawal = 1/100
+  sys.nmt_bens.child_benefit.withdrawal = 1/200
   sys.nmt_bens.child_benefit.guardians_allowance = 21.75
 
   sys.nmt_bens.dla.abolished = false

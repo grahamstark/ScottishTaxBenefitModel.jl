@@ -94,7 +94,6 @@ function calc_bedroom_tax_mitigation!(
     # https://www.gov.scot/publications/scottish-discretionary-housing-payment-guidance-manual/pages/3/
     # 
     rrd = hr.housing.rooms_rent_reduction + benred 
-
     if (rrd > 0) 
         # the > housing tests here are kinda redundant, but still ..
         if uc > 0 

@@ -311,6 +311,7 @@ module Results
         eq_net_income :: RT = zero(RT)
         legacy_mtbens = LMTResults{RT}()
         uc = UCResults{RT}()
+        ctr = UCResults{RT}()
         bencap = BenefitCapResults{RT}()
         other_benefits  :: RT = zero(RT)
         pers = Dict{BigInt,IndividualResult{RT}}() # FIXME name change to `people` 

@@ -228,6 +228,7 @@ function calc_elements!(
     ucr          :: UCResults,
     benefit_unit :: BenefitUnit, 
     intermed     :: MTIntermediate,
+    num_allowed_children :: Integer,
     uc           :: UniversalCreditSys,
     hours_limits :: HoursLimits, 
     child_limits :: ChildLimits )
@@ -235,7 +236,7 @@ function calc_elements!(
 
     # child elements
     
-    if intermed.num_allowed_children >  0
+    if num_allowed_children >  0
         if born_before( 
             intermed.age_oldest_child, 
             child_limits.policy_start, 
@@ -245,7 +246,7 @@ function calc_elements!(
         else
             ucr.child_element = uc.subsequent_child
         end
-        ucr.child_element += (intermed.num_allowed_children-1)*uc.subsequent_child
+        ucr.child_element += (num_allowed_children-1)*uc.subsequent_child
     end
     # limited capacity for work-related Activity
     # 1 per BU; see cpag 20/1 p 71-73
@@ -425,7 +426,7 @@ function calc_universal_credit!(
     end
     bur.uc.disqualified_on_capital = false
     bur.uc.standard_allowance = calc_standard_allowance( benefit_unit, intermed, uc )
-    calc_elements!( bur.uc, bu, intermed, uc, hours_limits, child_limits )
+    calc_elements!( bur.uc, bu, intermed, intermed.num_allowed_children, uc, hours_limits, child_limits )
     if( intermed.num_working_ft > 0 ) || ( intermed.num_working_pt > 0 )
         calc_uc_child_costs!( bur.uc, bu, intermed, uc )
     end
@@ -560,31 +561,6 @@ function calc_universal_credit!(
         )
     end
 
-    # hack - council tax rebates for UC 
-    # 20% of any income above Maximum Universal Credit is deducted from maximum CT support 
-    # income seems to *include* universal credit, and full wages
-    # so grossed back up from the tapered calculated wages above, but
-    # otherwise following the same rules. Something like that, anyway.
-    #
-    recipient = hhr.bus[1].uc.recipient
-    if recipient > 0 #  *something* done with UC
-        ucrec = hhr.bus[1].pers[recipient].income[UNIVERSAL_CREDIT]
-        if ucrec > 0
-            bur = household_result.bus[1] 
-            ct = total(household_result, LOCAL_TAXES ) 
-            # grossed_up_earn = (bur.uc.earned_income/uc.taper)
-            ucincome =  
-                bur.uc.earnings_before_allowances + # gross earned income back up
-                bur.uc.other_income +
-                bur.uc.tariff_income +
-                ucrec
-            excess = max(0.0, ucincome - bur.uc.maximum)
-            if excess > 0
-                ct = max( 0.0, ct - excess*uc.ctr_taper )  
-            end
-            bur.uc.ctr = ct
-        end
-    end
 end
 
 end # module
