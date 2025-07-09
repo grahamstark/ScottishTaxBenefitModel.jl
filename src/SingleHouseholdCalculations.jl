@@ -34,6 +34,7 @@ using .Results:
 using .RunSettings: Settings
 using .STBParameters: 
     TaxBenefitSystem
+using .CTR
 
 # using .LegacyMeansTestedBenefits
 
@@ -189,6 +190,16 @@ function do_one_calc(
         sys.child_limits,
         sys.hr,
         sys.minwage )
+
+    calc_ctr!(
+        hres,
+        hh,
+        intermed,
+        sys.uc,
+        sys.ctr,
+        sys.age_limits,
+        sys.hours_limits,
+        sys.child_limits )
 
     route_to_uc_or_legacy!( 
         hres,
