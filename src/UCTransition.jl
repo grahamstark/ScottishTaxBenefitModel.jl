@@ -137,13 +137,14 @@ function route_to_uc_or_legacy!(
                 INCOME_SUPPORT, 
                 WORKING_TAX_CREDIT, 
                 CHILD_TAX_CREDIT )
-            if bres.uc.basic_conditions_satisfied || (bres.uc.income[UNIVERSAL_CREDIT] > 0.0) 
+            # fixme use can_apply_for record
+            if bres.uc.basic_conditions_satisfied || (bres.income[UNIVERSAL_CREDIT] > 0.0) 
                 # crude - not a pensioner or otherwise actually on UC
                 # println( "setting HB to zero")
                 bres.route = uc_bens # route_to_uc_or_legacy( settings, bus[bno], bres )
                 tozero!( bres, HOUSING_BENEFIT )
             else
-                @assert intermed.someone_pens_age
+                @assert intermed.buint[bno].someone_pension_age
                 bres.route = legacy_bens
             end
             bres.legacy_mtbens = LMTResults{RT}()

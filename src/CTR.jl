@@ -6,6 +6,7 @@ using .Intermediate
 using .LegacyMeansTestedBenefits
 using .ModelHousehold
 using .Results
+using .STBIncomes
 using .STBParameters
 using .UniversalCredit
 
@@ -31,6 +32,7 @@ function calc_ctr!(
     bur = household_result.bus[1] 
     passported =  has_any( bur, ctrsys.passported_bens... )
     ct = total( household_result, LOCAL_TAXES )
+    ucrec = total( bur, UNIVERSAL_CREDIT )
     if ! passported         
         ucincome =  
             bur.uc.earnings_before_allowances + # gross earned income back up

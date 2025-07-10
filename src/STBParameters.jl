@@ -33,6 +33,8 @@ export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit
 export LocalTaxes, CouncilTax, ProportionalPropertyTax, wales_ct_house_values
 export state_pension_age, reached_state_pension_age
 export BRMA, loadBRMAs, DEFAULT_BRMA_2021
+export UniversalCreditSys
+export CTRSys
 export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
 export CarersAllowance, PersonalIndependencePayment, ContributoryESA
 export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
@@ -947,15 +949,16 @@ end
     ctr_taper  :: RT = 20.0 # not really part of UC, I suppose, but still...
 end   
 
-function weeklyise!( ctrsys :: CTRSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-    ctrsys.taper /= 100.0
-end
-
 @with_kw mutable struct CTRSys{RT<:Real}
-    abilished = false
+    abolished = false
     taper :: RT = 20.0
+    passported_bens = DEFAULT_PASSPORTED_BENS
     ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
     ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,99999999999999.9]
+end
+
+function weeklyise!( ctrsys :: CTRSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+    ctrsys.taper /= 100.0
 end
 
 function weeklyise!( uc :: UniversalCreditSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
