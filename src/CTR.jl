@@ -109,8 +109,14 @@ function calc_ctr!(
             bur.uc.tariff_income +
             ucrec
         excess = max(0.0, ucincome - bur.ctr.maximum)
+        @show total( bur, WAGES)
+        @show ctr
+        @show bur.ctr.maximum
+        @show ucincome
+        @show excess
+        @show ctrsys.taper
         if excess > 0
-            ctr = max( 0.0, CTRSys - excess*ctrsys.taper )  
+            ctr = max( 0.0, ctr - excess*ctrsys.taper )  
         end
     end # not passported
     ndds = 0.0
@@ -121,6 +127,8 @@ function calc_ctr!(
             ctrsys )
     end
     ctr = max( 0.0, ctr-ndds )
+    @show ctr
+            
     bur.pers[recipient].income[COUNCIL_TAX_BENEFIT] = ctr
 end # calc_ctr!
 
