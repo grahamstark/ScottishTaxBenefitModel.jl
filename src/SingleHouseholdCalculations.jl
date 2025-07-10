@@ -199,7 +199,8 @@ function do_one_calc(
         sys.ctr,
         sys.age_limits,
         sys.hours_limits,
-        sys.child_limits )
+        sys.child_limits,
+        sys.minwage )
 
     route_to_uc_or_legacy!( 
         hres,

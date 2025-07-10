@@ -953,8 +953,12 @@ end
     abolished = false
     taper :: RT = 20.0
     passported_bens = DEFAULT_PASSPORTED_BENS
-    ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
-    ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,99999999999999.9]
+    #=
+    see: https://westlothian.gov.uk/article/32336/Non-dependant-deductions
+    !!! default is 2024/5 values 
+    =#
+    ndd_deductions :: RateBands{RT} =  [5.25, 10.35, 13.15, 15.65]
+    ndd_incomes :: RateBands{RT} =  [260.0, 450, 558, 99999999999999.9]
 end
 
 function weeklyise!( ctrsys :: CTRSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )

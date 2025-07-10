@@ -62,10 +62,6 @@ using .Utils:
     eq_nearest_p,
     to_md_table
 
-using .GeneralTaxComponents:
-    WEEKS_PER_MONTH,
-    WEEKS_PER_YEAR
-
 using .Definitions
 
 using .STBIncomes
@@ -79,7 +75,7 @@ settings = Settings()
 @testset "UC Example Shakedown Tests" begin
     #
     # Just drive the example hhls through the UC routine
-    # & see if anything crashes. Fuller tests to follow.
+    # & see if anything crashes. Fuller tests to follow. 
     #
     # Normally we'll do these tests monthly so they correspond better
     # to the CPAG examples
@@ -317,6 +313,7 @@ end
 end
 
 @testset "capital" begin
+    settings.wealth_method = no_method # override the now default WAS matching method
     ucs = get_default_uc( weekly=false)
     cpl= get_example( cpl_w_2_children_hh )
     hres = init_household_result( cpl )
@@ -388,7 +385,7 @@ end
         intermed.buint[1],
         ucs )
         calc_tariff_income!( 
-            hres.bus[1],
+            hres.bus[1].uc,            
             intermed.buint[1],
             bus[1],
             ucs )
@@ -411,7 +408,7 @@ end
         intermed.buint[1],
         ucs )
     calc_tariff_income!( 
-        hres.bus[1],
+        hres.bus[1].uc,
         intermed.buint[1],
         bus[1],
         ucs )
@@ -445,6 +442,7 @@ end
         sys.child_limits )
 
     calc_uc_income!(
+        hres.bus[1].uc,
         hres.bus[1],
         bus[1],
         intermed.buint[1],
@@ -470,6 +468,7 @@ end
     )
     println( "minse=$minse")
     calc_uc_income!(
+        hres.bus[1].uc,
         hres.bus[1],
         bus[1],
         intermed.buint[1],

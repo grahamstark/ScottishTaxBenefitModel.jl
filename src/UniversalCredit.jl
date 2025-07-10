@@ -343,14 +343,15 @@ end
 Implements CPAG 19/20 ch 7
 """
 function calc_uc_income!( 
+    ucr                 :: UCResults,
     benefit_unit_result :: BenefitUnitResult,
     benefit_unit        :: BenefitUnit,
     intermed            :: MTIntermediate,
     uc                  :: UniversalCreditSys,
     minwage             :: MinimumWage ) 
-    benefit_unit_result.uc.other_income, 
-    benefit_unit_result.uc.earned_income,
-    benefit_unit_result.uc.untapered_earnings = calc_uc_income( 
+    ucr.other_income, 
+    ucr.earned_income,
+    ucr.untapered_earnings = calc_uc_income( 
         benefit_unit_result, 
         benefit_unit,
         intermed,
@@ -360,37 +361,26 @@ end
 
 ## FIXME we need the extra capital var here benunit.Totsav
 function calc_tariff_income( 
-    benefit_unit_result :: BenefitUnitResult,
-    intermed            :: MTIntermediate,
-    benefit_unit :: BenefitUnit, 
-    uc           :: UniversalCreditSys ) :: NamedTuple
+    intermed     :: MTIntermediate,
+    benefit_unit :: BenefitUnit,  # ! unused
+    ucsys        :: UniversalCreditSys ) :: NamedTuple
     bu = benefit_unit # shortcut
-    ucr = benefit_unit_result.uc # shortcut
-    #=
-    cap = 0.0
-    # FIXME we're doing this twice!
-    for pid in bu.adults
-        for (at,val) in bu.people[pid].assets
-            cap += val
-        end
-    end
-    =#
     cap = intermed.net_financial_wealth
-    tincome = tariff_income( cap, uc.capital_min, uc.capital_tariff )
+    tincome = tariff_income( cap, ucsys.capital_min, ucsys.capital_tariff )
     (; cap, tincome )
  end
 
  function calc_tariff_income!( 
-    benefit_unit_result :: BenefitUnitResult,
-    intermed            :: MTIntermediate,
+    ucr :: UCResults,
+    intermed :: MTIntermediate,
     benefit_unit :: BenefitUnit, 
-    uc           :: UniversalCreditSys )
-    benefit_unit_result.uc.assets, 
-    benefit_unit_result.uc.tariff_income = calc_tariff_income( 
-        benefit_unit_result, 
+    ucsys           :: UniversalCreditSys )
+    ucr.assets, 
+    ucr.tariff_income = calc_tariff_income( 
+        # benefit_unit_result, 
         intermed,
         benefit_unit, 
-        uc )
+        ucsys)
  end
 
 #
@@ -430,8 +420,8 @@ function calc_universal_credit!(
     if( intermed.num_working_ft > 0 ) || ( intermed.num_working_pt > 0 )
         calc_uc_child_costs!( bur.uc, bu, intermed, uc )
     end
-    calc_uc_income!( bur, bu, intermed, uc, minwage )
-    calc_tariff_income!( bur, intermed, bu, uc )
+    calc_uc_income!( bur.uc, bur, bu, intermed, uc, minwage )
+    calc_tariff_income!( bur.uc, intermed, bu, uc )
     bur.uc.maximum = 
         bur.uc.standard_allowance + 
         bur.uc.limited_capacity_for_work_activity_element +
