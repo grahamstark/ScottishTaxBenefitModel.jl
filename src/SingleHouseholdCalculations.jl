@@ -223,8 +223,7 @@ function do_one_calc(
             sys.age_limits,
             sys.nmt_bens )      
     end
-    
-    
+     
     for buno in eachindex( bus )
         if hh.region == Scotland
             calc_scottish_child_payment!( 

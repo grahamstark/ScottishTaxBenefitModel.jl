@@ -202,6 +202,14 @@ function calc_incomes(
             end
             inc.childcare = min(cost_of_childcare, maxcc )
         end
+        # hack based on CPAG CRT
+        # https://cpag.org.uk/welfare-rights/benefits-scotland/scottish-benefits/help-council-tax/calculating-working-age-scottish-council-tax-reduction
+        if which_ben == ctr 
+            uc = total( bur, UNIVERSAL_CREDIT )
+            relevant_uc = min( uc, bur.uc.child_element )
+            # println( "uc = $uc bur.uc.child_element = $(bur.uc.child_element) => relevant_uc=$relevant_uc")
+            other += relevant_uc
+        end
     end
 
     """
@@ -660,8 +668,10 @@ function calc_allowances(
                 end
             end # 2 adults
         end # no 16-17 yos 
-        if which_ben in [hb,ctr] #
+        if which_ben == hb
             pers_allow += pas.child * intermed.num_allowed_children
+        elseif which_ben == ctr 
+            pers_allow += pas.child * intermed.num_children # in Scptland, all children allowed for CTR.
         end
     end
     pers_allow += oo_housing_costs
@@ -845,7 +855,7 @@ function calculateHB_CTR!(
         bu = bus[bn]
         bures = household_result.bus[bn]
         incomes = calc_incomes( 
-            hb,
+            which_ben,
             bu,
             bures,
             intermed.buint[bn],
@@ -863,7 +873,7 @@ function calculateHB_CTR!(
             else
                 ## FIXME pass this in
                 premium, premset = calc_premia(
-                    hb,
+                    which_ben,
                     bu,
                     bures,
                     intermed.buint[bn],        
@@ -872,7 +882,7 @@ function calculateHB_CTR!(
                     age_limits )            
                 union!(bures.legacy_mtbens.premia, premset)
                 allowances = calc_allowances(
-                    hb,
+                    which_ben,
                     intermed.buint[bn],
                     lmt_ben_sys.allowances,
                     age_limits,
@@ -884,11 +894,9 @@ function calculateHB_CTR!(
                 end
                 
             end
-            
             recipient = make_recipient( bu, HOUSING_BENEFIT )
             bures.legacy_mtbens.hb_recipient = recipient
             bures.legacy_mtbens.ctr_recipient = recipient
-
             if which_ben == hb
                 bures.pers[recipient].income[HOUSING_BENEFIT] = benefit
                 bures.legacy_mtbens.hb_passported = passported
@@ -1046,9 +1054,7 @@ function calc_legacy_means_tested_benefits!(
         bures.legacy_mtbens.pc_premia = premium
         pc_entitlement = max( 0.0, 
             bures.legacy_mtbens.mig - 
-            bures.legacy_mtbens.pc_incomes.total_income )
- 
-        
+            bures.legacy_mtbens.pc_incomes.total_income )        
         recipient = make_recipient( bu, PENSION_CREDIT )
         
         if can_apply_for.sc && ( ! incomes.disqualified_on_capital ) && ( ! mt_ben_sys.savings_credit.abolished )

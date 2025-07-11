@@ -205,18 +205,18 @@ function match_sb_essex_full()
         lmt = hres.bus[1].legacy_mtbens
         # @show lmt
         r.ctr_passported = lmt.ctr_passported
-        r.ctr_premia = lmt.ctr_premia*WEEKS_PER_MONTH
-        r.ctr_allowances = lmt.ctr_allowances*WEEKS_PER_MONTH
-        r.ctr_incomes_gross_earnings = lmt.ctr_incomes.gross_earnings*WEEKS_PER_MONTH
-        r.ctr_incomes_net_earnings   = lmt.ctr_incomes.net_earnings  *WEEKS_PER_MONTH
-        r.ctr_incomes_other_income   = lmt.ctr_incomes.other_income  *WEEKS_PER_MONTH
-        r.ctr_incomes_total_income   = lmt.ctr_incomes.total_income  *WEEKS_PER_MONTH
-        r.ctr_incomes_disregard = lmt.ctr_incomes.disregard*WEEKS_PER_MONTH
-        r.ctr_incomes_childcare = lmt.ctr_incomes.childcare*WEEKS_PER_MONTH
+        r.ctr_premia = lmt.ctr_premia# * WEEKS_PER_MONTH
+        r.ctr_allowances = lmt.ctr_allowances# * WEEKS_PER_MONTH
+        r.ctr_incomes_gross_earnings = lmt.ctr_incomes.gross_earnings# * WEEKS_PER_MONTH
+        r.ctr_incomes_net_earnings   = lmt.ctr_incomes.net_earnings  # * WEEKS_PER_MONTH
+        r.ctr_incomes_other_income   = lmt.ctr_incomes.other_income  # * WEEKS_PER_MONTH
+        r.ctr_incomes_total_income   = lmt.ctr_incomes.total_income  # * WEEKS_PER_MONTH
+        r.ctr_incomes_disregard = lmt.ctr_incomes.disregard# * WEEKS_PER_MONTH
+        r.ctr_incomes_childcare = lmt.ctr_incomes.childcare# * WEEKS_PER_MONTH
         r.ctr_incomes_capital = lmt.ctr_incomes.capital
-        r.ctr_incomes_tariff_income = lmt.ctr_incomes.tariff_income*WEEKS_PER_MONTH
+        r.ctr_incomes_tariff_income = lmt.ctr_incomes.tariff_income# * WEEKS_PER_MONTH
         r.ctr_incomes_disqualified_on_capital = lmt.ctr_incomes.disqualified_on_capital
-        r.ctr_eligible_amount = lmt.ctr_eligible_amount*WEEKS_PER_MONTH
+        r.ctr_eligible_amount = lmt.ctr_eligible_amount# * WEEKS_PER_MONTH
 
 
         r.uc_work_allowance = uc.work_allowance*WEEKS_PER_MONTH
