@@ -147,7 +147,8 @@ function route_to_uc_or_legacy!(
                 @assert intermed.buint[bno].someone_pension_age
                 bres.route = legacy_bens
             end
-            bres.legacy_mtbens = LMTResults{RT}()
+            # DON'T zero this because we're using the legacy code for CTR
+            # bres.legacy_mtbens = LMTResults{RT}()
         else
             bres.route = route_to_uc_or_legacy( settings, bus[bno], bres )
             if bres.route == legacy_bens 

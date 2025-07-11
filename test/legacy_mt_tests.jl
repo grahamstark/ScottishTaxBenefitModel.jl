@@ -377,7 +377,7 @@ end # test set
         sys.lmt.hours_limits,
         sys.age_limits,
         sys.child_limits,
-        1 )
+        1 )ct,
     eligs_sp = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test eligs_sp.is
@@ -1771,4 +1771,35 @@ end
     @test hhres.bus[1].pers[tracy.pid].income[CHILD_TAX_CREDIT] ≈ targetctc
     @test hhres.bus[1].pers[tracy.pid].income[WORKING_TAX_CREDIT] ≈ 0
  
+end
+
+@testset "Council Tax Reductions, 2024/5/6 version" begin
+    sys =  get_system( year=2024, scotland=true )# FIXME 2025 system    
+    seem_and_saul = get_benefit_units(get_example(cpl_w_2_children_hh))[1]
+    seem_and_saul.net_financial_wealth = 800.0 
+    seem_and_saul.gross_rent = 800.0
+    seem = get_head( seem_and_saul )
+    seem.age = 30
+    saul.age = 30
+    saul = get_spouse( seem_and_saul )
+    # saul.incomes[]
+    @test num_children( seem_and_saul ) == 1
+    retire!( terry )
+    intermed = make_intermediate( 
+        DEFAULT_NUM_TYPE,
+        settings,
+        seem_and_saul, 
+        sys.hours_limits, 
+        sys.age_limits,
+        sys.child_limits )   
+    hhres = init_household_result( seem_and_saul )  
+    semres = hhres.bus[1].pers[seema.pid]
+    semres.income[WAGES] = 1274/WPM
+    semres.income[LOCAL_TAXES] = 23.58
+    saulres = hhres.bus[1].pers[saul.pid]
+    saulres.income[STATE_PENSION] = 193.35
+    np = add_child!( seem_and_saul, 8, Female )
+    
+
+
 end

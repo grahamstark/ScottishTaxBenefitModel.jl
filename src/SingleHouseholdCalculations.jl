@@ -68,7 +68,8 @@ using .LocalLevelCalculations:
     calc_proportional_property_tax
 
 using .LegacyMeansTestedBenefits: 
-    calc_legacy_means_tested_benefits!
+    calc_legacy_means_tested_benefits!,
+    calculateHB_CTR!
 
 using .LegalAidCalculations: calc_legal_aid!
 
@@ -191,6 +192,7 @@ function do_one_calc(
         sys.hr,
         sys.minwage )
 
+    #=
     calc_ctr!(
         hres,
         hh,
@@ -201,12 +203,26 @@ function do_one_calc(
         sys.hours_limits,
         sys.child_limits,
         sys.minwage )
-
+    =#
     route_to_uc_or_legacy!( 
         hres,
         settings,
         hh,
         intermed )
+
+    # jam on CTR legacy style - see CPAG note
+    # note thus needs to be done *after* the UC legacy routing so incomes are cleared
+    # of 
+    if ! sys.lmt.ctr.abolished
+        calculateHB_CTR!( 
+            hres,            
+            ctr,
+            hh,
+            intermed,
+            sys.lmt,
+            sys.age_limits,
+            sys.nmt_bens )      
+    end
     
     
     for buno in eachindex( bus )

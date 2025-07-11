@@ -1151,17 +1151,6 @@ function calc_legacy_means_tested_benefits!(
             age_limits,
             nmt_bens )
     end
-
-    if ! lmt_ben_sys.ctr.abolished
-        calculateHB_CTR!( 
-            household_result,            
-            ctr,
-            household,
-            intermed,
-            lmt_ben_sys,
-            age_limits,
-            nmt_bens )      
-    end
     # 
 end
 
