@@ -170,7 +170,7 @@ function match_sb_essex_full()
         (edf.hcost.*4.354) - 
         edf.euromod_income_tax -
         edf.euromod_national_insurance +
-        edf.euromod_discretionary_housing_payment +
+        # edf.euromod_discretionary_housing_payment + - no: added into uc in euromod
         edf.euromod_universal_credit -
         edf.euromod_local_taxes +
         edf.euromod_council_tax_benefit +
