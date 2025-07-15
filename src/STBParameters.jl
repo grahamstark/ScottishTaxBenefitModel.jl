@@ -847,9 +847,9 @@ end
     passported_bens = DEFAULT_PASSPORTED_BENS
     ndd_deductions :: RateBands{RT} =  [15.60,35.85,49.20,80.55,91.70,100.65]
     ndd_incomes :: RateBands{RT} =  [143.0,209.0,271.0,363.0,451.0,99999999999999.9]
-    end
+end
 
-    function weeklyise!( hb :: HousingBenefits; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEARs )
+function weeklyise!( hb :: HousingBenefits; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEARs )
     hb.taper /= 100.0
 end
 
@@ -868,7 +868,12 @@ end
     working_tax_credit = WorkingTaxCredit{RT}()
     child_tax_credit = ChildTaxCredit{RT}()
     hb = HousingBenefits{RT}()
-    ctr = HousingBenefits{RT}( false, 20.0, DEFAULT_PASSPORTED_BENS, RateBands{RT}[], RateBands{RT}[])
+    ctr = HousingBenefits{RT}( 
+        false, 
+        20.0, 
+        DEFAULT_PASSPORTED_BENS, 
+        RateBands{RT}[5.25, 10.35, 13.15, 15.65], # !!1 Scottish 2024/5 system
+        RateBands{RT}[260.0, 450, 558, 99999999999999.9])
 end
 
 struct BRMA{N,T}
@@ -877,7 +882,6 @@ struct BRMA{N,T}
     bedrooms :: SVector{N,T}
     room :: T
 end
-
 
 function loadBRMAs( N :: Int, T :: Type, file :: String  ) :: Dict{Symbol,BRMA{N,T}}
     bd = CSV.File( file ) |> DataFrame
