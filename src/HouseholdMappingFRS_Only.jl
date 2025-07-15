@@ -433,10 +433,10 @@ function create_household(
         #
         # council_tax::Real
         # FIXME this is rounded to £
-        if hh_model[hhno, :region] == 299999999 # Scotland # FIXME this is whole £s only
+        if hh_model[hhno, :region] == Scotland # Scotland # FIXME this is whole £s only
             # also 16 missings in 2015 - investigate 
             hh_model[hhno, :water_and_sewerage] = safe_assign(hh.cwatamtd) # cwatamtd
-        elseif hh_model[hhno, :region] == 399999999 # Nireland
+        elseif hh_model[hhno, :region] == Northern_Ireland
             hh_model[hhno, :water_and_sewerage] = 0.0 # FIXME NIreland in rates????
         else #
             hh_model[hhno, :water_and_sewerage] = safe_assign(hh.watsewrt)

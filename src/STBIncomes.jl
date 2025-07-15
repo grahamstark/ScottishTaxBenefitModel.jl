@@ -259,6 +259,49 @@ function make_income_taxes() :: IncomesSet
     # IncomesSet(setdiff(fill(INCOME_TAX,NATIONAL_INSURANCE),[LOCAL_TAXES]) ) # CT treated seperately
 end
 
+"""
+FIXME ADD TEST
+"""
+function scottish_equivalent( i :: Incomes )::Incomes
+    return if i == CARERS_ALLOWANCE
+        CARERS_SUPPORT_PAYMENT
+        # CARERS_ALLOWANCE_SUPPLEMENT,
+    elseif i == DLA_SELF_CARE
+        CHILD_DISABILITY_PAYMENT_CARE
+    elseif i == DLA_MOBILITY
+        CHILD_DISABILITY_PAYMENT_MOBILITY
+    elseif i == ATTENDANCE_ALLOWANCE
+        PENSION_AGE_DISABILITY
+    elseif i == PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
+        ADP_DAILY_LIVING
+    elseif i == PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
+        ADP_MOBILITY
+    else
+        i
+    end
+end
+
+"""
+FIXME ADD TEST
+"""
+function ruk_equivalent( i :: Incomes ):: Incomes
+    return if i ∈ [CARERS_ALLOWANCE_SUPPLEMENT, SCOTTISH_CHILD_PAYMENT]
+        OTHER_BENEFITS
+    elseif i == CHILD_DISABILITY_PAYMENT_CARE
+        DLA_SELF_CARE
+    elseif i == CHILD_DISABILITY_PAYMENT_MOBILITY
+        DLA_MOBILITY
+    elseif i == PENSION_AGE_DISABILITY
+        ATTENDANCE_ALLOWANCE        
+    elseif i == ADP_DAILY_LIVING
+        PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING
+    elseif i == ADP_MOBILITY
+        PERSONAL_INDEPENDENCE_PAYMENT_MOBILITY
+    else
+        i
+    end
+end
+
 const NON_CALCULATED_INCOMES = fill( WAGES, TRADE_UNION_SICK_OR_STRIKE_PAY )
 const NON_CALCULATED_ITEMS = fill( WAGES, PENSION_CONTRIBUTIONS_EMPLOYER )
 const BENEFITS = fill(CHILD_BENEFIT, LAST_INCOME ) # careful!
@@ -270,6 +313,7 @@ const INCOME_TAXES = make_income_taxes()
 
 const CALCULATED = fill(INCOME_TAX,CARERS_ALLOWANCE_SUPPLEMENT)
 const SCOTTISH_SICKNESS_BENEFITS = IncomesSet([
+        CARERS_SUPPORT_PAYMENT,
         CARERS_ALLOWANCE_SUPPLEMENT,
         CHILD_DISABILITY_PAYMENT_CARE, 
         CHILD_DISABILITY_PAYMENT_MOBILITY,

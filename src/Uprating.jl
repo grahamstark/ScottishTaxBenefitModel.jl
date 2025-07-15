@@ -114,6 +114,20 @@ const UPRATE_MAPPINGS =  make_uprate_types()
 UPRATING_DATA = nothing
 
 """
+FIXME add test
+return the missing value if m in -9:-1 or missing, else multy*m
+"""
+function non_missing_mult( m :: Union{Missing,Number}, multy :: Number )::Union{Missing,Number}
+    if ismissing(m)
+        return m
+    end
+    if m ∈ DEFAULT_MISSING_VALUES
+        return m
+    end
+    return m*multy
+end
+
+"""
 Load Quarterly UPRATING data into a dataframe, and recast everything relative to the target date (Y,Q).
 See docs/notes.md on the data. Dataframe is a private global.
 """
@@ -169,7 +183,7 @@ function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate
     global Uprate_Map
     colsym = Uprate_Map[itype]
     p = UPRATING_DATA[((UPRATING_DATA.year.==from_y).&(UPRATING_DATA.q.==from_q)), colsym][1]
-    return item * p
+    return non_missing_mult( item, p )
 end
 
 """

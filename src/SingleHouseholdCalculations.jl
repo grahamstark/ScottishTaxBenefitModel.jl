@@ -170,7 +170,9 @@ function do_one_calc(
         hres.bus[1].pers[hd].income[LOCAL_TAXES] += 
             calc_proportional_property_tax( hh, intermed.hhint, sys.loctax.ppt )
     end
-    
+
+    routes = UCTransition.get_routes_for_hh( settings, hh, intermed )
+
     calc_legacy_means_tested_benefits!(
         hres,
         hh,
@@ -179,7 +181,8 @@ function do_one_calc(
         sys.age_limits,
         sys.hours_limits,
         sys.nmt_bens,
-        sys.hr )
+        sys.hr, 
+        routes )
 
     calc_universal_credit!(
         hres,
@@ -190,7 +193,8 @@ function do_one_calc(
         sys.hours_limits,
         sys.child_limits,
         sys.hr,
-        sys.minwage )
+        sys.minwage, 
+        routes )
 
     #=
     calc_ctr!(
@@ -202,13 +206,13 @@ function do_one_calc(
         sys.age_limits,
         sys.hours_limits,
         sys.child_limits,
-        sys.minwage )
-    =#
     route_to_uc_or_legacy!( 
         hres,
         settings,
         hh,
         intermed )
+        sys.minwage )
+    =#
 
     # jam on CTR legacy style - see CPAG note
     # note thus needs to be done *after* the UC legacy routing so incomes are cleared

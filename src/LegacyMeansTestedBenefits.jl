@@ -1129,33 +1129,38 @@ function calc_legacy_means_tested_benefits!(
             age_limits       :: AgeLimits, 
             hours            :: HoursLimits,
             nmt_bens         :: NonMeansTestedSys,
-            hr               :: HousingRestrictions )
+            hr               :: HousingRestrictions,
+            routes           :: Vector{LegacyOrUC}  )
     # fixme not just for renters? fixme do this earlier
     household_result.housing = apply_rent_restrictions( 
         household, intermed.hhint, hr )
     bus = get_benefit_units(household)
     nbus = size( bus )[1]
     for buno in 1:nbus
-        calc_legacy_means_tested_benefits!(
-            household_result.bus[buno],
-            bus[buno],
-            intermed.buint[buno],
-            lmt_ben_sys,
-            age_limits,
-            hours,
-            nmt_bens,
-            buno == 1 ? household : nothing )
+        if routes[buno] == legacy_bens
+            calc_legacy_means_tested_benefits!(
+                household_result.bus[buno],
+                bus[buno],
+                intermed.buint[buno],
+                lmt_ben_sys,
+                age_limits,
+                hours,
+                nmt_bens,
+                buno == 1 ? household : nothing )
+        end
     end
     # hb using the whole hhls but assigned to 1st bu
-    if ! lmt_ben_sys.hb.abolished
-        calculateHB_CTR!( 
-            household_result,
-            hb,
-            household,
-            intermed,
-            lmt_ben_sys,
-            age_limits,
-            nmt_bens )
+    if ! lmt_ben_sys.hb.abolished 
+        if routes[1] == legacy_bens
+            calculateHB_CTR!( 
+                household_result,
+                hb,
+                household,
+                intermed,
+                lmt_ben_sys,
+                age_limits,
+                nmt_bens )
+        end
     end
     # 
 end

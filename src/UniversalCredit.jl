@@ -512,7 +512,8 @@ function calc_universal_credit!(
     hours_limits     :: HoursLimits,
     child_limits     :: ChildLimits,
     hr               :: HousingRestrictions,
-    minwage          :: MinimumWage )
+    minwage          :: MinimumWage,
+    routes           :: Vector{LegacyOrUC} )
     # fixme duped with LMTBens
     hhr = household_result
     hh = household # shortcuts
@@ -538,17 +539,18 @@ function calc_universal_credit!(
         hr 
     )
     for buno in eachindex(bus)
-        calc_universal_credit!(
-            hhr.bus[buno],
-            bus[buno],
-            intermed.buint[buno],
-            uc,
-            age_limits,
-            hours_limits,
-            child_limits,
-            hr,
-            minwage
-        )
+        if routes[buno] == uc_bens
+            calc_universal_credit!(
+                hhr.bus[buno],
+                bus[buno],
+                intermed.buint[buno],
+                uc,
+                age_limits,
+                hours_limits,
+                child_limits,
+                hr,
+                minwage )
+        end
     end
 
 end

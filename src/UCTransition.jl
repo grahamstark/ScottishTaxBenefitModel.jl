@@ -92,6 +92,44 @@ function route_to_uc_or_legacy(
     return route
 end
 
+"""
+A vector, 1 per bu of whether to go to legacy or UC. Always go to legacy for
+all-pensioner bus. The modelled transition bit is a messy wild guess.
+"""
+function get_routes_for_hh(
+    settings :: Settings,
+    hh       :: Household, 
+    intermed :: HHIntermed )::Vector{LegacyOrUC}
+    bus = get_benefit_units( hh )
+    routes = []
+    for bno in eachindex( bus )
+        inter = intermed.buint[bno]
+        head = get_head( bus[buno] )
+        route =if inter.all_pension_age # always to pc/hb for all pensioner bus
+            legacy_bens
+        elseif settings.means_tested_routing == uc_full
+            uc_bens 
+        elseif settings.means_tested_routing == lmt_full
+            legacy_bens 
+        else # modelled_phase_in
+            targets = if settings.to_y >= 2025 && settings.to_q > 1
+                PROPS_ON_UC_V2._2025
+            else
+                PROPS_ON_UC_V2._2024
+            end
+            prob = if inter.num_not_working > 0 
+                targets.UNEMPLOYED_BENS
+            else
+                targets.TAX_CREDITS
+            end
+            switch = testp( head.onerand, prob, Randoms.UC_TRANSITION )
+            switch ? uc_bens : legacy_bens
+        end
+        push!( routes, route)
+    end # bus 
+    return routes
+end
+
 #=
 function route_to_uc_or_legacy_old_version( 
     settings :: Settings,

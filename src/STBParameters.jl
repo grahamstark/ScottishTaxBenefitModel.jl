@@ -872,8 +872,8 @@ end
         false, 
         20.0, 
         DEFAULT_PASSPORTED_BENS, 
-        RateBands{RT}[5.25, 10.35, 13.15, 15.65], # !!1 Scottish 2024/5 system
-        RateBands{RT}[260.0, 450, 558, 99999999999999.9])
+        [5.25, 10.35, 13.15, 15.65], # !!1 Scottish 2024/5 system
+        [260.0, 450, 558, 99999999999999.9])
 end
 
 struct BRMA{N,T}
