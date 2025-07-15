@@ -60,7 +60,11 @@ const PROPS_ON_UC = # NOT USED
 function route_to_uc_or_legacy( 
     settings :: Settings,
     bu       :: BenefitUnit,
+    intermed :: MTIntermediate,
     bures    :: BenefitUnitResult ) :: LegacyOrUC
+    if intermed.all_pension_age
+        return legacy_bens
+    end 
     if settings.means_tested_routing != modelled_phase_in
         return settings.means_tested_routing == uc_full ? uc_bens : legacy_bens
     end
@@ -150,7 +154,11 @@ function route_to_uc_or_legacy!(
             # DON'T zero this because we're using the legacy code for CTR
             # bres.legacy_mtbens = LMTResults{RT}()
         else
-            bres.route = route_to_uc_or_legacy( settings, bus[bno], bres )
+            bres.route = route_to_uc_or_legacy( 
+                settings, 
+                bus[bno], 
+                intermed.buint[bno], 
+                bres )
             if bres.route == legacy_bens 
                 tozero!( bres, UNIVERSAL_CREDIT )
                 tozero!( bres, COUNCIL_TAX_BENEFIT ) # we overwrite this
