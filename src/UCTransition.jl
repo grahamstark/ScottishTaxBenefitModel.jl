@@ -104,7 +104,7 @@ function get_routes_for_hh(
     routes = []
     for bno in eachindex( bus )
         inter = intermed.buint[bno]
-        head = get_head( bus[buno] )
+        head = get_head( bus[bno] )
         route =if inter.all_pension_age # always to pc/hb for all pensioner bus
             legacy_bens
         elseif settings.means_tested_routing == uc_full

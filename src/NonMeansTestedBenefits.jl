@@ -484,8 +484,8 @@ module NonMeansTestedBenefits
                 # receipts, so ignore any upper age limits until we model these fully.
                 #
                 if pers.age <= 16
-                        pres.income[sys.dla.care_slot],
-                        pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla );
+                    pres.income[sys.dla.care_slot],
+                    pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla );
                 else 
                     pres.income[sys.pip.care_slot],
                     pres.income[sys.pip.mob_slot] = calc_pip( pers, sys.pip )

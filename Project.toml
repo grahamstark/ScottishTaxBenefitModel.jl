@@ -141,6 +141,7 @@ replacement_rate_hours = 30
 target_nation = "N_Scotland"
 to_q = 2
 to_y = 2025
+included_data_years = [2019,2021,2022]
 use_shs = true
 weighting_strategy = "use_runtime_computed_weights"
 wealth_method = "matching"
