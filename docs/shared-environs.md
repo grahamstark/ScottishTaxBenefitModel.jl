@@ -23,8 +23,30 @@ function make_shared_package( name :: String, packages :: Vector{String})
     end
 end
 
+
+
+
 make_shared_package( "GMaths", ["DifferentialEquations", "LinearSolve", "Roots"])
-make_shared_package( "GStats", ["StatsKit", "RegressionTables","FixedEffectsModels"])
+make_shared_package( "GStats", [ # just loading StatsKit doesn't appear to work here..
+    "StatsBase", 
+    "Bootstrap",
+    "CategoricalArrays",
+    "Clustering",
+    "CSV",
+    "DataFrames",
+    "Distances",
+    "Distributions",
+    "GLM",
+    "HypothesisTests",
+    "KernelDensity",
+    "Loess",
+    "MultivariateStats",
+    "MixedModels",
+    "StatsBase",
+    "ShiftedArrays",
+    "TimeSeries",
+    "RegressionTables",
+    "FixedEffectModels"])
 make_shared_package( "GEecon", ["Agents" ])
 make_shared_package( "GMakie", ["Makie", "CairoMakie", "GLMakie", "Observables", "WGLMakie", "Bonito"])  
 make_shared_package( "GData", ["Format", "DataFrames", "DataFramesMeta", "CSV", "IterableTables", "PrettyTables", "MarkdownTables", "Format", "FileIO"])
@@ -64,6 +86,9 @@ Example - add `FileIO` to `GData`.
 using Pkg
 Pkg.activate("GData", shared=true)
 Pkg.add("FileIO")
+Pkg.add("DrWatson")
+Pkg.activate("GStats", shared=true)
+Pkg.add("StatsBase")
 Pkg.activate(".")
 
 ```

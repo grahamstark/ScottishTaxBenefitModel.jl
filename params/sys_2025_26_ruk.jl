@@ -198,13 +198,14 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.lmt.savings_credit.max_couple = 19.04
   sys.lmt.savings_credit.available_till = Date( 2016, 04, 06 )
 
-  sys.lmt.child_tax_credit.abolished = false
+  sys.lmt.child_tax_credit.abolished = true
   sys.lmt.child_tax_credit.family = 545.0
   sys.lmt.child_tax_credit.child = 3_455.0
   sys.lmt.child_tax_credit.disability = 4_170.0
   sys.lmt.child_tax_credit.severe_disability = 5_850.0 # 
   sys.lmt.child_tax_credit.threshold = 19_995.0
 
+  sys.lmt.working_tax_credit.abolished = true
   sys.lmt.working_tax_credit.basic = 2_435.0
   sys.lmt.working_tax_credit.lone_parent = 2_500.0
   sys.lmt.working_tax_credit.couple = 2_500.0

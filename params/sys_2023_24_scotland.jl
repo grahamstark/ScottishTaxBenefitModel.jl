@@ -51,6 +51,11 @@ function load_sys_2023_24_scotland!( sys :: TaxBenefitSystem )
    sys.scottish_child_payment.abolished = false
    sys.scottish_child_payment.amount = 25.00
    sys.scottish_child_payment.maximum_age = 15
-   #
-   
+   # Renames to Scottish benefits.
+   sys.nmt_bens.carers.slot = CARERS_SUPPORT_PAYMENT
+   sys.nmt_bens.dla.care_slot = CHILD_DISABILITY_PAYMENT_CARE
+   sys.nmt_bens.dla.mob_slot = CHILD_DISABILITY_PAYMENT_MOBILITY
+   sys.nmt_bens.pip.care_slot = ADP_DAILY_LIVING
+   sys.nmt_bens.pip.mob_slot = ADP_MOBILITY
+   sys.nmt_bens.attendance_allowance.slot = PENSION_AGE_DISABILITY
 end
