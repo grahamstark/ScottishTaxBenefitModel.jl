@@ -145,7 +145,7 @@ mutable struct Person{RT<:Real}
     registered_partially_sighted::Bool
     registered_deaf::Bool
 
-    disabilities::Disability_Dict{Bool}
+    disabilities::Disability_Dict{Bool} # FIXME this should be a set
     
     health_status::Health_Status
 
