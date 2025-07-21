@@ -52,6 +52,8 @@ using .Results:
     IndividualResult, 
     LMTIncomes
 
+using .RunSettings: Settings
+
 export 
     calc_child_benefit!, 
     calc_dla, 
@@ -504,14 +506,14 @@ end
 """
 return the score from child_disability_scores that generates the given target number.
 """
-function calibrate_child_disability( settings:: Settings, target :: Number )::Number
-    sys = STBParameters.get_default_system_for_fin_year( 2024 )
+function calibrate_child_disability( settings:: Settings, care_target :: Number, mob_target )::Tuple
     settings.num_households, settings.num_people, nhhs2 = 
         FRSHouseholdGetter.initialise( settings; reset=false )
 
     df = DataFrame(
         pids = zeros(BigInt,settings.num_people),
-        scores = zeros(Integer,settings.num_people),
+        care_score = zeros(Integer,settings.num_people),
+        mob_score = zeros(Integer,settings.num_people),
         weight = zeros(settings.num_people))
     nks = 0
     for hno in 1:settings.num_households
@@ -522,22 +524,27 @@ function calibrate_child_disability( settings:: Settings, target :: Number )::Nu
                 r = df[nks,:]
                 r.weight = hh.weight
                 r.pid = pid
-                r.score = child_disability_scores( child )
+                scores = child_disability_scores( child )
+                r.care_score = scores[1]
+                r.mob_score = scores[2]
             end
         end
     end
     sort!( df, :score )
     cumpop = 0
-    target_score = 0
+    target_care_score = 0
+    target_mob_score = 0
     for i in 1:nks
         r = df[i,:]
         cumpop += r.weight
-        if (cumpop >= target ) || (i == nks)
-            target_score = r.score 
-            break
+        if (target_care_score == 0) && ((cumpop >= care_target ) || (i == nks))
+            target_care_score = r.care_score 
+        end
+        if (target_mob_score == 0) && ((cumpop >= mob_target ) || (i == nks))
+            target_mob_score = r.mob_score 
         end
     end
-    return target_score
+    return target_care_score, target_mob_score
 end
 
 function calc_jsa( 
