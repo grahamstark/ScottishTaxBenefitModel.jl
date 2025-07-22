@@ -26,7 +26,10 @@ end
 
 
 
-make_shared_package( "GMaths", ["DifferentialEquations", "LinearSolve", "Roots"])
+make_shared_package( "GMaths", [
+    "DifferentialEquations", 
+    "LinearSolve", 
+    "Roots"])
 make_shared_package( "GStats", [ # just loading StatsKit doesn't appear to work here..
     "StatsBase", 
     "Bootstrap",
@@ -36,6 +39,8 @@ make_shared_package( "GStats", [ # just loading StatsKit doesn't appear to work 
     "DataFrames",
     "Distances",
     "Distributions",
+    "DrWatson",
+    "FileIO",
     "GLM",
     "HypothesisTests",
     "KernelDensity",
@@ -44,18 +49,48 @@ make_shared_package( "GStats", [ # just loading StatsKit doesn't appear to work 
     "MixedModels",
     "StatsBase",
     "ShiftedArrays",
+    "StatFiles",
     "TimeSeries",
     "RegressionTables",
     "FixedEffectModels"])
-make_shared_package( "GEecon", ["Agents" ])
-make_shared_package( "GMakie", ["Makie", "CairoMakie", "GLMakie", "Observables", "WGLMakie", "Bonito"])  
-make_shared_package( "GData", ["Format", "DataFrames", "DataFramesMeta", "CSV", "IterableTables", "PrettyTables", "MarkdownTables", "Format", "FileIO"])
-make_shared_package( "GWebIO", ["Genie", "Pluto", "PlutoUI", "IJulia", "Mux", "HTTP", "PlutoExtras", "Observables", "PlutoSliderServer"])
-make_shared_package( "GTest", ["BenchmarkTools", "Chairmarks", "PrettyChairmarks"])
+make_shared_package( "GEecon", [
+    "Agents", 
+    "Kezdi" ])
+make_shared_package( "GMakie", [
+    "Makie", 
+    "CairoMakie", 
+    "GLMakie", 
+    "Observables", 
+    "WGLMakie", 
+    "Bonito"])  
+make_shared_package( "GData", [
+    "Format", 
+    "DataFrames", 
+    "DataFramesMeta", 
+    "CSV", 
+    "IterableTables", 
+    "PrettyTables", 
+    "MarkdownTables", 
+    "Format", 
+    "FileIO"])
+make_shared_package( "GWebIO", [
+    "Genie", 
+    "Pluto", 
+    "PlutoUI", 
+    "IJulia", 
+    "Mux", 
+    "HTTP", 
+    "PlutoExtras", 
+    "Observables", 
+    "PlutoSliderServer"])
+make_shared_package( "GTest", [
+    "BenchmarkTools", 
+    "Chairmarks", 
+    "PrettyChairmarks"])
 
 ```
 
-## Useage
+## Usage
 
 These shared libs go automatically into the loadpath. Then:
 

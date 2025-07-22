@@ -446,7 +446,7 @@ https://www.socialsecurity.gov.scot/guidance-resources/guidance/child-disability
 function child_disability_scores( child :: Person )::Vector{Int}
     v = [0,0]
     if child.registered_blind
-        v[1] += 2
+        v[1] += 3
     elseif child.registered_partially_sighted
         v[1] += 1
     end
@@ -479,23 +479,23 @@ function child_disability_scores( child :: Person )::Vector{Int}
        dexterity,
        stamina ]
        if haskey(child.disabilities,dis) && child.disabilities[dis]
-           v[2] += 1
+           v[2] += 2
        end
     end
     if child.health_status == Very_Bad
-        v[1] += 2
+        v[1] += 3
         v[2] += 2
     elseif child.health_status == Bad
         v[1] += 1
         v[2] += 1
     end
     if child.has_long_standing_illness
-        v[1] += 1
+        v[1] += 3
         v[2] += 1
     end
     if child.adls_are_reduced == reduced_a_lot
-        v[1] += 2
-        v[2] += 2
+        v[1] += 3
+        v[2] += 3
     elseif child.adls_are_reduced == reduced_a_little
         v[1] += 1
         v[2] += 1
@@ -506,10 +506,9 @@ end
 """
 return the score from child_disability_scores that generates the given target number.
 """
-function calibrate_child_disability( settings:: Settings, care_target :: Number, mob_target )::Tuple
+function calibrate_child_disability( settings:: Settings, care_targets :: Vector, mob_targets :: Vector)::Tuple
     settings.num_households, settings.num_people, nhhs2 = 
         FRSHouseholdGetter.initialise( settings; reset=false )
-
     df = DataFrame(
         pid = zeros(BigInt,settings.num_people),
         care_score = zeros(Integer,settings.num_people),
@@ -530,20 +529,49 @@ function calibrate_child_disability( settings:: Settings, care_target :: Number,
             end
         end
     end
+    df = df[1:nks,:]
     sort!( df, :care_score; rev=true )
-    cumpop = 0
-    target_care_score = 0
-    for i in 1:nks
-        r = df[i,:]
-        cumpop += r.weight
-        # @show cumpop care_target r.care_score 
-        if( cumpop >= care_target ) || (i == nks)
-            target_care_score = r.care_score             
-            # @show target_care_score
-            break
+    start = 1
+    l = 0
+    target_care_score = zeros( length( care_targets ))
+    for care_target in care_targets
+        cumpop = 0
+        for i in start:nks
+            r = df[i,:]
+            cumpop += r.weight
+            # @show cumpop care_target r.care_score 
+            if( cumpop >= care_target ) || (i == nks)
+                l += 1
+                target_care_score[l] = r.care_score             
+                @show target_care_score cumpop start l
+                cumpop = 0
+                start = i+1
+                break
+            end
         end
     end
     sort!( df, :mob_score; rev=true )
+    start = 1
+    l = 0
+    target_mob_score = zeros( length( mob_targets ))
+    for mob_target in mob_targets
+        cumpop = 0
+        for i in start:nks
+            r = df[i,:]
+            cumpop += r.weight
+            # @show cumpop mob_target r.mob_score 
+            if( cumpop >= mob_target ) || (i == nks)
+                l += 1
+                target_mob_score[l] = r.mob_score             
+                # @show target_mob_score
+                @show target_care_score cumpop start l
+                cumpop = 0
+                start = i+1
+                break
+            end
+        end
+    end
+    #=
     cumpop = 0
     target_mob_score = 0
     for i in 1:nks
@@ -556,6 +584,7 @@ function calibrate_child_disability( settings:: Settings, care_target :: Number,
             break
         end
     end
+    =#
     return target_care_score, target_mob_score, df
 end
 
