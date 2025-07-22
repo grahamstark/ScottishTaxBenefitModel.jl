@@ -511,40 +511,52 @@ function calibrate_child_disability( settings:: Settings, care_target :: Number,
         FRSHouseholdGetter.initialise( settings; reset=false )
 
     df = DataFrame(
-        pids = zeros(BigInt,settings.num_people),
+        pid = zeros(BigInt,settings.num_people),
         care_score = zeros(Integer,settings.num_people),
         mob_score = zeros(Integer,settings.num_people),
         weight = zeros(settings.num_people))
     nks = 0
     for hno in 1:settings.num_households
-        hh = get_household( hno )
+        hh = FRSHouseholdGetter.get_household( hno )
         for (pid,person) in hh.people
             if person.age <= 15
                 nks += 1
                 r = df[nks,:]
                 r.weight = hh.weight
                 r.pid = pid
-                scores = child_disability_scores( child )
+                scores = child_disability_scores( person )
                 r.care_score = scores[1]
                 r.mob_score = scores[2]
             end
         end
     end
-    sort!( df, :score )
+    sort!( df, :care_score; rev=true )
     cumpop = 0
     target_care_score = 0
+    for i in 1:nks
+        r = df[i,:]
+        cumpop += r.weight
+        # @show cumpop care_target r.care_score 
+        if( cumpop >= care_target ) || (i == nks)
+            target_care_score = r.care_score             
+            # @show target_care_score
+            break
+        end
+    end
+    sort!( df, :mob_score; rev=true )
+    cumpop = 0
     target_mob_score = 0
     for i in 1:nks
         r = df[i,:]
         cumpop += r.weight
-        if (target_care_score == 0) && ((cumpop >= care_target ) || (i == nks))
-            target_care_score = r.care_score 
-        end
-        if (target_mob_score == 0) && ((cumpop >= mob_target ) || (i == nks))
+        # @show cumpop mob_target r.mob_score 
+        if( cumpop >= mob_target ) || (i == nks)
             target_mob_score = r.mob_score 
+            # @show target_mob_score
+            break
         end
     end
-    return target_care_score, target_mob_score
+    return target_care_score, target_mob_score, df
 end
 
 function calc_jsa( 
