@@ -93,6 +93,15 @@ module Runner
                 adjust_disability_eligibility!( params[sysno].nmt_bens )
             end
         end
+        # scotland - hacky calibration of Child Disability Payment
+        if settings.target_nation == N_Scotland
+            sys.nmt_bens.scdp.care_thresholds,
+            sys.nmt_bens.scdp.mobility_thresholds = 
+                 NonMeansTestedBenefits.calibrate_child_disability(
+                    settings,
+                    sys.nmt_bens.scdp.care_cases,
+                    sys.nmt_bens.scdp.mobility_cases )
+        end
         start,stop = make_start_stops( settings.num_households, num_threads )
         frames :: NamedTuple = initialise_frames( T, settings, num_systems )
         observer[] =Progress( settings.uuid, "starting",0, 0, 0, settings.num_households )

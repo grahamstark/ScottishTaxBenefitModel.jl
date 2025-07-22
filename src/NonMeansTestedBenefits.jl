@@ -442,6 +442,7 @@ Completely arbitrary, but the best I can do ...
 Because there are NO child receipts of disability benefits AT ALL in the data...
 Ref:
 https://www.socialsecurity.gov.scot/guidance-resources/guidance/child-disability-payment-decision-making-guide/determinations-and-awards/what-a-determination-of-entitlement-is
+FIXME UnitTest needed.
 """
 function child_disability_scores( child :: Person )::Vector{Int}
     v = [0,0]
@@ -505,6 +506,7 @@ end
 
 """
 return the score from child_disability_scores that generates the given target number.
+FIXME UnitTest needed.
 """
 function calibrate_child_disability( settings:: Settings, care_targets :: Vector, mob_targets :: Vector)::Tuple
     settings.num_households, settings.num_people, nhhs2 = 

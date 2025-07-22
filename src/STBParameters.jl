@@ -112,6 +112,18 @@ end
     mob_slot :: Incomes = DLA_MOBILITY
 end
 
+@with_kw mutable struct ScottishChildDisabilityPayment{RT<:Real}
+    # see: https://www.socialsecurity.gov.scot/asset-storage/production/downloads/Child-Disability-Payment-statistics-to-31-March-2025-publication.pdf
+    # p 6-7 tables 15/16. Caseload (total 89,400 by high middle low )
+    # we calibrate against this, but othewise just use the DLA numbers
+    # May 2025 values as default
+    care_cases = [39,46,15].*89_400/100
+    mobility_cases = [12,56].*89_400/100
+    # these are calibrated for Scottish Runs at startuo.
+    care_thresholds = []
+    mobility_thresholds = []
+end
+
 @with_kw mutable struct CarersAllowance{RT<:Real}
     abolished :: Bool = false
     allowance :: RT = 66.15
@@ -233,6 +245,7 @@ end
     # young carer grant
     maternity = MaternityAllowance{RT}()
     smp :: RT = 148.68
+    scdp = ScottishChildDisabilityPayment{RT}()
     # not modelled SDA,Incapacity which we just wrap into
     # ESA
 end
