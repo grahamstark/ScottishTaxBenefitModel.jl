@@ -24,7 +24,11 @@ function make_shared_package( name :: String, packages :: Vector{String})
 end
 
 
-
+make_shared_package( "GGPU", [
+    "AMDGPU", 
+    "GPUArrays", 
+    "KernelAbstractions",
+    "oneAPI"])
 
 make_shared_package( "GMaths", [
     "DifferentialEquations", 

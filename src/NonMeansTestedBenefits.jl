@@ -43,6 +43,7 @@ using .STBParameters:
     NonMeansTestedSys, 
     PersonalIndependencePayment, 
     RetirementPension, 
+    ScottishChildDisabilityPayment,
     WidowsPensions, 
     reached_state_pension_age
     
@@ -297,49 +298,6 @@ function calc_attendance_allowance(
     return a
 end
 
-function calc_dla(
-    pers :: Person{T},
-    dla  :: DisabilityLivingAllowance{T} ) :: Tuple{T,T} where T
-    dc = zero(T)
-    dm = zero(T)
-    if dla.abolished
-        return (dc,dm)
-    end
-    dla_s = dla_greater_of( pers.dla_self_care_type, pers.pip_daily_living_type )
-    dla_m = dla_greater_of( pers.dla_mobility_type, pers.pip_mobility_type )
-    # FIXME we use the same list for both mob and self
-    # I think because of small sample size (kids only)
-    dla_s = change_status( 
-        candidates=dla.candidates, 
-        pid=pers.pid, 
-        choices=[high,mid,low],
-        change=dla.extra_people,
-        current_value=dla_s, 
-        disqual_value=missing_lmh  )
-    dla_m = change_status( 
-        candidates=dla.candidates, 
-        pid=pers.pid, 
-        choices=[high,mid,low],
-        change=dla.extra_people,
-        current_value=dla_m, 
-        disqual_value=missing_lmh  )
-    # FIXME make all these names constisent (mid/middle,care->self_care etc.)
-    if dla_s == high 
-        dc = dla.care_high
-    elseif dla_s == mid
-        dc = dla.care_middle
-    elseif dla_s == low 
-        dc = dla.care_low
-    end
-    if dla_m == high 
-        dm = dla.mob_high
-    elseif dla_m in (low,mid)
-        dm = dla.mob_low
-    end
-    # println( "setting DLA as $dc, $dm")
-    return (dc,dm);
-end # dla calc
-
 function calc_state_pension( 
     pers :: Person{T}, 
     rp :: RetirementPension{T},
@@ -505,6 +463,78 @@ function child_disability_scores( child :: Person )::Vector{Int}
 end
 
 """
+Hacky version of DLA/SCDP that only works for Scotland.
+FIXME Tests update
+"""
+function calc_dla(
+    pers :: Person{T},
+    dla  :: DisabilityLivingAllowance{T},
+    scdp :: ScottishChildDisabilityPayment{T} ) :: Tuple{T,T} where T
+    dc = zero(T)
+    dm = zero(T)
+    if dla.abolished
+        return (dc,dm)
+    end
+    if (length(scdp.care_thresholds) == 3) && (length(scdp.mobility_thresholds) == 2)
+        # new version has been initialised using `calibrate_child_disability`
+        scores = child_disability_scores( pers )
+        dc = if scores[1] >= scdp.care_thresholds[1]
+            dla.care_high
+        elseif scores[1] >= scdp.care_thresholds[2]
+            dla.care_middle
+        elseif scores[1] >= scdp.care_thresholds[3]
+            dla.care_low
+        else
+            0.0
+        end
+        dm = if scores[2] >= scdp.mobility_thresholds[1]
+            dla.mob_high
+        elseif scores[2] >= scdp.mobility_thresholds[2]
+            dla.mob_low
+        else
+            0.0
+        end
+    end
+    return dc, dm     
+    #=
+
+    dla_s = dla_greater_of( pers.dla_self_care_type, pers.pip_daily_living_type )
+    dla_m = dla_greater_of( pers.dla_mobility_type, pers.pip_mobility_type )
+    # FIXME we use the same list for both mob and self
+    # I think because of small sample size (kids only)
+    dla_s = change_status( 
+        candidates=dla.candidates, 
+        pid=pers.pid, 
+        choices=[high,mid,low],
+        change=dla.extra_people,
+        current_value=dla_s, 
+        disqual_value=missing_lmh  )
+    dla_m = change_status( 
+        candidates=dla.candidates, 
+        pid=pers.pid, 
+        choices=[high,mid,low],
+        change=dla.extra_people,
+        current_value=dla_m, 
+        disqual_value=missing_lmh  )
+    # FIXME make all these names constisent (mid/middle,care->self_care etc.)
+    if dla_s == high 
+        dc = dla.care_high
+    elseif dla_s == mid
+        dc = dla.care_middle
+    elseif dla_s == low 
+        dc = dla.care_low
+    end
+    if dla_m == high 
+        dm = dla.mob_high
+    elseif dla_m in (low,mid)
+        dm = dla.mob_low
+    end
+    # println( "setting DLA as $dc, $dm")
+    =#
+    return (dc,dm);
+end # dla calc
+
+"""
 return the score from child_disability_scores that generates the given target number.
 FIXME UnitTest needed.
 """
@@ -641,7 +671,7 @@ function calc_pre_tax_non_means_tested!(
             #
             if pers.age <= 16
                 pres.income[sys.dla.care_slot],
-                pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla );
+                pres.income[sys.dla.mob_slot] = calc_dla( pers, sys.dla, sys.scdp );
             else 
                 pres.income[sys.pip.care_slot],
                 pres.income[sys.pip.mob_slot] = calc_pip( pers, sys.pip )
