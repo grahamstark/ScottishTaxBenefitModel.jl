@@ -603,20 +603,6 @@ function calibrate_child_disability( settings:: Settings, care_targets :: Vector
             end
         end
     end
-    #=
-    cumpop = 0
-    target_mob_score = 0
-    for i in 1:nks
-        r = df[i,:]
-        cumpop += r.weight
-        # @show cumpop mob_target r.mob_score 
-        if( cumpop >= mob_target ) || (i == nks)
-            target_mob_score = r.mob_score 
-            # @show target_mob_score
-            break
-        end
-    end
-    =#
     return target_care_score, target_mob_score, df
 end
 
@@ -688,6 +674,17 @@ function calc_pre_tax_non_means_tested!(
                 pres.income[MATERNITY_ALLOWANCE] = calc_maternity_allowance( pers, sys.maternity )
             end
             # NON-overlapping rules p1178 go here 
+            for chno in bu.children
+                child = bu.people[chno]
+                pres = bures.pers[chno]
+                if child.age <= 16 # fixme parameterise 16
+                    pres.income[sys.dla.care_slot],
+                    pres.income[sys.dla.mob_slot] = calc_dla( child, sys.dla, sys.scdp );
+                else 
+                    pres.income[sys.pip.care_slot],
+                    pres.income[sys.pip.mob_slot] = calc_pip( child, sys.pip )
+                end
+            end
         end # ad loop
         buno += 1
     end # bu loop

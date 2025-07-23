@@ -1,5 +1,6 @@
-using Pkg
-@usingany DrWatson
+# based on DrWatson prototype.
+# using Pkg
+# @usingany DrWatson
 @usingany DataFrames
 @usingany CSV
 @usingany StatsBase
@@ -8,7 +9,7 @@ using Pkg
 
 using ScottishTaxBenefitModel # put this in scope 
 
-Pkg.activate( "ModelComparisons")
+# Pkg.activate( "ModelComparisons")
 # local to ModelComparisons ... 
 # using .ScottishTaxBenefitModel
 using .DataSummariser
@@ -58,7 +59,6 @@ function get_raw_data( settings :: Settings )::Tuple
     @show settings.num_households
     people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
     hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
-
     overwrite_raw!( hhs, people, settings.num_households )
     return hhs, people
 end
@@ -93,12 +93,13 @@ function do_run( itrates::Vector, itthresholds::Vector; sysyear = 2024 )::Tuple
     return do_basic_run( settings, [sys1,sys2]; reset=false )
 end
 
-
+#= 
+DR WATSON STUFF 
 cd( "ModelComparisons")
 pwd()
 projectname()
 datadir()
-
+=#
 
 
 
