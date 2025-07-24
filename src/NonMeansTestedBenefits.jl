@@ -485,14 +485,14 @@ function calc_dla(
         elseif scores[1] >= scdp.care_thresholds[3]
             dla.care_low
         else
-            0.0
+            zero(T)
         end
         dm = if scores[2] >= scdp.mobility_thresholds[1]
             dla.mob_high
         elseif scores[2] >= scdp.mobility_thresholds[2]
             dla.mob_low
         else
-            0.0
+            zero(T)
         end
     end
     return dc, dm     
