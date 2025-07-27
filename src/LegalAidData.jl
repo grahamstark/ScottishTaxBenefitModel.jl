@@ -47,7 +47,8 @@ const PROBLEM_TYPES =
     "money",
     "unfairness",
     "neighbours",
-    "employment"]
+    "employment",
+    "health"]
 
 const ESTIMATE_TYPES = ["lower","prediction","upper"]
 
@@ -77,8 +78,6 @@ function age2( age )::String
         "65+"
     end
 end
-
-
 
 function group_cases( fcase :: AbstractString )
     return if fcase in [
