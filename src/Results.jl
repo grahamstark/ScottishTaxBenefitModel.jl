@@ -70,6 +70,27 @@ module Results
         reduction :: RT = zero(RT)
     end
 
+    @with_kw mutable struct AdditionalScottishBenefits{RT<:Real}
+        school_meals = zero(RT)
+        best_start_foods = zero(RT)
+        best_start_grant = zero(RT)
+        child_winter_heating_payment = zero(RT)
+        employment_injury_assistance  = zero(RT)
+        funeral_support_payment = zero(RT)
+        pension_age_winter_heating_payment  = zero(RT)
+        scottish_welfare_fund = zero(RT)
+        severe_disablement_allowance = zero(RT)
+        winter_heating_payment = zero(RT)
+        free_childcare = zero(RT)
+    end
+
+    function weekly_value( sb :: AdditionalScottishBenefits{RT} ) :: RT where RT <: Real
+        wv = zero(RT)
+
+
+        return wv
+    end
+
     @with_kw mutable struct OneLegalAidResult{RT<:Real}
         net_income = zero(RT)
         gross_earnings = zero(RT)
@@ -348,6 +369,7 @@ module Results
         end
         return false
     end
+
     @with_kw mutable struct LocalTaxes{RT<:Real}
         # council_tax :: RT = zero(RT) 
         # this isn't really used at present since LOCAL_TAXES

@@ -60,6 +60,8 @@ function agemp( age :: Int ) :: Real
         80
     elseif age ==  11
         10
+    elseif age == -2 # 2021 only
+        rand( [16.5, 19, 23, 30, 50, 57, 62, 70, 80, 10])
     end    
 end
 
@@ -75,6 +77,7 @@ scjsraw.non_white = scjsraw.qdeth3 .== 4
 scjsraw.lives_in_flat = scjsraw.acctype .== 3
 scjsraw.single_parent = scjsraw.hhcomp .== 2
 scjsraw.out_of_labour_market = scjsraw.iloclass .== 3
+scjsraw.datayear = categorical( scjsraw.datayear )
 
 
 scjsraw.age = map( x->agemp(x), scjsraw.qdage2 )

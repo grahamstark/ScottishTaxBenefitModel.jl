@@ -85,13 +85,20 @@ lazy = true
     [["scottish-shs-data-unix-v0.1.6".download]]
     sha256 = "c7eae91df35eacca9802a06b6218f82dd47fb33c8280886c494ef3e92ce6c34c"
     url = "file:///mnt/data/ScotBen/local_artifacts//scottish-shs-data-v0.1.6.tar.gz"
+    [["scottish-shs-data-unix-v0.1.6".download]]
+    sha256 = "c7eae91df35eacca9802a06b6218f82dd47fb33c8280886c494ef3e92ce6c34c"
+    url = "file:///c:/data/scottish-shs-data-v0.1.6.tar.gz"
+
+["scottish-shs-data-windows-v0.1.6"]
+git-tree-sha1 = "92f2b7de17d6b91006a0531d654fbe52ff427a3f"
+lazy = true
 
 ["scottish-slab-legalaid-unix-v0.1.6"]
-git-tree-sha1 = "6ac253d4e01462d5fb25ba410a91504186c46f9d"
+git-tree-sha1 = "7bfbe67ad7fefcd6c54beab0ef37ff2b67380027"
 lazy = true
 
     [["scottish-slab-legalaid-unix-v0.1.6".download]]
-    sha256 = "7b8ac59ff02fbfe3c7097899a61e94cad1a169dcc2e0bf30fa4c3e4ebd386e41"
+    sha256 = "baec25529be63899cadd096ce138f63f6c59eb2fb4b9af59e6e87081a01e24e9"
     url = "file:///mnt/data/ScotBen/local_artifacts//scottish-slab-legalaid-v0.1.6.tar.gz"
 
 ["scottish-slab-legalaid-windows-v0.1.6"]
@@ -277,12 +284,3 @@ lazy = true
     [["uk-was-wealth-windows-v0.1.6".download]]
     sha256 = "b9f06f92f88ba772731979d6ff94b869fd15e42e4acfb79f6911b9e60fb12c72"
     url = "file:///c:/data/uk-was-wealth-v0.1.6.tar.gz"
-
-
-["scottish-shs-data-windows-v0.1.6"]
-git-tree-sha1 = "92f2b7de17d6b91006a0531d654fbe52ff427a3f"
-lazy = true
-
-    [["scottish-shs-data-unix-v0.1.6".download]]
-    sha256 = "c7eae91df35eacca9802a06b6218f82dd47fb33c8280886c494ef3e92ce6c34c"
-    url = "file:///c:/data/scottish-shs-data-v0.1.6.tar.gz"
