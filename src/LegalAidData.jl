@@ -36,19 +36,33 @@ export
     AA_COSTS,
     CIVIL_SUBJECTS,
     LA_PROB_DATA, 
-    PROBLEM_TYPES
+    CSJS_PROBLEM_TYPES
 
 LA_PROB_DATA = DataFrame()
 
-const PROBLEM_TYPES = 
+const SCJS_PROBLEM_TYPES = 
     ["no_problem",
     "divorce",
     "home",
     "money",
     "unfairness",
-    "neighbours",
+    # "neighbours",
     "employment",
     "health"]
+
+const SLAB_PROBLEM_TYPES = [
+    "adults_with_incapacity_or_mental_health",
+    "contact_or_parentage",
+    "divorce_or_separation",
+    "family_or_matrimonial_other",
+    "other",
+    "residence"]
+        
+
+function scjs_to_slab( scjs :: String )::String
+
+
+end
 
 const ESTIMATE_TYPES = ["lower","prediction","upper"]
 

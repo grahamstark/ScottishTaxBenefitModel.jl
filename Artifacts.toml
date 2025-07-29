@@ -94,11 +94,11 @@ git-tree-sha1 = "92f2b7de17d6b91006a0531d654fbe52ff427a3f"
 lazy = true
 
 ["scottish-slab-legalaid-unix-v0.1.6"]
-git-tree-sha1 = "7bfbe67ad7fefcd6c54beab0ef37ff2b67380027"
+git-tree-sha1 = "5cc9db256eb3ffcbf1a9c49044f4837ea65ec24f"
 lazy = true
 
     [["scottish-slab-legalaid-unix-v0.1.6".download]]
-    sha256 = "baec25529be63899cadd096ce138f63f6c59eb2fb4b9af59e6e87081a01e24e9"
+    sha256 = "a5d1f2ee85f5f6a053b3820f217963614f36982f1926b966effe628be8c59e78"
     url = "file:///mnt/data/ScotBen/local_artifacts//scottish-slab-legalaid-v0.1.6.tar.gz"
 
 ["scottish-slab-legalaid-windows-v0.1.6"]
