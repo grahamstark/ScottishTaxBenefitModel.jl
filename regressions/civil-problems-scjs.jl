@@ -110,145 +110,6 @@ for yrd in by_year
 	println( "count of hhlds for data year $(yrd.datayear[1]) = $sz")
 end
 
-
-reg_home = glm( @formula( civ_home ~ datayear + taburbrur + simd_quint + hhcomp + acctype + tenure + qdgen +
-   log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
-   iloclass + qdlegs + age + agesq + qdgen ), scjsciv, Binomial(), ProbitLink())
-
-reg_money = glm( @formula( civ_money ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
-   log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
-   iloclass + qdlegs + age + agesq + qdgen ), scjsciv, Binomial(), ProbitLink())
-
-reg_unfairness = glm( @formula( civ_unfairness ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
-   log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
-   iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
-
-reg_neighbours = glm( @formula( civ_neighbours ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
-   log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
-   iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
-
-reg_divorce = glm( @formula( civ_divorce ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
-   log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
-   iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
-
-reg_employment = glm( @formula( civ_employment ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
-	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
-	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
-
-reg_health = glm( @formula( civ_health ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
-	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
-	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
-	
-
-regtable( reg_home, reg_money, reg_unfairness, reg_neighbours, reg_divorce, reg_employment, reg_health;
-	below_statistic = TStat, digits = 4, file="tmp/initial-regs.txt")
-
-
-r2_home = glm( @formula( civ_home ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
-	health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
-r2_money = glm( @formula( civ_money ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
-	health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
-r2_unfairness = glm( @formula( civ_unfairness  ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
-	health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
-r2_neighbours = glm( @formula( civ_neighbours ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
-	health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
-r2_divorce = glm( @formula( civ_divorce ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
-	health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
-r2_employment = glm( @formula( civ_employment ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
-	health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
-r2_health = glm( @formula( civ_health ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
-	health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
-regtable( r2_home, r2_money, r2_unfairness, r2_neighbours, r2_divorce, r2_employment, r2_health;
-	below_statistic = TStat, digits = 4, file="tmp/edited-regs.txt")
-
-
-#
-# only sig
-#
-f3_home = @formula( civ_home ~ has_condition + 
-	health_good_or_better + lives_in_flat + single_parent  + age + agesq ) 
-r3_home = glm( f3_home, scjsciv, Binomial(), ProbitLink())
-
-f3_money = @formula( civ_money ~ has_condition + 
-	health_good_or_better + lives_in_flat + single_parent  + age + agesq )
-r3_money = glm( f3_money, scjsciv, Binomial(), ProbitLink())
-
-f3_unfairness = @formula( civ_unfairness  ~ has_condition + 
-	non_white + age + agesq ) 
-r3_unfairness = glm( f3_unfairness, scjsciv, Binomial(), ProbitLink())
-
-f3_neighbours = @formula( civ_neighbours ~ has_condition + 
-	health_good_or_better + lives_in_flat + age + agesq ) 
-r3_neighbours = glm( f3_neighbours, scjsciv, Binomial(), ProbitLink())
-
-f3_divorce = @formula( civ_divorce ~ divorced_or_separated + single_parent  + age + agesq ) 
-r3_divorce = glm( f3_divorce, scjsciv, Binomial(), ProbitLink())
-
-f3_employment = @formula( civ_employment ~ out_of_labour_market +  + age + agesq ) 
-r3_employment = glm( f3_employment, scjsciv, Binomial(), ProbitLink())
-
-f3_health = @formula( civ_health ~ has_condition + 
-	health_good_or_better + lives_in_flat + age + agesq )
-r3_health = glm( f3_health, scjsciv, Binomial(), ProbitLink())
-
-regtable( r3_home, r3_money, r3_unfairness, r3_neighbours, r3_divorce, r3_employment, r3_health;
-	below_statistic = TStat, digits = 4, file="tmp/edited-regs2.txt")
-
-
-"""
-"""
-function make_predicts( model, raw_data )
-	form = formula( model )
-	# see: https://juliastats.org/StatsModels.jl/stable/api/#StatsModels.TableRegressionModel
-	# I don't know why it's done like this 
-	mat = ModelMatrix( ModelFrame( form, raw_data )).m
-	preds = predict( model, mat, interval=:confidence )
-end
-
-function add_predicts!( df :: DataFrame, prefix::String, model, raw_data )
-	preds = make_predicts( model, raw_data )
-	df[:,Symbol( "$(prefix)_lower")] = preds.lower
-	df[:,Symbol( "$(prefix)_prediction")] = preds.prediction
-	df[:,Symbol( "$(prefix)_upper")] = preds.upper
-end
-
-# scoth = CSV.File( "data/model_households_scotland-2015-2021.tab") |> DataFrame
-# scotp = CSV.File( "data/model_people_scotland-2015-2021.tab") |> DataFrame
-
-settings = Settings()
-settings.included_data_years = [] # all years, even if we don't want them in the sim
-scoth, scotp = get_raw_data( settings; reset=true )
-
-fm = create_regression_dataframe( scoth, scotp )
-
-n = size( fm )[1]
-fm.civ_home = zeros( n )
-fm.civ_money = zeros( n )
-fm.civ_divorce = zeros( n )
-fm.civ_neighbours = zeros( n )
-fm.civ_unfairness = zeros( n )
-fm.civ_employment = zeros( n )
-fm.civ_health = zeros( n )
-
-civil_probs = DataFrame( 
-	data_year = fm.data_year, 
-	hid=fm.hid, 
-	pid = fm.pid, 
-	pno = fm.pno, 
-	weight = fm.weight, # hack for checking
-	from_child_record=fm.from_child_record )
-
-
-add_predicts!( civil_probs, "divorce", r3_divorce, fm )
-add_predicts!( civil_probs, "home", r3_home, fm )
-add_predicts!( civil_probs, "money", r3_money, fm )
-add_predicts!( civil_probs, "unfairness", r3_unfairness, fm )
-add_predicts!( civil_probs, "neighbours", r3_neighbours, fm )
-add_predicts!( civil_probs, "employment", r3_employment, fm )
-add_predicts!( civil_probs, "health", r3_health, fm )
-
-cpnc = civil_probs[civil_probs.from_child_record.==0,:]
-
 function summarise( prefix::String, model, cpnc :: DataFrame, scjsciv :: DataFrame )
 	println( "## $(titlecase(prefix)) \n\n```\n" )
 	lower = cpnc[:,Symbol( "$(prefix)_lower")].*100
@@ -273,12 +134,292 @@ function summarise( prefix::String, model, cpnc :: DataFrame, scjsciv :: DataFra
 	println( "\n\n```")
 end
 
-summarise( "divorce", r3_divorce, cpnc, scjsciv)
-summarise( "home", r3_home, cpnc, scjsciv)
-summarise( "money", r3_money, cpnc, scjsciv)
-summarise( "unfairness", r3_unfairness, cpnc, scjsciv)
-summarise( "neighbours", r3_neighbours, cpnc, scjsciv)
-summarise( "employment" , r3_employment, cpnc, scjsciv)
-summarise( "health" , r3_employment, cpnc, scjsciv)
+"""
+"""
+function make_predicts( model, raw_data )
+	form = formula( model )
+	# see: https://juliastats.org/StatsModels.jl/stable/api/#StatsModels.TableRegressionModel
+	# I don't know why it's done like this 
+	mat = ModelMatrix( ModelFrame( form, raw_data )).m
+	preds = predict( model, mat, interval=:confidence )
+end
 
-CSV.write( "$(DDIR)scjs/civil-legal-aid-probs-scotland-2017-2021.tab",civil_probs; delim='\t' )
+function add_predicts!( df :: DataFrame, prefix::String, model, raw_data )
+	preds = make_predicts( model, raw_data )
+	df[:,Symbol( "$(prefix)_lower")] = preds.lower
+	df[:,Symbol( "$(prefix)_prediction")] = preds.prediction
+	df[:,Symbol( "$(prefix)_upper")] = preds.upper
+end
+
+function run_regressions_map_to_slab_version()
+	reg_family = glm( @formula( civ_family ~ datayear + taburbrur + simd_quint + hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ), scjsciv, Binomial(), ProbitLink())
+
+	reg_children = glm( @formula( civ_children ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ), scjsciv, Binomial(), ProbitLink())
+
+	reg_housing_neighbours = glm( @formula( civ_housing_neighbours ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_health = glm( @formula( civ_health ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_divorce = glm( @formula( civ_divorce ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_money = glm( @formula( civ_money ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_unfairness = glm( @formula( civ_unfairness ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_any = glm( @formula( civ_any ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+		log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+		iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	regtable( reg_family, reg_children, reg_housing_neighbours, reg_health, reg_divorce, reg_money, reg_unfairness, reg_any;
+		below_statistic = TStat, digits = 4, file="tmp/initial-regs-map_to_slab_version.txt")
+
+	r2_family = glm( @formula( civ_family ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_children = glm( @formula( civ_children ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_housing_neighbours = glm( @formula( civ_housing_neighbours  ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_health = glm( @formula( civ_health ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_divorce = glm( @formula( civ_divorce ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_money = glm( @formula( civ_money ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_unfairness = glm( @formula( civ_unfairness ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_any = glm( @formula( civ_any ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	regtable( r2_family, r2_children, r2_housing_neighbours, r2_health, r2_divorce, r2_money, r2_unfairness, r2_any;
+		below_statistic = TStat, digits = 4, file="tmp/edited-regs-map_to_slab_version.txt")
+
+	r3_family = glm( @formula( civ_family ~ 
+		health_good_or_better + single_parent  + age + agesq ), scjsciv, Binomial(), ProbitLink())
+
+	r3_children = glm( @formula( civ_children  ~  
+		out_of_labour_market + is_carer + lives_in_flat + single_parent + age + agesq ), 
+		scjsciv, Binomial(), ProbitLink())
+
+	r3_housing_neighbours = glm( @formula( civ_housing_neighbours  ~  
+		has_condition + health_good_or_better + lives_in_flat + single_parent + age + agesq ), 
+		scjsciv, Binomial(), ProbitLink())
+
+	r3_health = glm( @formula( civ_health ~ has_condition + 
+		health_good_or_better + lives_in_flat + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+
+	r3_divorce = glm( @formula( civ_divorce ~ out_of_labour_market + divorced_or_separated + single_parent  + age + agesq ),
+		scjsciv, Binomial(), ProbitLink())
+
+	r3_money = glm( @formula( civ_money ~ 
+		is_carer + has_condition + health_good_or_better + lives_in_flat + single_parent + age + agesq ),
+		scjsciv, Binomial(), ProbitLink())
+
+	r3_unfairness = glm( @formula( civ_unfairness ~ 
+		is_carer + has_condition + health_good_or_better + 
+		health_good_or_better + lives_in_flat + age + agesq ),
+		scjsciv, Binomial(), ProbitLink())
+
+	r3_any = glm( @formula( civ_any ~ 
+		is_carer + has_condition + divorced_or_separated + health_good_or_better + lives_in_flat + single_parent + age + agesq ),
+		scjsciv, Binomial(), ProbitLink())
+
+	regtable( r3_family, r3_children, r3_housing_neighbours, r3_health, r3_divorce, r3_money, r3_unfairness, r3_any;
+		below_statistic = TStat, digits = 4, file="tmp/edited-regs_r3-map_to_slab_version.txt")
+
+	settings = Settings()
+	settings.included_data_years = [] # all years, even if we don't want them in the sim
+	scoth, scotp = get_raw_data( settings; reset=false )
+
+	# model dataset as regresssion dataframe, so we can
+	fm = create_regression_dataframe( scoth, scotp )
+	n = size( fm )[1]
+	fm.civ_family = zeros( n )
+	fm.civ_children = zeros( n )
+	fm.civ_housing_neighbours = zeros( n )
+	fm.civ_health = zeros( n )
+	fm.civ_divorce = zeros( n )
+	fm.civ_money = zeros( n )
+	fm.civ_unfairness = zeros( n )
+	fm.civ_any = zeros( n )
+
+	civil_probs = DataFrame( 
+		data_year = fm.data_year, 
+		hid=fm.hid, 
+		pid = fm.pid, 
+		pno = fm.pno, 
+		weight = fm.weight, # hack for checking
+		from_child_record=fm.from_child_record )
+
+	add_predicts!( civil_probs, "family", r3_family, fm )
+	add_predicts!( civil_probs, "children", r3_children, fm )
+	add_predicts!( civil_probs, "housing_neighbours", r3_housing_neighbours, fm )
+	add_predicts!( civil_probs, "health", r3_health, fm )
+	add_predicts!( civil_probs, "divorce", r3_divorce, fm )
+	add_predicts!( civil_probs, "money", r3_money, fm )
+	add_predicts!( civil_probs, "unfairness", r3_unfairness, fm )
+	add_predicts!( civil_probs, "any", r3_any, fm )
+
+	cpnc = civil_probs[civil_probs.from_child_record.==0,:]
+	open("tmp/legal-aid-prob-summaries.md", "w") do io
+    	redirect_stdout(io) do
+			summarise( "family", r3_family, cpnc, scjsciv)
+			summarise( "children", r3_children, cpnc, scjsciv)
+			summarise( "housing_neighbours", r3_housing_neighbours, cpnc, scjsciv)
+			summarise( "health", r3_health, cpnc, scjsciv)
+			summarise( "divorce", r3_divorce,  cpnc, scjsciv)
+			summarise( "money", r3_money, cpnc, scjsciv)
+			summarise( "unfairness", r3_unfairness, cpnc, scjsciv)
+			summarise( "any", r3_any, cpnc, scjsciv)
+		end
+	end
+	CSV.write( "tmp/civil-legal-aid-probs-scotland-map_to_slab_version-2017-2021.tab",civil_probs; delim='\t' )
+end
+
+function run_regressions_original_version()
+
+	reg_home = glm( @formula( civ_home ~ datayear + taburbrur + simd_quint + hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ), scjsciv, Binomial(), ProbitLink())
+
+	reg_money = glm( @formula( civ_money ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ), scjsciv, Binomial(), ProbitLink())
+
+	reg_unfairness = glm( @formula( civ_unfairness ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_neighbours = glm( @formula( civ_neighbours ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_divorce = glm( @formula( civ_divorce ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+	iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_employment = glm( @formula( civ_employment ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+		log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+		iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+
+	reg_health = glm( @formula( civ_health ~ datayear + taburbrur + simd_quint+hhcomp + acctype + tenure + qdgen +
+		log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
+		iloclass + qdlegs + age + agesq + qdgen ) , scjsciv, Binomial(), ProbitLink())
+		
+
+	regtable( reg_home, reg_money, reg_unfairness, reg_neighbours, reg_divorce, reg_employment, reg_health;
+		below_statistic = TStat, digits = 4, file="tmp/initial-regs.txt")
+
+
+	r2_home = glm( @formula( civ_home ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_money = glm( @formula( civ_money ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_unfairness = glm( @formula( civ_unfairness  ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_neighbours = glm( @formula( civ_neighbours ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_divorce = glm( @formula( civ_divorce ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_employment = glm( @formula( civ_employment ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	r2_health = glm( @formula( civ_health ~ out_of_labour_market + is_carer + has_condition + divorced_or_separated + qdgen +
+		health_good_or_better + non_white+ lives_in_flat + single_parent  + age + agesq ) , scjsciv, Binomial(), ProbitLink())
+	regtable( r2_home, r2_money, r2_unfairness, r2_neighbours, r2_divorce, r2_employment, r2_health;
+		below_statistic = TStat, digits = 4, file="tmp/edited-regs.txt")
+
+
+	#
+	# only sig
+	#
+	f3_home = @formula( civ_home ~ has_condition + 
+		health_good_or_better + lives_in_flat + single_parent  + age + agesq ) 
+	r3_home = glm( f3_home, scjsciv, Binomial(), ProbitLink())
+
+	f3_money = @formula( civ_money ~ has_condition + 
+		health_good_or_better + lives_in_flat + single_parent  + age + agesq )
+	r3_money = glm( f3_money, scjsciv, Binomial(), ProbitLink())
+
+	f3_unfairness = @formula( civ_unfairness  ~ has_condition + 
+		non_white + age + agesq ) 
+	r3_unfairness = glm( f3_unfairness, scjsciv, Binomial(), ProbitLink())
+
+	f3_neighbours = @formula( civ_neighbours ~ has_condition + 
+		health_good_or_better + lives_in_flat + age + agesq ) 
+	r3_neighbours = glm( f3_neighbours, scjsciv, Binomial(), ProbitLink())
+
+	f3_divorce = @formula( civ_divorce ~ divorced_or_separated + single_parent  + age + agesq ) 
+	r3_divorce = glm( f3_divorce, scjsciv, Binomial(), ProbitLink())
+
+	f3_employment = @formula( civ_employment ~ out_of_labour_market +  + age + agesq ) 
+	r3_employment = glm( f3_employment, scjsciv, Binomial(), ProbitLink())
+
+	f3_health = @formula( civ_health ~ has_condition + 
+		health_good_or_better + lives_in_flat + age + agesq )
+	r3_health = glm( f3_health, scjsciv, Binomial(), ProbitLink())
+
+	regtable( r3_home, r3_money, r3_unfairness, r3_neighbours, r3_divorce, r3_employment, r3_health;
+		below_statistic = TStat, digits = 4, file="tmp/edited-regs2.txt")
+
+
+
+	# scoth = CSV.File( "data/model_households_scotland-2015-2021.tab") |> DataFrame
+	# scotp = CSV.File( "data/model_people_scotland-2015-2021.tab") |> DataFrame
+
+	settings = Settings()
+	settings.included_data_years = [] # all years, even if we don't want them in the sim
+	scoth, scotp = get_raw_data( settings; reset=true )
+
+	fm = create_regression_dataframe( scoth, scotp )
+
+	n = size( fm )[1]
+	fm.civ_home = zeros( n )
+	fm.civ_money = zeros( n )
+	fm.civ_divorce = zeros( n )
+	fm.civ_neighbours = zeros( n )
+	fm.civ_unfairness = zeros( n )
+	fm.civ_employment = zeros( n )
+	fm.civ_health = zeros( n )
+
+	civil_probs = DataFrame( 
+		data_year = fm.data_year, 
+		hid=fm.hid, 
+		pid = fm.pid, 
+		pno = fm.pno, 
+		weight = fm.weight, # hack for checking
+		from_child_record=fm.from_child_record )
+
+
+	add_predicts!( civil_probs, "divorce", r3_divorce, fm )
+	add_predicts!( civil_probs, "home", r3_home, fm )
+	add_predicts!( civil_probs, "money", r3_money, fm )
+	add_predicts!( civil_probs, "unfairness", r3_unfairness, fm )
+	add_predicts!( civil_probs, "neighbours", r3_neighbours, fm )
+	add_predicts!( civil_probs, "employment", r3_employment, fm )
+	add_predicts!( civil_probs, "health", r3_health, fm )
+
+	cpnc = civil_probs[civil_probs.from_child_record.==0,:]
+
+	summarise( "divorce", r3_divorce, cpnc, scjsciv)
+	summarise( "home", r3_home, cpnc, scjsciv)
+	summarise( "money", r3_money, cpnc, scjsciv)
+	summarise( "unfairness", r3_unfairness, cpnc, scjsciv)
+	summarise( "neighbours", r3_neighbours, cpnc, scjsciv)
+	summarise( "employment" , r3_employment, cpnc, scjsciv)
+	summarise( "health" , r3_employment, cpnc, scjsciv)
+
+	CSV.write( "$(DDIR)scjs/civil-legal-aid-probs-scotland-2017-2021.tab",civil_probs; delim='\t' )
+
+end

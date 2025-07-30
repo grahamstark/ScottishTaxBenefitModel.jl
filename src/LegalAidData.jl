@@ -36,20 +36,22 @@ export
     AA_COSTS,
     CIVIL_SUBJECTS,
     LA_PROB_DATA, 
-    CSJS_PROBLEM_TYPES
+    SCJS_PROBLEM_TYPES
 
 LA_PROB_DATA = DataFrame()
 
 const SCJS_PROBLEM_TYPES = 
     ["no_problem",
+    "family",
+    "children",
     "divorce",
-    "home",
+    "housing_neighbours",
+    "health",
     "money",
     "unfairness",
-    # "neighbours",
-    "employment",
-    "health"]
+    "any"]
 
+#=
 const SLAB_PROBLEM_TYPES = [
     "adults_with_incapacity_or_mental_health",
     "contact_or_parentage",
@@ -60,9 +62,14 @@ const SLAB_PROBLEM_TYPES = [
         
 
 function scjs_to_slab( scjs :: String )::String
-
+    return if scjs == "divorce"
+        "divorce_or_separation"
+    elseif scjs == "home"
+        "residence"
+    elseif scjs == "contact_or_family"
 
 end
+=#
 
 const ESTIMATE_TYPES = ["lower","prediction","upper"]
 
@@ -431,7 +438,6 @@ function make_key(;
     return k
 end
 
-# FIXME NOT NEEDED as the scjs data is unused at slab request
 function add_la_probs!( hh :: Household )
     global LA_PROB_DATA
     la_hhdata = LA_PROB_DATA[ (LA_PROB_DATA.data_year .== hh.data_year) .& (LA_PROB_DATA.hid.==hh.hid),: ]
