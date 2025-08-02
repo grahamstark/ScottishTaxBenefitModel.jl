@@ -73,6 +73,7 @@ ChunkSplitters = "2"
 Colors = "0.12, 0.13, 0.14, 0.2, 1"
 DataFrames = "1, 2"
 DataScienceTraits = "1.0.1"
+DataStructures = "0.19"
 Documenter = "1"
 Format = "1"
 FromFile = "0.1, 0.2, 1"
@@ -124,15 +125,15 @@ do_local_run = false
 do_marginal_rates = false
 do_replacement_rates = false
 dump_frames = false
-
+included_data_years = [2019, 2021, 2022]
+indirect_method = "matching"
 ineq_income_measure = "eq_bhc_net_income"
-
+legal_aid_probs_data = "civil-legal-aid-probs-scotland-map_to_slab_version-2017-2021"
 local-artifact_server_upload_unix = "/mnt/data/ScotBen/local_artifacts/"
-local-artifact_server_url_unix = "file:///mnt/data/ScotBen/local_artifacts/"
 local-artifact_server_upload_windows = "c:/data/"
+local-artifact_server_url_unix = "file:///mnt/data/ScotBen/local_artifacts/"
 local-artifact_server_url_windows = "file:///c:/data/"
-lower_multiple=0.6400000000000000
-upper_multiple=5.86000000000000
+lower_multiple = 0.64
 means_tested_routing = "uc_full"
 poverty_line_source = "pl_first_sys"
 public-artifact_server_upload = "vw@virtual-worlds.biz:public_html/artifacts/"
@@ -141,11 +142,10 @@ replacement_rate_hours = 30
 target_nation = "N_Scotland"
 to_q = 2
 to_y = 2025
-included_data_years = [2019,2021,2022]
+upper_multiple = 5.86
 use_shs = true
-weighting_strategy = "use_runtime_computed_weights"
 wealth_method = "matching"
-indirect_method = "matching"
-legal_aid_probs_data = "civil-legal-aid-probs-scotland-map_to_slab_version-2017-2021"
+weighting_strategy = "use_runtime_computed_weights"
+
 [targets]
 test = ["Test"]
