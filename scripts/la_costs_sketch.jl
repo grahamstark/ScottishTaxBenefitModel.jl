@@ -1,147 +1,31 @@
 using ScottishTaxBenefitModel
-
-using .LegalAidData
-using .RunSettings
-using .FRSHouseholdGetter
+using .DataSummariser
 using .Definitions
+using .FRSHouseholdGetter
+using .LegalAidData
+using .Monitor: Progress
+using .Runner
+using .RunSettings
+using .STBParameters
+using .Utils
 
 using StatsBase
+using Observables
 using CSV
 using DataFrames
 
 include( "comparisons_skeleton.jl")
 
-SCJS_SLAB_MAP_V1 = Dict([
-    :civ_family => 
-        ["Abusive Behaviour and Sexual Harm (Scotland) Act",
-        "Non  Harassment Order",
-        "Protection From Abuse (Scotland) Act 2001",
-        "Non Harassment Order Family",
-        "Interdict Non-Molestation"],
-
-    :civ_education => 
-        ["Appeal Inner House - family",
-        "Appeal to Sheriff Appeal Court - Family",
-        "Breach of Interdict - Family",
-        "Interdict - Family Other",
-        "Interdict - Other Non Family",
-        "Orders Under Family Law (Scotland) Act",
-        "Interdict against removal of Child/Other",
-        "Education (Scotland) Act",
-        "Parental rights and responsibilities order - s.11 Children (Scotland) Act 1995",
-        "Adoption",
-        "Child Support Agency Enforcement Orders",
-        "Declarator Of Non Parentage",
-        "Declarator Of Parentage",
-        "Permanency order",
-        "Contact",
-        "Parental Responsibility Order",
-        "Deprivation of Parental Rights and Responsibilities",
-        "Orders under Matrimonial Homes (Scotland) Act",
-        "Specific Issue Order"],
-
-    :civ_divorce => 
-        ["Divorce 1 Year",
-        "Aliment",
-        "Divorce On The Grounds Of Adultery",
-        "Divorce on the grounds of Two Years Separation",
-        "Divorce on the grounds of Unreasonable Behaviour",
-        "Separation",
-        "Variation",
-        "Pension Splitting Order",
-        "Dissolution of Civil Partnership",
-        "Reciprocal Enforcement",
-        "Minute for Failure to Obtemper",
-        "Ailment"],
-
-    :civ_housing => 
-        ["Judicial Review - Housing/Homelessness",
-        "Reparation - housing disrepair",
-        "Transfer of Tenancy"],
-
-    :civ_mental  => 
-        ["Adults With Incapacity (Scotland) Act 2000",
-        "Adults with Incapacity (Scotland) Act 2000 - Welfare, or Welfare and Financial Component",
-        "Home owners and debtor protection - defence"],
-
-    :civ_immigration => 
-        ["Judicial Review Immigration Proceedings",
-        "Residence"],
-
-    :civ_neighbours => 
-        ["Interdict - Neighbour Disputes"],
-
-    :civ_medical  => #  medical negligence in last 3 years => 
-        ["Reparation - Medical Negligence",
-        "Reparation - Other/Damages"],
-
-    :civ_injury  => # problems concerning your health and well-being: injury because of an accident in last 3 years => 
-        ["Reparation - Personal Injury"],
-
-    :civ_money_debt => # cvjmon #  problems concerning your money, finances or anything you’ve paid for: with money and debt in last 3 years => 
-        ["Division of Sale",
-        "Proceeds of Crime - Civil Recovery",
-        "Debt",
-        "Executry",
-        "Unjustified Enrichment",
-        "Recovery of Heritable Property",
-        "Sequestration",
-        "Capital Sum",
-        "Interdict against Disposal of Assets",
-        "Count/Reckoning/Payment",
-        "Payment",
-        "Recovery of Heritable Property - Rent Arrears",
-        "Breach of Contract",
-        "Specific Implement",
-        "Reparation - Professional Negligence (Non Medical)"],
-
-    :civ_benefit => [],
-
-    :civ_faulty_goods => 
-        ["Delivery Of Goods"],
-
-    :civ_discrimination  => 
-        ["Other Discrimination Based Cases (Other than DDA)"],
-
-    :civ_police => 
-        ["Power of Arrest"],
-
-    :civ_employment => 
-        ["Employment Appeal Tribunal"],
-
-    :civ_others => 
-        ["Declarator",
-        "Delivery",
-        "Breach of Interdict",
-        "Suspension and Interdict",
-        "Other Civil",
-        "Reduction",
-        "Administration Of Justice Act",
-        "Anti-Social Behaviour Orders - Defence",
-        "Appeal",
-        "Appeal To The Court Of Session Inner House",
-        "Appeal to Sheriff Appeal Court",
-        "Application to the UK Supreme Court",
-        "Civic Government (Scotland) Act",
-        "Exclusion Order",
-        "Fatal Accident Inquiry",
-        "Hague Convention Application",
-        "Judicial Review",
-        "Judicial Review - against Scottish Ministers",
-        "Judicial Review against the Scottish Legal Aid Board",
-        "Other Convention Application",
-        "Petitions (Other Than For Judicial Review)",
-        "Variation"] ])
-
 SCJS_SLAB_MAP = Dict([
-    :civ_family => 
+    :family_prediction=> 
         ["Abusive Behaviour and Sexual Harm (Scotland) Act",
+        "Exclusion Order",
         "Non  Harassment Order",
         "Protection From Abuse (Scotland) Act 2001",
         "Non Harassment Order Family",
         "Interdict Non-Molestation"],
 
-    :civ_children => 
+    :children_prediction=> 
         ["Appeal Inner House - family",
         "Appeal to Sheriff Appeal Court - Family",
         "Breach of Interdict - Family",
@@ -162,7 +46,7 @@ SCJS_SLAB_MAP = Dict([
         "Orders under Matrimonial Homes (Scotland) Act",
         "Specific Issue Order"],
 
-    :civ_divorce => 
+    :divorce_prediction=> 
         ["Divorce 1 Year",
         "Aliment",
         "Divorce On The Grounds Of Adultery",
@@ -176,13 +60,13 @@ SCJS_SLAB_MAP = Dict([
         "Minute for Failure to Obtemper",
         "Ailment"],
 
-    :civ_housing_neighbours => 
+    :housing_neighbours_prediction=> 
         ["Judicial Review - Housing/Homelessness",
         "Reparation - housing disrepair",
         "Transfer of Tenancy",
         "Interdict - Neighbour Disputes"],
 
-    :civ_health =>
+    :health_prediction=>
         ["Adults With Incapacity (Scotland) Act 2000",
         "Adults with Incapacity (Scotland) Act 2000 - Welfare, or Welfare and Financial Component",
         "Home owners and debtor protection - defence",
@@ -190,7 +74,7 @@ SCJS_SLAB_MAP = Dict([
         "Reparation - Other/Damages",
         "Reparation - Personal Injury"],
 
-    :civ_money => # cvjmon #  problems concerning your money, finances or anything you’ve paid for: with money and debt in last 3 years => 
+    :money_prediction=> # cvjmon #  problems concerning your money, finances or anything you’ve paid for: with money and debt in last 3 years => 
         ["Division of Sale",
         "Proceeds of Crime - Civil Recovery",
         "Debt",
@@ -208,15 +92,14 @@ SCJS_SLAB_MAP = Dict([
         "Delivery Of Goods",
         "Reparation - Professional Negligence (Non Medical)"],
 
-
-    :civ_unfairness => 
+    :unfairness_prediction=> 
         ["Judicial Review Immigration Proceedings",
         "Residence",
         "Other Discrimination Based Cases (Other than DDA)",
         "Power of Arrest",
         "Employment Appeal Tribunal"],
 
-    :civ_any =>  # maps "others" to "any", which is a hack
+    :any_prediction=>  # maps "others" to "any", which is a hack
         ["Declarator",
         "Delivery",
         "Breach of Interdict",
@@ -230,7 +113,6 @@ SCJS_SLAB_MAP = Dict([
         "Appeal to Sheriff Appeal Court",
         "Application to the UK Supreme Court",
         "Civic Government (Scotland) Act",
-        "Exclusion Order",
         "Fatal Accident Inquiry",
         "Hague Convention Application",
         "Judicial Review",
@@ -240,17 +122,8 @@ SCJS_SLAB_MAP = Dict([
         "Petitions (Other Than For Judicial Review)",
         "Variation"] ])
 
-settings = Settings()
-LegalAidData.init( settings )
-
-settings.num_households, settings.num_people, nhh2 = 
-    FRSHouseholdGetter.initialise( settings; reset=false )
-
-const N = size( CIVIL_COSTS)[1]
-const GROUPS_BY_CASE = groupby( CIVIL_COSTS, :hsm_censored )
-
-function civ_sample( casetype :: Symbol, la_status :: LegalAidStatus )::DataFrameRow
-    subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP[casetype], )) .& ( CIVIL_COSTS.la_status .== la_status ), :]
+function civ_sample( casetype :: Symbol )::DataFrameRow
+    subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP[casetype], )), :] #.& ( CIVIL_COSTS.la_status .== la_status ), :]
     # @show subset
     n = size(subset)[1]
     p = sample(1:n)    
@@ -259,48 +132,89 @@ function civ_sample( casetype :: Symbol, la_status :: LegalAidStatus )::DataFram
     # sample(CIVIL_COSTS[CIVIL_COSTS.hsm_censored .== casetype,:]
 end
 
-needs = Dict()
-cases_per_need = Dict()
-for la_status in instances(LegalAidStatus)
-    if la_status != la_none
-        for problem in SCJS_PROBLEM_TYPES[2:end]
-            sym = Symbol( "$(problem)_prediction")
-            casetype = Symbol( "civ_$(problem)")
-            subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP[casetype], )) .& ( CIVIL_COSTS.la_status .== la_status ), :]
-            n = size(subset)[1]
-            needs[(sym,la_status)] = sum( LA_PROB_DATA[:,sym], Weights( LA_PROB_DATA.weight ))
-            cases_per_need[(sym, la_status)] = n/(needs[(sym,la_status)])
+function add_civil_category!(pr :: DataFrameRow )
+    for problem in SCJS_PROBLEM_TYPES[2:end]
+        casetype = Symbol( "civ_$(problem)")
+        CIVIL_COSTS.categorydescription  .∈ SCJS_SLAB_MAP[casetype]
+    end
+end
+
+function get_needs_and_cases( people ::DataFrame )
+    needs = Dict()
+    cases_per_need = Dict()
+    for problem in keys( SCJS_SLAB_MAP )
+        subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP[problem], )), :] # .& ( CIVIL_COSTS.la_status .== la_status ), :]
+        n = size(subset)[1]        
+        needs[problem] = sum( people[!, problem], Weights( people.weight_2 )) # status == la_status
+        cases_per_need[problem] = n/(needs[problem])
+    end
+    needs, cases_per_need
+end
+
+# const OFFER_PROPENSITY = Dict( [la_passported => 0.9, la_full => 0.8, la_with_contribution=> 0.7])
+const OFFER_PROPENSITY = Dict( [la_passported => 1, la_full => 1, la_with_contribution=> 1])
+
+function do_one_costing( eligible_people :: DataFrame, cases_per_need::Dict )::Tuple
+    cases = deepcopy( CIVIL_COSTS )[1:0,:]
+    needs = 0
+    pno = 0
+    for pers in eachrow( eligible_people )
+        pno += 1
+        reps = Int( round( pers.weight_1 ))
+        if pno < 10
+            @show reps
+        end
+        for problem in keys(cases_per_need)
+            for i in 1:reps
+                rnd1 = rand()
+                rnd2 = rand()
+                prob_of_prob = pers[problem]
+                if pno < 10
+                    @show problem i prob_of_prob rnd1 rnd2 cases_per_need[problem]
+                end
+                if rnd1 < prob_of_prob
+                    needs += 1
+                    if rnd2 < cases_per_need[problem]
+                        case = civ_sample( problem )
+                        if pno < 10
+                            @show case
+                        end
+                        push!( cases, case )
+                    end # go for it - 
+                end # 
+            end # 
         end
     end
+    cases, needs
 end
 
+
+settings = Settings()
+settings.included_data_years = [2019,2021,2022]
+settings.num_households, settings.num_people, nhh2 = 
+    FRSHouseholdGetter.initialise( settings; reset=true )
+settings.do_legal_aid = true
+LegalAidData.init( settings )
+hh, people = get_raw_data( settings )
+
+# observer = Observer(Progress("",0,0,0))
+obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+of = on(obs) do p
+    global tot
+    println(p)
+    tot += p.step
+    println(tot)
+end
+
+people = leftjoin( people, LA_PROB_DATA, on=[:data_year,:hid,:pno], makeunique=true )
+people = rightjoin( people, hh, on=[:data_year,:hid], makeunique=true ) # just to get weights
+sys = STBParameters.get_default_system_for_fin_year( 2024 )
+results = Runner.do_one_run( settings, [sys], obs )
+outf = summarise_frames!( results, settings )
 @show needs
 @show cases_per_need
-
-cases = deepcopy( CIVIL_COSTS )[1:0,:]
-for hno in 1:settings.num_households
-    global cases
-    hh = get_household( hno )
-    LegalAidData.add_la_probs!( hh )
-    reps = Int( round( hh.weight ))
-    for i in 1:reps
-        for (pid, pers) in hh.people
-            for problem in SCJS_PROBLEM_TYPES[2:end]
-                la_status = rand( [la_passported, la_full, la_with_contribution])
-                sym = Symbol( "$(problem)_prediction")
-                slabsym = Symbol( "civ_$(problem)")
-                prob = pers.legal_aid_problem_probs[sym]
-                rn1 = rand()
-                rn2 = rand()
-                # @show rn1 rn2 prob problem 
-                if rn1 < prob           
-                    if rn2 < cases_per_need[(sym,la_status)]
-                        case = civ_sample( slabsym, la_status )
-                        # @show case
-                        push!( cases, case )
-                    end
-                end
-            end # problem 
-        end # people
-    end
-end
+people = leftjoin( people, results.legalaid.civil.data[1], on=[:pid], makeunique=true ) # add baseline results
+people.la_status_agg = agg_la_status.( people.la_status )
+eligible_people = people[ people.la_status .!== la_none, :]
+needs, cases_per_need = get_needs_and_cases( eligible_people )
+costings, needsc = do_one_costing( eligible_people, cases_per_need )

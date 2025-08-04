@@ -120,6 +120,18 @@ export
 #
 export LegalAidStatus, la_none, la_passported, la_full, la_with_contribution 
 @enum LegalAidStatus la_passported la_full la_with_contribution la_none   
+export LegalAidStatusAgg, la_agg_none, la_agg_passported, la_agg_passed, agg_la_status
+@enum LegalAidStatusAgg la_agg_none la_agg_passported la_agg_passed
+
+function agg_la_status( la_status :: LegalAidStatus )::LegalAidStatusAgg
+   return if la_status in [la_full, la_with_contribution]
+      la_agg_passed
+   elseif la_status == la_passported
+      la_agg_passported
+   else
+      la_agg_none
+   end
+end
 
 export UCLimitType, uc_no_limit, uc_max_income, uc_min_payment 
 @enum UCLimitType uc_no_limit uc_max_income uc_min_payment
