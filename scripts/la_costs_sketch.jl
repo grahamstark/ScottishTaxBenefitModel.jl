@@ -16,7 +16,7 @@ using DataFrames
 
 include( "comparisons_skeleton.jl")
 
-SCJS_SLAB_MAP = Dict([
+SCJS_SLAB_MAP_CIVIL = Dict([
     :family_prediction=> 
         ["Abusive Behaviour and Sexual Harm (Scotland) Act",
         "Exclusion Order",
@@ -123,7 +123,7 @@ SCJS_SLAB_MAP = Dict([
         "Variation"] ])
 
 function civ_sample( casetype :: Symbol )::DataFrameRow
-    subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP[casetype], )), :] #.& ( CIVIL_COSTS.la_status .== la_status ), :]
+    subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP_CIVIL[casetype], )), :] #.& ( CIVIL_COSTS.la_status .== la_status ), :]
     # @show subset
     n = size(subset)[1]
     p = sample(1:n)    
@@ -132,23 +132,31 @@ function civ_sample( casetype :: Symbol )::DataFrameRow
     # sample(CIVIL_COSTS[CIVIL_COSTS.hsm_censored .== casetype,:]
 end
 
+#=
 function add_civil_category!(pr :: DataFrameRow )
     for problem in SCJS_PROBLEM_TYPES[2:end]
         casetype = Symbol( "civ_$(problem)")
-        CIVIL_COSTS.categorydescription  .∈ SCJS_SLAB_MAP[casetype]
+        CIVIL_COSTS.categorydescription  .∈ SCJS_SLAB_MAP_CIVIL[casetype]
     end
 end
+=#
 
 """
 Note: this is done *just over those with a modelled entitlement* (of any kind).
 `needs` are the sum of the mean probabilities for each person for each SCJS problem type
 `cases_per_need` is the number of SLAB cost cases of that type, divided by needs for that type.
 """
-function get_needs_and_cases( entitled_people ::DataFrame )::Tuple
+function get_needs_and_cases( entitled_people ::DataFrame, system_type :: SystemType  )::Tuple
     needs = Dict()
     cases_per_need = Dict()
-    for problem in keys( SCJS_SLAB_MAP )
-        subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP[problem], )), :] # .& ( CIVIL_COSTS.la_status .== la_status ), :]
+    costs = if system_type == sys_aa
+        CIVIL_COSTS
+    else
+        AA_COSTS
+    end
+
+    for problem in keys( SCJS_SLAB_MAP_CIVIL )
+        subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP_CIVIL[problem], )), :] # .& ( CIVIL_COSTS.la_status .== la_status ), :]
         n = size(subset)[1]        
         needs[problem] = sum(  entitled_people[!, Symbol( "modelled_$(problem)")], Weights( entitled_people.weight )) # status == la_status
         cases_per_need[problem] = n/(needs[problem])
@@ -162,10 +170,10 @@ end
 
 function make_costs_dataframe( n :: Integer )::DataFrame
     return DataFrame(
-        hid       = zeros( BigInt, n ),
-        pid       = zeros( BigInt, n ),
-        data_year  = zeros( Int, n ),        
-        pno   = zeros( Int, n ),
+        hid = zeros( BigInt, n ),
+        pid = zeros( BigInt, n ),
+        data_year = zeros( Int, n ),        
+        pno = zeros( Int, n ),
         max_contribution = zeros(n),   
         actual_contribution = zeros(n), 
         net_contribution  = zeros(n), 
@@ -180,14 +188,16 @@ end
 """
 
 """
-function do_one_costing( eligible_people :: DataFrame, cases_per_need::Dict )::DataFrame
+function do_one_costing( 
+    eligible_people :: DataFrame, 
+    cases_per_need :: Dict,
+    system_type :: SystemType )::DataFrame
     n = size( CIVIL_COSTS )[1]*2
     cases = make_costs_dataframe( n )
     needs = 0
     pno = 0
     nc = 0
-    is_aa = false
-    weeks = is_aa ? 1.0 : WEEKS_PER_YEAR
+    weeks = system_type == sys_aa ? 1.0 : WEEKS_PER_YEAR
     for pers in eachrow( eligible_people )
         pno += 1
         reps = Int( round( pers.weight )) # this will be the weight for the actual modelled sample
@@ -228,7 +238,6 @@ settings.included_data_years = [2019,2021,2022]
 settings.num_households, settings.num_people, nhh2 = 
     FRSHouseholdGetter.initialise( settings; reset=true )
 settings.do_legal_aid = true
-LegalAidData.init( settings )
 
 # observer = Observer(Progress("",0,0,0))
 obs = Observable( Progress(settings.uuid,"",0,0,0,0))
@@ -239,26 +248,37 @@ of = on(obs) do p
     println(tot)
 end
 
-hh, people = get_raw_data( settings )
-probdata = rename( s->"prob_"*s, LA_PROB_DATA)
-people = leftjoin( people, probdata, on=[
-    :data_year=>:prob_data_year,
-    :hid=>:prob_hid,
-    :pno=>:prob_pno] )
-rename!( hh, [
-    :data_year=>:hh_data_year, 
-    :hid=>:hh_hid,
-    :uhid=>:hh_uhid,
-    :onerand=>:hh_onerand])
-people = rightjoin( people, hh, on=[
-    :data_year=>:hh_data_year,
-    :hid=>:hh_hid] ) # just to get weights
-sys = STBParameters.get_default_system_for_fin_year( 2024 )
-results = Runner.do_one_run( settings, [sys], obs )
-outf = summarise_frames!( results, settings )
-modelled_results = rename( s->"modelled_"*s, results.legalaid.civil.data[1])
-people = leftjoin( people, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
-people.modelled_la_status_agg = agg_la_status.( people.modelled_la_status )
-eligible_people = people[ people.modelled_la_status .!== la_none, :]
-needs, cases_per_need = get_needs_and_cases( eligible_people )
-costings = do_one_costing( eligible_people, cases_per_need )
+function initialise( 
+    settings :: Settings, 
+    obs :: Observable; 
+    reset_data = false, 
+    system_type = sys_civil,
+    financial_year = 2024 )::Tuple
+    LegalAidData.init( settings )
+    hh, people = get_raw_data( settings; reset=reset_data )
+    probdata = rename( s->"prob_"*s, LA_PROB_DATA)
+    people = leftjoin( people, probdata, on=[
+        :data_year=>:prob_data_year,
+        :hid=>:prob_hid,
+        :pno=>:prob_pno] )
+    rename!( hh, [
+        :data_year=>:hh_data_year, 
+        :hid=>:hh_hid,
+        :uhid=>:hh_uhid,
+        :onerand=>:hh_onerand])
+    people = rightjoin( people, hh, on=[
+        :data_year=>:hh_data_year,
+        :hid=>:hh_hid] ) # just to get weights
+    sys = STBParameters.get_default_system_for_fin_year( financial_year )
+    results = Runner.do_one_run( settings, [sys], obs )
+    outf = summarise_frames!( results, settings )
+    modelled_results = rename( s->"modelled_"*s, results.legalaid.civil.data[1])
+    people = leftjoin( people, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
+    people.modelled_la_status_agg = agg_la_status.( people.modelled_la_status )
+    eligible_people = people[ people.modelled_la_status .!== la_none, :]
+    needs, cases_per_need = get_needs_and_cases( eligible_people, system_type )
+    costings = do_one_costing( eligible_people, cases_per_need, system_type )
+    costings, needs, cases_per_need, people
+end
+
+costings, needs, cases_per_need, people = initialise( settings, obs )
