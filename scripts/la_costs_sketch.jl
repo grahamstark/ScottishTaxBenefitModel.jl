@@ -139,55 +139,89 @@ function add_civil_category!(pr :: DataFrameRow )
     end
 end
 
-function get_needs_and_cases( people ::DataFrame )
+"""
+Note: this is done *just over those with a modelled entitlement* (of any kind).
+`needs` are the sum of the mean probabilities for each person for each SCJS problem type
+`cases_per_need` is the number of SLAB cost cases of that type, divided by needs for that type.
+"""
+function get_needs_and_cases( entitled_people ::DataFrame )::Tuple
     needs = Dict()
     cases_per_need = Dict()
     for problem in keys( SCJS_SLAB_MAP )
         subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP[problem], )), :] # .& ( CIVIL_COSTS.la_status .== la_status ), :]
         n = size(subset)[1]        
-        needs[problem] = sum( people[!, problem], Weights( people.weight_2 )) # status == la_status
+        needs[problem] = sum(  entitled_people[!, Symbol( "modelled_$(problem)")], Weights( entitled_people.weight )) # status == la_status
         cases_per_need[problem] = n/(needs[problem])
     end
     needs, cases_per_need
 end
 
-# const OFFER_PROPENSITY = Dict( [la_passported => 0.9, la_full => 0.8, la_with_contribution=> 0.7])
-const OFFER_PROPENSITY = Dict( [la_passported => 1, la_full => 1, la_with_contribution=> 1])
+function compare_breakdowns( )
+   
+end
 
-function do_one_costing( eligible_people :: DataFrame, cases_per_need::Dict )::Tuple
-    cases = deepcopy( CIVIL_COSTS )[1:0,:]
+function make_costs_dataframe( n :: Integer )::DataFrame
+    return DataFrame(
+        hid       = zeros( BigInt, n ),
+        pid       = zeros( BigInt, n ),
+        data_year  = zeros( Int, n ),        
+        pno   = zeros( Int, n ),
+        max_contribution = zeros(n),   
+        actual_contribution = zeros(n), 
+        net_contribution  = zeros(n), 
+        gross_cost = zeros(n),
+        net_cost = zeros(n),
+        entitlement = fill( la_none, n ))
+end
+
+# const OFFER_PROPENSITY = Dict( [la_passported => 0.9, la_full => 0.8, la_with_contribution=> 0.7])
+# const OFFER_PROPENSITY = Dict( [la_passported => 1, la_full => 1, la_with_contribution=> 1])
+
+"""
+
+"""
+function do_one_costing( eligible_people :: DataFrame, cases_per_need::Dict )::DataFrame
+    n = size( CIVIL_COSTS )[1]*2
+    cases = make_costs_dataframe( n )
     needs = 0
     pno = 0
+    nc = 0
+    is_aa = false
+    weeks = is_aa ? 1.0 : WEEKS_PER_YEAR
     for pers in eachrow( eligible_people )
         pno += 1
-        reps = Int( round( pers.weight_1 ))
-        if pno < 10
-            @show reps
-        end
+        reps = Int( round( pers.weight )) # this will be the weight for the actual modelled sample
         for problem in keys(cases_per_need)
             for i in 1:reps
+                probkey = Symbol("modelled_$(problem)")
                 rnd1 = rand()
                 rnd2 = rand()
-                prob_of_prob = pers[problem]
-                if pno < 10
-                    @show problem i prob_of_prob rnd1 rnd2 cases_per_need[problem]
-                end
+                prob_of_prob = pers[probkey]
                 if rnd1 < prob_of_prob
                     needs += 1
                     if rnd2 < cases_per_need[problem]
                         case = civ_sample( problem )
-                        if pno < 10
-                            @show case
+                        nc += 1
+                        cs = @view cases[nc,:]
+                        cs.hid = pers.hid
+                        cs.pid = pers.pid
+                        cs.data_year = pers.data_year
+                        cs.pno = pers.pno
+                        cs.max_contribution = pers.modelled_income_contribution_amt*weeks +
+                            pers.modelled_capital_contribution_amt
+                        cs.gross_cost = case.totalpaid
+                        if pers.modelled_entitlement in [la_full, la_with_contribution]
+                            cs.net_contribution = min( cs.max_contribution, cs.gross_cost )
                         end
-                        push!( cases, case )
-                    end # go for it - 
-                end # 
-            end # 
-        end
-    end
-    cases, needs
-end
-
+                        cs.net_cost = cs.gross_cost - cs.net_contribution                         
+                        cs.entitlement = pers.modelled_entitlement                    
+                    end # Prob of having case given a problem: go for it.
+                end # Prob of having problem.
+            end # Repeat for each actual person this case represents.
+        end  # For each problem type.
+    end # Each person in the entitled sample.
+    cases[1:nc,:]
+end # proc `do_one_costing`
 
 settings = Settings()
 settings.included_data_years = [2019,2021,2022]
@@ -195,7 +229,6 @@ settings.num_households, settings.num_people, nhh2 =
     FRSHouseholdGetter.initialise( settings; reset=true )
 settings.do_legal_aid = true
 LegalAidData.init( settings )
-hh, people = get_raw_data( settings )
 
 # observer = Observer(Progress("",0,0,0))
 obs = Observable( Progress(settings.uuid,"",0,0,0,0))
@@ -206,15 +239,26 @@ of = on(obs) do p
     println(tot)
 end
 
-people = leftjoin( people, LA_PROB_DATA, on=[:data_year,:hid,:pno], makeunique=true )
-people = rightjoin( people, hh, on=[:data_year,:hid], makeunique=true ) # just to get weights
+hh, people = get_raw_data( settings )
+probdata = rename( s->"prob_"*s, LA_PROB_DATA)
+people = leftjoin( people, probdata, on=[
+    :data_year=>:prob_data_year,
+    :hid=>:prob_hid,
+    :pno=>:prob_pno] )
+rename!( hh, [
+    :data_year=>:hh_data_year, 
+    :hid=>:hh_hid,
+    :uhid=>:hh_uhid,
+    :onerand=>:hh_onerand])
+people = rightjoin( people, hh, on=[
+    :data_year=>:hh_data_year,
+    :hid=>:hh_hid] ) # just to get weights
 sys = STBParameters.get_default_system_for_fin_year( 2024 )
 results = Runner.do_one_run( settings, [sys], obs )
 outf = summarise_frames!( results, settings )
-@show needs
-@show cases_per_need
-people = leftjoin( people, results.legalaid.civil.data[1], on=[:pid], makeunique=true ) # add baseline results
-people.la_status_agg = agg_la_status.( people.la_status )
-eligible_people = people[ people.la_status .!== la_none, :]
+modelled_results = rename( s->"modelled_"*s, results.legalaid.civil.data[1])
+people = leftjoin( people, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
+people.modelled_la_status_agg = agg_la_status.( people.modelled_la_status )
+eligible_people = people[ people.modelled_la_status .!== la_none, :]
 needs, cases_per_need = get_needs_and_cases( eligible_people )
-costings, needsc = do_one_costing( eligible_people, cases_per_need )
+costings = do_one_costing( eligible_people, cases_per_need )
