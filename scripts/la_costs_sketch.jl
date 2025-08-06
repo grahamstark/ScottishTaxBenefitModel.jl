@@ -337,7 +337,7 @@ function initialise(
     LegalAidData.init( settings )
     hh, people = get_raw_data( settings; reset=reset_data )
     probdata = rename( s->"prob_"*s, LA_PROB_DATA)
-    people = leftjoin( people, probdata, on=[
+    mpeople = leftjoin( people, probdata, on=[
         :data_year=>:prob_data_year,
         :hid=>:prob_hid,
         :pno=>:prob_pno] )
@@ -346,7 +346,7 @@ function initialise(
         :hid=>:hh_hid,
         :uhid=>:hh_uhid,
         :onerand=>:hh_onerand])
-    people = rightjoin( people, hh, on=[
+    mpeople = rightjoin( mpeople, hh, on=[
         :data_year=>:hh_data_year,
         :hid=>:hh_hid] ) # just to get weights
     sys = STBParameters.get_default_system_for_fin_year( financial_year )
@@ -357,24 +357,38 @@ function initialise(
     else 
         rename( s->"modelled_"*s, results.legalaid.aa.data[1])
     end
-    people = leftjoin( people, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
-    people.modelled_la_status_agg = agg_la_status.( people.modelled_la_status )
-    eligible_people = people[ people.modelled_la_status .!== la_none, :]
+    mrpeople = leftjoin( mpeople, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
+    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_la_status )
+    eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
     needs, cases_per_need = get_needs_and_cases( eligible_people, system_type )
     costings = do_one_costing( eligible_people, cases_per_need, system_type )
-    costings, needs, cases_per_need, people
+    costings, needs, cases_per_need, mpeople
 end
 
-# const in final version
-civ_costings, civ_needs, civ_cases_per_need, civ_people = initialise( settings, obs; reset_data=true, system_type = sys_civil )
-aa_costings, aa_needs, aa_cases_per_need, aa_people = initialise( settings, obs; reset_data=false, system_type = sys_aa )
 
-civ_counts_cases, civ_counts_status, civ_stats_m, civ_stats_a = compare_breakdowns( civ_costings, CIVIL_COSTS )
+# const in final version
+const civ_base_costings, civ_needs, civ_cases_per_need, civ_people = initialise( settings, obs; reset_data=true, system_type = sys_civil )
+const aa_base_costings, aa_needs, aa_cases_per_need, aa_people = initialise( settings, obs; reset_data=false, system_type = sys_aa )
+
+function do_one_costing( results, sysno = 2 )
+    modelled_results, mpeople, cases_per_need = if system_type == sys_civil
+        rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), civ_people, civ_cases_per_need
+    else 
+        rename( s->"modelled_"*s, results.legalaid.aa.data[sysno]), aa_people, aa_cases_per_need
+    end
+    mrpeople = leftjoin( mpeople, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
+    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_la_status )
+    eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
+    costings = do_one_costing( eligible_people, cases_per_need, system_type )
+    return costings
+end
+
+civ_counts_cases, civ_counts_status, civ_stats_m, civ_stats_a = compare_breakdowns( civ_base_costings, CIVIL_COSTS )
 for (k,v) in civ_counts_cases
     println( "$k = $v")
 end
 
-aa_counts_cases, aa_counts_status, aa_stats_m, a_stats_a = compare_breakdowns( aa_costings, AA_COSTS )
+aa_counts_cases, aa_counts_status, aa_stats_m, aa_stats_a = compare_breakdowns( aa_base_costings, AA_COSTS )
 for (k,v) in aa_counts_cases
     println( "$k = $v")
 end
