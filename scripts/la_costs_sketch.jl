@@ -16,7 +16,8 @@ using DataFrames
 
 include( "comparisons_skeleton.jl")
 
-SCJS_SLAB_MAP_CIVIL = Dict([
+
+const SCJS_SLAB_MAP_CIVIL = Dict([
     :family_prediction=> 
         ["Abusive Behaviour and Sexual Harm (Scotland) Act",
         "Exclusion Order",
@@ -122,22 +123,80 @@ SCJS_SLAB_MAP_CIVIL = Dict([
         "Petitions (Other Than For Judicial Review)",
         "Variation"] ])
 
-function civ_sample( casetype :: Symbol )::DataFrameRow
-    subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP_CIVIL[casetype], )), :] #.& ( CIVIL_COSTS.la_status .== la_status ), :]
-    # @show subset
+# Maps hsm_full field in AA_COSTS to SCJS regression categories.
+SCJS_SLAB_MAP_AA = Dict([
+    :family_prediction=> 
+        ["Protective order",
+        "Family/matrimonial - other"],
+    :children_prediction=> 
+        ["Contact/parentage"],
+    :divorce_prediction=> 
+        ["Aliment/Child Support Agency", 
+        "Divorce",
+        "Separation"],
+    :housing_neighbours_prediction=> 
+        ["Housing",
+        "Antisocial Behaviour Orders (ASBO)"],
+    :health_prediction=>
+        ["Adults with incapacity",
+        "Mental health",
+        "Criminal Injuries Compensation Aut",
+        "Medical negligence"
+        ],
+    :money_prediction=> # cvjmon #  problems concerning your money, finances or anything you’ve paid for: with money and debt in last 3 years => 
+        ["Recovery of heritable property",
+         "Wills/executry",
+         "State benefit",
+         "Breach of contract",
+         "Hire purchase/debt",
+         "Property/monetary",
+         "Reparation"
+         ],
+    :unfairness_prediction=> 
+        ["Immigration and asylum",
+        "Complaints about professional bodi",
+        "Employment",
+        "Discrimination",
+        "Residence",
+        "Human rights"
+        ],
+    :any_prediction=>  # maps "others" to "any", which is a hack
+        [
+            "Appeals - other", 
+            "Conveyancing", 
+            "Power of attorney", 
+            "Contempt - Civil matter", 
+            "Fatal accident inquiries",
+            "Judicial review",
+            "Other"] ])
+
+"""
+casetype -> unfairness_prediction etc. from the maps above.
+system_type: sys_civil, sys_aa
+Selects one row at random from those mapped to the given casetype in the civil or AA costs data.
+"""
+function costs_sample( casetype :: Symbol, system_type :: SystemType )::DataFrameRow
+    costs, map, ctype = if system_type == sys_civil
+        CIVIL_COSTS, SCJS_SLAB_MAP_CIVIL, :categorydescription
+    else
+        AA_COSTS, SCJS_SLAB_MAP_AA, :hsm_full
+    end
+    subset = costs[ (costs[!,ctype] .∈ ( map[casetype], )), :]    
     n = size(subset)[1]
     p = sample(1:n)    
-    # @show n p
     return subset[p,:]
-    # sample(CIVIL_COSTS[CIVIL_COSTS.hsm_censored .== casetype,:]
 end
 
 #=
-function add_civil_category!(pr :: DataFrameRow )
-    for problem in SCJS_PROBLEM_TYPES[2:end]
-        casetype = Symbol( "civ_$(problem)")
-        CIVIL_COSTS.categorydescription  .∈ SCJS_SLAB_MAP_CIVIL[casetype]
-    end
+"""
+casetype -> unfairness_prediction etc. from the maps above.
+Selects one row at random from those mapped to the given casetype in the AA costs data.
+"""
+function aa_sample( casetype :: Symbol )::DataFrameRow
+    subset = AA_COSTS[ (AA_COSTS.hsm_full .∈ ( SCJS_SLAB_MAP_AA[casetype], )), :] 
+    n = size(subset)[1]
+    p = sample(1:n)    
+    return subset[p,:]
 end
 =#
 
@@ -149,16 +208,15 @@ Note: this is done *just over those with a modelled entitlement* (of any kind).
 function get_needs_and_cases( entitled_people ::DataFrame, system_type :: SystemType  )::Tuple
     needs = Dict()
     cases_per_need = Dict()
-    costs = if system_type == sys_aa
-        CIVIL_COSTS
+    costs, map, ctype = if system_type == sys_civil
+        CIVIL_COSTS, SCJS_SLAB_MAP_CIVIL, :categorydescription
     else
-        AA_COSTS
+        AA_COSTS, SCJS_SLAB_MAP_AA, :hsm_full
     end
-
-    for problem in keys( SCJS_SLAB_MAP_CIVIL )
-        subset = CIVIL_COSTS[ (CIVIL_COSTS.categorydescription  .∈ ( SCJS_SLAB_MAP_CIVIL[problem], )), :] # .& ( CIVIL_COSTS.la_status .== la_status ), :]
+    for problem in keys( map )
+        subset = costs[ (costs[!,ctype] .∈ ( map[problem], )), :]
         n = size(subset)[1]        
-        needs[problem] = sum(  entitled_people[!, Symbol( "modelled_$(problem)")], Weights( entitled_people.weight )) # status == la_status
+        needs[problem] = sum( entitled_people[!, Symbol( "modelled_$(problem)")], Weights( entitled_people.weight ))
         cases_per_need[problem] = n/(needs[problem])
     end
     needs, cases_per_need
@@ -192,7 +250,11 @@ function do_one_costing(
     eligible_people :: DataFrame, 
     cases_per_need :: Dict,
     system_type :: SystemType )::DataFrame
-    n = size( CIVIL_COSTS )[1]*2
+    n = if system_type == sys_civil 
+        size( CIVIL_COSTS )[1]*2
+    else
+        size( AA_COSTS )[1]*2
+    end
     cases = make_costs_dataframe( n )
     needs = 0
     pno = 0
@@ -210,7 +272,7 @@ function do_one_costing(
                 if rnd1 < prob_of_prob
                     needs += 1
                     if rnd2 < cases_per_need[problem]
-                        case = civ_sample( problem )
+                        case = costs_sample( problem, system_type )
                         nc += 1
                         cs = @view cases[nc,:]
                         cs.hid = pers.hid
@@ -272,7 +334,11 @@ function initialise(
     sys = STBParameters.get_default_system_for_fin_year( financial_year )
     results = Runner.do_one_run( settings, [sys], obs )
     outf = summarise_frames!( results, settings )
-    modelled_results = rename( s->"modelled_"*s, results.legalaid.civil.data[1])
+    modelled_results = if system_type == sys_civil
+        rename( s->"modelled_"*s, results.legalaid.civil.data[1])
+    else 
+        rename( s->"modelled_"*s, results.legalaid.aa.data[1])
+    end
     people = leftjoin( people, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
     people.modelled_la_status_agg = agg_la_status.( people.modelled_la_status )
     eligible_people = people[ people.modelled_la_status .!== la_none, :]
@@ -281,4 +347,5 @@ function initialise(
     costings, needs, cases_per_need, people
 end
 
-costings, needs, cases_per_need, people = initialise( settings, obs )
+const civ_costings, civ_needs, civ_cases_per_need, civ_people = initialise( settings, obs; reset_data=true, system_type = sys_civil )
+const aa_costings, aa_needs, aa_cases_per_need, aa_people = initialise( settings, obs; reset_data=false, system_type = sys_aa )

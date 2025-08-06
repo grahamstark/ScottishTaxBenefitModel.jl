@@ -31,6 +31,7 @@ make_shared_package( "GGPU", [
     "oneAPI"])
 
 make_shared_package( "GMaths", [
+    "SIMD",
     "DifferentialEquations", 
     "LinearSolve", 
     "Roots"])
