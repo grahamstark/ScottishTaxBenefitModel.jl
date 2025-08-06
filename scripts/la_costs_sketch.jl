@@ -222,16 +222,22 @@ function get_needs_and_cases( entitled_people ::DataFrame, system_type :: System
     needs, cases_per_need
 end
 
-function compare_breakdowns( modelled :: DataFrame, actual :: DataFrame, system_type :: SystemType )::Tuple
-    counts_m = countmap( modelled[!, slab_casetype ])
-    counts_a = countmap( actual[!, :hsm_full])
-    counts = Dict()
-    for k in keys( counts_m )
-        counts[k] = ( counts_a[k], counts_m[k])
+function compare_breakdowns( modelled :: DataFrame, actual :: DataFrame )::Tuple # , system_type :: SystemType
+    counts_cases_m = countmap( modelled[!, :slab_casetype ])
+    counts_cases_a = countmap( actual[!, :hsm_full])
+    counts_status_m = countmap( modelled[!, :entitlement  ])
+    counts_status_a = countmap( actual[!, :la_status])
+    counts_cases = Dict()
+    for k in keys( counts_cases_m )
+        counts_cases[k] = ( counts_cases_a[k], counts_cases_m[k])
     end
-    stats_m = summarystats( modelled.gross_costs )
-    stats_a = summarystats( modelled.totalpaid )
-    counts[k], stats_m, stats_a
+    counts_status = Dict()
+    for k in keys( counts_status_m )
+        counts_status[k] = ( counts_status_a[k], counts_status_m[k])
+    end
+    stats_m = summarystats( modelled.gross_cost )
+    stats_a = summarystats( actual.totalpaid )
+    counts_cases, counts_status, stats_m, stats_a
 end
 
 function make_costs_dataframe( n :: Integer )::DataFrame
@@ -290,7 +296,7 @@ function do_one_costing(
                         cs.data_year = pers.data_year
                         cs.pno = pers.pno
                         cs.slab_casetype = case.hsm_full
-                        cs.scjs_casetype = problem
+                        cs.scjs_casetype = string(problem)
                         cs.max_contribution = pers.modelled_income_contribution_amt*weeks +
                             pers.modelled_capital_contribution_amt
                         cs.gross_cost = case.totalpaid
@@ -362,3 +368,13 @@ end
 # const in final version
 civ_costings, civ_needs, civ_cases_per_need, civ_people = initialise( settings, obs; reset_data=true, system_type = sys_civil )
 aa_costings, aa_needs, aa_cases_per_need, aa_people = initialise( settings, obs; reset_data=false, system_type = sys_aa )
+
+civ_counts_cases, civ_counts_status, civ_stats_m, civ_stats_a = compare_breakdowns( civ_costings, CIVIL_COSTS )
+for (k,v) in civ_counts_cases
+    println( "$k = $v")
+end
+
+aa_counts_cases, aa_counts_status, aa_stats_m, a_stats_a = compare_breakdowns( aa_costings, AA_COSTS )
+for (k,v) in aa_counts_cases
+    println( "$k = $v")
+end
