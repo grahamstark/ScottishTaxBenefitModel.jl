@@ -222,8 +222,16 @@ function get_needs_and_cases( entitled_people ::DataFrame, system_type :: System
     needs, cases_per_need
 end
 
-function compare_breakdowns( )
-   
+function compare_breakdowns( modelled :: DataFrame, actual :: DataFrame, system_type :: SystemType )::Tuple
+    counts_m = countmap( modelled[!, slab_casetype ])
+    counts_a = countmap( actual[!, :hsm_full])
+    counts = Dict()
+    for k in keys( counts_m )
+        counts[k] = ( counts_a[k], counts_m[k])
+    end
+    stats_m = summarystats( modelled.gross_costs )
+    stats_a = summarystats( modelled.totalpaid )
+    counts[k], stats_m, stats_a
 end
 
 function make_costs_dataframe( n :: Integer )::DataFrame
@@ -232,6 +240,8 @@ function make_costs_dataframe( n :: Integer )::DataFrame
         pid = zeros( BigInt, n ),
         data_year = zeros( Int, n ),        
         pno = zeros( Int, n ),
+        slab_casetype = fill("",n),
+        scjs_casetype = fill(:"",n),
         max_contribution = zeros(n),   
         net_contribution  = zeros(n), 
         gross_cost = zeros(n),
@@ -249,11 +259,12 @@ function do_one_costing(
     eligible_people :: DataFrame, 
     cases_per_need :: Dict,
     system_type :: SystemType )::DataFrame
-    n = if system_type == sys_civil 
-        size( CIVIL_COSTS )[1]*2
+    costs = if system_type == sys_civil # FIXME - do this once & pass in to `sample`
+        CIVIL_COSTS
     else
-        size( AA_COSTS )[1]*2
+        AA_COSTS
     end
+    n = size( costs )[1]*2
     cases = make_costs_dataframe( n )
     needs = 0
     pno = 0
@@ -278,6 +289,8 @@ function do_one_costing(
                         cs.pid = pers.pid
                         cs.data_year = pers.data_year
                         cs.pno = pers.pno
+                        cs.slab_casetype = case.hsm_full
+                        cs.scjs_casetype = problem
                         cs.max_contribution = pers.modelled_income_contribution_amt*weeks +
                             pers.modelled_capital_contribution_amt
                         cs.gross_cost = case.totalpaid
@@ -346,5 +359,6 @@ function initialise(
     costings, needs, cases_per_need, people
 end
 
-const civ_costings, civ_needs, civ_cases_per_need, civ_people = initialise( settings, obs; reset_data=true, system_type = sys_civil )
-const aa_costings, aa_needs, aa_cases_per_need, aa_people = initialise( settings, obs; reset_data=false, system_type = sys_aa )
+# const in final version
+civ_costings, civ_needs, civ_cases_per_need, civ_people = initialise( settings, obs; reset_data=true, system_type = sys_civil )
+aa_costings, aa_needs, aa_cases_per_need, aa_people = initialise( settings, obs; reset_data=false, system_type = sys_aa )
