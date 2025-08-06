@@ -233,7 +233,6 @@ function make_costs_dataframe( n :: Integer )::DataFrame
         data_year = zeros( Int, n ),        
         pno = zeros( Int, n ),
         max_contribution = zeros(n),   
-        actual_contribution = zeros(n), 
         net_contribution  = zeros(n), 
         gross_cost = zeros(n),
         net_cost = zeros(n),
