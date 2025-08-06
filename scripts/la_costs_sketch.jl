@@ -370,7 +370,7 @@ end
 const civ_base_costings, civ_needs, civ_cases_per_need, civ_people = initialise( settings, obs; reset_data=true, system_type = sys_civil )
 const aa_base_costings, aa_needs, aa_cases_per_need, aa_people = initialise( settings, obs; reset_data=false, system_type = sys_aa )
 
-function do_one_costing( results, sysno = 2 )
+function do_one_costing( results, system_type :: SystemType, sysno = 2 )
     modelled_results, mpeople, cases_per_need = if system_type == sys_civil
         rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), civ_people, civ_cases_per_need
     else 
