@@ -77,6 +77,8 @@ using .GeneralTaxComponents:
 using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData
 using .LegalAidOutput
+using .LegalAidCostsModel
+
 # using .LegalAidRunner
 
 using .SingleHouseholdCalculations: do_one_calc
@@ -599,6 +601,22 @@ end
     LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2)
 end
 
+@testset "New Costs Model" begin
+    settings = lasettings()
+    settings.run_name="Test of LA running just in full model."
+    settings.requested_threads = 4
+    settings.wealth_method = matching # other_method_1
+    settings.run_name = "Direct Run w Matching Capital"
+    settings.do_legal_aid = true
+
+    sys2 = deepcopy(sys1)
+    results = Runner.do_one_run( settings, [sys1,sys2], obs )
+    outf = summarise_frames!( results, settings )
+
+    civil_costs = do_one_costing( results, sys_civil, 2 )
+    aa_costs = do_one_costing( results, sys_aa, 2 )
+
+end
 
 #=
 @testset "using LegalAidRunner" begin

@@ -1,4 +1,4 @@
-module LACostsModel
+module LegalAidCostsModel
 #=
 This module is a pretty hacky attempt to generate a list of LA cases
 similar to the CIV_COSTS and AA_COSTS records in LegalAidData, for
@@ -212,7 +212,7 @@ function get_needs_and_cases( entitled_people ::DataFrame, system_type :: System
     for problem in keys( map )
         subset = costs[ (costs[!,ctype] .∈ ( map[problem], )), :]
         n = size(subset)[1]        
-        needs[problem] = sum( entitled_people[!, Symbol( "modelled_$(problem)")], Weights( entitled_people.weight ))
+        needs[problem] = sum( entitled_people[!, Symbol( "prob_$(problem)")], Weights( entitled_people.weight ))
         cases_per_need[problem] = n/(needs[problem])
     end
     needs, cases_per_need
@@ -277,7 +277,7 @@ function do_one_costing(
         reps = Int( round( pers.weight )) # this will be the weight for the actual modelled sample
         for problem in keys(cases_per_need)
             for i in 1:reps
-                probkey = Symbol("modelled_$(problem)")
+                probkey = Symbol("prob_$(problem)")
                 rnd1 = rand(RAND_GEN)
                 rnd2 = rand(RAND_GEN)
                 prob_of_prob = pers[probkey]
@@ -311,10 +311,16 @@ end # proc `do_one_costing`
 
 function initialise( 
     settings :: Settings, 
-    sys :: TaxBenefitSystem,
-    obs :: Observable; 
+    sys :: TaxBenefitSystem;
     reset_data = false, 
     system_type = sys_civil )::Tuple
+    tot = 0
+    obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+    of = on(obs) do p
+        println(p)
+        tot += p.step
+        println(tot)
+    end
     LegalAidData.init( settings )
     hh, people = get_raw_data!( settings; reset=reset_data )
     probdata = rename( s->"prob_"*s, LA_PROB_DATA)
@@ -331,30 +337,50 @@ function initialise(
         :data_year=>:hh_data_year,
         :hid=>:hh_hid] ) # just to get weights
     results = Runner.do_one_run( settings, [sys], obs )
-    outf = summarise_frames!( results, settings )
+    # outf = summarise_frames!( results, settings )
     modelled_results = if system_type == sys_civil
         rename( s->"modelled_"*s, results.legalaid.civil.data[1])
     else 
         rename( s->"modelled_"*s, results.legalaid.aa.data[1])
     end
-    mrpeople = leftjoin( mpeople, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
-    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_la_status )
-    eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
+    mrpeople = leftjoin( mpeople, modelled_results, on=[:pid=>:modelled_pid] ) # add baseline results
+    @show names( mrpeople )
+    # @show mrpeople.modelled_entitlement
+    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_entitlement )
+    eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
     needs, cases_per_need = get_needs_and_cases( eligible_people, system_type )
     costings = do_one_costing( eligible_people, cases_per_need, system_type )
     costings, needs, cases_per_need, mpeople
 end
 
+
+function make_defaults()
+    settings = Settings()
+    # settings.included_data_years = [2019,2021,2022]
+    # emulate, as far as we can, the system in place in 2024, 
+    # when the SLAB data was created.
+    settings.to_y = 2024
+    settings.to_q = 1
+    settings.means_tested_routing = modelled_phase_in
+    # settings.num_households, settings.num_people, nhh2 = 
+    #    FRSHouseholdGetter.initialise( settings; reset=true )
+    settings.do_legal_aid = true
+    sys = STBParameters.get_default_system_for_fin_year( 2024 )
+    settings, sys 
+end
+
+const SETTINGS, DEFAULT_LA_SYS = make_defaults()
+
 const CIV_BASE_COSTINGS, 
     CIV_NEEDS, 
     CIV_CASES_PER_NEED, 
     CIV_PEOPLE =
-        initialise( settings, sys, obs; reset_data=true, system_type = sys_civil )
+        initialise( SETTINGS, DEFAULT_LA_SYS; reset_data=true, system_type = sys_civil )
 const AA_BASE_COSTINGS, 
     AA_NEEDS, 
     AA_CASES_PER_NEED, 
     AA_PEOPLE = 
-        initialise( settings, sys, obs; reset_data=false, system_type = sys_aa )
+        initialise( SETTINGS, DEFAULT_LA_SYS; reset_data=false, system_type = sys_aa )
 
 """
 
@@ -372,4 +398,4 @@ function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno =
     return costings
 end # do_one_costing
 
-end # module
+end # module LegalAidCostsModel

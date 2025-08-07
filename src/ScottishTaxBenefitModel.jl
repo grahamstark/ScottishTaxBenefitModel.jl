@@ -101,6 +101,9 @@ export CrudeTakeup
 include("HouseholdAdjuster.jl" )
 export HouseholdAdjuster
 
+include( "DataSummariser.jl")
+export DataSummariser
+
 include( "NonMeansTestedBenefits.jl")
 export NonMeansTestedBenefits
 
@@ -143,9 +146,6 @@ export CTR
 include( "LegalAidCalculations.jl")
 export LegalAidCalculations
 
-include( "LegalAidCostsModel.jl")
-export LegalAidCostsModel
-
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
 
@@ -167,6 +167,9 @@ export STBOutput
 include( "Runner.jl" )
 export Runner
 
+include( "LegalAidCostsModel.jl")
+export LegalAidCostsModel
+
 include( "TheEqualiser.jl" )
 export TheEqualiser
 
@@ -181,9 +184,6 @@ export HealthRegressions
 
 include( "LocalWeightGeneration.jl")
 export LocalWeightGeneration
-
-include( "DataSummariser.jl")
-export DataSummariser
 
 include( "HTMLLibs.jl")
 export HTMLLibs
