@@ -1,3 +1,9 @@
+module LACostsModel
+#=
+This module is a pretty hacky attempt to generate a list of LA cases
+similar to the CIV_COSTS and AA_COSTS records in LegalAidData, for
+some set of modelled entitlement records.
+=#
 using ScottishTaxBenefitModel
 using .DataSummariser
 using .Definitions
@@ -9,13 +15,16 @@ using .RunSettings
 using .STBParameters
 using .Utils
 
-using StatsBase
-using Observables
 using CSV
 using DataFrames
+using Observables
+using Random
+using StatsBase
 
-include( "comparisons_skeleton.jl")
+export do_one_costing
 
+# see: https://docs.julialang.org/en/v1/stdlib/Random/
+const RAND_GEN = Xoshiro(123456);
 
 const SCJS_SLAB_MAP_CIVIL = Dict([
     :family_prediction=> 
@@ -187,19 +196,6 @@ function costs_sample( casetype :: Symbol, system_type :: SystemType )::DataFram
     return subset[p,:]
 end
 
-#=
-"""
-casetype -> unfairness_prediction etc. from the maps above.
-Selects one row at random from those mapped to the given casetype in the AA costs data.
-"""
-function aa_sample( casetype :: Symbol )::DataFrameRow
-    subset = AA_COSTS[ (AA_COSTS.hsm_full .∈ ( SCJS_SLAB_MAP_AA[casetype], )), :] 
-    n = size(subset)[1]
-    p = sample(1:n)    
-    return subset[p,:]
-end
-=#
-
 """
 Note: this is done *just over those with a modelled entitlement* (of any kind).
 `needs` are the sum of the mean probabilities for each person for each SCJS problem type
@@ -282,8 +278,8 @@ function do_one_costing(
         for problem in keys(cases_per_need)
             for i in 1:reps
                 probkey = Symbol("modelled_$(problem)")
-                rnd1 = rand()
-                rnd2 = rand()
+                rnd1 = rand(RAND_GEN)
+                rnd2 = rand(RAND_GEN)
                 prob_of_prob = pers[probkey]
                 if rnd1 < prob_of_prob
                     needs += 1
@@ -346,58 +342,34 @@ function initialise(
     eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
     needs, cases_per_need = get_needs_and_cases( eligible_people, system_type )
     costings = do_one_costing( eligible_people, cases_per_need, system_type )
-    costings, needs, cases_per_need, mpeople, results
+    costings, needs, cases_per_need, mpeople
 end
 
-settings = Settings()
-settings.included_data_years = [2019,2021,2022]
-# emulate, as far as we can, the system in place in 2024, 
-# when the SLAB data was created.
-settings.to_y = 2024
-settings.to_q = 1
-settings.means_tested_routing = modelled_phase_in
-# settings.num_households, settings.num_people, nhh2 = 
-#    FRSHouseholdGetter.initialise( settings; reset=true )
-settings.do_legal_aid = true
-sys = STBParameters.get_default_system_for_fin_year( 2024 )
-# observer = Observer(Progress("",0,0,0))
-obs = Observable( Progress(settings.uuid,"",0,0,0,0))
-of = on(obs) do p
-    global tot
-    println(p)
-    tot += p.step
-    println(tot)
-end
-
-    
-# const in final version
-const civ_base_costings, civ_needs, civ_cases_per_need, civ_people, base_results = 
-    initialise( settings, sys, obs; reset_data=true, system_type = sys_civil )
-const aa_base_costings, aa_needs, aa_cases_per_need, aa_people, ignoreme = 
-    initialise( settings, sys, obs; reset_data=false, system_type = sys_aa )
+const CIV_BASE_COSTINGS, 
+    CIV_NEEDS, 
+    CIV_CASES_PER_NEED, 
+    CIV_PEOPLE =
+        initialise( settings, sys, obs; reset_data=true, system_type = sys_civil )
+const AA_BASE_COSTINGS, 
+    AA_NEEDS, 
+    AA_CASES_PER_NEED, 
+    AA_PEOPLE = 
+        initialise( settings, sys, obs; reset_data=false, system_type = sys_aa )
 
 """
 
 """
 function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno = 2 )
     modelled_results, mpeople, cases_per_need = if system_type == sys_civil
-        rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), civ_people, civ_cases_per_need
+        rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), CIV_PEOPLE, CIV_CASES_PER_NEED
     else 
-        rename( s->"modelled_"*s, results.legalaid.aa.data[sysno]), aa_people, aa_cases_per_need
+        rename( s->"modelled_"*s, results.legalaid.aa.data[sysno]), AA_PEOPLE, AA_CASES_PER_NEED
     end
     mrpeople = leftjoin( mpeople, modelled_results, on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
     mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_la_status )
     eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
     costings = do_one_costing( eligible_people, cases_per_need, system_type )
     return costings
-end
+end # do_one_costing
 
-civ_counts_cases, civ_counts_status, civ_stats_m, civ_stats_a = compare_breakdowns( civ_base_costings, CIVIL_COSTS )
-for (k,v) in civ_counts_cases
-    println( "$k = $v")
-end
-
-aa_counts_cases, aa_counts_status, aa_stats_m, aa_stats_a = compare_breakdowns( aa_base_costings, AA_COSTS )
-for (k,v) in aa_counts_cases
-    println( "$k = $v")
-end
+end # module

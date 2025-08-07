@@ -143,6 +143,9 @@ export CTR
 include( "LegalAidCalculations.jl")
 export LegalAidCalculations
 
+include( "LegalAidCostsModel.jl")
+export LegalAidCostsModel
+
 include("SingleHouseholdCalculations.jl" )
 export SingleHouseholdCalculations
 

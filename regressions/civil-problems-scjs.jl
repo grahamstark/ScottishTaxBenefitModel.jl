@@ -241,7 +241,7 @@ function run_regressions_map_to_slab_version()
 
 	settings = Settings()
 	settings.included_data_years = [] # all years, even if we don't want them in the sim
-	scoth, scotp = get_raw_data( settings; reset=false )
+	scoth, scotp = get_raw_data!( settings; reset=false )
 
 	# model dataset as regresssion dataframe, so we can
 	fm = create_regression_dataframe( scoth, scotp )
@@ -380,7 +380,7 @@ function run_regressions_original_version()
 
 	settings = Settings()
 	settings.included_data_years = [] # all years, even if we don't want them in the sim
-	scoth, scotp = get_raw_data( settings; reset=true )
+	scoth, scotp = get_raw_data!( settings; reset=true )
 
 	fm = create_regression_dataframe( scoth, scotp )
 

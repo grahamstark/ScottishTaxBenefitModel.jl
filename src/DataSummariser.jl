@@ -22,7 +22,7 @@ using .Weighting
 
 using CSV,DataFrames,StatsBase,DataStructures
 
-export make_intermed_dataframe, make_data_summaries, overwrite_raw!
+export make_intermed_dataframe, make_data_summaries, overwrite_raw!, get_raw_data!
 
 """
 
@@ -407,6 +407,29 @@ function make_data_summaries(
         push!(out, ss)
     end
     return (dict_to_dataframe( out )..., out )
+end
+
+"""
+returns dataframes with the model datasets - `hh`, `people`.
+The returned data has adjustments that are normally applied to the Household and
+Person structs (uprating, capital imputations, etc.), using `overwrite_raw!`. 
+Also updates the hh and people counts in `settings`
+"""
+function get_raw_data!( settings :: Settings; reset=false )::Tuple
+    dataset_artifact = get_data_artifact( Settings() )
+    settings.num_households, settings.num_people, nhh2 = 
+       FRSHouseholdGetter.initialise( settings; reset=reset )
+    hhs = HouseholdFromFrame.read_hh( 
+        joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame     
+    people = HouseholdFromFrame.read_pers( 
+        joinpath( dataset_artifact, "people.tab"))
+    @show settings.num_households
+    if length( settings.included_data_years ) > 0 # if using a subset of years?
+        people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
+        hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
+    end
+    overwrite_raw!( hhs, people, settings.num_households )
+    return hhs, people
 end
 
 end # module

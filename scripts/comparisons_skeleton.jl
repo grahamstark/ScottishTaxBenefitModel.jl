@@ -48,23 +48,6 @@ function make_short_cost_summary( summary::NamedTuple )::DataFrame
     costsummary
 end
 
-function get_raw_data( settings :: Settings; reset=false )::Tuple
-    dataset_artifact = get_data_artifact( Settings() )
-    settings.num_households, settings.num_people, nhh2 = 
-       FRSHouseholdGetter.initialise( settings; reset=reset )
-    hhs = HouseholdFromFrame.read_hh( 
-        joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame     
-    people = HouseholdFromFrame.read_pers( 
-        joinpath( dataset_artifact, "people.tab"))
-    @show settings.num_households
-    if length( settings.included_data_years ) > 0 # if using a subset of years?
-        people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
-        hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
-    end
-    overwrite_raw!( hhs, people, settings.num_households )
-    return hhs, people
-end
-
 function do_basic_run( 
     settings :: Settings, 
     sys :: Vector; 
