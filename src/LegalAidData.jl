@@ -735,7 +735,7 @@ function merge_in_results_and_hh(
     mrpeople = leftjoin( mpeople, modelled_results, on=[:pid=>:modelled_pid] ) # add baseline results
     @show names( mrpeople )
     # @show mrpeople.modelled_entitlement
-    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_entitlement )
+    mrpeople.modelled_entitlement_agg = agg_la_status.( mrpeople.modelled_entitlement )
     eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
     return eligible_people
 end
@@ -801,8 +801,8 @@ end # proc `do_one_costing`
 function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno :: Integer )
     modelled_results, mpeople, cases_per_need = if system_type == sys_civil
         rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), 
-            LegalAidData.CIV_PEOPLE, 
-            LegalAidData.CIV_CASES_PER_NEED
+            LegalAidData.CIVIL_PEOPLE, 
+            LegalAidData.CIVIL_CASES_PER_NEED
     else 
         rename( s->"modelled_"*s, results.legalaid.aa.data[sysno]), 
             LegalAidData.AA_PEOPLE, 
@@ -810,8 +810,10 @@ function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno :
     end
     mrpeople = leftjoin( mpeople, modelled_results, 
         on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
-    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_la_status )
-    eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
+    @show names(mrpeople)
+    @show mrpeople[1,:modelled_entitlement]
+    mrpeople.modelled_entitlement_agg = agg_la_status.( mrpeople.modelled_entitlement )
+    eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
     costings = do_one_costing( eligible_people, cases_per_need, system_type )
     return costings
 end # do_one_costing

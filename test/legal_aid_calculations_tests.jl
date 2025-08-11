@@ -612,9 +612,10 @@ end
     results = Runner.do_one_run( settings, [sys1,sys2], obs )
     outf = summarise_frames!( results, settings )
 
-    civil_costs = do_one_costing( results, sys_civil, 2 )
-    aa_costs = do_one_costing( results, sys_aa, 2 )
-
+    civil_costs = LegalAidData.do_one_costing( results, sys_civil, 2 )
+    aa_costs = LegalAidData.do_one_costing( results, sys_aa, 2 )
+    @show civil_costs
+    @show aa_costs
 end
 
 #=
