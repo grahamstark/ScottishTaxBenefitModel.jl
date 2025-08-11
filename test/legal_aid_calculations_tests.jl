@@ -77,7 +77,6 @@ using .GeneralTaxComponents:
 using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData
 using .LegalAidOutput
-using .LegalAidCostsModel
 
 # using .LegalAidRunner
 

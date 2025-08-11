@@ -167,8 +167,8 @@ export STBOutput
 include( "Runner.jl" )
 export Runner
 
-include( "LegalAidCostsModel.jl")
-export LegalAidCostsModel
+# include( "LegalAidCostsModel.jl")
+# export LegalAidCostsModel
 
 include( "TheEqualiser.jl" )
 export TheEqualiser

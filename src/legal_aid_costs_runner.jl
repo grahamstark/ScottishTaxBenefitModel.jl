@@ -10,10 +10,10 @@ nasty cross-dependences.
 """
 function la_initialise( 
     settings :: Settings, 
-    sys :: TaxBenefitSystem;
+    sys :: TaxBenefitSystem,
+    observer :: Observable ;
     reset_data = false, 
-    system_type = sys_civil,
-    observer :: Observable )::Tuple
+    system_type = sys_civil)::Tuple
     LegalAidData.init( settings )
     hh, people = get_raw_data!( settings; reset=reset_data )
     probdata = rename( s->"prob_"*s, LegalAidData.LA_PROB_DATA)
@@ -41,8 +41,8 @@ function la_initialise(
     # @show mrpeople.modelled_entitlement
     mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_entitlement )
     eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
-    needs, cases_per_need = get_needs_and_cases( eligible_people, system_type )
-    costings = do_one_costing( eligible_people, cases_per_need, system_type )
+    needs, cases_per_need = LegalAidData.get_needs_and_cases( eligible_people, system_type )
+    costings =  LegalAidData.do_one_costing( eligible_people, cases_per_need, system_type )
     costings, needs, cases_per_need, mpeople
 end
 
@@ -65,37 +65,16 @@ end
 
 """
 function la_initialise( def_settings::Settings, observer :: Observable )
-    if ! isnothing( civil_cases_per_need )
+    if ! isnothing( LegalAidData.CIVIL_CASES_PER_NEED ) # not already initialised
         return 
     end
     settings, sys = la_make_default_settings( def_settings )
     LegalAidData.CIVIL_NEEDS,
     LegalAidData.CIVIL_CASES_PER_NEED,
     LegalAidData.CIVIL_PEOPLE = 
-        la_initialise( settings, [sys], reset_data=false, system_type=sys_civil )
+        la_initialise( settings, sys, observer, reset_data=false, system_type=sys_civil )
     LegalAidData.AA_NEEDS,
     LegalAidData.AA_CASES_PER_NEED,
     LegalAidData.AA_PEOPLE = 
-        la_initialise( settings, [sys], reset_data=false, system_type=sys_civil )
+        la_initialise( settings, sys, observer, reset_data=false, system_type=sys_aa )
 end
-
-"""
-
-"""
-function la_do_one_costing( results::NamedTuple, system_type :: SystemType, sysno :: Integer )
-    modelled_results, mpeople, cases_per_need = if system_type == sys_civil
-        rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), 
-            LegalAidData.CIV_PEOPLE, 
-            LegalAidData.CIV_CASES_PER_NEED
-    else 
-        rename( s->"modelled_"*s, results.legalaid.aa.data[sysno]), 
-            LegalAidData.AA_PEOPLE, 
-            LegalAidData.AA_CASES_PER_NEED
-    end
-    mrpeople = leftjoin( mpeople, modelled_results, 
-        on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
-    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_la_status )
-    eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
-    costings = do_one_costing( eligible_people, cases_per_need, system_type )
-    return costings
-end # do_one_costing

@@ -9,7 +9,7 @@ module Runner
     using Pkg, LazyArtifacts
     using LazyArtifacts
     using Parameters: @with_kw
-    using DataFrames: DataFrame, DataFrameRow, Not, select!
+    using DataFrames
     using CSV
     using Observables
 
@@ -23,10 +23,7 @@ module Runner
     using .STBIncomes
     using .STBOutput
     using .Monitor: Progress
-    
-    using .RunSettings:
-        Settings
-    
+    using .RunSettings
     using .BenefitGenerosity:
         adjust_disability_eligibility!, 
         initialise
@@ -44,7 +41,8 @@ module Runner
         get_indiv_result
         
     import .FRSHouseholdGetter
-        
+
+    using .DataSummariser:get_raw_data! 
     using .Uprating: load_prices
     
     using .SingleHouseholdCalculations: do_one_calc

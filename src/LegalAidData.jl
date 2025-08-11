@@ -9,6 +9,7 @@ using DataFrames
 using CategoricalArrays
 using StatsBase
 using Artifacts
+using Random
 using LazyArtifacts
 
 using ScottishTaxBenefitModel
@@ -704,7 +705,7 @@ function create_one_costs_frame(
         end  # For each problem type.
     end # Each person in the entitled sample.
     cases[1:nc,:]
-end # proc `do_one_costing`
+end # proc 
 
 """
 results prefixed with `modelled_`
@@ -737,6 +738,104 @@ function merge_in_results_and_hh(
     mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_entitlement )
     eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
     return eligible_people
+end
+
+"""
+
+"""
+function do_one_costing( 
+    eligible_people :: DataFrame, 
+    cases_per_need :: Dict,
+    system_type :: SystemType )::DataFrame
+    costs = if system_type == sys_civil # FIXME - do this once & pass in to `sample`
+        CIVIL_COSTS
+    else
+        AA_COSTS
+    end
+    n = size( costs )[1]*2
+    cases = make_costs_dataframe( n )
+    needs = 0
+    pno = 0
+    nc = 0
+    weeks = system_type == sys_aa ? 1.0 : WEEKS_PER_YEAR
+    for pers in eachrow( eligible_people )
+        pno += 1
+        reps = Int( round( pers.weight )) # this will be the weight for the actual modelled sample
+        for problem in keys(cases_per_need)
+            for i in 1:reps
+                probkey = Symbol("prob_$(problem)")
+                rnd1 = rand()
+                rnd2 = rand()
+                prob_of_prob = pers[probkey]
+                if rnd1 < prob_of_prob
+                    needs += 1
+                    if rnd2 < cases_per_need[problem]
+                        case = costs_sample( problem, system_type )
+                        nc += 1
+                        cs = @view cases[nc,:]
+                        cs.hid = pers.hid
+                        cs.pid = pers.pid
+                        cs.data_year = pers.data_year
+                        cs.pno = pers.pno
+                        cs.slab_casetype = case.hsm_full
+                        cs.scjs_casetype = string(problem)
+                        cs.max_contribution = pers.modelled_income_contribution_amt*weeks +
+                            pers.modelled_capital_contribution_amt
+                        cs.gross_cost = case.totalpaid
+                        if pers.modelled_entitlement in [la_full, la_with_contribution]
+                            cs.net_contribution = min( cs.max_contribution, cs.gross_cost )
+                        end
+                        cs.net_cost = cs.gross_cost - cs.net_contribution                         
+                        cs.entitlement = pers.modelled_entitlement                    
+                    end # Prob of having case given a problem: go for it.
+                end # Prob of having problem.
+            end # Repeat for each actual person this case represents.
+        end  # For each problem type.
+    end # Each person in the entitled sample.
+    cases[1:nc,:]
+end # proc `do_one_costing`
+
+"""
+
+"""
+function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno :: Integer )
+    modelled_results, mpeople, cases_per_need = if system_type == sys_civil
+        rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), 
+            LegalAidData.CIV_PEOPLE, 
+            LegalAidData.CIV_CASES_PER_NEED
+    else 
+        rename( s->"modelled_"*s, results.legalaid.aa.data[sysno]), 
+            LegalAidData.AA_PEOPLE, 
+            LegalAidData.AA_CASES_PER_NEED
+    end
+    mrpeople = leftjoin( mpeople, modelled_results, 
+        on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
+    mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_la_status )
+    eligible_people = mrpeople[ mrpeople.modelled_la_status .!== la_none, :]
+    costings = do_one_costing( eligible_people, cases_per_need, system_type )
+    return costings
+end # do_one_costing
+
+"""
+Note: this is done *just over those with a modelled entitlement* (of any kind).
+`needs` are the sum of the mean probabilities for each person for each SCJS problem type
+`cases_per_need` is the number of SLAB cost cases of that type, divided by needs for that type.
+"""
+function get_needs_and_cases( entitled_people ::DataFrame, system_type :: SystemType  )::Tuple
+    needs = Dict()
+    cases_per_need = Dict()
+    costs, map, ctype = if system_type == sys_civil
+        CIVIL_COSTS, SCJS_SLAB_MAP_CIVIL, :categorydescription
+    else
+        AA_COSTS, SCJS_SLAB_MAP_AA, :hsm_full
+    end
+    for problem in keys( map )
+        subset = costs[ (costs[!,ctype] .∈ ( map[problem], )), :]
+        n = size(subset)[1]        
+        needs[problem] = sum( entitled_people[!, Symbol( "prob_$(problem)")], Weights( entitled_people.weight ))
+        cases_per_need[problem] = n/(needs[problem])
+    end
+    needs, cases_per_need
 end
 
 end # module

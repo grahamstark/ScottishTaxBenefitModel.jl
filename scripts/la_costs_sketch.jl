@@ -199,29 +199,6 @@ function aa_sample( casetype :: Symbol )::DataFrameRow
     return subset[p,:]
 end
 =#
-
-"""
-Note: this is done *just over those with a modelled entitlement* (of any kind).
-`needs` are the sum of the mean probabilities for each person for each SCJS problem type
-`cases_per_need` is the number of SLAB cost cases of that type, divided by needs for that type.
-"""
-function get_needs_and_cases( entitled_people ::DataFrame, system_type :: SystemType  )::Tuple
-    needs = Dict()
-    cases_per_need = Dict()
-    costs, map, ctype = if system_type == sys_civil
-        CIVIL_COSTS, SCJS_SLAB_MAP_CIVIL, :categorydescription
-    else
-        AA_COSTS, SCJS_SLAB_MAP_AA, :hsm_full
-    end
-    for problem in keys( map )
-        subset = costs[ (costs[!,ctype] .∈ ( map[problem], )), :]
-        n = size(subset)[1]        
-        needs[problem] = sum( entitled_people[!, Symbol( "modelled_$(problem)")], Weights( entitled_people.weight ))
-        cases_per_need[problem] = n/(needs[problem])
-    end
-    needs, cases_per_need
-end
-
 function compare_breakdowns( modelled :: DataFrame, actual :: DataFrame )::Tuple # , system_type :: SystemType
     counts_cases_m = countmap( modelled[!, :slab_casetype ])
     counts_cases_a = countmap( actual[!, :hsm_full])
