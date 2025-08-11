@@ -147,5 +147,6 @@ weighting_strategy = "use_runtime_computed_weights"
 wealth_method = "matching"
 indirect_method = "matching"
 legal_aid_probs_data = "civil-legal-aid-probs-scotland-map_to_slab_version-2017-2021"
+legal_aid_costs_strategy = "la_individual_costs"
 [targets]
 test = ["Test"]

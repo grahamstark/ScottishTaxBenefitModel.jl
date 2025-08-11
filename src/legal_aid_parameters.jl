@@ -1,26 +1,6 @@
 #=
-
- This is the one.
  https://www.slab.org.uk/solicitors/other-resources/key-cards/civil-keycard/
-
-
 =#
-
-@enum SystemType sys_civil sys_aa
-export SystemType, sys_civil, sys_aa
-@enum ClaimType normalClaim  personalInjuryClaim
-export ClaimType, normalClaim,  personalInjuryClaim
-@enum PensionerState pensioner  nonPensioner
-export PensionerState, pensioner, nonPensioner
-@enum Income_Or_Capital income capital
-export Income_Or_Capital, income, capital
-@enum Net_Or_Gross net gross
-export Net_Or_Gross, net, gross
-@enum Assessment_Period weekly monthly annualHistoric annualForward
-export ContributionType, cont_proportion, cont_fixed
-@enum ContributionType cont_proportion cont_fixed
-export UCEarningsType, assessed_net_income, tapered_uc_earnings, full_uc_earnings
-@enum UCEarningsType assessed_net_income tapered_uc_earnings full_uc_earnings
 
 """
 needed because json (inf) isn't supported and typemax(somefloattype) == Inf

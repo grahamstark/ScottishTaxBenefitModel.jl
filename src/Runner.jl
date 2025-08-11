@@ -53,25 +53,19 @@ module Runner
         do_one_run,
         summarise_inc_frame 
 
-    # fixme move the output stuff (mostly) to an Output.jl module
+    # this is to remove a nasty cross-dependency
+    include( "legal_aid_costs_runner.jl")
 
     function do_one_run(
         settings :: Settings,
         params   :: Vector{TaxBenefitSystem{T}},
         observer :: Observable ) :: NamedTuple where T # fixme simpler way of declaring this?
-        
         num_threads = min( nthreads(), settings.requested_threads )
         println( "starting $num_threads threads")
 
         num_systems = size( params )[1]
         observer[]=Progress( settings.uuid, "do-one-run-start", 0, 0, 0, 0 )
         load_prices( settings, false )
-        #=
-        for p in 1:num_systems
-            println("sys $p")
-            println(params[p].it)
-        end
-        =#
         if settings.num_households == 0
             observer[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
             @time settings.num_households, settings.num_people, nhh2 = 
@@ -79,6 +73,12 @@ module Runner
             if settings.benefit_generosity_estimates_available
                 BenefitGenerosity.initialise()  
             end     
+        end
+        if settings.do_legal_aid && (settings.legal_aid_costs_strategy == la_individual_costs)
+            # This setting change is a hack to stop recursion, since la_initialise calls run.
+            settings.legal_aid_costs_strategy = la_no_costs
+            la_initialise( settings, observer )   
+            settings.legal_aid_costs_strategy = la_individual_costs
         end
         full_results = Array{HouseholdResult}(undef,0,0)
         # fixme if we have one are threads OK? I think yes
