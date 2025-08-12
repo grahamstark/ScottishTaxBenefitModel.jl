@@ -282,7 +282,11 @@ function load_costs( filename::String )::DataFrame
 end
 
 CIVIL_COSTS = DataFrame()
+CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH = DataFrame()
+CIVIL_COSTS_ADULT_MENTAL_HEALTH_ONLY = DataFrame()
 AA_COSTS = DataFrame()
+AA_COSTS_EXCL_ADULT_MENTAL_HEALTH = DataFrame()
+AA_COSTS_ADULT_MENTAL_HEALTH_ONLY = DataFrame()
 CIVIL_AWARDS = DataFrame()
 
 CIVIL_AWARDS_GRP_NS = DataFrame()
@@ -322,6 +326,11 @@ function init(settings::Settings; reset=false)
     global CIVIL_COSTS_GRP4 
     global CIVIL_SUBJECTS 
     global LA_PROB_DATA
+    global AA_COSTS_EXCL_ADULT_MENTAL_HEALTH
+    global CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH
+    global AA_COSTS_ADULT_MENTAL_HEALTH_ONLY
+    global CIVIL_COSTS_ADULT_MENTAL_HEALTH_ONLY
+
     # FIXME DUPS
     if size( CIVIL_COSTS ) == (0,0) || size(AA_COSTS) == (0,0) || size(CIVIL_AWARDS) == (0.0)
         l_artifact = RunSettings.get_artifact(; 
@@ -330,7 +339,11 @@ function init(settings::Settings; reset=false)
             scottish=settings.target_nation == N_Scotland )
 
         CIVIL_COSTS = load_costs( joinpath( l_artifact, "civil-legal-aid-case-costs.tab" ))
+        CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH = CIVIL_COSTS[CIVIL_COSTS.hsm_censored.!= "adults_with_incapacity_or_mental_health",:]
+        CIVIL_COSTS_ADULT_MENTAL_HEALTH_ONLY = CIVIL_COSTS[CIVIL_COSTS.hsm_censored.== "adults_with_incapacity_or_mental_health",:]
         AA_COSTS = load_aa_costs( joinpath( l_artifact, "aa-case-costs.tab" ))
+        AA_COSTS_EXCL_ADULT_MENTAL_HEALTH = AA_COSTS[AA_COSTS.hsm_censored.!= "adults_with_incapacity_or_mental_health",:]
+        AA_COSTS_ADULT_MENTAL_HEALTH_ONLY = AA_COSTS[AA_COSTS.hsm_censored.== "adults_with_incapacity_or_mental_health",:]
         CIVIL_AWARDS = load_awards( joinpath( l_artifact, "civil-applications.tab" ))
 
         CIVIL_AWARDS_GRP_NS = groupby(CIVIL_AWARDS, [:hsm, :age2, :sex])
@@ -588,7 +601,7 @@ SCJS_SLAB_MAP_AA = Dict([
         ["Housing",
         "Antisocial Behaviour Orders (ASBO)"],
     :health_prediction=>
-        ["Adults with incapacity",
+        [ # "Adults with incapacity",
         "Mental health",
         "Criminal Injuries Compensation Aut",
         "Medical negligence"
@@ -627,9 +640,9 @@ Selects one row at random from those mapped to the given casetype in the civil o
 """
 function costs_sample( casetype :: Symbol, system_type :: SystemType )::DataFrameRow
     costs, map, ctype = if system_type == sys_civil
-        CIVIL_COSTS, SCJS_SLAB_MAP_CIVIL, :categorydescription
+        CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH, SCJS_SLAB_MAP_CIVIL, :categorydescription
     else
-        AA_COSTS, SCJS_SLAB_MAP_AA, :hsm_full
+        AA_COSTS_EXCL_ADULT_MENTAL_HEALTH, SCJS_SLAB_MAP_AA, :hsm_full
     end
     subset = costs[ (costs[!,ctype] .∈ ( map[casetype], )), :]    
     n = size(subset)[1]
@@ -660,9 +673,9 @@ function create_one_costs_frame(
     cases_per_need :: Dict,
     system_type :: SystemType )::DataFrame
     costs = if system_type == sys_civil # FIXME - do this once & pass in to `sample`
-        CIVIL_COSTS
+        CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH
     else
-        AA_COSTS
+        AA_COSTS_EXCL_ADULT_MENTAL_HEALTH
     end
     n = size( costs )[1]*2
     cases = make_costs_dataframe( n )
@@ -740,6 +753,28 @@ function merge_in_results_and_hh(
     return eligible_people
 end
 
+function make_adult_incapactity( system_type :: SystemType )::DataFrame
+    costs = if system_type == sys_civil # FIXME - do this once & pass in to `sample`
+        CIVIL_COSTS_ADULT_MENTAL_HEALTH_ONLY
+    else
+        AA_COSTS_ADULT_MENTAL_HEALTH_ONLY
+    end    
+    nrows, ncols = size( costs )
+    cases = make_costs_dataframe( nrows )
+    cases.hid .= -1
+    cases.pid .= -1
+    cases.data_year .= -1
+    cases.pno .= -1
+    cases.slab_casetype .= "adults_with_incapacity_or_mental_health"
+    cases.scjs_casetype .= ""
+    cases.max_contribution .= 0.0
+    cases.gross_cost = costs.totalpaid
+    cases.net_contribution .= 0.0
+    cases.net_cost = cases.gross_cost
+    cases.entitlement .= la_passported                
+    cases
+end
+
 """
 
 """
@@ -748,9 +783,9 @@ function do_one_costing(
     cases_per_need :: Dict,
     system_type :: SystemType )::DataFrame
     costs = if system_type == sys_civil # FIXME - do this once & pass in to `sample`
-        CIVIL_COSTS
+        CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH
     else
-        AA_COSTS
+        AA_COSTS_EXCL_ADULT_MENTAL_HEALTH
     end
     n = size( costs )[1]*2
     cases = make_costs_dataframe( n )
@@ -792,7 +827,9 @@ function do_one_costing(
             end # Repeat for each actual person this case represents.
         end  # For each problem type.
     end # Each person in the entitled sample.
-    cases[1:nc,:]
+    # just stick the adults with incapacity on at the end
+    adinc = make_adult_incapactity( system_type )
+    return vcat(cases[1:nc,:],adinc)
 end # proc `do_one_costing`
 
 """
@@ -801,12 +838,12 @@ end # proc `do_one_costing`
 function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno :: Integer )
     modelled_results, mpeople, cases_per_need = if system_type == sys_civil
         rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), 
-            LegalAidData.CIVIL_PEOPLE, 
-            LegalAidData.CIVIL_CASES_PER_NEED
+            CIVIL_PEOPLE, 
+            CIVIL_CASES_PER_NEED
     else 
         rename( s->"modelled_"*s, results.legalaid.aa.data[sysno]), 
-            LegalAidData.AA_PEOPLE, 
-            LegalAidData.AA_CASES_PER_NEED
+            AA_PEOPLE, 
+            AA_CASES_PER_NEED
     end
     mrpeople = leftjoin( mpeople, modelled_results, 
         on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
@@ -827,9 +864,9 @@ function get_needs_and_cases( entitled_people ::DataFrame, system_type :: System
     needs = Dict()
     cases_per_need = Dict()
     costs, map, ctype = if system_type == sys_civil
-        CIVIL_COSTS, SCJS_SLAB_MAP_CIVIL, :categorydescription
+        CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH, SCJS_SLAB_MAP_CIVIL, :categorydescription
     else
-        AA_COSTS, SCJS_SLAB_MAP_AA, :hsm_full
+        AA_COSTS_EXCL_ADULT_MENTAL_HEALTH, SCJS_SLAB_MAP_AA, :hsm_full
     end
     for problem in keys( map )
         subset = costs[ (costs[!,ctype] .∈ ( map[problem], )), :]
