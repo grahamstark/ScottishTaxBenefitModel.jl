@@ -612,10 +612,14 @@ end
     results = Runner.do_one_run( settings, [sys1,sys2], obs )
     outf = summarise_frames!( results, settings )
 
-    civil_costs = LegalAidData.do_one_costing( results, sys_civil, 2 )
-    aa_costs = LegalAidData.do_one_costing( results, sys_aa, 2 )
-    @show civil_costs
-    @show aa_costs
+    civil_costs1 = LegalAidData.do_one_costing( results, sys_civil, 1 )
+    aa_costs1 = LegalAidData.do_one_costing( results, sys_aa, 1 )
+    civil_costs2 = LegalAidData.do_one_costing( results, sys_civil, 2 )
+    aa_costs2 = LegalAidData.do_one_costing( results, sys_aa, 2 )
+    @test civil_costs1 == civil_costs2 # "base case results should never change - Civil"
+    @test aa_costs1 == aa_costs2 # "base case results should never change - AA"
+    @show size(civil_costs1) size(civil_costs2)
+    @show size(aa_costs1) size(aa_costs2)
 end
 
 #=

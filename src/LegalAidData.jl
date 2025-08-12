@@ -161,7 +161,6 @@ function load_awards( filename::String )::DataFrame
     # NOTE this skips over Adults with incapacity
     for r in 1:nrows
         a = awards[r,:]
-        # @show a
         if a.passported # form 1
             awards[r,:la_status] = la_passported
         elseif a.whichform == "2" # form 2 == means-test
@@ -257,7 +256,6 @@ function load_costs( filename::String )::DataFrame
     cost.age2 = age2.( cost.age )
     for r in 1:nrows
         a = cost[r,:]
-        # @show a
         if a.passported # form 1
             cost[r,:la_status] = la_passported
         else # elseif a.whichform == "2" # form 2 == means-test
@@ -478,7 +476,7 @@ AA_PEOPLE = nothing
 
 
 # see: https://docs.julialang.org/en/v1/stdlib/Random/
-const RAND_GEN = Xoshiro(123456);
+RAND_GEN = Xoshiro(123456);
 
 const SCJS_SLAB_MAP_CIVIL = Dict([
     :family_prediction=> 
@@ -638,7 +636,7 @@ casetype -> unfairness_prediction etc. from the maps above.
 system_type: sys_civil, sys_aa
 Selects one row at random from those mapped to the given casetype in the civil or AA costs data.
 """
-function costs_sample( casetype :: Symbol, system_type :: SystemType )::DataFrameRow
+function costs_sample( casetype :: Symbol, system_type :: SystemType, rnd::Number )::DataFrameRow
     costs, map, ctype = if system_type == sys_civil
         CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH, SCJS_SLAB_MAP_CIVIL, :categorydescription
     else
@@ -646,7 +644,7 @@ function costs_sample( casetype :: Symbol, system_type :: SystemType )::DataFram
     end
     subset = costs[ (costs[!,ctype] .∈ ( map[casetype], )), :]    
     n = size(subset)[1]
-    p = sample(1:n)    
+    p = sample( RAND_GEN, 1:n)    
     return subset[p,:]
 end
 
@@ -668,6 +666,7 @@ end
 """
 
 """
+#=
 function create_one_costs_frame( 
     eligible_people :: DataFrame, 
     cases_per_need :: Dict,
@@ -719,6 +718,7 @@ function create_one_costs_frame(
     end # Each person in the entitled sample.
     cases[1:nc,:]
 end # proc 
+=#
 
 """
 results prefixed with `modelled_`
@@ -746,8 +746,6 @@ function merge_in_results_and_hh(
     
     rename!( s->"modelled_"*s, laresults )
     mrpeople = leftjoin( mpeople, modelled_results, on=[:pid=>:modelled_pid] ) # add baseline results
-    @show names( mrpeople )
-    # @show mrpeople.modelled_entitlement
     mrpeople.modelled_entitlement_agg = agg_la_status.( mrpeople.modelled_entitlement )
     eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
     return eligible_people
@@ -793,19 +791,30 @@ function do_one_costing(
     pno = 0
     nc = 0
     weeks = system_type == sys_aa ? 1.0 : WEEKS_PER_YEAR
+    println( "do_one_costing - entered")
     for pers in eachrow( eligible_people )
         pno += 1
         reps = Int( round( pers.weight )) # this will be the weight for the actual modelled sample
+        rno = 1
+        if pno <= 2 
+            @show pers.pid pers.rand15k[1:20]
+        end
         for problem in keys(cases_per_need)
             for i in 1:reps
                 probkey = Symbol("prob_$(problem)")
-                rnd1 = rand()
-                rnd2 = rand()
+                rnd1 = pers.rand15k[rno] # deterministic random - so 2 systems with same parameters are exactly equal.
+                rnd2 = pers.rand15k[rno+1]
+                rnd3 = pers.rand15k[rno+2]
+                if pno <= 2 && i < 10
+                    @show problem rnd1 rnd2 pno reps                    
+                end
+                rno += 3
+                rno %= 15_000 # loop back at array end
                 prob_of_prob = pers[probkey]
                 if rnd1 < prob_of_prob
                     needs += 1
                     if rnd2 < cases_per_need[problem]
-                        case = costs_sample( problem, system_type )
+                        case = costs_sample( problem, system_type, rnd3 )
                         nc += 1
                         cs = @view cases[nc,:]
                         cs.hid = pers.hid
@@ -833,9 +842,11 @@ function do_one_costing(
 end # proc `do_one_costing`
 
 """
-
+As a side effect, reset the rng 
 """
 function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno :: Integer )
+    global RAND_GEN
+    RAND_GEN = Xoshiro(123456) # reset the rng     
     modelled_results, mpeople, cases_per_need = if system_type == sys_civil
         rename( s->"modelled_"*s, results.legalaid.civil.data[sysno]), 
             CIVIL_PEOPLE, 
@@ -847,8 +858,6 @@ function do_one_costing( results::NamedTuple, system_type :: SystemType, sysno :
     end
     mrpeople = leftjoin( mpeople, modelled_results, 
         on=[:pid=>:modelled_pid], makeunique=true ) # add baseline results
-    @show names(mrpeople)
-    @show mrpeople[1,:modelled_entitlement]
     mrpeople.modelled_entitlement_agg = agg_la_status.( mrpeople.modelled_entitlement )
     eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
     costings = do_one_costing( eligible_people, cases_per_need, system_type )

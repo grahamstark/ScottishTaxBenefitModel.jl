@@ -42,7 +42,7 @@ function la_initialise(
     mrpeople.modelled_la_status_agg = agg_la_status.( mrpeople.modelled_entitlement )
     eligible_people = mrpeople[ mrpeople.modelled_entitlement .!== la_none, :]
     needs, cases_per_need = LegalAidData.get_needs_and_cases( eligible_people, system_type )
-    # costings =  LegalAidData.do_one_costing( eligible_people, cases_per_need, system_type )
+    mpeople.rand15k .= rand.(15_000)
     needs, cases_per_need, mpeople
 end
 

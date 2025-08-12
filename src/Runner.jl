@@ -70,7 +70,7 @@ module Runner
                 FRSHouseholdGetter.initialise( settings )
             if settings.benefit_generosity_estimates_available
                 BenefitGenerosity.initialise()  
-            end     
+            end
         end
         if settings.do_legal_aid && (settings.legal_aid_costs_strategy == la_individual_costs)
             # This setting change is a hack to stop recursion, since la_initialise calls run.
