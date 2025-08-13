@@ -1077,43 +1077,40 @@ function make_summary_tab(
                 tab[2,2] += added_cost_pre # pr[tc]*pr[tcost]
                 added_cost_post = w*postres*postcost
                 tab[2,3] += added_cost_post
-                # 
-                    #=
-                    HACK HACK HACK 
-                    =#
-                    scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
-                    added_contrib_pre = w*preres*scase_pr/1000.0 #*scase_pr # 
-                    added_contrib_post = w*postres*scase_po/1000.0 #*scase_pr # 
-                    # av case
-                    added_contrib_pre = w*preres*min(precost, max_contrib_pr/1000.0)
-                    added_contrib_post = w*postres*min(postcost, max_contrib_po/1000.0)
-                    tab[3,2] += added_contrib_pre
-                    tab[3,3] += added_contrib_post 
-                    if (max_contrib_pr>0) && (max_contrib_po>0)
-                        @show row i tcost w preres precost max_contrib_pr
-                        @show scase_pr scase_po
-                        @show w postres postcost max_contrib_po
-                        @show w*preres*precost
-                        @show w*postres*postcost
-                        @show added_cost_pre added_cost_post 
-                        @show added_contrib_pre added_contrib_post 
-                    end
-                    if (max_contrib_pr > 0)&&(max_contrib_po > 0)
-                        @assert max_contrib_pr ≈ max_contrib_po "contrib shouldn't change for those already contributing"
-                        @assert postcost ≈ precost "costs should be same"
-                        @assert added_contrib_pre ≈ added_contrib_post "net contribution to costs same"
-                        @assert added_cost_pre ≈ added_cost_post "gross cost same"
-                    end
-                    if (max_contrib_pr > 0)||(max_contrib_po > 0)
-                        @assert added_cost_pre >= 0 "row=$row tcost=$tcost added_cost_pre=$added_cost_pre"
-                        @assert added_cost_post >= 0 
-                        @assert added_contrib_post >= 0                   
-                        @assert added_contrib_pre >= 0                   
-                        @assert added_contrib_pre <= added_cost_pre
-                        @assert added_contrib_post <= added_cost_post "row=$row tcost=$tcost postres=$postres added_contrib_post $added_contrib_post added_cost_post $added_cost_post"
-                        @assert (added_contrib_pre-added_contrib_pre) <= (added_cost_post-added_cost_pre)
-                    end
-                    @assert added_contrib_pre <= added_contrib_post "row=$row tcost=$tcost added_cost_pre=$added_cost_pre"
+                #=
+                HACK HACK HACK 
+                =#
+                scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
+                added_contrib_pre = w*preres*scase_pr/1000.0 #*scase_pr # 
+                added_contrib_post = w*postres*scase_po/1000.0 #*scase_pr # 
+                # av case
+                added_contrib_pre = w*preres*min(precost, max_contrib_pr/1000.0)
+                added_contrib_post = w*postres*min(postcost, max_contrib_po/1000.0)
+                tab[3,2] += added_contrib_pre
+                tab[3,3] += added_contrib_post 
+                if (max_contrib_pr>0) && (max_contrib_po>0)
+                    @show row i tcost w preres precost max_contrib_pr
+                    @show scase_pr scase_po
+                    @show w postres postcost max_contrib_po
+                    @show w*preres*precost
+                    @show w*postres*postcost
+                    @show added_cost_pre added_cost_post 
+                    @show added_contrib_pre added_contrib_post 
+                    @assert max_contrib_pr ≈ max_contrib_po "contrib shouldn't change for those already contributing"
+                    @assert postcost ≈ precost "costs should be same"
+                    @assert added_contrib_pre ≈ added_contrib_post "net contribution to costs same"
+                    @assert added_cost_pre ≈ added_cost_post "gross cost same"
+                end
+                if (max_contrib_pr > 0)||(max_contrib_po > 0)
+                    @assert added_cost_pre >= 0 "row=$row tcost=$tcost added_cost_pre=$added_cost_pre"
+                    @assert added_cost_post >= 0 
+                    @assert added_contrib_post >= 0                   
+                    @assert added_contrib_pre >= 0                   
+                    @assert added_contrib_pre <= added_cost_pre
+                    @assert added_contrib_post <= added_cost_post "row=$row tcost=$tcost postres=$postres added_contrib_post $added_contrib_post added_cost_post $added_cost_post"
+                    @assert (added_contrib_pre-added_contrib_pre) <= (added_cost_post-added_cost_pre)
+                end
+                @assert added_contrib_pre <= added_contrib_post "row=$row tcost=$tcost added_cost_pre=$added_cost_pre"
             end
         end
     end
