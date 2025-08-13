@@ -1076,9 +1076,14 @@ function make_summary_tab(
                 tab[2,2] += w*preres*precost # pr[tc]*pr[tcost]
                 tab[2,3] += w*postres*postcost
                 if (max_contrib_pr > 0)||(max_contrib_po > 0)
-                    scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
-                    tab[3,2] += w*preres*scase_pr/1000.0 #*scase_pr # 
-                    tab[3,3] += w*postres*scase_po/1000.0 # scase_po # 
+                    #=
+                    HACK HACK HACK 
+                    =#
+                    # scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
+                    # tab[3,2] += w*preres*scase_pr/1000.0 #*scase_pr # 
+                    # tab[3,3] += w*postres*scase_po/1000.0 # scase_po # 
+                    tab[3,2] += w*preres*min(precost, max_contrib_pr/1000.0)
+                    tab[3,3] += w*preres*min(postcost, max_contrib_po/1000.0)
                 end                
             end
         end

@@ -10,6 +10,7 @@ using PrettyTables
 using Base.Threads
 using ChunkSplitters
 using ArgCheck
+using Chairmarks
 
 using DataFrames, CSV
 
@@ -611,15 +612,22 @@ end
     sys2 = deepcopy(sys1)
     results = Runner.do_one_run( settings, [sys1,sys2], obs )
     outf = summarise_frames!( results, settings )
-
-    civil_costs1 = LegalAidData.do_one_costing( results, sys_civil, 1 )
-    aa_costs1 = LegalAidData.do_one_costing( results, sys_aa, 1 )
+    civil_costs1 = nothing
+    timing_civil = @be begin # convoulted way of getting both the benchmark and the result
+        civil_costs1 = LegalAidData.do_one_costing( results, sys_civil, 1 )
+    end
+    aa_costs1 = nothing
+    timing_aa = @be begin
+        aa_costs1 = LegalAidData.do_one_costing( results, sys_aa, 1 )
+    end
     civil_costs2 = LegalAidData.do_one_costing( results, sys_civil, 2 )
     aa_costs2 = LegalAidData.do_one_costing( results, sys_aa, 2 )
     @test civil_costs1 == civil_costs2 # "base case results should never change - Civil"
     @test aa_costs1 == aa_costs2 # "base case results should never change - AA"
     @show size(civil_costs1) size(civil_costs2)
     @show size(aa_costs1) size(aa_costs2)
+    @show Chairmarks.summarize( timing_civil )
+    @show Chairmarks.summarize( timing_aa )
 end
 
 #=

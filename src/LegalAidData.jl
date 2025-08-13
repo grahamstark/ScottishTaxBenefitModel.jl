@@ -4,19 +4,22 @@
 # 
 module LegalAidData
 
+using Base.Threads
+
+using ArgCheck
+using Artifacts
+using CategoricalArrays
 using CSV
 using DataFrames
-using CategoricalArrays
-using StatsBase
-using Artifacts
-using Random
 using LazyArtifacts
+using Random
+using StatsBase
 
 using ScottishTaxBenefitModel
-using .RunSettings
 using .Definitions
 using .ModelHousehold
-using .Utils:basiccensor
+using .RunSettings
+using .Utils
 
 export 
     agestr2, 
@@ -636,7 +639,8 @@ casetype -> unfairness_prediction etc. from the maps above.
 system_type: sys_civil, sys_aa
 Selects one row at random from those mapped to the given casetype in the civil or AA costs data.
 """
-function costs_sample( casetype :: Symbol, system_type :: SystemType, rnd::Number )::DataFrameRow
+function costs_sample( casetype :: Symbol, system_type :: SystemType, rnd::Real )::DataFrameRow
+@argcheck 0 <= rnd <=1 "rand should be in [0,1], is actually $rnd"
     costs, map, ctype = if system_type == sys_civil
         CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH, SCJS_SLAB_MAP_CIVIL, :categorydescription
     else
@@ -644,7 +648,9 @@ function costs_sample( casetype :: Symbol, system_type :: SystemType, rnd::Numbe
     end
     subset = costs[ (costs[!,ctype] .∈ ( map[casetype], )), :]    
     n = size(subset)[1]
-    p = sample( RAND_GEN, 1:n)    
+    # number based on random in range 1:n
+    p = Int(round(rnd*n, RoundUp))
+    # p = sample( RAND_GEN, 1:n)    
     return subset[p,:]
 end
 
@@ -774,12 +780,91 @@ function make_adult_incapactity( system_type :: SystemType )::DataFrame
 end
 
 """
-
+Multithreaded version
 """
 function do_one_costing( 
     eligible_people :: DataFrame, 
     cases_per_need :: Dict,
+    system_type :: SystemType;
+    requested_threads = 8 )::DataFrame
+    num_threads = min( nthreads(), requested_threads ) # settings.requested_threads )
+    println( "do_one_costing - entered num_threads=$num_threads")
+    num_people = size( eligible_people )[1]
+    costs = if system_type == sys_civil # FIXME - do this once & pass in to `sample`
+        CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH
+    else
+        AA_COSTS_EXCL_ADULT_MENTAL_HEALTH
+    end
+    n = size( costs )[1]
+    lcases = DataFrame[]
+    for thread in 1:num_threads 
+        push!(lcases,make_costs_dataframe( n ))
+    end
+    nc = zeros(Int,num_threads)
+    weeks = system_type == sys_aa ? 1.0 : WEEKS_PER_YEAR
+    start,stop = make_start_stops( num_people, num_threads )
+    @threads for thread in 1:num_threads
+        pno = 0
+        # for pers in eachrow( eligible_people )
+        for pno in start[thread]:stop[thread]
+            pers = eligible_people[pno,:]
+            pno += 1
+            reps = Int( round( pers.weight )) # this will be the weight for the actual modelled sample
+            rno = 1
+            kn = keys(cases_per_need)
+            for problem in kn
+                for i in 1:reps
+                    probkey = Symbol("prob_$(problem)")
+                    rnd1 = pers.rand15k[rno] # deterministic random - so 2 systems with same parameters are exactly equal.
+                    rnd2 = pers.rand15k[rno+1]
+                    rnd3 = pers.rand15k[rno+2]
+                    rno += 3
+                    rno %= 15_000 # loop back at array end
+                    prob_of_prob = pers[probkey]                
+                    if rnd1 < prob_of_prob
+                        if rnd2 < cases_per_need[problem]
+                            case = costs_sample( problem, system_type,rnd3)
+                            nc[thread] += 1
+                            cs = lcases[thread][nc[thread],:]
+                            cs.hid = pers.hid
+                            cs.pid = pers.pid
+                            cs.data_year = pers.data_year
+                            cs.pno = pers.pno
+                            cs.slab_casetype = case.hsm_full
+                            cs.scjs_casetype = string(problem)
+                            cs.max_contribution = pers.modelled_income_contribution_amt*weeks +
+                                pers.modelled_capital_contribution_amt
+                            cs.gross_cost = case.totalpaid
+                            if pers.modelled_entitlement in [la_full, la_with_contribution]
+                                cs.net_contribution = min( cs.max_contribution, cs.gross_cost )
+                            end
+                            cs.net_cost = cs.gross_cost - cs.net_contribution                         
+                            cs.entitlement = pers.modelled_entitlement                    
+                        end # Prob of having case given a problem: go for it.
+                    end # Prob of having problem.                
+                end # Repeat for each actual person this case represents.
+            end  # For each problem type.
+        end # Each person in the entitled sample.
+    end # thread
+    # join threaded cases back up.
+    cases = make_costs_dataframe( 0 )
+    for thread in 1:num_threads
+        cases = vcat( cases, lcases[thread][1:nc[thread],:])
+    end
+    # just stick the adults with incapacity on at the end
+    adinc = make_adult_incapactity( system_type )
+    return vcat(cases,adinc)
+end # proc `do_one_costing`
+
+"""
+
+"""
+function do_one_costing_non_threaded( 
+    eligible_people :: DataFrame, 
+    cases_per_need :: Dict,
     system_type :: SystemType )::DataFrame
+    num_threads = min( nthreads(), 4 ) # settings.requested_threads )
+    num_people = size( eligible_people )[1]
     costs = if system_type == sys_civil # FIXME - do this once & pass in to `sample`
         CIVIL_COSTS_EXCL_ADULT_MENTAL_HEALTH
     else
@@ -787,36 +872,29 @@ function do_one_costing(
     end
     n = size( costs )[1]*2
     cases = make_costs_dataframe( n )
-    needs = 0
     pno = 0
     nc = 0
     weeks = system_type == sys_aa ? 1.0 : WEEKS_PER_YEAR
     println( "do_one_costing - entered")
+    start,stop = make_start_stops( num_people, num_threads )
     for pers in eachrow( eligible_people )
         pno += 1
         reps = Int( round( pers.weight )) # this will be the weight for the actual modelled sample
         rno = 1
-        if pno <= 2 
-            @show pers.pid pers.rand15k[1:20]
-        end
-        for problem in keys(cases_per_need)
+        kn = keys(cases_per_need)
+        for problem in kn
             for i in 1:reps
                 probkey = Symbol("prob_$(problem)")
                 rnd1 = pers.rand15k[rno] # deterministic random - so 2 systems with same parameters are exactly equal.
                 rnd2 = pers.rand15k[rno+1]
-                rnd3 = pers.rand15k[rno+2]
-                if pno <= 2 && i < 10
-                    @show problem rnd1 rnd2 pno reps                    
-                end
-                rno += 3
+                rno += 2
                 rno %= 15_000 # loop back at array end
-                prob_of_prob = pers[probkey]
+                prob_of_prob = pers[probkey]                
                 if rnd1 < prob_of_prob
-                    needs += 1
                     if rnd2 < cases_per_need[problem]
-                        case = costs_sample( problem, system_type, rnd3 )
+                        case = costs_sample( problem, system_type)
                         nc += 1
-                        cs = @view cases[nc,:]
+                        cs = cases[nc,:]
                         cs.hid = pers.hid
                         cs.pid = pers.pid
                         cs.data_year = pers.data_year
@@ -832,7 +910,7 @@ function do_one_costing(
                         cs.net_cost = cs.gross_cost - cs.net_contribution                         
                         cs.entitlement = pers.modelled_entitlement                    
                     end # Prob of having case given a problem: go for it.
-                end # Prob of having problem.
+                end # Prob of having problem.                
             end # Repeat for each actual person this case represents.
         end  # For each problem type.
     end # Each person in the entitled sample.
@@ -840,6 +918,7 @@ function do_one_costing(
     adinc = make_adult_incapactity( system_type )
     return vcat(cases[1:nc,:],adinc)
 end # proc `do_one_costing`
+
 
 """
 As a side effect, reset the rng 

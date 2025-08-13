@@ -170,18 +170,42 @@ SCJS_SLAB_MAP_AA = Dict([
             "Judicial review",
             "Other"] ])
 
+
+function make_costs_by_case( system_type :: SystemType )::Dict{Symbol,DataFrame}
+    costs, map, ctype, nms = if system_type == sys_civil
+        CIVIL_COSTS, 
+        SCJS_SLAB_MAP_CIVIL, 
+        :categorydescription, 
+        collect( keys( SCJS_SLAB_MAP_CIVIL ))    
+    else
+        AA_COSTS, 
+        SCJS_SLAB_MAP_AA, 
+        :hsm_full,
+        collect( keys( SCJS_SLAB_MAP_AA ))
+    end
+    m = Dict{Symbol,DataFrame}
+    for nm in nms 
+        subset = costs[ (costs[!,ctype] .∈ ( map[casetype], )), :]    
+        m[nm] = subset
+    end
+    return m
+end
+
+const CIVIL_COSTS_BY_SCJS_CASE = make_costs_by_case( sys_civil )
+const AA_COSTS_BY_SCJS_CASE = make_costs_by_case( sys_aa )
+
 """
 casetype -> unfairness_prediction etc. from the maps above.
 system_type: sys_civil, sys_aa
 Selects one row at random from those mapped to the given casetype in the civil or AA costs data.
 """
 function costs_sample( casetype :: Symbol, system_type :: SystemType )::DataFrameRow
-    costs, map, ctype = if system_type == sys_civil
-        CIVIL_COSTS, SCJS_SLAB_MAP_CIVIL, :categorydescription
+    subset = if system_type == sys_civil
+        CIVIL_COSTS_BY_SCJS_CASE[casetype]
     else
-        AA_COSTS, SCJS_SLAB_MAP_AA, :hsm_full
+        AA_COSTS_BY_SCJS_CASE[casetype]
     end
-    subset = costs[ (costs[!,ctype] .∈ ( map[casetype], )), :]    
+    # subset = costs[ (costs[!,ctype] .∈ ( map[casetype], )), :]    
     n = size(subset)[1]
     p = sample(1:n)    
     return subset[p,:]
