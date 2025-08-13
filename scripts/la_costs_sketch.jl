@@ -402,3 +402,19 @@ aa_counts_cases, aa_counts_status, aa_stats_m, aa_stats_a = compare_breakdowns( 
 for (k,v) in aa_counts_cases
     println( "$k = $v")
 end
+
+
+#=
+
+sketch 2
+=#
+
+sys2 = deepcopy(sys)
+sys2.legalaid.civil.capital_contribution_limits[2]=190_000
+sys2.legalaid.civil.income_contribution_limits[4]=190_000
+results = Runner.do_one_run( settings, [sys,sys2], obs )
+open("stdout.txt", "w") do io
+    redirect_stdout(io) do
+        outf = summarise_frames!( results, settings )
+    end
+end
