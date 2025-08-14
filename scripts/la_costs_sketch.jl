@@ -7,6 +7,7 @@ using .Monitor: Progress
 using .Runner
 using .RunSettings
 using .STBParameters
+using .STBOutput
 using .Utils
 
 using StatsBase
@@ -350,6 +351,7 @@ function initialise(
     costings, needs, cases_per_need, mpeople, results
 end
 
+tot = 0
 settings = Settings()
 settings.included_data_years = [2019,2021,2022]
 # emulate, as far as we can, the system in place in 2024, 
