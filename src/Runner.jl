@@ -52,7 +52,7 @@ module Runner
         summarise_inc_frame 
 
     # this is to remove a nasty cross-dependency
-    include( "legal_aid_costs_runner.jl")
+    # include( "legal_aid_costs_runner.jl")
 
     function do_one_run(
         settings :: Settings,
@@ -72,12 +72,14 @@ module Runner
                 BenefitGenerosity.initialise()  
             end
         end
+        #=
         if settings.do_legal_aid && (settings.legal_aid_costs_strategy == la_individual_costs)
             # This setting change is a hack to stop recursion, since la_initialise calls run.
             settings.legal_aid_costs_strategy = la_no_costs
             la_initialise( settings, observer )   
             settings.legal_aid_costs_strategy = la_individual_costs
         end
+        =#
         full_results = Array{HouseholdResult}(undef,0,0)
         # fixme if we have one are threads OK? I think yes
         if settings.export_full_results
