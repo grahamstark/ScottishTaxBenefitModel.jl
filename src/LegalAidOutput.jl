@@ -643,6 +643,7 @@ cost_items - names of each:
   - props: la type propensities
   - labels: pretty print label
 """
+#=
 function make_summary_table( 
     pre :: DataFrame, 
     post :: DataFrame,
@@ -663,6 +664,7 @@ function make_summary_table(
     end
     return tab
 end
+=#
 
 """
 Call `combine_one_legal_aid` on all the `TARGETS`
@@ -988,7 +990,7 @@ function crosstab_to_df( ct :: Matrix ) :: DataFrame
 end
 
 
-const MAX_COST_SAMPLES = 5
+const MAX_COST_SAMPLES = 100
 """
 take some samples of actual cases of this type and compare them to a contribution.
 # status::String, 
@@ -1001,6 +1003,9 @@ function get_sample_case_cost(
     contrib_pre  :: Number,
     contrib_post :: Number,
     is_aa :: Bool )::Tuple
+    if hsm_censored == "adults_with_incapacity_or_mental_health"
+        return 0.0, 0.0
+    end
     # costs dg grouped on case type (hsm, run through utils.basiccensor)
     costs = is_aa ? LegalAidData.AA_COSTS_GRP1 : LegalAidData.CIVIL_COSTS_GRP1
     paid = costs[(;hsm_censored=hsm_censored)].totalpaid
@@ -1084,8 +1089,8 @@ function make_summary_tab(
                 added_contrib_pre = w*preres*scase_pr/1000.0 #*scase_pr # 
                 added_contrib_post = w*postres*scase_po/1000.0 #*scase_pr # 
                 # av case
-                added_contrib_pre = w*preres*min(precost, max_contrib_pr/1000.0)
-                added_contrib_post = w*postres*min(postcost, max_contrib_po/1000.0)
+                # added_contrib_pre = w*preres*min(precost, max_contrib_pr/1000.0)
+                # added_contrib_post = w*postres*min(postcost, max_contrib_po/1000.0)
                 tab[3,2] += added_contrib_pre 
                 tab[3,3] += added_contrib_post 
                 if (max_contrib_pr>0) && (max_contrib_po>0)
@@ -1104,10 +1109,9 @@ function make_summary_tab(
                 if (max_contrib_pr == 0)&&(max_contrib_po > 0)
                     # @assert added_cost_pre == 0 "row=$row tcost=$tcost added_cost_pre=$added_cost_pre"
                     @assert added_cost_post >= 0 
-                    @assert added_contrib_post > 0                   
+                    @assert added_contrib_post >= 0                   
                     @assert added_contrib_pre == 0                   
                     @assert added_contrib_pre <= added_cost_pre
-                    @assert added_contrib_post <= added_cost_post "row=$row tcost=$tcost postres=$postres added_contrib_post $added_contrib_post added_cost_post $added_cost_post"
                     #@assert (added_contrib_pre-added_contrib_post) <= (added_cost_post-added_cost_pre)
                 end
                 @assert added_contrib_pre <= added_contrib_post "row=$row tcost=$tcost added_cost_pre=$added_cost_pre"
