@@ -1,7 +1,7 @@
 name = "ScottishTaxBenefitModel"
 uuid = "a734f2ee-4b7f-478f-84ca-797081d39f6e"
 authors = ["Graham Stark"]
-version = "0.1.6"
+version = "0.1.7"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -119,14 +119,14 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [preferences.ScottishTaxBenefitModel]
 ccode = ""
-default_run_name = "sb-0.1.6"
+default_run_name = "sb-0.1.7"
 do_indirect_tax_calculations = false
 do_legal_aid = false
 do_local_run = false
 do_marginal_rates = false
 do_replacement_rates = false
 dump_frames = false
-included_data_years = [2019, 2021, 2022]
+included_data_years = [2019, 2021, 2022, 2023]
 indirect_method = "matching"
 ineq_income_measure = "eq_bhc_net_income"
 legal_aid_costs_strategy = "la_individual_costs"

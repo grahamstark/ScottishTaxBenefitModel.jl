@@ -487,7 +487,7 @@ DIR = "/mnt/data/lcf/"
 
 
 """
-Load 2018/9 - 2020/1 LCFs and add some matching fields.
+Load 2018/9 - 2022/3 LCFs and add some matching fields.
 """
 function load5lcfs()::Tuple
     lcfhrows,lcfhcols,lcfhh18 = Common.load( "$(DIR)/1819/tab/2018_dvhh_ukanon.tab", 2018 )

@@ -502,8 +502,8 @@ end
 Main entry point for data creation. Creates UK - wide datasets; scottish subset is made later.
 
 """
-function create_data(;start_year::Int, end_year::Int)
-    for year in start_year:end_year
+function create_data(;years :: UnitRange )
+    for year in years
             print("on year $year ")
         y = year - 2000
         ystr = "$(y)$(y+1)"
@@ -537,7 +537,8 @@ function create_data(;start_year::Int, end_year::Int)
         #
         # 2021 renames ... these are all the same variables
         #
-        renameif!( adult, ["nssec20"=> "nssec", "soc2020"=>"soc2010"]) # 2021 change; this seems to be the same variable
+        renameif!( adult, 
+            ["nssec20"=> "nssec", "soc2020"=>"soc2010", "alimony"=>"alimny"]) # 2021 change; this seems to be the same variable
 
         model_children = create_children(
             year, 
@@ -577,10 +578,9 @@ function create_data(;start_year::Int, end_year::Int)
             frsx )
         println( "on year $year")
         println( "hhlds")
-        append = year > start_year
-        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_households-$(start_year)-$(end_year)-w-enums-2.tab", model_households, delim = "\t", append=append)
-        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year)-w-enums-2.tab", model_people, delim = "\t", append=append)
-        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(start_year)-$(end_year)-w-enums-2.tab", model_children, delim = "\t", append=true)
-    
+        append = year > years[1]
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_households-$(years[begin])-$(years[end])-w-enums-2.tab", model_households, delim = "\t", append=append)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(years[begin])-$(years[end])-w-enums-2.tab", model_people, delim = "\t", append=append)
+        CSV.write("$(MODEL_DATA_DIR)/actual_data/model_people-$(years[begin])-$(years[end])-w-enums-2.tab", model_children, delim = "\t", append=true)    
     end    
 end

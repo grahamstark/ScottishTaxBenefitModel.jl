@@ -1,5 +1,5 @@
 {
-	"unix-model_data_dir":"/home/graham_s/julia/vw/ScottishTaxBenefitModel/data/",
+	"unix-model_data_dir":"/mnt/data/ScotBen/data/",
 	"unix-raw_data":"/mnt/data/",
 	"windows-model_data_dir":"C:\\Users\\User\\julia\\vw\\ScottishTaxBenefitModel\\data\\",
 	"windows-raw_data":"M:\\mnt\\data\\"

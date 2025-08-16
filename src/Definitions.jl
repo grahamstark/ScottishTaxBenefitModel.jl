@@ -30,6 +30,17 @@ export
    TEST_DIR
 
 
+const MODEL_NAME       = "Scottish Tax Benefit Model" 
+# FIXME these might be better at the top of ScottishTaxBenefitModel.jl itself
+const PROJECT_DIR      = joinpath(dirname(pathof(ScottishTaxBenefitModel)),".." )
+const MODEL_PARAMS_DIR = joinpath( PROJECT_DIR, "params" )
+const SCRIPTS_DIR      = joinpath( PROJECT_DIR, "scripts" )
+const TEST_DIR         = joinpath( PROJECT_DIR, "test" )
+const DOCS_DIR         = joinpath( PROJECT_DIR, "docs" )
+const SRC_DIR          = joinpath( PROJECT_DIR, "src" )
+const CONFIG_DIR       = joinpath( PROJECT_DIR, "etc" )
+
+
 """
 Inefficient but works ... load a path 'which' from a json file etc/config.json
 with default if config isn't there or which isn't in the file. Loads the
@@ -48,16 +59,6 @@ function load_data_path( ; default :: String, which::Symbol ) :: String
    end
    return jfile[whichp]
 end
-
-const MODEL_NAME       = "Scottish Tax Benefit Model" 
-# FIXME these might be better at the top of ScottishTaxBenefitModel.jl itself
-const PROJECT_DIR      = joinpath(dirname(pathof(ScottishTaxBenefitModel)),".." )
-const MODEL_PARAMS_DIR = joinpath( PROJECT_DIR, "params" )
-const SCRIPTS_DIR      = joinpath( PROJECT_DIR, "scripts" )
-const TEST_DIR         = joinpath( PROJECT_DIR, "test" )
-const DOCS_DIR         = joinpath( PROJECT_DIR, "docs" )
-const SRC_DIR          = joinpath( PROJECT_DIR, "src" )
-const CONFIG_DIR       = joinpath( PROJECT_DIR, "etc" )
 
 # FIXME delete all these-replaced with artifacts
 const DEF_MODEL_DATA_DIR   = joinpath( PROJECT_DIR, "data" )

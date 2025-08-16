@@ -1,12 +1,7 @@
 module MatchingLibs
 
 #
-# A script to match records from 2019/19 to 2020/21 lcf to 2020 FRS
-# strategy is to match to a bunch of characteristics, take the top 20 of those, and then
-# match between those 20 on household income. 
-# TODO
-# - make this into a module and a bit more general-purpose;
-# - write up, so why not just Engel curves?
+# matching WAS, LCF, SHS data
 #
 
 using CSV,
@@ -160,6 +155,7 @@ const ODIR = "data/matches/"
 function everything_off_settings(data_source :: DataSource = FRSSource)::Settings
     settings = Settings()
     settings.data_source = data_source
+    settings.included_data_years = [] # all years regardless of defaults
     settings.num_households, settings.num_people=FRSHouseholdGetter.initialise(settings)
     settings.data_source = data_source
     settings.do_indirect_tax_calculations = false
@@ -170,7 +166,7 @@ end
 
 function create_was_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = everything_off_settings(data_source)
-    wass = MatchingLibs.was.create_subset()
+    wass = was.create_subset()
     matches = map_all( settings, wass, was.model_row_match, "was"; num_samples=num_samples )
     matches.default_datayear = matches.datayear_1
     matches.default_hhld = matches.hhid_1
@@ -189,7 +185,7 @@ end
 
 function create_lcf_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = everything_off_settings(data_source)
-    lcfs = MatchingLibs.lcf.create_subset()
+    lcfs = lcf.create_subset()
     matches = map_all( settings, lcfs, lcf.model_row_match, "shs"; num_samples=num_samples )
     matches.default_datayear = matches.datayear_1 # default selection just the 1st one
     matches.default_hhld = matches.hhid_1
