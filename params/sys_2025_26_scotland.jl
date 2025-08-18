@@ -24,10 +24,10 @@ function load_sys_2025_26_scotland!( sys :: TaxBenefitSystem{T} ) where T
         112_570.0]
     sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
     # sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
-    sys.nmt_bens.carers.scottish_supplement = 231.40 # FROM APRIL 2021
+    sys.nmt_bens.carers.scottish_supplement = 293.50 # FROM APRIL 2021 !!! Check 2024
   
     ## !!! FIXME the Welsh ones in this file are not updated 
-    brmapath = joinpath( qualified_artifact( "augdata" ), "lha_rates_scotland_2024_25.csv")
+    brmapath = joinpath( qualified_artifact( "augdata" ), "lha_rates_scotland_2025_26.csv")
     sys.hr.brmas = loadBRMAs( 4, T, brmapath )
     sys.loctax.ct.band_d = Dict([
         :S12000033 => 	1636.27		, # Aberdeen City
@@ -65,7 +65,7 @@ function load_sys_2025_26_scotland!( sys :: TaxBenefitSystem{T} ) where T
 
     # here so it's always on 
     sys.scottish_child_payment.abolished = false
-    sys.scottish_child_payment.amount = 26.70
+    sys.scottish_child_payment.amount = 27.15
     sys.scottish_child_payment.maximum_age = 15
     #
     # Renames to Scottish benefits.

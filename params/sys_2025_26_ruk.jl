@@ -1,57 +1,26 @@
-#=
-see:
-This is the benefit/tax credit/IT/MinWage/NI rates for rUK, excluding NI,
+"""
+This is the benefit/tax credit/IT/MinWage/NI rates for rUK, excluding NI, 
+as of August 2025 - FY 2025/6
 
-from As of November 2024
-sources:
-IT: 
+  GOV.UK. ‘Alcohol Duty Rates’. 1 February 2025. https://www.gov.uk/guidance/alcohol-duty-rates.
+  GOV.UK. ‘Benefit and Pension Rates 2025 to 2026’. Accessed 16 August 2025. https://www.gov.uk/government/publications/benefit-and-pension-rates-2025-to-2026/benefit-and-pension-rates-2025-to-2026.
+  GOV.UK. ‘Child Benefit, Guardian’s Allowance and Tax Credits — Rates and Allowances’. Accessed 16 August 2025. https://www.gov.uk/government/publications/rates-and-allowances-tax-credits-child-benefit-and-guardians-allowance/tax-credits-child-benefit-and-guardians-allowance.
+  GOV.UK. ‘Minimum Wage Rates for 2025’. Accessed 16 August 2025. https://www.gov.uk/government/publications/minimum-wage-rates-for-2025.
+  GOV.UK. ‘Tobacco Products Duty Rates’. Accessed 18 August 2025. https://www.gov.uk/government/publications/rates-and-allowances-excise-duty-tobacco-duty/excise-duty-tobacco-duty-rates.
+  GOV.UK. ‘Vehicle Excise Duty Rates for Cars, Vans and Motorcycles — from 1 April 2025’. Accessed 16 August 2025. https://www.gov.uk/government/publications/vehicle-excise-duty-rates-for-cars-vans-and-motorcycles-from-1-april-2025/vehicle-excise-duty-rates-for-cars-vans-and-motorcycles-from-1-april-2025.
+  UK Parliament Seely, Antony, Francesco Masala, James Mirza-Davies, and Matthew Keep. Direct Taxes: Rates and Allowances for 2025/26. 16 August 2025. https://commonslibrary.parliament.uk/research-briefings/cbp-10237/.
 
-https://assets.publishing.service.gov.uk/media/672b9695fbd69e1861921c63/Autumn_Budget_2024_Accessible.pdf
+See also:
 
-https://www.gov.uk/government/publications/autumn-budget-2024-overview-of-tax-legislation-and-rates-ootlar/annex-a-rates-and-allowances
-
-previously:
-
-https://www.gov.uk/government/publications/spring-budget-2024-overview-of-tax-legislation-and-rates-ootlar/annex-a-rates-and-allowances
-* - allowances: https://www.gov.uk/government/publications/rates-and-allowances-income-tax/income-tax-rates-and-allowances-current-and-past
-*   - https://www.gov.uk/marriage-allowance
-*   - pension:https://www.gov.uk/government/publications/abolition-of-lifetime-allowance-and-increases-to-pension-tax-limits/pension-tax-limits
-* NI: https://www.gov.uk/government/publications/rates-and-allowances-national-insurance-contributions/rates-and-allowances-national-insurance-contributions
-* Benefits: https://www.gov.uk/government/publications/benefit-and-pension-rates-2023-to-2024/benefit-and-pension-rates-2023-to-2024
-* Tax Credits, CB etc.:https://www.gov.uk/government/publications/rates-and-allowances-tax-credits-child-benefit-and-guardians-allowance/tax-credits-child-benefit-and-guardians-allowance
-* Bedroom tax: https://www.gov.uk/housing-benefit/what-youll-ge
-
-##  Local Taxes: 
-
-* ENGLAND https://www.gov.uk/government/statistics/council-tax-levels-set-by-local-authorities-in-england-2024-to-2025
-* WALES https://www.gov.wales/council-tax-levels-april-2023-march-2024
-* SCOTLAND http://www.gov.scot/publications/council-tax-datasets/
-
-## LHA 
-
-* ENGLAND https://www.gov.uk/government/publications/local-housing-allowance-lha-rates-applicable-from-april-2023-to-march-2024
-* WALES https://www.gov.wales/local-housing-allowance
-* SCOTLAND: 
-
-Min wage
-https://www.gov.uk/government/publications/minimum-wage-rates-for-2024
-
-=#
-
-function load_sys_2025_26_pre_announced(sys :: TaxBenefitSystem{T} ) where T
-    sys.it.blind_persons_allowance  = 3_070.00  
-    sys.it.married_couples_allowance = 11_270.0
-    sys.it.mca_minimum     = 4_360.00
-    sys.it.mca_income_maximum   = 37_700.00
-    sys.it.mca_credit_rate    = 10.0
-    sys.it.mca_withdrawal_rate  = 50.0
-    sys.it.marriage_allowance   = 1_260.00
-    sys.it.personal_savings_allowance = 1_000.00
-    sys.ni.secondary_class_1_rates = [0.0, 15.0, 15.0 ] # keep 2 so
-  end
-
-function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
-    sys.name = "rUK System 2024/5"
+  Scottish Government. ‘Minimum Unit Pricing for Alcohol’. Accessed 18 August 2025. https://www.gov.scot/policies/alcohol-and-drugs/minimum-unit-pricing/.
+  Scottish Government. ‘Up-Rating Policy for 2025-26’. Accessed 16 August 2025. https://www.gov.scot/publications/social-security-assistance-scotland-up-rating-inflation-2025-26/pages/8/.
+  Scottish Government.‘2025 to 2026’. Accessed 18 August 2025. https://www.gov.scot/publications/local-housing-allowance-rates/pages/2025-to-2026/.
+  Scottish Government.‘Council Tax Datasets’. 26 March 2024. https://www.gov.scot/publications/council-tax-datasets/.
+  Scottish Fiscal Commission. Scotland’s Economic and Fiscal Forecasts Update – June 2025 | Scottish Fiscal Commission. 25 June 2025. https://fiscalcommission.scot/publications/scotlands-economic-and-fiscal-forecasts-update-june-2025/.
+  National Records Scotland. ‘Mid-2024 Population Estimates - National Records of Scotland (NRS)’. Accessed 16 August 2025. https://www.nrscotland.gov.uk/publications/mid-2024-population-estimates/.
+"""
+function load_sys_2025_26_ruk!( sys :: TaxBenefitSystem{T} ) where T
+    sys.name = "rUK System 2025/6"
 
     sys.it.non_savings_rates = [20.0,40.0,45.0]
     sys.it.non_savings_thresholds = [37_700, 125_140.0]
@@ -70,9 +39,9 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
     sys.it.personal_allowance_withdrawal_rate = 50.0
     sys.it.blind_persons_allowance  = 3_130.0
   
-    sys.it.married_couples_allowance = 11_080.0
-    sys.it.mca_minimum     = 4_280.00
-    sys.it.mca_income_maximum   = 37_000.00
+    sys.it.married_couples_allowance = 11_270.0
+    sys.it.mca_minimum     = 4_360.00
+    sys.it.mca_income_maximum   = 37_700.00
     sys.it.mca_credit_rate    = 10.0
     sys.it.mca_withdrawal_rate  = 50.0
   
@@ -113,12 +82,12 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.ni.abolished = false
   sys.ni.primary_class_1_rates = [0.0, 0.0, 8.0, 2.0 ]
   sys.ni.primary_class_1_bands = [123.0, 242.0, 967.0, 9999999999999.9] # the '-1' here is because json can't write inf
-  sys.ni.secondary_class_1_rates = [0.0, 13.8, 13.8 ] # keep 2 so
+  sys.ni.secondary_class_1_rates = [0.0, 15.0, 15.0 ] # keep 2 so
   sys.ni.secondary_class_1_bands = [175.0, 967.0, 99999999999999.9 ]
   sys.ni.state_pension_age = 66; # fixme move
   # https://www.gov.uk/self-employed-national-insurance-rates
-  sys.ni.class_2_threshold = 6_725.0;
-  sys.ni.class_2_rate = 1.45;
+  sys.ni.class_2_threshold = 6_845
+  sys.ni.class_2_rate = 3.50
   sys.ni.class_4_rates = [0.0, 6.0, 2.0 ]
   # TODO CHECK 50_270
   sys.ni.class_4_bands = [12_570.0, 50_270.0, 99999999999999.9 ]
@@ -132,37 +101,37 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   sys.lmt.premia.family = 0.0 # see cpag 21/2 p 330 18.53
   sys.lmt.premia.family_lone_parent = 0.0 # 22.20 
-  sys.lmt.premia.carer_single = 45.60
-  sys.lmt.premia.carer_couple = 2*45.60
-  sys.lmt.premia.disabled_child = 74.69
-  sys.lmt.premia.disability_single = 42.50
-  sys.lmt.premia.disability_couple = 60.60
-  sys.lmt.premia.enhanced_disability_child = 32.20 # FIXME
-  sys.lmt.premia.enhanced_disability_single = 20.85
-  sys.lmt.premia.enhanced_disability_couple = 29.75
+  sys.lmt.premia.carer_single = 46.40
+  sys.lmt.premia.carer_couple = 2*46.40
+  sys.lmt.premia.disabled_child = 81.37
+  sys.lmt.premia.disability_single = 43.20
+  sys.lmt.premia.disability_couple = 61.65
+  sys.lmt.premia.enhanced_disability_child = 32.75 
+  sys.lmt.premia.enhanced_disability_single = 21.20
+  sys.lmt.premia.enhanced_disability_couple = 30.25
   sys.lmt.premia.severe_disability_single = 81.50
   sys.lmt.premia.severe_disability_couple = 163.00
-  sys.lmt.premia.pensioner_is = 190.70
+  sys.lmt.premia.pensioner_is = 201.95
 
-  sys.lmt.allowances.age_18_24 = 71.70
-  sys.lmt.allowances.age_25_and_over = 90.50
-  sys.lmt.allowances.age_18_and_in_work_activity = 90.50
+  sys.lmt.allowances.age_18_24 = 72.90
+  sys.lmt.allowances.age_25_and_over = 92.05
+  sys.lmt.allowances.age_18_and_in_work_activity = 92.05
   sys.lmt.allowances.over_pension_age = 217.00 # FIXME is this still a thing?
-  sys.lmt.allowances.lone_parent = 90.50
+  sys.lmt.allowances.lone_parent = 92.05
   sys.lmt.allowances.lone_parent_over_pension_age = 217.00 # FIXME sat
-  sys.lmt.allowances.couple_both_under_18 = 71.70
+  sys.lmt.allowances.couple_both_under_18 = 72.90
   sys.lmt.allowances.couple_both_over_18 = 142.25
   sys.lmt.allowances.couple_over_pension_age = 324.70 # FIXME
   sys.lmt.allowances.couple_one_over_18_high = 142.25
-  sys.lmt.allowances.couple_one_over_18_med = 90.50
-  sys.lmt.allowances.pa_couple_one_over_18_low = 71.70
-  sys.lmt.allowances.child = 82.24
-  sys.lmt.allowances.pc_mig_single = 218.15
-  sys.lmt.allowances.pc_mig_couple = 332.95
-  sys.lmt.allowances.pc_child = 66.29
+  sys.lmt.allowances.couple_one_over_18_med = 92.05
+  sys.lmt.allowances.pa_couple_one_over_18_low = 72.90
+  sys.lmt.allowances.child = 84.66
+  sys.lmt.allowances.pc_mig_single = 227.10
+  sys.lmt.allowances.pc_mig_couple = 346.60
+  sys.lmt.allowances.pc_child = 67.42
 
   # sys.lmt.income_rules.
-  sys.lmt.income_rules.permitted_work = 183.50
+  sys.lmt.income_rules.permitted_work = 195.50
   sys.lmt.income_rules.lone_parent_hb = 25.0
   sys.lmt.income_rules.high = 20.0
   sys.lmt.income_rules.low_couple = 10.0
@@ -183,7 +152,7 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   # FIXME child capital disregard 5000 what's that?
 
   sys.lmt.income_rules.capital_tariff = 250
-  sys.lmt.income_rules.pensioner_tariff = 500
+  sys.lmt.income_rules.pensioner_tariff = 500 # FIXME is this a thing?
   # FIXME why do we need a seperate copy of HoursLimits here?
 
   sys.lmt.hours_limits.lower = 16
@@ -192,10 +161,10 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   sys.lmt.savings_credit.abolished = false
   sys.lmt.savings_credit.withdrawal_rate = 60.0
-  sys.lmt.savings_credit.threshold_single = 189.80
-  sys.lmt.savings_credit.threshold_couple = 301.22
-  sys.lmt.savings_credit.max_single = 17.01
-  sys.lmt.savings_credit.max_couple = 19.04
+  sys.lmt.savings_credit.threshold_single = 198.27
+  sys.lmt.savings_credit.threshold_couple = 314.34
+  sys.lmt.savings_credit.max_single = 17.30
+  sys.lmt.savings_credit.max_couple = 19.36
   sys.lmt.savings_credit.available_till = Date( 2016, 04, 06 )
 
   sys.lmt.child_tax_credit.abolished = true
@@ -222,39 +191,39 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.lmt.working_tax_credit.non_earnings_minima = 300.0 # FIXME check
 
   sys.lmt.hb.taper = 65.0
-  sys.lmt.hb.ndd_deductions = [19.30,44.40,60.95,99.65,113.50,124.55]
-  sys.lmt.hb.ndd_incomes = [183.0,266.0,348.0,463.0,579.0,99999999999999.9]
+  sys.lmt.hb.ndd_deductions = [19.65,45.15,62.00,101.35,115.45,126.65]
+  sys.lmt.hb.ndd_incomes = [183.0,266.0,348.0,463.0,577.0,99999999999999.9]
 
-  sys.lmt.ctr.taper = 20.0
+  sys.lmt.ctr.taper = 20.0 # CHECK SCOTLAND!!
   sys.lmt.ctr.ndd_deductions = [] # FIXME
   sys.lmt.ctr.ndd_incomes = []
 
 
   sys.uc.abolished = false
   sys.uc.threshold = 2_500.0 ## NOT USED
-  sys.uc.age_18_24 = 311.68
-  sys.uc.age_25_and_over = 393.45
+  sys.uc.age_18_24 = 316.98
+  sys.uc.age_25_and_over = 400.14
 
-  sys.uc.couple_both_under_25 = 489.23
-  sys.uc.couple_oldest_25_plus = 617.60
+  sys.uc.couple_both_under_25 = 497.55
+  sys.uc.couple_oldest_25_plus = 628.10
 
-  sys.uc.first_child = 333.33
-  sys.uc.subsequent_child = 287.92
-  sys.uc.disabled_child_lower = 156.11
-  sys.uc.disabled_child_higher = 487.58
-  sys.uc.limited_capcacity_for_work_activity = 416.19
-  sys.uc.carer = 198.31
+  sys.uc.first_child = 339.00
+  sys.uc.subsequent_child = 292.81
+  sys.uc.disabled_child_lower = 158.76
+  sys.uc.disabled_child_higher = 495.87
+  sys.uc.limited_capcacity_for_work_activity = 423.27
+  sys.uc.carer = 201.68
 
   sys.uc.ndd = 91.47
 
-  sys.uc.childcare_max_2_plus_children = 1_739.37 # pm
-  sys.uc.childcare_max_1_child = 1_014.63
+  sys.uc.childcare_max_2_plus_children = 1768.94 # pm
+  sys.uc.childcare_max_1_child = 1_031.88
   sys.uc.childcare_proportion = 85.0 # pct
 
   sys.uc.minimum_income_floor_hours = 35*WEEKS_PER_MONTH # CHECK
 
-  sys.uc.work_allowance_w_housing = 404.00
-  sys.uc.work_allowance_no_housing = 673.00
+  sys.uc.work_allowance_w_housing = 411.00
+  sys.uc.work_allowance_no_housing = 684.00
   sys.uc.other_income = UC_OTHER_INCOME
   # sys.uc.earned_income :: IncludedItems = UC_EARNED_INCOME
   sys.uc.capital_min = 6_000.0
@@ -276,9 +245,9 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   # https://www.gov.uk/government/publications/minimum-wage-rates-for-2022
   # col 1
   sys.minwage.ages = [16,18,21,23]
-  sys.minwage.wage_per_hour = [6.40, 8.60, 11.44, 11.44]
+  sys.minwage.wage_per_hour = [7.55, 10.0, 12.21, 12.21]
 
-  sys.minwage.apprentice_rate = 6.40
+  sys.minwage.apprentice_rate = 7.55
 
   # CHECK THESE 3 - fine https://www.gov.uk/housing-benefit/what-youll-get
   sys.hr.maximum_rooms = 4
@@ -287,59 +256,59 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
 
   sys.nmt_bens.attendance_allowance.abolished = false
-  sys.nmt_bens.attendance_allowance.higher = 108.55
-  sys.nmt_bens.attendance_allowance.lower = 72.65
+  sys.nmt_bens.attendance_allowance.higher = 110.40
+  sys.nmt_bens.attendance_allowance.lower = 73.90
 
 
   sys.nmt_bens.child_benefit.abolished = false
-  sys.nmt_bens.child_benefit.first_child = 25.60
-  sys.nmt_bens.child_benefit.other_children = 16.95
+  sys.nmt_bens.child_benefit.first_child = 26.05
+  sys.nmt_bens.child_benefit.other_children = 17.25
   sys.nmt_bens.child_benefit.high_income_thresh = 50_000.0
   sys.nmt_bens.child_benefit.withdrawal = 1/100
-  sys.nmt_bens.child_benefit.guardians_allowance = 21.75
+  sys.nmt_bens.child_benefit.guardians_allowance = 22.10
 
   sys.nmt_bens.dla.abolished = false
-  sys.nmt_bens.dla.care_high = 108.55
-  sys.nmt_bens.dla.care_middle = 72.65
-  sys.nmt_bens.dla.care_low = 28.70
-  sys.nmt_bens.dla.mob_high = 75.75
-  sys.nmt_bens.dla.mob_low = 28.70
+  sys.nmt_bens.dla.care_high = 110.40
+  sys.nmt_bens.dla.care_middle = 73.90
+  sys.nmt_bens.dla.care_low = 29.20
+  sys.nmt_bens.dla.mob_high = 77.05
+  sys.nmt_bens.dla.mob_low = 29.20
 
   sys.nmt_bens.carers.abolished = false
-  sys.nmt_bens.carers.allowance = 81.90
+  sys.nmt_bens.carers.allowance = 83.30
 
   # TODO
-  sys.nmt_bens.carers.scottish_supplement = 288.60 # CHECK 2023/4
+  sys.nmt_bens.carers.scottish_supplement = 288.60 # CHECK 2023/4 NOT USED!!! see scottish bens
   sys.nmt_bens.carers.hours :: Int = 35
   # FIXME check the earnings rules here
-  sys.nmt_bens.carers.gainful_employment_min = 151.00
+  sys.nmt_bens.carers.gainful_employment_min = 196.00
 
 
   sys.nmt_bens.pip.abolished = false
-  sys.nmt_bens.pip.dl_standard = 72.65
-  sys.nmt_bens.pip.dl_enhanced = 108.55
-  sys.nmt_bens.pip.mobility_standard = 28.70
-  sys.nmt_bens.pip.mobility_enhanced = 75.75
+  sys.nmt_bens.pip.dl_standard = 73.90
+  sys.nmt_bens.pip.dl_enhanced = 110.40
+  sys.nmt_bens.pip.mobility_standard = 29.20
+  sys.nmt_bens.pip.mobility_enhanced = 77.05
   
   sys.nmt_bens.esa.abolished = false
-  sys.nmt_bens.esa.assessment_u25 = 71.70
-  sys.nmt_bens.esa.assessment_25p = 90.50
-  sys.nmt_bens.esa.main   = 90.50
-  sys.nmt_bens.esa.work   = 35.95
-  sys.nmt_bens.esa.support  = 44.70
+  sys.nmt_bens.esa.assessment_u25 = 72.90
+  sys.nmt_bens.esa.assessment_25p = 92.05
+  sys.nmt_bens.esa.main   = 92.05
+  sys.nmt_bens.esa.work   = 36.55
+  sys.nmt_bens.esa.support  = 48.50 # chevk 2024 typo!
 
 
   sys.nmt_bens.jsa.abolished = false
-  sys.nmt_bens.jsa.u25 = 71.70
-  sys.nmt_bens.jsa.o24 = 90.50
+  sys.nmt_bens.jsa.u25 = 72.90
+  sys.nmt_bens.jsa.o24 = 92.05
 
   sys.nmt_bens.pensions.abolished = false
-  sys.nmt_bens.pensions.new_state_pension = 221.20
+  sys.nmt_bens.pensions.new_state_pension = 230.25
   # pension_start_date = Date( 2016, 04, 06 )
-  sys.nmt_bens.pensions.cat_a  = 169.50
-  sys.nmt_bens.pensions.cat_b  = 169.50
-  sys.nmt_bens.pensions.cat_b_survivor = 101.55
-  sys.nmt_bens.pensions.cat_d  = 101.55
+  sys.nmt_bens.pensions.cat_a  = 176.45
+  sys.nmt_bens.pensions.cat_b  = 176.45
+  sys.nmt_bens.pensions.cat_b_survivor = 105.70
+  sys.nmt_bens.pensions.cat_d  = 105.70
 
   sys.nmt_bens.bereavement.abolished = false
   # higher effectively just means 'with children'; 
@@ -351,16 +320,16 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.nmt_bens.widows_pension.abolished = false
   sys.nmt_bens.widows_pension.industrial_higher = 156.20 # FIXME check these 2 again
   sys.nmt_bens.widows_pension.industrial_lower = 46.86
-  sys.nmt_bens.widows_pension.standard_rate =  148.40
-  sys.nmt_bens.widows_pension.parent = 148.40
+  sys.nmt_bens.widows_pension.standard_rate =  150.90
+  sys.nmt_bens.widows_pension.parent = 148.40 # FIXME abolished???
   sys.nmt_bens.widows_pension.ages = collect(54:-1:45)
-  sys.nmt_bens.widows_pension.age_amounts = [138.01, 127.62, 127.62, 117.24, 106.85, 96.46,
-    86.07, 75.68, 65.30, 54.91, 44.52]
+  sys.nmt_bens.widows_pension.age_amounts = [140.34, 129.77, 119.21, 108.65, 98.09,
+    87.52, 76.69, 66.40, 55.83, 45.27] # CHECK 2024!
 
   # 
   # young carer grant
   sys.nmt_bens.maternity.abolished = false
-  sys.nmt_bens.maternity.rate = 184.03
+  sys.nmt_bens.maternity.rate = 187.18
 
 
   sys.nmt_bens.smp = 184.03 ## 90% of earn cpag 21/2 812
@@ -372,7 +341,7 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
   # not really needed, but anyway ..
   sys.bencap.inside_london_single = 326.29
   sys.bencap.inside_london_couple = 486.98
-  sys.bencap.uc_incomes_limit = 722.0
+  sys.bencap.uc_incomes_limit = 16 *  sys.minwage.wage_per_hour[end]
 
   sys.ubi.abolished = true
   sys.ubi.adult_amount = 4_800.0
@@ -383,10 +352,10 @@ function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   sys.loctax.ct.band_d = Dict(
     [
-      :ENGLAND  => 2_171.0,
-      :WALES    => 2_024.0,
-      :SCOTLAND => 1_418.0, # FROZEN!!
-      :LONDON => 2_065.0,
+      :ENGLAND  => 2_280.0, # !!! Inc London
+      :WALES    => 2_170.0,
+      :SCOTLAND => 1_421.0, # !!! 2024/5
+      :LONDON => 2_280.0, # !!! NO
       :NIRELAND => -99999.99
     ] )
 
