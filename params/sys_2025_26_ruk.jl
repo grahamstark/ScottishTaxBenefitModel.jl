@@ -327,21 +327,17 @@ function load_sys_2025_26_ruk!( sys :: TaxBenefitSystem{T} ) where T
     87.52, 76.69, 66.40, 55.83, 45.27] # CHECK 2024!
 
   # 
-  # young carer grant
   sys.nmt_bens.maternity.abolished = false
   sys.nmt_bens.maternity.rate = 187.18
 
-
   sys.nmt_bens.smp = 184.03 ## 90% of earn cpag 21/2 812
-  # = XX
-  ## ALL UNCHANGED ... NB divide 52
+
   sys.bencap.abolished = false
   sys.bencap.outside_london_single = 283.71
   sys.bencap.outside_london_couple = 423.46
-  # not really needed, but anyway ..
   sys.bencap.inside_london_single = 326.29
   sys.bencap.inside_london_couple = 486.98
-  sys.bencap.uc_incomes_limit = 16 *  sys.minwage.wage_per_hour[end]
+  sys.bencap.uc_incomes_limit = 16 *  sys.minwage.wage_per_hour[end] * WEEKS_PER_MONTH
 
   sys.ubi.abolished = true
   sys.ubi.adult_amount = 4_800.0
