@@ -29,7 +29,6 @@ export
    SRC_DIR,
    TEST_DIR
 
-
 const MODEL_NAME       = "Scottish Tax Benefit Model" 
 # FIXME these might be better at the top of ScottishTaxBenefitModel.jl itself
 const PROJECT_DIR      = joinpath(dirname(pathof(ScottishTaxBenefitModel)),".." )
