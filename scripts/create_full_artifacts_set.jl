@@ -21,6 +21,7 @@ using ScottishTaxBenefitModel
 using .Utils
 using .FRSHouseholdGetter
 using .WeightingData
+using .RunSettings
 using .LocalWeightGeneration
 #!! @testset "Local reweighing" in local_level_calculations_tests - move here
 
@@ -42,6 +43,9 @@ cp data/actual_data/model_households_scotland-2015-2023-w-enums-1.tab households
 LOCAL - local_level_calculations_tests has create wage data
 
 =#
+# DON'T create saved Scottish weights
+
+create_la_weights( settings )
 
 # at the end, set data version back
 
