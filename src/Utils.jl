@@ -72,11 +72,13 @@ export
    uprate_struct!,
    get_data_version
 
+const ARTIFACT_DIR = "/mnt/data/ScotBen/artifacts/"
+
 function get_data_version()::VersionNumber
-   if haskey(ENV,"SCOTBEN_DATA_VERSION")
-      return VersionNumber( ENV["SCOTBEN_DATA_VERSION"])
+   return if haskey(ENV,"SCOTBEN_DATA_VERSION")
+      VersionNumber( ENV["SCOTBEN_DATA_VERSION"])
    else
-      return  pkgversion(ScottishTaxBenefitModel) 
+      pkgversion(ScottishTaxBenefitModel) 
    end
 end
 
@@ -112,9 +114,16 @@ function get_artifact_name( artname :: String )::AbstractString
     return get_artifact_name( artname, Sys.iswindows())[1]
 end
 
+"""
+return something like "augdata-v0.13", or, if "SCOTBEN_DATA_DEVELOPING" is set as
+an env variable, the directory we build the artifacts in. 
+"""
 function qualified_artifact( artname :: String )
-   ars = get_artifact_name( artname )
-   return @artifact_str(ars)
+   return if haskey(ENV,"SCOTBEN_DATA_DEVELOPING") # we're writing direct into the development directory
+      joinpath(ARTIFACT_DIR,artname)
+   else
+      @artifact_str(get_artifact_name( artname ))
+   end
 end
 
 """
@@ -135,7 +144,7 @@ function make_artifact(;
    full_artifact_name, filename = get_artifact_name( artifact_name, is_windows )
    # version = Pkg.project().version
    gzip_file_name = "$(filename).tar.gz"
-   dir = "/mnt/data/ScotBen/artifacts/"
+   dir = ARTIFACT_DIR 
    if is_windows # windows defender 
          artifact_server_upload = @load_preference( "local-artifact_server_upload_windows" )
          artifact_server_url = @load_preference( "local-artifact_server_url_windows" )

@@ -20,16 +20,37 @@ include("artifacts-bulk-upload.jl")
 using ScottishTaxBenefitModel
 using .Utils
 using .FRSHouseholdGetter
+using .MatchingLibs
 using .WeightingData
 using .RunSettings
 using .LocalWeightGeneration
+using .WeightingData
+
 #!! @testset "Local reweighing" in local_level_calculations_tests - move here
+ENV["SCOTBEN_DATA_VERSION"]="0.1.6" # change manually 
+# data in development mode
+ENV["SCOTBEN_DATA_DEVELOPING"]=1
+
+settings = Settings()
+settings.included_data_years = [2019,2021,2022,2023] # new 4 year sample MANUALLY EDIT THIS FOR EXTRA YEARS
+
+const datadir = get_data_artifact(settings) 
+
+const workdir = joinpath( homedir(), "tmp", "working-output" )
+if ! isdir( workdir )
+   mkpath( workdir )
+end
 
 # bump the data version 
 
 v = get_data_version()
+#=
+matching data
+=#
 
-ENV["SCOTBEN_DATA_VERSION"]="0.1.7" # change manually 
+MatchingLibs.create_shs_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-shs-data" ))
+MatchingLibs.create_lcf_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-lcf-expenditure" ))
+MatchingLibs.create_was_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-was-wealth" ))
 
 #=
 create new frs datasets 
@@ -45,11 +66,21 @@ LOCAL - local_level_calculations_tests has create wage data
 =#
 # DON'T create saved Scottish weights
 
-create_la_weights( settings )
-
 # at the end, set data version back
 
-ENV["SCOTBEN_DATA_VERSION"]="0.1.6"
+# local authority weights (FIXME for multiple year selections?)
+wd = create_la_weights( settings )
+CSV.write( joinpath( datadir, "weights-la.tab"), d; delim='\t')
+init_local_weights( settings; reset=true)
+rd = LocalWeightGeneration.create_wage_relativities( settings )
+CSV.write( joinpath( datadir, "local-nomis-frs-wage-relativities.tab"), rd; delim='\t')
+
+
+
+
+
+
+ENV["SCOTBEN_DATA_VERSION"]="0.1.7"
+delete!(ENV,"SCOTBEN_DATA_DEVELOPING")
 
 # after finishing, manually edit version number in Project.toml to match bumped version
-

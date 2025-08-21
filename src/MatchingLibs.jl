@@ -164,33 +164,33 @@ function everything_off_settings(data_source :: DataSource = FRSSource)::Setting
     return settings
 end
 
-function create_was_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
+function create_was_matches( odir :: AbstractString, data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = everything_off_settings(data_source)
     wass = was.create_subset()
     matches = map_all( settings, wass, was.model_row_match, "was"; num_samples=num_samples )
     matches.default_datayear = matches.datayear_1
     matches.default_hhld = matches.hhid_1
-    CSV.write( "$(ODIR)was-matches.tab", matches; delim='\t')
-    CSV.write( "$(ODIR)was-subset.tab", wass; delim='\t')
+    CSV.write( joinpath(odir, "was-matches.tab"), matches; delim='\t')
+    CSV.write( joinpath(odir, "was-subset.tab"), wass; delim='\t')
 end
 
-function create_shs_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
+function create_shs_matches( odir :: AbstractString, data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = everything_off_settings(data_source)
     shss = shs.create_subset()
     matches = map_all( settings, shss, shs.model_row_match, "shs"; num_samples=num_samples )
     shs.hack_income_field_to_sample_freqs( matches, shss )
-    CSV.write( "$(ODIR)shs-matches.tab", matches; delim='\t')
-    CSV.write( "$(ODIR)shs-subset.tab", shss; delim='\t')
+    CSV.write( joinpath( odir, "shs-matches.tab"), matches; delim='\t')
+    CSV.write( joinpath( odir, "shs-subset.tab"), shss; delim='\t')
 end
 
-function create_lcf_matches( data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
+function create_lcf_matches( odir :: AbstractString, data_source :: DataSource = FRSSource; num_samples=NUM_SAMPLES )
     settings = everything_off_settings(data_source)
     lcfs = lcf.create_subset()
-    matches = map_all( settings, lcfs, lcf.model_row_match, "shs"; num_samples=num_samples )
+    matches = map_all( settings, lcfs, lcf.model_row_match, "lcf"; num_samples=num_samples )
     matches.default_datayear = matches.datayear_1 # default selection just the 1st one
     matches.default_hhld = matches.hhid_1
-    CSV.write( "$(ODIR)lcf-matches.tab", matches; delim='\t')
-    CSV.write( "$(ODIR)lcf-subset.tab", lcfs; delim='\t')
+    CSV.write( joinpath(odir, "lcf-matches.tab"), matches; delim='\t')
+    CSV.write( joinpath(odir, "lcf-subset.tab"), lcfs; delim='\t')
 end
 
 end # module

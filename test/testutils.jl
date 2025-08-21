@@ -217,7 +217,7 @@ end
 #
 # This needs to match the path in the default run settings.
 #
-tmpdir = joinpath( tempdir(), "output" )
+tmpdir = joinpath( homedir(), "tmp", "test-output" )
 if ! isdir( tmpdir )
-   mkdir( tmpdir )
+   mkpath( tmpdir )
 end
