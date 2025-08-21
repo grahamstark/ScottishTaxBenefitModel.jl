@@ -19,6 +19,7 @@ include("artifacts-bulk-upload.jl")
 
 using ScottishTaxBenefitModel
 using .Utils
+using .Definitions
 using .FRSHouseholdGetter
 using .MatchingLibs
 using .WeightingData
@@ -31,7 +32,10 @@ ENV["SCOTBEN_DATA_VERSION"]="0.1.6" # change manually
 # data in development mode
 ENV["SCOTBEN_DATA_DEVELOPING"]=1
 
-settings = Settings()
+settings = Settings() # turn of all the matching 
+settings.use_shs = false
+settings.indirect_method = no_method
+settings.wealth_method = no_method
 settings.included_data_years = [2019,2021,2022,2023] # new 4 year sample MANUALLY EDIT THIS FOR EXTRA YEARS
 
 const datadir = get_data_artifact(settings) 
@@ -47,6 +51,9 @@ v = get_data_version()
 #=
 matching data
 =#
+settings.num_households, 
+settings.num_people = 
+    FRSHouseholdGetter.initialise( settings; reset=true )
 
 MatchingLibs.create_shs_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-shs-data" ))
 MatchingLibs.create_lcf_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-lcf-expenditure" ))
