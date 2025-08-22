@@ -18,7 +18,7 @@ function hack_num_people( r :: DataFrameRow )::Int
 end
 
 
-function make_candidates( ds :: DataFrame, target::Symbol, dname :: String, probkey::Symbol )
+function make_candidates( output_dir::String, ds :: DataFrame, target::Symbol, dname :: String, probkey::Symbol )
   # all those who haven't got the benefit, ranked by highest->lowest modelled prob of receipt. Add these in 1st when modelling
   # more generous eligibility test.
   positive_candidates = ds[(ds[!,target] .== 0) .& (ds.region .== "Scotland"), [:data_year,:hid,:pid,:weight, probkey, target ]]   
@@ -27,9 +27,9 @@ function make_candidates( ds :: DataFrame, target::Symbol, dname :: String, prob
   # a reduction in entitlement.
   negative_candidates = ds[(ds[!,target] .== 1) .& (ds.region .== "Scotland"), [:data_year,:hid,:pid,:weight, probkey, target ]]
   sort!(negative_candidates, probkey )
-  CSV.write( "data/actual_data/positive_candidates_$(target)_$(dname).tab", positive_candidates; delim='\t' )
-  CSV.write( "data/actual_data/negative_candidates_$(target)_$(dname).tab", negative_candidates; delim='\t' )
-  println( "writing to data/actual_data/negative_candidates_$(target)_$(dname).tab")
+  CSV.write( joinpath( output_dir, "positive_candidates_$(target)_$(dname).tab"), positive_candidates; delim='\t' )
+  CSV.write( joinpath( output_dir, "negative_candidates_$(target)_$(dname).tab"), negative_candidates; delim='\t' )
+  println( "writing to negative_candidates_$(target)_$(dname).tab")
 end
 
 #
@@ -38,11 +38,17 @@ end
 #  "data/actual_data/model_people-2015-2022-w-enums-2.tab"
 #  files are model files for ALL UK!! Not just Scotland
 #
-function create_all_disability_regressions( hhfile::String, peoplefile :: String; datayears :: Vector{Int} )
-  frshh = CSV.File( hhfile ) |> DataFrame
-  frspeople = CSV.File( peoplefile ) |> DataFrame
-
+function create_all_disability_regressions( ;
+  input_dir :: String, 
+  output_dir :: String, 
+  hhfile::String, 
+  peoplefile :: String,
+  datayears :: Vector{Int} )
+  frshh = CSV.File( joinpath( input_dir, hhfile ) ) |> DataFrame
+  frspeople = CSV.File( joinpath( input_dir, peoplefile )) |> DataFrame
+  
   fm = innerjoin( frshh, frspeople, on=[:data_year, :hid ], makeunique=true )
+  fm = fm[fm.data_year .∈ ( datayears, ), :]
   for r in eachrow(fm)
     if r.adls_are_reduced == "Missing_ADLS_Inhibited"
       r.adls_are_reduced = "not_reduced"
@@ -190,24 +196,19 @@ function create_all_disability_regressions( hhfile::String, peoplefile :: String
           probkey = Symbol( "$(target)_prob" )
           ds[!, probkey] = predict( v )
           dname = dsno == 1 ? "working_age" : "pensioners"
-          make_candidates( ds, target, dname, probkey )
+          make_candidates( output_dir, ds, target, dname, probkey )
         end
   end
 
-  RegressionTables.regtable( main_out ...;  render = LatexTable(), file="docs/disability_regressions-2015-22.tex" )
+  RegressionTables.regtable( main_out ...;  render = AsciiTable(), file="docs/disability_regressions-$(datayears).txt" )
   RegressionTables.regtable( main_out ... )
 
   dspp = vcat( fm_working_age, fm_pension_age )
-  make_candidates(dspp, :any_carers, "all_adults", :any_carers_prob )
-
-
-
+  make_candidates( output_dir, dspp, :any_carers, "all_adults", :any_carers_prob )
   #=
-  We have no child receips FUCKKKKK
-  so we can't regress...
+  We have no child receips so we can't regress...
   So just make up a score
   =#
-
   sickkids = sort( fm_children[fm_children.region.=="Scotland",[:data_year,:hid,:pid,:weight, :dis_score ]],:dis_score, rev=true )
-  CSV.write( "data/actual_data/child_disabilities_ranked.tab", sickkids; delim='\t' )
+  CSV.write( joinpath( output_dir, "child_disabilities_ranked.tab"), sickkids; delim='\t' )
 end
