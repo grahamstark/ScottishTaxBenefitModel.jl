@@ -1263,53 +1263,6 @@ function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_
     weeklyise!( tb.legalaid )
 end
 
-#=
-
-"""
-Load a file `filename` and use it to create a modified version
-of the default parameter system. The file should contain
-entries like `sys.it.personal_allowance=999` but can also contain
-arbitrary code.Note: probably not thread safe: poss global variable?
-The file is executed as julia code but doesn't actually need
-a `.jl` extension.
-"""
-function load_file( sysname :: AbstractString, RT :: Type = Float64 ) :: TaxBenefitSystem        
-    begin
-        T = RT
-        sys = TaxBenefitSystem{T}()
-        global sys
-        global T
-        include( sysname )
-    end
-    if ! sys.ubi.abolished
-        make_ubi_pre_adjustments!( sys )
-    end
-    return sys
-end
-
-"""
-Load a file `filename` and use it to modify the given parameter system. The file should contain
-entries like `sys.it.personal_allowance=999` but can also contain
-arbitrary code.Note: probably not thread safe: poss global variable?
-The file is executed as julia code but doesn't actually need
-a `.jl` extension.
-"""
-function load_file!( psys :: TaxBenefitSystem{RT}, sysname :: AbstractString ) where RT
-        begin
-            # I have no idea why scoping
-            # like this works ..
-            T = RT
-            sys = psys
-            global sys
-            global T
-            include( sysname )
-            if ! sys.ubi.abolished
-                make_ubi_pre_adjustments!( sys )
-            end
-        end
-end
-=#
-
 include( "$(MODEL_PARAMS_DIR)/sys_2019_20_ruk.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2020_21.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2021_22.jl")
@@ -1325,6 +1278,8 @@ include( "$(MODEL_PARAMS_DIR)/sys_2023_24_scotland.jl")
 include( "$(MODEL_PARAMS_DIR)/ni_rates_jan_2024.jl" )
 include( "$(MODEL_PARAMS_DIR)/sys_2024_25_ruk.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2024_25_scotland.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2025_26_ruk.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2025_26_scotland.jl")
 
 """
 return the full system for the given date, weeklyised
