@@ -8,7 +8,7 @@
  Benefits: https://bprcdn.parliament.scot/published/2024/3/14/6f58227d-21aa-4016-91e6-f3d0bb29962d/SB%2024-15.pdf
 """
 function load_sys_2025_26_scotland!( sys :: TaxBenefitSystem{T} ) where T
-    sys.name = "Scottish System 2024/25"
+    sys.name = "Scottish System 2025/26"
     sys.it.non_savings_rates = T[
         19.0, # starter
         20.0, # basic
@@ -26,7 +26,6 @@ function load_sys_2025_26_scotland!( sys :: TaxBenefitSystem{T} ) where T
     # sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
     sys.nmt_bens.carers.scottish_supplement = 293.50 # FROM APRIL 2021 !!! Check 2024
   
-    ## !!! FIXME the Welsh ones in this file are not updated 
     brmapath = joinpath( qualified_artifact( "augdata" ), "lha_rates_scotland_2025_26.csv")
     sys.hr.brmas = loadBRMAs( 4, T, brmapath )
     sys.loctax.ct.band_d = Dict([
