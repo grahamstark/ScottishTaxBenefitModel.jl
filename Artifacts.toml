@@ -71,11 +71,11 @@ lazy = true
     url = "file:///c:/data/example_data-v0.1.6.tar.gz"
 
 ["scottish-frs-data-unix-v0.1.6"]
-git-tree-sha1 = "7f49f5c02d1ae26fa9b21c7f1e90315fe735b16f"
+git-tree-sha1 = "bf0affe1bd90248921a433bdaf8d6b3eb304912f"
 lazy = true
 
     [["scottish-frs-data-unix-v0.1.6".download]]
-    sha256 = "100df97175f35b91293ec3614b02b3689cccc51c426e5e7cf619d4e4e6fa817e"
+    sha256 = "9120383b835e03d722be3bffa6d5372adc1fc02521a85b096c3ea1c86b85eee4"
     url = "file:///mnt/data/ScotBen/local_artifacts//scottish-frs-data-v0.1.6.tar.gz"
 
 ["scottish-frs-data-unix-v0.1.7"]
