@@ -5,17 +5,20 @@ module LocalWeightGeneration
 # 
 
 using ScottishTaxBenefitModel
-using .ModelHousehold
+
 using .Definitions
 using .FRSHouseholdGetter
+using .ModelHousehold
 using .RunSettings
 using .Weighting
-using SurveyDataWeighting
+using .WeightingData: LA_CODES
+
 using CSV
-using StatsBase
-using PrettyTables
 using DataFrames
 using LinearAlgebra
+using PrettyTables
+using StatsBase
+using SurveyDataWeighting
 
 include( joinpath(SRC_DIR,"targets","scotland-localities-2024.jl") )
 

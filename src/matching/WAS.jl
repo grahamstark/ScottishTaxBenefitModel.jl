@@ -103,7 +103,10 @@ end
 	Value = 8.0	Label = Never worked and long-term unemployed
 	Value = 97.0 Label = Not classified
 """
-function map_socio_one( socio :: Real ) :: Int
+function map_socio_one( socio :: Union{Real,Missing} ) :: Int
+    if ismissing( socio )
+        return 9
+    end
     d = Dict([
         1.1 => 1, # Employers_in_large_organisations is way out WAS vs FRS so amalgamate
         1.2 => 1,
@@ -272,8 +275,8 @@ into:
  end
  
 """
-function map_empstat( ie :: Int ) :: Vector{Int}
-    if ie < 0
+function map_empstat( ie :: Union{Int,Missing} ) :: Vector{Int}
+    if(ismissing(ie))||(ie < 0)
         return rand(Int,2)
     end
     i2 = if ie <= 3

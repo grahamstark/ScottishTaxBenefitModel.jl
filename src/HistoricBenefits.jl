@@ -22,7 +22,8 @@ export switch_dla_to_pip!
 
 const RATIO_BENS = [state_pension,bereavement_allowance_or_widowed_parents_allowance_or_bereavement]
 
-function load_historic( file ) :: Dict
+function load_historic( file::AbstractString ) :: Dict
+    println( "loading historic benefits data from $file")
     df = CSV.File( file ) |> DataFrame
     nc = size( df )[2]
     nms = strip.(names( df ))
@@ -37,6 +38,7 @@ function load_historic( file ) :: Dict
         end
         db[dr.year] = d
     end
+    println("got data for years $( sort(collect(keys(db))))")
     return db
 end
 

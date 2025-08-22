@@ -1,4 +1,4 @@
-#
+# 22/8/2025:: NOT MAINTAINED: USE ../scripts/create_all_disability_regressions.jl instead
 # Regressions for take-up of disability benefits.
 # using just what's in the model datasets
 #
