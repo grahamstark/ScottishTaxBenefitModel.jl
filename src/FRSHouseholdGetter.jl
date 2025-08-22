@@ -449,6 +449,7 @@ module FRSHouseholdGetter
                 weight_type = settings.weight_type,
                 lower_multiple = settings.lower_multiple,
                 upper_multiple = settings.upper_multiple )
+            @show weights
             for i in 1:nhhlds # just assign weight = weight?
                 MODEL_HOUSEHOLDS.hhlds[i].weight = weights[i]
             end

@@ -95,8 +95,12 @@ function init( settings :: Settings; reset = false )
             scottish=settings.target_nation == N_Scotland )
         IND_MATCHING = CSV.File( joinpath( w_artifact, "matches.tab" )) |> DataFrame
         WEALTH_DATASET = CSV.File( joinpath( w_artifact, "dataset.tab"); types=jam_on_float ) |> DataFrame
+        # missing housing for renters
+        WEALTH_DATASET.house_price = coalesce.( WEALTH_DATASET.house_price, 0.0 )
+        # FIXME 3 missings now - CHECK THIS
+        WEALTH_DATASET.net_financial = coalesce.( WEALTH_DATASET.net_financial, 0.0 )
+        @show WEALTH_DATASET[1:20,WEALTH_COLS]
         uprate_raw_wealth()
-        println( WEALTH_DATASET[1:2,:])
     end
 end
 

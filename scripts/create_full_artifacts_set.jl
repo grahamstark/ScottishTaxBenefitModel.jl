@@ -79,8 +79,6 @@ MatchingLibs.create_shs_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-shs-data
 MatchingLibs.create_lcf_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-lcf-expenditure" ))
 MatchingLibs.create_was_matches(joinpath( Utils.ARTIFACT_DIR, "scottish-was-wealth" ))
 
-# DON'T create saved Scottish weights
-
 # turn matching back on for weight generation
 settings.use_shs = true
 settings.indirect_method = matching
@@ -93,18 +91,28 @@ WeightingData.init_local_weights( settings; reset=true)
 rd = LocalWeightGeneration.create_wage_relativities( settings )
 CSV.write( joinpath( datadir, "local-nomis-frs-wage-relativities.tab"), rd; delim='\t')
 
-#
-# disability candidates.
-# Edit `hhfile and `peoplefile` to point to the full, all years, UK-wide model datasets 
-# created each year and input_dir to where they live.
-# Probably worth manually revisiting the regressions.
-#
+#=
+## Disability candidates.
+
+Edit `hhfile and `peoplefile` to point to the full, all years, UK-wide model datasets 
+created each year and input_dir to where they live.
+Probably worth manually revisiting the regressions.
+=#
 create_all_disability_regressions( ;
   input_dir = SCOTBEN_DATA,
   output_dir = qualified_artifact( "disability" ), 
   hhfile = "model_households-2015-2023-w-enums-2.tab", 
   peoplefile = "model_people-2015-2023-w-enums-2.tab",
   datayears = DATA_YEARS )
+#=
+Make precomputed Scotland Weights - CAREFUL - for this combination of years only!
+this just sets up the data 
+=#
+settings.weighting_strategy = use_runtime_computed_weights
+settings.num_households, settings.num_people, np = FRSHouseholdGetter.initialise( settings; reset=true )
+settings.output_dir = get_data_artifact( settings )
+FRSHouseholdGetter.extract_weights_and_deciles( settings, "weights" )
+
 
 # increment data version, and turn of writing to the base datadir.
 ENV["SCOTBEN_DATA_VERSION"]="0.1.7"
