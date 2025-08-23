@@ -62,7 +62,8 @@ export
     calc_post_tax_non_means_tested!,
     calc_pre_tax_non_means_tested!, 
     calc_state_pension, 
-    calc_widows_benefits
+    calc_widows_benefits,
+    calc_ruk_dla
     
 """
 Child Benefit - this has to be done *after* income tax, so we have
@@ -495,8 +496,17 @@ function calc_dla(
             zero(T)
         end
     end
-    return dc, dm     
-    #=
+    return dc, dm   
+end  
+
+"""
+old version rstored as a hack.
+"""
+function calc_ruk_dla(  
+    pers :: Person{T},
+    dla  :: DisabilityLivingAllowance{T}):: Tuple{T,T} where T
+    dc = zero(T)
+    dm = zero(T)
 
     dla_s = dla_greater_of( pers.dla_self_care_type, pers.pip_daily_living_type )
     dla_m = dla_greater_of( pers.dla_mobility_type, pers.pip_mobility_type )
@@ -530,8 +540,7 @@ function calc_dla(
         dm = dla.mob_low
     end
     # println( "setting DLA as $dc, $dm")
-    =#
-    return (dc,dm);
+    return (dc,dm)
 end # dla calc
 
 """

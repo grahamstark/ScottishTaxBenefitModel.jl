@@ -44,6 +44,7 @@ using .NonMeansTestedBenefits:
     calc_maternity_allowance,
     calc_carers_allowance,
     calc_jsa,
+    calc_ruk_dla,
     calc_pre_tax_non_means_tested!,
     calc_post_tax_non_means_tested!
     
@@ -96,8 +97,7 @@ itsys_scot = get_default_it_system( year=2019, scotland=true )
     @test bures.pers[hp].income[CHILD_BENEFIT] ≈ 34.40
     # cap - 2k over so £20 pw reduction
     head.income = Incomes_Dict{Float64}() # clear other incomes
-    head.income[wages] = 52_000/WEEKS_PER_YEAR
-    
+    head.income[wages] = 55_000/WEEKS_PER_YEAR
     hhres = init_household_result( sph )
     bures = hhres.bus[1]
     # for total income calculation
@@ -109,7 +109,26 @@ itsys_scot = get_default_it_system( year=2019, scotland=true )
 
     calc_child_benefit!( bures, bu, cb )
     @test bures.pers[hp].income[GUARDIANS_ALLOWANCE] == 17.20
-    @test bures.pers[hp].income[CHILD_BENEFIT] ≈ (34.40 - 20)
+    @test bures.pers[hp].income[CHILD_BENEFIT] ≈ 34.40/2 
+    head.income = Incomes_Dict{Float64}() # clear other incomes
+    head.income[wages] = 60_000/WEEKS_PER_YEAR
+    hhres = init_household_result( sph )
+    bures = hhres.bus[1]
+    # for total income calculation
+    calc_income_tax!(
+        bures,
+        head,
+        nothing,
+        itsys_scot )
+
+    calc_child_benefit!( bures, bu, cb )
+    @test bures.pers[hp].income[GUARDIANS_ALLOWANCE] == 17.20
+    @test bures.pers[hp].income[CHILD_BENEFIT] ≈ 0.0
+
+
+
+
+
 end
 
 @testset "PIP" begin
@@ -133,20 +152,24 @@ end
     @test a ≈ 87.65
 end
 
-@testset "DLA" begin
+@testset "DLA Old version" begin
     dla = sys.nmt_bens.dla
     sph = get_example( single_parent_hh )
     head = get_head( sph )
     disable_seriously!( head )
     head.dla_self_care_type = mid
-    dd,dm = calc_dla( head, dla )
+    dd,dm = NonMeansTestedBenefits.calc_ruk_dla( head, dla )
     @test dd ≈ 58.70
     @test dm == 0
     head.dla_mobility_type = high
-    dd,dm = calc_dla( head, dla )
+    dd,dm = calc_ruk_dla( head, dla )
     @test dd ≈ 58.70
-    @test dm ≈ 61.20  
+    @test dm ≈ 61.20
 end
+
+@testset "ScottishChildDisabilityPayment" begin
+#   todo
+end 
 
 @testset "ESA" begin
     esa = sys.nmt_bens.esa
