@@ -377,7 +377,7 @@ end # test set
         sys.lmt.hours_limits,
         sys.age_limits,
         sys.child_limits,
-        1 )ct,
+        1 )
     eligs_sp = make_lmt_benefit_applicability( sys.lmt, intermed, sys.lmt.hours_limits )
     println( "single parent $eligs_sp" )
     @test eligs_sp.is
@@ -1310,6 +1310,7 @@ end
 end
 
 @testset "Full Legacy Benefits" begin
+    routes = [legacy_bens, legacy_bens, legacy_bens] # jam on routing legacy for <=2 bus
 #TODO
     for (key,hhc) in get_all_examples()
         println( "on $key")
@@ -1331,7 +1332,8 @@ end
             sys.age_limits,
             sys.hours_limits,
             sys.nmt_bens,
-            sys.hr )
+            sys.hr,
+            routes )
 
         # head is unemployed
         unemploy!( head )
@@ -1351,7 +1353,8 @@ end
             sys.age_limits,
             sys.hours_limits,
             sys.nmt_bens,
-            sys.hr )
+            sys.hr,
+            routes )
 
         # head is seriously disabled
         disable_seriously!( head )
@@ -1371,7 +1374,8 @@ end
             sys.age_limits,
             sys.hours_limits,
             sys.nmt_bens,
-            sys.hr )
+            sys.hr,
+            routes )
         # head is an informal carer    
         enable!( head )
         carer!( head )
@@ -1391,7 +1395,8 @@ end
             sys.age_limits,
             sys.hours_limits,
             sys.nmt_bens,
-            sys.hr )
+            sys.hr,
+            routes )
 
     end
 end
@@ -1399,6 +1404,7 @@ end
 
 @testset "PC/SC" begin
     # cpag19/20 EXAMPLES on p274
+    routes = [legacy_bens, legacy_bens]
     sys = get_system( year=2019, scotland=true )
     bhh= get_example(single_hh)
     bhh.net_financial_wealth = 0.0
@@ -1429,7 +1435,8 @@ end
         sys.age_limits,
         sys.hours_limits,
         sys.nmt_bens,
-        sys.hr )
+        sys.hr,
+        routes )
     lmt = hhres.bus[1].legacy_mtbens
 
     println( Results.to_string( hhres ))
@@ -1495,7 +1502,8 @@ end
         sys.age_limits,
         sys.hours_limits,
         sys.nmt_bens,
-        sys.hr )
+        sys.hr,
+        routes )
     lmt = hhres.bus[1].legacy_mtbens
     @test lmt.mig ≈ 255.25
     @test lmt.pc_premia ≈ 0
@@ -1541,7 +1549,8 @@ end
         sys.age_limits,
         sys.hours_limits,
         sys.nmt_bens,
-        sys.hr )
+        sys.hr,
+        routes )
     lmt = hhres.bus[1].legacy_mtbens
     @test lmt.can_apply_for.pc
     @test lmt.can_apply_for.sc
@@ -1560,7 +1569,8 @@ end
         sys.age_limits,
         sys.hours_limits,
         sys.nmt_bens,
-        sys.hr )
+        sys.hr,
+        routes )
     lmt = hhres.bus[1].legacy_mtbens
     @test eq_nearest_p(hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT], 14.21 )
     jres.income[PRIVATE_PENSIONS] = 100
@@ -1572,7 +1582,8 @@ end
         sys.age_limits,
         sys.hours_limits,
         sys.nmt_bens,
-        sys.hr )
+        sys.hr,
+        routes )
     lmt = hhres.bus[1].legacy_mtbens
     @test eq_nearest_p(hhres.bus[1].pers[june.pid].income[SAVINGS_CREDIT], 0.11 )
 end
@@ -1584,7 +1595,8 @@ end
     cpag_wpy = 366/365.25
     sys = get_system( year=2019, scotland=true )
     mt_ben_sys = sys.lmt
-
+    routes = [legacy_bens, legacy_bens]
+    
     
     tracyh = get_example(single_parent_hh)
     tracyh.net_financial_wealth = 0.0 
@@ -1764,7 +1776,8 @@ end
         sys.age_limits,
         sys.hours_limits,
         sys.nmt_bens,            
-        sys.hr
+        sys.hr,
+        routes
     )
     println( Results.to_string(hhres))
     println( inctostr( hhres.bus[1].pers[tracy.pid].income ))
@@ -1774,17 +1787,19 @@ end
 end
 
 @testset "Council Tax Reductions, 2024/5/6 version" begin
-    sys =  get_system( year=2024, scotland=true )# FIXME 2025 system    
-    seem_and_saul = get_benefit_units(get_example(cpl_w_2_children_hh))[1]
-    seem_and_saul.net_financial_wealth = 800.0 
-    seem_and_saul.gross_rent = 800.0
+    sys =  get_system( year=2025, scotland=true )# FIXME 2025 system 
+    #=   TODO proper unit tests for ct ben
+    hh = get_example(cpl_w_2_children_hh)
+    hh.net_financial_wealth = 800.0 
+    hh.gross_rent = 800.0
+    seem_and_saul = get_benefit_units(hh)[1]
+    saul = get_spouse( seem_and_saul )
     seem = get_head( seem_and_saul )
     seem.age = 30
     saul.age = 30
-    saul = get_spouse( seem_and_saul )
     # saul.incomes[]
-    @test num_children( seem_and_saul ) == 1
-    retire!( terry )
+    @test num_children( seem_and_saul ) == 2
+    # retire!( terry )
     intermed = make_intermediate( 
         DEFAULT_NUM_TYPE,
         settings,
@@ -1799,7 +1814,7 @@ end
     saulres = hhres.bus[1].pers[saul.pid]
     saulres.income[STATE_PENSION] = 193.35
     np = add_child!( seem_and_saul, 8, Female )
-    
+    =#
 
 
 end

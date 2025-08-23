@@ -7,7 +7,7 @@ using ScottishTaxBenefitModel
 using .FRSHouseholdGetter
 using .ModelHousehold
 using .BenefitGenerosity: initialise, to_set, change_status, adjust_disability_eligibility!, select_candidates
-using .NonMeansTestedBenefits: calc_pip, calc_dla, calc_attendance_allowance
+using .NonMeansTestedBenefits: calc_pip, calc_dla, calc_attendance_allowance, calc_ruk_dla
 using .Definitions
 using .RunSettings
 using .STBIncomes
@@ -158,7 +158,7 @@ end
                 if pip_m > 0
                     outr.pip_m += hh.weight
                 end
-                (dla_d,dla_m) = calc_dla( pers, sys.nmt_bens.dla )
+                (dla_d,dla_m) = calc_ruk_dla( pers, sys.nmt_bens.dla )
                 if dla_d > 0 
                     outr.dla_d += hh.weight
                 end

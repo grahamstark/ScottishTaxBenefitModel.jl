@@ -366,7 +366,10 @@ function calc_tariff_income(
     ucsys        :: UniversalCreditSys ) :: NamedTuple
     bu = benefit_unit # shortcut
     cap = intermed.net_financial_wealth
-    tincome = tariff_income( cap, ucsys.capital_min, ucsys.capital_tariff )
+    tincome = tariff_income( 
+        cap, 
+        ucsys.capital_min, 
+        ucsys.capital_tariff )
     (; cap, tincome )
  end
 

@@ -129,6 +129,7 @@ end
             sys.age_limits,
             sys.hours_limits,
             sys.nmt_bens,
-            sys.hr )
+            sys.hr,
+            [legacy_bens] )
     end
 end

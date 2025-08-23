@@ -20,21 +20,6 @@ using .RunSettings: Settings
     nhhs,npeople = init_data()
     nisys = NationalInsuranceSys{Float64}()
     weeklyise!( nisys )
-    hh = get_household(27)
-    person =  hh.people[120150022701]
-    println( person )
-    pres = IndividualResult{Float64}()
-    calculate_national_insurance!( pres, person, nisys )
-    @test pres.ni.class_1_primary >= 0.0
-    @test pres.ni.class_1_secondary >= 0.0
-
-end
-
-
-@testset "Run on actual Data" begin
-    nhhs,npeople = init_data()
-    nisys = NationalInsuranceSys{Float64}()
-    weeklyise!( nisys )
     for hno in 1:nhhs
         hh = get_household(hno)
         for (pid,person) in hh.people
