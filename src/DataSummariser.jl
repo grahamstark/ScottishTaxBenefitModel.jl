@@ -424,10 +424,17 @@ function get_raw_data!( settings :: Settings; reset=false )::Tuple
     people = HouseholdFromFrame.read_pers( 
         joinpath( dataset_artifact, "people.tab"))
     @show settings.num_households
+    @show size( hhs )
+    @show settings.included_data_years
+    # resize if we're not set to use all years
     if length( settings.included_data_years ) > 0 # if using a subset of years?
         people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
         hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
+        settings.num_households = size( hhs )[1]
+        settings.num_people = size( people )[1]
     end
+    @show size( hhs )
+    @show settings.num_households
     overwrite_raw!( hhs, people, settings.num_households )
     return hhs, people
 end

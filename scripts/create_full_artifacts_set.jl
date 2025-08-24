@@ -23,6 +23,7 @@ Pkg.update()
 
 include("artifacts-bulk-upload.jl")
 include("create_all_disability_regressions.jl")
+include( "../regressions/civil-problems-scjs.jl")
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -113,6 +114,12 @@ settings.num_households, settings.num_people, np = FRSHouseholdGetter.initialise
 settings.output_dir = get_data_artifact( settings )
 FRSHouseholdGetter.extract_weights_and_deciles( settings, "weights" )
 
+#
+# legal aid - optional
+#
+civil_probs = run_regressions_map_to_slab_version(settings)
+output_dir = qualified_artifact( "scottish-slab-legalaid" )
+CSV.write( joinpath( output_dir, "civil-legal-aid-probs-scotland-map_to_slab.tab"), civil_probs; delim='\t' )
 
 # increment data version, and turn of writing to the base datadir.
 ENV["SCOTBEN_DATA_VERSION"]="0.1.7"

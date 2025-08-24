@@ -46,11 +46,11 @@ for pol in pols
     colour = Dict(["Middle"=>:darkgrey,"Lovers"=>:green,"Haters"=>:red])
     for group in ["Middle","Lovers","Haters"]
             dallg[group] = if group == "Lovers"
-                dall[onescore .> 70, : ],
+                dall[onescore .> 70, : ]
             elseif group == "Haters"
-                dall[onescore .< 30, : ],
+                dall[onescore .< 30, : ]
             else
-                dall[onescore .>= 30 .& dall[onescore .<= 70, : ],
+                dall[onescore .>= 30 .& dall[onescore .<= 70, : ]
             end
     end
     for group in ["Middle","Lovers","Haters"]

@@ -151,7 +151,7 @@ function add_predicts!( df :: DataFrame, prefix::String, model, raw_data )
 	df[:,Symbol( "$(prefix)_upper")] = preds.upper
 end
 
-function run_regressions_map_to_slab_version()
+function run_regressions_map_to_slab_version( settings::Settings )::DataFrame
 	reg_family = glm( @formula( civ_family ~ datayear + taburbrur + simd_quint + hhcomp + acctype + tenure + qdgen +
 	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
 	iloclass + qdlegs + age + agesq + qdgen ), scjsciv, Binomial(), ProbitLink())
@@ -239,8 +239,6 @@ function run_regressions_map_to_slab_version()
 	regtable( r3_family, r3_children, r3_housing_neighbours, r3_health, r3_divorce, r3_money, r3_unfairness, r3_any;
 		below_statistic = TStat, digits = 4, file="tmp/edited-regs_r3-map_to_slab_version.txt")
 
-	settings = Settings()
-	settings.included_data_years = [] # all years, even if we don't want them in the sim
 	scoth, scotp = get_raw_data!( settings; reset=false )
 
 	# model dataset as regresssion dataframe, so we can
@@ -285,10 +283,10 @@ function run_regressions_map_to_slab_version()
 			summarise( "any", r3_any, cpnc, scjsciv)
 		end
 	end
-	CSV.write( "tmp/civil-legal-aid-probs-scotland-map_to_slab_version-2017-2021.tab",civil_probs; delim='\t' )
+	return civil_probs
 end
 
-function run_regressions_original_version()
+function run_regressions_original_version( settings :: Settings )
 
 	reg_home = glm( @formula( civ_home ~ datayear + taburbrur + simd_quint + hhcomp + acctype + tenure + qdgen +
 	log(hhinc) + qdeth3 +  is_carer + has_condition + qhstat + iloclass + 
@@ -378,8 +376,6 @@ function run_regressions_original_version()
 	# scoth = CSV.File( "data/model_households_scotland-2015-2021.tab") |> DataFrame
 	# scotp = CSV.File( "data/model_people_scotland-2015-2021.tab") |> DataFrame
 
-	settings = Settings()
-	settings.included_data_years = [] # all years, even if we don't want them in the sim
 	scoth, scotp = get_raw_data!( settings; reset=true )
 
 	fm = create_regression_dataframe( scoth, scotp )
