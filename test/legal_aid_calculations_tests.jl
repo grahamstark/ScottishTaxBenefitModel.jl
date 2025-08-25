@@ -38,7 +38,9 @@ using .ModelHousehold:
     search,
     to_string
 
-using .RunSettings: Settings 
+using .RunSettings
+
+using .DataSummariser
 
 using .STBParameters
 
@@ -71,10 +73,6 @@ using .ExampleHelpers
 
 using .STBIncomes
 
-using .GeneralTaxComponents:
-    WEEKS_PER_MONTH,
-    WEEKS_PER_YEAR
-
 using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData
 using .LegalAidOutput
@@ -91,6 +89,8 @@ import .Runner
 
 sys = get_system( year=2023, scotland=true )
 xprint = PrintControls()
+
+include( "../src/legal_aid_costs_runner.jl")
 
 function lasettings()
     settings = Settings()
@@ -601,13 +601,23 @@ end
     LegalAidOutput.dump_tables( outf.legalaid, settings; num_systems=2)
 end
 
+#=
+TODO test case verifying that cost change is never negative as the
+upper limits go up.
+=#
+
 @testset "New Costs Model" begin
+    #=
+    NOTE: this code is NOT ACTUALLY USED ANYMORE.
+    I fell back on a revision to the simpler system in LegalAidOutput.
+    =#
     settings = lasettings()
     settings.run_name="Test of LA running just in full model."
     settings.requested_threads = 4
     settings.wealth_method = matching # other_method_1
     settings.run_name = "Direct Run w Matching Capital"
     settings.do_legal_aid = true
+    la_initialise( settings, obs )
 
     sys2 = deepcopy(sys1)
     results = Runner.do_one_run( settings, [sys1,sys2], obs )

@@ -42,7 +42,6 @@ module Runner
         
     import .FRSHouseholdGetter
 
-    using .DataSummariser:get_raw_data! 
     using .Uprating: load_prices
     
     using .SingleHouseholdCalculations: do_one_calc

@@ -3,6 +3,16 @@
 Include file for `Runner.jl` initialising what's needed for the new costs model to work. 
 This is intended to be inserted into the `Runner` module. Doing it this way fixes some
 nasty cross-dependences. 
+
+!!! This code is not used in the live SLAB version, or included anymore in `Runner.jl`:
+
+ - nasty cross-dependency (needs a run to start a run with the initialised data);
+ - very slow, even with threading (num_people x 1 set per sample weight - so ≈ 5.5m always);
+ - existing code works reasonably well once a bug was fixed.
+
+But keep around as it's nice code by my standards and could be useful someday.
+Also .. sunk costs.
+
 =#
 
 """
