@@ -803,9 +803,9 @@ Overall summary table made from summary.income_summary tables, with 1 being the 
 Transpose the 1st three rows of these table. Assumes there's a col `label` at the end
 and that the totals are in the 1st 3 rows.
 """
-function make_short_cost_summary( income_summaries :: Vector{AbstractDataFrame} )::DataFrame 
-    last_data_row = findall(x->x=="label",names(income_summaries[1]))-1 # label is a col at the end.
+function make_short_cost_summary( income_summaries :: Vector )::DataFrame 
     cost_summaries = []
+    last_data_row = findfirst(x->x=="id",names(income_summaries[1]))-1 # label is a col at the end.        
     i = 0
     for s in income_summaries # round each income table
         i+=1
@@ -813,6 +813,7 @@ function make_short_cost_summary( income_summaries :: Vector{AbstractDataFrame} 
         summary = permutedims(s,:label,makeunique=true)[1:last_data_row,start_col:3]
         summary[!,end-1] ./= 1_000_000 # costs in £m
         summary[!,end] ./= 1_000 # counts in 000s
+        @show summary
         push!(cost_summaries, summary)
     end
     costsummary = hcat( cost_summaries..., makeunique=true )
