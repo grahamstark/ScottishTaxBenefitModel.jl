@@ -798,6 +798,29 @@ function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     return ( mean=mmtr, hist=hist)
 end
 
+"""
+Overall summary table made from summary.income_summary tables, with 1 being the base.
+Transpose the 1st three rows of these table. Assumes there's a col `label` at the end
+and that the totals are in the 1st 3 rows.
+"""
+function make_short_cost_summary( income_summaries :: Vector{AbstractDataFrame} )::DataFrame 
+    last_data_row = findall(x->x=="label",names(income_summaries[1]))-1 # label is a col at the end.
+    cost_summaries = []
+    i = 0
+    for s in income_summaries # round each income table
+        i+=1
+        start_col = i == 1 ? 1 : 2 # 1st 3 cols of transposed matrix, inc labels for 1st one.
+        summary = permutedims(s,:label,makeunique=true)[1:last_data_row,start_col:3]
+        summary[!,end-1] ./= 1_000_000 # costs in £m
+        summary[!,end] ./= 1_000 # counts in 000s
+        push!(cost_summaries, summary)
+    end
+    costsummary = hcat( cost_summaries..., makeunique=true )
+    costsummary[!,1] = pretty.(costsummary[!,1])
+    costsummary
+end
+
+
 function summarise_frames!( 
     frames :: NamedTuple,
     settings :: Settings;
@@ -893,6 +916,7 @@ function summarise_frames!(
         LegalAidOutput.create_propensities( frames.legalaid; reset_results = true  )
         LegalAidOutput.summarise_la_output!( frames.legalaid )
     end
+    short_income_summary = make_short_cost_summary( income_summary )
     return ( ;
         quantiles, 
         deciles, 
@@ -903,6 +927,7 @@ function summarise_frames!(
         child_poverty,
         gain_lose,
         poverty_lines,
+        short_income_summary,
         legalaid = frames.legalaid )
 end
 
