@@ -145,6 +145,7 @@ module RunSettings
         annual_rent_to_house_price_multiple = @load_preference( "annual_rent_to_house_price_multiple", 20.0 )
         included_data_years = @load_preference( "included_data_years", Int[] )
         legal_aid_costs_strategy :: LegalAidCostsStrategy = eval(Symbol(@load_preference( "legal_aid_costs_strategy", la_individual_costs )))
+        include_institutional_population :: Bool  = @load_preference( "include_institutional_population", false )        
     end
 
     """

@@ -444,6 +444,8 @@ module FRSHouseholdGetter
         # FIXME clean this whole bit up & move to a function 
         if settings.weighting_strategy == use_runtime_computed_weights
             # regenerate weights
+            # settings.include_instit
+            # FIXME add selectable institutional population here.
             @time weights, data = generate_weights( 
                 nhhlds;
                 weight_type = settings.weight_type,
