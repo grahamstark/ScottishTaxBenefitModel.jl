@@ -385,21 +385,21 @@ function make_data_summaries(
     out = []
     for k in nms 
         skipnonzeros = ! in( k, from_zero_vars )            
-        print( "on $k; skipnonzeros=$skipnonzeros")
+        # print( "on $k; skipnonzeros=$skipnonzeros")
         r = df[!,k]
         et = eltype(r)
         if et isa Union # {Missing,Any}
-            println( "Union type $et ")
+            # println( "Union type $et ")
             et = et.b # Union{Missing,X}; b is 2nd one
         end
         if et <: Integer
-            println( "Int")
+            # println( "Int")
             ss = summarise( k, r, df.weight, skipnonzeros=skipnonzeros )
         elseif et <: AbstractFloat
-            println( "Float")
+            # println( "Float")
             ss = summarise( k, r, df.weight, skipnonzeros=skipnonzeros )
         elseif (et <: Enum) || (et <: Symbol) || (et <: Bool )
-            println( "Enum")
+            # println( "Enum")
             ss = ( ; key=k, type="enum", weighted = sort( countmap( r, df.weight)), unweighted = sort( countmap( r )))
         else
             println( "unmatched $k")

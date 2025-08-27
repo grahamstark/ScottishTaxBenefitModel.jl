@@ -2,7 +2,97 @@
 #=
 sheet 4 of: data/targets/mar-2025-updates/target-generation.ods
 =#
-const DEFAULT_TARGETS_SCOTLAND_2025 = [
+const DEFAULT_TARGETS_SCOTLAND_2025_INC_INSTITUTIONAL = [
+    1396973.33650263	,	#	1	M- Total in employment- aged 16 from nomis summary + rescaled for popn projection 23-24
+    64874.8	,	#	2	M- Total unemployed- aged 16+
+    1335426.8358251	,	#	3	F- Total in employment- aged 16+
+    41671.8	,	#	4	F- Total unemployed- aged 16+
+    338562.8	,	#	5	private rented+rent free
+    295559.9	,	#	6	housing association
+    318971.5	,	#	7	las etc rented
+    123599.0	,	#	8	M – 0 – 4 HOUSEHOLD ONLY
+    138924.0	,	#	9	5 - 9
+    186048.0	,	#	10	10 – 15
+    129302.0	,	#	11	16 - 19
+    176325.0	,	#	12	20 - 24
+    179658.0	,	#	13	25 - 29
+    176733.0	,	#	14	 30 - 34
+    178096.0	,	#	15	 35 - 39
+    172290.0	,	#	16	40 - 44
+    159120.0	,	#	17	 45 - 49
+    171146.0	,	#	18	 50 - 54
+    192275.0	,	#	19	 55 - 59
+    191355.0	,	#	20	 60 - 64
+    165488.0	,	#	21	 65 - 69
+    133614.0	,	#	22	 70 - 74
+    115211.0	,	#	23	 75 - 79
+    117970.0	,	#	24	80+
+    117419.0	,	#	25	F – 0 - 4
+    131411.0	,	#	26	5 - 9
+    177151.0	,	#	27	10 – 15
+    124637.0	,	#	28	16 - 19
+    180764.0	,	#	29	20 - 24
+    186318.0	,	#	30	25 - 29
+    186595.0	,	#	31	 30 - 34
+    187534.0	,	#	32	 35 - 39
+    183256.0	,	#	33	40 - 44
+    167407.0	,	#	34	 45 - 49
+    182801.0	,	#	35	 50 - 54
+    205276.0	,	#	36	 55 - 59
+    204807.0	,	#	37	 60 - 64
+    177652.0	,	#	38	 65 - 69
+    147493.0	,	#	39	 70 - 74
+    133504.0	,	#	40	 75 - 79
+    172686.0	,	#	41	80+
+    485621.0	,	#	42	 # 42 - 1 adult: male
+    461487.0	,	#	43	 # 43 - 1 adult: female
+    821558.0	,	#	44	 # 44 - 2 adults
+    157479.0	,	#	45	 # 45 - 1 adult 1+ child
+    439357.0	,	#	46	 # 47 - 2+ adults 1+ children
+    206033.0	,	#	47	 # 48 - 3+ adults
+    89620.0	,	#	48	CARERS
+    706572.0	,	#	49	All Disability
+    116323.6	,	#	50	 # S12000034 - 52 Aberdeenshire  
+    55050.3	,	#	51	 # S12000041 - Angus  
+    41290.1	,	#	52	 # S12000035 - Argyll and Bute  
+    253222.8	,	#	53	 # S12000036 - City of Edinburgh  
+    24332.2	,	#	54	 # S12000005 - Clackmannanshire  
+    70025.3	,	#	55	 # S12000006 - Dumfries and Galloway  
+    71427.5	,	#	56	 # S12000042 - Dundee City  
+    55836.5	,	#	57	 # S12000008 - East Ayrshire  
+    47583.5	,	#	58	 # S12000045 - East Dunbartonshire  
+    49565.1	,	#	59	 # S12000010 - East Lothian  
+    41216.1	,	#	60	 # S12000011 - East Renfrewshire  
+    75553.7	,	#	61	 # S12000014 - Falkirk  
+    172710.9	,	#	62	 # S12000047 - Fife  
+    304947.7	,	#	63	 # S12000049 - Glasgow City  
+    112633.0	,	#	64	 # S12000017 - Highland  
+    36942.6	,	#	65	 # S12000018 - Inverclyde  
+    43594.4	,	#	66	 # S12000019 - Midlothian  
+    44228.3	,	#	67	 # S12000020 - Moray  
+    12649.0	,	#	68	 # S12000013 - Na h-Eileanan Siar  
+    64188.8	,	#	69	 # S12000021 - North Ayrshire  
+    156255.8	,	#	70	 # S12000050 - North Lanarkshire  
+    10914.2	,	#	71	 # S12000023 - Orkney Islands  
+    71100.2	,	#	72	 # S12000048 - Perth and KinroS  
+    89621.8	,	#	73	 # S12000038 - Renfrewshire  
+    56104.3	,	#	74	 # S12000026 - Scottish Borders  
+    10673.6	,	#	75	 # S12000027 - Shetland Islands  
+    53113.0	,	#	76	 # S12000028 - South Ayrshire  
+    151812.0	,	#	77	 # S12000029 - South Lanarkshire  
+    41633.4	,	#	78	 # S12000030 - Stirling  
+    43221.6	,	#	79	 # S12000039 - West Dunbartonshire  
+    83687.9	,	#	80	 # S12000040 - West Lothian  
+    698093.7	,	#	81	% all in employment who are - 2: professional occupations (SOC2010)
+    410667.6	,	#	82	% all in employment who are - 3: associate prof & tech occupations (SOC2010)
+    267880.4	,	#	83	% all in employment who are - 4: administrative and secretarial occupations (SOC2010)
+    266543.0	,	#	84	% all in employment who are - 5: skilled trades occupations (SOC2010)
+    264999.9	,	#	85	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
+    172208.8	,	#	86	% all in employment who are - 7: sales and customer service occupations (SOC2010)
+    160275.6	,	#	87	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
+    258107.5]	#	88	% all in employment who are - 9: elementary occupations (SOC2010)
+
+const DEFAULT_TARGETS_SCOTLAND_2025_HHLD_ONLY = [
     1396973.33650263	,	#	1	M- Total in employment- aged 16+ from nomis summary + rescaled for popn projection 24-25
     64874.8	,	#	2	M- Total unemployed- aged 16+
     1335426.8358251	,	#	3	F- Total in employment- aged 16+
@@ -90,9 +180,10 @@ const DEFAULT_TARGETS_SCOTLAND_2025 = [
     264999.9	,	#	85	% all in employment who are - 6: caring, leisure and other service occupations (SOC2010)
     172208.8	,	#	86	% all in employment who are - 7: sales and customer service occupations (SOC2010)
     160275.6	,	#	87	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
-    258107.5	]	#	88	% all in employment who are - 9: elementary occupations (SOC2010)
+    258107.5 ]	#	88	% all in employment who are - 9: elementary occupations (SOC2010)
 
-
+    # don't include institutional popn FIXME add a setting for this.
+    const DEFAULT_TARGETS_SCOTLAND_2025 = DEFAULT_TARGETS_SCOTLAND_2025_HHLD_ONLY
     const NUM_HOUSEHOLDS_SCOTLAND_2025 = sum( DEFAULT_TARGETS_SCOTLAND_2025[42:48]) # 2_537_971
     
     function make_target_row_scotland_2025!( row :: DataFrameRow, hh :: Household )

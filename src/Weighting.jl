@@ -120,8 +120,8 @@ function generate_weights(
     ## FIXME parameterise this
     initial_weights = ones(nhhlds)*household_total/nhhlds
     println( "initial_weights $(initial_weights[1])")
-
-     # any smaller min and d_and_s_constrained fails on this dataset
+    # any smaller min and d_and_s_constrained fails on this dataset
+    @assert size(data)[2] == length(targets) "mismatch sizes data=$(size(data)[2]) targets=$(length(targets))"
     weights = do_reweighting(
          data               = data,
          initial_weights    = initial_weights,
@@ -130,9 +130,6 @@ function generate_weights(
          lower_multiple     = lower_multiple,
          upper_multiple     = upper_multiple,
          tol                = 0.000001 )
-    # println( "results for method $weight_type = $(rw.rc)" )
-    # @assert rw.rc[:error] == 0 "non zero return code from weights gen $(rw.rc)"
-    # weights = rw.weights
     weighted_popn = (weights' * data)'
     println( "weighted_popn = $weighted_popn" )
     @assert weighted_popn ≈ targets

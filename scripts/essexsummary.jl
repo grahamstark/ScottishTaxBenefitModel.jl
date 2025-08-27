@@ -16,11 +16,16 @@ using .Weighting
 
 const TEMPDIR = joinpath( "/", "home", "graham_s", "tmp")
 
+"""
+Also makes the path as needed.
+"""
 function make_dirname( use_essex_years, use_essex_weights, do_matching )    
     year_str = use_essex_years ? "essex-data-years" : "full-data-years"
     weight_str = use_essex_weights ? "frs-weights" : "computed-weights"
     match_str = do_matching ? "matched-was-lcf-data" : "frs-data-only"
-    return joinpath( TEMPDIR, "output", year_str, weight_str, match_str ), year_str, weight_str, match_str
+    outdir = joinpath( TEMPDIR, "output", year_str, weight_str, match_str )
+    mkpath( outdir )
+    return outdir, year_str, weight_str, match_str
 end
 
 function draw_hist( path :: String, data :: NamedTuple, year_str::String, weight_str::String, match_str::String )
@@ -61,11 +66,11 @@ function do_one_summary_set(;
     if use_essex_years
         settings.included_data_years = [2019,2021,2022]
         # weights from the commented out little loop at bottom - FIXME set up a grid search?
-        settings.lower_multiple=0.640000000000000
-        settings.upper_multiple=5.86000000000000
+        settings.lower_multiple=0.5800000000000
+        settings.upper_multiple=6.20000000000
     else
-        settings.lower_multiple=0.630000000000000
-        settings.upper_multiple=4.72000000000000
+        settings.lower_multiple=0.620000000000000
+        settings.upper_multiple=5.8000000000000
     end
     settings.weighting_strategy = use_essex_weights ? use_supplied_weights : use_runtime_computed_weights
     if do_matching 
@@ -81,10 +86,14 @@ function do_one_summary_set(;
         joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame
     people = HouseholdFromFrame.read_pers( 
         joinpath( dataset_artifact, "people.tab"))
-    sys = STBParameters.get_default_system_for_fin_year( 2024 )
+    sys = STBParameters.get_default_system_for_fin_year( 2025 )
+    @show use_essex_years, use_essex_weights, do_matching
     settings.num_households, settings.num_people, nhhs2 = 
         FRSHouseholdGetter.initialise( settings; reset=true )
     if use_essex_years
+        people = people[ people.data_year .∈ ( [2019,2021,2022], ) , :]
+        hhs = hhs[ hhs.data_year .∈ ( [2019,2021,2022], ) , :]
+    elseif length(settings.included_data_years) > 0
         people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
         hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
     end
@@ -134,7 +143,6 @@ function compute_all()
 end
 
 function merge_enums( d1::DataFrame, d2::DataFrame, leftname, rightname )
-
     d3 = outerjoin( d1, d2; order=:left, on=[:varname,:label], renamecols = leftname => rightname )
 end
 
