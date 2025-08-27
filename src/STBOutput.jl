@@ -975,6 +975,7 @@ end
 """
 Write everything from the summaries into a directory
 constructed from the settings output filename and the run name.
+Writes CSV for the income summaries and quantiles and markdown for the rest.
 """
 function dump_summaries( settings :: Settings, summary :: NamedTuple )
     ns = length( summary.income_summary ) # num systems
@@ -1003,7 +1004,7 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
         println(io, "## Poverty Line#$(fno)")
         println(io, summary.poverty_lines[fno])
         # gain lose in 1 big file FIXME improve formatting
-        fname = joinpath( outdir, "gainlose_$(fno).tab")
+        fname = joinpath( outdir, "gainlose_$(fno).md")
         open( fname, "w") do gl_io 
             println( "Gain-Lose Tables: system $(fno) vs system 1\n")
             println( gl_io, "## Tenure\n\n")
