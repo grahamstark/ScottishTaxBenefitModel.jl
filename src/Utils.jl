@@ -989,7 +989,7 @@ function md_format( a :: AbstractDict )::String
 end
 
 function md_format( a :: AbstractFloat )::String
-   return @sprintf( "%0.2f", a)
+   return @sprintf( "%0.6f", a)
 end
 
 function md_format( a )
@@ -1043,7 +1043,7 @@ function to_md_table( f; exclude=[], depth=0 ) :: String
     for n in structnames
         v = getfield(f,n)
         s *= "#"*repeat( "#", depth ) * " " * pretty(n) *"\n"
-        s *= to_md_table( v, exclude=exclude, depth=depth )
+        s *= to_md_table( v; exclude=exclude, depth=depth )
     end
     return s;
 end

@@ -15,6 +15,7 @@ using DataFrames:
 using PovertyAndInequalityMeasures
 using CSV
 using Format
+using PrettyTables
 
 using StatsBase
 using ScottishTaxBenefitModel
@@ -46,14 +47,15 @@ using .SimplePovertyCounts:
 export 
     add_to_frames!,
     dump_frames,
+    dump_summaries,
     fill_in_deciles_and_poverty!,
-    initialise_frames,
-    summarise_frames!,
-    make_poverty_line,
-    make_gain_lose,
     hdiff,
     idiff,
-    irdiff
+    initialise_frames,
+    irdiff,
+    make_gain_lose,
+    make_poverty_line,
+    summarise_frames!
 
 # count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
 const EXTRA_INC_COLS = 18
@@ -801,27 +803,35 @@ end
 """
 Overall summary table made from summary.income_summary tables, with 1 being the base.
 Transpose the 1st three rows of these table. Assumes there's a col `label` at the end
-and that the totals are in the 1st 3 rows.
+and that the totals are in the 1st 3 rows. This will break badly
+if the format of the income_summary tables changes.
 """
 function make_short_cost_summary( income_summaries :: Vector )::DataFrame 
     cost_summaries = []
+    # There's an `id` field right after the data rows, so...
     last_data_row = findfirst(x->x=="id",names(income_summaries[1]))-1 # label is a col at the end.        
     i = 0
     for s in income_summaries # round each income table
         i+=1
-        start_col = i == 1 ? 1 : 2 # 1st 3 cols of transposed matrix, inc labels for 1st one.
+        # Take 1st 3 cols of the 1st transposed matrix, inc labels, and just 2:3 (with the numbers) for the subsequent ones.
+        start_col = i == 1 ? 1 : 2 
         summary = permutedims(s,:label,makeunique=true)[1:last_data_row,start_col:3]
+        # 1st number col is money amounts in £s pa
         summary[!,end-1] ./= 1_000_000 # costs in £m
+        # .. second is counts.
         summary[!,end] ./= 1_000 # counts in 000s
-        @show summary
         push!(cost_summaries, summary)
     end
+    # Make into one big dataframe.
     costsummary = hcat( cost_summaries..., makeunique=true )
+    # Make labels on LHS look nice.
     costsummary[!,1] = pretty.(costsummary[!,1])
     costsummary
 end
 
-
+"""
+Make the main summary tables from a set of results dataframes.
+"""
 function summarise_frames!( 
     frames :: NamedTuple,
     settings :: Settings;
@@ -932,27 +942,108 @@ function summarise_frames!(
         legalaid = frames.legalaid )
 end
 
-## FIXME eventually, move this to DrWatson
+
+function fm(v, r,c) 
+    return if c == 1
+        v
+    elseif c < 7
+        Format.format(v, precision=0, commas=true)
+    else
+        Format.format(v, precision=2, commas=true)
+    end
+    s
+end
+
+"""
+
+"""
+function format_gainlose(io::IOStream, title::String, gl::DataFrame)
+    gl[!,1] = pretty.(gl[!,1])
+    pretty_table(io, gl[!,1:end-1]; 
+        backend = Val(:markdown),
+        formatters=fm,alignment=[:l,fill(:r,6)...],
+        title = title,
+        header=["",
+            "Lose £10.01+",
+            "Lose £1.01-£10",
+            "No Change",
+            "Gain £1.01-£10",
+            "Gain £10.01+",
+            "Av. Change"])
+end
+
+"""
+Write everything from the summaries into a directory
+constructed from the settings output filename and the run name.
+"""
+function dump_summaries( settings :: Settings, summary :: NamedTuple )
+    ns = length( summary.income_summary ) # num systems
+    outdir = joinpath( settings.output_dir, basiccensor( settings.run_name )) 
+    mkpath( outdir )
+    fname = joinpath( outdir, "short_income_summary.tab")
+    CSV.write( fname, summary.short_income_summary; delim='\t' )
+    fname = joinpath( outdir, "poverty-inequality-metrs-child-poverty.md")
+    io = open( fname, "w")
+    for fno in 1:ns
+        fname = joinpath( outdir, "quantiles_$(fno).tab")
+        CSV.write(fname, DataFrame(summary.quantiles[fno],
+            [:population_share,:income_share,:income_threshold,:average_income]); delim='\t' )
+        fname = joinpath( outdir, "income_summary_$(fno).tab")
+        CSV.write(fname, summary.income_summary[fno]; delim='\t' )
+
+        println(io, "## Inequality Sys#$(fno)")
+        println(io,to_md_table(summary.inequality[fno]))
+        println(io, "## Poverty Sys#$(fno)")
+        println(io,to_md_table(summary.poverty[fno]))
+
+        println(io, "## METRs Histogram Sys#$(fno)")
+        println(io, summary.metrs[fno])
+        println(io, "## Child Poverty Sys#$(fno)")
+        println(io, to_md_table(summary.child_poverty[fno]))
+        println(io, "## Poverty Line#$(fno)")
+        println(io, summary.poverty_lines[fno])
+        # gain lose in 1 big file FIXME improve formatting
+        fname = joinpath( outdir, "gainlose_$(fno).tab")
+        open( fname, "w") do gl_io 
+            println( "Gain-Lose Tables: system $(fno) vs system 1\n")
+            println( gl_io, "## Tenure\n\n")
+            format_gainlose( gl_io, "Tenure", summary.gain_lose[fno].ten_gl)
+            println( gl_io, "## Deciles\n\n")
+            format_gainlose( gl_io, "Deciles", summary.gain_lose[fno].dec_gl)
+            println( gl_io, "## Children\n\n")
+            format_gainlose( gl_io, "Num Children", summary.gain_lose[fno].children_gl)
+            println( gl_io, "## HH Type\n\n")
+            format_gainlose( gl_io, "Household Type", summary.gain_lose[fno].hhtype_gl)
+            println( gl_io, "## Region\n\n")
+            format_gainlose( gl_io, "Region", summary.gain_lose[fno].reg_gl)
+        end
+    end
+    close(io)
+    if settings.do_legal_aid
+        LegalAidOutput.dump_tables( summary.legalaid, settings; num_systems=nc )            
+    end
+end
+
+"""
+Dump the raw dataframes to a directory make from settings.output dir and the run name.
+"""
 function dump_frames(
     settings :: Settings,
     frames :: NamedTuple;
     append :: Bool = false )
     ns = size( frames.indiv )[1] # num systems
-    fbase = basiccensor(settings.run_name)
-    mkpath(settings.output_dir)
+    outdir = joinpath( settings.output_dir, basiccensor( settings.run_name )) 
+    mkpath( outdir )
     for fno in 1:ns
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_hh.tab"
+        fname = joinpath( outdir, "hh_$(fno).tab")
         CSV.write( fname, frames.hh[fno] ; append=append, delim='\t')
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_bu.tab"
+        fname = joinpath( outdir, "bu_$(fno).tab")
         CSV.write( fname, frames.bu[fno]; append=append, delim='\t' )
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_pers.tab"
+        fname = joinpath( outdir, "indiv_$(fno).tab")
         CSV.write( fname, frames.indiv[fno];append=append, delim='\t' )
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_income.tab"
+        fname = joinpath( outdir, "income_$(fno).tab")
         CSV.write( fname, frames.income[fno]; append=append, delim='\t' )
-        income_summary = summarise_inc_frame(frames.income[fno])
-        fname = "$(settings.output_dir)/$(fbase)_$(fno)_income-summary.tab"
-        CSV.write( fname, income_summary; delim='\t' )
     end
 end
 
-end # STBOutput
+end # Module STBOutput
