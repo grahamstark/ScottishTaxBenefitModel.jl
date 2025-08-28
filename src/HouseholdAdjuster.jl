@@ -63,6 +63,8 @@ function apply_minimum_wage(
     # we ignore 
     # wage = 0.0
     wage = get( pers.income, Definitions.wages, 0.0 )
+    minwage = get_minimum_wage( mwsys, pers.age )
+        
     hours = if pers.usual_hours_worked > 0
         pers.usual_hours_worked
     elseif pers.actual_hours_worked > 0
@@ -75,21 +77,24 @@ function apply_minimum_wage(
         Part_time_Employee,
         Part_time_Self_Employed]
         20.0
-    else 
+    elseif minwage > 0 # 0 wage - assume 
+        wage/minwage
+    else
         wage/10.0 # hack 10 per hour
     end
     if(wage > 0) && (hours > 0)
         se = get( pers.income, Definitions.self_employment_income, 0.0 )
+        # println( "pid $(pers.pid) in minwage wage on entry = $wage hours $hours")     
         if se > wage # main source is SE - don't apply
             return wage
         elseif wage > 0 && se > 0 # proportionate where both wages and se reported FIXME hours data 
             hours = hours * (wage/(wage+se))
         end
         hourly_wage = wage / hours
-        minwage = get_minimum_wage( mwsys, pers.age )
         if hourly_wage < minwage
             wage = hours*minwage
-        end        
+        end   
+        # println( "in minwage wage now = $wage")     
     end
     return wage
 end

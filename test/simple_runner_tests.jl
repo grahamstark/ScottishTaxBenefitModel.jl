@@ -24,7 +24,6 @@ BenchmarkTools.DEFAULT_PARAMETERS.seconds = 120
 BenchmarkTools.DEFAULT_PARAMETERS.samples = 2
 
 tot = 0
-
 settings = Settings()
 settings.do_marginal_rates = false
 settings.dump_frames = true
