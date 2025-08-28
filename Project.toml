@@ -149,6 +149,7 @@ use_shs = true
 wealth_method = "matching"
 weighting_strategy = "use_runtime_computed_weights"
 include_institutional_population = false
+weighting_target_year = 2025
 
 [targets]
 test = ["Test"]

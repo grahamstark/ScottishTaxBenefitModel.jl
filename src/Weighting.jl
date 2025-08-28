@@ -179,4 +179,21 @@ function generate_weights(
     return weights, data
 end
 
+function generate_weights( settings::Settings )
+    household_total,
+    targets, # no institutional,
+    initialise_target_dataframe,
+    make_target_row! = get_targets( settings )
+    @time weights, data = generate_weights( 
+        settings.num_households;
+        weight_type = settings.weight_type,
+        lower_multiple = settings.lower_multiple,
+        upper_multiple = settings.upper_multiple,
+        household_total = household_total,
+        targets = targets, # no institutional,
+        initialise_target_dataframe = initialise_target_dataframe,
+        make_target_row! = make_target_row! )
+    return weights, data
+end
+
 end # package

@@ -446,11 +446,8 @@ module FRSHouseholdGetter
             # regenerate weights
             # settings.include_instit
             # FIXME add selectable institutional population here.
-            @time weights, data = generate_weights( 
-                nhhlds;
-                weight_type = settings.weight_type,
-                lower_multiple = settings.lower_multiple,
-                upper_multiple = settings.upper_multiple )
+            settings.num_households = nhhlds
+            @time weights, data = generate_weights( settings )
             for i in 1:nhhlds # just assign weight = weight?
                 MODEL_HOUSEHOLDS.hhlds[i].weight = weights[i]
             end
