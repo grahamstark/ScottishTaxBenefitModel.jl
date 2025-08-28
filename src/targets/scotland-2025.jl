@@ -181,11 +181,7 @@ const DEFAULT_TARGETS_SCOTLAND_2025_HHLD_ONLY = [
     172208.8	,	#	86	% all in employment who are - 7: sales and customer service occupations (SOC2010)
     160275.6	,	#	87	% all in employment who are - 8: process, plant and machine operatives (SOC2010)
     258107.5 ]	#	88	% all in employment who are - 9: elementary occupations (SOC2010)
-
-    # don't include institutional popn FIXME add a setting for this.
-    const DEFAULT_TARGETS_SCOTLAND_2025 = DEFAULT_TARGETS_SCOTLAND_2025_HHLD_ONLY
-    const NUM_HOUSEHOLDS_SCOTLAND_2025 = sum( DEFAULT_TARGETS_SCOTLAND_2025[42:48]) # 2_537_971
-    
+ 
     function make_target_row_scotland_2025!( row :: DataFrameRow, hh :: Household )
         num_male_ads = 0
         num_female_ads = 0

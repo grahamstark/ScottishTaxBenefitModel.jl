@@ -114,12 +114,6 @@ module RunSettings
         requested_threads = @load_preference( "requested_threads", 1 )
         impute_employer_pension  :: Bool = @load_preference( "impute_employer_pension", true )
         benefit_generosity_estimates_available :: Bool = @load_preference( "benefit_generosity_estimates_available", true )
-        #
-        # weights
-        #
-        weight_type = eval(Symbol(@load_preference( "weight_type", "constrained_chi_square")))
-        lower_multiple = @load_preference( "lower_multiple", 0.64 )
-        upper_multiple = @load_preference( "upper_multiple", 5.9)
  
         do_health_estimates :: Bool = @load_preference( "do_health_estimates", false )
         ## Elliot's email of June 21, 2023
@@ -145,7 +139,14 @@ module RunSettings
         annual_rent_to_house_price_multiple = @load_preference( "annual_rent_to_house_price_multiple", 20.0 )
         included_data_years = @load_preference( "included_data_years", Int[] )
         legal_aid_costs_strategy :: LegalAidCostsStrategy = eval(Symbol(@load_preference( "legal_aid_costs_strategy", la_individual_costs )))
+        #
+        # weights
+        #
+        weight_type = eval(Symbol(@load_preference( "weight_type", "constrained_chi_square")))
+        lower_multiple = @load_preference( "lower_multiple", 0.64 )
+        upper_multiple = @load_preference( "upper_multiple", 5.9)
         include_institutional_population :: Bool  = @load_preference( "include_institutional_population", false )        
+        weighting_target_year = @load_preference( "weighting_target_year", 2025 )
     end
 
     """

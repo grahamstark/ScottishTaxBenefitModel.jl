@@ -79,6 +79,37 @@ function make_target_dataset( nhhlds :: Integer,
     return m
 end
 
+"""
+TODO add wales stuff here. maybe a year override?
+"""
+function get_targets( settings :: Settings )::NamedTuple
+    if settings.weighting_target_year == 2025
+        targets = if settings.include_institutional_population
+            DEFAULT_TARGETS_SCOTLAND_2025_INC_INSTITUTIONAL
+        else
+            DEFAULT_TARGETS_SCOTLAND_2025_HHLD_ONLY
+        end
+        return (;
+            household_total =sum( targets[42:48]) 
+            targets = targets,
+            initialise_target_dataframe = initialise_target_dataframe_scotland_2025,
+            make_target_row! = make_target_row_scotland_2025! )
+    elseif settings.weighting_target_year in 2023:2024
+        return (;
+            household_total = NUM_HOUSEHOLDS_SCOTLAND_2024,
+            targets = DEFAULT_TARGETS_SCOTLAND_2024, # no institutional 
+            initialise_target_dataframe = initialise_target_dataframe_scotland_2022, # 2022 maker is unchanged
+            make_target_row! = make_target_row_scotland_2022! )
+    elseif settings.weighting_target_year in 2022
+        return (;
+            household_total = NUM_HOUSEHOLDS_SCOTLAND_2022,
+            targets = DEFAULT_TARGETS_SCOTLAND_2022, # no institutional 
+            initialise_target_dataframe = initialise_target_dataframe_scotland_2022,
+            make_target_row! = make_target_row_scotland_2022! )
+    end
+    # die
+end 
+
 #
 # generate weights for the dataset and
 #
