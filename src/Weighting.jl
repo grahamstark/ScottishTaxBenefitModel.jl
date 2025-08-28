@@ -31,8 +31,9 @@ using SurveyDataWeighting:
     do_reweighting
 
 using ScottishTaxBenefitModel
-using .ModelHousehold
 using .Definitions
+using .ModelHousehold
+using .RunSettings
 using .Utils
 
 
@@ -84,13 +85,14 @@ TODO add wales stuff here. maybe a year override?
 """
 function get_targets( settings :: Settings )::NamedTuple
     if settings.weighting_target_year == 2025
+        # we have hh and all people versions of 2025 targets, so ..
         targets = if settings.include_institutional_population
             DEFAULT_TARGETS_SCOTLAND_2025_INC_INSTITUTIONAL
         else
             DEFAULT_TARGETS_SCOTLAND_2025_HHLD_ONLY
         end
         return (;
-            household_total =sum( targets[42:48]) 
+            household_total =sum( targets[42:48]), 
             targets = targets,
             initialise_target_dataframe = initialise_target_dataframe_scotland_2025,
             make_target_row! = make_target_row_scotland_2025! )
