@@ -31,7 +31,10 @@ end
 
 function draw_mr_hists( systems :: Vector, results :: NamedTuple )
     f = Figure()
-    ax = Axis(f[1,1])
+    ax = Axis(f[1,1],
+        title="Marginal Effective Tax Rates", 
+        xlabel=" METRs(%)", 
+        ylabel="Freq" )
     i = 0
     for ind in results.indiv
         i += 1
@@ -39,8 +42,9 @@ function draw_mr_hists( systems :: Vector, results :: NamedTuple )
         m1.metr = Float64.( m1.metr ) # Coerce away from missing type.
         # (correct) v. high MRs at cliff edges.
         m1.metr = min.( 200.0, m1.metr )
-        density!( ax, m1.metr, weights=m1.weight )
+        density!( ax, m1.metr; label=systems[i].name, weights=m1.weight)
     end
+    axislegend()
     f
 end
 
