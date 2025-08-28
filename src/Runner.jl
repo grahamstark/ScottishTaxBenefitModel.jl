@@ -53,6 +53,27 @@ module Runner
     # this is to remove a nasty cross-dependency
     # include( "legal_aid_costs_runner.jl")
 
+    """
+    Exclude old people & children from the MR calculations.
+    Also anomalous cases where the hours are positive and wage is zero - this really 
+    blows up the METR calculation because of the minwage routine.        
+    """
+    function include_for_mr( settings::Settings, pers :: Person )::Bool
+        return if pers.is_standard_child
+            false
+        elseif pers.age > settings.mr_rr_upper_age
+            false
+        elseif(( pers.usual_hours_worked > 0 ) || ( pers.actual_hours_worked > 0 )) && ( get(pers.income, wages, 0.0) == 0.0 )
+            false
+        elseif (pers.employment_status in [
+            Full_time_Employee,
+            Part_time_Employee]) && ( get(pers.income, wages, 0.0) == 0.0 )
+            false
+        else
+            true
+        end
+    end
+
     function do_one_run(
         settings :: Settings,
         params   :: Vector{TaxBenefitSystem{T}},
@@ -121,11 +142,18 @@ module Runner
                                 #
                                 # `from_child_record` sorts out 17+ in education.
                                 #
-                                if ( ! pers.is_standard_child) && ( pers.age <= settings.mr_rr_upper_age )
+                                if include_for_mr( settings, pers )
                                     # FIXME choose between SE and Wage depending on which is
                                     # bigger, or empoyment status
                                     # println( "wage was $(pers.income[wages])")
-                                    pers.income[wages] += settings.mr_incr
+                                    target_income = if pers.employment_status in [
+                                        Full_time_Self_Employed,
+                                        Part_time_Self_Employed]
+                                        self_employment_income
+                                    else
+                                        wages
+                                    end   
+                                    pers.income[target_income] += settings.mr_incr
                                     subres = do_one_calc( hh, params[sysno], settings )            
                                     subhhinc = get_net_income( subres; target=settings.target_mr_rr_income )
                                     hhinc = get_net_income( res; target=settings.target_mr_rr_income )
@@ -133,7 +161,7 @@ module Runner
                                     pres.metr = round( 
                                         100.0 * (1-((subhhinc-hhinc)/settings.mr_incr)),
                                         digits=7 )                           
-                                    pers.income[wages] -= settings.mr_incr                        
+                                    pers.income[target_income] -= settings.mr_incr                        
                                     # println( "wage set back to $(pers.income[wages]) metr is $(pres.metr)")
                                 end # working age
                             end # people

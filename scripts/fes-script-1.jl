@@ -29,7 +29,29 @@ of = on(obs) do p
     println(p)
 end
 
-function examine_one_hh( hid :: BigInt, data_year::Int,  sys :: TaxBenefitSystem, settings::Settings )::Tuple
+function draw_mr_hists( systems :: Vector, results :: NamedTuple )
+    f = Figure()
+    ax = Axis(f[1,1])
+    i = 0
+    for ind in results.indiv
+        i += 1
+        m1=ind[.! ismissing.(ind.metr),:]
+        m1.metr = Float64.( m1.metr ) # Coerce away from missing type.
+        # (correct) v. high MRs at cliff edges.
+        m1.metr = min.( 200.0, m1.metr )
+        density!( ax, m1.metr, weights=m1.weight )
+    end
+    f
+end
+
+function select_anomalies( results :: NamedTuple )::DataFrame
+    ind = results.indiv[1]
+    m1 = ind[.! ismissing.(ind.metr),:]
+    fn=m1[m1.metr .> 10000,:]
+    return fn[!,[:data_year,:hid,:pid]]
+end
+
+function examine_one_hh( hid :: BigInt, data_year::Int, sys :: TaxBenefitSystem, settings::Settings )::Tuple
     hh = FRSHouseholdGetter.get_household( hid, data_year )
     res = do_one_calc( hh, sys, settings )
     subres = nothing
@@ -83,11 +105,15 @@ end
 sys2 = deepcopy(SYS)
 sys2.it.non_savings_rates = sys2.it.non_savings_rates[1:3]
 sys2.it.non_savings_thresholds = sys2.it.non_savings_thresholds[1:2]
-
+sys2.name = "All rates above 21% abolished."
+sys3 = deepcopy(SYS)
+sys3.it.non_savings_rates .-= 0.01
+sys3.name = "1p less on all bands."
+systems = [SYS,sys2,sys3]
 settings = fes_settings()
 @time settings.num_households, settings.num_people, nhh2 = 
     FRSHouseholdGetter.initialise( settings; reset=false )
     
 label = "all-higher-rates-abolished"
 settings.run_name="run-$(label)-$(date_string())"
-summaries, results = fes_run( settings, [SYS,sys2])
+summaries, results = fes_run( settings, systems )
