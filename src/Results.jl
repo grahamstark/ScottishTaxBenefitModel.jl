@@ -788,9 +788,9 @@ module Results
         if haskey(incd, Definitions.severe_disability_allowance )
             out[SEVERE_DISABILITY_ALLOWANCE] = incd[Definitions.severe_disability_allowance]
         end
-        if haskey(incd, Definitions.attendance_allowance )
-            out[ATTENDANCE_ALLOWANCE] = incd[Definitions.attendance_allowance]
-        end
+        #if haskey(incd, Definitions.attendance_allowance )
+        #    out[ATTENDANCE_ALLOWANCE] = incd[Definitions.attendance_allowance]
+        #end
         if haskey(incd, Definitions.foster_care_payments )
             out[FOSTER_CARE_PAYMENTS] = incd[Definitions.foster_care_payments]
         end
