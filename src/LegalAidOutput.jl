@@ -1041,7 +1041,7 @@ post: results with merged propensities
 FIXME: clean this up drastically
 """
 function make_summary_tab(
-    payment_pct :: Real,
+    payment_rate :: Real,
     pre :: DataFrame,
     post :: DataFrame,
     is_aa :: Bool;
@@ -1081,16 +1081,16 @@ function make_summary_tab(
                 
                 tab[1,2] += w*preres #[tc]
                 tab[1,3] += w*postres
-                added_cost_pre = w*preres*precost*payment_pct
+                added_cost_pre = w*preres*precost
                 tab[2,2] += added_cost_pre # pr[tc]*pr[tcost]
-                added_cost_post = w*postres*postcost*payment_pct
+                added_cost_post = w*postres*postcost
                 tab[2,3] += added_cost_post
                 #=
                 contributions
                 =#
                 scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
-                added_contrib_pre = w*preres*scase_pr/1000.0 #*scase_pr # 
-                added_contrib_post = w*postres*scase_po/1000.0 #*scase_pr # 
+                added_contrib_pre = *payment_rate*w*preres*scase_pr/1000.0 #*scase_pr # 
+                added_contrib_post = *payment_rate*w*postres*scase_po/1000.0 #*scase_pr # 
                 # av case, for testing
                 # added_contrib_pre = w*preres*min(precost, max_contrib_pr/1000.0)
                 # added_contrib_post = w*postres*min(postcost, max_contrib_po/1000.0)

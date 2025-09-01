@@ -1,4 +1,3 @@
-
 using ScottishTaxBenefitModel
 using .STBParameters
 using .BCCalcs
@@ -200,7 +199,6 @@ function format_bc_df( title::String, bc::DataFrame)
         title = title )
 end
 
-
 function title_from_key(k::NamedTuple, legstr::String )::String
     s = []
     push!( s, k.marrstat == "single" ? "Single Person" : "Couple")
@@ -325,7 +323,6 @@ function make_big_file(sys :: TaxBenefitSystem, settings::Settings)
     println(io, footer )
     close(io)
 end
-
 
 #=
 settings = Settings()
