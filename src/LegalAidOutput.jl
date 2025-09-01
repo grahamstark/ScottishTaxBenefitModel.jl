@@ -1089,8 +1089,8 @@ function make_summary_tab(
                 contributions
                 =#
                 scase_pr,scase_po = get_sample_case_cost( prop_cols[i], max_contrib_pr, max_contrib_po, is_aa )
-                added_contrib_pre = *payment_rate*w*preres*scase_pr/1000.0 #*scase_pr # 
-                added_contrib_post = *payment_rate*w*postres*scase_po/1000.0 #*scase_pr # 
+                added_contrib_pre = payment_rate*w*preres*scase_pr/1000.0 #*scase_pr # 
+                added_contrib_post = payment_rate*w*postres*scase_po/1000.0 #*scase_pr # 
                 # av case, for testing
                 # added_contrib_pre = w*preres*min(precost, max_contrib_pr/1000.0)
                 # added_contrib_post = w*postres*min(postcost, max_contrib_po/1000.0)
