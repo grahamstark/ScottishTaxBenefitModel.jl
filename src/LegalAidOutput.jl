@@ -803,6 +803,7 @@ function la_crosstab(
 end
 
 function summarise_la_output!( 
+    payment_rate :: Real,
     la :: LegalOutput,
     propensities :: DataFrame, 
     is_aa :: Bool )
@@ -860,18 +861,19 @@ function summarise_la_output!(
             la.crosstab_bu[sysno-1], la.crosstab_bu_examples[sysno-1] = 
                 la_crosstab( budata1, budata )
 
-            la.summary_tables[sysno-1] = make_summary_tab( data1, data, is_aa )
+            la.summary_tables[sysno-1] = make_summary_tab( payment_rate, data1, data, is_aa )
         end # sysno > 1
         la.data[sysno] = data  # save the whole ammended frame inc. matching     
     end
 end
 
 function summarise_la_output!( 
+    settings :: Settings,
     la :: AllLegalOutput )
     println( "summary: civil")
-    summarise_la_output!( la.civil, PROPENSITIES.civil_propensities, false )
+    summarise_la_output!( settings.civil_payment_rate, la.civil, PROPENSITIES.civil_propensities, false )
     println( "summary: aa")
-    summarise_la_output!( la.aa, PROPENSITIES.aa_propensities, true )
+    summarise_la_output!( settings.aa_payment_rate, la.aa, PROPENSITIES.aa_propensities, true )
 end
 
 """
@@ -1039,6 +1041,7 @@ post: results with merged propensities
 FIXME: clean this up drastically
 """
 function make_summary_tab(
+    payment_pct :: Real,
     pre :: DataFrame,
     post :: DataFrame,
     is_aa :: Bool;
@@ -1078,9 +1081,9 @@ function make_summary_tab(
                 
                 tab[1,2] += w*preres #[tc]
                 tab[1,3] += w*postres
-                added_cost_pre = w*preres*precost
+                added_cost_pre = w*preres*precost*payment_pct
                 tab[2,2] += added_cost_pre # pr[tc]*pr[tcost]
-                added_cost_post = w*postres*postcost
+                added_cost_post = w*postres*postcost*payment_pct
                 tab[2,3] += added_cost_post
                 #=
                 contributions

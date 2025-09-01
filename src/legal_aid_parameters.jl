@@ -297,4 +297,3 @@ function weeklyise!( sla :: ScottishLegalAidSys )
     weeklyise!( sla.civil )
     weeklyise!( sla.aa )
 end
-

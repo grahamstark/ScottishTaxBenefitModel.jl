@@ -165,7 +165,7 @@ function do_one_run(
     LegalAidOutput.create_propensities( lout; reset_results = reset_propensities )
 
     # @show RESULTS.civil_propensities
-    LegalAidOutput.summarise_la_output!( lout )
+    LegalAidOutput.summarise_la_output!( settings, lout )
     return lout
 end 
 

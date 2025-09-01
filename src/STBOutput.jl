@@ -925,7 +925,7 @@ function summarise_frames!(
         # since some base assumptions might change e.g. capital modelling.
         # FIXME this is not thread-safe
         LegalAidOutput.create_propensities( frames.legalaid; reset_results = true  )
-        LegalAidOutput.summarise_la_output!( frames.legalaid )
+        LegalAidOutput.summarise_la_output!( settings, frames.legalaid )
     end
     short_income_summary = make_short_cost_summary( income_summary )
     return ( ;

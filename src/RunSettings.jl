@@ -128,8 +128,13 @@ module RunSettings
         
         use_shs :: Bool = @load_preference( "use_shs", true )
         do_indirect_tax_calculations :: Bool = @load_preference( "do_indirect_tax_calculations", false)
+        
+        # legal aid        
         do_legal_aid  :: Bool = @load_preference( "do_legal_aid", false )
         legal_aid_probs_data = @load_preference( "legal_aid_probs_data", "civil-legal-aid-probs-scotland-2017-2021")
+        civil_payment_rate :: Real =  @load_preference( "civil_payment_rate", 1.0 )
+        aa_payment_rate :: Real = @load_preference( "aa_payment_rate", 1.0 )
+
         export_full_results :: Bool = @load_preference( "export_full_results", false)
         do_dodgy_takeup_corrections :: Bool  = @load_preference( "do_dodgy_takeup_corrections", false)
         data_source :: DataSource = eval(Symbol(@load_preference( "data_source", FRSSource )))
