@@ -195,7 +195,7 @@ end
     premia = zero_premia(RT)
     uc_limit = zero(RT)
     uc_limit_type :: UCLimitType = uc_no_limit
-    uc_use_earnings :: UCEarningsType = assessed_net_income 
+    uc_use_earnings :: UCEarningsType = assessed_net_income -
     include_mortgage_repayments = true
 end
 
@@ -284,9 +284,13 @@ function weeklyise!( la :: OneLegalAidSys )
         la.income_partners_allowance         /= WEEKS_PER_YEAR
         la.income_other_dependants_allowance /= WEEKS_PER_YEAR
         la.income_child_allowance            /= WEEKS_PER_YEAR
-        la.income_contribution_rates ./= 100
+        if la.income_cont_type == cont_proportion 
+            la.income_contribution_rates ./= 100
+        end
         la.income_contribution_limits ./= WEEKS_PER_YEAR
-        la.capital_contribution_rates ./= 100.0
+        if la.capital_cont_type == cont_proportion 
+            la.capital_contribution_rates ./= 100.0
+        end
         # la.capital_contribution_limits ./= WEEKS_PER_YEAR
         weeklyise!(la.expenses; wpy=WEEKS_PER_YEAR )
         weeklyise!(la.premia; wpy=WEEKS_PER_YEAR )
