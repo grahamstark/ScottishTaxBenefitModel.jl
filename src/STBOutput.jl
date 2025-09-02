@@ -88,7 +88,8 @@ If present, these contain micro level data and are probably not needed by you:
 
 * the `_2` (and upwards) indicates results for the changed systems; `_1` is the base;
 * `.tab` extension indicated tab- delimited format (can be imported into spreadsheets);
-* `.md` are markdown files (can be imported into most word-processors).
+* `.md` are markdown files (can be imported into most word-processors);
+* There may also be `.svg` files: these are images in Scalable Vector Graphic format.
 
 """
 
@@ -1018,8 +1019,8 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
     ns = length( summary.income_summary ) # num systems
     outdir = joinpath( settings.output_dir, basiccensor( settings.run_name )) 
     mkpath( outdir )
-    open(joinpath( outdir, "index.md"), "w") do IO
-        println( io, DUMP_FILE_DESCRIPTION )
+    open(joinpath( outdir, "index.md"), "w") do lio
+        println( lio, DUMP_FILE_DESCRIPTION )
     end
     fname = joinpath( outdir, "short_income_summary.tab")
     CSV.write( fname, summary.short_income_summary; delim='\t' )
