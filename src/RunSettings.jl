@@ -62,11 +62,11 @@ module RunSettings
 
         
     @enum TargetBCIncomes ahc_hh bhc_hh total_bens total_taxes
-    const TARGET_BC_INCOMES_STRS = [(
+    const TARGET_BC_INCOMES_STRS = Dict([
         ahc_hh => "Net Household Income, After Housing Costs",
         bhc_hh => "Net Household Income, Before Housing Costs",
         total_bens => "Total Benefits Received by the Household",
-        total_taxes => "Total Taxes Paid by the Household" )]
+        total_taxes => "Total Taxes Paid by the Household"] )
         
     @enum MT_Routing uc_full lmt_full modelled_phase_in
     const MT_ROUTING_STRS = Dict([
@@ -79,8 +79,8 @@ module RunSettings
     
     const INEQ_INCOME_MEASURE_STRS = Dict([
         eq_bhc_net_income =>"Equivalised Before Housing Costs",
-	    bhc_net_income => "Unequivelised Before Housing Costs",
-	    ahc_net_income => "Unequivelised After Housing Costs",
+	    bhc_net_income => "Unequivalised Before Housing Costs",
+	    ahc_net_income => "Unequivalised After Housing Costs",
 	    eq_ahc_net_income => "Equivalised After Housing Costs"])
     #
     # Overwrite FRS wages and SE income with 'SPId' HBAI data.
