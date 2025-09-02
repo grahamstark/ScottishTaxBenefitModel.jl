@@ -24,21 +24,23 @@ module RunSettings
         MT_ROUTING_STRS,
 
         IneqIncomeMeasure, 
-        TargetBCIncomes,
-
         bhc_net_income,
         eq_bhc_net_income,
         ahc_net_income,
         eq_ahc_net_income,
         INEQ_INCOME_MEASURE_STRS,
+
         DataIncomeSource,
         ds_hbai,
         ds_frs,
 
+        TargetBCIncomes,
         ahc_hh, 
         bhc_hh, 
         total_bens, 
         total_taxes,
+        TARGET_BC_INCOMES_STRS,
+
         main_datasets,
         example_datasets,
 
@@ -47,9 +49,7 @@ module RunSettings
         pl_first_sys,
         pl_current_sys,
         POVERTY_LINE_SOURCE_STRS,
-        # DatasetType,
-        # actual_data,
-        # synthetic_data,
+
         WeightingStrategy, 
         use_supplied_weights, 
         use_precomputed_weights,
@@ -62,6 +62,11 @@ module RunSettings
 
         
     @enum TargetBCIncomes ahc_hh bhc_hh total_bens total_taxes
+    const TARGET_BC_INCOMES_STRS = [(
+        ahc_hh => "Net Household Income, After Housing Costs",
+        bhc_hh => "Net Household Income, Before Housing Costs",
+        total_bens => "Total Benefits Received by the Household".
+        total_taxes => "Total Taxes Paid by the Household" )]
         
     @enum MT_Routing uc_full lmt_full modelled_phase_in
     const MT_ROUTING_STRS = Dict([
@@ -74,8 +79,8 @@ module RunSettings
     
     const INEQ_INCOME_MEASURE_STRS = Dict([
         eq_bhc_net_income =>"Equivalised Before Housing Costs",
-	    bhc_net_income => "Before Housing Costs",
-	    ahc_net_income => "After Housing Costs",
+	    bhc_net_income => "Unequivelised Before Housing Costs",
+	    ahc_net_income => "Unequivelised After Housing Costs",
 	    eq_ahc_net_income => "Equivalised After Housing Costs"])
     #
     # Overwrite FRS wages and SE income with 'SPId' HBAI data.

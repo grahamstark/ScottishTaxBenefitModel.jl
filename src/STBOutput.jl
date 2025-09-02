@@ -640,7 +640,9 @@ function one_gain_lose_df( T :: Type ) :: DataFrame
     d
 end
 
-
+"""
+NOT USED
+"""
 function make_gain_lose_static( 
     prehh :: DataFrame, 
     posthh :: DataFrame, 
