@@ -65,7 +65,7 @@ module RunSettings
     const TARGET_BC_INCOMES_STRS = [(
         ahc_hh => "Net Household Income, After Housing Costs",
         bhc_hh => "Net Household Income, Before Housing Costs",
-        total_bens => "Total Benefits Received by the Household".
+        total_bens => "Total Benefits Received by the Household",
         total_taxes => "Total Taxes Paid by the Household" )]
         
     @enum MT_Routing uc_full lmt_full modelled_phase_in
