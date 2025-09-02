@@ -55,7 +55,42 @@ export
     irdiff,
     make_gain_lose,
     make_poverty_line,
-    summarise_frames!
+    summarise_frames!,
+    DUMP_FILE_DESCRIPTION
+
+const DUMP_FILE_DESCRIPTION = 
+"""
+# Dump File Contents
+
+* quantiles_1.tab - data for Lorenz curves and the deciles graph;
+* quantiles_2.tab -
+* income_summary_1.tab - aggregate incomes by income type, broken down by tenure, hh type, etc.;
+* income_summary_2.tab -
+* short_income_summary.tab - condensed version of the income data.
+* poverty-inequality-metrs-child-poverty.md - rather hard to read dump of poverty, etc. tables in Markdown format;
+* gainlose_1.md - Gainers and losers tables;
+* gainlose_2.md -
+
+## Other Tables
+
+If present, these contain micro level data and are probably not needed by you:
+
+* bu_1.tab -  Benefit Level
+* bu_2.tab -
+* hh_1.tab - Household Level
+* hh_2.tab -
+* income_1.tab - micro level detailed incomes data -
+* income_2.tab -
+* indiv_1.tab - micro level individual demographics
+* indiv_2.tab -
+
+### Note: 
+
+* the `_2` (and upwards) indicates results for the changed systems; `_1` is the base;
+* `.tab` extension indicated tab- delimited format (can be imported into spreadsheets);
+* `.md` are markdown files (can be imported into most word-processors).
+
+"""
 
 # count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
 const EXTRA_INC_COLS = 18
@@ -983,6 +1018,9 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
     ns = length( summary.income_summary ) # num systems
     outdir = joinpath( settings.output_dir, basiccensor( settings.run_name )) 
     mkpath( outdir )
+    open(joinpath( outdir, "index.md"), "w") do IO
+        println( io, DUMP_FILE_DESCRIPTION )
+    end
     fname = joinpath( outdir, "short_income_summary.tab")
     CSV.write( fname, summary.short_income_summary; delim='\t' )
     fname = joinpath( outdir, "poverty-inequality-metrs-child-poverty.md")
