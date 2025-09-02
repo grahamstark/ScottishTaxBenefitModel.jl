@@ -195,7 +195,7 @@ end
     premia = zero_premia(RT)
     uc_limit = zero(RT)
     uc_limit_type :: UCLimitType = uc_no_limit
-    uc_use_earnings :: UCEarningsType = assessed_net_income -
+    uc_use_earnings :: UCEarningsType = assessed_net_income
     include_mortgage_repayments = true
 end
 
