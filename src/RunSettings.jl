@@ -21,6 +21,7 @@ module RunSettings
         uc_full,
         lmt_full,
         modelled_phase_in,
+        MT_ROUTING_STRS,
 
         IneqIncomeMeasure, 
         TargetBCIncomes,
@@ -29,6 +30,7 @@ module RunSettings
         eq_bhc_net_income,
         ahc_net_income,
         eq_ahc_net_income,
+        INEQ_INCOME_MEASURE_STRS,
         DataIncomeSource,
         ds_hbai,
         ds_frs,
@@ -44,36 +46,63 @@ module RunSettings
         pl_from_settings, 
         pl_first_sys,
         pl_current_sys,
+        POVERTY_LINE_SOURCE_STRS,
         # DatasetType,
         # actual_data,
         # synthetic_data,
+        WeightingStrategy, 
+        use_supplied_weights, 
+        use_precomputed_weights,
+        use_runtime_computed_weights, 
+        dont_use_weights, 
+        WEIGHTING_STRATEGY_STRS,
         
         get_all_uk_settings_2023,
         get_data_artifact
+
         
     @enum TargetBCIncomes ahc_hh bhc_hh total_bens total_taxes
         
     @enum MT_Routing uc_full lmt_full modelled_phase_in
+    const MT_ROUTING_STRS = Dict([
+        uc_full=>"Universal Credit Fully Implemented",
+        lmt_full=>"Everyone on Legacy Means Tested Benefits",
+        modelled_phase_in => "Modelled Phase in of UC"
+    ])
 
     @enum IneqIncomeMeasure bhc_net_income eq_bhc_net_income ahc_net_income eq_ahc_net_income
     
+    const INEQ_INCOME_MEASURE_STRS = Dict([
+        eq_bhc_net_income =>"Equivalised Before Housing Costs",
+	    bhc_net_income => "Before Housing Costs",
+	    ahc_net_income => "After Housing Costs",
+	    eq_ahc_net_income => "Equivalised After Housing Costs"])
     #
     # Overwrite FRS wages and SE income with 'SPId' HBAI data.
     #
     @enum DataIncomeSource ds_hbai ds_frs 
-
+    
     # An arbitrary poverty line supplied in the settings, 60% of the base sys median income, 60% of the current 
     # sys median income. `pl_current_sys` seems more correct to me, but it's unintuaitive.
     @enum PovertyLineSource pl_from_settings pl_first_sys pl_current_sys
+    const POVERTY_LINE_SOURCE_STRS = Dict([
+        pl_from_settings => "Pre-computed in Settings",
+        pl_first_sys => "Computed as 60% AHC/BHC from 1st parameter system",
+        pl_current_sys => "Computed seperately as 60% AHC/BHC from each parameter system"])
 
-    export WeightingStrategy, use_supplied_weights, use_precomputed_weights,
-        use_runtime_computed_weights, dont_use_weights
     @enum WeightingStrategy begin 
         use_supplied_weights = 1
         use_precomputed_weights = 2
         use_runtime_computed_weights = 3
         dont_use_weights = 4
     end
+    const WEIGHTING_STRATEGY_STRS = Dict([
+        use_supplied_weights => "Use ONS Suppied weights (DONT DO THIS!)",
+        use_precomputed_weights => "Use Pre-computed weights (Only if using default years)",
+        use_runtime_computed_weights => "Compute weights ar runtime",
+        dont_use_weights => "Don't use weights; count all households as 1"])
+
+
 
     # @enum DatasetType actual_data synthetic_data # FIXME this duplicates `DataSource` in `.Definitions``
     
