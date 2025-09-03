@@ -127,7 +127,7 @@ module RunSettings
         prices_file = @load_preference( "prices_file", "indexes.tab" )
         to_y :: Int = @load_preference( "to_y", 2024 )
         to_q :: Int = @load_preference( "to_q", 4 )
-        output_dir :: String = joinpath(tempdir(),"output")
+        output_dir :: String = @load_preference( "output_dir", joinpath(tempdir(),"output"))
         means_tested_routing :: MT_Routing = eval( Symbol(@load_preference( "means_tested_routing", "uc_full" )))
         disability_routing :: MT_Routing = eval( Symbol(@load_preference( "disability_routing", "modelled_phase_in" )))
         poverty_line :: Real = -1.0
