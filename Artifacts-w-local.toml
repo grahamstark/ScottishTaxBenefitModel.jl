@@ -76,7 +76,7 @@ lazy = true
 
     [["scottish-frs-data-unix-v0.1.6".download]]
     sha256 = "9120383b835e03d722be3bffa6d5372adc1fc02521a85b096c3ea1c86b85eee4"
-    url = "https://virtual-worlds.biz/artifacts//scottish-frs-data-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-frs-data-v0.1.6.tar.gz"
 
 ["scottish-frs-data-unix-v0.1.7"]
 git-tree-sha1 = "bf0affe1bd90248921a433bdaf8d6b3eb304912f"
@@ -84,7 +84,7 @@ lazy = true
 
     [["scottish-frs-data-unix-v0.1.7".download]]
     sha256 = "9120383b835e03d722be3bffa6d5372adc1fc02521a85b096c3ea1c86b85eee4"
-    url = "https://virtual-worlds.biz/artifacts//scottish-frs-data-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-frs-data-v0.1.7.tar.gz"
 
 ["scottish-frs-data-windows-v0.1.6"]
 git-tree-sha1 = "3b889181253429e27c589a78006d18ce0c84c298"
@@ -100,7 +100,7 @@ lazy = true
 
     [["scottish-lcf-expenditure-unix-v0.1.6".download]]
     sha256 = "7c627e0adfba7f2812a661911de5f99f122fb92e18c36e038a125a25778d04aa"
-    url = "https://virtual-worlds.biz/artifacts//scottish-lcf-expenditure-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-lcf-expenditure-v0.1.6.tar.gz"
 
 ["scottish-lcf-expenditure-unix-v0.1.7"]
 git-tree-sha1 = "50bc264a4d78f912849d835593fc77a922c6fee9"
@@ -108,7 +108,7 @@ lazy = true
 
     [["scottish-lcf-expenditure-unix-v0.1.7".download]]
     sha256 = "7c627e0adfba7f2812a661911de5f99f122fb92e18c36e038a125a25778d04aa"
-    url = "https://virtual-worlds.biz/artifacts//scottish-lcf-expenditure-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-lcf-expenditure-v0.1.7.tar.gz"
 
 ["scottish-lcf-expenditure-windows-v0.1.6"]
 git-tree-sha1 = "b6d8fb52f30a5ac94a713bf13ede8925b21eca0b"
@@ -124,7 +124,7 @@ lazy = true
 
     [["scottish-shs-data-unix-v0.1.6".download]]
     sha256 = "408c44e31c6cf9a5c973e2f5f6cdb29d410b60ae90720a9059a25c1c69aa9ba8"
-    url = "https://virtual-worlds.biz/artifacts//scottish-shs-data-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-shs-data-v0.1.6.tar.gz"
 
 ["scottish-shs-data-unix-v0.1.7"]
 git-tree-sha1 = "f1d031c541c2817502b7eceeded37e4533b5b6b7"
@@ -132,7 +132,7 @@ lazy = true
 
     [["scottish-shs-data-unix-v0.1.7".download]]
     sha256 = "408c44e31c6cf9a5c973e2f5f6cdb29d410b60ae90720a9059a25c1c69aa9ba8"
-    url = "https://virtual-worlds.biz/artifacts//scottish-shs-data-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-shs-data-v0.1.7.tar.gz"
 
 ["scottish-shs-data-windows-v0.1.6"]
 git-tree-sha1 = "92f2b7de17d6b91006a0531d654fbe52ff427a3f"
@@ -144,7 +144,7 @@ lazy = true
 
     [["scottish-slab-legalaid-unix-v0.1.6".download]]
     sha256 = "4b69375b96c7880a843ef53e172c9b9208e4f1c0c8fc493dff01c0bde752768e"
-    url = "https://virtual-worlds.biz/artifacts//scottish-slab-legalaid-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-slab-legalaid-v0.1.6.tar.gz"
 
 ["scottish-slab-legalaid-unix-v0.1.7"]
 git-tree-sha1 = "099b410f8e762c5e535b4633487bf35ca3ecfeb8"
@@ -152,7 +152,7 @@ lazy = true
 
     [["scottish-slab-legalaid-unix-v0.1.7".download]]
     sha256 = "4b69375b96c7880a843ef53e172c9b9208e4f1c0c8fc493dff01c0bde752768e"
-    url = "https://virtual-worlds.biz/artifacts//scottish-slab-legalaid-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-slab-legalaid-v0.1.7.tar.gz"
 
 ["scottish-slab-legalaid-windows-v0.1.6"]
 git-tree-sha1 = "6ac253d4e01462d5fb25ba410a91504186c46f9d"
@@ -264,7 +264,7 @@ lazy = true
 
     [["scottish-was-wealth-unix-v0.1.6".download]]
     sha256 = "d5850be2f2dbba9e95af53c4c3e2eef65a8d04d514f68a125ae66974da377757"
-    url = "https://virtual-worlds.biz/artifacts//scottish-was-wealth-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-was-wealth-v0.1.6.tar.gz"
 
 ["scottish-was-wealth-unix-v0.1.7"]
 git-tree-sha1 = "5b03c74a2517f41a359ca55a6061db416b288a07"
@@ -272,7 +272,7 @@ lazy = true
 
     [["scottish-was-wealth-unix-v0.1.7".download]]
     sha256 = "d5850be2f2dbba9e95af53c4c3e2eef65a8d04d514f68a125ae66974da377757"
-    url = "https://virtual-worlds.biz/artifacts//scottish-was-wealth-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//scottish-was-wealth-v0.1.7.tar.gz"
 
 ["scottish-was-wealth-windows-v0.1.6"]
 git-tree-sha1 = "d430489fff60eb3b9f9b7fee2580f5f39d2fb37b"
@@ -288,7 +288,7 @@ lazy = true
 
     [["uk-frs-data-unix-v0.1.6".download]]
     sha256 = "a32c0965db26ecea650a05509b5da9e5b2727ab685f906be94afb0fad1d0cf19"
-    url = "https://virtual-worlds.biz/artifacts//uk-frs-data-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//uk-frs-data-v0.1.6.tar.gz"
 
 ["uk-frs-data-unix-v0.1.7"]
 git-tree-sha1 = "b0d2d6b2b8813f9e512a0e5a67b20ed4e9259588"
@@ -296,7 +296,7 @@ lazy = true
 
     [["uk-frs-data-unix-v0.1.7".download]]
     sha256 = "a32c0965db26ecea650a05509b5da9e5b2727ab685f906be94afb0fad1d0cf19"
-    url = "https://virtual-worlds.biz/artifacts//uk-frs-data-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//uk-frs-data-v0.1.7.tar.gz"
 
 ["uk-frs-data-windows-v0.1.6"]
 git-tree-sha1 = "b0d2d6b2b8813f9e512a0e5a67b20ed4e9259588"
@@ -312,7 +312,7 @@ lazy = true
 
     [["uk-lcf-expenditure-unix-v0.1.6".download]]
     sha256 = "9da7c224510fcda09d611ce982c8c714bb613b2c8a04ad30b5f561f7cb11159a"
-    url = "https://virtual-worlds.biz/artifacts//uk-lcf-expenditure-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//uk-lcf-expenditure-v0.1.6.tar.gz"
 
 ["uk-lcf-expenditure-unix-v0.1.7"]
 git-tree-sha1 = "aac0e469d51d53ae54dcc2aa54af2d4f2d72a03a"
@@ -320,7 +320,7 @@ lazy = true
 
     [["uk-lcf-expenditure-unix-v0.1.7".download]]
     sha256 = "9da7c224510fcda09d611ce982c8c714bb613b2c8a04ad30b5f561f7cb11159a"
-    url = "https://virtual-worlds.biz/artifacts//uk-lcf-expenditure-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//uk-lcf-expenditure-v0.1.7.tar.gz"
 
 ["uk-lcf-expenditure-windows-v0.1.6"]
 git-tree-sha1 = "aac0e469d51d53ae54dcc2aa54af2d4f2d72a03a"
@@ -408,7 +408,7 @@ lazy = true
 
     [["uk-was-wealth-unix-v0.1.6".download]]
     sha256 = "b9f06f92f88ba772731979d6ff94b869fd15e42e4acfb79f6911b9e60fb12c72"
-    url = "https://virtual-worlds.biz/artifacts//uk-was-wealth-v0.1.6.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//uk-was-wealth-v0.1.6.tar.gz"
 
 ["uk-was-wealth-unix-v0.1.7"]
 git-tree-sha1 = "9d6f7de0ddaa34d73228b648503018b6fa0f99f7"
@@ -416,7 +416,7 @@ lazy = true
 
     [["uk-was-wealth-unix-v0.1.7".download]]
     sha256 = "b9f06f92f88ba772731979d6ff94b869fd15e42e4acfb79f6911b9e60fb12c72"
-    url = "https://virtual-worlds.biz/artifacts//uk-was-wealth-v0.1.7.tar.gz"
+    url = "file:///mnt/data/ScotBen/local_artifacts//uk-was-wealth-v0.1.7.tar.gz"
 
 ["uk-was-wealth-windows-v0.1.6"]
 git-tree-sha1 = "9d6f7de0ddaa34d73228b648503018b6fa0f99f7"
