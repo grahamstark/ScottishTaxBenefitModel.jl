@@ -168,6 +168,7 @@ function make_artifact(;
          println( "upload cmd |$upload|")
          run( upload )
       end
+      @show toml_file full_artifact_name url
       add_artifact!( toml_file, full_artifact_name, url; force=true, lazy=true )
    catch e 
       println( "ERROR UPLOADING $e")

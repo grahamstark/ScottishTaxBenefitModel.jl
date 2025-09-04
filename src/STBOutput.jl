@@ -12,6 +12,8 @@ using DataFrames:
     sum,
     unstack
 
+import Base.write
+
 using PovertyAndInequalityMeasures
 using CSV
 using Format
@@ -62,11 +64,11 @@ const DUMP_FILE_DESCRIPTION =
 """
 # Dump File Contents
 
-* quantiles_1.tab - data for Lorenz curves and the deciles graph;
-* quantiles_2.tab -
-* income_summary_1.tab - aggregate incomes by income type, broken down by tenure, hh type, etc.;
-* income_summary_2.tab -
-* short_income_summary.tab - condensed version of the income data.
+* quantiles_1.csv - data for Lorenz curves and the deciles graph;
+* quantiles_2.csv -
+* income_summary_1.csv - aggregate incomes by income type, broken down by tenure, hh type, etc.;
+* income_summary_2.csv -
+* short_income_summary.csv - condensed version of the income data.
 * poverty-inequality-metrs-child-poverty.md - rather hard to read dump of poverty, etc. tables in Markdown format;
 * gainlose_1.md - Gainers and losers tables;
 * gainlose_2.md -
@@ -75,19 +77,19 @@ const DUMP_FILE_DESCRIPTION =
 
 If present, these contain micro level data and are probably not needed by you:
 
-* bu_1.tab -  Benefit Level
-* bu_2.tab -
-* hh_1.tab - Household Level
-* hh_2.tab -
-* income_1.tab - micro level detailed incomes data -
-* income_2.tab -
-* indiv_1.tab - micro level individual demographics
-* indiv_2.tab -
+* bu_1.csv -  Benefit Level
+* bu_2.csv -
+* hh_1.csv - Household Level
+* hh_2.csv -
+* income_1.csv - micro level detailed incomes data -
+* income_2.csv -
+* indiv_1.csv - micro level individual demographics
+* indiv_2.csv -
 
 ### Note: 
 
 * the `_2` (and upwards) indicates results for the changed systems; `_1` is the base;
-* `.tab` extension indicated tab- delimited format (can be imported into spreadsheets);
+* `.csv` extension indicated tab- delimited format (can be imported into spreadsheets);
 * `.md` are markdown files (can be imported into most word-processors);
 * There may also be `.svg` files: these are images in Scalable Vector Graphic format.
 
@@ -834,8 +836,22 @@ function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     # so .. <=0, >0 <=10, >10<=20 and so on
     # skip near-infinite mrs mwhen averaging
     mmtr = mean( indp[(indp.metr.<150),:].metr, Weights(indp[(indp.metr.<150),:].weight))
-    hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.00001, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:right )
+    hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.0000, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:left )
     return ( mean=mmtr, hist=hist)
+end
+
+function incomes_to_hist( indiv :: DataFrame; income_type=:eq_bhc_net_income )::Histogram
+    incs = indiv[!,income_type]
+    incs = max.( incs, 0)
+    incs = min.( incs, 2000)
+    ranges = collect( 0.0:10:2000 )
+    push!( ranges,Inf)
+    return fit( Histogram, incs, Weights( indiv.weight ), ranges, closed=:left )
+end
+
+function write( filename::String, hist :: Histogram; delim='\t')
+    d = DataFrame( edges_lower_limit=hist.edges[1][1:end-1], population=hist.weights )
+    CSV.write( filename, d; delim=delim )
 end
 
 """
@@ -1022,16 +1038,16 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
     open(joinpath( outdir, "index.md"), "w") do lio
         println( lio, DUMP_FILE_DESCRIPTION )
     end
-    fname = joinpath( outdir, "short_income_summary.tab")
-    CSV.write( fname, summary.short_income_summary; delim='\t' )
+    fname = joinpath( outdir, "short_income_summary.csv")
+    CSV.write( fname, summary.short_income_summary;delim=',' )
     fname = joinpath( outdir, "poverty-inequality-metrs-child-poverty.md")
     io = open( fname, "w")
     for fno in 1:ns
-        fname = joinpath( outdir, "quantiles_$(fno).tab")
+        fname = joinpath( outdir, "quantiles_$(fno).csv")
         CSV.write(fname, DataFrame(summary.quantiles[fno],
-            [:population_share,:income_share,:income_threshold,:average_income]); delim='\t' )
-        fname = joinpath( outdir, "income_summary_$(fno).tab")
-        CSV.write(fname, summary.income_summary[fno]; delim='\t' )
+            [:population_share,:income_share,:income_threshold,:average_income]);delim=',' )
+        fname = joinpath( outdir, "income_summary_$(fno).csv")
+        CSV.write(fname, summary.income_summary[fno];delim=',' )
 
         println(io, "## Inequality Sys#$(fno)")
         println(io,to_md_table(summary.inequality[fno]))
@@ -1044,20 +1060,12 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
         println(io, to_md_table(summary.child_poverty[fno]))
         println(io, "## Poverty Line#$(fno)")
         println(io, summary.poverty_lines[fno])
-        # gain lose in 1 big file FIXME improve formatting
-        fname = joinpath( outdir, "gainlose_$(fno).md")
-        open( fname, "w") do gl_io 
-            println( "Gain-Lose Tables: system $(fno) vs system 1\n")
-            println( gl_io, "## Tenure\n\n")
-            format_gainlose( gl_io, "Tenure", summary.gain_lose[fno].ten_gl)
-            println( gl_io, "## Deciles\n\n")
-            format_gainlose( gl_io, "Deciles", summary.gain_lose[fno].dec_gl)
-            println( gl_io, "## Children\n\n")
-            format_gainlose( gl_io, "Num Children", summary.gain_lose[fno].children_gl)
-            println( gl_io, "## HH Type\n\n")
-            format_gainlose( gl_io, "Household Type", summary.gain_lose[fno].hhtype_gl)
-            println( gl_io, "## Region\n\n")
-            format_gainlose( gl_io, "Region", summary.gain_lose[fno].reg_gl)
+        if fno > 1
+            CSV.write( joinpath( outdir, "gain-lose-by-tenure-$(fno)-vs-1.csv"), summary.gain_lose[fno].ten_gl)
+            CSV.write( joinpath( outdir, "gain-lose-by-deciles-$(fno)-vs-1.csv"), summary.gain_lose[fno].dec_gl)
+            CSV.write( joinpath( outdir, "gain-lose-by-num-children-$(fno)-vs-1.csv"), summary.gain_lose[fno].children_gl)
+            CSV.write( joinpath( outdir, "gain-lose-by-household Type-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_gl)
+            CSV.write( joinpath( outdir, "gain-lose-by-region-\$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_gl)
         end
     end
     close(io)
@@ -1077,14 +1085,14 @@ function dump_frames(
     outdir = joinpath( settings.output_dir, basiccensor( settings.run_name )) 
     mkpath( outdir )
     for fno in 1:ns
-        fname = joinpath( outdir, "hh_$(fno).tab")
-        CSV.write( fname, frames.hh[fno] ; append=append, delim='\t')
-        fname = joinpath( outdir, "bu_$(fno).tab")
-        CSV.write( fname, frames.bu[fno]; append=append, delim='\t' )
-        fname = joinpath( outdir, "indiv_$(fno).tab")
-        CSV.write( fname, frames.indiv[fno];append=append, delim='\t' )
-        fname = joinpath( outdir, "income_$(fno).tab")
-        CSV.write( fname, frames.income[fno]; append=append, delim='\t' )
+        fname = joinpath( outdir, "hh_$(fno).csv")
+        CSV.write( fname, frames.hh[fno] ; append=append,delim=',')
+        fname = joinpath( outdir, "bu_$(fno).csv")
+        CSV.write( fname, frames.bu[fno]; append=append,delim=',' )
+        fname = joinpath( outdir, "indiv_$(fno).csv")
+        CSV.write( fname, frames.indiv[fno];append=append,delim=',' )
+        fname = joinpath( outdir, "income_$(fno).csv")
+        CSV.write( fname, frames.income[fno]; append=append,delim=',' )
     end
 end
 
