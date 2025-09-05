@@ -12,8 +12,6 @@ using DataFrames:
     sum,
     unstack
 
-import Base.write
-
 using PovertyAndInequalityMeasures
 using CSV
 using Format
@@ -850,24 +848,44 @@ end
 """
 Produce data for HBAI graph clone: hist in £10 blocks, median, truncated at [0,2000).
 FIXME near dup of metrs_to_hist - just pass in ranges to common function? 
+minr and maxr are from HBAI diagram
 """
-function incomes_to_hist( indiv :: DataFrame; income_type=:eq_bhc_net_income )::Histogram
+function incomes_to_hist( 
+    indiv :: DataFrame; 
+    income_type=:eq_bhc_net_income, 
+    minr=0.0,
+    maxr=1500.0,
+    bandwidth=10 )::Histogram
     incs = indiv[!,income_type]
     maxinc = maximum(incs)
     mininc = minimum(incs)
     medinc = median( incs, Weights(indiv.weight))
     meaninc = mean( incs, Weights(indiv.weight))
     # constrain the graph as in HBAI    
-    incs = max.( incs, 0)
-    incs = min.( incs, 2000)
-    ranges = collect( 0.0:10:2000 )
+    incs = max.( incs, minr)
+    incs = min.( incs, maxr)
+    ranges = collect( minr:bandwidth:macr )
     push!( ranges,Inf)
     hist = fit( Histogram, incs, Weights( indiv.weight ), ranges, closed=:left )
-    return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist )
+    # check I've understood fit(Hist correctly ..
+    @assert sum(hist.weights[0]) ≈ sum( indiv.weight[ incs .<= minr ])
+    @assert sum(hist.weights[end]) ≈ sum( indiv.weight[ incs .>= maxr ])
+    return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist=hist )
 end
 
-function write( filename::String, hist :: Histogram; delim='\t')
-    d = DataFrame( edges_lower_limit=hist.edges[1][1:end-1], population=hist.weights )
+"""
+Dump out histogram, means, etc. as 2-col delimited data. 
+`incs` one of the named tuples created by `incomes_to_hist` or `metrs_to_hist`
+"""
+function write_hist( filename::String, incs::NamedTuple; delim='\t')
+    d = DataFrame( 
+        edges_lower_limit=incs.hist.edges[1][1:end-1], 
+        population=incs.hist.weights )
+    # add stats at bottom
+    push!(d, "mean", incs.mean, promote=true)) # since col1 is float only otherwise
+    push!(d, "median", incs.median)
+    push!(d, "min", incs.min)
+    push!(d, "max", incs.max)
     CSV.write( filename, d; delim=delim )
 end
 
