@@ -839,9 +839,11 @@ function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     maxmtr = maximum(indp.metr)
     minmtr = minimum(indp.metr)
     sensible = indp[(indp.metr.<150),:]
-    medmtr = mean( sensible.metr, Weights(sensible.weight))
-    meanmtr = mean( sensible.metr, Weights(sensible.weight))
-    hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.0000, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:left )
+    if size(sensible)[1] > 0
+        medmtr = mean( sensible.metr, Weights(sensible.weight))
+        meanmtr = mean( sensible.metr, Weights(sensible.weight))
+        hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.0000, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:left )
+    end
     return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist)
 end
 
@@ -855,7 +857,7 @@ function incomes_to_hist(
     income_measure=:eq_bhc_net_income, 
     minr=0.0,
     maxr=1500.0,
-    bandwidth=10 )::Histogram
+    bandwidth=10 )::NamedTuple
     incs = indiv[!,income_measure]
     maxinc = maximum(incs)
     mininc = minimum(incs)
@@ -864,11 +866,11 @@ function incomes_to_hist(
     # constrain the graph as in HBAI    
     incs = max.( incs, minr)
     incs = min.( incs, maxr)
-    ranges = collect( minr:bandwidth:macr )
+    ranges = collect( minr:bandwidth:maxr )
     push!( ranges,Inf)
     hist = fit( Histogram, incs, Weights( indiv.weight ), ranges, closed=:left )
     # check I've understood fit(Hist correctly ..
-    @assert sum(hist.weights[0]) ≈ sum( indiv.weight[ incs .<= minr ])
+    @assert sum(hist.weights[1]) ≈ sum( indiv.weight[ incs .<= minr ])
     @assert sum(hist.weights[end]) ≈ sum( indiv.weight[ incs .>= maxr ])
     return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist=hist )
 end
@@ -882,10 +884,10 @@ function write_hist( filename::String, incs::NamedTuple; delim='\t')
         edges_lower_limit=incs.hist.edges[1][1:end-1], 
         population=incs.hist.weights )
     # add stats at bottom
-    push!(d, "mean", incs.mean; promote=true ) # since col1 is float only otherwise
-    push!(d, "median", incs.median)
-    push!(d, "min", incs.min)
-    push!(d, "max", incs.max)
+    push!(d, ["mean", incs.mean]; promote=true ) # since col1 is float only otherwise
+    push!(d, ["median", incs.median])
+    push!(d, ["min", incs.min])
+    push!(d, ["max", incs.max])
     CSV.write( filename, d; delim=delim )
 end
 
@@ -950,8 +952,10 @@ function summarise_frames!(
         if settings.poverty_line_source == pl_current_sys
             poverty_line = make_poverty_line( frames.hh[sysno], settings )
         end
-        push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
-        println( "metrs to hist done")
+        if settings.do_marginal_rates
+            push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
+            println( "metrs to hist done")
+        end
         push!( income_hists, incomes_to_hist(
             frames.indiv[sysno], 
             income_measure=income_measure ))
@@ -1093,9 +1097,6 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
         println(io,to_md_table(summary.inequality[fno]))
         println(io, "## Poverty Sys#$(fno)")
         println(io,to_md_table(summary.poverty[fno]))
-
-        println(io, "## METRs Histogram Sys#$(fno)")
-        println(io, summary.metrs[fno])
         println(io, "## Child Poverty Sys#$(fno)")
         println(io, to_md_table(summary.child_poverty[fno]))
         println(io, "## Poverty Line#$(fno)")
@@ -1108,8 +1109,10 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
             CSV.write( joinpath( outdir, "gain-lose-by-household Type-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_gl)
             CSV.write( joinpath( outdir, "gain-lose-by-region-\$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_gl)
         end
-        write_hist(joinpath( outdir, "metrs-histogram-$(fno).csv"), summary.income_hists[fno] )
-        write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.metrs[fno] )
+            write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.income_hists[fno] )
+        if settings.do_marginal_rates
+            write_hist(joinpath( outdir, "metrs-histogram-$(fno).csv"), summary.metrs[fno] )
+        end
     end
     close(io)
     if settings.do_legal_aid
