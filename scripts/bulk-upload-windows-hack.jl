@@ -1,10 +1,24 @@
 #=
-Bulk upload all the various ScotBen data artifacts
+
+Bulk upload all the various ScotBen data artifacts.
+
+Hacked stand-alone version made to defeat F**ING Windows Defender.
+No dependency on ScottishTaxBenefitModel.jl itself since
+we're in a chicken/egg situation where ScotBen won't load without data
+but we normally can't create artifacts without Scotben.
+
+So load data artifacts into `artifact_server_url` and the artifact
+thingy takes it from there. Pointless but there we are ...
+
 =#
 using ArtifactUtils
 using Artifacts
 
-const  version = v"0.1.7" # get_data_version() # pkgversion(ScottishTaxBenefitModel) # get_version()
+#
+# In the main version these are all derived from the model &
+# Project.toml. So we need to update these manually.
+#
+const version = v"0.1.7" # get_data_version() # pkgversion(ScottishTaxBenefitModel) # get_version()
 const artifact_server_upload = "c:/data/" # @load_preference( "local-artifact_server_upload_windows" )
 const artifact_server_url = "file:///c:/data/" # @load_preference( "local-artifact_server_url_windows" )
 const is_windows = true

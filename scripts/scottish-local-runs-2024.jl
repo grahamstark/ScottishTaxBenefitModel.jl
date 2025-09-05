@@ -473,6 +473,6 @@ function do_local_runs()
         end
         println(io, "<div style='page-break-after: always;'></div>" )
         close(io)
-    end # do local runs
+    end # each la
 
-end
+end # do local runs

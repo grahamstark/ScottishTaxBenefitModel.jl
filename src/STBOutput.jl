@@ -828,6 +828,9 @@ function make_gain_lose( post :: DataFrame, pre :: DataFrame, settings :: Settin
     return make_gain_lose( post, pre, income )
 end
 
+"""
+Produce data for Metrs as a bar chart, plus mean, median
+"""
 function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     # these 2 convoluted lines make this draw only
     # over the non-missing (children, retired)
@@ -835,18 +838,32 @@ function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     indp = indiv[p,[:metr, :weight]] # just non missing
     # so .. <=0, >0 <=10, >10<=20 and so on
     # skip near-infinite mrs mwhen averaging
-    mmtr = mean( indp[(indp.metr.<150),:].metr, Weights(indp[(indp.metr.<150),:].weight))
+    maxmtr = maximum(indp.metr)
+    minmtr = minimum(indp.metr)
+    sensible = indp[(indp.metr.<150),:]
+    medmtr = mean( sensible.metr, Weights(sensible.weight))
+    meanmtr = mean( sensible.metr, Weights(sensible.weight))
     hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.0000, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:left )
-    return ( mean=mmtr, hist=hist)
+    return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist)
 end
 
+"""
+Produce data for HBAI graph clone: hist in £10 blocks, median, truncated at [0,2000).
+FIXME near dup of metrs_to_hist - just pass in ranges to common function? 
+"""
 function incomes_to_hist( indiv :: DataFrame; income_type=:eq_bhc_net_income )::Histogram
     incs = indiv[!,income_type]
+    maxinc = maximum(incs)
+    mininc = minimum(incs)
+    medinc = median( incs, Weights(indiv.weight))
+    meaninc = mean( incs, Weights(indiv.weight))
+    # constrain the graph as in HBAI    
     incs = max.( incs, 0)
     incs = min.( incs, 2000)
     ranges = collect( 0.0:10:2000 )
     push!( ranges,Inf)
-    return fit( Histogram, incs, Weights( indiv.weight ), ranges, closed=:left )
+    hist = fit( Histogram, incs, Weights( indiv.weight ), ranges, closed=:left )
+    return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist )
 end
 
 function write( filename::String, hist :: Histogram; delim='\t')
