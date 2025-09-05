@@ -31,6 +31,7 @@ export
    addsysnotoname, 
    age_in_years, 
    age_then,
+   alternates,
    basiccensor, 
    coarse_match,
    date_string,
@@ -1111,5 +1112,16 @@ function add_cols!( df :: DataFrame, cnames :: Vector{Symbol}, types=nothing )
       df[:,n] = zeros(nrows)
    end
 end
+
+function alternates( v1::T, v2::T, n::Integer)::Vector{T} where T
+   v = fill(v1,n)
+   for i in 1:n
+      if i % 2 == 0
+        v[i] = v2
+      end
+   end
+   return v
+ end
+
 
 end # module
