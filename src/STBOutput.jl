@@ -852,11 +852,11 @@ minr and maxr are from HBAI diagram
 """
 function incomes_to_hist( 
     indiv :: DataFrame; 
-    income_type=:eq_bhc_net_income, 
+    income_measure=:eq_bhc_net_income, 
     minr=0.0,
     maxr=1500.0,
     bandwidth=10 )::Histogram
-    incs = indiv[!,income_type]
+    incs = indiv[!,income_measure]
     maxinc = maximum(incs)
     mininc = minimum(incs)
     medinc = median( incs, Weights(indiv.weight))
@@ -882,7 +882,7 @@ function write_hist( filename::String, incs::NamedTuple; delim='\t')
         edges_lower_limit=incs.hist.edges[1][1:end-1], 
         population=incs.hist.weights )
     # add stats at bottom
-    push!(d, "mean", incs.mean, promote=true)) # since col1 is float only otherwise
+    push!(d, "mean", incs.mean; promote=true ) # since col1 is float only otherwise
     push!(d, "median", incs.median)
     push!(d, "min", incs.min)
     push!(d, "max", incs.max)
@@ -935,6 +935,7 @@ function summarise_frames!(
     metrs = []
     poverty_lines = []
     child_poverty = [] 
+    income_hists = []
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
     poverty_line = if settings.poverty_line_source == pl_from_settings
         settings.poverty_line
@@ -951,6 +952,9 @@ function summarise_frames!(
         end
         push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
         println( "metrs to hist done")
+        push!( income_hists, incomes_to_hist(
+            frames.indiv[sysno], 
+            income_measure=income_measure ))
         push!(income_summary, 
             summarise_inc_frame(frames.income[sysno]))
         println( "income summary")
@@ -993,7 +997,7 @@ function summarise_frames!(
         println( "child poverty")
         push!( child_poverty, cp )
     end   
-    @time fill_in_deciles_and_poverty!(
+    fill_in_deciles_and_poverty!(
         frames, 
         settings, 
         poverty_lines,
@@ -1028,6 +1032,7 @@ function summarise_frames!(
         gain_lose,
         poverty_lines,
         short_income_summary,
+        income_hists,
         legalaid = frames.legalaid )
 end
 
@@ -1095,6 +1100,7 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
         println(io, to_md_table(summary.child_poverty[fno]))
         println(io, "## Poverty Line#$(fno)")
         println(io, summary.poverty_lines[fno])
+
         if fno > 1
             CSV.write( joinpath( outdir, "gain-lose-by-tenure-$(fno)-vs-1.csv"), summary.gain_lose[fno].ten_gl)
             CSV.write( joinpath( outdir, "gain-lose-by-deciles-$(fno)-vs-1.csv"), summary.gain_lose[fno].dec_gl)
@@ -1102,6 +1108,8 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
             CSV.write( joinpath( outdir, "gain-lose-by-household Type-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_gl)
             CSV.write( joinpath( outdir, "gain-lose-by-region-\$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_gl)
         end
+        write_hist(joinpath( outdir, "metrs-histogram-$(fno).csv"), summary.income_hists[fno] )
+        write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.metrs[fno] )
     end
     close(io)
     if settings.do_legal_aid
