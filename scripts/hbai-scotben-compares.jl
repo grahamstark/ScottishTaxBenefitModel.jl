@@ -63,6 +63,8 @@ res = Runner.do_one_run( settings, [sys,sys], obs )
 results_hhs = res.hh[1]
 results_hhs.grossing_factor = Weights( results_hhs.weighted_people)
 results_hhs = results_hhs[results_hhs.bhc_net_income .>= 0,:] # emulate HBAI non-neg only
+results_hhs.eq_scale_bhc ./= Results.TWO_ADS_EQ_SCALES.oecd_bhc
+results_hhs.eq_scale_ahc ./= Results.TWO_ADS_EQ_SCALES.oecd_ahc
 
 # overwrite raw data with uprated/matched versions
 dataset_artifact = get_data_artifact( settings )
