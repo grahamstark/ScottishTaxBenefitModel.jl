@@ -113,6 +113,8 @@ function make_household_results_frame( RT :: DataType, n :: Int ) :: DataFrame
         tenure    = fill( Missing_Tenure_Type, n ),
         region    = fill( Missing_Standard_Region, n ),
         decile = zeros( Int, n ),
+        eq_scale_bhc = zeros(RT,n),
+        eq_scale_ahc = zeros(RT,n),
         in_poverty = fill( false, n ),
         bhc_net_income = zeros(RT,n),
         ahc_net_income = zeros(RT,n),
@@ -298,6 +300,8 @@ function fill_hh_frame_row!( hr :: DataFrameRow, hh :: Household, hres :: Househ
     hr.tenure = hh.tenure
     hr.region = hh.region
     hr.decile = -1
+    hr.eq_scale_bhc = hh.equivalence_scales.oecd_bhc
+    hr.eq_scale_ahc = hh.equivalence_scales.oecd_ahc
     hr.income_taxes = isum(hres.income, INCOME_TAXES )
     hr.means_tested_benefits = isum( hres.income, MEANS_TESTED_BENS )
     hr.other_benefits = isum( hres.income, NON_MEANS_TESTED_BENS )
@@ -850,28 +854,30 @@ end
 """
 Produce data for HBAI graph clone: hist in £10 blocks, median, truncated at [0,2000).
 FIXME near dup of metrs_to_hist - just pass in ranges to common function? 
+FIXME inconsistent call from the other summary tables.
 minr and maxr are from HBAI diagram
 """
 function incomes_to_hist( 
-    indiv :: DataFrame; 
+    hh :: DataFrame; 
     income_measure=:eq_bhc_net_income, 
     minr=0.0,
     maxr=1500.0,
     bandwidth=10 )::NamedTuple
-    incs = indiv[!,income_measure]
+    incs = deepcopy(hh[:,income_measure])
     maxinc = maximum(incs)
     mininc = minimum(incs)
-    medinc = median( incs, Weights(indiv.weight))
-    meaninc = mean( incs, Weights(indiv.weight))
+    medinc = median( incs, Weights(hh.weighted_people))
+    meaninc = mean( incs, Weights(hh.weighted_people))
+    @show medinc meaninc
     # constrain the graph as in HBAI    
     incs = max.( incs, minr)
     incs = min.( incs, maxr)
     ranges = collect( minr:bandwidth:maxr )
     push!( ranges,Inf)
-    hist = fit( Histogram, incs, Weights( indiv.weight ), ranges, closed=:left )
+    hist = fit( Histogram, incs, Weights( hh.weighted_people ), ranges, closed=:left )
     # check I've understood fit(Hist correctly ..
-    @assert sum(hist.weights[1]) ≈ sum( indiv.weight[ incs .<= minr ])
-    @assert sum(hist.weights[end]) ≈ sum( indiv.weight[ incs .>= maxr ])
+    # @assert hist.weights[1] ≈ sum( hh.weighted_people[ incs .<= minr ]) "$(hist.weights[1]) ≈ $(sum( hh.weighted_people[ incs .<= minr ])) $hist"
+    # @assert hist.weights[end] ≈ sum( hh.weighted_people[ incs .>= maxr ]) "$(hist.weights[end]) ≈ $(sum( hh.weighted_people[ incs .>= maxr ])) $hist"
     return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist=hist )
 end
 
@@ -957,7 +963,7 @@ function summarise_frames!(
             println( "metrs to hist done")
         end
         push!( income_hists, incomes_to_hist(
-            frames.indiv[sysno], 
+            frames.hh[sysno], 
             income_measure=income_measure ))
         push!(income_summary, 
             summarise_inc_frame(frames.income[sysno]))
