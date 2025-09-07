@@ -227,6 +227,8 @@ function make_individual_results_frame( RT :: DataType, n :: Int ) :: DataFrame
 
         eq_bhc_net_income = zeros(RT,n),
         eq_ahc_net_income = zeros(RT,n),
+        bhc_net_income = zeros(RT,n),
+        ahc_net_income = zeros(RT,n),
 
         income_taxes = zeros(RT,n),
         means_tested_benefits = zeros(RT,n),
@@ -497,6 +499,7 @@ function fill_pers_frame_row!(
     pr :: DataFrameRow,
     hh :: Household,
     pers :: Person,
+    hres :: HouseholdResult,
     pres :: IndividualResult,
     from_child_record :: Bool )
     pr.hid = hh.hid
@@ -508,6 +511,12 @@ function fill_pers_frame_row!(
     pr.employment_status = pers.employment_status
     pr.ethnic_group = pers.ethnic_group
     pr.is_child = from_child_record
+    # hh level memo items
+    pr.bhc_net_income = hres.bhc_net_income
+    pr.ahc_net_income = hres.ahc_net_income
+    # hr.eq_scale = hres.eq_scale
+    pr.eq_bhc_net_income = hres.eq_bhc_net_income
+    pr.eq_ahc_net_income = hres.eq_ahc_net_income
 
     pr.income_taxes = isum( pres.income, INCOME_TAXES)
     pr.means_tested_benefits = isum( pres.income, MEANS_TESTED_BENS )
@@ -574,6 +583,7 @@ function add_to_frames!(
                 frames.indiv[sysno][pfno,:],
                 hh,
                 pers,
+                hres,
                 hres.bus[buno].pers[pid],
                 from_child_record )
             fill_inc_frame_row!(
