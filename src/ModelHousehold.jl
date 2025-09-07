@@ -213,6 +213,7 @@ mutable struct Household{RT<:Real}
     total_wealth::RT
     house_value::RT
     weight::RT
+    default_weight :: RT
     council :: Symbol
     nhs_board :: Symbol
     bedrooms :: Int

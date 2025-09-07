@@ -26,7 +26,8 @@ using
     .STBIncomes,
     .STBParameters,
     .Uprating,
-    .Utils
+    .Utils,
+    .Weighting
 
 function make_pov( df :: DataFrame, incf::Symbol, growth=0.02 )::Tuple
     povline = 0.6 * median( df[!,incf], Weights( df.weighted_people ))
@@ -52,7 +53,7 @@ of = on(obs) do p
     println(tot)
 end
 
-settings.included_data_years = [2019,2021,2022, 2023]
+settings.included_data_years = [2021,2022, 2023] # same as 3 year HBAI
 settings.requested_threads = 4
 settings.to_y=2025
 settings.to_q=3
@@ -62,7 +63,10 @@ settings.num_households, settings.num_people, nhhs2 =
 res = Runner.do_one_run( settings, [sys,sys], obs )
 results_hhs = res.hh[1]
 results_hhs.grossing_factor = Weights( results_hhs.weighted_people)
-results_hhs = results_hhs[results_hhs.bhc_net_income .>= 0,:] # emulate HBAI non-neg only
+#results_hhs = results_hhs[results_hhs.bhc_net_income .>= 0,:] # emulate HBAI non-neg only
+
+jhhs = leftjoin(results_hhs, model_hhs, on=[:hid,:data_year], makeunique=true )
+
 results_hhs.eq_scale_bhc ./= Results.TWO_ADS_EQ_SCALES.oecd_bhc
 results_hhs.eq_scale_ahc ./= Results.TWO_ADS_EQ_SCALES.oecd_ahc
 
@@ -75,6 +79,10 @@ model_people = HouseholdFromFrame.read_pers(
 model_hhs = model_hhs[ model_hhs.data_year .∈ ( settings.included_data_years, ) , :]
 model_people = model_people[ model_people.data_year .∈ ( settings.included_data_years, ) , :]
 DataSummariser.overwrite_raw!( model_hhs, model_people, settings.num_households )
+
+
+# 
+
 
 # eq scales rel to 2 adults
 # .. already done now
@@ -99,7 +107,7 @@ hbai.grossing_factor = Weights( Float64.(hbai.gs_indpp))
 hbai.data_year = hbai.year .+ 1993 # 30 -> 2023
 hbai.cpi_av_pub = Float64.(hbai.ahcpubdef)
 hbai.bhc_net_income = hbai.ahc_net_income + hbai.total_housing_costs
-
+hbai_heads = hbai[hbai.hrpid .== 1,:]
 #=
 HBAI deflators
 AHCDEF	Value	CPI-based AHC deflator for the average of the survey year
@@ -108,18 +116,22 @@ AHCYRDEF	Value	CPI-based AHC deflator for survey year (average of financial year
 =#
 
 hbai_s = hbai[(hbai.gvtregn .==12),:]
+hbai_heads_s = hbai_s[hbai_s.hrpid .== 1,:]
 hb23 = hbai[(hbai.data_year.==2023),:]
 hb23_s = hbai_s[(hbai_s.data_year.==2023),:]
+hb23_heads = hb23[hb23.hrpid .== 1,:]
 
 sbmean_grossed = mean( results_hhs.bhc_net_income, results_hhs.grossing_factor)
 sbmean_ungrossed = mean( results_hhs.bhc_net_income)
 hbai_mean_grossed = mean(hbai_s.bhc_net_income,hbai_s.grossing_factor)
 hbai_mean_ungrossed = mean(hbai_s.bhc_net_income )
+sbmean_frs_weights = mean( jhhs.bhc_net_income, Weights( jhhs.weight_1 ./ 3) )
 
 sbmedian_grossed = median( results_hhs.bhc_net_income, results_hhs.grossing_factor)
 sbmedian_ungrossed = median( results_hhs.bhc_net_income)
 hbai_median_grossed = median(hbai_s.bhc_net_income,hbai_s.grossing_factor)
 hbai_median_ungrossed = median(hbai_s.bhc_net_income )
+sbmedian_frs_weights = median( jhhs.bhc_net_income, Weights( jhhs.weight_1 ./ 3) )
 
 # select summary hbai
 hbai_s[!,[:sernum,:grossing_factor,:ahc_net_income,:before_hc_eqscale,:data_year,:ahcpubdef,:ahcyrdef]]
@@ -143,3 +155,24 @@ median(hb23.after_hc_net_equivalised,Weights(hb23.grossing_factor))
 unique(hbai.mdoeahc)
 # should match ... these:
 unique(hbai.mdoebhc)
+
+# test of weighting relative to exis
+
+household_total,
+    targets, # no institutional,
+    initialise_target_dataframe,
+    make_target_row! = Weighting.get_targets( settings )
+popsum = sum( jhhs.weight )
+wscale = household_total/popsum
+initial_weights = jhhs.weight .* wscale
+
+@time weightsp, data = generate_weights( 
+               settings.num_households;
+               weight_type = settings.weight_type,
+               lower_multiple = settings.lower_multiple,
+               upper_multiple = settings.upper_multiple,
+               household_total = household_total,
+               targets = targets, # no institutional,
+               initialise_target_dataframe = initialise_target_dataframe,
+               make_target_row! = make_target_row!, 
+               initial_weights=initial_weights )

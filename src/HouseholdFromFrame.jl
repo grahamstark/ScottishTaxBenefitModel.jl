@@ -499,6 +499,7 @@ function map_hhld( hno::Integer, frs_hh :: DataFrameRow, settings :: Settings )
         frs_hh.total_wealth,
         frs_hh.house_value,
         frs_hh.weight,
+        frs_hh.weight, # twice - the weight that's used and the default weight for memo
         frs_hh.council,
         frs_hh.nhs_board ,
         frs_hh.bedrooms,

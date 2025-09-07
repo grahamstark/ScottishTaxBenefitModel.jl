@@ -186,6 +186,7 @@ module RunSettings
         upper_multiple = @load_preference( "upper_multiple", 5.9)
         include_institutional_population :: Bool  = @load_preference( "include_institutional_population", false )        
         weighting_target_year = @load_preference( "weighting_target_year", 2025 )
+        weighting_relative_to_ons_weights :: Bool = @load_preference( "weighting_relative_to_ons_weights", false )        
     end
 
     """

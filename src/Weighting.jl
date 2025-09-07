@@ -118,6 +118,7 @@ end
 #
 function generate_weights(
     nhhlds :: Integer;
+    initial_weights  = nothing,
     weight_type :: DistanceFunctionType = constrained_chi_square,
     lower_multiple :: Real = 0.20, # these values can be narrowed somewhat, to around 0.25-4.7
     upper_multiple :: Real = 5,
@@ -150,8 +151,10 @@ function generate_weights(
     # println( data )
     nrows, ncols = size( data )
     check_data( data, nrows, ncols )
-    ## FIXME parameterise this
-    initial_weights = ones(nhhlds)*household_total/nhhlds
+    # default initial weights as all equal 
+    if isnothing( initial_weights ) 
+        initial_weights = ones(nhhlds)*household_total/nhhlds
+    end
     println( "initial_weights $(initial_weights[1])")
     # any smaller min and d_and_s_constrained fails on this dataset
     @assert size(data)[2] == length(targets) "mismatch sizes data=$(size(data)[2]) targets=$(length(targets))"
@@ -186,8 +189,21 @@ function generate_weights( settings::Settings )
     targets, # no institutional,
     initialise_target_dataframe,
     make_target_row! = get_targets( settings )
+    initial_weights = if settings.relative_to_ons_weights
+        weights = zeros( settings.num_households )
+        for hno in 1:settings.num_households
+            hh = FRSHouseholdGetter.get_household( hno )
+            weights[hno] = hh.default_weight
+        end
+        popsum = sum( weights )
+        wscale = household_total/popsum
+        weights .* wscale
+    else # uniform unitial weights
+        ones(nhhlds)*household_total/settings.num_households
+    end 
     @time weights, data = generate_weights( 
         settings.num_households;
+        initial_weights = initial_weights
         weight_type = settings.weight_type,
         lower_multiple = settings.lower_multiple,
         upper_multiple = settings.upper_multiple,
