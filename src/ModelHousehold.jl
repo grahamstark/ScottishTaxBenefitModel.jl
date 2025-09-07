@@ -266,15 +266,17 @@ end
 for the eq scale implicit interface
 """
 function eq_rel_to_hoh( p :: Person ) :: EQ_P_Type
-    # hack for 2nd bu adults always being heads
-    if (! p.is_standard_child) && (p.default_benefit_unit > 1)
-        return eq_head
-    elseif p.relationship_to_hoh == This_Person
+    # if (! p.is_standard_child) && (p.default_benefit_unit > 1)
+    #    return eq_head
+    if p.relationship_to_hoh == This_Person
         return eq_head
     elseif p.is_standard_child
         return eq_dependent_child
     elseif p.relationship_to_hoh in [Spouse,Cohabitee]
         return eq_spouse_of_head
+    # hack for 2nd bu adults always being heads
+    # elseif (p.default_benefit_unit > 1)
+        # return eq_head
     else 
         return eq_other_adult
     end

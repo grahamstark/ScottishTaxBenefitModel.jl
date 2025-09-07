@@ -5,6 +5,7 @@
 @usingany Observables
 @usingany CairoMakie
 @usingany GLM
+@usingany Pluto
 
 # include("landman-to-sb-mappings.jl")
 
@@ -24,6 +25,7 @@ using
     .SingleHouseholdCalculations,
     .STBIncomes,
     .STBParameters,
+    .Uprating,
     .Utils
 
 function make_pov( df :: DataFrame, incf::Symbol, growth=0.02 )::Tuple
@@ -52,50 +54,75 @@ end
 
 settings.included_data_years = [2019,2021,2022, 2023]
 settings.requested_threads = 4
+settings.to_y=2025
+settings.to_q=3
+Uprating.load_prices( settings, true )
 settings.num_households, settings.num_people, nhhs2 = 
            FRSHouseholdGetter.initialise( settings; reset=true )
 res = Runner.do_one_run( settings, [sys,sys], obs )
+results_hhs = res.hh[1]
+results_hhs.grossing_factor = Weights( results_hhs.weighted_people)
+results_hhs = results_hhs[results_hhs.bhc_net_income .>= 0,:] # emulate HBAI non-neg only
 
 # overwrite raw data with uprated/matched versions
-dataset_artifact = get_data_artifact( Settings() )
-hhs = HouseholdFromFrame.read_hh( 
+dataset_artifact = get_data_artifact( settings )
+model_hhs = HouseholdFromFrame.read_hh( 
     joinpath( dataset_artifact, "households.tab")) # CSV.File( ds.hhlds ) |> DataFrame
-people = HouseholdFromFrame.read_pers( 
+model_people = HouseholdFromFrame.read_pers( 
     joinpath( dataset_artifact, "people.tab"))
-hhs = hhs[ hhs.data_year .∈ ( settings.included_data_years, ) , :]
-people = people[ people.data_year .∈ ( settings.included_data_years, ) , :]
-DataSummariser.overwrite_raw!( hhs, people, settings.num_households )
+model_hhs = model_hhs[ model_hhs.data_year .∈ ( settings.included_data_years, ) , :]
+model_people = model_people[ model_people.data_year .∈ ( settings.included_data_years, ) , :]
+DataSummariser.overwrite_raw!( model_hhs, model_people, settings.num_households )
 
 # eq scales rel to 2 adults
-hhs.eqscale_bhc = round.( hhs.eqscale_bhc/Results.TWO_ADS_EQ_SCALES.oecd_bhc, digits=2)
-hhs.eqscale_ahc = round.( hhs.eqscale_ahc/Results.TWO_ADS_EQ_SCALES.oecd_ahc, digits=2)
-
+# .. already done now
+# hhs.eqscale_bhc = round.( hhs.eqscale_bhc/Results.TWO_ADS_EQ_SCALES.oecd_bhc, digits=2)
+# hhs.eqscale_ahc = round.( hhs.eqscale_ahc/Results.TWO_ADS_EQ_SCALES.oecd_ahc, digits=2)
+#
+# NOTE column label missing 3rd from end in the HBAI files - I added `nothinggks` as a 
+# label
+#
 hbai = CSV.File( "/mnt/data/hbai/2024-ed/UKDA-5828-tab/main/20224.csv"; delim=',', missingstring=["","-9","A"]) |> DataFrame
 rename!(lowercase, hbai)
-hbai = hbai[( .! ismissing.( hbai.s_oe_bhc)).&( .! ismissing.( hbai.s_oe_bhc)),:]
+hbai = hbai[( .! ismissing.( hbai.s_oe_bhc .+ hbai.s_oe_ahc .+ hbai.eahchh)), :]
 hbai.after_hc_net_equivalised = Float64.( hbai.s_oe_ahc )
 hbai.after_hc_net_equivalised = Float64.(hbai.s_oe_ahc)
 hbai.before_hc_net_equivalised = Float64.(hbai.s_oe_bhc)
 hbai.ahc_net_income = Float64.(hbai.eahchh)
-hbai.ahc_net_income_spi = Float64.(hbai.esahchh)
+# hbai.ahc_net_income_spi = Float64.(hbai.esahchh)
 hbai.total_housing_costs = Float64.(hbai.ehcost)
-hbai.ahc_equiv = Float64.(hbai.eqoahchh)
-hbai.bhc_equiv = Float64.(hbai.eqobhchh)
-hbai.grossing_factor = Float64.(hbai.gs_indpp)
-
-hbai.weight = Weights.( hbai.grossing_factor )
-res.hh[1].grossing_factor = Weights( res.hh[1].weighted_people)
-
+hbai.after_hc_eqscale = Float64.(hbai.eqoahchh)
+hbai.before_hc_eqscale= Float64.(hbai.eqobhchh)
+hbai.grossing_factor = Weights( Float64.(hbai.gs_indpp))
+hbai.data_year = hbai.year .+ 1993 # 30 -> 2023
+hbai.cpi_av_pub = Float64.(hbai.ahcpubdef)
 hbai.bhc_net_income = hbai.ahc_net_income + hbai.total_housing_costs
 
-hbai_s = hbai[(hbai.gvtregn .==12).&( .! ismissing.( hbai.bhc_net_income)),:]
-hb23 = hbai[(hbai.year.==30),:]
-hb23_s = hbai[(hbai.year.==30),:]
+#=
+HBAI deflators
+AHCDEF	Value	CPI-based AHC deflator for the average of the survey year
+AHCPUBDEF	Value	CPI-based AHC deflator for latest (publication) year
+AHCYRDEF	Value	CPI-based AHC deflator for survey year (average of financial year)
+=#
 
-sbmean = mean( res.hh[1].bhc_net_income, res.hh[1].grossing_factor)
-hbai_mean = mean(hbai_s.bhc_net_income,hbai_s.weight)
+hbai_s = hbai[(hbai.gvtregn .==12),:]
+hb23 = hbai[(hbai.data_year.==2023),:]
+hb23_s = hbai_s[(hbai_s.data_year.==2023),:]
 
-summarystats( res.hh[1].bhc_net_income )
+sbmean_grossed = mean( results_hhs.bhc_net_income, results_hhs.grossing_factor)
+sbmean_ungrossed = mean( results_hhs.bhc_net_income)
+hbai_mean_grossed = mean(hbai_s.bhc_net_income,hbai_s.grossing_factor)
+hbai_mean_ungrossed = mean(hbai_s.bhc_net_income )
+
+sbmedian_grossed = median( results_hhs.bhc_net_income, results_hhs.grossing_factor)
+sbmedian_ungrossed = median( results_hhs.bhc_net_income)
+hbai_median_grossed = median(hbai_s.bhc_net_income,hbai_s.grossing_factor)
+hbai_median_ungrossed = median(hbai_s.bhc_net_income )
+
+# select summary hbai
+hbai_s[!,[:sernum,:grossing_factor,:ahc_net_income,:before_hc_eqscale,:data_year,:ahcpubdef,:ahcyrdef]]
+
+summarystats( results_hhs.bhc_net_income )
 summarystats( hbai_s.bhc_net_income )
 
 #1. is it my weights?
