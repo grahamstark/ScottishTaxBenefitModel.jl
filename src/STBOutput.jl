@@ -874,20 +874,20 @@ function incomes_to_hist(
     maxr=1500.0,
     bandwidth=10 )::NamedTuple
     incs = deepcopy(hh[:,income_measure])
+    # constrain the graph as in HBAI    
+    incs = max.( incs, minr)
+    incs = min.( incs, maxr)
     maxinc = maximum(incs)
     mininc = minimum(incs)
     medinc = median( incs, Weights(hh.weighted_people))
     meaninc = mean( incs, Weights(hh.weighted_people))
     @show medinc meaninc
-    # constrain the graph as in HBAI    
-    incs = max.( incs, minr)
-    incs = min.( incs, maxr)
     ranges = collect( minr:bandwidth:maxr )
     push!( ranges,Inf)
     hist = fit( Histogram, incs, Weights( hh.weighted_people ), ranges, closed=:left )
     # check I've understood fit(Hist correctly ..
-    # @assert hist.weights[1] ≈ sum( hh.weighted_people[ incs .<= minr ]) "$(hist.weights[1]) ≈ $(sum( hh.weighted_people[ incs .<= minr ])) $hist"
-    # @assert hist.weights[end] ≈ sum( hh.weighted_people[ incs .>= maxr ]) "$(hist.weights[end]) ≈ $(sum( hh.weighted_people[ incs .>= maxr ])) $hist"
+    @assert hist.weights[1] ≈ sum( hh.weighted_people[ incs .< hist.edges[1][2] ]) "$(hist.weights[1]) ≈ $(sum( hh.weighted_people[ incs .<= minr ])) $hist"
+    @assert hist.weights[end] ≈ sum( hh.weighted_people[ incs .>= maxr ]) "$(hist.weights[end]) ≈ $(sum( hh.weighted_people[ incs .>= maxr ])) $hist"
     return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist=hist )
 end
 
@@ -897,7 +897,7 @@ Dump out histogram, means, etc. as 2-col delimited data.
 """
 function write_hist( filename::String, incs::NamedTuple; delim='\t')
     d = DataFrame( 
-        edges_lower_limit=incs.hist.edges[1][1:end-1], 
+        edges_upper_limit=incs.hist.edges[1][2:end], 
         population=incs.hist.weights )
     # add stats at bottom
     push!(d, ["mean", incs.mean]; promote=true ) # since col1 is float only otherwise

@@ -65,7 +65,7 @@ module EquivalenceScales
                     eq += 1
                     println( "only 1 person; non head rel=$rel $(p.hid)")
                 else
-                    if get_age(p) <= 14
+                    if get_age(p) < 14
                         add = if scale == oxford 
                             0.5
                         elseif scale == oecd 
