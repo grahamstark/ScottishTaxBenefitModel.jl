@@ -1125,7 +1125,7 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
             CSV.write( joinpath( outdir, "gain-lose-by-household Type-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_gl)
             CSV.write( joinpath( outdir, "gain-lose-by-region-\$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_gl)
         end
-            write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.income_hists[fno] )
+        write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.income_hists[fno] )
         if settings.do_marginal_rates
             write_hist(joinpath( outdir, "metrs-histogram-$(fno).csv"), summary.metrs[fno] )
         end

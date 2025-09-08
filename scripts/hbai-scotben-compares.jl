@@ -91,9 +91,13 @@ function load_model_data(settings::Settings)::Tuple
 end
 
 function make_compare(results_hhs::DataFrame , hbai_s::DataFrame)
-    sbsub = results_hhs[results_hhs.data_year.==2021,[:hid,:data_year,:grossing_factor,:bhc_net_income,:eq_scale_bhc ]]
+    sbsub = results_hhs[results_hhs.data_year.==2021,[:hid,:data_year,:grossing_factor,:num_people, :bhc_net_income,:eq_scale_bhc ]]
     hbsub = hbai_s[hbai_s.data_year.==2021,[:sernum,:data_year, :grossing_factor,:bhc_net_income,:before_hc_eqscale,:ahcpubdef,:ahcyrdef]]
-    hbsub.grossing_factor ./= 3
+    # convoluted: gf is hhgf * num_people, over 4 years, and this is 1 year pers leve,
+    # so (ish):
+    lengths = combine(groupby(results_hhs,:data_year),:data_year=>length)
+    frac21 = sum(lengths.data_year_length)/lengths.data_year_length[2]
+    sbsub.grossing_factor = (sbsub.grossing_factor./sbsub.num_people) .* frac21 
     compset = innerjoin( sbsub, hbsub, on=[:hid=>:sernum, :data_year], makeunique=true)
     compset.eqdif = .! (compset.eq_scale_bhc .≈ compset.before_hc_eqscale )
     return compset
@@ -159,6 +163,13 @@ for uprate in ["current", "y2024"]
         2024,2 # kinda sorta
     end
     for weighting_relative_to_ons_weights in [false,true]
+        # narrower weights if relative to existing ONS weights
+        settings.lower_multiple,
+        settings.upper_multiple = if weighting_relative_to_ons_weights
+            0.65, 3.7
+        else
+            0.62, 5.8
+        end
         results, results_hhs, results_indiv = onerun( 
             settings = settings,
             weighting_relative_to_ons_weights = weighting_relative_to_ons_weights,
@@ -202,6 +213,8 @@ end # uprating
 
 CSV.write( "hbai-scotben-compares.tab", df; delim='\t')
 
+settings.lower_multiple = 0.65
+settings.upper_multiple = 3.7
 results, results_hhs, results_indiv = onerun( 
             settings = settings,
             weighting_relative_to_ons_weights = true,
