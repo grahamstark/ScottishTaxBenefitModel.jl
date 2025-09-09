@@ -747,9 +747,12 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
         (:people_weighted_change=>sum), # changes in selected income var * hhweight * people count
         (:weighted_people=>sum), # hh weight * people count
         (:weight=>sum),          # sum of hh weights
-        (:weighted_bhc_change=>sum ))     # sum of bhc changes 
+        (:weighted_bhc_change=>sum ),
+        (:weighted_pre_income=>sum ),
+        (:weighted_post_income=>sum ))     # sum of bhc changes 
     gavch.avch = gavch.people_weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group per person
     gavch.total_transfer = WEEKS_PER_YEAR.*gavch.weighted_bhc_change_sum./1_000_000 # total moved to/from that group £spa
+    gavch.pct_change = 100.0 .* ((gavch.weighted_post_income .- gavch.weighted_pre_income)./gavch.weighted_pre_income)
     # ... put av changes in the right order
     sort!( gavch, col )
     vhh.avch = gavch.avch
@@ -780,14 +783,18 @@ function make_gain_lose(
         data_year  = prehh.data_year,
         weighted_people = prehh.weighted_people,
         weight = prehh.weight,
-        weighted_bhc_change = prehh.weight.*(posthh.bhc_net_income - prehh.bhc_net_income),
+        weighted_bhc_change = prehh.weight.*(posthh.bhc_net_income - prehh.bhc_net_income), # actual incomes change
         tenure = prehh.tenure, 
         region = prehh.region,
         decile = prehh.decile,
         hh_type = prehh.hh_type,
         num_children = Int.(prehh.num_children),            
         in_poverty = prehh.in_poverty,
-        change = posthh[:, incomes_col] - prehh[:,incomes_col])
+        change = posthh[:, incomes_col] - prehh[:,incomes_col],
+        pre_income = prehh[:,incomes_col],
+        post_income = posthh[:,incomes_col],
+        weighted_pre_income = prehh.weight.*prehh[:,incomes_col],
+        weighted_post_income = prehh.weight.*posthh[:,incomes_col])
     dhh.people_weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
     ten_gl = one_gain_lose( dhh, :tenure )
     dec_gl = one_gain_lose( dhh, :decile )
