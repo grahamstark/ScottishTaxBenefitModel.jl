@@ -92,6 +92,8 @@ end
 
 f2(v) = Format.format(v, precision=2, commas=true)
 
+f0(v) = Format.format(v, precision=0, commas=true)
+
 function draw_hbai_clone!( 
     f :: Figure, 
     res :: NamedTuple, 
@@ -107,8 +109,8 @@ function draw_hbai_clone!(
     ax = Axis( f[sysno,1], 
         title=title, 
         subtitle=subtitle,
-        xlabel="£s pw", 
-        ylabel="Count",
+        xlabel="£s pw, in £$(f0(bandwidth)) bands; shaded bands represent deciles.", 
+        ylabel="Counts",
         ytickformat = ft)
     deciles = summary.deciles[sysno]
     deccols = colourbins( colours, edges, deciles ) #ih.hist.edges[1], summary.deciles[1])
@@ -200,4 +202,3 @@ draw_hbai_clone!( hbaif2, res, summ;
 save("hbai-clone-2.svg", hbaif2 )
 hbaif2
     
-
