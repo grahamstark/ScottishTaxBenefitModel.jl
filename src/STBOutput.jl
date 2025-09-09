@@ -60,7 +60,7 @@ export
 
 const DUMP_FILE_DESCRIPTION = 
 """
-# Dump File Contents
+# Dump Directory Contents
 
 * quantiles_1.csv - data for Lorenz curves and the deciles graph;
 * quantiles_2.csv -
@@ -68,8 +68,9 @@ const DUMP_FILE_DESCRIPTION =
 * income_summary_2.csv -
 * short_income_summary.csv - condensed version of the income data.
 * poverty-inequality-metrs-child-poverty.md - rather hard to read dump of poverty, etc. tables in Markdown format;
-* gainlose_1.md - Gainers and losers tables;
-* gainlose_2.md -
+* gain-lose-by-xxx-yy-vs-1.csv - Gainers and losers tables (breakdown=xxx, system=yy);
+* incomes-histogram-yy.csv - histogram of income for system yy, plus means, median, max, min
+* metrs-histogram-4.csv - likewise for Marginal Effective Tax Rates
 
 ## Other Tables
 
