@@ -20,7 +20,7 @@ using .Weighting
 
 @usingany UUIDs,CairoMakie,CSV,DataFrames,StatsBase,DataStructures,Pluto,Chairmarks
 
-const SYS = get_default_system_for_fin_year(2025; scotland=true)
+const DEFAULT_SYS = get_default_system_for_fin_year(2025; scotland=true)
 
 obs = Observable( Progress(UUID("c2ae9c83-d24a-431c-b04f-74662d2ba07e"),"",0,0,0,0))
 of = on(obs) do p

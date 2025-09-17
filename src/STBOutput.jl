@@ -767,9 +767,47 @@ end
 @enum PctDirection by_row by_col by_totals
 export PctDirection, by_row, by_col, by_totals
 
-function to_percentages( table :: DataFrame, direction :: PctDirection ) :: DataFrame
+"""
+Generate 6x6 matrix of movements in and out of 
+[ 0.3, 0.4, 0.6, 0.8, 1 ] x median income 
+(using settings.ineq_income_measure).
+"""
+function make_povtrans_matrix( 
+    indiv1::DataFrame,
+    indiv2::DataFrame,
+    settings :: Settings )::Matrix
 
+    function pstate( m, povs )::Int
+        i = 0
+        for p in povs
+            i += 1
+            if m <= p
+                return i
+            end
+        end
+        return i+1
+    end
+
+    trans = zeros(6,6)
+    isym = income_measure_as_sym( settings.ineq_income_measure )
+    inc1 = indiv1[!,isym]
+    inc2 = indiv2[!,isym]
+    med1 = median(inc1, Weights(results.indiv[1].weight ))
+    povs = med1 .* [ 0.3, 0.4, 0.6, 0.8 ]
+    @show povs
+    nrows, ncols = size( results.indiv[1] )
+    for r in 1:nrows
+        weight = indiv1[r,:weight]
+        p1 = pstate(inc1[r], povs)
+        p2 = pstate(inc2[r], povs)
+        trans[p1,p2] += weight
+        trans[p1,6]+= weight
+        trans[6,p2]+= weight
+        trans[6,6]+= weight
+    end
+    return trans
 end
+
 
 const GL_MIN = 0.10
 const MAX_EXAMPLES = 50
@@ -963,6 +1001,7 @@ function summarise_frames!(
     poverty_lines = []
     child_poverty = [] 
     income_hists = []
+    povtrans_matrix = []
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
     poverty_line = if settings.poverty_line_source == pl_from_settings
         settings.poverty_line
@@ -1025,6 +1064,11 @@ function summarise_frames!(
         )
         println( "child poverty")
         push!( child_poverty, cp )
+        push!( povtrans_matrix, make_povtrans_matrix(
+            frames.indiv[1], 
+            frames.indiv[sysno], 
+            settings
+        ))
     end   
     fill_in_deciles_and_poverty!(
         frames, 
@@ -1062,6 +1106,7 @@ function summarise_frames!(
         poverty_lines,
         short_income_summary,
         income_hists,
+        povtrans_matrix,
         legalaid = frames.legalaid )
 end
 
