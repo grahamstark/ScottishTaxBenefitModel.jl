@@ -769,7 +769,7 @@ export PctDirection, by_row, by_col, by_totals
 
 """
 Generate 6x6 matrix of movements in and out of 
-[ 0.3, 0.4, 0.6, 0.8, 1 ] x median income 
+[ 0.3, 0.4, 0.6, 0.8, 1 ] x median income (plus tot r/c)
 (using settings.ineq_income_measure).
 """
 function make_povtrans_matrix( 
@@ -788,14 +788,16 @@ function make_povtrans_matrix(
         return i+1
     end
 
+    @assert size(indiv1) == size(indiv2)
+    @assert indiv1.weight ≈ indiv1.weight
+    nrows, ncols = size( indiv1 )
     trans = zeros(6,6)
     isym = income_measure_as_sym( settings.ineq_income_measure )
     inc1 = indiv1[!,isym]
     inc2 = indiv2[!,isym]
-    med1 = median(inc1, Weights(results.indiv[1].weight ))
+    med1 = median(inc1, Weights(indiv1.weight ))
     povs = med1 .* [ 0.3, 0.4, 0.6, 0.8 ]
     @show povs
-    nrows, ncols = size( results.indiv[1] )
     for r in 1:nrows
         weight = indiv1[r,:weight]
         p1 = pstate(inc1[r], povs)
