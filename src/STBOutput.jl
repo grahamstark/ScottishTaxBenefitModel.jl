@@ -958,7 +958,7 @@ end
 
 """
 Overall summary table made from summary.income_summary tables, with 1 being the base.
-Transpose the 1st three rows of these table. Assumes there's a col `label` at the end
+Transpose the 1st three rows of that table. Assumes there's a col `label` at the end
 and that the totals are in the 1st 3 rows. This will break badly
 if the format of the income_summary tables changes.
 """
@@ -986,6 +986,81 @@ function make_short_cost_summary( income_summaries :: Vector )::DataFrame
 end
 
 """
+return tuple with goodies. All raw numbers.
+"""
+function make_headline_figures( 
+    income_summary1 :: DataFrame,
+    income_summary2 :: DataFrame,
+    inequality1 :: InequalityMeasures,
+    inequality2 :: InequalityMeasures,
+    poverty1 :: PovertyMeasures,
+    poverty2 :: PovertyMeasures,
+    gain_lose :: NamedTuple,
+    income_hists1 :: NamedTuple,
+    income_hists2 :: NamedTuple,
+    metrs1 :: NamedTuple,
+    metrs2 :: NamedTuple,
+     )::NamedTuple
+    r1 = income_summary1[1,:]
+    r2 = income_summary2[1,:]
+    net1 = r1.net_inc_indirect
+    net2 = r2.net_inc_indirect
+    ben1 = r1.total_benefits
+    ben2 = r2.total_benefits
+    tax1 = r1.income_tax+r1.national_insurance+r1.employers_ni
+    tax2 = r2.income_tax+r2.national_insurance+r2.employers_ni
+    palma1 = inequality1.palma
+    palma2 = inequality2.palma
+    gini1 = inequality1.gini
+    gini2 = inequality2.gini
+    pov_headcount1 = poverty1.foster_greer_thorndyke[1]
+    pov_headcount2 = poverty2.foster_greer_thorndyke[1]
+    median_income1 = income_hists1.median
+    median_income2 = income_hists2.median
+    mean_income1 = income_hists1.mean
+    mean_income2 = income_hists2.mean
+    median_metr1 = metrs1.median
+    median_metr2 = metrs2.median
+    mean_metr1 = metrs1.mean
+    mean_metr2 = metrs2.mean
+    Δtax = tax2 - tax1
+    Δben = ben2 - ben1
+    return (; 
+        gainers = gain_lose.gainers,
+        losers = gain_lose.losers,
+        no_change = gain_lose.nc,
+        median_metr1,
+        median_metr2,
+        Δmedian_metr = median_metr2 - median_metr1,
+        mean_metr1,
+        mean_metr2,
+        Δmean_metr = mean_metr2 - mean_metr1,
+        median_income1,
+        median_income2,
+        Δmedian_income = median_income2 - median_income1,
+        mean_income1,
+        mean_income2,
+        Δmean_income = mean_income2 - mean_income1,        
+        ben1,
+        ben2,
+        tax1, 
+        tax2,
+        palma1,
+        palma2,
+        gini1,
+        gini2,
+        pov_headcount1,
+        pov_headcount2,
+        Δtax,
+        Δben,
+        net_cost = net2 - net1,
+        net_direct = Δtax - Δben, 
+        Δpalma = palma2 - palma1,
+        Δgini = gini2 - gini1,
+        Δpov_headcount = pov_headcount2 - pov_headcount1 )
+end
+
+"""
 Make the main summary tables from a set of results dataframes.
 """
 function summarise_frames!( 
@@ -1004,6 +1079,7 @@ function summarise_frames!(
     child_poverty = [] 
     income_hists = []
     povtrans_matrix = []
+    headline_figures = []
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
     poverty_line = if settings.poverty_line_source == pl_from_settings
         settings.poverty_line
@@ -1096,7 +1172,24 @@ function summarise_frames!(
         LegalAidOutput.summarise_la_output!( settings, frames.legalaid )
     end
     short_income_summary = make_short_cost_summary( income_summary )
+    
+    for sysno in 1:ns
+        push!( headline_figures, make_headline_figures(
+            income_summary[1],
+            income_summary[sysno],
+            inequality[1],
+            inequality[sysno],
+            poverty[1],
+            poverty[sysno],
+            gain_lose[sysno],
+            income_hists[1],
+            income_hists[sysno],
+            metrs[1],
+            metrs[sysno]))
+    end
+    
     return ( ;
+        headline_figures,
         quantiles, 
         deciles, 
         income_summary, 
@@ -1111,7 +1204,6 @@ function summarise_frames!(
         povtrans_matrix,
         legalaid = frames.legalaid )
 end
-
 
 function fm(v, r,c) 
     return if c == 1

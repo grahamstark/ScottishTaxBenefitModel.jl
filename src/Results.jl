@@ -600,7 +600,7 @@ module Results
         # FIXME this doesn't work with Universal Credit
         hres.net_housing_costs = 
             hh.gross_rent + 
-            hh.mortgage_payment + 
+            hh.mortgage_interest + 
             hh.other_housing_charges + 
             hh.water_and_sewerage 
             # hres.income[LOCAL_TAXES] +
@@ -611,8 +611,8 @@ module Results
             
         hres.ahc_net_income = hres.bhc_net_income - 
             hh.gross_rent -
-            hres.income[LOCAL_TAXES] -
-            hh.mortgage_payment -
+            # hres.income[LOCAL_TAXES] -
+            hh.mortgage_interest -
             hh.other_housing_charges -
             hh.water_and_sewerage
         # Rel to 2 person eq scale.
