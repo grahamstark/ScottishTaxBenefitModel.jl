@@ -75,13 +75,15 @@ module RunSettings
         modelled_phase_in => "Modelled Phase in of UC"
     ])
 
-    @enum IneqIncomeMeasure bhc_net_income eq_bhc_net_income ahc_net_income eq_ahc_net_income
+    @enum IneqIncomeMeasure bhc_net_income eq_bhc_net_income ahc_net_income eq_ahc_net_income net_after_indirect_income eq_net_after_indirect_income
     
     const INEQ_INCOME_MEASURE_STRS = Dict([
         eq_bhc_net_income =>"Equivalised Before Housing Costs",
 	    bhc_net_income => "Unequivalised Before Housing Costs",
 	    ahc_net_income => "Unequivalised After Housing Costs",
-	    eq_ahc_net_income => "Equivalised After Housing Costs"])
+	    eq_ahc_net_income => "Equivalised After Housing Costs",
+        net_after_indirect_income => "Unequivalised After Housing Costs & Indirect Taxes",
+        eq_net_after_indirect_income => "Equivalised After Housing Costs & Indirect Taxes"])
     #
     # Overwrite FRS wages and SE income with 'SPId' HBAI data.
     #
