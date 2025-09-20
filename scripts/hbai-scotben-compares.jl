@@ -106,7 +106,8 @@ end
 
 
 function get_hbai(settings::Settings)
-    hbai = CSV.File( "/mnt/data/hbai/2024-ed/UKDA-5828-tab/main/20224.csv"; delim=',', missingstring=["","-9","A"]) |> DataFrame
+                    # /mnt/data/hbai/UKDA-5828-tab/main
+    hbai = CSV.File( "/mnt/data/hbai/UKDA-5828-tab/main/20224.csv"; delim=',', missingstring=["","-9","A"]) |> DataFrame
     rename!(lowercase, hbai)
     hbai = hbai[( .! ismissing.( hbai.s_oe_bhc .+ hbai.s_oe_ahc .+ hbai.eahchh)), :]
     hbai.eq_ahc_net_income = Float64.( hbai.s_oe_ahc )

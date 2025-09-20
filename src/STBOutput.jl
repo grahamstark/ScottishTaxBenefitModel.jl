@@ -998,8 +998,8 @@ function make_headline_figures(
     gain_lose :: NamedTuple,
     income_hists1 :: NamedTuple,
     income_hists2 :: NamedTuple,
-    metrs1 :: NamedTuple,
-    metrs2 :: NamedTuple,
+    metrs1 :: Union{Nothing,NamedTuple},
+    metrs2 :: Union{Nothing,NamedTuple},
      )::NamedTuple
     r1 = income_summary1[1,:]
     r2 = income_summary2[1,:]
@@ -1019,10 +1019,17 @@ function make_headline_figures(
     median_income2 = income_hists2.median
     mean_income1 = income_hists1.mean
     mean_income2 = income_hists2.mean
-    median_metr1 = metrs1.median
-    median_metr2 = metrs2.median
-    mean_metr1 = metrs1.mean
-    mean_metr2 = metrs2.mean
+    median_metr1,
+    median_metr2,
+    mean_metr1,
+    mean_metr2 = if isnothing( metrs1 )
+        -1,-1,-1,-1
+    else 
+        metrs1.median,
+        metrs2.median,
+        metrs1.mean,
+        metrs2.mean
+    end
     Δtax = tax2 - tax1
     Δben = ben2 - ben1
     return (; 
@@ -1174,6 +1181,13 @@ function summarise_frames!(
     short_income_summary = make_short_cost_summary( income_summary )
     
     for sysno in 1:ns
+        # check for uncomputed METRs 
+        metrs1, metrs2 = if settings.do_marginal_rates
+            metrs[1],
+            metrs[sysno]
+        else
+            nothing, nothing
+        end
         push!( headline_figures, make_headline_figures(
             income_summary[1],
             income_summary[sysno],
@@ -1184,8 +1198,8 @@ function summarise_frames!(
             gain_lose[sysno],
             income_hists[1],
             income_hists[sysno],
-            metrs[1],
-            metrs[sysno]))
+            metrs1,
+            metrs2 ))
     end
     
     return ( ;
