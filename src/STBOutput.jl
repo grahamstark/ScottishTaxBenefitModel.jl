@@ -1060,7 +1060,7 @@ function make_headline_figures(
         pov_headcount2,
         Δtax,
         Δben,
-        net_cost = net2 - net1,
+        net_cost = net1 - net2, # note 1-2 here
         net_direct = Δtax - Δben, 
         Δpalma = palma2 - palma1,
         Δgini = gini2 - gini1,
