@@ -903,7 +903,7 @@ function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     minmtr = minimum(indp.metr)
     sensible = indp[(indp.metr.<150),:]
     if size(sensible)[1] > 0
-        medmtr = mean( sensible.metr, Weights(sensible.weight))
+        medmtr = median( sensible.metr, Weights(sensible.weight))
         meanmtr = mean( sensible.metr, Weights(sensible.weight))
         hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.0000, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:left )
     end
