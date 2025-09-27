@@ -82,6 +82,7 @@ make_shared_package( "GWebIO", [
     "Genie", 
     "Pluto", 
     "PlutoUI", 
+    "Oxygen",
     "IJulia", 
     "Mux", 
     "HTTP", 
