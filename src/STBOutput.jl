@@ -897,6 +897,7 @@ function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     # over the non-missing (children, retired)
     p = collect(keys(skipmissing( indiv.metr )))
     indp = indiv[p,[:metr, :weight]] # just non missing
+    indp.metr = Float64.(indp.metr) # median doesn't like union{missing,..}
     # so .. <=0, >0 <=10, >10<=20 and so on
     # skip near-infinite mrs mwhen averaging
     maxmtr = maximum(indp.metr)
