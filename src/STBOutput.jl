@@ -761,6 +761,11 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
     # remove missing: Do we need this?
     glf = coalesce.( vhh, 0.0)
     # add an average change column
+    colstr = pretty(string(col))
+    metadata!( gfl, "caption", "Table of Gainers and Losers by $colstr - Counts of Individuals."; style=:note)
+    colmetadata!( glf, :pct_change,"label", "% Change In Income."; style=:note)
+    colmetadata!( glf, :avch,"label", "Average Change In £s pw."; style=:note)
+    colmetadata!( glf, :total_transfer,"label", "Total Transfer to/from this group."; style=:note)
     return glf
 end
 
@@ -1068,6 +1073,16 @@ function make_headline_figures(
         Δpov_headcount = pov_headcount2 - pov_headcount1 )
 end
 
+function decs_to_df( onedec :: Matrix )::DataFrame
+    d = DataFrame( onedec, ["Cumulative Population","Cumulative Income","Income Break","Average Income"] )
+    metadata!(d, "caption", "Cumulative Income/Populations Shares, Income Breaks and Averages")
+    colmetadata!(d, 1,"label", "% Population",)
+    colmetadata!(d, 2,"label", "% Income",)
+    colmetadata!(d, 3,"label", "Income Break; £s pw",)
+    colmetadata!(d, 4,"label", "Average Income; £s pw",)
+    return d
+end
+
 """
 Make the main summary tables from a set of results dataframes.
 """
@@ -1119,7 +1134,8 @@ function summarise_frames!(
                 10, 
                 :weighted_people, 
                 income_measure )
-        onedecdf = DataFrame( onedec, ["Cumulative Population","Cumulatinve Income","Income Break","Average Income"] )
+        onedecdf = decs_to_df(onedec)
+
         push!( deciles, 
             onedec )
         push!( deciles_df, 
@@ -1132,7 +1148,7 @@ function summarise_frames!(
                 :weighted_people, 
                 income_measure  )
         push!( quantiles, onequant )
-        onequantdf = DataFrame( onequant, ["Cumulative Population","Cumulatinve Income","Income Break","Average Income"] )        
+        onequantdf = decs_to_df(onequant) 
         push!( quantiles_df, onequantdf )
         println( "quantiles")
             
