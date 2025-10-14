@@ -191,6 +191,8 @@ module RunSettings
         weighting_relative_to_ons_weights :: Bool = @load_preference( "weighting_relative_to_ons_weights", false )        
     end
 
+    const DEFAULT_SETTINGS = Settings()
+
     """
     The name, as an artifactString of the main dataset artifact e.g.
     'qualified_artifact( uk-frs-data ) and so on.
