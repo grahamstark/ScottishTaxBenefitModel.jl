@@ -1072,6 +1072,20 @@ function decs_to_df( onedec :: Matrix )::DataFrame
     return d
 end
 
+function povtrans_matrix_to_df( pmat :: Matrix )::DataFrame
+    labels = ["V.Deep (<=30%)",
+                "Deep (<=40%)",
+                "In Poverty (<=60%)",
+                "Near Poverty (<=80%)",
+                "Not in Poverty",
+            "Total"]
+    d = DataFrame( pmat, labels )
+    insertcols!(d,1,:""=> labels )
+    metadata!(d, "caption", "Movements in and out of poverty (counts of individuals) (Before in cols, after in rows).")
+    return d
+end
+
+
 """
 Make the main summary tables from a set of results dataframes.
 """
@@ -1091,6 +1105,7 @@ function summarise_frames!(
     child_poverty = [] 
     income_hists = []
     povtrans_matrix = []
+    povtrans_matrix_df = []
     headline_figures = []
     quantiles_df = []
     deciles_df = []
@@ -1164,11 +1179,14 @@ function summarise_frames!(
         )
         println( "child poverty")
         push!( child_poverty, cp )
-        push!( povtrans_matrix, make_povtrans_matrix(
+        povtrans = make_povtrans_matrix(
             frames.indiv[1], 
             frames.indiv[sysno], 
             settings
-        ))
+        )
+        povtrans_df = povtrans_matrix_to_df( povtrans )
+        push!( povtrans_matrix, povtrans )
+        push!( povtrans_matrix_df, povtrans_df )
     end   
     fill_in_deciles_and_poverty!(
         frames, 
@@ -1233,6 +1251,7 @@ function summarise_frames!(
         short_income_summary,
         income_hists,
         povtrans_matrix,
+        povtrans_matrix_df,
         legalaid = frames.legalaid )
 end
 
