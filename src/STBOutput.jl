@@ -1,17 +1,6 @@
 module STBOutput
 
-using DataFrames: 
-    AbstractDataFrame,
-    DataFrame, 
-    DataFrameRow, 
-    Not, 
-    combine, 
-    groupby, 
-    rename!,
-    select!, 
-    sum,
-    unstack
-
+using DataFrames
 using PovertyAndInequalityMeasures
 using CSV
 using Format
@@ -762,7 +751,7 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
     glf = coalesce.( vhh, 0.0)
     # add an average change column
     colstr = pretty(string(col))
-    metadata!( gfl, "caption", "Table of Gainers and Losers by $colstr - Counts of Individuals."; style=:note)
+    metadata!( glf, "caption", "Table of Gainers and Losers by $colstr - Counts of Individuals."; style=:note)
     colmetadata!( glf, :pct_change,"label", "% Change In Income."; style=:note)
     colmetadata!( glf, :avch,"label", "Average Change In £s pw."; style=:note)
     colmetadata!( glf, :total_transfer,"label", "Total Transfer to/from this group."; style=:note)
