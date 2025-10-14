@@ -1088,6 +1088,8 @@ function summarise_frames!(
     income_hists = []
     povtrans_matrix = []
     headline_figures = []
+    quantiles_df = []
+    deciles_df = []
     income_measure = income_measure_as_sym( settings.ineq_income_measure )
     poverty_line = if settings.poverty_line_source == pl_from_settings
         settings.poverty_line
@@ -1112,19 +1114,26 @@ function summarise_frames!(
         push!(income_summary, 
             summarise_inc_frame(frames.income[sysno]))
         println( "income summary")
-        push!( deciles, 
-            PovertyAndInequalityMeasures.binify( 
+        onedec = PovertyAndInequalityMeasures.binify( 
                 frames.hh[sysno], 
                 10, 
                 :weighted_people, 
-                income_measure ))
+                income_measure )
+        onedecdf = DataFrame( onedec, ["Cumulative Population","Cumulatinve Income","Income Break","Average Income"] )
+        push!( deciles, 
+            onedec )
+        push!( deciles_df, 
+            onedecdf )
+        
         println( "deciles")
-        push!( quantiles, 
-            PovertyAndInequalityMeasures.binify( 
+        onequant = PovertyAndInequalityMeasures.binify( 
                 frames.hh[sysno], 
                 50, 
                 :weighted_people, 
-                income_measure  ))
+                income_measure  )
+        push!( quantiles, onequant )
+        onequantdf = DataFrame( onequant, ["Cumulative Population","Cumulatinve Income","Income Break","Average Income"] )        
+        push!( quantiles_df, onequantdf )
         println( "quantiles")
             
         ineq = make_inequality(
@@ -1206,7 +1215,9 @@ function summarise_frames!(
     return ( ;
         headline_figures,
         quantiles, 
+        quantiles_df, 
         deciles, 
+        deciles_df,
         income_summary, 
         poverty, 
         inequality, 
