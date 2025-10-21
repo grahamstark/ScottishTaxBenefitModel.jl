@@ -983,8 +983,50 @@ function make_short_cost_summary( income_summaries :: Vector )::DataFrame
     colmetadata!( costsummary, 3,"label", "Before - 000s",)
     colmetadata!( costsummary, 4,"label", "After - £mn p.a.",)
     colmetadata!( costsummary, 5,"label", "After - 000s",)
-
     costsummary
+end
+
+const V_SHORT_COST_ITEMS = pretty.([
+    :income_tax,
+    :national_insurance,
+    :employers_ni,
+    :scottish_income_tax,
+    :total_benefits,
+    :means_tested_bens,
+    :universal_credit,
+    :non_means_tested_bens,
+    :sickness_illness,
+    :scottish_benefits])
+const V_SHORT_COST_LABELS = [
+    "Total Income Tax",
+    "Employee's National Insurance",
+    "Employer's National Insurance",
+    "Scottish Income Tax",
+    "Total Benefit Spending",
+    "All Means Tested Benefits",
+    "Universal Credit",
+    "Non Means Tested Benefits",
+    "Disability, Sickness-Related Benefits",
+    "Scottish Benefits" ]
+
+"""
+3 cols: pre, post, change
+"""
+function make_very_short_cost_summary( cost_summary :: DataFrame, cost_items, cost_labels )::DataFrame
+    n = length(cost_items)
+    d = DataFrame( item=cost_labels, pre=zeros(n), post=zeros(n), change=zeros(n))
+    for i in 1:n
+        p = cost_summary.label .== cost_items[i]
+        row = cost_summary[p,:][1,:]
+        d.pre[i] = row[2]
+        d.post[i] = row[4]
+        d.change[i] = d.post[i] - d.pre[i]
+    end
+    metadata!( d, "caption", "Total Costs (£m pa)")
+    colmetadata!( d, 1,"label", "Item",)
+    colmetadata!( d, 2,"label", "Before - £m pa",)
+    colmetadata!( d, 3,"label", "After - £m pa",)
+    return d
 end
 
 """
@@ -1219,7 +1261,8 @@ function summarise_frames!(
         LegalAidOutput.summarise_la_output!( settings, frames.legalaid )
     end
     short_income_summary = make_short_cost_summary( income_summary )
-    
+    very_short_income_summary = make_very_short_cost_summary( 
+        short_income_summary, V_SHORT_COST_ITEMS, V_SHORT_COST_LABELS )
     for sysno in 1:ns
         # check for uncomputed METRs 
         metrs1, metrs2 = if settings.do_marginal_rates
@@ -1256,6 +1299,7 @@ function summarise_frames!(
         gain_lose,
         poverty_lines,
         short_income_summary,
+        very_short_income_summary,
         income_hists,
         povtrans_matrix,
         povtrans_matrix_df,
