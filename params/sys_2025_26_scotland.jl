@@ -2,7 +2,7 @@
  SCOTLAND 2025/6
 
  Sources:
- IT: https://www.gov.scot/publications/scottish-income-tax-2024-25-factsheet/
+ IT: https://www.gov.scot/publications/scottish-income-tax-2025-26-factsheet/
  CT: https://www.gov.scot/publications/council-tax-datasets/
  BRMA: https://www.gov.scot/publications/local-housing-allowance-rates-2024-2025/
  Benefits: https://bprcdn.parliament.scot/published/2024/3/14/6f58227d-21aa-4016-91e6-f3d0bb29962d/SB%2024-15.pdf
@@ -17,11 +17,12 @@ function load_sys_2025_26_scotland!( sys :: TaxBenefitSystem{T} ) where T
         45,   # advanced
         48.0] # top
     sys.it.non_savings_thresholds = T[
-        2_306.0,
-        13_991.0,
+        2_827.0,
+        14_921.0,
         31_092.0,
-        62_430.0,
+        63_429.0,
         112_570.0]
+
     sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
     # sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
     sys.nmt_bens.carers.scottish_supplement = 293.50 # FROM APRIL 2021 !!! Check 2024
