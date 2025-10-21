@@ -977,6 +977,13 @@ function make_short_cost_summary( income_summaries :: Vector )::DataFrame
     costsummary = hcat( cost_summaries..., makeunique=true )
     # Make labels on LHS look nice.
     costsummary[!,1] = pretty.(costsummary[!,1])
+    metadata!(costsummary, "caption", "Total Costs (£m pa) and Caseloads (1000s)")
+    colmetadata!( costsummary, 1,"label", "Item",)
+    colmetadata!( costsummary, 2,"label", "Before - £mn p.a.",)
+    colmetadata!( costsummary, 3,"label", "Before - 000s",)
+    colmetadata!( costsummary, 4,"label", "After - £mn p.a.",)
+    colmetadata!( costsummary, 5,"label", "After - 000s",)
+
     costsummary
 end
 
