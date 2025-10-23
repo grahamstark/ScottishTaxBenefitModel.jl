@@ -57,7 +57,7 @@ function make_ss_examples( settings = Settings() )
     settings = Settings() 
     settings.benefit_generosity_estimates_available = false
     settings.indirect_method = matching # force loading indirect tax stuff
-    @time names = ExampleHouseholdGetter.initialise( settings )
+    @time ExampleHouseholdGetter.initialise( settings )
     EXAMPLES[cpl_w_2_children_hh] = ExampleHouseholdGetter.get_household( "example_hh1" )
     EXAMPLES[single_parent_hh] = ExampleHouseholdGetter.get_household( "single_parent_1" )
     EXAMPLES[single_hh] = ExampleHouseholdGetter.get_household( "example_hh2" )

@@ -8,7 +8,6 @@ using DataFrames
 using CSV
 using ArgCheck
 using LazyArtifacts
-using LazyArtifacts
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -50,11 +49,9 @@ end
 
 
 """
-return number of households available
-"""
-function initialise(
-    settings       :: Settings ) :: Vector{AbstractString}
 
+"""
+function initialise( settings :: Settings )
     global KEYMAP 
     global EXAMPLE_HOUSEHOLDS
     # lazy load cons data if needs be
@@ -66,7 +63,7 @@ function initialise(
     if settings.wealth_method == matching
         WealthData.init( settings ) 
     end
-    KEYMAP = Vector{AbstractString}()
+    empty!(KEYMAP) # = [] # Vector{AbstractString}()
     hh_dataset = HouseholdFromFrame.read_hh( 
         joinpath(qualified_artifact( "example_data" ),"households.tab" ))# CSV.File( ds.hhlds ) |> DataFrame
     people_dataset = 
@@ -88,14 +85,17 @@ function initialise(
             find_wealth_for_example!( hh, settings )
         end
         EXAMPLE_HOUSEHOLDS[hhf.name] = hh
-        println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
+        # println( EXAMPLE_HOUSEHOLDS[hhf.name].council )
         infer_house_price!( hh, settings )
     end
     settings.data_source = tmp_data_source
-    return KEYMAP
+    # return KEYMAP
 end
 
 function example_names()
+    if length(EXAMPLE_HOUSEHOLDS) == 0
+        initialise( Settings())
+    end
     return KEYMAP
 end
 
@@ -113,6 +113,5 @@ function get_household( name :: AbstractString ) :: Household
     end
     return EXAMPLE_HOUSEHOLDS[name]
 end
-
 
 end
