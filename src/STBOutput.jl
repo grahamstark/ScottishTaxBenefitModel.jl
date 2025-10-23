@@ -83,9 +83,6 @@ If present, these contain micro level data and are probably not needed by you:
 
 """
 
-# count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
-const EXTRA_INC_COLS = 18
-
 function make_household_results_frame( n :: Int ) :: DataFrame
     make_household_results_frame( Float64, n )
 end
@@ -153,6 +150,11 @@ function make_individual_results_frame( n :: Int ) :: DataFrame
     make_individual_results_frame( Float64, n )
 end
 
+
+# count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
+const EXTRA_INC_COLS = 30
+
+
 function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
     frame :: DataFrame = create_incomes_dataframe( RT, n )
     # extra calculated fields
@@ -175,6 +177,20 @@ function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
     frame.total_indirect = zeros(n)
     frame.net_cost = zeros( n )
     frame.net_inc_indirect = zeros( n )
+
+    # Various taxable income measures.
+    frame.ni_class_4_se_income = zeros( n )
+    frame.ni_class_1_primary_wage = zeros( n )
+    frame.it_taxable_income  = zeros( n )
+    frame.it_adjusted_net_income = zeros( n )
+    frame.it_total_income  = zeros( n )
+    frame.it_savings_income = zeros( n )
+    frame.it_non_savings_income = zeros( n )
+    frame.it_dividends_income = zeros( n )
+    frame.it_savings_taxable = zeros( n )
+    frame.it_non_savings_taxable = zeros( n )
+    frame.it_dividends_taxable  = zeros( n )
+
     # add some crosstab fields ... 
     frame.id = fill( id, n )
     frame.data_year = zeros( Int, n )
@@ -446,6 +462,23 @@ function summarise_inc_frame( incd :: DataFrame ) :: DataFrame
     return out
 end
 
+
+const TAXABLE_INCOME_MEASURES = [
+    :ni_class_4_se_income,
+    :ni_class_1_primary_wage,
+    :it_taxable_income,
+    :it_adjusted_net_income,
+    :it_total_income,
+    :it_savings_income,
+    :it_non_savings_income,
+    :it_dividends_income,
+    :it_savings_taxable,
+    :it_non_savings_taxable,
+    :it_dividends_taxable ]
+
+
+export TAXABLE_INCOME_MEASURES
+
 function fill_inc_frame_row!( 
     ir :: DataFrameRow, 
     hh :: Household,
@@ -470,7 +503,18 @@ function fill_inc_frame_row!(
     ir.scottish_benefits = isum( pres.income, SCOTTISH_BENEFITS )
     ir.pension_relief_at_source = pres.it.pension_relief_at_source
     
-
+    # Various taxable income measures.
+    ir.ni_class_4_se_income = pres.ni.class_4_se_income
+    ir.ni_class_1_primary_wage = pres.ni.class_1_primary_wage
+    ir.it_taxable_income  = pres.it.taxable_income
+    ir.it_adjusted_net_income = pres.it.adjusted_net_income
+    ir.it_total_income  = pres.it.total_income
+    ir.it_savings_income = pres.it.savings_income
+    ir.it_dividends_income = pres.it.dividends_income
+    ir.it_non_savings_income = pres.it.non_savings_income
+    ir.it_savings_taxable = pres.it.savings_taxable
+    ir.it_non_savings_taxable = pres.it.non_savings_taxable
+    ir.it_dividends_taxable  = pres.it.dividends_taxable 
 
     ir.tenure = hh.tenure
     ir.data_year = hh.data_year
@@ -935,6 +979,40 @@ function incomes_to_hist(
     return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist=hist )
 end
 
+
+function indiv_incomes_to_hist( 
+    incsf :: DataFrame; 
+    income_measure::Symbol, 
+    minr=0.0,
+    maxr=2500.0,
+    bandwidth=10 )::NamedTuple
+    incs = deepcopy(incsf[:,income_measure])
+    weights = Weights(incsf.weight)
+    # constrain the graph as in HBAI    
+    incs = max.( incs, minr)
+    incs = min.( incs, maxr)
+    maxinc = maximum(incs)
+    mininc = minimum(incs)
+    medinc = median( incs, weights )
+    meaninc = mean( incs, weights)
+    @show medinc meaninc
+    ranges = collect( minr:bandwidth:maxr )
+    push!( ranges,Inf)
+    hist = fit( Histogram, incs, weights, ranges, closed=:left )
+    # check I've understood fit(Hist correctly ..
+    @assert hist.weights[1] ≈ sum( weights[ incs .< hist.edges[1][2] ]) "$(hist.weights[1]) ≈ $(sum( weights[ incs .<= minr ])) $hist"
+    @assert hist.weights[end] ≈ sum( weights[ incs .>= maxr ]) "$(hist.weights[end]) ≈ $(sum( weights[ incs .>= maxr ])) $hist"
+    return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist=hist )
+end
+
+function make_taxable_income_hists( incsf :: DataFrame )::Dict{Symbol,NamedTuple}
+    d = Dict{Symbol,NamedTuple}()
+    for measure in TAXABLE_INCOME_MEASURES
+        d[measure] = indiv_incomes_to_hist( incsf, income_measure=measure )
+    end
+    return d
+end
+
 """
 Dump out histogram, means, etc. as 2-col delimited data. 
 `incs` one of the named tuples created by `incomes_to_hist` or `metrs_to_hist`
@@ -1153,6 +1231,7 @@ function summarise_frames!(
     poverty_lines = []
     child_poverty = [] 
     income_hists = []
+    taxable_income_hists = []
     povtrans_matrix = []
     povtrans_matrix_df = []
     headline_figures = []
@@ -1179,6 +1258,8 @@ function summarise_frames!(
         push!( income_hists, incomes_to_hist(
             frames.hh[sysno], 
             income_measure=income_measure ))
+        push!( taxable_income_hists, make_taxable_income_hists(frames.income[sysno] ))
+
         push!(income_summary, 
             summarise_inc_frame(frames.income[sysno]))
         println( "income summary")
@@ -1301,6 +1382,7 @@ function summarise_frames!(
         short_income_summary,
         very_short_income_summary,
         income_hists,
+        taxable_income_hists,
         povtrans_matrix,
         povtrans_matrix_df,
         legalaid = frames.legalaid )
@@ -1375,6 +1457,9 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
             CSV.write( joinpath( outdir, "gain-lose-by-region-\$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_gl)
         end
         write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.income_hists[fno] )
+        for measure in TAXABLE_INCOME_MEASURES
+            write_hist(joinpath( outdir, "taxable-incomes-histogram-$(measure)-$(fno).csv"),summary.taxable_income_hists[fno][measure] )
+        end
         if settings.do_marginal_rates
             write_hist(joinpath( outdir, "metrs-histogram-$(fno).csv"), summary.metrs[fno] )
         end

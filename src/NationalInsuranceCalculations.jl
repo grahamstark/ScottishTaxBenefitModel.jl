@@ -89,6 +89,7 @@ function calculate_national_insurance!(
 
     # class 1 on any wages, se only on main ..
     if pers.age < sys.state_pension_age # FIXME pass in the age limit thing
+        pres.ni.class_1_primary_wage = wage
         tres = calctaxdue(
             taxable = wage,
             rates = sys.primary_class_1_rates,
@@ -109,6 +110,7 @@ function calculate_national_insurance!(
                 taxable = seinc,
                 rates = sys.class_4_rates,
                 thresholds = sys.class_4_bands ).due
+            pres.ni.class_4_se_income = seinc
         end # self emp
     end
 

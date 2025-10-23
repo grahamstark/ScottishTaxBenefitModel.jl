@@ -269,6 +269,8 @@ module Results
         class_3   :: RT = 0.0
         class_4   :: RT = 0.0
         assumed_gross_wage :: RT = 0.0
+        class_1_primary_wage :: RT = 0.0
+        class_4_se_income :: RT = 0.0
     end
 
     @with_kw mutable struct ITResult{RT<:Real}
