@@ -138,7 +138,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.it = nsr
     rparams.params.ni = nsi
     rparams.params.loctax.ct.band_d = nbandd
-    rparams.params.loctax.ppt.rate = npptrate
+    rparams.params.loctax.ppt.rates = npptrate
     rparams.params.loctax.ct.house_values = hvals
     rparams.params.othertaxes = othvals 
     rparams.params.indirect.vat = vat

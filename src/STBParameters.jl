@@ -837,8 +837,8 @@ function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         lt.ct.band_d[c] /= wpy
     end
     lt.ct.single_person_discount /= 100.0
-    lt.ppt.rates ./= 100.0
-    lt.ppt.rate /= (100.0*wpy)
+    lt.local_income_tax_rates ./= 100.0
+    lt.ppt.rates /= (100.0*wpy)
 end
 
 @with_kw mutable struct SavingsCredit{RT<:Real}

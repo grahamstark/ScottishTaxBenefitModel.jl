@@ -23,6 +23,9 @@ Semi-complete indexing routine using UPRATING quarterly data.
 
 export uprate, UPRATE_MAPPINGS
 
+#
+# This maps our uprate types to the column names in the `indexes.tab` file.
+#
 Uprate_Map = Dict(
     upr_earnings => :average_earnings,
     upr_housing_rents => :actual_rents_for_housing,
@@ -32,7 +35,8 @@ Uprate_Map = Dict(
     upr_cpi => :cpi,
     # not used upr_gdp_deflator => :gdp_deflator,
     upr_nominal_gdp => :nominal_gdp,
-    upr_shares => :equity_prices
+    upr_shares => :equity_prices,
+    upr_house_prices => :seasonally_adjusted_house_price_index
 )
 
 function make_uprate_types() :: Dict

@@ -321,7 +321,7 @@ function uprate!( hh :: Household, settings::Settings )
         hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
         hh.net_pension_wealth = uprate( hh.net_pension_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
     end
-    hh.house_value = uprate( hh.house_value, hh.interview_year, hh.quarter, upr_housing_oo )
+    hh.house_value = uprate( hh.house_value, hh.interview_year, hh.quarter, upr_house_prices )
     for (pid,person) in hh.people
         uprate!( pid, hh.interview_year, hh.quarter, person )
     end

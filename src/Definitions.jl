@@ -2048,7 +2048,8 @@ export
    upr_cpi,
    upr_gdp_deflator,
    upr_nominal_gdp,
-   upr_shares
+   upr_shares,
+   upr_house_prices
 
 @enum Uprate_Item_Type begin
     upr_no_uprate
@@ -2061,6 +2062,7 @@ export
     upr_gdp_deflator
     upr_nominal_gdp
     upr_shares
+   upr_house_prices
 end
 
 @enum JSAType begin
