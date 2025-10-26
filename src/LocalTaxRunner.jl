@@ -81,7 +81,6 @@ function get_base_cost( ;
     return base_cost
 end
 
-
 const PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
     # halved below, doubled above
     Band_A=>120/360,
@@ -93,7 +92,6 @@ const PROGRESSIVE_RELATIVITIES = Dict{CT_Band,Float64}(
     Band_G=>1200/360,
     Band_H=>1440/360,
     Household_not_valued_separately => 0.0 ) 
-
 
 """
 Note ATM this is Scotland only!
@@ -129,15 +127,12 @@ function do_local_level_run(;
     observer[]= Progress( settings.uuid, "weights", 0, 0, 0, 0  )
     base_cost = get_base_cost( ;
         settings = settings, base_sys=system[1], observer = observer )
-
     local_income_tax = equalise( 
         target, 
         system[2], 
         settings, 
         base_cost, 
         obs )
-
-
     # always reload data at the end so we haven't messed up councils and weights
     if restore
         @time settings.num_households, settings.num_people, nhh2 = 
