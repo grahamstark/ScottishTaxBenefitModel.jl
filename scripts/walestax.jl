@@ -254,7 +254,7 @@ function make_parameter_set(;
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
     ppt_sys.loctax.ppt.abolished = false
-    ppt_sys.loctax.ppt.rate = proportional_property_tax/(100.0*WEEKS_PER_YEAR)
+    ppt_sys.loctax.ppt.rates[1] = proportional_property_tax/(100.0*WEEKS_PER_YEAR)
     
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
@@ -310,7 +310,7 @@ function incremented_params( code :: Symbol, pct_change = false )
         # no_ct_sys
         local_it_sys.it.non_savings_rates .+= 0.01
         progressive_ct_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
-        ppt_sys.loctax.ppt.rate  += 0.1/(100*WEEKS_PER_YEAR)
+        ppt_sys.loctax.ppt.rates[1]  += 0.1/(100*WEEKS_PER_YEAR)
         revalued_prices_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
         revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] += 100.0/WEEKS_PER_YEAR
     else
@@ -318,7 +318,7 @@ function incremented_params( code :: Symbol, pct_change = false )
         # no_ct_sys
         local_it_sys.it.non_savings_rates *= 1.01
         progressive_ct_sys.loctax.ct.band_d[code] *= 1.01
-        ppt_sys.loctax.ppt.rate  += 1.01
+        ppt_sys.loctax.ppt.rates[1]  += 1.01 # FIXME makes no sense
         revalued_prices_sys.loctax.ct.band_d[code] *= 1.01
         revalued_prices_w_prog_bands_sys.loctax.ct.band_d[code] *= 1.01
     end
@@ -414,7 +414,7 @@ function do_equalising_runs( code :: Symbol )
             obs )
     
     proportional_property_tax = equalise( 
-        eq_ppt_rate, 
+        eq_ppt_rates, 
         ppt_sys, 
         settings, 
         base_cost, 

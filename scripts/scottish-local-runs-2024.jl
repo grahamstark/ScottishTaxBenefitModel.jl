@@ -149,7 +149,7 @@ function make_parameter_set( initr :: InitialIncrements, ccode :: Symbol )
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
     ppt_sys.loctax.ppt.abolished = false
-    ppt_sys.loctax.ppt.rate = initr.proportional_property_tax/(100.0*WEEKS_PER_YEAR)
+    ppt_sys.loctax.ppt.rates[1] = initr.proportional_property_tax/(100.0*WEEKS_PER_YEAR)
     #
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
@@ -194,7 +194,7 @@ function make_parameter_set( initial::InitialIncrements, increments::InitialIncr
         revalued_prices_w_prog_bands_sys = make_parameter_set( initial, ccode )
     local_it_sys.it.non_savings_rates .+= increments.local_income_tax
     progressive_ct_sys.loctax.ct.band_d[ccode] += increments.fairer_bands_band_d
-    ppt_sys.loctax.ppt.rate += increments.proportional_property_tax
+    ppt_sys.loctax.ppt.rates .+= increments.proportional_property_tax
     revalued_prices_sys.loctax.ct.band_d[ccode] += increments.revalued_housing_band_d
     revalued_prices_w_prog_bands_sys.loctax.ct.band_d[ccode] += increments.revalued_housing_band_d_w_fairer_bands
     return base_sys,
@@ -242,7 +242,7 @@ function do_equalising_runs( settings )::InitialIncrements
             obs )
     
     proportional_property_tax = equalise( 
-        eq_ppt_rate, 
+        eq_ppt_rates, 
         ppt_sys, 
         settings, 
         base_cost, 

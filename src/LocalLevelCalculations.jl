@@ -253,9 +253,12 @@ export
 
     function calc_proportional_property_tax( 
         hh :: Household{RT}, 
-        intermed :: MTIntermediate,
         pptsys :: ProportionalPropertyTax ) :: RT where RT 
-        return hh.house_value * pptsys.rate        
+        htax = calctaxdue(
+            taxable=hh.house_value,
+            rates=pptsys.rates,
+            thresholds=pptsys.bands )
+        return htax.due
     end
 
     function band_from_value(

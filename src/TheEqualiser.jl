@@ -31,7 +31,7 @@ using .Utils
     eq_it_ni 
     eq_ct_rels 
     eq_ct_band_d 
-    eq_ppt_rate 
+    eq_ppt_rates 
     eq_ct_bands_proportional 
     eq_ct_bands_progressive 
     eq_wealth_tax 
@@ -46,7 +46,7 @@ export EqTargets,
     eq_it_ni, 
     eq_ct_rels, 
     eq_ct_band_d, 
-    eq_ppt_rate, 
+    eq_ppt_rates, 
     eq_ct_bands_proportional, 
     eq_ct_bands_progressive,
     eq_wealth_tax,
@@ -78,7 +78,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     nsr = deepcopy( rparams.params.it )
     nsi = deepcopy( rparams.params.ni )
     nbandd = deepcopy( rparams.params.loctax.ct.band_d )
-    npptrate = rparams.params.loctax.ppt.rate
+    npptrate = rparams.params.loctax.ppt.rates
     hvals = deepcopy(rparams.params.loctax.ct.house_values)
     othvals = deepcopy(rparams.params.othertaxes )
     wealth = deepcopy( rparams.params.wealth )
@@ -101,8 +101,8 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
         # println( "set band ds to $(rparams.params.loctax.ct.band_d)")
     end
 
-    if rparams.target == eq_ppt_rate
-        rparams.params.loctax.ppt.rate += x
+    if rparams.target == eq_ppt_rates
+        rparams.params.loctax.ppt.rates .+= x
     end
 
     if rparams.target in [eq_ct_bands_proportional, eq_ct_bands_progressive] 

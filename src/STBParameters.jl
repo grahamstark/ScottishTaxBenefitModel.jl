@@ -819,10 +819,10 @@ end
     # TODO see CT note on disabled discounts
 end
 
-
 @with_kw mutable struct ProportionalPropertyTax{RT<:Real}
     abolished :: Bool = true
-    rate :: RT = 0.0
+    rates :: RateBands{RT}  = [0.0]
+    bands :: RateBands{RT}  = []
 end
 
 @with_kw mutable struct LocalTaxes{RT<:Real}
@@ -837,6 +837,7 @@ function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         lt.ct.band_d[c] /= wpy
     end
     lt.ct.single_person_discount /= 100.0
+    lt.ppt.rates ./= 100.0
     lt.ppt.rate /= (100.0*wpy)
 end
 

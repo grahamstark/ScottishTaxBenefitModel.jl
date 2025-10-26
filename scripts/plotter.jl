@@ -231,7 +231,7 @@ function calculate_local()
     ppt_sys = deepcopy(no_ct_sys)
     ppt_sys.loctax.ct.abolished = true        
     ppt_sys.loctax.ppt.abolished = false
-    ppt_sys.loctax.ppt.rate = 0.01/WEEKS_PER_YEAR
+    ppt_sys.loctax.ppt.rates = 0.01/WEEKS_PER_YEAR
     
     revalued_prices_sys = deepcopy( base_sys )
     revalued_prices_sys.loctax.ct.revalue = true
@@ -321,15 +321,15 @@ function calculate_local()
         ppt_sys = deepcopy(no_ct_sys)
         ppt_sys.loctax.ct.abolished = true        
         ppt_sys.loctax.ppt.abolished = false
-        ppt_sys.loctax.ppt.rate = 0.01/WEEKS_PER_YEAR
+        ppt_sys.loctax.ppt.rates[1] = 0.01/WEEKS_PER_YEAR
         pptrate = equalise( 
-            eq_ppt_rate, 
+            eq_ppt_rates, 
             ppt_sys, 
             settings, 
             base_cost, 
             obs )
 
-        ppt_sys.loctax.ppt.rate += pptrate
+        ppt_sys.loctax.ppt.rates += pptrate
 
         revalued_prices_sys = deepcopy( base_sys )
         revalued_prices_sys.loctax.ct.revalue = true
@@ -367,7 +367,7 @@ function calculate_local()
 
         revenues[(revenues.code.==code),:local_income_tax] .= Formatting.format(100.0*itchange, precision=2 )
         revenues[(revenues.code.==code),:fairer_bands_band_d] .= fmt(banddchange*WEEKS_PER_YEAR)
-        revenues[(revenues.code.==code),:proportional_property_tax] .= Formatting.format(ppt_sys.loctax.ppt.rate*100*WEEKS_PER_YEAR, precision=3)
+        revenues[(revenues.code.==code),:proportional_property_tax] .= Formatting.format(ppt_sys.loctax.ppt.rates .* 100*WEEKS_PER_YEAR, precision=3)
         revenues[(revenues.code.==code),:revalued_housing_band_d].= fmt(rev_banddchange*WEEKS_PER_YEAR)
         revenues[(revenues.code.==code),:revalued_housing_band_d_w_fairer_bands].= fmt(prog_rev_banddchange*WEEKS_PER_YEAR)
 
