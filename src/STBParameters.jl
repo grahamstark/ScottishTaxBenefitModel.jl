@@ -1053,8 +1053,11 @@ end
 
 function weeklyise!( wealth :: WealthTaxSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     wealth.weekly_rate = 0.0
+    wealth.rates ./= 100.0
     if( wealth.payment_years > 0 ) && (wealth.one_off)
         wealth.weekly_rate = 1/(wealth.payment_years*wpy)
+    else
+        wealth.weekly_rate = 1/wpy
     end
 end
 

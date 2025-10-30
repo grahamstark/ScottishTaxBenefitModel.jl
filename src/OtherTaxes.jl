@@ -20,7 +20,7 @@ function calculate_wealth_tax!(
     pres = household_result.bus[1].pers[ hd.pid ]
     wealth = 0.0
     # FIXME TODO to individual level 
-    if sys.abolished > 0
+    if sys.abolished
         return
     end
     if net_physical_wealth in sys.included_wealth 
