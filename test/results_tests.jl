@@ -93,7 +93,7 @@ using .ExampleHelpers
     aggregate!( mbhh, mhrs )
 
     @test t_wages ≈ 800 + 400 # bu 1 has 400 in data
-    @test mhrs.bhc_net_income ≈ t_wages
+    @test mhrs.bhc_net_income ≈ t_wages - 100
     @test mhrs.ahc_net_income ≈ t_wages - 100 - mbhh.gross_rent
 
     @test mhrs.income[LOCAL_TAXES] == 100

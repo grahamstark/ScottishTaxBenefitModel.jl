@@ -14,10 +14,6 @@ using .ModelHousehold:
     pers_is_disabled, 
     search
 
-using .GeneralTaxComponents: 
-    WEEKS_PER_MONTH,
-    WEEKS_PER_YEAR
-    
 using .ExampleHouseholdGetter
 using .Definitions
 
