@@ -23,11 +23,11 @@ lazy = true
     url = "file:///c:/data/augdata-v0.1.6.tar.gz"
 
 ["augdata-windows-v0.1.7"]
-git-tree-sha1 = "7f2eff9a5c031aa3d267b5d8a060256711598417"
+git-tree-sha1 = "9cb43204232bd3f75a80a72efd21cddcce49b02e"
 lazy = true
 
     [["augdata-windows-v0.1.7".download]]
-    sha256 = "edb5ba610831887f27851186e4c9d00ab18e018d967e40011d65ca663af28b30"
+    sha256 = "9c4394067378ac814516be8b3e656148cd73634e08185ff76b91e012941dbaca"
     url = "file:///c:/data//augdata-v0.1.7.tar.gz"
 
 ["disability-unix-v0.1.6"]
