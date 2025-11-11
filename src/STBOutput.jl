@@ -1030,6 +1030,32 @@ function write_hist( filename::String, incs::NamedTuple; delim='\t')
 end
 
 """
+Convert our incomes histogram into a dataframe. Mainly so we can serialise into json
+a bit better as JSON3 does a good job with dataframes and not so good with multidimensional
+arrays.
+"""
+function income_hists_to_df( incs :: Vector )::DataFrame
+    # 'Any' so we can add strings at the bottom
+    v = Any[copy(incs[1].hist.edges[1][2:end])... ]
+    push!(v,"mean" ) 
+    push!(v,"median")
+    push!(v,"min")
+    push!(v,"max")
+    d = DataFrame( edges_upper_limit=v )        
+    n = length(incs)
+    for i in 1:n
+        v = copy( incs[i].hist.weights )
+        push!(v,incs[i].mean )
+        push!(v,incs[i].median)
+        push!(v,incs[i].min)
+        push!(v,incs[i].max)
+        sy = Symbol( "population_$i")
+        d[!,sy] = v
+    end
+    return d
+end
+
+"""
 Overall summary table made from summary.income_summary tables, with 1 being the base.
 Transpose the 1st three rows of that table. Assumes there's a col `label` at the end
 and that the totals are in the 1st 3 rows. This will break badly
@@ -1365,7 +1391,7 @@ function summarise_frames!(
             metrs1,
             metrs2 ))
     end
-    
+    income_hists_df = income_hists_to_df( income_hists )
     return ( ;
         headline_figures,
         quantiles, 
@@ -1382,6 +1408,7 @@ function summarise_frames!(
         short_income_summary,
         very_short_income_summary,
         income_hists,
+        income_hists_df,
         taxable_income_hists,
         povtrans_matrix,
         povtrans_matrix_df,
@@ -1431,8 +1458,10 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
     end
     fname = joinpath( outdir, "short_income_summary.csv")
     CSV.write( fname, summary.short_income_summary;delim=',' )
+    fname = joinpath( outdir, "incomes-histogram-df.csv")
+    CSV.write( fname, summary.income_hists_df )
     fname = joinpath( outdir, "poverty-inequality-metrs-child-poverty.md")
-    io = open( fname, "w")
+    io = open( fname, "w")    
     for fno in 1:ns
         fname = joinpath( outdir, "quantiles_$(fno).csv")
         CSV.write(fname, DataFrame(summary.quantiles[fno],

@@ -799,6 +799,9 @@ function calc_NDDs(
              DLA_SELF_CARE,
              PERSONAL_INDEPENDENCE_PAYMENT_DAILY_LIVING,
              ADP_DAILY_LIVING,
+             CHILD_DISABILITY_PAYMENT_CARE,
+             CHILD_DISABILITY_PAYMENT_MOBILITY,
+             ADP_MOBILITY,
              PENSION_CREDIT] )
             pays_ndd = false
         elseif pers.registered_blind || pers.registered_partially_sighted

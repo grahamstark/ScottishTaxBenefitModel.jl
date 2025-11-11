@@ -112,7 +112,7 @@ using ShareAdd
 ```julia
 
 using Pkg
-for env in ["GMakie","GMaths","GData","GWebIO", "GTests", "GEcon"]
+for env in ["GMakie","GMaths","GData","GWebIO", "GTests", "GEcon", "GGPU"]
     Pkg.activate(env, shared=true)
     Pkg.update()
 end

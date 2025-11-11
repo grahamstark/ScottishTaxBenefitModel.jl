@@ -621,7 +621,7 @@ end
         intermed = make_intermediate( 
             DEFAULT_NUM_TYPE,
             settings,
-                Scotland,
+            Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -647,7 +647,7 @@ end
         intermed = make_intermediate( 
             DEFAULT_NUM_TYPE,
             settings,
-                Scotland,
+            Scotland,
             1,
             spers,  
             sys.lmt.hours_limits,
@@ -665,8 +665,10 @@ end
         @test ndd ≈ ndds[nt]
     end # loop round various incomes, unemployed
     disable_slightly!( head )
-    head.income[attendance_allowance] = 100.0
-    bur = init_benefit_unit_result(  spers )
+    # head.income        
+    bur = init_benefit_unit_result( spers )
+    bur.pers[head.pid].income[ATTENDANCE_ALLOWANCE] = 100.0
+    println(bur.pers[head.pid].income)
     println( "Disabled")
     for i in 1:nt
         # head.income[wages] = wage[i]

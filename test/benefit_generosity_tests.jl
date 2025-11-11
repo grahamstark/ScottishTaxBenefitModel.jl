@@ -173,7 +173,5 @@ end
         end
         # should be ~50k bigger/smaller for scottish system
     end
-    pretty_table( out; formatters = ft_printf("%10.0f", [2,3,4,5,6]))
-    dout = 
-    pretty_table( out; formatters = ft_printf("%10.0f", [2,3,4,5,6]))
+    pretty_table( out ) # ; formatters = ft_printf("%10.0f", [2,3,4,5,6]))
 end
