@@ -959,7 +959,7 @@ function incomes_to_hist(
     hh :: DataFrame; 
     income_measure=:eq_bhc_net_income, 
     minr=0.0,
-    maxr=1500.0,
+    maxr=2500.0,
     bandwidth=10 )::NamedTuple
     incs = deepcopy(hh[:,income_measure])
     # constrain the graph as in HBAI    
@@ -979,7 +979,13 @@ function incomes_to_hist(
     return ( max=maxinc, min=mininc, median=medinc, mean=meaninc, hist=hist )
 end
 
-
+"""
+HBAI-like historgram of some individual-level income measure.
+Histogram is from StatsBase.fit.
+Return a tuple with min,max,mean,median, and the histogram.
+FIXME change so it's general with `incomes_to_hist` above.
+FIXME minr,maxr,bandwidth to RunSettings.jl
+"""
 function indiv_incomes_to_hist( 
     incsf :: DataFrame; 
     income_measure::Symbol, 

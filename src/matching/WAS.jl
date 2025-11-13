@@ -550,6 +550,7 @@ function create_subset()::DataFrame
     subwas = DataFrame()
     subwas.case = was.caser7
     subwas.year = was.yearr7
+    subwas.weight = was.r7xshhwgt
     subwas.datayear .= 7 # wave 7
     subwas.month = was.monthr7
     subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
