@@ -823,10 +823,11 @@ end
     abolished :: Bool = true
     local_rates :: RateBands{RT} = [zero(RT)]
     local_bands :: RateBands{RT} = []
+    local_minimum_payment = zero(RT)
     national_rates :: RateBands{RT} = [zero(RT)]
     national_bands :: RateBands{RT} = []
+    national_minimum_payment = zero(RT)
     single_person_discount = zero(RT)
-    minimum_payment = zero(RT)
 end
 
 @with_kw mutable struct LocalTaxes{RT<:Real}
@@ -846,7 +847,8 @@ function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     lt.ppt.single_person_discount /= 100.0
     lt.ppt.local_rates /= (100.0*wpy)
     lt.ppt.national_rates /= (100.0*wpy)
-    lt.ppt.minimum_payment /= wpy
+    lt.ppt.local_minimum_payment /= wpy
+    lt.ppt.national_minimum_payment /= wpy
 end
 
 @with_kw mutable struct SavingsCredit{RT<:Real}

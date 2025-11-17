@@ -268,7 +268,13 @@ export
             ltax *= (1-pptsys.single_person_discount)
             ntax *= (1-pptsys.single_person_discount)
         end
-        return (htax.due,ntax.due)
+        lt = max( ltax.due, pptsys.local_minimum_payment )
+        nt = if ntax.due > 0
+            max( ntax.due, pptsys.national_national_payment )
+        else
+            zero(T)
+        end
+        return (lt, nt)
     end
 
     function band_from_value(
