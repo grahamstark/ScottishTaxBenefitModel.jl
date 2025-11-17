@@ -1,9 +1,6 @@
-using DataFrames: Highlighter
-using StatsBase: self_avoid_sample!
-# using ScottishTaxBenefitModel
-using Test
-using ScottishTaxBenefitModel
-
+#=
+Driver for ScotBen's test suite.
+=#
 include( "testutils.jl")
 include( "test_utils_tests.jl")
 include( "utils_tests.jl")
