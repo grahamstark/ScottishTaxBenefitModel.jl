@@ -254,7 +254,7 @@ export
     function calc_proportional_property_tax( 
         hh :: Household{RT}, 
         intermed :: MTIntermediate,        
-        pptsys :: ProportionalPropertyTax ) :: RT where RT 
+        pptsys :: ProportionalPropertyTax ) :: Tuple{RT,RT} where RT 
         ltax = calctaxdue(
             taxable=hh.house_value,
             rates=pptsys.local_rates,
@@ -275,7 +275,7 @@ export
             nt *= (1-pptsys.single_person_discount)
         end
         # TODO Disabled
-        return (lt, nt)
+        return lt, nt
     end
 
     function band_from_value(
