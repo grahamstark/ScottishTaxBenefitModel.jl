@@ -266,7 +266,7 @@ export
         # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
         lt = max( ltax.due, pptsys.local_minimum_payment )
         nt = if ntax.due > 0
-            max( ntax.due, pptsys.national_national_payment )
+            max( ntax.due, pptsys.national_minimum_payment )
         else
             zero(T)
         end
