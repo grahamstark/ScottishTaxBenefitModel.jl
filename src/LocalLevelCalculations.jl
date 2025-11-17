@@ -264,16 +264,17 @@ export
             rates=pptsys.national_rates,
             thresholds=pptsys.national_bands )
         # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
-        if intermed.num_adults == 1
-            ltax *= (1-pptsys.single_person_discount)
-            ntax *= (1-pptsys.single_person_discount)
-        end
         lt = max( ltax.due, pptsys.local_minimum_payment )
         nt = if ntax.due > 0
             max( ntax.due, pptsys.national_national_payment )
         else
             zero(T)
         end
+        if intermed.num_adults == 1
+            lt *= (1-pptsys.single_person_discount)
+            nt *= (1-pptsys.single_person_discount)
+        end
+        # TODO Disabled
         return (lt, nt)
     end
 
