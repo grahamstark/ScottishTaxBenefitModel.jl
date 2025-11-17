@@ -71,9 +71,6 @@ using .ExampleHelpers
 
 using .STBIncomes
 
-using .GeneralTaxComponents:
-    WEEKS_PER_MONTH,
-    WEEKS_PER_YEAR
 
 using .LegalAidCalculations: calc_legal_aid!
 using .LegalAidData

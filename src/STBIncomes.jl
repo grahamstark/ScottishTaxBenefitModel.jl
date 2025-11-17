@@ -12,6 +12,7 @@ module STBIncomes
 # using Base: String
 using ArgCheck
 using StaticArrays
+using FixedSizeArrays
 using DataFrames
 using ScottishTaxBenefitModel
 using .RunSettings: Settings
@@ -232,6 +233,9 @@ function sz(thing)::Int
      t
 end
 
+function fsa( T::Type,N::Integer)::FixedSizeArray
+    FixedSizeArray(fill(zero(T),n))
+end 
 
 const INC_ARRAY_SIZE = sz(Incomes)
 const IncomesArray = MVector{INC_ARRAY_SIZE,T} where T

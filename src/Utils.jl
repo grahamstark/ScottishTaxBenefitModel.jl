@@ -201,6 +201,8 @@ function make_crosstab(
    weights :: AbstractWeights = Weights(ones(length(rows))),
    add_totals = true,
    max_examples = 0 ) :: Tuple
+   row_levs = copy(rowlevels)
+   col_levs = copy(collevels)
    @argcheck length(rows) == length(cols) == length( weights )
 
    # find first with hack for missing values. Must be better way...
@@ -217,25 +219,27 @@ function make_crosstab(
       if any( ismissing.(l))
          l[ismissing.(l)] .= "Missing"
       end
-      l, length(l)
+      # send back a copy since otherwise r,c share the same copy & you may get dup 'Total' labels
+      copy(l), length(l)
    end
    
-   nr = length(rowlevels)
+   nr = length(row_levs)
    if nr == 0
-      rowlevels,nr = makelevels( rows )
+      row_levs,nr = makelevels( rows )
    end
-   nc = length(collevels)
+   @show col_levs
+   nc = length(col_levs)
    if nc == 0
-      collevels,nc = makelevels( cols )
+      col_levs,nc = makelevels( cols )
    end
+   @show col_levs
    if add_totals
       nr += 1
       nc += 1
-      push!( rowlevels,"Total")
-      push!( collevels,"Total")
+      push!( row_levs,"Total")
+      push!( col_levs,"Total")
    end
- #  sort!(collevels)
-  # sort!(rowlevels)
+   @show col_levs
    m = zeros( nr, nc )
    examples = nothing
    if max_examples > 0
@@ -249,8 +253,8 @@ function make_crosstab(
    for r in eachindex( rows )
       rv = rows[r]
       cv = cols[r]
-      ri = fwm( rv, rowlevels )
-      ci = fwm( cv, collevels )
+      ri = fwm( rv, row_levs )
+      ci = fwm( cv, col_levs )
       # println( "rv=$rv cv==$cv ri=$ri ci=$ci")
       m[ri,ci] += weights[r]
       if 0 < max_examples > length(examples[ri,ci]) 
@@ -266,7 +270,7 @@ function make_crosstab(
       end
       m[nr,nc] = sum(m[1:nr-1,1:nc-1])
    end
-   m, pretty.(rowlevels), pretty.(collevels), examples
+   m, pretty.(row_levs), pretty.(col_levs), examples
 end
 
 """

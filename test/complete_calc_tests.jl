@@ -30,8 +30,7 @@ using .Results:
     to_string
 
 using .GeneralTaxComponents: 
-    RateBands, 
-    WEEKS_PER_YEAR
+    RateBands
 
 using .RunSettings: Settings
 

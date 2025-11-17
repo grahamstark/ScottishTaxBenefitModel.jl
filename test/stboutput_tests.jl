@@ -44,6 +44,8 @@ end
         people_weighted_change = people_weighted_change,
         weighted_bhc_change    = weighted_bhc_change,
         weighted_people        = weighted_people )
+    d.weighted_pre_income = d.weight.*d.i
+    d.weighted_post_income = d.weight.*d.i
     ogl = STBOutput.one_gain_lose( d, :i )
     println(ogl)
     @test ogl.total_transfer ≈ [sum(weighted_bhc_change[1:2])*WEEKS_PER_YEAR/1_000_000, sum(weighted_bhc_change[3:5])*WEEKS_PER_YEAR/1_000_000]

@@ -6,6 +6,7 @@ using ScottishTaxBenefitModel
 
 include( "testutils.jl")
 include( "test_utils_tests.jl")
+include( "utils_tests.jl")
 include( "randoms_tests.jl")
 include( "general_tests.jl")
 include( "results_tests.jl")
@@ -32,7 +33,6 @@ include( "vs_age_uk_tests.jl")
 include( "affordability_tests.jl")
 include( "stboutput_tests.jl")
 include( "household_adjuster_tests.jl")
-include( "utils_tests.jl")
 
 # These will only run if datasets are locally installed
 if IS_LOCAL

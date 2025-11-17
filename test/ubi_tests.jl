@@ -1,17 +1,22 @@
 using Test
-using ScottishTaxBenefitModel
+
 using Observables
-using .HealthRegressions
-using .ModelHousehold: count,Household, le_age, ge_age
-using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR, WEEKS_PER_MONTH
-using .Results: aggregate!, init_household_result
-using .Intermediate: MTIntermediate, make_intermediate    
-using .UBI: calc_UBI!,make_ubi_post_adjustments! 
-using .STBParameters
-using .STBIncomes
+
+using ScottishTaxBenefitModel
+
+using .Definitions
 using .ExampleHelpers
+using .GeneralTaxComponents: RateBands
+using .HealthRegressions
+using .Intermediate: MTIntermediate, make_intermediate    
+using .ModelHousehold: count,Household, le_age, ge_age
 using .Monitor: Progress
+using .Results: aggregate!, init_household_result
 using .RunSettings
+using .STBIncomes
+using .STBParameters
+using .UBI: calc_UBI!,make_ubi_post_adjustments! 
+
 sys = get_system( year=2019, scotland=true )
 sys.ubi.abolished = false
 
