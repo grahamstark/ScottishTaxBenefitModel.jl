@@ -1,6 +1,8 @@
 using Test
 using Pkg, LazyArtifacts
 using ScottishTaxBenefitModel
+using Observables
+
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
     pers_is_disabled, pers_is_carer, printpids
@@ -12,7 +14,7 @@ using .FRSHouseholdGetter
 using .RunSettings: Settings
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax
-
+using .Monitor: Progress
 using .WeightingData: LA_NAMES, LA_CODES
 
 using .STBParameters
@@ -31,6 +33,39 @@ rc = @timed begin
     settings.num_households,settings.num_people,nhh2 = FRSHouseholdGetter.initialise( Settings(), reset=true )
 end
 
+# observer = Observer(Progress("",0,0,0))
+tot = 0
+obs = Observable( Progress(settings.uuid,"",0,0,0,0))
+of = on(obs) do p
+    global tot
+    println(p)
+
+    tot += p.step
+    println(tot)
+end
+
+@testset "Local Proportional Property Tax" begin
+    # create a new system
+    sys1 = get_default_system_for_fin_year( 2025, scotland=true, autoweekly=false )
+	sys2 = deepcopy( sys1 )		
+    settings = Settings()
+	# turn on the ppt ... 
+	sys2.loctax.ppt.abolished = false
+	# .. and turn off CT
+	sys2.loctax.ct.abolished = true
+	# applied across all Scotland: 0.25% on 1st 50,000, 0.67% above
+    sys2.loctax.ppt.local_bands = [500_000]
+	sys2.loctax.ppt.local_rates = [0.44,0]
+	
+	sys2.loctax.ppt.national_rates = [0,0.54,(0.54+0.278)]
+    sys2.loctax.ppt.national_bands = [500_000,1_000_000]
+	sys2.loctax.ppt.single_person_discount = 0.0 # 25 # pct
+	sys2.loctax.ppt.local_minimum_payment = 800.0
+	sys2.loctax.ppt.national_minimum_payment = 0.0
+	weeklyise!(sys1)	
+	weeklyise!(sys2)	
+    results = do_one_run( settings, [sys1,sys2], obs )    
+end
 
 @testset "LHA and assoc. mappings" begin
     # basic test/retrieve 

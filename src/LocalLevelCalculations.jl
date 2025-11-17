@@ -268,7 +268,7 @@ export
         nt = if ntax.due > 0
             max( ntax.due, pptsys.national_minimum_payment )
         else
-            zero(T)
+            zero(RT)
         end
         if intermed.num_adults == 1
             lt *= (1-pptsys.single_person_discount)
