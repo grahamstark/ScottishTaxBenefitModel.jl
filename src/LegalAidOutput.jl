@@ -900,24 +900,25 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
             println(f, "\n## "*Utils.pretty(string(t))); println(f)        
             println(f,"### Civil Legal Aid")
             println(f, "\n#### a) Benefit Units "); 
-            pretty_table(f,laout.civil.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            # FIXME first cell formatting 
+            pretty_table(f,laout.civil.breakdown_bu[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
             println(f, "\n#### b) Individuals "); 
-            pretty_table(f,laout.civil.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            pretty_table(f,laout.civil.breakdown_pers[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
             println(f, "\n#### c) Individuals - cases "); 
-            pretty_table(f,laout.civil.cases_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            pretty_table(f,laout.civil.cases_pers[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
             println(f, "\n#### d) Individuals - costs "); 
-            pretty_table(f,laout.civil.costs_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            pretty_table(f,laout.civil.costs_pers[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
            
-            
+            # FIXME first cell formatting 
             println(f,"### Advice and Assistance")
             println(f, "\n#### a) Benefit Units "); 
-            pretty_table(f,laout.aa.breakdown_bu[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            pretty_table(f,laout.aa.breakdown_bu[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
             println(f, "\n#### b) Individuals "); 
-            pretty_table(f,laout.aa.breakdown_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            pretty_table(f,laout.aa.breakdown_pers[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
             println(f, "\n#### c) Individuals - cases "); 
-            pretty_table(f,laout.aa.cases_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            pretty_table(f,laout.aa.cases_pers[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
             println(f, "\n#### c) Individuals - costs "); 
-            pretty_table(f,laout.aa.costs_pers[sysno][t],formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+            pretty_table(f,laout.aa.costs_pers[sysno][t],formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
             println(f)
         end
         close(f)
@@ -931,47 +932,45 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
         pretty_table(
             f, 
             laout.civil.summary_tables[ctno], 
-            backend = Val(:markdown), 
-            cell_first_line_only=true)
+            backend = :markdown ) 
+            # cell_first_line_only=true)
         println( f, "##  System $sysno vs System 1  Benefit Unit Level" )
         pc = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f,pc,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f,pc,formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
         println( f, "\n\n\n")
         println( f, "##  System $sysno vs System 1 Summary Table - AA" )
         pretty_table(
             f, 
             laout.aa.summary_tables[ctno], 
-            backend = Val(:markdown), 
-            cell_first_line_only=true)
-
-
+            backend = :markdown )
+            # cell_first_line_only=true)
         println( f, "## Crosstabs ");
         println( f, "### Civil $sysno vs System 1" )
         println( f, "#### BU Level")
         bu_ci = Utils.matrix_to_frame( laout.civil.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table( f, bu_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table( f, bu_ci,formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
 
         println( f, "#### Personal Level - all people" )
         ap_ci = Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table( f, ap_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table( f, ap_ci,formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
 
         println( f, "#### Personal Levels  - adults only" )
         aa_ci = Utils.matrix_to_frame( laout.civil.crosstab_adults[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table( f, aa_ci,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table( f, aa_ci,formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
 
 
         println( f, "### AA  $sysno vs System 1")
         println( f, "#### BU Level")
         bu_aa =  Utils.matrix_to_frame( laout.aa.crosstab_bu[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f, bu_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f, bu_aa, formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
 
         println( f, "#### Personal Level - All People")
         ap_aa =  Utils.matrix_to_frame( laout.aa.crosstab_pers[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f, ap_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f, ap_aa, formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
 
         println( f, "#### Personal Level - Adults Only")
         aa_aa =  Utils.matrix_to_frame( laout.aa.crosstab_adults[ctno], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-        pretty_table(f, aa_aa, formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+        pretty_table(f, aa_aa, formatters=[pt_fmt], backend = :markdown) # , cell_first_line_only=true)
 
         #=
         for p in LegalAidData.PROBLEM_TYPES
@@ -979,7 +978,7 @@ function dump_tables(  laout :: AllLegalOutput, settings :: Settings; num_system
                 println( f, "\n### System $sysno vs system 1: Personal Level Problem $p estimate $(est) \n\n")
                 k = "$(p)-$(est)"
                 pa =  Utils.matrix_to_frame( laout.civil.crosstab_pers[ctno][k], ENTITLEMENT_STRS, ENTITLEMENT_STRS  )
-                pretty_table(f,pa,formatters=pt_fmt, backend = Val(:markdown), cell_first_line_only=true)
+                pretty_table(f,pa,formatters=pt_fmt, backend = :markdown) # , cell_first_line_only=true)
             end
         end
         =#

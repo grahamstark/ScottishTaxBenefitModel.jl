@@ -424,7 +424,7 @@ end
 
 function make_key(; 
     la_status :: Union{LegalAidStatus,Nothing}=nothing, 
-    hsm :: Union{String,Nothing}=nothing, 
+    hsm :: Union{String,Nothing,CategoricalValue}=nothing, 
     age :: Union{String,Int,Nothing}=nothing, 
     sex :: Union{Sex,Nothing}=nothing ) :: NamedTuple
     k = []

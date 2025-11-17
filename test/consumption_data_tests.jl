@@ -58,9 +58,8 @@ end
     settings = Settings() # FIXME UK get_all_uk_settings_2023() # so, with expenditure == matching jammed on
     settings.do_indirect_tax_calculations = true
     @test settings.indirect_method == matching
-    keys = ExampleHouseholdGetter.initialise( settings )
-    for k in keys
-        hh = ExampleHouseholdGetter.get_household( k )
+    ExampleHouseholdGetter.initialise( settings )
+    for (key,hh) in ExampleHouseholdGetter.EXAMPLE_HOUSEHOLDS
         @test ! isnothing(hh.expenditure)
     end
 end

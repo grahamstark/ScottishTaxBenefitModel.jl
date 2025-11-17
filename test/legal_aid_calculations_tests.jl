@@ -48,6 +48,7 @@ using .IncomeTaxCalculations:
     calc_income_tax!
 
 using .Definitions
+using .Definitions:WEEKS_PER_YEAR
  
 using .Intermediate: 
     MTIntermediate, 

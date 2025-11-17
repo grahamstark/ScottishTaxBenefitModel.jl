@@ -47,7 +47,6 @@ function find_wealth_for_example!( hh, settings )
 end
 
 
-
 """
 
 """

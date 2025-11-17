@@ -755,6 +755,7 @@ function make_gain_lose_static(
     =#   
     (; ten_gl, children_gl )
 end
+
 """
 Convoluted approach to making an IFS style Gain-Lose table
 @param dhh - a little frame with a bunch of categories and a net-income field (change)
@@ -1065,7 +1066,8 @@ end
 Overall summary table made from summary.income_summary tables, with 1 being the base.
 Transpose the 1st three rows of that table. Assumes there's a col `label` at the end
 and that the totals are in the 1st 3 rows. This will break badly
-if the format of the income_summary tables changes.
+if the format of the income_summary tables changes. 
+FIXME Note atm this doesn't work meaningfully with > 2 systems.
 """
 function make_short_cost_summary( income_summaries :: Vector )::DataFrame 
     cost_summaries = []
@@ -1085,15 +1087,18 @@ function make_short_cost_summary( income_summaries :: Vector )::DataFrame
     end
     # Make into one big dataframe.
     costsummary = hcat( cost_summaries..., makeunique=true )
+    nrows,ncols = size(costsummary)
     # Make labels on LHS look nice.
     costsummary[!,1] = pretty.(costsummary[!,1])
     metadata!(costsummary, "caption", "Total Costs (£m pa) and Caseloads (1000s)")
     colmetadata!( costsummary, 1,"label", "Item",)
     colmetadata!( costsummary, 2,"label", "Before - £mn p.a.",)
     colmetadata!( costsummary, 3,"label", "Before - 000s",)
-    colmetadata!( costsummary, 4,"label", "After - £mn p.a.",)
-    colmetadata!( costsummary, 5,"label", "After - 000s",)
-    costsummary
+    if ncols > 3 #  check we actually have a post system
+        colmetadata!( costsummary, 4,"label", "After - £mn p.a.",)
+        colmetadata!( costsummary, 5,"label", "After - 000s",)
+    end
+    return costsummary
 end
 
 const V_SHORT_COST_ITEMS = pretty.([
@@ -1124,13 +1129,16 @@ const V_SHORT_COST_LABELS = [
 """
 function make_very_short_cost_summary( cost_summary :: DataFrame, cost_items, cost_labels )::DataFrame
     n = length(cost_items)
+    nrows,ncols = size(cost_summary)
     d = DataFrame( item=cost_labels, pre=zeros(n), post=zeros(n), change=zeros(n))
     for i in 1:n
         p = cost_summary.label .== cost_items[i]
         row = cost_summary[p,:][1,:]
         d.pre[i] = row[2]
-        d.post[i] = row[4]
-        d.change[i] = d.post[i] - d.pre[i]
+        if ncols > 3 # idiot check sys2 results exist
+            d.post[i] = row[4]
+            d.change[i] = d.post[i] - d.pre[i]
+        end
     end
     metadata!( d, "caption", "Total Costs (£m pa)")
     colmetadata!( d, 1,"label", "Item",)

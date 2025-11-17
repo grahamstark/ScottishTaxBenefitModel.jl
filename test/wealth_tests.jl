@@ -1,7 +1,5 @@
 using Test
 using ScottishTaxBenefitModel
-
-using .GeneralTaxComponents: RateBands, WEEKS_PER_YEAR, WEEKS_PER_MONTH
 using .Definitions
 using .ExampleHelpers
 using .HouseholdFromFrame: create_regression_dataframe
