@@ -18,6 +18,8 @@ using .WeightingData: LA_NAMES, LA_CODES
 using .STBParameters
 using .Intermediate: make_intermediate, MTIntermediate
 using .ExampleHelpers
+using .Utils
+
 using CSV,DataFrames
 
 ## FIXME don't need both

@@ -167,8 +167,9 @@ function do_one_calc(
             calc_council_tax( hh, intermed.hhint, sys.loctax.ct )
     end
     if ! sys.loctax.ppt.abolished       
-        hres.bus[1].pers[hd].income[LOCAL_TAXES] += 
-            calc_proportional_property_tax( hh, sys.loctax.ppt )
+        ltax, ntax = calc_proportional_property_tax( hh, intermed.hhint, sys.loctax.ppt )
+        hres.bus[1].pers[hd].income[LOCAL_TAXES] += ltax
+        hres.bus[1].pers[hd].income[OTHER_TAX] += ntax            
     end
 
     routes = UCTransition.get_routes_for_hh( settings, hh, intermed )

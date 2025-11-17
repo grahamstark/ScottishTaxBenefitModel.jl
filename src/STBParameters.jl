@@ -821,8 +821,12 @@ end
 
 @with_kw mutable struct ProportionalPropertyTax{RT<:Real}
     abolished :: Bool = true
-    rates :: RateBands{RT}  = [0.0]
-    bands :: RateBands{RT}  = []
+    local_rates :: RateBands{RT} = [zero(RT)]
+    local_bands :: RateBands{RT} = []
+    national_rates :: RateBands{RT} = [zero(RT)]
+    national_bands :: RateBands{RT} = []
+    single_person_discount = zero(RT)
+    minimum_payment = zero(RT)
 end
 
 @with_kw mutable struct LocalTaxes{RT<:Real}
@@ -839,7 +843,10 @@ function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     end
     lt.ct.single_person_discount /= 100.0
     lt.local_income_tax_rates ./= 100.0
-    lt.ppt.rates /= (100.0*wpy)
+    lt.ppt.single_person_discount /= 100.0
+    lt.ppt.local_rates /= (100.0*wpy)
+    lt.ppt.national_rates /= (100.0*wpy)
+    lt.ppt.minimum_payment /= wpy
 end
 
 @with_kw mutable struct SavingsCredit{RT<:Real}

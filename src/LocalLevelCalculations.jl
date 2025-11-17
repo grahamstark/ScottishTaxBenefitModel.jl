@@ -253,12 +253,22 @@ export
 
     function calc_proportional_property_tax( 
         hh :: Household{RT}, 
+        intermed :: MTIntermediate,        
         pptsys :: ProportionalPropertyTax ) :: RT where RT 
-        htax = calctaxdue(
+        ltax = calctaxdue(
             taxable=hh.house_value,
-            rates=pptsys.rates,
-            thresholds=pptsys.bands )
-        return htax.due
+            rates=pptsys.local_rates,
+            thresholds=pptsys.local_bands )
+        ntax = calctaxdue(
+            taxable=hh.house_value,
+            rates=pptsys.national_rates,
+            thresholds=pptsys.national_bands )
+        # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
+        if intermed.num_adults == 1
+            ltax *= (1-pptsys.single_person_discount)
+            ntax *= (1-pptsys.single_person_discount)
+        end
+        return (htax.due,ntax.due)
     end
 
     function band_from_value(
