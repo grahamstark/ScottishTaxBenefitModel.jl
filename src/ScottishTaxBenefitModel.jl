@@ -167,6 +167,9 @@ export STBOutput
 include( "Runner.jl" )
 export Runner
 
+include( "SFCBehavioural.jl" )
+export SFCBehavioural
+
 # include( "LegalAidCostsModel.jl")
 # export LegalAidCostsModel
 
