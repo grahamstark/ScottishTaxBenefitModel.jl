@@ -33,7 +33,7 @@ export
     calc_class1_secondary,
     calculate_national_insurance!
 
-function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsuranceSys ) :: Real
+function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsuranceSys ) :: TaxResult
     rates = copy( sys.secondary_class_1_rates )
     # FIXME parameterise this
     if pers.age <= 21 # or  age <= 25 and apprentice
@@ -43,7 +43,7 @@ function calc_class1_secondary( gross :: Real, pers::Person, sys :: NationalInsu
         taxable = gross, # get(pers.income,wages, 0.0)
         rates = rates,
         thresholds = sys.secondary_class_1_bands )
-    tres.due
+    tres
     ## TODO apprentiships
 end
 
@@ -52,7 +52,7 @@ function make_one_net( data :: Dict, gross :: Real ) :: Real
     sys  = data[:sys]
     # pers.income[wage] = gross
     ni = calc_class1_secondary( gross, pers, sys )
-    return gross - ni
+    return gross - ni.due
 end
 
 function make_gross_wage_bc( pers :: Person, sys :: NationalInsuranceSys ) :: BudgetConstraint
@@ -83,7 +83,9 @@ function calculate_national_insurance!(
     
     wage = max(0.0, wage)
     gross = gross_from_net( bc, wage )
-    pres.ni.class_1_secondary = calc_class1_secondary( gross, pers, sys )
+    nr = calc_class1_secondary( gross, pers, sys )
+    pres.ni.class_1_secondary = nr.due
+    pres.ni.class_1_secondary_band = nr.end_band
     @assert isapprox(gross - wage, pres.ni.class_1_secondary, atol=3 ) "gross $gross wage $wage pres.ni.class_1_secondary $(pres.ni.class_1_secondary)"
     pres.ni.assumed_gross_wage = gross
 
@@ -95,6 +97,7 @@ function calculate_national_insurance!(
             rates = sys.primary_class_1_rates,
             thresholds = sys.primary_class_1_bands )
         pres.ni.class_1_primary = tres.due
+        pres.ni.class_1_primary_band = tres.end_band
         pres.ni.above_lower_earnings_limit = tres.end_band > 1
 
         if( pers.employment_status in [Full_time_Self_Employed, Part_time_Self_Employed])
@@ -106,10 +109,12 @@ function calculate_national_insurance!(
             if seinc > sys.class_2_threshold
                 pres.ni.class_2 = sys.class_2_rate
             end
-            pres.ni.class_4 = calctaxdue(
+            sres = calctaxdue(
                 taxable = seinc,
                 rates = sys.class_4_rates,
-                thresholds = sys.class_4_bands ).due
+                thresholds = sys.class_4_bands )
+            pres.ni.class_4 = sres.due
+            pres.ni.class_4_band = sres.end_band
             pres.ni.class_4_se_income = seinc
         end # self emp
     end

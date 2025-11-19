@@ -54,7 +54,7 @@ end #
         pres = IndividualResult{Float64}()
         pres.income[WAGES] = income[i]
         calculate_national_insurance!( pres, pers, nisys )
-        class1sec = calc_class1_secondary( income[i], pers, nisys )
+        class1sec = calc_class1_secondary( income[i], pers, nisys ).due
         @test pres.ni.class_1_primary ≈ nidue[i][1]
         @test pres.ni.above_lower_earnings_limit == nidue[i][2]
         @test round(class1sec,digits=2) ≈ niclass1sec[i]

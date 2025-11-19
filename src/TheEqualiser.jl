@@ -78,7 +78,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     nsr = deepcopy( rparams.params.it )
     nsi = deepcopy( rparams.params.ni )
     nbandd = deepcopy( rparams.params.loctax.ct.band_d )
-    npptrate = rparams.params.loctax.ppt.rates
+    npptrate = rparams.params.loctax.ppt.local_rates
     hvals = deepcopy(rparams.params.loctax.ct.house_values)
     othvals = deepcopy(rparams.params.othertaxes )
     wealth = deepcopy( rparams.params.wealth )
@@ -102,7 +102,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     end
 
     if rparams.target == eq_ppt_rates
-        rparams.params.loctax.ppt.rates .+= x
+        rparams.params.loctax.ppt.local_rates .+= x
     end
 
     if rparams.target in [eq_ct_bands_proportional, eq_ct_bands_progressive] 
@@ -138,7 +138,7 @@ function run( x :: T, rparams :: RunParameters{T} ) where T <: AbstractFloat
     rparams.params.it = nsr
     rparams.params.ni = nsi
     rparams.params.loctax.ct.band_d = nbandd
-    rparams.params.loctax.ppt.rates = npptrate
+    rparams.params.loctax.ppt.local_rates = npptrate
     rparams.params.loctax.ct.house_values = hvals
     rparams.params.othertaxes = othvals 
     rparams.params.indirect.vat = vat

@@ -190,6 +190,14 @@ function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
     frame.it_savings_taxable = zeros( n )
     frame.it_non_savings_taxable = zeros( n )
     frame.it_dividends_taxable  = zeros( n )
+    # tax end bands 
+    frame.it_dividend_band = zeros(Int,n) # kinda sorta - not normally expressed like this.
+    frame.it_savings_band = zeros(Int,n)
+    frame.it_non_savings_band = zeros(Int,n)
+    frame.ni_class_1_primary_band = zeros(Int,n)
+    frame.ni_class_1_secondary_band = zeros(Int,n)
+    frame.ni_class_4_band = zeros(Int,n)
+
 
     # add some crosstab fields ... 
     frame.id = fill( id, n )
@@ -515,6 +523,13 @@ function fill_inc_frame_row!(
     ir.it_savings_taxable = pres.it.savings_taxable
     ir.it_non_savings_taxable = pres.it.non_savings_taxable
     ir.it_dividends_taxable  = pres.it.dividends_taxable 
+
+    ir.it_dividend_band = pres.it.dividend_band
+    ir.it_savings_band = pres.it.savings_band
+    ir.it_non_savings_band = pres.it.non_savings_band
+    ir.ni_class_1_primary_band = pres.ni.class_1_primary_band
+    ir.ni_class_1_secondary_band = pres.ni.class_1_secondary_band
+    ir.ni_class_4_band = pres.ni.class_4_band
 
     ir.tenure = hh.tenure
     ir.data_year = hh.data_year

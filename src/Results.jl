@@ -264,10 +264,13 @@ module Results
         above_lower_earnings_limit :: Bool = false
         # total_ni :: RT = 0.0
         class_1_primary    :: RT = 0.0
+        class_1_primary_band :: Integer = 0
         class_1_secondary  :: RT = 0.0
+        class_1_secondary_band :: Integer = 0
         class_2   :: RT = 0.0
         class_3   :: RT = 0.0
         class_4   :: RT = 0.0
+        class_4_band :: Integer = 0
         assumed_gross_wage :: RT = 0.0
         class_1_primary_wage :: RT = 0.0
         class_4_se_income :: RT = 0.0

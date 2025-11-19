@@ -46,5 +46,7 @@ if IS_LOCAL
     include( "wealth_tests.jl")
     include( "legal_aid_calculations_tests.jl")
     include( "weighting_tests.jl")
+    include( "behavioural_tests.jl")
+    
     # include( "indirect_taxes_tests.jl")
 end

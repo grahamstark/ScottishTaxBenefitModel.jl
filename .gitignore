@@ -22,7 +22,7 @@ data/merging/*.tab
 data/merging/*.csv
 \#.*\#
 docs/.sass-cache/*
-
+.DS_Store
 scotmat.csv
 .Rproj.user
 
