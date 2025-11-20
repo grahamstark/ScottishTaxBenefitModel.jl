@@ -9,6 +9,8 @@ using CSV,DataFrames,StatsBase
 using ScottishTaxBenefitModel
 using .MatchingLibs
 using .RunSettings
+using .Definitions
+using .FRSHouseholdGetter
 
 settings = Settings()
 settings.num_households, settings.num_people,nhh= FRSHouseholdGetter.initialise(settings)
@@ -41,3 +43,21 @@ sum(wealthtax.(w7_sco.totwlthr7 .*infl ) .* w7_sco.r7xshhwgt)  /1_000_000
 # hhld weight looks about right:
 sum(w7_sco.r7xshhwgt)
 # = 2.452622772997429e6
+
+
+odf = DataFrame(
+    regions = fill( Scotland, settings.num_households ), 
+    wealth = zeros(settings.num_households),
+    wealth2 = zeros(settings.num_households),
+    weight=zeros(settings.num_households))
+for i in 1:settings.num_households
+    hh = FRSHouseholdGetter.get_household(i)
+    odf.regions[i] = Standard_Region(hh.raw_wealth.region)
+    odf.wealth[i] = hh.total_wealth
+    odf.wealth2[i] = hh.raw_wealth.total_household_wealth
+    odf.weight[i] = hh.weight
+end
+countmap(odf.regions)
+sum(wealthtax.(odf.wealth ) .* odf.weight)  /1_000_000
+# £4,392
+um(wealthtax.(odf.wealth2 ) .* odf.weight)  /1_000_000
