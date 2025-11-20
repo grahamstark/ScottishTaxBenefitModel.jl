@@ -49,15 +49,24 @@ odf = DataFrame(
     regions = fill( Scotland, settings.num_households ), 
     wealth = zeros(settings.num_households),
     wealth2 = zeros(settings.num_households),
+    wealth3 = zeros(settings.num_households),
     weight=zeros(settings.num_households))
 for i in 1:settings.num_households
     hh = FRSHouseholdGetter.get_household(i)
     odf.regions[i] = Standard_Region(hh.raw_wealth.region)
     odf.wealth[i] = hh.total_wealth
     odf.wealth2[i] = hh.raw_wealth.total_household_wealth
+    odf.wealth3[i] = hh.net_physical_wealth + hh.net_financial_wealth + hh.net_housing_wealth + hh.net_pension_wealth
     odf.weight[i] = hh.weight
 end
 countmap(odf.regions)
 sum(wealthtax.(odf.wealth ) .* odf.weight)  /1_000_000
 # £4,392
-um(wealthtax.(odf.wealth2 ) .* odf.weight)  /1_000_000
+sum(wealthtax.(odf.wealth2 ) .* odf.weight)  /1_000_000
+
+# weeklyised
+52*sum(wealthtax.(odf.wealth2; rate=0.01*0.019164955509924708 ) .* odf.weight)  /1_000_000 
+# 437729.76685000083
+
+# £4,392
+sum(wealthtax.(odf.wealth3 ) .* odf.weight)  /1_000_000
