@@ -1,5 +1,0 @@
-module BehaviouralResponse
-
-
-
-end # BehaviouralResponse
