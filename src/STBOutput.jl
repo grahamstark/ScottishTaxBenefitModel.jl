@@ -775,11 +775,44 @@ end
 Convoluted approach to making an IFS style Gain-Lose table
 @param dhh - a little frame with a bunch of categories and a net-income field (change)
 @param col - which of the symbols to build a gl table from.
-@return gl table as a dataframe.
+@return gl table and gl examples as dataframes.
+TODO: don't hardwire `data_year` and `hid` as ID columns for examples.
 """
-function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
+function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: Tuple{DataFrame,DataFrame}
     # add a column of strings - "Lose over £10" and so on - from the 'change' column
+    max_examples = 5000
+    examples = DataFrame(
+        data_year = zeros( Int, max_examples ),
+        hid = zeros( BigInt, max_examples ),
+        colval = fill( "", max_examples ),
+        rowval = fill( "", max_examples )
+    )
+    # fill out examples as a dataframe
+    nexamples = 0
     dhh.gainlose = gl.(dhh.change)
+    for colval in GL_COLNAMES # levels( dhh.gainlose )
+        for rowval in sort(levels( dhh[!,col ]))
+            subset = dhh[ (dhh[!,col] .== rowval) .& (dhh[!,:gainlose] .== colval),:]
+            # this next bit collects at most NUM_EXAMPLES of hhlds with (e.g.) colval='No Change'
+            # and row val = "Decile 1", and so on, and appends their details to the `examples` 
+            # dataframe.
+            ncaserows,ncasecols = size(subset)
+            if ncaserows > 0
+                nsamples = min(ncaserows,MAX_EXAMPLES)
+                # sample nsamples examples 
+                subset = subset[sample(1:ncaserows,nsamples,replace=false),:]
+                for r in eachrow(subset)
+                    nexamples += 1
+                    ex = examples[nexamples,:]
+                    ex.data_year = r.data_year
+                    ex.hid = r.hid
+                    ex.colval = colval
+                    ex.rowval = string(rowval)
+                end
+            end
+        end
+    end
+    examples = examples[1:nexamples,:]
     # group by some column (decile, tenure, etc) and then 
     ghh = combine(groupby( dhh, [col,:gainlose] ),(:weighted_people=>sum))
     colnames = [String(col), GL_COLNAMES...]
@@ -811,11 +844,12 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: DataFrame
     glf = coalesce.( vhh, 0.0)
     # add an average change column
     colstr = pretty(string(col))
+
     metadata!( glf, "caption", "Table of Gainers and Losers by $colstr - Counts of Individuals."; style=:note)
     colmetadata!( glf, :pct_change,"label", "% Change In Income."; style=:note)
     colmetadata!( glf, :avch,"label", "Average Change In £s pw."; style=:note)
     colmetadata!( glf, :total_transfer,"label", "Total Transfer to/from this group."; style=:note)
-    return glf
+    return glf, examples
 end
 
 @enum PctDirection by_row by_col by_totals
@@ -891,13 +925,13 @@ function make_gain_lose(
         weighted_pre_income = prehh.weight.*prehh[:,incomes_col],
         weighted_post_income = prehh.weight.*posthh[:,incomes_col])
     dhh.people_weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
-    ten_gl = one_gain_lose( dhh, :tenure )
-    dec_gl = one_gain_lose( dhh, :decile )
-    children_gl = one_gain_lose( dhh, :num_children )
-    hhtype_gl = one_gain_lose( dhh, :hh_type )
-    reg_gl = one_gain_lose( dhh, :region )
+    ten_gl, ten_examples = one_gain_lose( dhh, :tenure )
+    dec_gl, dec_examples = one_gain_lose( dhh, :decile )
+    children_gl, children_examples  = one_gain_lose( dhh, :num_children )
+    hhtype_gl, hhtype_examples = one_gain_lose( dhh, :hh_type )
+    reg_gl, reg_examples = one_gain_lose( dhh, :region )
     # FIXME this is vvv problematic
-    poverty_gl = one_gain_lose( dhh, :in_poverty )
+    poverty_gl, poverty_examples = one_gain_lose( dhh, :in_poverty )
     # some overall changes - easier way?
     gainers = sum( dhh[dhh.change .> GL_MIN, :weighted_people] )
     losers = sum( dhh[dhh.change .< -GL_MIN, :weighted_people] )
@@ -928,7 +962,15 @@ function make_gain_lose(
         dec_gl,
         children_gl,
         hhtype_gl,    
-        reg_gl, # careful for Scotland only        
+        reg_gl, # careful for Scotland only   
+        poverty_gl,
+        ten_examples, 
+        dec_examples,
+        children_examples,
+        hhtype_examples,    
+        reg_examples, # careful for Scotland only   
+        poverty_examples,
+
         ex_gainers=ex_gainers[1:n_gainers], 
         ex_losers=ex_losers[1:n_losers],
         ex_ncs=ex_ncs[1:n_ncs], 
@@ -1512,7 +1554,12 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
             CSV.write( joinpath( outdir, "gain-lose-by-deciles-$(fno)-vs-1.csv"), summary.gain_lose[fno].dec_gl)
             CSV.write( joinpath( outdir, "gain-lose-by-num-children-$(fno)-vs-1.csv"), summary.gain_lose[fno].children_gl)
             CSV.write( joinpath( outdir, "gain-lose-by-household Type-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_gl)
-            CSV.write( joinpath( outdir, "gain-lose-by-region-\$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_gl)
+            CSV.write( joinpath( outdir, "gain-lose-by-region-$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_gl)
+            CSV.write( joinpath( outdir, "gain-lose-by-tenure-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].ten_examples)
+            CSV.write( joinpath( outdir, "gain-lose-by-deciles-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].dec_examples)
+            CSV.write( joinpath( outdir, "gain-lose-by-num-children-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].children_examples)
+            CSV.write( joinpath( outdir, "gain-lose-by-household Type-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_examples)
+            CSV.write( joinpath( outdir, "gain-lose-by-region-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_examples)
         end
         write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.income_hists[fno] )
         for measure in TAXABLE_INCOME_MEASURES

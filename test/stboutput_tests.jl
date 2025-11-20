@@ -44,21 +44,26 @@ end
         people_weighted_change = people_weighted_change,
         weighted_bhc_change    = weighted_bhc_change,
         weighted_people        = weighted_people )
+    nrows,ncols = size(d)
+    d.data_year .= 888
+    d.hid .= BigInt.(rand(Int, nrows ))
     d.weighted_pre_income = d.weight.*d.i
     d.weighted_post_income = d.weight.*d.i
-    ogl = STBOutput.one_gain_lose( d, :i )
+    ogl,exgl = STBOutput.one_gain_lose( d, :i )
     println(ogl)
     @test ogl.total_transfer ≈ [sum(weighted_bhc_change[1:2])*WEEKS_PER_YEAR/1_000_000, sum(weighted_bhc_change[3:5])*WEEKS_PER_YEAR/1_000_000]
     @test ogl.avch ≈ [5.2,4.0]
     @test sum( ogl."No Change") == 0
     @test sum( ogl."Gain £1.01-£10" ) == sum(d.weighted_people)
+    @show exgl 
 
     d.change = [-20,-10,0,9,88]
-    ogl = STBOutput.one_gain_lose( d, :i )
+    ogl,exgl = STBOutput.one_gain_lose( d, :i )
     @test sum( ogl."No Change") == 400
     @test sum( ogl."Lose £10.01+") == 400
     @test sum( ogl."Gain £10.01+") == 200
     println(ogl)
+    @show exgl 
 end
 
 function avs(x::AbstractMatrix):Real
