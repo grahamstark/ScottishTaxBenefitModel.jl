@@ -18,7 +18,8 @@ using .STBOutput
 using .Definitions
 using .FRSHouseholdGetter
 
-fmt(v,row,col) = Format.format(v,commas=true,precision=0)
+fmt(v,row=0,col=0) = Format.format(v,commas=true,precision=0)
+fmt2(v,row=0,col=0) = Format.format(v,commas=true,precision=2)
 
 settings = Settings()
 settings.num_households, settings.num_people,nhh= FRSHouseholdGetter.initialise(settings)
@@ -47,6 +48,9 @@ function wealthtax2( totalwealth; allow=1_000_000,rate=0.01 )
         totalwealth*rate
     end
 end
+
+io = open( "/home/graham_s/tmp/was-hacks.md", "w")
+
 # nom gdp 2020q1->2025q4
 infl=698.4/580.9
 
@@ -79,22 +83,24 @@ for i in 1:settings.num_households
     odf.weight[i] = hh.weight
 end
 countmap(odf.regions)
-sum(wealthtax.(odf.wealth ) .* odf.weight)  /1_000_000
+w1=sum(wealthtax.(odf.wealth ) .* odf.weight)  /1_000_000
 # £4,392
-sum(wealthtax.(odf.wealth2 ) .* odf.weight)  /1_000_000
+w2=sum(wealthtax.(odf.wealth2 ) .* odf.weight)  /1_000_000
 # £4,392
-sum(wealthtax.(odf.wealth3 ) .* odf.weight)  /1_000_000
+w3=sum(wealthtax.(odf.wealth3 ) .* odf.weight)  /1_000_000
 # no allowance case
-sum(wealthtax2.(odf.wealth ) .* odf.weight)  /1_000_000 
+w4=sum(wealthtax2.(odf.wealth ) .* odf.weight)  /1_000_000 
 # £8,929
+
+println(io, "wealth taxes yields £m: £1m allowance: $(fmt(w1)); £1m threshold: $(fmt(w4))")
 
 odf.wealth_tax = wealthtax.(odf.wealth ) ./ WEEKS_PER_YEAR
 
 # model output with 1m 1% wealth tax
-wealth1000 = CSV.File( "/home/graham_s/tmp/wealth-1000.tab") |> DataFrame |> [!,[:pid,:other_tax]]
+wealth1000 = DataFrame(CSV.File( "/home/graham_s/tmp/wealth-1000.tab"))[!,[:pid,:other_tax,:weight]]
 
 w_combined = innerjoin( wealth1000, odf; on=:pid, makeunique=true)
-w_combined.wealth_tax ≈ w_combined.other_tax
+@assert w_combined.wealth_tax ≈ w_combined.other_tax # same calcs
 sum(w_combined.weight) ≈ sum(w_combined.weight_1)
 
 # model incomes per decile and mean are quite close to howards
@@ -107,7 +113,10 @@ modeldec.decile = 1:10
 
 iq=PovertyAndInequalityMeasures.make_inequality(odf, :weight,:wealth)
 # mean idiot check
-iq.average_income
+println( io, "average wealth from Ineq version: $(fmt2(iq.average_income))")
+w5=sum( w_combined.other_tax, Weights( w_combined.weight)) * WEEKS_PER_YEAR /1_000_000 
+println( io, "wealth tax using ONS sample weights: $(fmt(w5))")
+
 # 589,610
 #=
 
@@ -147,9 +156,13 @@ wasdec = STBOutput.decs_to_df(PovertyAndInequalityMeasures.binify(
                 10, 
                 :r7xshhwgt,
                 :totwlthr7 ))
+mean_wealth_odf_weights = mean( odf.wealth, Weights( odf.weight ))
 
-mean( odf.wealth, Weights( odf.weight ))
+println(io, "mean wealth  $(fmt(mean_wealth_odf_weights))")
 # 589,610
 
 modeldec.decile = 1:10
-pretty_table( modeldec[!,[5,4]]; formatters=[fmt], backend=:markdown)
+
+pretty_table( io, modeldec[!,[5,4]]; formatters=[fmt], backend=:markdown)
+
+close(io)
