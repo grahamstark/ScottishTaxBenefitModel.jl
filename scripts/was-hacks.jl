@@ -115,7 +115,7 @@ iq=PovertyAndInequalityMeasures.make_inequality(odf, :weight,:wealth)
 # mean idiot check
 println( io, "average wealth from Ineq version: $(fmt2(iq.average_income))")
 w5=sum( w_combined.other_tax, Weights( w_combined.weight)) * WEEKS_PER_YEAR /1_000_000 
-println( io, "wealth tax using ONS sample weights: $(fmt(w5))")
+println( io, "wealth tax using model weight relative to ONS sample weights: $(fmt(w5))")
 
 # 589,610
 #=
