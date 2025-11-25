@@ -68,10 +68,8 @@ function find_wealth_for_hh!( hh :: Household, settings :: Settings, which = 1 )
     find_wealth_for_hh!( hh, case )
 end
 
-function uprate_raw_wealth()
-    if isnothing(Uprating.UPRATING_DATA)
-        Uprating.load_prices( settings )
-    end
+function uprate_raw_wealth(settings::Settings)
+    Uprating.load_prices( settings )
     nr = size(WEALTH_DATASET)[1]
     for i in 1:nr
         r = WEALTH_DATASET[i,:]
@@ -100,7 +98,7 @@ function init( settings :: Settings; reset = false )
         # FIXME 3 missings now - CHECK THIS
         WEALTH_DATASET.net_financial = coalesce.( WEALTH_DATASET.net_financial, 0.0 )
         @show WEALTH_DATASET[1:20,WEALTH_COLS]
-        uprate_raw_wealth()
+        uprate_raw_wealth(settings)
     end
 end
 

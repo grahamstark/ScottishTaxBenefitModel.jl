@@ -115,7 +115,8 @@ const UPRATE_MAPPINGS =  make_uprate_types()
 #
 # FIXME type unstable? use the trick in the 
 #
-UPRATING_DATA = nothing
+UPRATING_DATA = DataFrame()
+BASE_UPRATING_DATA = DataFrame()
 
 """
 FIXME add test
@@ -138,7 +139,9 @@ See docs/notes.md on the data. Dataframe is a private global.
 function load_prices( settings :: Settings, reload :: Bool = false )
 
     global UPRATING_DATA
-    if ((UPRATING_DATA !== nothing) && ( ! reload ))
+    global BASE_UPRATING_DATA
+    @show UPRATING_DATA
+    if ((size(UPRATING_DATA)[1] > 0) && ( ! reload ))
         return
     end
 
@@ -152,7 +155,7 @@ function load_prices( settings :: Settings, reload :: Bool = false )
 
     upr[!,:year] = zeros(Int64, nrows)
     upr[!,:q] = zeros(Int8, nrows) #zeros(Union{Int64,Missing},np)
-    
+    base_upr = deepcopy(upr)
     
     # add year, quarter cols parsed from the 'YYYY QQ' field
     dp = r"([0-9]{4}) Q([1-4])"
@@ -176,6 +179,7 @@ function load_prices( settings :: Settings, reload :: Bool = false )
         end
     end
     UPRATING_DATA = upr
+    BASE_UPRATING_DATA = base_upr
 end
 
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number

@@ -165,4 +165,6 @@ modeldec.decile = 1:10
 
 pretty_table( io, modeldec[!,[5,4]]; formatters=[fmt], backend=:markdown)
 
+indexes = CSV.File( "/mnt/data/ScotBen/artifacts/augdata/indexes.tab")|>DataFrame
+
 close(io)
