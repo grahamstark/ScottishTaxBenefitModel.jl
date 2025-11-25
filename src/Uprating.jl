@@ -155,7 +155,6 @@ function load_prices( settings :: Settings, reload :: Bool = false )
 
     upr[!,:year] = zeros(Int64, nrows)
     upr[!,:q] = zeros(Int8, nrows) #zeros(Union{Int64,Missing},np)
-    base_upr = deepcopy(upr)
     
     # add year, quarter cols parsed from the 'YYYY QQ' field
     dp = r"([0-9]{4}) Q([1-4])"
@@ -166,6 +165,8 @@ function load_prices( settings :: Settings, reload :: Bool = false )
             upr[i, :q] = parse(Int8, rc[2])
         end
     end
+    # save a copy of the un-inverted data
+    BASE_UPRATING_DATA = deepcopy(upr)
     println( "upr=$upr")
     # Make all relative to the target y,q
     println( "uprating to y=$(settings.to_y) q=$(settings.to_q)")
@@ -179,7 +180,6 @@ function load_prices( settings :: Settings, reload :: Bool = false )
         end
     end
     UPRATING_DATA = upr
-    BASE_UPRATING_DATA = base_upr
 end
 
 function uprate( item :: Number, from_y::Integer, from_q::Integer, itype::Uprate_Item_Type)::Number

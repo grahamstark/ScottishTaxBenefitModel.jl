@@ -111,6 +111,20 @@ modeldec = STBOutput.decs_to_df(PovertyAndInequalityMeasures.binify(
                 :wealth ))
 modeldec.decile = 1:10
 
+println(io,modeldec)
+modeldec1 = STBOutput.decs_to_df(PovertyAndInequalityMeasures.binify( 
+                odf, 
+                1, 
+                :weight, 
+                :wealth ))
+modeldec1.decile = 1:1
+println(io,"single modeldec from ODF $(modeldec1)")
+mean1 = mean( odf.wealth, Weights(odf.weight ))
+println(io,"mean wealth from OFS $(mean1)")
+
+
+
+
 iq=PovertyAndInequalityMeasures.make_inequality(odf, :weight,:wealth)
 # mean idiot check
 println( io, "average wealth from Ineq version: $(fmt2(iq.average_income))")
