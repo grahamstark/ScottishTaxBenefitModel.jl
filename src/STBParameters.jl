@@ -827,13 +827,13 @@ end
     national_rates :: RateBands{RT} = [zero(RT)]
     national_bands :: RateBands{RT} = []
     national_minimum_payment = zero(RT)
+    fixed_sum = false
     single_person_discount = zero(RT)
 end
 
 @with_kw mutable struct LocalTaxes{RT<:Real}
     ct = CouncilTax{RT}()
     ppt = ProportionalPropertyTax{RT}()
-    ppt_central_govt = ProportionalPropertyTax{RT}()
     local_income_tax_rates :: RateBands{RT} = zeros(RT,1) # [19.0,20.0,21.0,41.0,46.0]
     # other possible local taxes go here
 end
@@ -845,8 +845,13 @@ function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     lt.ct.single_person_discount /= 100.0
     lt.local_income_tax_rates ./= 100.0
     lt.ppt.single_person_discount /= 100.0
-    lt.ppt.local_rates /= (100.0*wpy)
-    lt.ppt.national_rates /= (100.0*wpy)
+    if lt.ppt.fixed_sum
+        lt.ppt.local_rates /= wpy
+        lt.ppt.national_rates /= wpy
+    else
+        lt.ppt.local_rates /= (100.0*wpy)
+        lt.ppt.national_rates /= (100.0*wpy)
+    end
     lt.ppt.local_minimum_payment /= wpy
     lt.ppt.national_minimum_payment /= wpy
 end

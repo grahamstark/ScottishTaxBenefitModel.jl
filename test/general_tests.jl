@@ -2,6 +2,7 @@ using Test
 using ScottishTaxBenefitModel
 using .Utils
 using .Definitions
+using .GeneralTaxComponents
 
 @enum A a b c d e
 
@@ -19,4 +20,20 @@ using .Definitions
     @test p.hid == 19064
     @test p.pno == 4
 
+end
+
+@testset "Stepped Tax" begin
+    hval = [500_000.0, 1_000_001, 6_000_001]
+    due = [0.0, 2000, 5000]
+    rates = [0, 2000.0, 5000.0]
+    bands = [1_000_000, 6_000_000]
+    for i in eachindex(hval)
+        sv = do_stepped_tax_calculation(
+                taxable=hval[i],
+                rates=rates,
+                bands=bands,
+                fixed_sum = true )
+        @show sv
+        @test sv.due == due[i]
+    end
 end

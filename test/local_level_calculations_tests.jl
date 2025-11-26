@@ -6,6 +6,7 @@ using Observables
 using .ModelHousehold: Household, Person, People_Dict, is_single,
     default_bu_allocation, get_benefit_units, get_head, get_spouse, search,
     pers_is_disabled, pers_is_carer, printpids
+using .ExampleHelpers
 using .ExampleHouseholdGetter
 using .Definitions
 using .LocalWeightGeneration
@@ -13,7 +14,8 @@ using .Results: HousingResult
 using .FRSHouseholdGetter
 using .RunSettings: Settings
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
-    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax
+    make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax,
+    calc_proportional_property_tax
 using .Monitor: Progress
 using .WeightingData: LA_NAMES, LA_CODES
 
@@ -31,6 +33,7 @@ settings = Settings()
 
 rc = @timed begin
     settings.num_households,settings.num_people,nhh2 = FRSHouseholdGetter.initialise( Settings(), reset=true )
+
 end
 
 # observer = Observer(Progress("",0,0,0))
@@ -51,6 +54,7 @@ end
     settings = Settings()
 	# turn on the ppt ... 
 	sys2.loctax.ppt.abolished = false
+    sys2.loctax.ppt.fixed_sum = false
 	# .. and turn off CT
 	sys2.loctax.ct.abolished = true
 	# applied across all Scotland: 0.25% on 1st 50,000, 0.67% above
@@ -65,6 +69,32 @@ end
 	weeklyise!(sys1)	
 	weeklyise!(sys2)	
     results = do_one_run( settings, [sys1,sys2], obs )    
+end
+
+@testset "Mansion Tax" begin
+    hh = get_example( cpl_w_2_children_hh )
+    hval = [500_000.0, 1_000_001, 6_000_001]
+    due = [0.0, 2000, 5000 ]
+    sys = get_default_system_for_fin_year( 2025, scotland=true, autoweekly=false )
+    sys.loctax.ppt.local_rates = [0, 2000.0, 5000.0] # ann
+    sys.loctax.ppt.local_bands = [1_000_000, 6_000_000] 
+    sys.loctax.ppt.fixed_sum = true
+	sys.loctax.ppt.abolished = false
+	weeklyise!(sys)
+    for i in eachindex(hval)
+        hh.house_value = hval[i]
+        intermed = make_intermediate( 
+            Float64,
+            settings,
+            hh, 
+            sys.hours_limits, 
+            sys.age_limits, 
+            sys.child_limits )
+        lt, nt = calc_proportional_property_tax( hh, intermed.hhint, sys.loctax.ppt ) 
+        @test nt == 0.0
+        println( "Test $i ")
+        @test lt*WEEKS_PER_YEAR ≈ due[i] 
+    end
 end
 
 @testset "LHA and assoc. mappings" begin

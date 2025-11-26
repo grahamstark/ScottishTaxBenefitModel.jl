@@ -33,7 +33,8 @@ using .STBParameters
 using .GeneralTaxComponents: 
     RateBands,
     TaxResult, 
-    calctaxdue
+    calctaxdue,
+    do_stepped_tax_calculation
 
 using .Results: 
     HousingResult
@@ -255,14 +256,31 @@ export
         hh :: Household{RT}, 
         intermed :: MTIntermediate,        
         pptsys :: ProportionalPropertyTax ) :: Tuple{RT,RT} where RT 
-        ltax = calctaxdue(
-            taxable=hh.house_value,
-            rates=pptsys.local_rates,
-            thresholds=pptsys.local_bands )
-        ntax = calctaxdue(
-            taxable=hh.house_value,
-            rates=pptsys.national_rates,
-            thresholds=pptsys.national_bands )
+        if pptsys.abolished
+            return zero(RT), zero(RT)
+        end
+        ltax, ntax = if (! pptsys.fixed_sum)
+            calctaxdue(
+                taxable=hh.house_value,
+                rates=pptsys.local_rates,
+                thresholds=pptsys.local_bands ),
+            calctaxdue(
+                taxable=hh.house_value,
+                rates=pptsys.national_rates,
+                thresholds=pptsys.national_bands )
+        else # Mansion Tax - ish
+            do_stepped_tax_calculation(
+                taxable=hh.house_value,
+                rates=pptsys.local_rates,
+                bands = pptsys.local_bands,
+                fixed_sum = true ),           
+            do_stepped_tax_calculation(
+                taxable=hh.house_value,
+                rates=pptsys.national_rates,
+                bands = pptsys.national_bands,
+                fixed_sum = true )
+        end
+        @show ltax
         # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
         lt = max( ltax.due, pptsys.local_minimum_payment )
         nt = if ntax.due > 0
@@ -274,6 +292,7 @@ export
             lt *= (1-pptsys.single_person_discount)
             nt *= (1-pptsys.single_person_discount)
         end
+        @show lt nt
         # TODO Disabled
         return lt, nt
     end

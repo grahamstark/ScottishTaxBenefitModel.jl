@@ -1,5 +1,7 @@
 module GeneralTaxComponents
 
+using ArgCheck
+
 #
 # This module implements various standard tax calculations, such as indirect tax components and getting tax due from rates and bands.
 # It also contains some period constants that really need more thought.
@@ -17,6 +19,7 @@ export
    calc_indirect, 
    calctaxdue, 
    delete_thresholds_up_to,
+   do_stepped_tax_calculation,
    times
 
 # note: intialise like f::RateBands = zeros(0)
@@ -84,13 +87,27 @@ end
 """
 e.g. Pre 1996 (?) National Insurance (check!)
 """
-function stepped_tax_calculation(
+function do_stepped_tax_calculation(
    ;
    taxable :: Real,
    rates   :: RateBands,
-   bands   :: RateBands ) :: TaxResult
-      # TODO
-
+   bands   :: RateBands, 
+   fixed_sum = false ) :: TaxResult
+   @argcheck length(rates) in length(bands):(length(bands)+1)
+   for r in eachindex(bands)
+      if taxable <= bands[r]
+         return if fixed_sum 
+            TaxResult( rates[r], r )
+         else
+            TaxResult( taxable * rates[r], r )
+         end
+      end
+   end
+   return if fixed_sum
+      TaxResult( rates[end], length(rates))
+   else
+      TaxResult( taxable * rates[end], length(rates))
+   end
 end
 
 """
