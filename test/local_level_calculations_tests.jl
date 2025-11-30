@@ -76,7 +76,7 @@ end
     hval = [500_000.0, 1_000_001, 6_000_001]
     due = [0.0, 2000, 5000 ]
     sys = get_default_system_for_fin_year( 2025, scotland=true, autoweekly=false )
-    sys.loctax.ppt.local_rates = [0, 2000.0, 5000.0] # ann
+    sys.loctax.ppt.local_rates = [0, 2_500.0, 7_500.0] # ann
     sys.loctax.ppt.local_bands = [1_000_000, 6_000_000] 
     sys.loctax.ppt.fixed_sum = true
 	sys.loctax.ppt.abolished = false

@@ -591,7 +591,11 @@ function create_subset()::DataFrame
             Uprating.upr_nominal_gdp )
     end
     subwas.house_price = was.hvaluer7
-    # CSV.write( "data/$(outfilename)", subwas; delim='\t')
+    # deciles of total wealth
+    insert_quantile!( 
+        subwas; 
+        measure_col=:total_wealth, 
+        quant_col=:total_wealth_decile )
     return subwas
 end
 

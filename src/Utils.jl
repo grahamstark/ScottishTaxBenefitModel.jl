@@ -47,6 +47,7 @@ export
    has_non_z, 
    haskeys,
    index_of_field, 
+   insert_quantile!,
    is_zero_or_missing,
    isapprox, 
    isordered,
@@ -1125,7 +1126,29 @@ function alternates( v1::T, v2::T, n::Integer)::Vector{T} where T
       end
    end
    return v
- end
+end
+
+"""
+Insert a deciles/quintiles/whatever column `quant_col` in a dataframe.
+Defaults to deciles, cols `weight`, `decile`
+"""
+function insert_quantile!( 
+    df::DataFrame;
+    measure_col::Symbol, 
+    weight_col = :weight,
+    quant_col = :decile,
+    quantiles = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9])
+    nrows,ncols = size(df)
+    # quantile from StatsBase
+    breaks = quantile( 
+      df[!,measure_col],
+      Weights(df[!,weight_col]), 
+      quantiles )
+    decs = get_quantiles( df[!,:target_col], breaks )
+    for hno in 1:nrows
+        df[hno,quant_col] = decs[hno]
+    end
+end
 
 
 end # module
