@@ -5,8 +5,9 @@ module SFCBehavioural
 # Haven't progressed on testing yet.
 #  sit * weights doesn't match summary results exactly - small differences!
 
-using ScottishTaxBenefitModel
+using DataFrames
 
+using ScottishTaxBenefitModel
 using .ModelHousehold #unsure what actually goes here
 using .Results
 using .STBParameters
@@ -119,16 +120,15 @@ Data.Table( BehaviouralResult )
 
 """
 function calc_behavioural_response(
-    results,
-    sys_baseline,
-    sys_reform
-)::Vector{BehaviouralResult}
-
+    df_baseline::DataFrame,
+    df_reform :: DataFrame,    
+    sys_baseline :: TaxBenefitSystem,
+    sys_reform   :: TaxBenefitSystem )::Vector{BehaviouralResult}
+    #= You don't need this assertion. 
     @assert sys_baseline.it.non_savings_rates != sys_reform.it.non_savings_rates ||
     sys_baseline.it.non_savings_thresholds != sys_reform.it.non_savings_thresholds "No IT policy change"
-    
-    df_baseline = results.income[1] #this is hardwired. can get to from arguments?
-    df_reform = results.income[2]
+    =#
+
     n_obs = length(df_baseline.weight)
     
     # Convert to annual figures

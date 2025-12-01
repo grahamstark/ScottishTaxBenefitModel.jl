@@ -411,30 +411,30 @@ function map_tenure_one( wasf :: DataFrame ) :: Vector{Int}
     for was in eachrow( wasf )
         row += 1
         # ten1r7_i since 2 "-8s" so use imputed version
-        @assert was.ten1r7_i in 1:6 "was.ten1r7 out of range $(was.ten1r7)"
-        frsten = if was.ten1r7_i == 1 # o-outright
+        @assert was.ten1_i in 1:6 "was.ten1r7 out of range $(was.ten1r7)"
+        frsten = if was.ten1_i == 1 # o-outright
             Owned_outright 
-        elseif was.ten1r7_i in 2:3
+        elseif was.ten1_i in 2:3
             Mortgaged_Or_Shared
-        elseif was.ten1r7_i == 4 # rented
-            if was.llordr7 == 1
+        elseif was.ten1_i == 4 # rented
+            if was.llord == 1
                 Council_Rented
-            elseif was.llordr7 == 2
+            elseif was.llord == 2
                 Housing_Association
-            elseif was.llordr7 in 3:7
-                if was.furnr7 in 1:2 # furnished, inc part
+            elseif was.llord in 3:7
+                if was.furn in 1:2 # furnished, inc part
                     Private_Rented_Furnished
-                elseif was.furnr7 == 3
+                elseif was.furn == 3
                     Private_Rented_Unfurnished
                 else
-                    @assert false "was.furnr7 out-of-range $(was.furnr7)"
+                    @assert false "was.furnr7 out-of-range $(was.furn)"
                 end
             else
-                @assert false "was.llord7 out of range $(was.llord7)"
+                @assert false "was.llord out of range $(was.llord)"
             end
-        elseif was.ten1r7_i == 5
+        elseif was.ten1_i == 5
             Rent_free
-        elseif was.ten1r7_i == 6
+        elseif was.ten1_i == 6
             Squats
         end
         out[row] = min( Int( frsten ), 7 ) # compress squat/rentfree
@@ -487,26 +487,26 @@ function map_accom_one( wasf :: DataFrame ) :: Vector{Int}
     row = 0
     for was in eachrow( wasf )
         row += 1
-        out[row] = if was.accomr7 == 1 # house
-            if was.hsetyper7 in 1:3
-                was.hsetyper7
+        out[row] = if was.accom == 1 # house
+            if was.hsetype in 1:3
+                was.hsetype
             else
-                @assert false "unmapped was.hsetyper7 $(was.hsetyper7)"
+                @assert false "unmapped was.hsetype $(was.hsetype)"
             end
-        elseif was.accomr7 == 2 # flat
-            if was.flttypr7 == 1
+        elseif was.accom == 2 # flat
+            if was.flttyp == 1
                 4
-            elseif was.flttypr7 == 2
+            elseif was.flttyp == 2
                 5
             else
-                @assert false "unmapped was.flttypr7 $(was.flttypr7)"
+                @assert false "unmapped was.flttyp $(was.flttyp)"
             end
-        elseif was.accomr7 == 3 # room/rooms ? how could this be true of a household?
+        elseif was.accom == 3 # room/rooms ? how could this be true of a household?
             6
-        elseif was.accomr7 == 4
+        elseif was.accom == 4
             6
         else
-            @assert false "unmapped was.accomr7 $(was.accomr7)"
+            @assert false "unmapped was.accom $(was.accom)"
         end
         @assert out[row] in 1:6 "out is $out"
     end
@@ -531,58 +531,87 @@ end
 
 DIR = "/mnt/data/was/"
 
+function wrem( s, wave )
+    m = "(.*?)[w|r]$(wave)(.*)"
+    re = Regex( m )
+    return s=>replace( s, re=> s"\1\2" )
+end
+
+function renwas!( df::DataFrame, wave )
+    rename!(lowercase,df)
+    n = names(df)
+    rens = wrem.(n, wave)
+    # push!( rens, =>replace(Regex("[r|w]$(wave)xshhwgt")=>"xshhwgt"))
+    rename!( df, rens )
+    # hacky rename of wave
+    if wave == 1
+        rename!(df, "xs_wgt"=>"xshhwgt" )
+    else
+        rename!( df, "w$(wave)xshhwgt"=>"xshhwgt")
+    end
+end
+
+
 """
 Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
 """
-function create_subset()::DataFrame
-    wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_person_eul_june_2022.tab"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
-    wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
-    rename!(wasp,lowercase.(names(wasp)))
-    rename!(wash,lowercase.(names(wash)))
-    wasj = innerjoin( wasp, wash; on=:caser7,makeunique=true)
-    wasj.p_flag4r7 = coalesce.(wasj.p_flag4r7, -1)
-    was = wasj[((wasj.p_flag4r7 .== 1) .| (wasj.p_flag4r7 .== 3)),:]
+function create_subset(;
+    household_file::String,
+    person_file::String,
+    wave :: Int )::DataFrame
+    println( "on wave $wave ")
+    wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(person_file)"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
+    wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(household_file)"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
+    renwas!( wasp, wave )
+    renwas!( wash, wave )
+    
+    wasj = innerjoin( wasp, wash; on=:case,makeunique=true)
+    wasj.p_flag4 = coalesce.(wasj.p_flag4, -1)
+    was = wasj[((wasj.p_flag4 .== 1) .| (wasj.p_flag4 .== 3)),:]
+    
 
     # @assert size( was )[1] == size( wash )[1] " sizes don't match $(size( was )) $(size( wash ))" # selected 1 per hh, missed no hhs
     # this breaks! (17532, 5534) (17534, 852) - 2 missing, but that's OK??
     wpy=365.25/7
 
     subwas = DataFrame()
-    subwas.case = was.caser7
-    subwas.year = was.yearr7
-    subwas.weight = was.r7xshhwgt
+    nrows, ncols = size(was)
+    subwas.wave = fill(wave,nrows)
+    subwas.case = was.case
+    subwas.year = was.year
+    subwas.weight = was.xshhwgt
     subwas.datayear .= 7 # wave 7
-    subwas.month = was.monthr7
+    subwas.month = was.month
     subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
-    subwas.bedrooms = was.hbedrmr7
-    subwas.region = Int.(regionmap_one.(was.gorr7))
-    subwas.age_head = was.hrpdvage8r7
-    subwas.weekly_gross_income = was.dvtotgirr7./wpy
+    subwas.bedrooms = was.hbedrm
+    subwas.region = Int.(regionmap_one.(was.gor))
+    subwas.age_head = was.hrpdvage8
+    subwas.weekly_gross_income = was.dvtotgir./wpy
     subwas.tenure = map_tenure_one( was )
     subwas.accom = map_accom_one( was )
 
-    subwas.household_type = was.hholdtyper7
-    subwas.occupation =  was.hrpnssec3r7
-    subwas.total_wealth = was.totwlthr7
-    subwas.num_children = was.numchildr7
-    subwas.num_adults = was.dvhsizer7 - subwas.num_children
-    subwas.sex_head = was.hrpsexr7
-    subwas.empstat_head = was.hrpempstat2r7 
-    subwas.socio_economic_head = map_socio_one.( was.nssec8r7 ) # hrpnssec3r7 
-    subwas.marital_status_head = Int.(map_marital_one.(was.hrpdvmrdfr7))
+    subwas.household_type = was.hholdtype
+    subwas.occupation =  was.hrpnssec3
+    subwas.total_wealth = was.totwlth
+    subwas.num_children = was.numchild
+    subwas.num_adults = was.dvhsize - subwas.num_children
+    subwas.sex_head = was.hrpsex
+    subwas.empstat_head = was.hrpempstat2
+    subwas.socio_economic_head = map_socio_one.( was.nssec8 ) # hrpnssec3r7 
+    subwas.marital_status_head = Int.(map_marital_one.(was.hrpdvmrdf))
 
-    subwas.any_wages = was.dvgiempr7_aggr .> 0
-    subwas.any_selfemp = was.dvgiser7_aggr .> 0
-    subwas.any_pension_income = was.dvpinpvalr7_aggr .> 0
-    subwas.has_degree = was.hrpedlevelr7 .== 1
+    subwas.any_wages = was.dvgiemp_aggr .> 0
+    subwas.any_selfemp = was.dvgise_aggr .> 0
+    subwas.any_pension_income = was.dvpinpval_aggr .> 0
+    subwas.has_degree = was.hrpedlevel .== 1
     
-    subwas.net_housing = was.hpropwr7
-    subwas.net_physical = was.hphyswr7
-    subwas.total_pensions = was.totpenr7_aggr
-    subwas.net_financial = was.hfinwntr7_sum
-    subwas.total_value_of_other_property = was.othpropvalr7_sum
-    subwas.total_financial_liabilities = was.hfinlr7_excslc_aggr #   Hhold value of financial liabilities
-    subwas.total_household_wealth = was.totwlthr7
+    subwas.net_housing = was.hpropw
+    subwas.net_physical = was.hphysw
+    subwas.total_pensions = was.totpen_aggr
+    subwas.net_financial = was.hfinwnt_sum
+    subwas.total_value_of_other_property = was.othpropval_sum
+    subwas.total_financial_liabilities = was.hfinl_excslc_aggr #   Hhold value of financial liabilities
+    subwas.total_household_wealth = was.totwlth
     for row in eachrow( subwas )
         row.weekly_gross_income = Uprating.uprate( 
             row.weekly_gross_income,
@@ -590,7 +619,7 @@ function create_subset()::DataFrame
             row.q, 
             Uprating.upr_nominal_gdp )
     end
-    subwas.house_price = was.hvaluer7
+    subwas.house_price = was.hvalue
     # deciles of total wealth
     insert_quantile!( 
         subwas; 
@@ -623,6 +652,48 @@ function model_row_match(
     t += Common.region_score_scotland( Standard_Region(wass.region))
     incdiff = Common.compare_income( wass.weekly_gross_income, cts.income )
     return  MatchingLocation( wass.case, wass.datayear, t, wass.weekly_gross_income, incdiff ) 
+end
+
+
+
+const WAS_WAVE_HH=[
+    "was_wave_1_hhold_eul_final_jan_2020.tab",
+    "was_wave_2_hhold_eul_feb_2020.tab",
+    "was_wave_3_hh_eul_march_2020.tab",
+    "was_wave_4_hhold_eul_march_2020.tab",
+    "was_wave_5_hhold_eul_sept_2020.tab",
+    "was_round_6_hhold_eul_april_2022.tab",
+    "was_round_7_hhold_eul_march_2022.tab",
+    "was_round_8_hhold_eul_may_2025_230525.tab"]
+
+const WAS_WAVE_PERS=[
+    "was_wave_1_person_eul_nov_2020.tab",
+    "was_wave_2_person_eul_nov_2020.tab",
+    "was_wave_3_person_eul_oct_2020.tab",
+    "was_wave_4_person_eul_oct_2020.tab",
+    "was_wave_5_person_eul_oct_2020.tab",
+    "was_round_6_person_eul_april_2022.tab",
+    "was_round_7_person_eul_june_2022.tab",
+    "was_round_8_person_eul_may_2025_230525.tab"]
+
+# household_file="was_round_5__hhold_eul_feb_20.tab
+
+
+function stack_wass()
+    stack = nothing
+    for i in 1:8
+        subwas = create_subset(
+            household_file=WAS_WAVE_HH[i],
+            person_file=WAS_WAVE_PERS[i],
+            wave = i )
+        if i == 1
+            stack = subwas
+        else
+            stack = vcat( stack, subwas )
+        end
+    end
+    sort( stack, [:case,:wave])
+    stack
 end
 
 

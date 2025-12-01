@@ -1,7 +1,9 @@
 using CSV
 using DataFrames
+using Distributions
 using GLM
 using Random
+using RegressionTables
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -339,6 +341,7 @@ function run_regressions( hhlds::DataFrame, people::DataFrame )
     pp = deepcopy(people)
     hl = hl[hl.gross_income .> 0, : ]
     hl.l_gross_income = log.(hl.gross_income)
+    hl.any_females = hl.num_females .> 0
     
     #=
 
@@ -363,9 +366,15 @@ function run_regressions( hhlds::DataFrame, people::DataFrame )
     hl.sh_rent = hl.rent ./ hl.total_spending
     hl.sh_mortgage = hl.mortgage ./ hl.total_spending
     
-    hl_rent = hl[ hl.tenure .∈ ( [social_renter, private_renter], ), : ]
-    hl_mort = hl[ hl.mortgage .> 0, :]
+    hl_renter = hl[ hl.tenure .∈ ( [social_renter, private_renter], ), : ]
+    hl_morter = hl[ hl.mortgage .> 0, :]
 
+    r_food = lm( @formula( sh_food ~ 
+        l_gross_income+age_head+age_head^2+employment_head+num_children+any_females+tenure), hl )
+    r_food
+    
+    d = rand(Normal(0,std(residuals(rf))))
+    predict(rf,hl[1:1,:]+d
 end
 
 settings = Settings()
@@ -374,4 +383,4 @@ hhlds, people = create_simple( settings )
 CSV.write( "$(DDIR)/simple_hhlds.tab", hhlds; delim='\t')
 CSV.write( "$(DDIR)/simple_pers.tab", people; delim='\t')
 
-run_regressions( hhlds, people )
+rf = run_regressions( hhlds, people )
