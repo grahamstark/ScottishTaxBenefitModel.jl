@@ -1184,7 +1184,10 @@ const V_SHORT_COST_LABELS = [
 """
 3 cols: pre, post, change
 """
-function make_very_short_cost_summary( cost_summary :: DataFrame, cost_items, cost_labels )::DataFrame
+function make_very_short_cost_summary( 
+    cost_summary :: DataFrame, 
+    cost_items, 
+    cost_labels )::DataFrame
     n = length(cost_items)
     nrows,ncols = size(cost_summary)
     d = DataFrame( item=cost_labels, pre=zeros(n), post=zeros(n), change=zeros(n))
@@ -1440,7 +1443,10 @@ function summarise_frames!(
     end
     short_income_summary = make_short_cost_summary( income_summary )
     very_short_income_summary = make_very_short_cost_summary( 
-        short_income_summary, V_SHORT_COST_ITEMS, V_SHORT_COST_LABELS )
+        short_income_summary, 
+        # TODO frames.behavioural_results,
+        V_SHORT_COST_ITEMS, 
+        V_SHORT_COST_LABELS )
     for sysno in 1:ns
         # check for uncomputed METRs 
         metrs1, metrs2 = if settings.do_marginal_rates

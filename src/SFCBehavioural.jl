@@ -17,6 +17,56 @@ using .STBParameters
 export calc_behavioural_response, BehaviouralResult
 
 
+# -----------------------------------------------------------------------------
+# Helper functions (replicated from module for standalone testing)
+# -----------------------------------------------------------------------------
+
+function lookup_band_index(x::Real, edges::AbstractVector)::Int
+    for i in 1:(length(edges)-1)
+        if edges[i] <= x < edges[i+1]
+            return i
+        end
+    end
+    return length(edges) - 1
+end
+
+function lookup_tie(taxable_income::Real)::Float64
+    idx = lookup_band_index(taxable_income, TIE_EDGES)
+    return TIE_RATES[idx]
+end
+
+"""
+    calc_intensive_margin(; taxable_income, mtr_baseline, mtr_reform, ni_baseline, ni_reform)
+
+Calculate the intensive margin behavioural response for a single individual.
+
+Returns the change in tax revenue due to intensive margin response (negative = less revenue).
+"""
+function calc_intensive_margin(;
+    taxable_income::Float64,
+    mtr_baseline::Float64,
+    mtr_reform::Float64,
+    ni_baseline::Float64,
+    ni_reform::Float64)::Float64
+    # Marginal retention rates
+    mrr_baseline = 1.0 - mtr_baseline - ni_baseline
+    mrr_reform = 1.0 - mtr_reform - ni_reform
+    
+    # Percentage change in MRR
+    mrr_pct_change = mrr_baseline == 0.0 ? 0.0 : (mrr_reform / mrr_baseline - 1.0)
+    
+    # TIE for this income level
+    tie = lookup_tie(taxable_income)
+    
+    # Change in taxable income
+    taxable_change = tie * mrr_pct_change * taxable_income
+    
+    # Tax impact at reform marginal rate
+    intensive_change = taxable_change * mtr_reform
+    
+    return intensive_change
+end
+
 # =============================================================================
 # Result structures
 # =============================================================================
