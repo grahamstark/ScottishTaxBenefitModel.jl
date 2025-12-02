@@ -531,25 +531,36 @@ end
 
 DIR = "/mnt/data/was/"
 
-function wrem( s, wave )
+"""
+produce 1 replace pair, deleting e.g. 'w2' or 'r1' from 1 name.
+"""
+function wrem( s::AbstractString, wave::Integer )::Pair
     m = "(.*?)[w|r]$(wave)(.*)"
     re = Regex( m )
     return s=>replace( s, re=> s"\1\2" )
 end
 
-function renwas!( df::DataFrame, wave )
+"""
+Attempt to rename each wave of WAS consistently, deleting e.g. 'w2' or 'r1' from all names.
+"""
+function renwas!( df::DataFrame, wave::Integer, is_hh::Bool )
     rename!(lowercase,df)
     n = names(df)
+    # make a list of replacements
     rens = wrem.(n, wave)
-    # push!( rens, =>replace(Regex("[r|w]$(wave)xshhwgt")=>"xshhwgt"))
     rename!( df, rens )
-    # hacky rename of wave
+    # hacky rename of wave 
+    @show sort(names(df))
     if wave == 1
         rename!(df, "xs_wgt"=>"xshhwgt" )
-        rename!(df, "hrpdvage9"=>"hrpdvage")
+        if is_hh
+            rename!(df, "hrpdvage9"=>"hrpdvage")
+        end
     else
         rename!( df, "w$(wave)xshhwgt"=>"xshhwgt")
-        rename!( df, "hrpdvage8"=>"hrpdvage")
+        if is_hh
+            rename!( df, "hrpdvage8"=>"hrpdvage")
+        end
     end
 end
 
@@ -564,8 +575,8 @@ function create_subset(;
     println( "on wave $wave ")
     wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(person_file)"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
     wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(household_file)"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
-    renwas!( wasp, wave )
-    renwas!( wash, wave )
+    renwas!( wasp, wave, false )
+    renwas!( wash, wave, true )
     
     wasj = innerjoin( wasp, wash; on=:case,makeunique=true)
     wasj.p_flag4 = coalesce.(wasj.p_flag4, -1)
@@ -574,8 +585,7 @@ function create_subset(;
 
     # @assert size( was )[1] == size( wash )[1] " sizes don't match $(size( was )) $(size( wash ))" # selected 1 per hh, missed no hhs
     # this breaks! (17532, 5534) (17534, 852) - 2 missing, but that's OK??
-    wpy=365.25/7
-
+    
     subwas = DataFrame()
     nrows, ncols = size(was)
     subwas.wave = fill(wave,nrows)
@@ -587,8 +597,13 @@ function create_subset(;
     subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
     subwas.bedrooms = was.hbedrm
     subwas.region = Int.(regionmap_one.(was.gor))
+    # 9 age vals in wave 1 up to 85; 8 vals up to 75 in the rest
     subwas.age_head = min.(was.hrpdvage, 8 ) # 75+ waves 2- 85+ wave 1
-    subwas.weekly_gross_income = was.dvtotgir./wpy
+    if wave >= 3
+        subwas.weekly_gross_income = was.dvtotgir./WEEKS_PER_YEAR
+    else
+        subwas.weekly_gross_income = zeros(nrows)
+    end
     subwas.tenure = map_tenure_one( was )
     subwas.accom = map_accom_one( was )
 
