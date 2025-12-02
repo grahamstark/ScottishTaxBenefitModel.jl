@@ -59,13 +59,13 @@ function to_dataframe( br :: Vector{BehaviouralResult} )::DataFrame
         r.tie_rate = ismissing(br[i].tie_rate) ? "" : Format.format(br[i].tie_rate;precision=2)
         r.aetr_rate = ismissing(br[i].aetr_rate) ? "" : Format.format(br[i].aetr_rate;precision=2)
         r.n_taxpayers = br[i].n_taxpayers
-        r.static_baseline = br[i].static_baseline
-        r.static_reform = br[i].static_reform
-        r.static_change = br[i].static_change
-        r.change_intensive = br[i].change_intensive
-        r.change_extensive = br[i].change_extensive
-        r.total_behavioural = br[i].total_behavioural
-        r.sfc_change = br[i].sfc_change
+        r.static_baseline = br[i].static_baseline * WEEKS_PER_YEAR
+        r.static_reform = br[i].static_reform * WEEKS_PER_YEAR
+        r.static_change = br[i].static_change * WEEKS_PER_YEAR
+        r.change_intensive = br[i].change_intensive * WEEKS_PER_YEAR
+        r.change_extensive = br[i].change_extensive * WEEKS_PER_YEAR
+        r.total_behavioural = br[i].total_behavioural * WEEKS_PER_YEAR
+        r.sfc_change = br[i].sfc_change * WEEKS_PER_YEAR
         r.behavioural_offset_pct = br[i].behavioural_offset_pct
     end
     df
@@ -87,7 +87,8 @@ const TIE_EDGES = [
     300_000.0,
     500_000.0,
     Inf
-]
+] ./ WEEKS_PER_YEAR
+
 const TIE_BAND_LABELS = [
     "£0 - £37,700",
     "£37,700 - £67,430",
@@ -170,10 +171,10 @@ function calc_behavioural_response(
     n_obs = length(df_baseline.weight)
     
     # Convert to annual figures
-    taxable_baseline = df_baseline.it_non_savings_taxable .* 52
-    taxable_reform = df_reform.it_non_savings_taxable .* 52
-    tax_baseline = df_baseline.scottish_income_tax .* 52
-    tax_reform = df_reform.scottish_income_tax .* 52
+    taxable_baseline = df_baseline.it_non_savings_taxable
+    taxable_reform = df_reform.it_non_savings_taxable
+    tax_baseline = df_baseline.scottish_income_tax
+    tax_reform = df_reform.scottish_income_tax
     weights = df_baseline.weight
     
     # Get marginal income tax rates
