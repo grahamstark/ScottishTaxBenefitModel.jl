@@ -546,8 +546,10 @@ function renwas!( df::DataFrame, wave )
     # hacky rename of wave
     if wave == 1
         rename!(df, "xs_wgt"=>"xshhwgt" )
+        rename!(df, "hrpdvage9"=>"hrpdvage")
     else
         rename!( df, "w$(wave)xshhwgt"=>"xshhwgt")
+        rename!( df, "hrpdvage8"=>"hrpdvage")
     end
 end
 
@@ -585,7 +587,7 @@ function create_subset(;
     subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
     subwas.bedrooms = was.hbedrm
     subwas.region = Int.(regionmap_one.(was.gor))
-    subwas.age_head = was.hrpdvage8
+    subwas.age_head = min.(was.hrpdvage, 8 ) # 75+ waves 2- 85+ wave 1
     subwas.weekly_gross_income = was.dvtotgir./wpy
     subwas.tenure = map_tenure_one( was )
     subwas.accom = map_accom_one( was )
