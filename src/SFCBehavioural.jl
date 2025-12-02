@@ -6,6 +6,7 @@ module SFCBehavioural
 #  sit * weights doesn't match summary results exactly - small differences!
 
 using DataFrames
+using Format 
 
 using ScottishTaxBenefitModel
 using .ModelHousehold #unsure what actually goes here
@@ -13,6 +14,62 @@ using .Results
 using .STBParameters
 
 export calc_behavioural_response, BehaviouralResult
+
+
+# =============================================================================
+# Result structures
+# =============================================================================
+
+struct BehaviouralResult
+    band_label::String
+    tie_rate::Union{Float64, Missing}
+    aetr_rate::Union{Float64, Missing}
+    n_taxpayers::Int
+    static_baseline::Float64
+    static_reform::Float64
+    static_change::Float64
+    change_intensive::Float64
+    change_extensive::Float64
+    total_behavioural::Float64
+    sfc_change::Float64
+    behavioural_offset_pct::Float64
+end
+
+"""
+Hacky conversion of these structs to a DF
+"""
+function to_dataframe( br :: Vector{BehaviouralResult} )::DataFrame
+    n = length(br)
+    df = DataFrame(
+        band_label=fill("",n),
+        tie_rate=fill("",n), # ::Union{Float64, Missing}
+        aetr_rate=fill("",n), #::Union{Float64, Missing}
+        n_taxpayers=fill(0, n),
+        static_baseline=zeros(n),
+        static_reform=zeros(n),
+        static_change=zeros(n),
+        change_intensive=zeros(n),
+        change_extensive=zeros(n),
+        total_behavioural=zeros(n),
+        sfc_change=zeros(n),
+        behavioural_offset_pct=zeros(n))
+    for i in 1:n
+        r = df[i,:]
+        r.band_label = br[i].band_label
+        r.tie_rate = ismissing(br[i].tie_rate) ? "" : Format.format(br[i].tie_rate;precision=2)
+        r.aetr_rate = ismissing(br[i].aetr_rate) ? "" : Format.format(br[i].aetr_rate;precision=2)
+        r.n_taxpayers = br[i].n_taxpayers
+        r.static_baseline = br[i].static_baseline
+        r.static_reform = br[i].static_reform
+        r.static_change = br[i].static_change
+        r.change_intensive = br[i].change_intensive
+        r.change_extensive = br[i].change_extensive
+        r.total_behavioural = br[i].total_behavioural
+        r.sfc_change = br[i].sfc_change
+        r.behavioural_offset_pct = br[i].behavioural_offset_pct
+    end
+    df
+end
 
 # =============================================================================
 # Constants - SFC methodology parameters
@@ -42,25 +99,6 @@ const TIE_BAND_LABELS = [
 
 const AETR_RATES = [0.00, 0.06, 0.06, 0.25, 0.25, 0.25]
 const AETR_EDGES = copy(TIE_EDGES)
-
-# =============================================================================
-# Result structures
-# =============================================================================
-
-struct BehaviouralResult
-    band_label::String
-    tie_rate::Union{Float64, Missing}
-    aetr_rate::Union{Float64, Missing}
-    n_taxpayers::Int
-    static_baseline::Float64
-    static_reform::Float64
-    static_change::Float64
-    change_intensive::Float64
-    change_extensive::Float64
-    total_behavioural::Float64
-    sfc_change::Float64
-    behavioural_offset_pct::Float64
-end
 
 # =============================================================================
 # Helper functions
@@ -111,7 +149,7 @@ Only call this function when comparing two different tax systems - use the
 - `sys_reform`: Reform tax system parameters
 
 # Returns
-Vector{BehaviouralResult} - rows for each TIE band plus a TOTAL row
+rows for each TIE band plus a TOTAL row as a DataFrame
 
 # To call within a script (after the model has run) use for example:
 aggregate, by_band = calc_behavioural_response(results, sys1, sys2)
@@ -123,7 +161,7 @@ function calc_behavioural_response(
     df_baseline::DataFrame,
     df_reform :: DataFrame,    
     sys_baseline :: TaxBenefitSystem,
-    sys_reform   :: TaxBenefitSystem )::Vector{BehaviouralResult}
+    sys_reform   :: TaxBenefitSystem )::AbstractDataFrame
     #= You don't need this assertion. 
     @assert sys_baseline.it.non_savings_rates != sys_reform.it.non_savings_rates ||
     sys_baseline.it.non_savings_thresholds != sys_reform.it.non_savings_thresholds "No IT policy change"
@@ -268,7 +306,7 @@ function calc_behavioural_response(
         total_offset_pct
     ))
     
-    return combined
+    return to_dataframe(combined)
 end
 
 end # module SFCBehavioural

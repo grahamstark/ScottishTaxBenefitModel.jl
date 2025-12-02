@@ -299,8 +299,8 @@ function initialise_frames( T::DataType, settings :: Settings, num_systems :: In
         push!( bu, make_bu_results_frame( T, settings.num_people )) # overstates but we don't actually know this at the start
         push!( hh, make_household_results_frame( T, settings.num_households ))
         push!( income, make_incomes_frame( T, settings.num_people )) # overstates but we don't actually know this at the start            
-    end
-    (; hh, bu, indiv, income, legalaid ) #, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
+     end
+    (; hh, bu, indiv, income, legalaid, behavioural_results=[] ) #, civil_legalaid_pers, civil_legalaid_bu, aa_legalaid_pers, aa_legalaid_bu )
 end
 
 

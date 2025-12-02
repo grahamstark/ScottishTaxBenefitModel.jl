@@ -130,6 +130,7 @@ module RunSettings
         to_y :: Int = @load_preference( "to_y", 2024 )
         to_q :: Int = @load_preference( "to_q", 4 )
         output_dir :: String = @load_preference( "output_dir", joinpath(tempdir(),"output"))
+        do_sfc_behavioural_changes  :: Bool = @load_preference( "do_sfc_behavioural_changes", true )
         means_tested_routing :: MT_Routing = eval( Symbol(@load_preference( "means_tested_routing", "uc_full" )))
         disability_routing :: MT_Routing = eval( Symbol(@load_preference( "disability_routing", "modelled_phase_in" )))
         poverty_line :: Real = -1.0

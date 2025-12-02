@@ -12,13 +12,13 @@ module Runner
     using DataFrames
     using CSV
     using Observables
-
     using BudgetConstraints: BudgetConstraint
   
     using ScottishTaxBenefitModel
 
     using .Definitions
     using .Utils
+    using .SFCBehavioural
     using .STBParameters
     using .STBIncomes
     using .STBOutput
@@ -181,6 +181,17 @@ module Runner
                 end # included in nations 
             end #household loop
         end # threads
+        # SFC thing 
+        if settings.do_sfc_behavioural_changes
+            for sysno in 1:num_systems
+                bh = SFCBehavioural.calc_behavioural_response(
+                    frames.income[1],
+                    frames.income[sysno],
+                    params[1],
+                    params[sysno] )
+                push!( frames.behavioural_results, bh )
+            end
+        end
         if settings.dump_frames 
             observer[]= Progress( settings.uuid, "dumping_frames", 0, 0, 0, 0 )
             dump_frames( settings, frames )

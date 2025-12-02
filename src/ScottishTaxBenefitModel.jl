@@ -161,14 +161,14 @@ export SimplePovertyCounts
 include( "LegalAidOutput.jl")
 export LegalAidOutput
 
+include( "SFCBehavioural.jl" )
+export SFCBehavioural
+
 include( "STBOutput.jl")
 export STBOutput
 
 include( "Runner.jl" )
 export Runner
-
-include( "SFCBehavioural.jl" )
-export SFCBehavioural
 
 # include( "LegalAidCostsModel.jl")
 # export LegalAidCostsModel
