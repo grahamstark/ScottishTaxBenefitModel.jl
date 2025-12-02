@@ -9,6 +9,7 @@ using DataFrames
 using Format 
 
 using ScottishTaxBenefitModel
+using .Definitions
 using .ModelHousehold #unsure what actually goes here
 using .Results
 using .STBParameters
