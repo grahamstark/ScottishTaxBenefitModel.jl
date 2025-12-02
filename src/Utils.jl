@@ -1033,7 +1033,7 @@ function to_md_table( f; exclude=[], depth=0 ) :: String
             push!(prinames, n )
         end
     end
-    s = md"""
+    s = """
 
 
     |            |              |
