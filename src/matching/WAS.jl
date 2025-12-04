@@ -110,6 +110,7 @@ function map_socio_one( socio :: Union{Real,Missing} ) :: Int
     d = Dict([
         1.1 => 1, # Employers_in_large_organisations is way out WAS vs FRS so amalgamate
         1.2 => 1,
+        1 => 1,
         2 => 2,
         3 => 3,
         4 => 4,
@@ -417,12 +418,12 @@ function map_tenure_one( wasf :: DataFrame ) :: Vector{Int}
         elseif was.ten1_i in 2:3
             Mortgaged_Or_Shared
         elseif was.ten1_i == 4 # rented
-            if was.llord == 1
+            if ismissing(was.llord) || (was.llord == 1) # !!! 1 missing wave 1
                 Council_Rented
             elseif was.llord == 2
                 Housing_Association
             elseif was.llord in 3:7
-                if was.furn in 1:2 # furnished, inc part
+                if ismissing(was.furn) || (was.furn in 1:2) # furnished, inc part 1 missing case w2
                     Private_Rented_Furnished
                 elseif was.furn == 3
                     Private_Rented_Unfurnished
@@ -487,14 +488,16 @@ function map_accom_one( wasf :: DataFrame ) :: Vector{Int}
     row = 0
     for was in eachrow( wasf )
         row += 1
-        out[row] = if was.accom == 1 # house
-            if was.hsetype in 1:3
+        out[row] = if ismissing( was.accom ) || (was.accom == 1) # house
+            if ismissing( was.hsetype )
+                rand(1:3)
+            elseif was.hsetype in 1:3
                 was.hsetype
             else
                 @assert false "unmapped was.hsetype $(was.hsetype)"
             end
         elseif was.accom == 2 # flat
-            if was.flttyp == 1
+            if ismissing(was.flttyp) || (was.flttyp == 1) # !! 1 case !! wave 1
                 4
             elseif was.flttyp == 2
                 5
@@ -527,72 +530,143 @@ end
  end
  =#
  
-
-
 DIR = "/mnt/data/was/"
 
 """
 produce 1 replace pair, deleting e.g. 'w2' or 'r1' from 1 name.
 """
 function wrem( s::AbstractString, wave::Integer )::Pair
-    m = "(.*?)[w|r]$(wave)(.*)"
+    m = if wave == 66
+        "(.*?)[r]$(wave)(.*)"
+    else
+        "(.*?)[w|r]$(wave)(.*)"
+    end
     re = Regex( m )
     return s=>replace( s, re=> s"\1\2" )
 end
+
+sum_rem( s::AbstractString )::Pair = s=>replace(s, r"(.*)_sum"=>s"\1_aggr")
 
 """
 Attempt to rename each wave of WAS consistently, deleting e.g. 'w2' or 'r1' from all names.
 """
 function renwas!( df::DataFrame, wave::Integer, is_hh::Bool )
-    rename!(lowercase,df)
     n = names(df)
     # make a list of replacements
-    rens = wrem.(n, wave)
+    rens = sort(unique(wrem.(n, wave)))
+    @show rens
     rename!( df, rens )
     # hacky rename of wave 
-    @show sort(names(df))
-    if wave == 1
-        rename!(df, "xs_wgt"=>"xshhwgt" )
+    if wave <= 4
         if is_hh
             rename!(df, "hrpdvage9"=>"hrpdvage")
         end
     else
-        rename!( df, "w$(wave)xshhwgt"=>"xshhwgt")
         if is_hh
             rename!( df, "hrpdvage8"=>"hrpdvage")
         end
     end
+    rens = sum_rem.(names(df))
+    #  @show rens
+    rename!(df, rens )
 end
 
+const WAS_WAVE_HH=[
+    "was_wave_1_hhold_eul_final_jan_2020.tab",
+    "was_wave_2_hhold_eul_feb_2020.tab",
+    "was_wave_3_hh_eul_march_2020.tab",
+    "was_wave_4_hhold_eul_march_2020.tab",
+    "was_wave_5_hhold_eul_sept_2020.tab",
+    "was_round_6_hhold_eul_april_2022.tab",
+    "was_round_7_hhold_eul_march_2022.tab",
+    "was_round_8_hhold_eul_may_2025_230525.tab"]
+
+const WAS_WAVE_PERS=[
+    "was_wave_1_person_eul_nov_2020.tab",
+    "was_wave_2_person_eul_nov_2020.tab",
+    "was_wave_3_person_eul_oct_2020.tab",
+    "was_wave_4_person_eul_oct_2020.tab",
+    "was_wave_5_person_eul_oct_2020.tab",
+    "was_round_6_person_eul_april_2022.tab",
+    "was_round_7_person_eul_june_2022.tab",
+    "was_round_8_person_eul_may_2025_230525.tab"]
+
+function remove_dup_wave6rs_and_ws!( df::DataFrame, wave )
+    n = names(df)
+    wrex = Regex( "(.+)w$(wave)(.*)")
+    rrex = Regex( "(.+)r$(wave)(.*)")
+    r5s = filter( x->match(r".*[r|w]5$",x)!==nothing, n)
+    ws = []
+    rs = []
+    
+    for i in eachindex(n)
+
+        m = match(wrex,n[i])
+        if ! isnothing(m)
+            push!( ws, (m[1],m[2]))
+        end
+        m = match(rrex,n[i])
+        if ! isnothing(m)
+            push!( rs, (m[1],m[2]))
+        end
+    end
+
+    killa = intersect( ws,rs )
+    kills = []
+    for k in killa
+        push!( kills, "$(k[1])r$(wave)$(k[2])")
+    end
+    kills = union( kills, r5s)
+    @show kills
+    select!( df, Not( kills ))
+end
+
+function load_one_was( wave :: Int )    
+    wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(WAS_WAVE_PERS[wave])"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
+    wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(WAS_WAVE_HH[wave])"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
+    rename!(lowercase,wasp)
+    rename!(lowercase,wash)
+    if wave == 6
+        # dup hack rf and rfw1 - drop rf
+        println( "deleting rf")
+        select!(wasp, Not([:rf,:rs]))
+        remove_dup_wave6rs_and_ws!( wasp, 6 )
+        remove_dup_wave6rs_and_ws!( wash, 6 )
+        remove_dup_wave6rs_and_ws!( wasp, 5 )
+        remove_dup_wave6rs_and_ws!( wash, 5 )
+    end
+    renwas!( wasp, wave, false )
+    renwas!( wash, wave, true )    
+    wasj = innerjoin( wash, wasp ; on=:case,makeunique=true)
+    wasj.p_flag4 = coalesce.(wasj.p_flag4, -1)
+    was = wasj[((wasj.p_flag4 .== 1) .| (wasj.p_flag4 .== 3)),:]
+    sort!(was,[:case])
+    was
+end
 
 """
 Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
 """
-function create_subset(;
-    household_file::String,
-    person_file::String,
+function create_subset(
+    was :: DataFrame,
     wave :: Int )::DataFrame
     println( "on wave $wave ")
-    wasp = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(person_file)"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
-    wash = CSV.File( "$(DIR)UKDA-7215-tab/tab/$(household_file)"; missingstring=["", " ","-6","-7","-8","-9"]) |> DataFrame
-    renwas!( wasp, wave, false )
-    renwas!( wash, wave, true )
-    
-    wasj = innerjoin( wasp, wash; on=:case,makeunique=true)
-    wasj.p_flag4 = coalesce.(wasj.p_flag4, -1)
-    was = wasj[((wasj.p_flag4 .== 1) .| (wasj.p_flag4 .== 3)),:]
-    
-
-    # @assert size( was )[1] == size( wash )[1] " sizes don't match $(size( was )) $(size( wash ))" # selected 1 per hh, missed no hhs
-    # this breaks! (17532, 5534) (17534, 852) - 2 missing, but that's OK??
-    
     subwas = DataFrame()
     nrows, ncols = size(was)
     subwas.wave = fill(wave,nrows)
     subwas.case = was.case
     subwas.year = was.year
-    subwas.weight = was.xshhwgt
-    subwas.datayear .= 7 # wave 7
+    subwas.weight = if wave == 1
+            was.xs_wgt
+        elseif wave == 2
+            was.xs_calwgt
+        elseif wave == 3
+            was.xswgt
+        else
+            was.xshhwgt
+        end
+    subwas.weight = Float64.( subwas.weight )
+    subwas.datayear .= wave # wave 7
     subwas.month = was.month
     subwas.q = div.(subwas.month .- 1, 3 ) .+ 1 
     subwas.bedrooms = was.hbedrm
@@ -600,7 +674,7 @@ function create_subset(;
     # 9 age vals in wave 1 up to 85; 8 vals up to 75 in the rest
     subwas.age_head = min.(was.hrpdvage, 8 ) # 75+ waves 2- 85+ wave 1
     if wave >= 3
-        subwas.weekly_gross_income = was.dvtotgir./WEEKS_PER_YEAR
+        subwas.weekly_gross_income = Float64.(coalesce.(was.dvtotgir./WEEKS_PER_YEAR,0.0))
     else
         subwas.weekly_gross_income = zeros(nrows)
     end
@@ -609,7 +683,6 @@ function create_subset(;
 
     subwas.household_type = was.hholdtype
     subwas.occupation =  was.hrpnssec3
-    subwas.total_wealth = was.totwlth
     subwas.num_children = was.numchild
     subwas.num_adults = was.dvhsize - subwas.num_children
     subwas.sex_head = was.hrpsex
@@ -617,27 +690,59 @@ function create_subset(;
     subwas.socio_economic_head = map_socio_one.( was.nssec8 ) # hrpnssec3r7 
     subwas.marital_status_head = Int.(map_marital_one.(was.hrpdvmrdf))
 
-    subwas.any_wages = was.dvgiemp_aggr .> 0
-    subwas.any_selfemp = was.dvgise_aggr .> 0
-    subwas.any_pension_income = was.dvpinpval_aggr .> 0
-    subwas.has_degree = was.hrpedlevel .== 1
-    
+    if wave >= 3
+        subwas.any_wages = was.dvgiemp_aggr .> 0
+        subwas.any_selfemp = was.dvgise_aggr .> 0
+        subwas.any_pension_income = if wave < 8
+            was.dvpinpval_aggr .> 0
+        else
+            was.dvpinpval_old_aggr .> 0
+        end
+        subwas.has_degree = was.hrpedlevel .== 1
+        if wave >= 5
+            subwas.total_value_of_other_property = was.othpropval_aggr
+        else 
+            subwas.total_value_of_other_property = zeros(nrows)
+        end
+    else
+        subwas.any_wages = zeros(nrows)
+        subwas.any_selfemp = zeros(nrows)
+        subwas.any_pension_income = zeros(nrows)
+        subwas.has_degree = zeros(nrows)
+        subwas.total_value_of_other_property = zeros(nrows)
+    end
     subwas.net_housing = was.hpropw
     subwas.net_physical = was.hphysw
-    subwas.total_pensions = was.totpen_aggr
-    subwas.net_financial = was.hfinwnt_sum
-    subwas.total_value_of_other_property = was.othpropval_sum
-    subwas.total_financial_liabilities = was.hfinl_excslc_aggr #   Hhold value of financial liabilities
-    subwas.total_household_wealth = was.totwlth
-    for row in eachrow( subwas )
-        row.weekly_gross_income = Uprating.uprate( 
-            row.weekly_gross_income,
-            row.year, 
-            row.q, 
-            Uprating.upr_nominal_gdp )
+    subwas.total_pensions = if wave < 8 
+        was.totpen_aggr
+    else
+        was.totalpen_aggr
+    end
+    subwas.net_financial = was.hfinwnt_aggr
+    if wave >= 7
+        subwas.total_financial_liabilities = was.hfinl_excslc_aggr #   Hhold value of financial liabilities
+    else
+        subwas.total_financial_liabilities = zeros(nrows)
+    end
+    subwas.total_household_wealth = if wave <= 7
+        was.totwlth
+    else
+        was.totalwlth
+    end
+    subwas.total_household_wealth = Float64.(coalesce.(subwas.total_household_wealth,0.0))
+    subwas.total_wealth = subwas.total_household_wealth
+    if wave >= 3
+        for row in eachrow( subwas )
+            row.weekly_gross_income = Uprating.uprate( 
+                row.weekly_gross_income,
+                row.year, 
+                row.q, 
+                Uprating.upr_nominal_gdp )
+        end
     end
     subwas.house_price = was.hvalue
     # deciles of total wealth
+    subwas.total_wealth_decile = fill(0,nrows)
     insert_quantile!( 
         subwas; 
         measure_col=:total_wealth, 
@@ -671,39 +776,14 @@ function model_row_match(
     return  MatchingLocation( wass.case, wass.datayear, t, wass.weekly_gross_income, incdiff ) 
 end
 
-
-
-const WAS_WAVE_HH=[
-    "was_wave_1_hhold_eul_final_jan_2020.tab",
-    "was_wave_2_hhold_eul_feb_2020.tab",
-    "was_wave_3_hh_eul_march_2020.tab",
-    "was_wave_4_hhold_eul_march_2020.tab",
-    "was_wave_5_hhold_eul_sept_2020.tab",
-    "was_round_6_hhold_eul_april_2022.tab",
-    "was_round_7_hhold_eul_march_2022.tab",
-    "was_round_8_hhold_eul_may_2025_230525.tab"]
-
-const WAS_WAVE_PERS=[
-    "was_wave_1_person_eul_nov_2020.tab",
-    "was_wave_2_person_eul_nov_2020.tab",
-    "was_wave_3_person_eul_oct_2020.tab",
-    "was_wave_4_person_eul_oct_2020.tab",
-    "was_wave_5_person_eul_oct_2020.tab",
-    "was_round_6_person_eul_april_2022.tab",
-    "was_round_7_person_eul_june_2022.tab",
-    "was_round_8_person_eul_may_2025_230525.tab"]
-
 # household_file="was_round_5__hhold_eul_feb_20.tab
-
 
 function stack_wass()
     stack = nothing
-    for i in 1:8
-        subwas = create_subset(
-            household_file=WAS_WAVE_HH[i],
-            person_file=WAS_WAVE_PERS[i],
-            wave = i )
-        if i == 1
+    for wave in 1:8
+        was = load_one_was( wave )
+        subwas = create_subset( was, wave )
+        if wave == 1
             stack = subwas
         else
             stack = vcat( stack, subwas )

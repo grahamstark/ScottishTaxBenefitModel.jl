@@ -1144,7 +1144,7 @@ function insert_quantile!(
       df[!,measure_col],
       Weights(df[!,weight_col]), 
       quantiles )
-    decs = get_quantiles( df[!,:target_col], breaks )
+    decs = get_quantiles( df[!,measure_col], breaks )
     for hno in 1:nrows
         df[hno,quant_col] = decs[hno]
     end

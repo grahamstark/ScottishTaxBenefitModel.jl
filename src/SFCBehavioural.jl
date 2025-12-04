@@ -16,25 +16,6 @@ using .STBParameters
 
 export calc_behavioural_response, BehaviouralResult
 
-
-# -----------------------------------------------------------------------------
-# Helper functions (replicated from module for standalone testing)
-# -----------------------------------------------------------------------------
-
-function lookup_band_index(x::Real, edges::AbstractVector)::Int
-    for i in 1:(length(edges)-1)
-        if edges[i] <= x < edges[i+1]
-            return i
-        end
-    end
-    return length(edges) - 1
-end
-
-function lookup_tie(taxable_income::Real)::Float64
-    idx = lookup_band_index(taxable_income, TIE_EDGES)
-    return TIE_RATES[idx]
-end
-
 """
     calc_intensive_margin(; taxable_income, mtr_baseline, mtr_reform, ni_baseline, ni_reform)
 

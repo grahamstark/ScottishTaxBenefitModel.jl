@@ -271,7 +271,7 @@ function make_individual_results_frame( RT :: DataType, n :: Int ) :: DataFrame
         sf6 = zeros(RT, n ),
         has_mental_health_problem = fill( false, n ),
         qualys = zeros( RT, n ),
-        life_expectancy = zeros(RT, n ) )
+        life_expectancy = zeros(RT, n ))
 
 end
 
