@@ -535,17 +535,68 @@ DIR = "/mnt/data/was/"
 """
 produce 1 replace pair, deleting e.g. 'w2' or 'r1' from 1 name.
 """
-function wrem( s::AbstractString, wave::Integer )::Pair
-    m = if wave == 66
-        "(.*?)[r]$(wave)(.*)"
-    else
-        "(.*?)[w|r]$(wave)(.*)"
+function wrem( s::AbstractString, wave::Integer )::Union{Pair,Missing}
+    if ! isnothing(match( r"case.*", s ))
+        return missing
     end
+    m =  "(.*?)[w|r]$(wave)(.*)"
     re = Regex( m )
-    return s=>replace( s, re=> s"\1\2" )
+    rep = replace( s, re=> s"\1\2" )
+    if (rep != s)
+        return s=>rep
+    else
+        return missing
+    end
 end
 
-sum_rem( s::AbstractString )::Pair = s=>replace(s, r"(.*)_sum"=>s"\1_aggr")
+function sum_rem( s::AbstractString )::Union{Pair,Missing}
+    rep = replace(s, r"(.*)_sum"=>s"\1_aggr")
+    if rep != s
+        return s=>rep
+    else
+        return missing
+    end
+end
+
+function duppairvals( pairs )::AbstractSet
+    s = Set()
+    dups = Set()
+    for p in pairs
+        if p[2] in s
+            push!( dups, p[1] )
+        else
+            push!( s, p[2] )
+        end
+    end
+    dups
+end
+
+function duppairvals( pairs, names )::AbstractSet
+    dups = Set()
+    for p in pairs
+        if p[2] in names
+            push!( dups, p[1] )
+        end
+    end
+    dups
+end
+
+function removedups( pairs, dels )::AbstractVector{Pair}
+    out = Pair[]
+    for p in pairs
+        if ! (p[1] in dels)
+            push!(out,p)
+        end
+    end
+    out
+end
+
+
+
+function removedups( pairs )
+    dels = duppairvals( pairs )
+    return removedups( pairs, dels )
+end
 
 """
 Attempt to rename each wave of WAS consistently, deleting e.g. 'w2' or 'r1' from all names.
@@ -553,9 +604,12 @@ Attempt to rename each wave of WAS consistently, deleting e.g. 'w2' or 'r1' from
 function renwas!( df::DataFrame, wave::Integer, is_hh::Bool )
     n = names(df)
     # make a list of replacements
-    rens = sort(unique(wrem.(n, wave)))
-    @show rens
-    rename!( df, rens )
+    rens = wrem.(n, wave) |> skipmissing |> collect |> removedups 
+    # @show sort(rens)
+    # sort(unique(collect(skipmissing())))
+    if length(rens) > 0
+        rename!( df, rens... )
+    end
     # hacky rename of wave 
     if wave <= 4
         if is_hh
@@ -566,9 +620,15 @@ function renwas!( df::DataFrame, wave::Integer, is_hh::Bool )
             rename!( df, "hrpdvage8"=>"hrpdvage")
         end
     end
-    rens = sum_rem.(names(df))
-    #  @show rens
-    rename!(df, rens )
+    rens = sum_rem.( names(df)) |> skipmissing |> collect |> removedups
+    # @show rens
+    wrong_renames = duppairvals( rens, names(df) )
+    # @show wrong_renames
+    rens = removedups( rens, wrong_renames)
+    # @show sort(rens)
+    if length(rens) > 0
+        rename!(df, rens... )
+    end
 end
 
 const WAS_WAVE_HH=[
@@ -597,27 +657,26 @@ function remove_dup_wave6rs_and_ws!( df::DataFrame, wave )
     rrex = Regex( "(.+)r$(wave)(.*)")
     r5s = filter( x->match(r".*[r|w]5$",x)!==nothing, n)
     ws = []
-    rs = []
-    
+    rs = []    
     for i in eachindex(n)
-
-        m = match(wrex,n[i])
-        if ! isnothing(m)
-            push!( ws, (m[1],m[2]))
-        end
-        m = match(rrex,n[i])
-        if ! isnothing(m)
-            push!( rs, (m[1],m[2]))
+        if isnothing(match( r"case.*", n[i]))
+            m = match(wrex,n[i])
+            if ! isnothing(m)
+                push!( ws, (m[1],m[2]))
+            end
+            m = match(rrex,n[i])
+            if ! isnothing(m)
+                push!( rs, (m[1],m[2]))
+            end
         end
     end
-
     killa = intersect( ws,rs )
     kills = []
     for k in killa
         push!( kills, "$(k[1])r$(wave)$(k[2])")
     end
-    kills = union( kills, r5s)
-    @show kills
+    # kills = union( kills, r5s)
+    # @show kills
     select!( df, Not( kills ))
 end
 
@@ -637,10 +696,19 @@ function load_one_was( wave :: Int )
     end
     renwas!( wasp, wave, false )
     renwas!( wash, wave, true )    
-    wasj = innerjoin( wash, wasp ; on=:case,makeunique=true)
+    casesym = if wave <= 5
+        Symbol("casew$wave" )
+    else
+        Symbol("caser$wave" )
+    end
+    wasj = innerjoin( wash, wasp ; on=casesym,makeunique=true)
     wasj.p_flag4 = coalesce.(wasj.p_flag4, -1)
     was = wasj[((wasj.p_flag4 .== 1) .| (wasj.p_flag4 .== 3)),:]
-    sort!(was,[:case])
+    was.hid = 10_000_000 .* wave .+ was[!,casesym]
+    sort!(was,[:hid])
+    if wave == 6 # spurious dup row
+        deleteat!( was, findall( was.caser6.==14625 )[2])
+    end
     was
 end
 
@@ -649,13 +717,21 @@ Create a WAS subset with marrstat, tenure, etc. mapped to same categories as FRS
 """
 function create_subset(
     was :: DataFrame,
-    wave :: Int )::DataFrame
+    wave :: Int )::Tuple
     println( "on wave $wave ")
     subwas = DataFrame()
+    casesym = if wave <= 5
+        Symbol("casew$wave" )
+    else
+        Symbol("caser$wave" )
+    end
     nrows, ncols = size(was)
+
     subwas.wave = fill(wave,nrows)
-    subwas.case = was.case
+    subwas.case = was[!,casesym]
     subwas.year = was.year
+    subwas.uid = 10_000_000 .* wave .+ was[!,casesym]
+    subwas.all_waves_id = fill(0,nrows)
     subwas.weight = if wave == 1
             was.xs_wgt
         elseif wave == 2
@@ -747,7 +823,7 @@ function create_subset(
         subwas; 
         measure_col=:total_wealth, 
         quant_col=:total_wealth_decile )
-    return subwas
+    return subwas, was
 end
 
 function model_row_match( 
@@ -776,22 +852,63 @@ function model_row_match(
     return  MatchingLocation( wass.case, wass.datayear, t, wass.weekly_gross_income, incdiff ) 
 end
 
-# household_file="was_round_5__hhold_eul_feb_20.tab
+#=
+# 
+=#
+function fill_all_waves_ids!( stacked::DataFrame, wass::DataFrame, wave::Int )
+    for r in eachrow( wass )
+        caseid = if wave >= 5
+            Symbol( "caser$wave")
+        else
+            Symbol( "casew$wave")
+        end
+        subr = stacked[(stacked.case .== r[caseid]) .& (stacked.wave .== wave),:]
+        @assert size( subr )[1] == 1 "$(size( subr )[1]) should always be 1 $(caseid) wave $wave r[caseid]=$(r[caseid])"
+        subr = subr[1,:]
+        for w in wave-1:-1:5
+            casesym = if wave >= 7 
+                Symbol("caser$(w)")
+            else 
+                Symbol("casew$(w)")
+            end
+            v = r[casesym]
+            if( ! ismissing(v))
+                stackr = stacked[(stacked.wave .== w) .& (stacked.case.== v),:]
+                if size(stackr)[1] == 1
+                    # @assert size(stackr)[1] == 1 "w=$w v=$v has size $(size(stackr)[1])"
+                    # stackr = stackr[1,:]
+                    if stackr[1,:all_waves_id] == 0
+                        stackr.all_waves_id .= subr.uid
+                        println( "fill_all_waves_ids! setting full id $(stackr.uid),wave $(stackr.wave) to $(stackr[1,:all_waves_id]) ")
+                        stacked[(stacked.wave .== w) .& (stacked.case.== v),:all_waves_id] .= subr.uid
+                        #stackr
+                    end
+                else
+                    println( "Missing! v=$v w=$w")
+                end # unfound
+            end # ! is missing
+        end # waves 8..5
+    end # eachrow(wass)
+end # fill_all_waves_ids!
 
 function stack_wass()
-    stack = nothing
+    stacked = nothing
+    wass = []
     for wave in 1:8
         was = load_one_was( wave )
-        subwas = create_subset( was, wave )
+        subwas, was = create_subset( was, wave )
+        push!(wass, was)
         if wave == 1
-            stack = subwas
+            stacked = subwas
         else
-            stack = vcat( stack, subwas )
+            stacked = vcat( stacked, subwas )
         end
     end
-    sort( stack, [:case,:wave])
-    stack
+    sort( stacked, [:case,:wave])
+    for wave in 8:-1:5
+        fill_all_waves_ids!( stacked, wass[wave], wave )
+    end
+    stacked, wass
 end
-
 
 end
