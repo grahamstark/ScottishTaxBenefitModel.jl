@@ -857,7 +857,7 @@ end
 =#
 function fill_all_waves_ids!( stacked::DataFrame, wass::DataFrame, wave::Int )
     for r in eachrow( wass )
-        caseid = if wave >= 5
+        caseid = if wave >= 6
             Symbol( "caser$wave")
         else
             Symbol( "casew$wave")
@@ -865,8 +865,8 @@ function fill_all_waves_ids!( stacked::DataFrame, wass::DataFrame, wave::Int )
         subr = stacked[(stacked.case .== r[caseid]) .& (stacked.wave .== wave),:]
         @assert size( subr )[1] == 1 "$(size( subr )[1]) should always be 1 $(caseid) wave $wave r[caseid]=$(r[caseid])"
         subr = subr[1,:]
-        for w in wave-1:-1:5
-            casesym = if wave >= 7 
+        for w in wave:-1:5
+            casesym = if wave >= 6
                 Symbol("caser$(w)")
             else 
                 Symbol("casew$(w)")
@@ -904,10 +904,7 @@ function stack_wass()
             stacked = vcat( stacked, subwas )
         end
     end
-    sort( stacked, [:case,:wave])
-    for wave in 8:-1:5
-        fill_all_waves_ids!( stacked, wass[wave], wave )
-    end
+    # sort( stacked, [:case,:wave])
     stacked, wass
 end
 
