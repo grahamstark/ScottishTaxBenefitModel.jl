@@ -7,6 +7,7 @@ Very crude wealth tax experiments
 using CSV,DataFrames,StatsBase
 using Format
 using PrettyTables 
+using CategoricalArrays
 
 using PovertyAndInequalityMeasures
 
@@ -17,6 +18,7 @@ using .ModelHousehold
 using .STBOutput
 using .Definitions
 using .FRSHouseholdGetter
+using .Utils
 
 fmt(v,row=0,col=0) = Format.format(v,commas=true,precision=0)
 fmt2(v,row=0,col=0) = Format.format(v,commas=true,precision=2)
@@ -25,7 +27,10 @@ settings = Settings()
 settings.num_households, settings.num_people,nhh= FRSHouseholdGetter.initialise(settings)
 
 # my dataset 
-wass = MatchingLibs.WAS.create_subset()
+
+wave = 7
+raw_was = MatchingLibs.WAS.load_one_was( wave )
+wass, edited_was = MatchingLibs.WAS.create_subset(raw_was, wave )
 wass_sco = wass[wass.region .== 299999999,:]
 
 w7 = CSV.File( "/mnt/data/was/UKDA-7215-tab/tab/was_round_7_hhold_eul_march_2022.tab")|>DataFrame
@@ -67,6 +72,15 @@ sum(w7_sco.r7xshhwgt)
 odf = DataFrame(
     pid = fill( BigInt(0), settings.num_households ),
     regions = fill( Scotland, settings.num_households ), 
+    tenure = fill( Missing_Tenure_Type, settings.num_households ), 
+    was_tenure = fill( Missing_Tenure_Type, settings.num_households ), 
+    employment_status_head = fill( Missing_ILO_Employment, settings.num_households ), 
+    age_head = fill( 0, settings.num_households ), 
+    net_physical_wealth = zeros(settings.num_households),
+    net_financial_wealth = zeros(settings.num_households),
+    net_housing_wealth = zeros(settings.num_households),
+    net_pension_wealth = zeros(settings.num_households),
+    house_price = zeros(settings.num_households),
     wealth = zeros(settings.num_households),
     wealth2 = zeros(settings.num_households), 
     wealth3 = zeros(settings.num_households),
@@ -75,13 +89,31 @@ odf = DataFrame(
 for i in 1:settings.num_households
     hh = FRSHouseholdGetter.get_household(i)
     head = get_head( hh )
+    odf.weight[i] = hh.weight
     odf.pid[i] = head.pid
     odf.regions[i] = Standard_Region(hh.raw_wealth.region)
+    odf.tenure[i] = hh.tenure
+    odf.house_price[i] = hh.house_value
+    odf.was_tenure[i] = Tenure_Type(hh.raw_wealth.tenure)
+    odf.employment_status_head[i] = head.employment_status
+    odf.age_head[i] = head.age
+    odf.net_physical_wealth[i] = hh.net_physical_wealth 
+    odf.net_financial_wealth[i] = hh.net_financial_wealth 
+    odf.net_housing_wealth[i] = hh.net_housing_wealth 
+    odf.net_pension_wealth[i] = hh.net_pension_wealth
     odf.wealth[i] = hh.total_wealth
     odf.wealth2[i] = hh.raw_wealth.total_household_wealth # idiot check
     odf.wealth3[i] = hh.net_physical_wealth + hh.net_financial_wealth + hh.net_housing_wealth + hh.net_pension_wealth # anotheridiot check
-    odf.weight[i] = hh.weight
+    
 end
+
+odf.weighted_total_wealth = odf.wealth.*odf.weight
+odf.weighted_net_physical_wealth = odf.net_physical_wealth[i] .* odf.weight
+odf.weighted_net_financial_wealth = odf.net_financial_wealth[i] .* odf.weight
+odf.weighted_net_housing_wealth = odf.net_housing_wealth[i] .* odf.weight
+odf.weighted_net_housing_wealth = odf.net_housing_wealth.*odf.weight
+odf.weighted_house_price = odf.house_price.*odf.weight
+
 countmap(odf.regions)
 w1=sum(wealthtax.(odf.wealth ) .* odf.weight)  /1_000_000
 # £4,392
@@ -181,4 +213,41 @@ pretty_table( io, modeldec[!,[5,4]]; formatters=[fmt], backend=:markdown)
 
 indexes = CSV.File( "/mnt/data/ScotBen/artifacts/augdata/indexes.tab")|>DataFrame
 
+
+wbt = combine( groupby( odf, :tenure), (:weighted_net_housing_wealth=>sum))
+
+wbt.weighted_net_housing_wealth_share = round.(100.0 .* wbt.weighted_net_housing_wealth_sum ./ sum(odf.weighted_net_housing_wealth),digits=1)
+
+val_to_label_maps = Pair[]
+
+pretty_table( io, wbt;  backend=:markdown)
+
+bz = combine( groupby( odf, [:tenure,:was_tenure]), (:weight=>sum))
+tentab=unstack(wbz,:was_tenure,:weight_sum;fill=0)
+tm = Matrix(tentab[!,2:end])
+mpc = round.(100.0 .* tm ./ sum(tm);digits=1)
+nrows,ncols = size( tentab )
+tentab[!,2:end] = tmpc
+tentab.Total = sum.(eachrow(tentab[:, Not(:tenure)]))
+rename!(pretty,tentab)
+tentab.Tenure = pretty.(string.(tentab.Tenure))
+
+# Add column totals (sum down each column)
+# Create a totals row
+totals_row = DataFrame( Tenure = "Total")
+for col in names(tentab)
+    if col != "Tenure"
+        totals_row[!, col] = [sum(tentab[!, col])]
+    end
+end
+append!(tentab, totals_row)
+CSV.write( "/home/graham_s/tmp/tentab.tab", tentab; delim='\t')
+CSV.write( "/home/graham_s/tmp/wbt.tab", wbt; delim='\t')
+
+pretty_table( io, tentab; backend=:markdown)
+
+
+renters = odf[ renter.(odf.tenure), [:house_price, :net_housing_wealth, :was_tenure,:tenure, :weight]]
+rent_anoms = combine( groupby( renters, :was_tenure), ([:house_price=>mean,:weight=>sum,:weight=>length]))
+CSV.write(  "/home/graham_s/tmp/rent_anoms.tab", rent_anoms; delim='\t')
 close(io)

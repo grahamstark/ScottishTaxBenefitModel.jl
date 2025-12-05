@@ -1156,6 +1156,10 @@ function any_changes_needed( dataj :: DataAdjustments )::Bool
             any( a->!(a ≈ 0), dataj.employment_changes )
 end
 
+@with_kw mutable struct ScottishAdjustments
+    mitigate_bedroom_tax = true
+end
+
 include( "legal_aid_parameters.jl")
 
 @with_kw mutable struct TaxBenefitSystem{RT<:Real}
@@ -1181,6 +1185,7 @@ include( "legal_aid_parameters.jl")
     indirect = IndirectTaxSystem{RT}()
     adjustments = DataAdjustments{RT}()
     legalaid = ScottishLegalAidSys{RT}()
+    scottish_adjustments = ScottishAdjustments()
 end
 
 """

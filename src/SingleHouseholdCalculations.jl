@@ -247,7 +247,7 @@ function do_one_calc(
     end
     # do this after the benefit cap
     # since the DISCRETIONARY_HOUSING_PAYMENT must be <= hb/uc housing costs
-    if hh.region == Scotland
+    if (hh.region == Scotland) && sys.scottish_adjustments.mitigate_bedroom_tax
         calc_bedroom_tax_mitigation!( hres, hh )
     end
     if ! sys.ubi.abolished
