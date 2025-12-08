@@ -136,6 +136,7 @@ end
 
 function do_one_savings_tax(
     ;
+    basic_rate :: Integer,
     rates::RateBands,
     thresholds::RateBands,
     personal_allowance :: Number,
@@ -145,7 +146,7 @@ function do_one_savings_tax(
     previous_taxable::Number )::NamedTuple
     base_thresholds=deepcopy(thresholds)
     base_rates=deepcopy(rates)
-    basic_rate = min( 2, length(base_thresholds) )
+    basic_rate = min( basic_rate, length(base_rates))
     @show rates thresholds previous_taxable savings_income personal_allowance savings_allowance
     savings_rates, savings_thresholds = delete_thresholds_up_to(
         rates=base_rates,
@@ -154,10 +155,12 @@ function do_one_savings_tax(
     psa = 0.0
     if savings_allowance > 0
         psa = savings_allowance
-        if taxable_income > base_thresholds[end]
-            psa = 0.0
-        elseif taxable_income > base_thresholds[basic_rate] # above the basic rate FIXME parameterise '2' here
-            psa *= 0.5 # FIXME parameterise 0.5 here
+        if(basic_rate > 0) # any thresholds?
+            if (taxable_income > base_thresholds[end])
+                psa = 0.0
+            elseif taxable_income > base_thresholds[basic_rate] # above the basic rate FIXME parameterise '2' here
+                psa *= 0.5 # FIXME parameterise 0.5 here
+            end
         end
         if psa > 0.0 ## if we haven't deleted the zero band already, just widen it
             if savings_rates[1] == 0.0
@@ -258,6 +261,7 @@ function calc_income_tax!(
         # FIXME Move to separate function
         # delete the starting bands up to non_savings taxable icome
         savings_tax = do_one_savings_tax(
+            basic_rate = sys.savings_basic_rate,
             rates = sys.savings_rates,
             thresholds=sys.savings_thresholds,
             personal_allowance = allowance,
