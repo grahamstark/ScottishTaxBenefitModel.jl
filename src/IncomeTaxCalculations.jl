@@ -134,6 +134,15 @@ function calculate_pension_taxation!(
     pres.it.dividend_thresholds .+= gross_contribs
 end
 
+const ZERO_DUE=(;
+        due=0.0,
+        taxable=0.0,
+        end_band=0, 
+        rates=Real[], 
+        savings_thresholds=Real[],
+        remaining_personal_allowance=0.0,
+        savings_allowance=0.0)
+
 function do_one_savings_tax(
     ;
     basic_rate :: Integer,
@@ -144,6 +153,9 @@ function do_one_savings_tax(
     savings_income::Number,
     taxable_income::Number,
     previous_taxable::Number )::NamedTuple
+    if length(rates) == 0
+        return ZERO_DUE
+    end
     base_thresholds=deepcopy(thresholds)
     base_rates=deepcopy(rates)
     basic_rate = min( basic_rate, length(base_rates))
@@ -191,14 +203,6 @@ function do_one_savings_tax(
         remaining_personal_allowance = personal_allowance )
 end
 
-const ZERO_DUE=(;
-        due=0.0,
-        taxable=0.0,
-        end_band=0, 
-        rates=[], 
-        thresholds=[],
-        remaining_personal_allowance=0.0,
-        savings_allowance=0.0)
 
 """
 
@@ -227,6 +231,7 @@ function calc_income_tax!(
     
     savings_income = isum( pres.income, sys.savings_income )
     dividends_income = isum( pres.income, sys.dividend_income )
+    property_income = isum( pres.income, sys.property_income )
     allowance = calculate_allowance( pers, sys )
     adjusted_net_income = total_income
     calculate_pension_taxation!( pres, sys, pers, total_income, non_savings_income )
@@ -256,7 +261,7 @@ function calc_income_tax!(
             taxable=non_savings_taxable,
             rates=sys.non_savings_rates,
             thresholds=pres.it.non_savings_thresholds )
-
+        previous_taxable = non_savings_taxable
         # horrific savings calculation see Melville Ch2 "Savings Income" & examples 2-3
         # FIXME Move to separate function
         # delete the starting bands up to non_savings taxable icome
@@ -268,42 +273,28 @@ function calc_income_tax!(
             savings_allowance=sys.personal_savings_allowance,
             taxable_income=taxable_income,
             savings_income=savings_income,
-            previous_taxable=non_savings_taxable )
+            previous_taxable=previous_taxable)
         @show savings_tax
         pres.it.savings_rates = savings_tax.rates
         pres.it.savings_thresholds= savings_tax.savings_thresholds
         pres.it.personal_savings_allowance = savings_tax.savings_allowance
         allowance = savings_tax.remaining_personal_allowance
-        #=
-        savings_rates, savings_thresholds = delete_thresholds_up_to(
-            rates=savings_rates,
-            thresholds=savings_thresholds,
-            upto=non_savings_taxable );
-        if sys.personal_savings_allowance > 0
-            psa = sys.personal_savings_allowance
-            if taxable_income > sys.savings_thresholds[toprate]
-                psa = 0.0
-            elseif taxable_income > sys.savings_thresholds[2] # above the basic rate FIXME parameterise '2' here
-                psa *= 0.5 # FIXME parameterise 0.5 here
-            end
-            if psa > 0.0 ## if we haven't deleted the zero band already, just widen it
-                if savings_rates[1] == 0.0
-                    savings_thresholds[1] += psa;
-                else ## otherwise, insert a  new one.
-                    savings_thresholds = vcat([psa], savings_thresholds )
-                    savings_rates = vcat([0.0], savings_rates )
-                end
-            end
-            pres.it.personal_savings_allowance = psa
-        end # we have a personal_savings_allowance
-        pres.it.savings_rates = savings_rates
-        pres.it.savings_thresholds= savings_thresholds
-        allowance,savings_taxable = apply_allowance( allowance, savings_income )
-        savings_tax = calctaxdue(
-            taxable=savings_taxable,
-            rates=savings_rates,
-            thresholds=savings_thresholds )
-        =#
+        previous_taxable += savings_tax.taxable 
+        property_tax = do_one_savings_tax(
+            basic_rate = sys.property_basic_rate,
+            rates = sys.property_rates,
+            thresholds=sys.property_thresholds,
+            personal_allowance = allowance,
+            savings_allowance=sys.personal_property_allowance,
+            taxable_income=taxable_income,
+            savings_income=property_income,
+            previous_taxable=previous_taxable )
+        @show property_tax
+        previous_taxable += property_tax.taxable 
+        pres.it.property_rates = property_tax.rates
+        pres.it.property_thresholds= property_tax.savings_thresholds
+        pres.it.personal_property_allowance = property_tax.savings_allowance
+        allowance = property_tax.remaining_personal_allowance
         # Dividends
         # see around example 8-9 ch2
         allowance,dividends_taxable =
@@ -313,20 +304,19 @@ function calc_income_tax!(
         # always preserve any bottom zero rate
         add_back_zero_band = false
         zero_band = 0.0
-        used_thresholds = non_savings_taxable+savings_tax.taxable
         copy_start = 1
         # handle the zero rate
         if dividend_rates[1] == 0.0
             add_back_zero_band = true
             zero_band = dividend_thresholds[1]
-            used_thresholds += min( zero_band, dividends_taxable )
+            previous_taxable += min( zero_band, dividends_taxable )
             copy_start = 2
         end
         dividend_rates, dividend_thresholds =
             delete_thresholds_up_to(
                 rates=dividend_rates[copy_start:end],
                 thresholds=dividend_thresholds[copy_start:end],
-                upto=used_thresholds );
+                upto=previous_taxable );
         if add_back_zero_band
             dividend_rates = vcat( [0.0], dividend_rates )
             dividend_thresholds .+= zero_band # push all up
@@ -349,8 +339,8 @@ function calc_income_tax!(
     @assert non_savings_tax.due >= 0
     @assert savings_tax.due >= 0
     @assert dividend_tax.due >= 0
-    total_tax = non_savings_tax.due+savings_tax.due+dividend_tax.due
-    nst = non_savings_tax.due
+    total_tax = non_savings_tax.due+savings_tax.due+dividend_tax.due+property_tax.due
+    nst = non_savings_tax.due + property_tax.due
     st = savings_tax.due
     dt = dividend_tax.due
     if spouse_transfer > 0
@@ -383,6 +373,7 @@ function calc_income_tax!(
     pres.it.adjusted_net_income = adjusted_net_income
     
     # memo items, but we need 1st for Scottish Income Tax
+    # !!! fixme last 3 wrong possibly if you have a property tax
     pres.it.non_savings_tax = nst # non_savings_tax.due, less transferrable allowances
     pres.it.non_savings_income = non_savings_income
     pres.it.non_savings_band = non_savings_tax.end_band

@@ -273,6 +273,10 @@ end
     savings_thresholds  :: RateBands{RT} =  [5_000.0, 37_500.0, 150_000.0]
     savings_basic_rate :: Int = 2 # above this counts as higher rate
     
+    property_rates  :: RateBands{RT} =  RT[] #0.0, 20.0, 40.0, 45.0]
+    property_thresholds  :: RateBands{RT} = RT[]# [5_000.0, 37_500.0, 150_000.0]
+    property_basic_rate :: Int = 0 # above this counts as higher rate
+    
     dividend_rates :: RateBands{RT} =  [0.0, 7.5,32.5,38.1]
     dividend_thresholds :: RateBands{RT} =  [2_000.0, 37_500.0, 150_000.0]
     dividend_basic_rate :: Int = 2 # above this counts as higher rate
@@ -290,6 +294,7 @@ end
     
     marriage_allowance          :: RT = 1_250.00
     personal_savings_allowance  :: RT = 1_000.00
+    personal_property_allowance :: RT = 0.00
     
     # FIXME better to have it straight from
     # the book with charges per CO2 range
@@ -310,6 +315,7 @@ end
     all_taxable = ALL_TAXABLE_INCOME
     savings_income = SAVINGS_INCOME
     dividend_income = DIVIDEND_INCOME
+    property_income = PROPERTY_INCOME 
 
     mca_date = MCA_DATE
 

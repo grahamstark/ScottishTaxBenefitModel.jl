@@ -293,6 +293,11 @@ module Results
         savings_income :: RT = 0.0
         savings_taxable :: RT = 0.0
         
+        property_tax :: RT = 0.0
+        property_band :: Integer = 0
+        property_income :: RT = 0.0
+        property_taxable :: RT = 0.0
+        
         dividends_tax :: RT = 0.0
         dividend_band :: Integer = 0
         dividends_income :: RT = 0.0
@@ -307,11 +312,14 @@ module Results
         non_savings_thresholds :: RateBands = zeros(RT,0)
         savings_thresholds  :: RateBands = zeros(RT,0)
         dividend_thresholds :: RateBands = zeros(RT,0)
+        property_thresholds :: RateBands = zeros(RT,0)
         
         savings_rates  :: RateBands = zeros(RT,0)
         dividend_rates :: RateBands = zeros(RT,0)
+        property_rates :: RateBands = zeros(RT,0)
         
         personal_savings_allowance :: RT = 0.0
+        personal_property_allowance :: RT = 0.0
     end
     
     @with_kw mutable struct IndividualResult{RT<:Real}
