@@ -70,6 +70,7 @@ end
     for i in 1:ntests
         prsc = IndividualResult{Float64}()
         prsc.income[WAGES] = income[i]
+        @show itsys_scot
         calc_income_tax!( prsc, pers, itsys_scot )
         println( "Scotland $i : calculated $(prsc.income[INCOME_TAX]) expected $(taxes_scotland[i])")
         @test prsc.income[INCOME_TAX] ≈ taxes_scotland[i]
