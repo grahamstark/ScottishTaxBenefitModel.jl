@@ -17,8 +17,7 @@ using .Results: tozero!, HouseholdResult, BenefitUnitResult, LMTResults, UCResul
 using .STBIncomes
 
 export 
-    route_to_uc_or_legacy, 
-    route_to_uc_or_legacy!
+    route_to_uc_or_legacy
 
 @enum ClaimantType trans_all trans_housing trans_w_kids trans_incapacity trans_jobseekers
 
@@ -156,6 +155,8 @@ function route_to_uc_or_legacy_old_version(
     return switch ? uc_bens : legacy_bens
 end
 =#
+
+#=
 """
 Allocate a benefit unit to ether UC or Legacy Benefits. Very crudely.
 """
@@ -180,10 +181,10 @@ function route_to_uc_or_legacy!(
                 WORKING_TAX_CREDIT, 
                 CHILD_TAX_CREDIT )
             # fixme use can_apply_for record
+            bres.route = uc_bens # route_to_uc_or_legacy( settings, bus[bno], bres )                
             if bres.uc.basic_conditions_satisfied || (bres.income[UNIVERSAL_CREDIT] > 0.0) 
                 # crude - not a pensioner or otherwise actually on UC
                 # println( "setting HB to zero")
-                bres.route = uc_bens # route_to_uc_or_legacy( settings, bus[bno], bres )
                 tozero!( bres, HOUSING_BENEFIT )
             else
                 @assert intermed.buint[bno].someone_pension_age
@@ -227,7 +228,6 @@ function route_to_uc_or_legacy!(
     end # BU Loop
 end
 
-#=
 function route_to_uc_or_legacy_old_version!( 
     results  :: HouseholdResult,
     settings :: Settings,

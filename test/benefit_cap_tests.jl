@@ -21,17 +21,14 @@ using .Definitions
 using .BenefitCap:
     apply_benefit_cap!
 
-using .STBIncomes
-
 using .Intermediate: 
     MTIntermediate, 
     make_intermediate
    
-using .STBParameters: 
-    UniversalCreditSys,
-    BenefitCapSys,
-    LegacyMeansTestedBenefitSystem
-    
+using .STBParameters
+using .STBOutput
+using .STBIncomes
+   
 using .Results: 
     BenefitUnitResult,
     HouseholdResult,
@@ -51,7 +48,7 @@ using .ExampleHelpers
 sys = get_system( year=2019, scotland=true )
 settings = Settings()
     
-@testset "Benefit Cap Shakedown" begin
+@testset "Benefit Cap Example HH Shakedown" begin
     examples = get_all_examples()
     hbs = collect(100:100:1000)
     for (hht,hh) in examples 
@@ -97,3 +94,14 @@ settings = Settings()
         end # hbs
     end # hhs
 end # testset
+
+@testset "Benefit Cap HH Run" begin
+    settings = Settings()
+    # settings.means_tested_routing = lmt_full
+    sys1 = get_default_system_for_fin_year( 2025; scotland=true )
+    sys2 = get_default_system_for_fin_year( 2025; scotland=true )
+    sys2.bencap.abolished = true
+    summary, results, settings = do_basic_run( settings, [sys1,sys2], reset=false )
+    dump_frames( settings, results )
+    dump_summaries( settings, summary )
+end

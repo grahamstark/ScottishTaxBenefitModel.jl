@@ -79,7 +79,7 @@ using .UniversalCredit:
 using .BenefitCap:
     apply_benefit_cap!
 
-using .UCTransition: route_to_uc_or_legacy!
+using .UCTransition
 
 using .ScottishBenefits: 
     calc_scottish_child_payment!,
@@ -173,6 +173,9 @@ function do_one_calc(
     end
 
     routes = UCTransition.get_routes_for_hh( settings, hh, intermed )
+    for buno in eachindex( bus )
+        hres.bus[buno].route = routes[buno]
+    end
 
     calc_legacy_means_tested_benefits!(
         hres,
@@ -196,31 +199,12 @@ function do_one_calc(
         sys.hr,
         sys.minwage, 
         routes )
-
-    #=
-    calc_ctr!(
-        hres,
-        hh,
-        intermed,
-        sys.uc,
-        sys.ctr,
-        sys.age_limits,
-        sys.hours_limits,
-        sys.child_limits,
-    route_to_uc_or_legacy!( 
-        hres,
-        settings,
-        hh,
-        intermed )
-        sys.minwage )
-    =#
-
     # jam on CTR legacy style - see CPAG note
     # note thus needs to be done *after* the UC legacy routing so incomes are cleared
     # of 
     if ! sys.lmt.ctr.abolished
         calculateHB_CTR!( 
-            hres,            
+            hres,
             ctr,
             hh,
             intermed,
@@ -243,7 +227,7 @@ function do_one_calc(
             bus[buno],
             intermed.buint[buno],
             sys.bencap,
-            hres.bus[buno].route )
+            routes[buno] )
     end
     # do this after the benefit cap
     # since the DISCRETIONARY_HOUSING_PAYMENT must be <= hb/uc housing costs

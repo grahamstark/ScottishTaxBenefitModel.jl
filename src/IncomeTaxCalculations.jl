@@ -159,7 +159,7 @@ function do_one_savings_tax(
     base_thresholds=deepcopy(thresholds)
     base_rates=deepcopy(rates)
     basic_rate = min( basic_rate, length(base_rates))
-    @show rates thresholds previous_taxable savings_income personal_allowance savings_allowance
+    # @show rates thresholds previous_taxable savings_income personal_allowance savings_allowance
     savings_rates, savings_thresholds = delete_thresholds_up_to(
         rates=base_rates,
         thresholds=base_thresholds,
@@ -187,7 +187,7 @@ function do_one_savings_tax(
     # pres.it.savings_rates = savings_rates
     # pres.it.savings_thresholds= savings_thresholds
     personal_allowance,taxable = apply_allowance( personal_allowance, savings_income )
-    @show personal_allowance taxable
+    # @show personal_allowance taxable
     tax = calctaxdue(
         taxable=taxable,
         rates=savings_rates,
@@ -274,7 +274,7 @@ function calc_income_tax!(
             taxable_income=taxable_income,
             savings_income=savings_income,
             previous_taxable=previous_taxable)
-        @show savings_tax
+        # @show savings_tax
         pres.it.savings_rates = savings_tax.rates
         pres.it.savings_thresholds= savings_tax.savings_thresholds
         pres.it.personal_savings_allowance = savings_tax.savings_allowance
@@ -289,7 +289,7 @@ function calc_income_tax!(
             taxable_income=taxable_income,
             savings_income=property_income,
             previous_taxable=previous_taxable )
-        @show property_tax
+        # @show property_tax
         previous_taxable += property_tax.taxable 
         pres.it.property_rates = property_tax.rates
         pres.it.property_thresholds= property_tax.savings_thresholds

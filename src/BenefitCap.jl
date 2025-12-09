@@ -41,12 +41,12 @@ function apply_benefit_cap!(
     caps             :: BenefitCapSys,
     route            :: LegacyOrUC )
     # println( "apply_benefit_cap entered; route = $route")
+    bu = benefit_unit # shortcut
+    bur = benefit_unit_result # shortcut
     if caps.abolished
         bur.bencap.not_applied = true
         return
     end
-    bu = benefit_unit # shortcut
-    bur = benefit_unit_result # shortcut
     if route == legacy_bens 
         for pid in bu.adults
             if bur.pers[pid].income[WORKING_TAX_CREDIT] > 0
@@ -94,7 +94,9 @@ function apply_benefit_cap!(
         included = LEGACY_CAP_BENEFITS 
         target_ben = HOUSING_BENEFIT
         min_amount = 0.5
-    end        
+    end    
+    @show "Benefit Cap entered " route target_ben
+       
     recip_pers :: BigInt = -1
     recip_ben = 0.0
     
@@ -106,7 +108,7 @@ function apply_benefit_cap!(
         end
     end
     if recip_ben == 0.0
-        # println("uc/hb0; returning ")
+        println("uc/hb0; returning ")
         return
     end
     excess = totbens - cap
@@ -116,8 +118,10 @@ function apply_benefit_cap!(
         bur.bencap.reduction = recip_ben - rd        
         bur.pers[recip_pers].income[target_ben] = rd
     end
+    @show recip_pers recip_ben cap 
     bur.bencap.cap_benefits = totbens
     bur.bencap.cap = cap
+    @show bur
 end # cap_benefits
 
 end # module
