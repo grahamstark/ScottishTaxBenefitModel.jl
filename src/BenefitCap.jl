@@ -95,7 +95,7 @@ function apply_benefit_cap!(
         target_ben = HOUSING_BENEFIT
         min_amount = 0.5
     end    
-    @show "Benefit Cap entered " route target_ben
+    # @show "Benefit Cap entered " route target_ben
        
     recip_pers :: BigInt = -1
     recip_ben = 0.0
@@ -118,10 +118,10 @@ function apply_benefit_cap!(
         bur.bencap.reduction = recip_ben - rd        
         bur.pers[recip_pers].income[target_ben] = rd
     end
-    @show recip_pers recip_ben cap 
+    # @show recip_pers recip_ben cap 
     bur.bencap.cap_benefits = totbens
     bur.bencap.cap = cap
-    @show bur
+    # @show bur
 end # cap_benefits
 
 end # module
