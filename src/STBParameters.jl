@@ -358,10 +358,12 @@ function weeklyise!( it :: IncomeTaxSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR
     it.non_savings_rates ./= 100.0
     it.savings_rates ./= 100.0
     it.dividend_rates ./= 100.0
+    it.property_rates ./= 100.0
     it.personal_allowance_withdrawal_rate /= 100.0
     it.non_savings_thresholds ./= wpy
     it.savings_thresholds ./= wpy
     it.dividend_thresholds ./= wpy
+    it.property_thresholds ./= wpy
     it.personal_allowance /= wpy
     it.personal_allowance_income_limit /= wpy
     it.blind_persons_allowance /= wpy
