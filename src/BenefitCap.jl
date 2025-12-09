@@ -41,6 +41,10 @@ function apply_benefit_cap!(
     caps             :: BenefitCapSys,
     route            :: LegacyOrUC )
     # println( "apply_benefit_cap entered; route = $route")
+    if caps.abolished
+        bur.bencap.not_applied = true
+        return
+    end
     bu = benefit_unit # shortcut
     bur = benefit_unit_result # shortcut
     if route == legacy_bens 
@@ -48,6 +52,7 @@ function apply_benefit_cap!(
             if bur.pers[pid].income[WORKING_TAX_CREDIT] > 0
                 # cpag 21/2 p 1182
                 # println("wtc bailing out")
+                bur.bencap.not_applied = true
                 return
             end
         end
@@ -58,6 +63,7 @@ function apply_benefit_cap!(
         end
         if gross_earnings >= caps.uc_incomes_limit
             # println("gross earn; bailing out ")
+            bur.bencap.not_applied = true
             return
         end
     end
@@ -65,9 +71,9 @@ function apply_benefit_cap!(
     if intermed.someone_pension_age || 
         intermed.someone_is_carer ||
         (intermed.num_severely_disabled_adults > 0) ||
-        has_any( bur, BEN_CAP_EXEMPTION_BENEFITS ) ||
-        caps.abolished
+        has_any( bur, BEN_CAP_EXEMPTION_BENEFITS ) 
         # println("pension age bailing out")
+        bur.bencap.not_applied = true
         return
     end
     

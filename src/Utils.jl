@@ -32,6 +32,8 @@ export
    age_in_years, 
    age_then,
    alternates,
+   approx_leq,
+   approx_geq,
    basiccensor, 
    coarse_match,
    date_string,
@@ -1150,5 +1152,8 @@ function insert_quantile!(
     end
 end
 
+#https://discourse.julialang.org/t/less-than-approx-equals/45436/7
+approx_leq(a,b) = (a <= b) || (a ≈ b)
+approx_geq(a,b) = (a >= b) || (a ≈ b)
 
 end # module

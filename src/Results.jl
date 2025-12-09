@@ -68,6 +68,7 @@ module Results
         cap :: RT = zero(RT)
         cap_benefits :: RT = zero(RT)
         reduction :: RT = zero(RT)
+        not_applied = false
     end
 
     @with_kw mutable struct AdditionalScottishBenefits{RT<:Real}
@@ -476,6 +477,16 @@ module Results
         return t
     end
 
+    function total( bur :: BenefitUnitResult{T}, which :: IncomesSet ) ::T where T
+        t = zero(T)
+        for (pid,pers) in bur.pers
+            for w in which
+                t += pers.income[w]
+            end
+        end
+        return t
+    end
+
     function tozero!( bur :: BenefitUnitResult, which... )
         for (pid,pers) in bur.pers
             # println( pers.income )
@@ -500,6 +511,14 @@ module Results
     end
 
     function total( hhr :: HouseholdResult{T}, which :: Incomes ) :: T where T
+        t = zero(T)
+        for bu in hhr.bus
+            t += total( bu, which )
+        end
+        return t
+    end
+
+    function total( hhr :: HouseholdResult{T}, which :: IncomesSet ) :: T where T
         t = zero(T)
         for bu in hhr.bus
             t += total( bu, which )

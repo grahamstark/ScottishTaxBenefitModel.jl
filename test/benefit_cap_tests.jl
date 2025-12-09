@@ -36,11 +36,13 @@ using .Results:
     BenefitUnitResult,
     HouseholdResult,
     init_household_result, 
+    total,
     to_string
 
 using .Utils: 
     eq_nearest_p,
-    to_md_table
+    to_md_table,
+    approx_geq
 
 using .RunSettings
 
@@ -68,18 +70,25 @@ settings = Settings()
             for cb in [20,50,100]
                 res = init_household_result( hh )
                 res.bus[1].pers[head.pid].income[HOUSING_BENEFIT] = hb
-                res.bus[1].pers[spid].income[HOUSING_BENEFIT] = cb
+                res.bus[1].pers[spid].income[CHILD_BENEFIT] = cb
                 for buno in eachindex(bus) 
+                    buint = intermed.buint[buno]
                     apply_benefit_cap!(
                         res.bus[buno],
                         hh.region,
                         bus[buno],
-                        intermed.buint[buno],
+                        buint,
                         sys.bencap,
-                        legacy_bens
-                    )
+                        legacy_bens )
                     println( "on family $hht bu $buno hb=$hb cb = $cb")
                     println( res.bus[buno].bencap )
+                    if buint.someone_pension_age || buint.someone_is_carer ||(buint.num_severely_disabled_adults > 0)
+                        @test res.bus[buno].bencap.not_applied
+                    else
+                        @test ! res.bus[buno].bencap.not_applied
+                        @show res.bus[buno].bencap.cap total( res.bus[buno], LEGACY_CAP_BENEFITS)
+                        @test approx_geq(res.bus[buno].bencap.cap,total( res.bus[buno], LEGACY_CAP_BENEFITS)) 
+                    end
                     if buno == 1
                         println( "res.bus[$buno].pers[\$(head.pid)].income[HOUSING_BENEFIT] = $(res.bus[buno].pers[head.pid].income[HOUSING_BENEFIT])\n\n" ) 
                     end
