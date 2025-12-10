@@ -45,6 +45,7 @@ module Results
         LocalTaxes,
         NIResult, 
         OneLegalAidResult,
+        SavingsResult,
         UCResults,
         WealthTaxResult,
         aggregate_tax,
@@ -276,6 +277,17 @@ module Results
         class_1_primary_wage :: RT = 0.0
         class_4_se_income :: RT = 0.0
     end
+
+    @with_kw mutable struct SavingsResult{RT<:Real}
+        due=zero(RT)
+        taxable=zero(RT)
+        end_band=0
+        rates=RT[] 
+        savings_thresholds=RT[]
+        remaining_personal_allowance=zero(RT)
+        savings_allowance=zero(RT)
+    end
+
 
     @with_kw mutable struct ITResult{RT<:Real}
         # total_tax :: RT = 0.0

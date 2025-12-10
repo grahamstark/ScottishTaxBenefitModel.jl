@@ -32,18 +32,67 @@ using .STBIncomes
 using .ExampleHelpers
 using .RunSettings
 
-function get_tax(; scotland = false ) :: IncomeTaxSys
-    it = get_default_it_system( year=2019, scotland=scotland, weekly=false )
+function rates_to_pct!( it :: IncomeTaxSys )
     it.non_savings_rates ./= 100.0
     it.savings_rates ./= 100.0
     it.dividend_rates ./= 100.0
+    it.property_rates ./= 100.0
     it.personal_allowance_withdrawal_rate /= 100.0
     it.mca_credit_rate /= 100.0
     it.mca_withdrawal_rate /= 100.0
     it.pension_contrib_withdrawal_rate /= 100.0
-    it
 end
 
+function get_tax(; scotland = false ) :: IncomeTaxSys
+    it = get_default_it_system( year=2019, scotland=scotland, weekly=false )
+    rates_to_pct!( it )
+    return it
+end
+
+@testset "Property Tax Proposal 2025/6 Budget" begin
+    #=
+    reproduce this:
+
+    https://www.gov.uk/government/publications/changes-to-tax-rates-for-property-savings-and-dividend-income/change-to-tax-rates-for-property-savings-and-dividend-income-technical-note#annex-example-income-tax-calculation
+    =#
+
+    settings = Settings()
+    # Note the calc is done on 2026/7 proposed rates which at the time of writing this
+    # I haven't coded yet. Uses the rUK system. Ignore the bit about
+    # finance cost relief for a rental property.
+    sys = get_default_system_for_fin_year( 2025; scotland=false, autoweekly=false )
+    sys.it.savings_rates[2:end] .+= 2
+    sys.it.dividend_rates[2:3] .+= 2
+    sys.it.property_rates = [22,42,47.0]
+    sys.it.property_thresholds = copy(sys.it.non_savings_thresholds) 
+    sys.it.property_basic_rate = 1
+	push!(sys.it.property_income,PROPERTY)
+	setdiff!(sys.it.non_savings_income, [PROPERTY] )    
+    rates_to_pct!( sys.it )
+    @show sys.it.savings_income
+    @show sys.it.property_income
+    @show sys.it.non_savings_income
+
+    names = ExampleHouseholdGetter.initialise( Settings() )
+    mel = ExampleHouseholdGetter.get_household( "mel_c2" )
+    pers = get_head( mel )
+    pers.income[wages] = 30_000.00
+    pers.income[property] = 3_000.00
+    pers.income[bank_interest] = 400.00
+    pers.income[stocks_shares] = 200.00
+    prmel = IndividualResult{Float64}()
+    prmel.income = map_incomes( pers )
+    @show prmel.income
+    
+
+    calc_income_tax!( prmel, pers, sys.it )
+    @show prmel.it    
+    @test prmel.income[INCOME_TAX] ≈ 4146.0
+    @test prmel.it.property_tax ≈ 660.0
+    @test prmel.it.dividends_tax ≈ 0.0
+    @test prmel.it.savings_tax ≈ 0.0
+    @test prmel.it.non_savings_tax ≈ 3_486.0
+end
 
 @testset "Melville 2019 ch2 examples 1; basic calc Scotland vs RUK" begin
     # BASIC IT Calcaulation on
@@ -133,6 +182,9 @@ end # example 3
 @testset "ch2 example 4; savings calc" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
+    @show itsys_scot.savings_income
+    @show itsys_scot.property_income
+    @show itsys_scot.non_savings_income
 
     names = ExampleHouseholdGetter.initialise( Settings() )
     ruk = ExampleHouseholdGetter.get_household( "mel_c2" )
@@ -209,6 +261,7 @@ end # example 6
     prsc = IndividualResult{Float64}()
     prsc.income = map_incomes( pers )
     calc_income_tax!( prsc, pers, itsys_scot )
+    @show prsc.it
     @test prsc.income[INCOME_TAX] ≈ tax_due_ruk
     
     pruk = IndividualResult{Float64}()
@@ -298,11 +351,10 @@ end # example1 ch3
 @testset "ch3 personal allowances ex 2 - marriage allowance" begin
     itsys_scot :: IncomeTaxSys = get_tax( scotland = true )
     itsys_ruk :: IncomeTaxSys = get_tax( scotland = false )
-
     names = ExampleHouseholdGetter.initialise( Settings() )
     scot = ExampleHouseholdGetter.get_household( "mel_c2_scot" ) # scots are a married couple
-    head = scot.people[SCOT_HEAD]
-    spouse = scot.people[SCOT_SPOUSE]
+    head = get_head(scot)
+    spouse = get_spouse(scot)
     head.income[self_employment_income] = 11_290.0
     head_tax_due = 0.0
     spouse.income[self_employment_income] = 20_000.0
@@ -315,7 +367,9 @@ end # example1 ch3
     println( bruk.pers[head.pid].it)
     println( "SPOUSE\n$(inctostr(bruk.pers[spouse.pid].income ))")
     println( bruk.pers[spouse.pid].it)
+    @show itsys_ruk
     @test bruk.pers[spouse.pid].income[INCOME_TAX] ≈ spouse_tax_due_ruk
+    @test bruk.pers[head.pid].income[INCOME_TAX] ≈ 0.0
 end # example 2 ch3
 
 @testset "ch3 blind person" begin

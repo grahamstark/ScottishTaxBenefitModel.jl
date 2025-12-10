@@ -310,12 +310,12 @@ end
     pension_contrib_annual_minimum :: RT = 10_000.00
     pension_contrib_threshold_income :: RT = 150_000.00
     pension_contrib_withdrawal_rate :: RT = 50.0
-    
-    non_savings_income = NON_SAVINGS_INCOME
-    all_taxable = ALL_TAXABLE_INCOME
-    savings_income = SAVINGS_INCOME
-    dividend_income = DIVIDEND_INCOME
-    property_income = PROPERTY_INCOME 
+    # copy here to aviod inadvertently changing the base definition
+    non_savings_income = deepcopy(NON_SAVINGS_INCOME)
+    all_taxable = deepcopy(ALL_TAXABLE_INCOME)
+    savings_income = deepcopy(SAVINGS_INCOME)
+    dividend_income = deepcopy(DIVIDEND_INCOME)
+    property_income = deepcopy(PROPERTY_INCOME)
 
     mca_date = MCA_DATE
 
@@ -651,10 +651,10 @@ end
     hb_additional :: RT = 17.10
     childcare_max_1 :: RT = 175.00
     childcare_max_2 :: RT = 300.00
-    incomes     = LEGACY_MT_INCOME
-    hb_incomes  = LEGACY_HB_INCOME
-    pc_incomes  = LEGACY_PC_INCOME
-    sc_incomes  = LEGACY_SAVINGS_CREDIT_INCOME
+    incomes     = deepcopy(LEGACY_MT_INCOME)
+    hb_incomes  = deepcopy(LEGACY_HB_INCOME)
+    pc_incomes  = deepcopy(LEGACY_PC_INCOME)
+    sc_incomes  = deepcopy(LEGACY_SAVINGS_CREDIT_INCOME)
     capital_min :: RT = 6_000.0    
     capital_max :: RT = 16_000.0
     pc_capital_min :: RT = 10_000.0
@@ -980,8 +980,8 @@ end
 
     work_allowance_w_housing :: RT = 287.0
     work_allowance_no_housing :: RT = 503.0
-    other_income = UC_OTHER_INCOME
-    earned_income :: IncludedItems = UC_EARNED_INCOME
+    other_income = deepcopy(UC_OTHER_INCOME)
+    earned_income :: IncludedItems = deepcopy(UC_EARNED_INCOME)
     capital_min :: RT = 6_000.0
     capital_max :: RT = 16_000.0
     # £1 *per week* ≆ 4.35 pm FIXME make 4.35 wpm? 
