@@ -5,7 +5,11 @@ module IncomeTaxCalculations
 # It's based mainly on the descriptions and examples in the excellent Melville's Taxation:
 # Melville, Alan. 2019. Melville’s Taxation: Finance Act 2019. 25th ed. London. (and 2020 edition).
 #
-
+# TODO 10/12/2025 This passes all its tests but desperately needs a refactor
+# - use the savings function for all 4 income types
+# - use the SavingsResult record from Results for disagg output
+# - refactor the reducer bit into a function.
+# 
 using Dates
 using Dates: Date, now, TimeType, Year
 using Parameters: @with_kw
@@ -123,11 +127,11 @@ function calculate_pension_taxation!(
         max_relief = max( sys.pension_contrib_annual_minimum,
             sys.pension_contrib_annual_allowance - excess*sys.pension_contrib_withdrawal_rate )
     end
-    # println( "total_income $total_income max_relief $max_relief eligible_contribs $eligible_contribs" )
+    # # println( "total_income $total_income max_relief $max_relief eligible_contribs $eligible_contribs" )
     eligible_contribs = min( eligible_contribs, max_relief );
     pres.it.pension_eligible_for_relief = eligible_contribs
     basic_rate = sys.non_savings_rates[ sys.non_savings_basic_rate ]
-    # println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate sys.pension_contrib_withdrawal_rate=$(sys.pension_contrib_withdrawal_rate)")
+    # # println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate sys.pension_contrib_withdrawal_rate=$(sys.pension_contrib_withdrawal_rate)")
     gross_contribs = eligible_contribs/(1-basic_rate)
     pres.it.pension_relief_at_source = gross_contribs - eligible_contribs
     pres.it.non_savings_thresholds .+= gross_contribs
@@ -153,7 +157,7 @@ function do_one_savings_tax(
     base_thresholds=deepcopy(thresholds)
     base_rates=deepcopy(rates)
     basic_rate = min( basic_rate, length(base_rates))
-    @show rates thresholds previous_taxable savings_income personal_allowance savings_allowance
+     # @show rates thresholds previous_taxable savings_income personal_allowance savings_allowance
     savings_rates, savings_thresholds = delete_thresholds_up_to(
         rates=base_rates,
         thresholds=base_thresholds,
@@ -180,7 +184,7 @@ function do_one_savings_tax(
     # pres.it.savings_rates = savings_rates
     # pres.it.savings_thresholds= savings_thresholds
     personal_allowance,taxable = apply_allowance( personal_allowance, savings_income )
-    @show personal_allowance taxable
+     # @show personal_allowance taxable
     tax = calctaxdue(
         taxable=taxable,
         rates=savings_rates,
@@ -219,7 +223,7 @@ function calc_income_tax!(
     if sys.abolished
         return;
     end
-    println( "calc_income_tax! entered.")
+    # println( "calc_income_tax! entered.")
     total_income = isum( pres.income, sys.all_taxable )
     non_savings_income = isum( pres.income, sys.non_savings_income )
     
@@ -257,7 +261,7 @@ function calc_income_tax!(
             rates=sys.non_savings_rates,
             thresholds=pres.it.non_savings_thresholds )
         previous_taxable = non_savings_taxable
-        println( "allowance: after non-savings tax $allowance")
+        # println( "allowance: after non-savings tax $allowance")
         property_tax = do_one_savings_tax(
             basic_rate = sys.property_basic_rate,
             rates = sys.property_rates,
@@ -267,13 +271,13 @@ function calc_income_tax!(
             taxable_income=taxable_income,
             savings_income=property_income,
             previous_taxable=previous_taxable )
-        @show property_tax        
+         # @show property_tax        
         previous_taxable += property_tax.taxable 
         pres.it.property_rates = property_tax.rates
         pres.it.property_thresholds= property_tax.savings_thresholds
         pres.it.personal_property_allowance = property_tax.savings_allowance
         allowance = property_tax.remaining_personal_allowance
-        println( "allowance: after property tax $allowance")
+        # println( "allowance: after property tax $allowance")
 
         savings_tax = do_one_savings_tax(
             basic_rate = sys.savings_basic_rate,
@@ -284,13 +288,13 @@ function calc_income_tax!(
             taxable_income=taxable_income,
             savings_income=savings_income,
             previous_taxable=previous_taxable)
-        @show savings_tax
+         # @show savings_tax
         # FIXME 
         pres.it.savings_rates = savings_tax.rates
         pres.it.savings_thresholds= savings_tax.savings_thresholds
         pres.it.personal_savings_allowance = savings_tax.savings_allowance
         allowance = savings_tax.remaining_personal_allowance
-        println( "allowance: after savings tax $allowance")
+        # println( "allowance: after savings tax $allowance")
         previous_taxable += savings_tax.taxable 
         # FIXME use the function
         # Dividends
@@ -322,7 +326,7 @@ function calc_income_tax!(
         end
         pres.it.dividend_rates = dividend_rates
         pres.it.dividend_thresholds= dividend_thresholds
-        println( "allowance: after dividend tax $allowance")
+        # # println( "allowance: after dividend tax $allowance")
         
         dividend_tax = calctaxdue(
             taxable=dividends_taxable,
@@ -344,7 +348,7 @@ function calc_income_tax!(
     st = savings_tax.due
     dt = dividend_tax.due
     pt = property_tax.due
-    @show allowance spouse_transfer
+     # @show allowance spouse_transfer
     # FIXME refactor this 
     if spouse_transfer > 0
         # note that if scotland sets a high basic rate the sp_reduction here
@@ -354,7 +358,7 @@ function calc_income_tax!(
         total_tax = max( 0.0, total_tax - sp_reduction )
         # assign spouse reduction to non-savings - needed for Scottish income tax
         nst -= sp_reduction
-        # println( "nst $nst sp_reduction=$sp_reduction total_tax=$total_tax")
+        # # println( "nst $nst sp_reduction=$sp_reduction total_tax=$total_tax")
         # spare to property tax
         if nst < 0.0
             # assign any leftover to savings tax
@@ -405,10 +409,10 @@ function calc_income_tax!(
     pres.it.property_taxable = property_tax.taxable
     
     pres.it.unused_allowance = allowance
-    println( "allowance: final (unused allowance) tax $allowance")
+    # println( "allowance: final (unused allowance) tax $allowance")
 
-    println( "Final IT Result for person $(pers.pid)")
-    @show pres
+    # println( "Final IT Result for person $(pers.pid)")
+     # @show pres
 end
 
 function allowed_to_transfer_allowance(
@@ -454,7 +458,7 @@ function calc_income_tax!(
     head   :: Person,
     spouse :: Union{Nothing, Person},
     sys    :: IncomeTaxSys )
-    println( "calc_income_tax! (main routine) entered.")
+    # println( "calc_income_tax! (main routine) entered.")
     hdres = bres.pers[head.pid]
     calc_income_tax!( hdres, head, sys )
     # FIXME the transferable stuff here
@@ -499,29 +503,29 @@ function calc_income_tax!(
             end
         end
         if spres.income[INCOME_TAX] < 0.0 
-            println( spouse.income )
-            println( spres.it )
-            println( spres.income )
+            # println( spouse.income )
+            # println( spres.it )
+            # println( spres.income )
             @assert false "income tax can't be negative; spouse; pid=$(spouse.pid)"
         end
         if spres.it.non_savings_tax > spres.income[INCOME_TAX]
-            println( spouse.income )
-            println( spres.it )
-            println( spres.income )
+            # println( spouse.income )
+            # println( spres.it )
+            # println( spres.income )
             @assert false "non savings part can't be greater than total income tax; spouse ; pid=$(spouse.pid)"
         end
     end
     if hdres.income[INCOME_TAX] < 0.0 
-        println( head.income )
-        println( hdres.it )
-        println( hdres.income )
+        # println( head.income )
+        # println( hdres.it )
+        # println( hdres.income )
     
         @assert false "income tax can't be negative; head; pid=$(head.pid)"
     end
     if hdres.it.non_savings_tax > hdres.income[INCOME_TAX]
-        println( head.income )
-        println( hdres.it )
-        println( hdres.income )
+        # println( head.income )
+        # println( hdres.it )
+        # println( hdres.income )
         @assert false "non savings part can't be greater than total income tax; head ; pid=($head.pid)"
     end
 end # calc_income_tax
