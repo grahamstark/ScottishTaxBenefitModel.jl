@@ -73,21 +73,16 @@ function route_to_uc_or_legacy(
     else
         PROPS_ON_UC_V2._2024
     end
-    #println( "targets as $targets")
     prob = if has_any( bures, WORKING_TAX_CREDIT, CHILD_TAX_CREDIT )
-        # println( "IS route ")
         targets.TAX_CREDITS
     elseif has_any( bures, INCOME_SUPPORT, NON_CONTRIB_JOBSEEKERS_ALLOWANCE, NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE )
-        # println( "Credits route $(Results.to_string(bures))")
         targets.UNEMPLOYED_BENS
     else 
         1.0
     end
-    # println( "final prob $prob")
     head = get_head( bu )
     switch = testp( head.onerand, prob, Randoms.UC_TRANSITION )
     route = switch ? uc_bens : legacy_bens
-    # println("route $route")
     return route
 end
 
@@ -128,157 +123,5 @@ function get_routes_for_hh(
     end # bus 
     return routes
 end
-
-#=
-function route_to_uc_or_legacy_old_version( 
-    settings :: Settings,
-    tenure   :: Tenure_Type,
-    bu       :: BenefitUnit, 
-    intermed :: MTIntermediate ) :: LegacyOrUC
-    if settings.means_tested_routing != modelled_phase_in
-        return settings.means_tested_routing == uc_full ? uc_bens : legacy_bens
-    end
-    prob = 0.0
-    if intermed.limited_capacity_for_work
-        prob = PROPS_ON_UC[intermed.nation][trans_incapacity]
-    elseif (intermed.benefit_unit_number == 1) && renter( tenure )
-        prob = PROPS_ON_UC[intermed.nation][trans_housing]
-    elseif intermed.num_children > 0
-        prob = PROPS_ON_UC[intermed.nation][trans_w_kids]
-    elseif intermed.num_job_seekers > 0
-        prob = PROPS_ON_UC[intermed.nation][trans_jobseekers]
-    else
-        prob = PROPS_ON_UC[intermed.nation][trans_all]
-    end
-    head = get_head( bu )
-    switch = testp( head.onerand, prob, Randoms.UC_TRANSITION )
-    return switch ? uc_bens : legacy_bens
-end
-=#
-
-#=
-"""
-Allocate a benefit unit to ether UC or Legacy Benefits. Very crudely.
-"""
-function route_to_uc_or_legacy!( 
-    results  :: HouseholdResult,
-    settings :: Settings,
-    hh       :: Household, 
-    intermed :: HHIntermed )
-    bus = get_benefit_units( hh )
-    RT = eltype( results.income ) # FIXME whole where RT thing
-
-    for bno in eachindex( bus )
-        im = intermed.buint[bno]
-        bres = results.bus[bno]
-        if settings.means_tested_routing == uc_full
-            # these cease to exist, even for pensioners and students
-            
-            tozero!( bres, 
-                NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, 
-                NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
-                INCOME_SUPPORT, 
-                WORKING_TAX_CREDIT, 
-                CHILD_TAX_CREDIT )
-            # fixme use can_apply_for record
-            bres.route = uc_bens # route_to_uc_or_legacy( settings, bus[bno], bres )                
-            if bres.uc.basic_conditions_satisfied || (bres.income[UNIVERSAL_CREDIT] > 0.0) 
-                # crude - not a pensioner or otherwise actually on UC
-                # println( "setting HB to zero")
-                tozero!( bres, HOUSING_BENEFIT )
-            else
-                @assert intermed.buint[bno].someone_pension_age
-                bres.route = legacy_bens
-            end
-            # DON'T zero this because we're using the legacy code for CTR
-            # bres.legacy_mtbens = LMTResults{RT}()
-        else
-            bres.route = route_to_uc_or_legacy( 
-                settings, 
-                bus[bno], 
-                intermed.buint[bno], 
-                bres )
-            if bres.route == legacy_bens 
-                tozero!( bres, UNIVERSAL_CREDIT )
-                tozero!( bres, COUNCIL_TAX_BENEFIT ) # we overwrite this
-                bres.uc = UCResults{RT}()
-                if( bno == 1 ) && ( bres.legacy_mtbens.ctr_recipient > 0 ) # ctr assignment hack - it's possible
-                    # that there's actually the value of CTB in that slot from the UC calculation
-                    # so overwrite with the saved Legacy value
-                    bres.pers[bres.legacy_mtbens.ctr_recipient].income[COUNCIL_TAX_BENEFIT] = bres.legacy_mtbens.ctr
-                end                
-            elseif bres.route == uc_bens 
-                # nuke every old thing for everyone who's in scope for UC
-                # tozero!( bres, LEGACY_MTBS...)
-
-                tozero!( bres,                     
-                    NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, 
-                    NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
-                    INCOME_SUPPORT, 
-                    WORKING_TAX_CREDIT, 
-                    HOUSING_BENEFIT,
-                    CHILD_TAX_CREDIT )
-                tozero!( bres, COUNCIL_TAX_BENEFIT )
-                bres.legacy_mtbens = LMTResults{RT}()    
-                if( bno == 1 ) && ( bres.uc.recipient > 0 )# ctr assignment hack
-                    bres.pers[bres.uc.recipient].income[COUNCIL_TAX_BENEFIT] = bres.uc.ctr
-                end
-            end # -> UC
-        end # randomised route uc/legacy 
-    end # BU Loop
-end
-
-function route_to_uc_or_legacy_old_version!( 
-    results  :: HouseholdResult,
-    settings :: Settings,
-    hh       :: Household, 
-    intermed :: HHIntermed )
-    bus = get_benefit_units( hh )
-    RT = eltype( results.income ) # FIXME whole where RT thing
-
-    for bno in eachindex( bus )
-        im = intermed.buint[bno]
-        bres = results.bus[bno]
-        if bres.uc.basic_conditions_satisfied # FIXME This condition needs some thought.
-            bres.route = route_to_uc_or_legacy( settings, hh.tenure, bus[bno], im )
-            if bres.route == legacy_bens 
-                tozero!( bres, UNIVERSAL_CREDIT )
-                tozero!( bres, COUNCIL_TAX_BENEFIT )
-                bres.uc = UCResults{RT}()
-                if( bno == 1 ) && ( bres.legacy_mtbens.ctr_recipient > 0 ) # ctr assignment hack - it's possible
-                    # that there's actually the value of CTB in that slot from the UC calculation
-                    # so overwrite with the saved Legacy value
-                    bres.pers[bres.legacy_mtbens.ctr_recipient].income[COUNCIL_TAX_BENEFIT] = bres.legacy_mtbens.ctr
-                end
-            elseif bres.route == uc_bens
-                # nuke every old thing for everyone who's in scope for UC
-                tozero!( bres, LEGACY_MTBS...)
-                tozero!( bres, COUNCIL_TAX_BENEFIT )
-                bres.legacy_mtbens = LMTResults{RT}()
-                if( bno == 1 ) && ( bres.uc.recipient > 0 )# ctr assignment hack
-                    bres.pers[bres.uc.recipient].income[COUNCIL_TAX_BENEFIT] = bres.uc.ctr
-                end
-                ## FIXME TRANSITIONAL PAYMENTS
-            end
-        end
-        # .. so some futher nuking ..
-        if settings.means_tested_routing == uc_full
-            # these cease to exist, even for pensioners and students
-            tozero!( bres, 
-                NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE, 
-                NON_CONTRIB_JOBSEEKERS_ALLOWANCE, 
-                INCOME_SUPPORT, 
-                WORKING_TAX_CREDIT, 
-                CHILD_TAX_CREDIT )
-            bres.legacy_mtbens = LMTResults{RT}()
-            # this last is entirely arbitrary, but
-            # takes out essentially all ft students, etc.
-            if im.age_oldest_adult < 50
-                tozero!( bres, LEGACY_MTBS...)
-            end
-        end
-    end
-end
-=#
 
 end # Module UCTransition
