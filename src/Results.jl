@@ -327,6 +327,7 @@ module Results
         dividend_thresholds :: RateBands = zeros(RT,0)
         property_thresholds :: RateBands = zeros(RT,0)
         
+        non_savings_rates  :: RateBands = zeros(RT,0)
         savings_rates  :: RateBands = zeros(RT,0)
         dividend_rates :: RateBands = zeros(RT,0)
         property_rates :: RateBands = zeros(RT,0)

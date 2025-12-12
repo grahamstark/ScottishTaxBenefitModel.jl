@@ -371,6 +371,7 @@ function weeklyise!( it :: IncomeTaxSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR
     it.mca_minimum /= wpy
     it.marriage_allowance /= wpy
     it.personal_savings_allowance /= wpy
+    it.personal_property_allowance /= wpy
     it.mca_income_maximum       /= wpy
     it.mca_credit_rate             /= 100.0
     it.mca_withdrawal_rate         /= 100.0

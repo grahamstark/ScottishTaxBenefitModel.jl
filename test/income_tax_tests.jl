@@ -19,8 +19,8 @@ using .IncomeTaxCalculations:
     old_enough_for_mca, 
     apply_allowance, 
     calc_income_tax!
-
-using .STBParameters: IncomeTaxSys
+using .FRSHouseholdGetter
+using .STBParameters
 using .Results: 
     init_household_result,
     IndividualResult, 
@@ -29,8 +29,10 @@ using .Results:
     NIResult,
     map_incomes
 using .STBIncomes
+using .SingleHouseholdCalculations
 using .ExampleHelpers
 using .RunSettings
+using .Runner
 
 function rates_to_pct!( it :: IncomeTaxSys )
     it.non_savings_rates ./= 100.0
@@ -49,6 +51,20 @@ function get_tax(; scotland = false ) :: IncomeTaxSys
     return it
 end
 
+
+function turn_on_property!( sys, rates, bands, basic_rate=2 )
+	sys.it.property_rates = copy(rates)
+    sys.it.property_thresholds = copy(bands) 
+    sys.it.property_basic_rate = basic_rate
+    # no equivalent of the savings allowance.
+	sys.it.personal_property_allowance = 0.0
+	# just property income in the property definition
+	push!(sys.it.property_income,PROPERTY)
+	# ... and remove property from standard Scottish Income Tax
+	setdiff!(sys.it.non_savings_income, [PROPERTY] )
+end
+
+
 @testset "Property Tax Proposal 2025/6 Budget" begin
     #=
     reproduce this:
@@ -63,11 +79,7 @@ end
     sys = get_default_system_for_fin_year( 2025; scotland=false, autoweekly=false )
     sys.it.savings_rates[2:end] .+= 2
     sys.it.dividend_rates[2:3] .+= 2
-    sys.it.property_rates = [22,42,47.0]
-    sys.it.property_thresholds = copy(sys.it.non_savings_thresholds) 
-    sys.it.property_basic_rate = 1
-	push!(sys.it.property_income,PROPERTY)
-	setdiff!(sys.it.non_savings_income, [PROPERTY] )    
+    turn_on_property!( sys, [22,42,47.0], sys.it.non_savings_thresholds)
     rates_to_pct!( sys.it )
     @show sys.it.savings_income
     @show sys.it.property_income
@@ -84,7 +96,6 @@ end
     prmel.income = map_incomes( pers )
     @show prmel.income
     
-
     calc_income_tax!( prmel, pers, sys.it )
     @show prmel.it    
     @test prmel.income[INCOME_TAX] ≈ 4146.0
@@ -92,6 +103,84 @@ end
     @test prmel.it.dividends_tax ≈ 0.0
     @test prmel.it.savings_tax ≈ 0.0
     @test prmel.it.non_savings_tax ≈ 3_486.0
+end
+
+@testset "Threshold Deletion Tests" begin
+    #= 
+        1 tax on combined income should be
+        the same as 2 taxes on the components
+        if the rates and bands are the same and
+        the deletion thing is in place.
+    =#
+    thresholds=[50, 300, 600.0, 1200, 2000.0]
+    rates=[0.10, 0.2, 0.30, 0.40, 0.5, 0.6]
+    for taxable1 in [0, 25, 200, 400, 2000], taxable2 in [0, 25, 200, 400, 2000]
+        @show taxable1 taxable2
+        tax_f = calctaxdue(
+                    taxable=taxable1+taxable2,
+                    rates=rates,
+                    thresholds=thresholds )
+                
+        tax1 = calctaxdue(
+                    taxable=taxable1,
+                    rates=rates,
+                    thresholds=thresholds )
+
+        rates2,thresholds2 = delete_thresholds_up_to( 
+            rates = rates,
+            thresholds = thresholds,
+            upto=taxable1)
+        @show rates thresholds    
+        @show rates2 thresholds2
+        tax2 = calctaxdue(
+                    taxable=taxable2,
+                    rates=rates2,
+                    thresholds=thresholds2 )
+                    
+        tax1.due + tax2.due
+        @test tax1.due + tax2.due ≈ tax_f.due
+    end
+end
+
+@testset "Property Tax Neutrality" begin
+    #=
+    Idiot check - introducing a property tax but setting rates and bands 
+    to Scottish Income Tax rates&bands should
+    leave liabilities unchanged.
+    =#
+
+    hid = BigInt( 14375 )
+    data_year = 2022
+    sys1 = get_default_system_for_fin_year( 2025; scotland=true )
+    sys2 = deepcopy( sys1 )
+    turn_on_property!(sys2,
+        sys1.it.non_savings_rates,
+        sys1.it.non_savings_thresholds )
+    settings = Settings() 
+    FRSHouseholdGetter.initialise( settings )
+    hh = FRSHouseholdGetter.get_household( hid, data_year )
+    hh = deepcopy(hh) # so we can edit it without the edits persisting
+    head = get_head( hh )
+    spouse = get_spouse(hh)
+    # spouse.income[pension_contributions_employer] = 0.0 # 10.783
+    hres1 = do_one_calc( hh, sys1, settings )
+    hres2 = do_one_calc( hh, sys2, settings )
+    @test hres1.bhc_net_income ≈ hres2.bhc_net_income
+    @test hres1.income[INCOME_TAX] ≈ hres2.income[INCOME_TAX]
+
+    results = do_one_run( settings, [sys1,sys2], obs )
+    n = size(results.income[1])[1]
+    nerrs = 0
+    for i in 1:n
+        r1 = results.income[1][i,:]
+        r2 = results.income[2][i,:]
+        @test r1.pid == r2.pid # in sequence?
+        if ! (r1.income_tax ≈ r2.income_tax)
+            println( "income_tax differs for hh $(r1.hid) uhid $(r1.pid) t1=$(r1.income_tax) t2=$(r2.income_tax) property = $(r1.property)")
+            nerrs += 1
+        end
+    end
+    @test nerrs == 0
 end
 
 @testset "Melville 2019 ch2 examples 1; basic calc Scotland vs RUK" begin

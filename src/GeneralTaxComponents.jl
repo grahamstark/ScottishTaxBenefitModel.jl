@@ -280,7 +280,8 @@ function delete_thresholds_up_to( ; rates :: RateBands, thresholds :: RateBands,
    end
    for i in 1:num_thresh
       if upto < thresholds[i]
-         threshdel = (i>1) ? upto - thresholds[i-1] : upto
+         # threshdel = (i>1) ? upto - thresholds[i-1] : upto
+         threshdel = thresholds[i] - upto
          # println( "i=$i upto $upto $(thresholds[i])")
          deletethresh = i
          break
@@ -292,7 +293,12 @@ function delete_thresholds_up_to( ; rates :: RateBands, thresholds :: RateBands,
    elseif deletethresh > 0 # delete some
       rates = rates[deletethresh:end]
       thresholds = thresholds[deletethresh:end]
-      thresholds .-= threshdel
+      diff = thresholds[1] - threshdel
+      thresholds[1] = threshdel
+      n = length( thresholds)
+      if n > 1
+         thresholds[2:end] .-= diff
+      end
    elseif deletethresh == -1 # we never find one - top rate only and inf thresh
       rates = rates[end:end]
       thresholds :: RateBands = [ Inf ]
