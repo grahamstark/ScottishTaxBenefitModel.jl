@@ -28,6 +28,7 @@ using .Results:
     ITResult, 
     NIResult,
     map_incomes
+using .GeneralTaxComponents
 using .STBIncomes
 using .SingleHouseholdCalculations
 using .ExampleHelpers
