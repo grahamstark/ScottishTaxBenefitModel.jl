@@ -285,6 +285,7 @@ module Results
         rates=RT[] 
         savings_thresholds=RT[]
         remaining_personal_allowance=zero(RT)
+        is_above_basic_rate = false
         savings_allowance=zero(RT)
     end
 
@@ -321,6 +322,8 @@ module Results
         transferred_allowance :: RT = 0.0
         pension_eligible_for_relief :: RT = 0.0
         pension_relief_at_source :: RT = 0.0
+
+        is_above_basic_rate = false
         
         non_savings_thresholds :: RateBands = zeros(RT,0)
         savings_thresholds  :: RateBands = zeros(RT,0)
@@ -331,6 +334,13 @@ module Results
         savings_rates  :: RateBands = zeros(RT,0)
         dividend_rates :: RateBands = zeros(RT,0)
         property_rates :: RateBands = zeros(RT,0)
+
+        savings_result = SavingsResult{RT}()
+        property_result = SavingsResult{RT}()
+        # FIXME these are currently unset
+        non_savings_result = SavingsResult{RT}()
+        dividends_result = SavingsResult{RT}()
+
         
         personal_savings_allowance :: RT = 0.0
         personal_property_allowance :: RT = 0.0

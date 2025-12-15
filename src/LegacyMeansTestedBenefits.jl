@@ -133,7 +133,7 @@ function calc_incomes(
         if which_ben in [pc,is,jsa,esa,hb,ctr]
             net = 
                 gross - ## FIXME parameterise this so we can use gross/net
-                pres.it.non_savings_tax - ## FIXME?? income[INCOME_TAX] ??
+                pres.income[INCOME_TAX] - # it.non_savings_tax - ## FIXME?? income[INCOME_TAX] ??
                 pres.income[NATIONAL_INSURANCE] - 
                 0.5*gpc # .income[PENSION_CONTRIBUTIONS_EMPLOYEE]
             # println( "net=$net; gross=$gross pres.it.non_savings_tax = $(pres.it.non_savings_tax) gpc=$gpc ni=$(pres.income[NATIONAL_INSURANCE])")

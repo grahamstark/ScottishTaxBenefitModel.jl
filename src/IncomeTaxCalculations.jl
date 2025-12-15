@@ -155,13 +155,15 @@ function do_one_savings_tax(
     end
     base_thresholds=deepcopy(thresholds)
     base_rates=deepcopy(rates)
-    @show "Before delete_thresholds_up_to" rates thresholds previous_taxable savings_income personal_allowance savings_allowance
+    bn = length( base_rates )
+    # @show "Before delete_thresholds_up_to" rates thresholds previous_taxable savings_income personal_allowance savings_allowance
     savings_rates, savings_thresholds = delete_thresholds_up_to(
         rates=base_rates,
         thresholds=base_thresholds,
         upto=previous_taxable )
+    num_deleted = bn - length( savings_rates )
     basic_rate = min( basic_rate, length(savings_rates))
-    @show "After delete_thresholds_up_to" savings_rates savings_thresholds
+    # @show "After delete_thresholds_up_to" savings_rates savings_thresholds
     psa = 0.0
     if savings_allowance > 0
         psa = savings_allowance
@@ -182,11 +184,12 @@ function do_one_savings_tax(
         end
     end # we have a personal_savings_allowance
     personal_allowance,taxable = apply_allowance( personal_allowance, savings_income )
-    @show "afterapply_allowance" personal_allowance taxable
+    # @show "afterapply_allowance" personal_allowance taxable
     tax = calctaxdue(
         taxable=taxable,
         rates=savings_rates,
         thresholds=savings_thresholds )
+    is_above_basic_rate = (num_deleted + tax.end_band) > basic_rate
     return SavingsResult{T}(
         tax.due, 
         taxable,
@@ -194,6 +197,7 @@ function do_one_savings_tax(
         savings_rates, 
         savings_thresholds,
         personal_allowance,
+        is_above_basic_rate,
         psa )
 end
 
@@ -216,17 +220,25 @@ function calc_income_tax!(
     pres   :: IndividualResult{T},
     pers   :: Person{T},
     sys    :: IncomeTaxSys{T},
-    spouse_transfer = 0.0 ) where T <: Real
+    spouse_transfer = zero(T) ) where T <: Real
     if sys.abolished
         return;
     end
+    # println( "## calc_income_tax! \nentered for pid $pers.pid\n\n")
     total_income = isum( pres.income, sys.all_taxable )
     non_savings_income = isum( pres.income, sys.non_savings_income )
     savings_income = isum( pres.income, sys.savings_income )
     dividends_income = isum( pres.income, sys.dividend_income )
-    property_income = max(0.0, isum( pres.income, sys.property_income ))
+    property_income = isum( pres.income, sys.property_income )
+    if property_income < 0 
+        # FIXME - if there's a a property income tax, offset property losses 
+        # against non_savings_income. NO IDEA if this would be right
+        non_savings_income += property_income
+        property_income = 0.0
+    end
     allowance = calculate_allowance( pers, sys )
     adjusted_net_income = total_income
+    # @show total_income non_savings_income savings_income dividends_income property_income 
     calculate_pension_taxation!( pres, sys, total_income )
     adjusted_net_income += calculate_company_car_charge(pers, sys)
     non_savings_tax = TaxResult(0.0, 0)
@@ -248,15 +260,17 @@ function calc_income_tax!(
     dividends_taxable = 0.0
     pres.it.non_savings_rates = sys.non_savings_rates        
     if taxable_income > 0
-        @show "before: " allowance non_savings_income
+        # @show "before: " allowance non_savings_income
         allowance,non_savings_taxable = apply_allowance( allowance, non_savings_income )
-        @show "allowance after initial apply allowance" allowance non_savings_taxable
+        # @show "allowance after initial apply allowance" allowance non_savings_taxable
         non_savings_tax = calctaxdue(
             taxable=non_savings_taxable,
             rates=sys.non_savings_rates,
             thresholds=pres.it.non_savings_thresholds )
         previous_taxable = non_savings_taxable
-        # println( "allowance: after non-savings tax $allowance")
+        pres.it.is_above_basic_rate = non_savings_tax.end_band > sys.non_savings_basic_rate
+        
+        # println( "\n ### savings tax entering: property income\n\n")
         property_tax = do_one_savings_tax(
             basic_rate = sys.property_basic_rate,
             rates = sys.property_rates,
@@ -268,12 +282,15 @@ function calc_income_tax!(
             previous_taxable=previous_taxable )
          # # @show property_tax        
         previous_taxable += property_tax.taxable 
+        pres.it.property_result = property_tax
         pres.it.property_rates = property_tax.rates
         pres.it.property_thresholds= property_tax.savings_thresholds
         pres.it.personal_property_allowance = property_tax.savings_allowance
+        pres.it.is_above_basic_rate |= property_tax.is_above_basic_rate
         allowance = property_tax.remaining_personal_allowance
-        println( "allowance: after property tax $allowance")
+        # println( "allowance: after property tax $allowance")
 
+        # println( "\n ### savings tax entering: savings income\n\n")
         savings_tax = do_one_savings_tax(
             basic_rate = sys.savings_basic_rate,
             rates = sys.savings_rates,
@@ -285,9 +302,11 @@ function calc_income_tax!(
             previous_taxable=previous_taxable)
          # # @show savings_tax
         # FIXME 
+        pres.it.savings_result = savings_tax
         pres.it.savings_rates = savings_tax.rates
         pres.it.savings_thresholds= savings_tax.savings_thresholds
         pres.it.personal_savings_allowance = savings_tax.savings_allowance
+        pres.it.is_above_basic_rate |= savings_tax.is_above_basic_rate
         allowance = savings_tax.remaining_personal_allowance
         # println( "allowance: after savings tax $allowance")
         previous_taxable += savings_tax.taxable 
@@ -321,6 +340,8 @@ function calc_income_tax!(
         end
         pres.it.dividend_rates = dividend_rates
         pres.it.dividend_thresholds= dividend_thresholds
+        # !!! FIXME pres.it.is_above_basic_rate |= property_tax.is_above_basic_rate
+        
         # # println( "allowance: after dividend tax $allowance")
         
         dividend_tax = calctaxdue(
@@ -422,9 +443,13 @@ function allowed_to_transfer_allowance(
          # you can opt to transfer some allowance even if you
          # can technically use it.
         can_transfer = false
-    elseif to.savings_band > sys.savings_basic_rate ||
+    elseif to.is_above_basic_rate 
+        #=
+        to.savings_band > sys.savings_basic_rate ||
         to.non_savings_band > sys.non_savings_basic_rate ||
-        to.dividend_band > sys.dividend_basic_rate
+        to.dividend_band > sys.dividend_basic_rate ||
+        to.property_band > sys.property_basic_rate
+        =#
         can_transfer = false
     end
     ## TODO disallow if mca claimed
@@ -453,7 +478,7 @@ function calc_income_tax!(
     head   :: Person,
     spouse :: Union{Nothing, Person},
     sys    :: IncomeTaxSys )
-    # println( "calc_income_tax! (main routine) entered.")
+    # println( "## calc_income_tax! (main routine) head.\n")
     hdres = bres.pers[head.pid]
     calc_income_tax!( hdres, head, sys )
     # FIXME the transferable stuff here
@@ -462,6 +487,7 @@ function calc_income_tax!(
     # also - add in restrictions on transferring to
     # higher rate payers.
     if spouse !== nothing
+        # println( "## calc_income_tax! Spouse calc.\n")
         spres = bres.pers[spouse.pid]
         calc_income_tax!( spres, spouse, sys )
         # This is not quite right - you can't claim the

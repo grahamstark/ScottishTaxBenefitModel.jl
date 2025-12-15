@@ -150,9 +150,10 @@ end
     leave liabilities unchanged.
     =#
 
-    hid = BigInt( 14375 )
-    data_year = 2022
+    hid = BigInt( 7187 )
+    data_year = 2019
     sys1 = get_default_system_for_fin_year( 2025; scotland=true )
+    sys1.it.non_savings_basic_rate = 2
     sys2 = deepcopy( sys1 )
     turn_on_property!(sys2,
         sys1.it.non_savings_rates,
@@ -168,6 +169,14 @@ end
     hres2 = do_one_calc( hh, sys2, settings )
     @test hres1.bhc_net_income ≈ hres2.bhc_net_income
     @test hres1.income[INCOME_TAX] ≈ hres2.income[INCOME_TAX]
+
+    spres1 = hres1.bus[1].pers[spouse.pid]
+    spres2 = hres2.bus[1].pers[spouse.pid]
+    hdres1 = hres1.bus[1].pers[head.pid]
+    hdres2 = hres2.bus[1].pers[head.pid]
+    calc_income_tax!( hdres1, head, sys1.it )
+    calc_income_tax!( hdres2, head, sys2.it )
+    @test hdres1.income[INCOME_TAX] ≈ hdres2.income[INCOME_TAX]
 
     results = do_one_run( settings, [sys1,sys2], obs )
     n = size(results.income[1])[1]
