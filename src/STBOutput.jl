@@ -51,15 +51,16 @@ const DUMP_FILE_DESCRIPTION =
 """
 # Dump Directory Contents
 
-* quantiles_1.csv - data for Lorenz curves and the deciles graph;
-* quantiles_2.csv -
+* quantiles_xx.csv - data for Lorenz curves and the deciles graph;
 * income_summary_1.csv - aggregate incomes by income type, broken down by tenure, hh type, etc.;
 * income_summary_2.csv -
 * short_income_summary.csv - condensed version of the income data.
 * poverty-inequality-metrs-child-poverty.md - rather hard to read dump of poverty, etc. tables in Markdown format;
 * gain-lose-by-xxx-yy-vs-1.csv - Gainers and losers tables (breakdown=xxx, system=yy);
 * incomes-histogram-yy.csv - histogram of income for system yy, plus means, median, max, min
-* metrs-histogram-4.csv - likewise for Marginal Effective Tax Rates
+* metrs-histogram-yy.csv - likewise for Marginal Effective Tax Rates
+* deciles-xx - deciles for system xx
+* sfc-behavioural_adjustments-xxx-vs-1.csv 
 
 ## Other Tables
 
@@ -1567,6 +1568,8 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
             CSV.write( joinpath( outdir, "gain-lose-by-household Type-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_examples)
             CSV.write( joinpath( outdir, "gain-lose-by-region-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_examples)
         end
+        
+        CSV.write( joinpath( outdir, "deciles-$(fno).csv"), summary.deciles_df[fno])
         write_hist(joinpath( outdir, "incomes-histogram-$(fno).csv"), summary.income_hists[fno] )
         for measure in TAXABLE_INCOME_MEASURES
             write_hist(joinpath( outdir, "taxable-incomes-histogram-$(measure)-$(fno).csv"),summary.taxable_income_hists[fno][measure] )
@@ -1599,7 +1602,8 @@ function dump_frames(
         fname = joinpath( outdir, "indiv_$(fno).csv")
         CSV.write( fname, frames.indiv[fno];append=append,delim=',' )
         fname = joinpath( outdir, "income_$(fno).csv")
-        CSV.write( fname, frames.income[fno]; append=append,delim=',' )
+        CSV.write( fname, frames.income[fno]; append=append,delim=',' )        
+        CSV.write( joinpath( outdir, "sfc-behavioural_adjustments-$(fno)-vs-1.csv"), frames.behavioural_results[fno] )        
     end
 end
 
