@@ -17,11 +17,11 @@ function load_sys_2024_25_scotland!( sys :: TaxBenefitSystem{T} ) where T
         45,   # advanced
         48.0] # top
     sys.it.non_savings_thresholds = T[
-        2827.0,
-        14921.0,
-        31092.0,
-        63429.0,
-        112570.0]
+        2_306.0,
+        13_991.0,
+        31_092.0,
+        62_430.0,
+        125_140.0]
     sys.it.non_savings_basic_rate = 2 # above this counts as higher rate rate FIXME 3???
     # sys.nmt_bens.carers.scottish_supplement = 0.0 # FROM APRIL 2021
     sys.nmt_bens.carers.scottish_supplement = 231.40 # FROM APRIL 2021
