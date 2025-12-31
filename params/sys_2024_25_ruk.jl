@@ -48,7 +48,7 @@ function load_sys_2025_26_pre_announced(sys :: TaxBenefitSystem{T} ) where T
     sys.it.marriage_allowance   = 1_260.00
     sys.it.personal_savings_allowance = 1_000.00
     sys.ni.secondary_class_1_rates = [0.0, 15.0, 15.0 ] # keep 2 so
-  end
+end
 
 function load_sys_2024_25_ruk!( sys :: TaxBenefitSystem{T} ) where T
     sys.name = "rUK System 2024/5"
