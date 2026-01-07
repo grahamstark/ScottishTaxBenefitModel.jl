@@ -80,14 +80,18 @@ make_shared_package( "GData", [
     "FileIO"])
 make_shared_package( "GWebIO", [
     "Genie", 
+    "Images",
     "Pluto", 
+    "PlutoLinks",
     "PlutoUI", 
     "Oxygen",
     "IJulia", 
     "Mux", 
     "HTTP", 
     "PlutoExtras", 
+    "PlutoHooks",
     "Observables", 
+    "PlutoTeachingTools",
     "PlutoSliderServer"])
 make_shared_package( "GTest", [
     "BenchmarkTools", 
