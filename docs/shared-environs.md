@@ -150,4 +150,19 @@ if isinteractive()
 end
 ``` 
 
-~    
+## Using
+
+1 add shared to load path:
+
+```julia
+push!(LOAD_PATH,"@GWebIO")
+using Pluto
+
+```
+
+2 `@usingany` macro
+
+```julia 
+@usingany Pluto
+```
+
