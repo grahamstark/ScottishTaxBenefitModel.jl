@@ -154,7 +154,7 @@ use_shs = true
 wealth_method = "matching"
 weighting_relative_to_ons_weights = false
 weighting_strategy = "use_runtime_computed_weights"
-weighting_target_year = 2025
+weighting_target_year = 2026
 do_sfc_behavioural_changes = true
 
 [targets]
