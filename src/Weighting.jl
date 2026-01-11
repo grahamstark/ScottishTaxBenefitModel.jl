@@ -45,8 +45,9 @@ export
 #
 # all possible datasets - we could just comment out ones we're not using 
 #
-include(joinpath(SRC_DIR,"targets","scotland-2025.jl"))
 include(joinpath(SRC_DIR,"targets","scotland-2022.jl"))
+include(joinpath(SRC_DIR,"targets","scotland-2025.jl"))
+include(joinpath(SRC_DIR,"targets","scotland-2026.jl"))
 include(joinpath(SRC_DIR,"targets","wales-2023.jl"))
 include(joinpath(SRC_DIR,"targets","wales-longterm.jl"))
 
@@ -84,7 +85,19 @@ end
 TODO add wales stuff here. maybe a year override?
 """
 function get_targets( settings :: Settings )::NamedTuple
-    if settings.weighting_target_year == 2025
+    if settings.weighting_target_year == 2026
+        # we have hh and all people versions of 2025 targets, so ..
+        targets = if settings.include_institutional_population
+            DEFAULT_TARGETS_SCOTLAND_2026_INC_INSTITUTIONAL
+        else
+            DEFAULT_TARGETS_SCOTLAND_2026_HHLD_ONLY
+        end
+        return (;
+            household_total = sum( targets[42:48]), 
+            targets = targets,
+            initialise_target_dataframe = initialise_target_dataframe_scotland_2025,
+            make_target_row! = make_target_row_scotland_2025! )
+    elseif settings.weighting_target_year == 2025
         # we have hh and all people versions of 2025 targets, so ..
         targets = if settings.include_institutional_population
             DEFAULT_TARGETS_SCOTLAND_2025_INC_INSTITUTIONAL
