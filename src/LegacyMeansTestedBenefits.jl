@@ -787,6 +787,9 @@ function calc_NDDs(
     incomes  :: LMTIncomes,
     hb       :: HousingBenefits )::Real
     ndd = 0.0
+    if length( hb.ndd_deductions ) == 0
+        return 0.0
+    end
     # income based on the couples income if it is a couple
     any_pay_ndds = false
     for pid in bu.adults 
