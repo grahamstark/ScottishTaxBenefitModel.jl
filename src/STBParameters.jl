@@ -1313,6 +1313,8 @@ include( "$(MODEL_PARAMS_DIR)/sys_2024_25_ruk.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2024_25_scotland.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2025_26_ruk.jl")
 include( "$(MODEL_PARAMS_DIR)/sys_2025_26_scotland.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2026_27_ruk.jl")
+include( "$(MODEL_PARAMS_DIR)/sys_2026_27_scotland.jl")
 
 """
 return the full system for the given date, weeklyised

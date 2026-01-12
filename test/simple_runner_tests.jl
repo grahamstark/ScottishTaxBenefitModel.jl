@@ -44,8 +44,8 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     settings.means_tested_routing = mtrouting
     settings.run_name="run-$(mtrouting)-$(date_string())"
     sys = [
-        get_default_system_for_fin_year(2025; scotland=true), 
-        get_default_system_for_fin_year( 2025; scotland=true )]
+        get_default_system_for_fin_year(2026; scotland=true), 
+        get_default_system_for_fin_year( 2026; scotland=true )]
     tot = 0
     results = do_one_run( settings, sys, obs )
     h1 = results.hh[1]

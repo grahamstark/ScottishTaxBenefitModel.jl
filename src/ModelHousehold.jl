@@ -315,11 +315,15 @@ function uprate!( hh :: Household, settings::Settings )
     hh.gross_housing_costs = uprate( hh.gross_housing_costs, hh.interview_year, hh.quarter, upr_nominal_gdp )
     # hh.total_income = uprate( hh.total_income, hh.interview_year, hh.quarter, upr_nominal_gdp )
     if settings.wealth_method != matching # since matched wealth data is pre-uprated
-        hh.total_wealth = uprate( hh.total_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
         hh.net_physical_wealth = uprate( hh.net_physical_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
         hh.net_financial_wealth = uprate( hh.net_financial_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
-        hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        hh.net_housing_wealth = uprate( hh.net_housing_wealth, hh.interview_year, hh.quarter, upr_house_prices )
         hh.net_pension_wealth = uprate( hh.net_pension_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+
+        hh.total_wealth = hh.net_physical_wealth + hh.net_financial_wealth + hh.net_housing_wealth +
+            hh.net_pension_wealth
+        # uprate( hh.total_wealth, hh.interview_year, hh.quarter, upr_nominal_gdp )
+        
     end
     hh.house_value = uprate( hh.house_value, hh.interview_year, hh.quarter, upr_house_prices )
     for (pid,person) in hh.people
@@ -995,7 +999,7 @@ function infer_house_price!( hh :: Household, settings :: Settings )
             c = ["(Intercept)"            10.576
             "scotland"               -0.279896
             "wales"                  -0.286636
-            "london"                  0.843206
+            "london"                  0.843206 
             "owner"                   0.0274378
             "detatched"               0.139247
             "semi"                   -0.169271

@@ -25,6 +25,9 @@ export uprate, UPRATE_MAPPINGS
 
 #
 # This maps our uprate types to the column names in the `indexes.tab` file.
+
+	
+
 #
 Uprate_Map = Dict(
     upr_earnings => :average_earnings,
@@ -36,7 +39,7 @@ Uprate_Map = Dict(
     # not used upr_gdp_deflator => :gdp_deflator,
     upr_nominal_gdp => :nominal_gdp,
     upr_shares => :equity_prices,
-    upr_house_prices => :seasonally_adjusted_house_price_index
+    upr_house_prices => :house_price_index_sa
 )
 
 function make_uprate_types() :: Dict
@@ -178,6 +181,11 @@ function load_prices( settings :: Settings, reload :: Bool = false )
         if ! (lcnames[col] in [:q, :year, :date ]) # got to be a better way
             upr[!,col] .= baser./upr[!,col]
         end
+    end
+    upr[!,:house_price_index_sa] = if settings.target_nation == N_Scotland
+        copy( upr[!,:scotland_house_price_index_sa] )
+    else
+        copy( upr[!,:uk_house_price_index_sa] )
     end
     UPRATING_DATA = upr
 end

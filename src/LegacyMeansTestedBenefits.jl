@@ -837,6 +837,9 @@ function calc_NDDs(
     return ndd
 end
 
+"""
+FIXME refactor this so we pass in one of CTR, HB.
+"""
 function calculateHB_CTR!( 
     household_result :: HouseholdResult,
     which_ben        :: LMTBenefitType,
@@ -921,13 +924,20 @@ function calculateHB_CTR!(
                 end
             end
         else # ndds for hb, not ctr
-            if which_ben == hb
-                ndds += calc_NDDs(
+            ndds += if which_ben == hb
+                calc_NDDs(
                     bu,
                     bures,
                     intermed.buint[bn],
                     incomes,
                     lmt_ben_sys.hb )
+            else
+                calc_NDDs(
+                    bu,
+                    bures,
+                    intermed.buint[bn],
+                    incomes,
+                    lmt_ben_sys.ctr )
             end
         end
     end

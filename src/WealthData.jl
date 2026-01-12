@@ -26,7 +26,7 @@ IND_MATCHING = DataFrame()
 WEALTH_DATASET = DataFrame() 
 const WEALTH_COLS = [:net_housing,:net_physical,:total_pensions,:net_financial,
                 :total_value_of_other_property,
-                :total_financial_liabilities,:total_household_wealth,:house_price]   
+                :total_financial_liabilities,:total_household_wealth]   
 function jam_on_float( i :: Int, name )
     return name in WEALTH_COLS ? Float64 : nothing
 end
@@ -73,10 +73,22 @@ function uprate_raw_wealth(settings::Settings)
     nr = size(WEALTH_DATASET)[1]
     for i in 1:nr
         r = WEALTH_DATASET[i,:]
-        ## FIXME house_price index
+        r[:net_housing] = Uprating.uprate( r[:net_housing], r.year, r.q, Uprating.upr_house_prices )
+        r[:net_physical] = Uprating.uprate( r[:net_physical], r.year, r.q, Uprating.upr_nominal_gdp )
+        r[:total_pensions] = Uprating.uprate( r[:total_pensions], r.year, r.q, Uprating.upr_nominal_gdp )
+        r[:net_financial] = Uprating.uprate( r[:net_financial], r.year, r.q, Uprating.upr_nominal_gdp )
+        r[:total_value_of_other_property] = Uprating.uprate( r[:total_value_of_other_property], r.year, r.q, Uprating.upr_nominal_gdp )
+        r[:total_financial_liabilities] = Uprating.uprate( r[:total_financial_liabilities], r.year, r.q, Uprating.upr_nominal_gdp )
+
+        r[:total_household_wealth] = r[:net_housing] + r[:net_physical] + r[:total_pensions] +
+            r[:net_financial] + r[:total_value_of_other_property] # - r[:total_financial_liabilities]
+        
+        #=
         for sym in WEALTH_COLS
             r[sym] = Uprating.uprate( r[sym], r.year, r.q, Uprating.upr_nominal_gdp )
         end
+        =#
+        r[:house_price] = Uprating.uprate( r[:house_price], r.year, r.q, Uprating.upr_house_prices )
     end
 end
 
