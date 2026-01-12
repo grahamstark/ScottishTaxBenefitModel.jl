@@ -1,6 +1,6 @@
 name = "ScottishTaxBenefitModel"
 uuid = "a734f2ee-4b7f-478f-84ca-797081d39f6e"
-version = "0.1.8"
+version = "0.1.7"
 authors = ["Graham Stark", "Juan-Pedro Castro"]
 
 [deps]
