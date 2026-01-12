@@ -1374,10 +1374,12 @@ function get_default_system_for_date(
         if scotland 
             load_sys_2025_26_scotland!( sys )
         end
+    elseif date in fy(2026)
+        load_sys_2026_27_ruk!( sys )
+        if scotland 
+            load_sys_2026_27_scotland!( sys )
+        end
     else
-        # if date in  fy(2024)
-        ## TODO
-        # else
         error( "system for $date hasn't been created yet")
     end
     if autoweekly
