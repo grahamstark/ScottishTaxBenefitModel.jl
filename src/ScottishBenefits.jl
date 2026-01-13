@@ -16,7 +16,7 @@ using .ModelHousehold:
     
 using .STBParameters: 
     ScottishChildPayment
-
+using .GeneralTaxComponents:do_stepped_tax_calculation
 using .STBIncomes
 using .Definitions
 
@@ -37,9 +37,18 @@ function calc_scottish_child_payment!(
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
-    nkids = count( bu, le_age, scpsys.maximum_age )   
-    if( nkids > 0 ) && has_any( bur, scpsys.qualifying_benefits... )
-        scp = nkids * scpsys.amount
+    # nkids = count( bu, le_age, scpsys.maximum_age )   
+    if( length(bu.children) > 0 ) && has_any( bur, scpsys.qualifying_benefits... )
+        scp = 0.0
+        for p in bu.children
+            ch = bu.people[p]
+            scp += do_stepped_tax_calculation(;
+            taxable=ch.age,
+            rates=scpsys.amounts,
+            bands=scpsys.maximum_ages,
+            fixed_sum=true).due
+        end
+        # scp = nkids * scpsys.amount
         spouse = get_spouse( bu )
         target_pid = BigInt(-1)
         if spouse === nothing

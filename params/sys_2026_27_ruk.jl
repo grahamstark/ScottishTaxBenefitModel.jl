@@ -374,8 +374,8 @@ function load_sys_2026_27_ruk!( sys :: TaxBenefitSystem{T} ) where T
   # here so it's always on 
   # COMMENT: Scottish Child Payment not in PDF - need separate Scottish source
   sys.scottish_child_payment.abolished = false
-  sys.scottish_child_payment.amount = 26.70  # TODO: CHECK 2026/27
-  sys.scottish_child_payment.maximum_age = 15
+  sys.scottish_child_payment.amounts = [26.70,0.0]  # TODO: CHECK 2026/27
+  sys.scottish_child_payment.maximum_ages = [15,99]
   
 
 end

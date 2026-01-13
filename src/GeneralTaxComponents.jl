@@ -12,9 +12,8 @@ export
    IncomesDict, 
    IndirResult,
    RateBands,
-   TaxResult, 
-
-   
+   TaxResult,
+   rooker_wise,
    calc_factor_cost,
    calc_indirect, 
    calctaxdue, 
@@ -74,14 +73,43 @@ function uprate!(
    # TODO
 end
 
+
+function roundup(x; next=100)
+    v = trunc(x/next)*next
+    return if v ≈ x
+      x
+    else
+      v + next
+    end 
+end 
+
 """
 UK Tax bands have special rules - annual band *gaps* uprated to *next* £100
+`uprate_by` is a **percenage**
 """
-function uprate!(
-   bands     :: RateBands,
-   uprate_by :: Real,
-   next      :: Real = 0.0 )
-   # TODO
+function rooker_wise(
+   ;
+   bands :: RateBands,
+   uprate_pct :: Real,
+   next :: Real = 0.0 )::RateBands
+   # @argcheck next in 0:100
+   addinf = false
+   if isinf(bands[end])
+      pop!(bands)
+      addinf = true
+   end
+   n = length(bands)
+   gaps = [bands[1], (bands[2:end] .- bands[1:end-1])...]
+   gaps = roundup.(gaps.*(1+(uprate_pct/100.0)), next=next)
+   obands = zeros(n)
+   obands[1] = gaps[1]
+   for i in 2:n
+      obands[i] = obands[i-1]+gaps[i]
+   end
+   if addinf
+      push!(obands,Inf)
+   end
+   return obands
 end
 
 """

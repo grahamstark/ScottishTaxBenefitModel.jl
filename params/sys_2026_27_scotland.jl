@@ -65,8 +65,8 @@ function load_sys_2026_27_scotland!( sys :: TaxBenefitSystem{T} ) where T
 
     # here so it's always on 
     sys.scottish_child_payment.abolished = false
-    sys.scottish_child_payment.amount = 28.20
-    sys.scottish_child_payment.maximum_age = 15
+    sys.scottish_child_payment.amounts = [28.20,0.0]
+    sys.scottish_child_payment.maximum_ages = [15,99]
     #
     # Renames to Scottish benefits.
     sys.nmt_bens.carers.slot = CARERS_SUPPORT_PAYMENT

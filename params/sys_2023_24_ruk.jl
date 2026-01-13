@@ -365,7 +365,7 @@ function load_sys_2023_24_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   # here so it's always on 
   sys.scottish_child_payment.abolished = false
-  sys.scottish_child_payment.amount = 25.0
-  sys.scottish_child_payment.maximum_age = 15
+  sys.scottish_child_payment.amounts = [25.0,0.0]
+  sys.scottish_child_payment.maximum_ages = [15,99]
 
 end

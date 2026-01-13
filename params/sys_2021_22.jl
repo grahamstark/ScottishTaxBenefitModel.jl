@@ -331,8 +331,8 @@ function load_sys_2021_22!( sys :: TaxBenefitSystem{T} ) where T
     sys.bencap.inside_london_couple  = 442.31
     sys.bencap.uc_incomes_limit  = 617
 
-    sys.scottish_child_payment.amount = 10.0
-    sys.scottish_child_payment.maximum_age = 5
+    sys.scottish_child_payment.amounts = [10.0,0]
+    sys.scottish_child_payment.maximum_ages = [5,99]
 
     sys.ubi.abolished = true
     sys.ubi.adult_amount = 4_800.0

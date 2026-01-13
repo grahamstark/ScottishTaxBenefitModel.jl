@@ -30,6 +30,7 @@ include( "vs_age_uk_tests.jl")
 include( "affordability_tests.jl")
 include( "stboutput_tests.jl")
 include( "household_adjuster_tests.jl")
+include( "test_load_parameters.jl")
 
 # These will only run if datasets are locally installed
 if IS_LOCAL

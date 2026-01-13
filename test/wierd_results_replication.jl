@@ -78,7 +78,7 @@ end
     chsys = deepcopy( sys )
     obs = Observable( 
 		Progress(settings.uuid, "",0,0,0,0))
-	chsys.scottish_child_payment.amount = 20.0
+	chsys.scottish_child_payment.amounts = [20.0]
 	params = [sys, chsys]
     results = do_one_run( settings, params, obs )
 	p = collect(keys(skipmissing( results.indiv[1].metr )))

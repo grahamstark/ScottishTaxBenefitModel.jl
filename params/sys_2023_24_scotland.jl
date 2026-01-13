@@ -49,8 +49,8 @@ function load_sys_2023_24_scotland!( sys :: TaxBenefitSystem )
 
    # here so it's always on 
    sys.scottish_child_payment.abolished = false
-   sys.scottish_child_payment.amount = 25.00
-   sys.scottish_child_payment.maximum_age = 15
+   sys.scottish_child_payment.amounts = [25.00,0.0]
+   sys.scottish_child_payment.maximum_ages = [15,99]
    # Renames to Scottish benefits.
    sys.nmt_bens.carers.slot = CARERS_SUPPORT_PAYMENT
    sys.nmt_bens.dla.care_slot = CHILD_DISABILITY_PAYMENT_CARE

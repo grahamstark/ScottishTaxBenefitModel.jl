@@ -48,7 +48,7 @@ settings = initialise_settings()
 
 sys = get_default_system_for_date( FY_2021 )
 chsys = deepcopy( sys )
-chsys.scottish_child_payment.amount = 20.0
+chsys.scottish_child_payment.amounts = [20.0]
 
 params = [sys, chsys]
             
