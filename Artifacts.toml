@@ -7,11 +7,11 @@ lazy = true
     url = "https://virtual-worlds.biz/artifacts//augdata-v0.1.6.tar.gz"
 
 ["augdata-unix-v0.1.7"]
-git-tree-sha1 = "d39a60a6a81f61482a42f1891f7a7e9c25504e14"
+git-tree-sha1 = "07432efeb403fe4f3eaacb0947af31c60738dd40"
 lazy = true
 
     [["augdata-unix-v0.1.7".download]]
-    sha256 = "471ef1f8e238fccb8129da80f990e57c3b6a2aa72f860620b0208fe839fd1eaf"
+    sha256 = "762dac554ad311a380426f701737d1f8c103745d862cabb974aa802bb100c997"
     url = "https://virtual-worlds.biz/artifacts//augdata-v0.1.7.tar.gz"
 
 ["augdata-windows-v0.1.6"]
