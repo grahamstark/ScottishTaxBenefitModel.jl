@@ -297,13 +297,19 @@ export
         return lt, nt
     end
 
+    """
+
+    """
     function band_from_value(
         house_value :: Real,
-        band_values :: Dict ) :: CT_Band
+        band_values :: Dict;
+        keep_band = Band_I ) :: CT_Band
         for b in instances( CT_Band )
-            if b !== Missing_CT_Band
-                if house_value <= band_values[b]
-                    return b
+            if b > keep_band 
+                if b !== Missing_CT_Band
+                    if house_value <= band_values[b]
+                        return b
+                    end
                 end
             end
         end
@@ -351,7 +357,8 @@ export
         if ctsys.revalue 
             ct_band = band_from_value( 
                 hh.house_value, 
-                ctsys.house_values ) 
+                ctsys.house_values;
+                keep_bands=Band_J ) 
         end
         # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
         ctres = ctsys.band_d[hh.council] * 

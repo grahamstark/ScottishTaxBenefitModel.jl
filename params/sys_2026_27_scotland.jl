@@ -8,7 +8,7 @@
  Benefits: https://bprcdn.parliament.scot/published/2024/3/14/6f58227d-21aa-4016-91e6-f3d0bb29962d/SB%2024-15.pdf
 """
 function load_sys_2026_27_scotland!( sys :: TaxBenefitSystem{T} ) where T
-    sys.name = "Scottish System 2026/27 TODO!"
+    sys.name = "Scottish System 2026/27"
     sys.it.non_savings_rates = T[
         19.0, # starter
         20.0, # basic
@@ -17,8 +17,8 @@ function load_sys_2026_27_scotland!( sys :: TaxBenefitSystem{T} ) where T
         45,   # advanced
         48.0] # top
     sys.it.non_savings_thresholds = T[
-        2_827.0,
-        14_921.0,
+        3_967.0,
+        16_956.0,
         31_092.0,
         62_430.0,
         125_140 ]
@@ -65,7 +65,7 @@ function load_sys_2026_27_scotland!( sys :: TaxBenefitSystem{T} ) where T
 
     # here so it's always on 
     sys.scottish_child_payment.abolished = false
-    sys.scottish_child_payment.amount = 27.15
+    sys.scottish_child_payment.amount = 28.20
     sys.scottish_child_payment.maximum_age = 15
     #
     # Renames to Scottish benefits.

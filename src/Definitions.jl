@@ -1069,6 +1069,8 @@ export Band_A,
        Band_G,
        Band_H,
        Band_I,
+       Band_J,
+       Band_K,
        Household_not_valued_separately
 export Missing_CT_Band
 
@@ -1083,7 +1085,9 @@ export Missing_CT_Band
    Band_G = 7
    Band_H = 8
    Band_I = 9
-   Household_not_valued_separately = 10
+   Band_J = 10
+   Band_K = 11
+   Household_not_valued_separately = 12
 end
 
 export Disability_Type,
