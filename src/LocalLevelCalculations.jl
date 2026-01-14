@@ -367,7 +367,7 @@ export
                 hh.house_value, 
                 ctsys.house_values,
                 hh.ct_band;
-                keep_bands=ctsys.keep_band ) 
+                keep_band=ctsys.keep_band ) 
         end
         # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
         ctres = ctsys.band_d[hh.council] * 
