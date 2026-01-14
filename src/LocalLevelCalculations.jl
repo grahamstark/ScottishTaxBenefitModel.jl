@@ -43,6 +43,7 @@ export
     LA_BRMA_MAP, 
     apply_rent_restrictions,
     apply_size_criteria, 
+    band_from_value,
     calc_council_tax, 
     calc_proportional_property_tax,
     lookup, 
@@ -298,20 +299,27 @@ export
     end
 
     """
-
+    revalue, 
     """
     function band_from_value(
         house_value :: Real,
-        band_values :: Dict;
-        keep_band = Band_I ) :: CT_Band
+        band_values :: Dict,
+        existing_band :: CT_Band;
+        keep_band = No_Band ) :: CT_Band
+        outband = existing_band
         for b in instances( CT_Band )
-            if b > keep_band 
-                if b !== Missing_CT_Band
-                    if house_value <= band_values[b]
-                        return b
-                    end
+            if ! (b in [Missing_CT_Band, No_Band])
+                if house_value <= band_values[b]
+                    outband = b
+                    break
                 end
             end
+        end
+        @show outband keep_band existing_band
+        return if outband <= keep_band
+            existing_band
+        else
+            outband
         end
         @assert false "failed to match CT Band for value $house_value"
     end
@@ -357,8 +365,9 @@ export
         if ctsys.revalue 
             ct_band = band_from_value( 
                 hh.house_value, 
-                ctsys.house_values;
-                keep_bands=Band_J ) 
+                ctsys.house_values,
+                hh.ct_band;
+                keep_bands=stsys.keep_band ) 
         end
         # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
         ctres = ctsys.band_d[hh.council] * 

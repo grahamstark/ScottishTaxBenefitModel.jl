@@ -15,7 +15,7 @@ using .FRSHouseholdGetter
 using .RunSettings: Settings
 using .LocalLevelCalculations: apply_size_criteria, apply_rent_restrictions,
     make_la_to_brma_map, LA_BRMA_MAP, lookup, apply_rent_restrictions, calc_council_tax,
-    calc_proportional_property_tax
+    calc_proportional_property_tax, band_from_value
 using .Monitor: Progress
 using .WeightingData: LA_NAMES, LA_CODES
 
@@ -32,7 +32,7 @@ sys = get_system( year=2019, scotland=true )
 settings = Settings()
 
 rc = @timed begin
-    settings.num_households,settings.num_people,nhh2 = FRSHouseholdGetter.initialise( Settings(), reset=true )
+    settings.num_households,settings.num_people,nhh2 = FRSHouseholdGetter.initialise( Settings(), reset=false )
 
 end
 
@@ -45,6 +45,31 @@ of = on(obs) do p
 
     tot += p.step
     println(tot)
+end
+
+
+@testset "Revaluation Tests" begin
+    sys = get_default_system_for_fin_year( 2026; scotland=true )
+    sys.loctax.ct.house_values[Band_H] = 1_000_000
+    sys.loctax.ct.house_values[Band_I] = 2_000_000
+    sys.loctax.ct.house_values[Band_J] = 99999999999
+    
+    sys.loctax.ct.keep_band = Band_H
+    sys.loctax.ct.relativities[Band_I] = 840/360
+    sys.loctax.ct.relativities[Band_J] = 960/360
+    sys.loctax.ct.revalue = true
+    b = band_from_value(
+        200_000, sys.loctax.ct.house_values, Band_D; keep_band=Band_H )
+    @test b == Band_D
+    b = band_from_value(
+        1_000_001, sys.loctax.ct.house_values, Band_D; keep_band=Band_C )
+    @test b == Band_I
+    b = band_from_value(
+         2_000_001.0, sys.loctax.ct.house_values, Band_D; keep_band=Band_H )
+    @test b == Band_J
+    b = band_from_value(
+        1_000_001, sys.loctax.ct.house_values, Band_D; keep_band=Band_I )
+    @test b == Band_D
 end
 
 @testset "Local Proportional Property Tax" begin

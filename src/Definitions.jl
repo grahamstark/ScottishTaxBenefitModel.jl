@@ -1060,7 +1060,8 @@ end
 
 
 export CT_Band  # mapped from ctband
-export Band_A,
+export No_Band,
+       Band_A,
        Band_B,
        Band_C,
        Band_D,
@@ -1071,11 +1072,13 @@ export Band_A,
        Band_I,
        Band_J,
        Band_K,
+       Band_L,
        Household_not_valued_separately
 export Missing_CT_Band
 
 @enum CT_Band begin  # mapped from ctband
    Missing_CT_Band = -1
+   No_Band = 0
    Band_A = 1
    Band_B = 2
    Band_C = 3

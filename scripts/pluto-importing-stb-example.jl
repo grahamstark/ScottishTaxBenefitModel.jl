@@ -103,10 +103,10 @@ function get_system(; scotland::Bool ) :: TaxBenefitSystem
    #
    # So, assuming that the default has these things set ... 
    #
-   @assert sys.scottish_child_payment.amount > 0
+   @assert sys.scottish_child_payment.amounts[1] > 0
    if ! scotland
-      sys.scottish_child_payment.amount = 0.0
-      sys.scottish_child_payment.maximum_age = 0
+      sys.scottish_child_payment.amounts = [0.0]
+      sys.scottish_child_payment.maximum_ages = [0]
       sys.scottish_child_payment.qualifying_benefits = []
       sys.nmt_bens.carers.scottish_supplement = 0.0
    end

@@ -58,9 +58,9 @@ function do_scottish_child_payments()::Tuple
     for inc in 0:5:55
         sys = get_default_system_for_fin_year(2024; scotland=true)
         if inc == 55
-            sys.scottish_child_payment.amount = 0.0
+            sys.scottish_child_payment.amounts = [0.0]
         else
-            sys.scottish_child_payment.amount += inc
+            sys.scottish_child_payment.amounts .+= inc
         end
         push!( systems, sys)
     end

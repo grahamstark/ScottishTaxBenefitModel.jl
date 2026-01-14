@@ -1,5 +1,4 @@
-module STBParameters
-    
+module STBParameters   
 #
 # This module models all the parameters (tax rates, benefit levels, ages, etc.) needed to model
 # the Scottish/UK Tax and Benefit System. Also functions to convert everything to weekly amounts.
@@ -8,48 +7,86 @@ module STBParameters
 # parameters should be loaded that way rather than by changing the defaults, as the 19/20 system is used
 # heavily in the unit tests.
 #
+# TODO Use Unitful to have currency weekly monthly annual counts as annotations
+# using Unitful
+#
+using CSV
+using DataFrames
+using DataStructures
 using Dates
-using Dates: Date, now, TimeType, Year
-using TimeSeries
-using StaticArrays
-using Parameters
-using Pkg, LazyArtifacts
 using LazyArtifacts
-using DataFrames,CSV
+using Parameters
+using Pkg
+using StaticArrays
+using TimeSeries
 
 using ScottishTaxBenefitModel
-using .GeneralTaxComponents: RateBands
-using .Definitions
-using .Utils
-using .TimeSeriesUtils: fy, fy_array
-using .STBIncomes
 using .ConsumptionData
+using .Definitions
+using .GeneralTaxComponents: RateBands
+using .STBIncomes
+using .TimeSeriesUtils: fy, fy_array
+using .Utils
 
-# FIXME make this ordered list
-export IncomeTaxSys, NationalInsuranceSys, TaxBenefitSystem, SavingsCredit
-export WorkingTaxCredit, SavingsCredit, IncomeRules, MinimumWage, PersonalAllowances
-export weeklyise!, annualise!, AgeLimits, HoursLimits, LegacyMeansTestedBenefitSystem
-export HousingBenefits, HousingRestrictions, Premia, ChildTaxCredit
-export LocalTaxes, CouncilTax, ProportionalPropertyTax, wales_ct_house_values
-export state_pension_age, reached_state_pension_age
-export BRMA, loadBRMAs, DEFAULT_BRMA_2021
-export UniversalCreditSys
-export CTRSys
-export AttendanceAllowance, ChildBenefit, DisabilityLivingAllowance
-export CarersAllowance, PersonalIndependencePayment, ContributoryESA
-export WidowsPensions, BereavementSupport, RetirementPension, JobSeekersAllowance
-export NonMeansTestedSys, MaternityAllowance, ChildLimits
-export BenefitCapSys, make_ubi_pre_adjustments!
-export OtherTaxesSys, IndirectTaxSystem, VATSystem, WealthTaxSys
-export DataAdjustments, get_minimum_wage
-export OneLegalAidSys, ScottishLegalAidSys, do_expense, Expense
-export get_default_system_for_date, 
+export AgeLimits,
+    annualise!,
+    AttendanceAllowance,
+    BenefitCapSys,
+    BereavementSupport,
+    BRMA,
+    CarersAllowance,
+    ChildBenefit,
+    ChildLimits,
+    ChildTaxCredit,
+    ContributoryESA,
+    CouncilTax,
+    CTRSys,
+    DataAdjustments,
+    DEFAULT_BRMA_2021,
+    DisabilityLivingAllowance,
+    do_expense,
+    Expense,
     get_default_system_for_cal_year, 
-    get_default_system_for_fin_year
-const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
+    get_default_system_for_date,
+    get_default_system_for_fin_year,
+    get_minimum_wage,
+    HoursLimits,
+    HousingBenefits,
+    HousingRestrictions,
+    IncomeRules,
+    IncomeTaxSys,
+    IndirectTaxSystem,
+    JobSeekersAllowance,
+    LegacyMeansTestedBenefitSystem,
+    loadBRMAs,
+    LocalTaxes,
+    make_ubi_pre_adjustments!,
+    MaternityAllowance,
+    MinimumWage,
+    NationalInsuranceSys,
+    NonMeansTestedSys,
+    OneLegalAidSys,
+    OtherTaxesSys,
+    PersonalAllowances,
+    PersonalIndependencePayment,
+    Premia,
+    ProportionalPropertyTax,
+    reached_state_pension_age,
+    RetirementPension,
+    SavingsCredit,
+    SavingsCredit,
+    ScottishLegalAidSys,
+    state_pension_age,
+    TaxBenefitSystem,
+    UniversalCreditSys,
+    VATSystem,
+    wales_ct_house_values,
+    WealthTaxSys,
+    weeklyise!,
+    WidowsPensions,
+    WorkingTaxCredit
 
-## TODO Use Unitful to have currency weekly monthly annual counts as annotations
-# using Unitful
+const MCA_DATE = Date(1935,4,6) # fixme make this a parameter
 
 struct Expense{T}
     is_flat :: Bool
@@ -778,7 +815,7 @@ H	More than £212,000
 =# 
 
 function default_ct_house_values(RT)
-    return Dict{CT_Band,RT}(
+    return OrderedDict{CT_Band,RT}(
         Band_A=>27_000.0,
         Band_B=>35_000.0,
         Band_C=>45_000.0,
@@ -805,7 +842,7 @@ I	More than £424,000
 =#
 function wales_ct_house_values(RT)
 
-    return Dict{CT_Band,RT}(
+    return OrderedDict{CT_Band,RT}(
         Band_A=>44_000.0,
         Band_B=>65_000.0,
         Band_C=>91_000.0,
@@ -821,6 +858,7 @@ end
 @with_kw mutable struct CouncilTax{RT<:Real}
     abolished :: Bool = false
     revalue :: Bool = false
+    keep_band = No_Band
     house_values :: Dict{CT_Band,RT} = default_ct_house_values(RT)
     band_d :: Dict{Symbol,RT} = default_band_ds(RT)
     relativities :: Dict{CT_Band,RT} = default_ct_ratios(RT)
