@@ -315,7 +315,7 @@ export
                 end
             end
         end
-        @show outband keep_band existing_band
+        # @show outband keep_band existing_band
         return if outband <= keep_band
             existing_band
         else
