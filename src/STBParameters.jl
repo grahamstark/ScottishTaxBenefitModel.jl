@@ -876,6 +876,7 @@ end
     national_minimum_payment = zero(RT)
     fixed_sum = false
     single_person_discount = zero(RT)
+    spd_fixed_sum = false
 end
 
 @with_kw mutable struct LocalTaxes{RT<:Real}
