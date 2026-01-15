@@ -829,6 +829,18 @@ function default_ct_house_values(RT)
 end
 
 
+@with_kw mutable struct WinterFuelPayment{T<:Real}
+    income_limit=T(999_999_999)
+    amounts = T[0.0,200, 300] #203.40,305.10]
+    upper_age = 80
+end
+
+function weeklyise!( wfp :: WinterFuelPayment; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
+    wfp.income_limit /= wpy
+    wfp.amounts ./= wpy
+end
+
+
 #=
 A	Up to £44,000
 B	£44,000-£65,000
@@ -1234,7 +1246,7 @@ include( "other_scottish_benefits.jl")
     adjustments = DataAdjustments{RT}()
     legalaid = ScottishLegalAidSys{RT}()
     scottish_adjustments = ScottishAdjustments()
-    other_scottish_benefits = OtherScottishBenefits()
+    winter_fuel = WinterFuelPayment{RT}()
 end
 
 """
