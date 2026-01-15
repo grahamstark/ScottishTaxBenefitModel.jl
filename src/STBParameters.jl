@@ -1247,6 +1247,7 @@ include( "other_scottish_benefits.jl")
     legalaid = ScottishLegalAidSys{RT}()
     scottish_adjustments = ScottishAdjustments()
     winter_fuel = WinterFuelPayment{RT}()
+    other_scottish_benefits = OtherScottishBenefits{RT}()
 end
 
 """
@@ -1347,6 +1348,7 @@ function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_
     weeklyise!( tb.adjustments )
     weeklyise!( tb.legalaid )
     weeklyise!( tb.other_scottish_benefits; wpm=wpm, wpy=wpy )
+    weeklyise!( tb.winter_fuel; wpm=wpm, wpy=wpy )
 end
 
 include( "$(MODEL_PARAMS_DIR)/sys_2019_20_ruk.jl")
