@@ -22,5 +22,5 @@ One takeaway from this is that I have to start modelling the wider Scottish fisc
 
 Juan-Pedro has started contributing chunks of code to the model, which is quite exciting. He also live-updated the model's uprating data to match the SFC forecast. 
 
-
+FES and I have been using [Pluto Notebooks](https://plutojl.org/) for collaboration. It's worked really well. [I've been preparing them, adding needed graphics, tables and whatnot](https://github.com/grahamstark/MicrosimTraining), and we share the notebooks via github. Here's [a PDF dump of the Budget one](/assets/scottish-budget-2026-pluto.pdf). (The PDF doesn't render perfectly, unfortunately)
 
