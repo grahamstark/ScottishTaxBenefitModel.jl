@@ -290,12 +290,11 @@ export
             zero(RT)
         end
         if intermed.num_adults == 1
-            if pptsys.spd_fixed_sum
-                lt -= (pptsys.single_person_discount)*ctsys.band_d[hh.council]
-                nt -= (pptsys.single_person_discount)*ctsys.band_d[hh.council]
-            else 
+            if !pptsys.spd_fixed_sum
                 lt *= (1-pptsys.single_person_discount) 
                 nt *= (1-pptsys.single_person_discount) 
+            else 
+                lt -= pptsys.spd_fixed_sum 
             end
         end
         @show lt nt
