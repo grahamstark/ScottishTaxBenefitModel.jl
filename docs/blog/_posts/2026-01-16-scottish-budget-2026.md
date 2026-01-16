@@ -1,16 +1,26 @@
 ---
 layout: post
-date:  2026-01-15
+date:  2026-01-16
 category: Blog
 tag: Microsimulation
-title: Scotben Review
+title: Budget 2026
 author: graham_s
 nav_exclude: true
 ---
 
-Heres the [Essex Review](/assets/scotben-essex-review.pdf) of Scotben. All very fair, I think. 
+The [Scottish Budget](https://www.gov.scot/budget/) was on Tuesday. I helped the [Future Economy Scotland](https://www.futureeconomy.scot/) (FES) people do some [instant analysis](https://www.futureeconomy.scot/posts/388-scotland-s-budget-tough-choices-delayed-not-avoided). Kind of fun: took me back a little to when [IFS](https://ifs.org.uk) used to do [live analysis of the UK Budget for the BBC](http://news.bbc.co.uk/1/hi/in_depth/uk/2000/budget2000/default.stm).
+
+
 <!--more-->
 
-I will indeed work on a takeup routine, though I think it's likely hard to get right. (On that, I found a [paper on takeup I actually like](https://extranet.parisschoolofeconomics.eu/docs/gurgand-marc/castellgurgandimberttochev2025.pdf)).
+
+Juan-Pedro and Hanna from FES did a pretty good job, I think (I just do the numbers..). Key thing is that if you're serious about a Social Democratic, Green Scotland, that doesn't come for nothing, but you can't just tax the rich. 
+
+FES could prove really important small outfit because the standard of analysis of the Scottish fiscal system elsewhere is really depressingly bad. [The SFC do a creditable job](https://fiscalcommission.scot/publications/scotlands-economic-and-fiscal-forecasts-january-2026/) as best as I can tell, but other analyses, like this from the [Fraser of Allander](https://fraserofallander.org/a-budget-where-the-silences-were-loudest/) and this from [IFS](https://ifs.org.uk/articles/immediate-response-scottish-budget-and-spending-review) have just repeat SFC things without any attempt to validate or test different assumptions, but with a few headline-grabbing lines which add nothing. (IFS seems to me to have stuck in a similar doom loop with the OBR for at least a decade). 
+
+One takeaway from this is that I have to start modelling the wider Scottish fiscal system, especially the rUK Fiscal Framework and the block grant system to local authorities. I have to fully understand them first, though.. 
+
+Juan-Pedro has started contributing chunks of code to the model, which is quite exciting. He also live-updated the model's uprating data to match the SFC forecast. 
+
 
 
