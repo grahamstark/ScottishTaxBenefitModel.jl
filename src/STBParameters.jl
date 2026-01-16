@@ -886,6 +886,7 @@ end
     national_rates :: RateBands{RT} = [zero(RT)]
     national_bands :: RateBands{RT} = []
     national_minimum_payment = zero(RT)
+    # better this way: interpret `single_person_discount` as a fixed amount.
     fixed_sum = false
     single_person_discount = zero(RT)
     spd_fixed_sum = false
@@ -904,7 +905,6 @@ function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
     end
     lt.ct.single_person_discount /= 100.0
     lt.local_income_tax_rates ./= 100.0
-    lt.ppt.single_person_discount /= 100.0
     if lt.ppt.fixed_sum
         lt.ppt.local_rates /= wpy
         lt.ppt.national_rates /= wpy
@@ -912,7 +912,12 @@ function weeklyise!( lt :: LocalTaxes; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
         lt.ppt.local_rates /= (100.0*wpy)
         lt.ppt.national_rates /= (100.0*wpy)
     end
-    lt.ppt.local_minimum_payment /= wpy
+    if lt.ppt.spd_fixed_sum 
+        lt.ppt.single_person_discount /= wpy
+    else
+        lt.ppt.single_person_discount /= 100.0
+    end
+    lt.ppt.local_minimum_payment /= wpy    
     lt.ppt.national_minimum_payment /= wpy
 end
 

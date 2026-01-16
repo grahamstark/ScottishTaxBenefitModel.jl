@@ -16,7 +16,7 @@ This is mainly for my own reference.
 
 There are lots of reasons why we could be doing the right sums on the right data and still be way off in the aggregate - payment lags, non-takeup, macro-effects. And definitions - how do you count rebates for Council Tax or high income deductions from Child Benefit. Plus scope - 2nd homes for CT, pensions to non-householders in care homes, etc.. But it's still worthwhile to see if we're in the ballpark.
 
-This version uses uses ScotBen uprated to 2024q3 - I have a later version at home. I'm assuming full transition to Universal Credit, so the 'Legacy Benefit' stuff is soley pensioners, and 100% takeup - going to work [again!](https://ifs.org.uk/publications/take-means-tested-benefits-1984-90) on that one.
+
 
 The aggregates are assembled from all over the place - Scottish Fiscal Commission, GERS, ONS, Scottish Government, Social Security Scotland, Stat-XPlore. This is a [.bib file with everything](/assets/scotben-updating-and-aggregates-sources-2025-6-bib). A single, regularly updated, source for all this would be a good thing, I think. They don't all refer to the same periods (GERS, used for NI receipts is 2 years ago). 
 

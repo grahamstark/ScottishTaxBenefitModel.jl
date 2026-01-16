@@ -72,7 +72,83 @@ end
     @test b == Band_D
 end
 
-@testset "Local Proportional Property Tax" begin
+#=
+
+=#
+@testset "PPT Individual HH Calculations" begin
+    hh = get_example( cpl_w_2_children_hh )
+    sp = get_spouse(hh)
+    sys = get_default_system_for_fin_year( 2026, scotland=true, autoweekly=true )
+    intermed = make_intermediate( 
+            Float64,
+            settings,
+            hh, 
+            sys.hours_limits, 
+            sys.age_limits, 
+            sys.child_limits )
+    ppt = sys.loctax.ppt # ProportionalPropertyTax{Float64}()
+    ppt.abolished = false
+    ppt.local_rates = [0.002]
+    ppt.local_bands = [] # 2% of all house value
+    ppt.local_minimum_payment = 0.0
+    ppt.national_rates = [0.001]
+    ppt.national_bands = [] # 2% of all house value
+    ppt.national_minimum_payment = 0.0
+    ppt.fixed_sum = false
+    ppt.single_person_discount = 0.0
+    hh.house_value = 0.0
+    lt, nt = calc_proportional_property_tax( 
+        hh, 
+        intermed.hhint, 
+        ppt )
+    @test lt ≈ 0.0
+    @test nt ≈ 0.0
+    hh.house_value = 1_000_000.0
+    lt, nt = calc_proportional_property_tax( 
+        hh, 
+        intermed.hhint, 
+        ppt )
+    @test lt ≈ 2_000.0
+    @test nt ≈ 1_000.0
+    ppt.fixed_sum = false
+    ppt.single_person_discount = 0.5
+    lt, nt = calc_proportional_property_tax( 
+        hh, 
+        intermed.hhint, 
+        ppt )
+    # should make no difference to 2 ad household
+    @test lt ≈ 2_000.0
+    @test nt ≈ 1_000.0
+    # kill an adult
+    delete_person!(hh, sp.pid)
+    # this then needs recalculating..
+    intermed = make_intermediate( 
+            Float64,
+            settings,
+            hh, 
+            sys.hours_limits, 
+            sys.age_limits, 
+            sys.child_limits )
+    lt, nt = calc_proportional_property_tax( 
+        hh, 
+        intermed.hhint, 
+        ppt )
+    # should make no difference to 2 ad household
+    @test lt ≈ 1_000.0
+    @test nt ≈ 500.0
+    # fixed single discount
+    ppt.spd_fixed_sum = true
+    ppt.single_person_discount = 25.0
+    lt, nt = calc_proportional_property_tax( 
+        hh, 
+        intermed.hhint, 
+        ppt )
+    # should make no difference to 2 ad household
+    @test lt ≈ 1975.0
+    @test nt ≈ 975.0
+end
+
+@testset "Local Proportional Property Tax Full Run" begin
     # create a new system
     sys1 = get_default_system_for_fin_year( 2025, scotland=true, autoweekly=false )
 	sys2 = deepcopy( sys1 )		

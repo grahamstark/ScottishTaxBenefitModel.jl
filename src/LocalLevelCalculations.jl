@@ -253,6 +253,9 @@ export
         return hres
     end
 
+    """
+    See https://ukonward.com/reports/a-fairer-property-tax/
+    """
     function calc_proportional_property_tax( 
         hh :: Household{RT}, 
         intermed :: MTIntermediate,        
@@ -281,24 +284,30 @@ export
                 bands = pptsys.national_bands,
                 fixed_sum = true )
         end
+        nt = ntax.due
+        lt = ltax.due
         @show ltax
         # println( "hh.hid=$(hh.hid) hh.council=$(hh.council) hh.ct_band=$(hh.ct_band) ctsys.band_d=$(ctsys.band_d) ctsys.relativities=$(ctsys.relativities)")
-        lt = max( ltax.due, pptsys.local_minimum_payment )
-        nt = if ntax.due > 0
-            max( ntax.due, pptsys.national_minimum_payment )
-        else
-            zero(RT)
-        end
+        # 
         if intermed.num_adults == 1
-            if !pptsys.spd_fixed_sum
+            if pptsys.spd_fixed_sum # do positive one 1st
+                # 
+                lt -= pptsys.single_person_discount # Reuse single person discount field.
+                nt -= pptsys.single_person_discount
+            else 
                 lt *= (1-pptsys.single_person_discount) 
                 nt *= (1-pptsys.single_person_discount) 
-            else 
-                lt -= pptsys.spd_fixed_sum 
             end
         end
         @show lt nt
-        # TODO Disabled
+        # let national one go to 0, not local one; can't remember why
+        # in Leung ..
+        nt = if nt > 0
+            max( nt, pptsys.national_minimum_payment )
+        else
+            zero(RT)
+        end
+        lt = max( lt, pptsys.local_minimum_payment )
         return lt, nt
     end
 
