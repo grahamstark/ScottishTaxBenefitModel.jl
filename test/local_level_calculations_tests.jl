@@ -146,6 +146,15 @@ end
     # should make no difference to 2 ad household
     @test lt ≈ 1975.0
     @test nt ≈ 975.0
+    # min payments
+    ppt.local_minimum_payment = lt+1
+    ppt.national_minimum_payment = nt+1
+    nlt, nnt = calc_proportional_property_tax( 
+        hh, 
+        intermed.hhint, 
+        ppt )
+    @test nlt ≈ lt+1
+    @test nnt ≈ nt+1
 end
 
 @testset "Local Proportional Property Tax Full Run" begin
