@@ -283,6 +283,7 @@ end
     maternity = MaternityAllowance{RT}()
     smp :: RT = 148.68
     scdp = ScottishChildDisabilityPayment{RT}()
+    winter_fuel = WinterFuelPayment{RT}()
     # not modelled SDA,Incapacity which we just wrap into
     # ESA
 end
@@ -298,6 +299,7 @@ function weeklyise!( nmt :: NonMeansTestedSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PE
     # is withdrawn by 1% of the annual excess of income,
     # and the whole model is weekly, so ...
     nmt.child_benefit.withdrawal *= wpy/100
+    weeklyise!( nmt.winter_fuel; wpm=wpm, wpy=wpy )
 end
 
 @with_kw mutable struct IncomeTaxSys{RT<:Real}
@@ -1252,7 +1254,6 @@ include( "other_scottish_benefits.jl")
     adjustments = DataAdjustments{RT}()
     legalaid = ScottishLegalAidSys{RT}()
     scottish_adjustments = ScottishAdjustments()
-    winter_fuel = WinterFuelPayment{RT}()
     other_scottish_benefits = OtherScottishBenefits{RT}()
 end
 
@@ -1353,8 +1354,7 @@ function weeklyise!( tb :: TaxBenefitSystem; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_
     weeklyise!( tb.indirect; wpm=wpm, wpy=wpy )
     weeklyise!( tb.adjustments )
     weeklyise!( tb.legalaid )
-    weeklyise!( tb.other_scottish_benefits; wpm=wpm, wpy=wpy )
-    weeklyise!( tb.winter_fuel; wpm=wpm, wpy=wpy )
+    weeklyise!( tb.other_scottish_benefits; wpm=wpm, wpy=wpy )    
 end
 
 include( "$(MODEL_PARAMS_DIR)/sys_2019_20_ruk.jl")

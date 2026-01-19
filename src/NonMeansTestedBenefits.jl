@@ -19,12 +19,16 @@ using .ModelHousehold:
     Household, 
     Person, 
     get_benefit_units,
+    get_head,
+    get_spouse,
     has_income,
     num_children
 
 using .BenefitGenerosity: change_status
 
 using .Intermediate:
+    MTIntermediate,
+    HHIntermed,
     has_limited_capactity_for_work_activity,
     has_limited_capactity_for_work,
     make_recipient
@@ -45,6 +49,7 @@ using .STBParameters:
     RetirementPension, 
     ScottishChildDisabilityPayment,
     WidowsPensions, 
+    WinterFuelPayment,
     reached_state_pension_age
     
 using .Results: 
@@ -63,7 +68,8 @@ export
     calc_pre_tax_non_means_tested!, 
     calc_state_pension, 
     calc_widows_benefits,
-    calc_ruk_dla
+    calc_ruk_dla,
+    calc_winter_fuel!
     
 """
 Child Benefit - this has to be done *after* income tax, so we have
@@ -700,6 +706,46 @@ function calc_pre_tax_non_means_tested!(
 end # calc_non_means_tested
 
 """
+Questions:
+
+1. can > 1 benefit unit claim WFB? (assume yes)
+2. if 1 person earns over 35k, can the other person keep her half? (Assume yes)
+"""
+function calc_winter_fuel!( 
+    bures :: BenefitUnitResult,
+    bu    :: BenefitUnit,
+    intermed :: MTIntermediate,
+    wf    :: WinterFuelPayment )
+    which = if ! intermed.someone_pension_age
+        1 
+    elseif intermed.age_oldest_adult < wf.upper_age
+        2
+    else 
+        3
+    end
+    amount = wf.amounts[which]
+    # Allocate to people.
+    # Not quite right since it could be spouse that qualifies
+    # also, funny benefit rules which I think amount to nothing.
+    head = get_head( bu )
+    hpid = head.pid
+    if(intermed.num_adults == 1) || (! intermed.all_pension_age)
+        bures.pers[hpid].income[WINTER_FUEL_PAYMENTS] = amount
+    else
+        spouse = get_spouse( bu )
+        bures.pers[hpid].income[WINTER_FUEL_PAYMENTS] = amount/2
+        bures.pers[spouse.pid].income[WINTER_FUEL_PAYMENTS] = amount/2
+    end
+    # Income Limit (FIXME add qualifying benefit too)
+    for adno in bu.adults
+        pres = bures.pers[adno]
+        if pres.it.taxable_income > wf.income_limit
+            pres.income[WINTER_FUEL_PAYMENTS] = 0.0
+        end
+    end
+end
+
+"""
 NMT Benefits that require knowlege of tax and NI liabilities and so have to be done
 after a tax calculation - not necessarily tax free as such (CB higher charge). Kinda-sorta
 means-tested bens, I suppose.
@@ -708,12 +754,11 @@ function calc_post_tax_non_means_tested!(
     hhres :: HouseholdResult,
     hh    :: Household,
     sys   :: NonMeansTestedSys,
-    age_limits :: AgeLimits ) 
+    intermed :: HHIntermed ) 
     ## maybe add a benefit unit allocator
     bus = get_benefit_units( hh )
     buno = 1 
     for bu in bus 
-        has_children = size( bu.children )[1] > 0
         bures = hhres.bus[buno]
         calc_child_benefit!( 
             bures,
@@ -731,6 +776,7 @@ function calc_post_tax_non_means_tested!(
             end
             # NON-overlapping rules p1178 go here 
         end # ad loop
+        calc_winter_fuel!( bures, bu, intermed.buint[buno] , sys.winter_fuel )
         buno += 1
     end # bu loop
 end # calc_non_means_tested

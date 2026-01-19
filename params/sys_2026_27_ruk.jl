@@ -335,6 +335,11 @@ function load_sys_2026_27_ruk!( sys :: TaxBenefitSystem{T} ) where T
   sys.nmt_bens.widows_pension.age_amounts = [145.68, 134.72, 123.75, 112.79, 101.82,
     90.86, 79.89, 68.93, 57.96, 47.00]
 
+  # These are just defaults - same since forever.
+  sys.nmt_bens.winter_fuel.income_limit = 35_000.0 # 
+  sys.nmt_bens.winter_fuel.amounts = [0.0, 200.0, 300]
+  sys.nmt_bens.winter_fuel.upper_age = 80
+
   # Maternity 
   sys.nmt_bens.maternity.abolished = false
   sys.nmt_bens.maternity.rate = 194.32

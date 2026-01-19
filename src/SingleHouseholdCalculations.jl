@@ -161,7 +161,7 @@ function do_one_calc(
         hres,
         hh, 
         sys.nmt_bens, 
-        sys.age_limits )
+        intermed )
     if ! sys.loctax.ct.abolished 
         hres.bus[1].pers[hd].income[LOCAL_TAXES] = 
             calc_council_tax( hh, intermed.hhint, sys.loctax.ct )

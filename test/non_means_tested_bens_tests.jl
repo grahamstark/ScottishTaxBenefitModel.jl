@@ -42,7 +42,8 @@ using .NonMeansTestedBenefits:
     calc_jsa,
     calc_ruk_dla,
     calc_pre_tax_non_means_tested!,
-    calc_post_tax_non_means_tested!
+    calc_post_tax_non_means_tested!,
+    calc_winter_fuel!
     
 using .IncomeTaxCalculations: 
     calc_income_tax!
@@ -58,7 +59,8 @@ using .STBParameters:
     BereavementSupport, 
     RetirementPension, 
     JobSeekersAllowance,
-    NonMeansTestedSys
+    NonMeansTestedSys,
+    get_default_system_for_fin_year
 
 using .Results: 
     LMTResults, 
@@ -66,7 +68,8 @@ using .Results:
     init_household_result
 
 using .ExampleHelpers
-
+using .RunSettings
+using .Definitions
 using Dates
 
 ## FIXME don't need both
@@ -296,9 +299,17 @@ end
     
 
 @testset "Pre-Tax NMT" begin
+    settings = Settings()
     for exn in instances( SS_Examples )
         hh = get_example( exn )
         println( "on $exn")
+        intermed = make_intermediate(
+            Float64,
+            settings,
+            hh, 
+            sys.hours_limits, 
+            sys.age_limits, 
+            sys.child_limits )
         hhres = init_household_result( hh )
         calc_pre_tax_non_means_tested!( 
             hhres, # :: HouseholdResult,
@@ -310,14 +321,104 @@ end
 end
 
 @testset "Post-Tax NMT" begin
+    settings = Settings()
     for exn in instances( SS_Examples )
         hh = get_example( exn )
         println( "on $exn")
+        intermed = make_intermediate(
+            Float64,
+            settings,
+            hh, 
+            sys.hours_limits, 
+            sys.age_limits, 
+            sys.child_limits )
         hhres = init_household_result( hh )
         calc_post_tax_non_means_tested!( 
             hhres, # :: HouseholdResult,
             hh,    #    :: Household,
-            sys.nmt_bens, #   :: NonMeansTestedSys,
-            sys.age_limits ) # :: AgeLimits ) 
+            sys.nmt_bens,
+            intermed ) # :: AgeLimits ) 
     end
+end
+
+@testset "Winter Fuel Payments" begin
+    settings = Settings()
+
+    sys = get_default_system_for_fin_year( 2026; scotland=true )
+    # 1. non pensioner gets nothing
+    hh = get_example( cpl_w_2_children_hh )
+    intermed = make_intermediate(
+        Float64,
+        settings,
+        hh, 
+        sys.hours_limits, 
+        sys.age_limits, 
+        sys.child_limits )
+    hres = init_household_result( hh )
+    head = get_head(hh)
+    bus = get_benefit_units(hh)
+    calc_winter_fuel!( hres.bus[1], bus[1], intermed.buint[1], sys.nmt_bens.winter_fuel )
+    @test  hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS] ≈ 0.0
+
+    # 2. 81 gets full amount
+    hh = get_example( cpl_w_2_children_hh )
+    head = get_head(hh)
+    spouse = get_spouse(hh)
+    head.age = 81
+    intermed = make_intermediate(
+        Float64,
+        settings,
+        hh, 
+        sys.hours_limits, 
+        sys.age_limits, 
+        sys.child_limits )
+    hres = init_household_result( hh )
+    bus = get_benefit_units(hh)
+    calc_winter_fuel!( hres.bus[1], bus[1], intermed.buint[1], sys.nmt_bens.winter_fuel )
+    @test  hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS] ≈ 305.10/WEEKS_PER_YEAR
+
+    # 3. Spouse also pensioner - same amount in total but split
+    spouse.age = 68
+    intermed = make_intermediate(
+        Float64,
+        settings,
+        hh, 
+        sys.hours_limits, 
+        sys.age_limits, 
+        sys.child_limits )
+    hres = init_household_result( hh )
+    bus = get_benefit_units(hh)
+    @show intermed.buint[1].age_oldest_adult intermed.buint[1].all_pension_age
+    calc_winter_fuel!( hres.bus[1], bus[1], intermed.buint[1], sys.nmt_bens.winter_fuel )
+    @test  hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS] ≈ 305.10/(2*WEEKS_PER_YEAR)
+    @test  hres.bus[1].pers[spouse.pid].income[WINTER_FUEL_PAYMENTS] ≈ 305.10/(2*WEEKS_PER_YEAR)
+
+    # 4. Head just retired smaller amount
+    head.age = 68
+    intermed = make_intermediate(
+        Float64,
+        settings,
+        hh, 
+        sys.hours_limits, 
+        sys.age_limits, 
+        sys.child_limits )
+    hres = init_household_result( hh )
+    bus = get_benefit_units(hh)
+    @show intermed.buint[1].age_oldest_adult intermed.buint[1].all_pension_age
+    calc_winter_fuel!( hres.bus[1], bus[1], intermed.buint[1], sys.nmt_bens.winter_fuel )
+    @test hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS] ≈ 203.40/(2*WEEKS_PER_YEAR)
+    @test hres.bus[1].pers[spouse.pid].income[WINTER_FUEL_PAYMENTS] ≈ 203.40/(2*WEEKS_PER_YEAR)
+
+    # 5. Knock the head off on income, but not the spouse.
+    hres.bus[1].pers[head.pid].it.taxable_income = 35001/WEEKS_PER_YEAR
+    calc_winter_fuel!( hres.bus[1], bus[1], intermed.buint[1], sys.nmt_bens.winter_fuel )
+    @test hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS] ≈ 0.0
+    @test hres.bus[1].pers[spouse.pid].income[WINTER_FUEL_PAYMENTS] ≈ 203.40/(2*WEEKS_PER_YEAR)
+
+    # 6. Knock the spouse off also
+    hres.bus[1].pers[spouse.pid].it.taxable_income = 35001/WEEKS_PER_YEAR
+    calc_winter_fuel!( hres.bus[1], bus[1], intermed.buint[1], sys.nmt_bens.winter_fuel )
+    @test hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS] ≈ 0.0
+    @test hres.bus[1].pers[spouse.pid].income[WINTER_FUEL_PAYMENTS] ≈ 0.0
+
 end
