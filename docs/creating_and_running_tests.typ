@@ -17,7 +17,7 @@ In principle the model is developed
 #link("https://en.wikipedia.org/w/index.php?title=Test-driven_development")[test first],
 so the tests are written in advance of the actual implementation code,
 but in practice that doesn’t always happen. Even if the tests are very
-basic, having tests makes it much easier to update the model, since it’s
+basic, having tests makes it much easier to update the model, since it's
 harder to introduce inadvertent mistakes.
 
 This note covers the specifics of writing tests for Scotben. It assumes that
@@ -93,8 +93,8 @@ principally:
   several editions;
 + #strong[Benefits] worked examples from various CPAG guides, but mainly
   from a spreadsheet
-  `docs\uc_test_cases.ods" collated from the [Policy In Practice](https://policyinpractice.co.uk/) calculator. See`test/vs\_policy\_in\_practice\_tests.jl\`.
-  The spreadsheet is very cryptic and hasn’t been updated since 2021.
+  `docs\uc_test_cases.ods` collated from the #link("https://policyinpractice.co.uk/")[Policy In Practice] calculator. See `test/vs_policy_in_practice_tests.jl`.
+  (The spreadsheet is very cryptic and hasn’t been updated since 2021).
 
 === Household-Level Tests
 <household-level-tests>
@@ -112,7 +112,7 @@ hh = get_example( cpl_w_2_children_hh )
 hh = FRSHouseholdGetter.get_household( 200 )
 ```
 
-==== Available hhlds:
+==== Available Households:
 <available-hhlds>
 
 see `src/ExampleHelpers.jl`
