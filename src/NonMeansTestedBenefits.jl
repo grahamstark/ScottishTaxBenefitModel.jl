@@ -716,6 +716,9 @@ function calc_winter_fuel!(
     bu    :: BenefitUnit,
     intermed :: MTIntermediate,
     wf    :: WinterFuelPayment )
+    if wf.abolished
+        return
+    end
     which = if ! intermed.someone_pension_age
         1 
     elseif intermed.age_oldest_adult < wf.upper_age

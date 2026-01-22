@@ -6,6 +6,8 @@
 #show heading: set text(font: "Gill Sans")
 #show raw: set text(font:"JuliaMono",size:8pt,navy)
 
+#include "//home/graham_s/etc/standard-typst.typ"
+
 = Creating and Running Scotben tests
 <creating-and-running-scotben-tests>
 == Intro
@@ -23,7 +25,7 @@ harder to introduce inadvertent mistakes.
 This note covers the specifics of writing tests for Scotben. It assumes that
 `ScottishTaxBenefitModel` is the active package. 
 
-See #link("https://docs.julialang.org/en/v1/stdlib/Test/")[The Julia Test package documentation]
+See the #link("https://docs.julialang.org/en/v1/stdlib/Test/")[Julia Test package documentation]
 for general information about Julia unit tests.
 
 == The Test Suite

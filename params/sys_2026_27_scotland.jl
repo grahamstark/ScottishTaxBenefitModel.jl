@@ -83,6 +83,9 @@ function load_sys_2026_27_scotland!( sys :: TaxBenefitSystem{T} ) where T
     sys.nmt_bens.winter_fuel.amounts = [0.0, 203.40, 305.10]
     sys.nmt_bens.winter_fuel.upper_age = 80
   
+    qualifying_benefits
+
+
 end
 
 

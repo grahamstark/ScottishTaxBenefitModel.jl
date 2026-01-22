@@ -832,13 +832,16 @@ end
 
 
 @with_kw mutable struct WinterFuelPayment{T<:Real}
+    abolished = false
     income_limit=T(999_999_999)
     amounts = T[0.0,200, 300] #203.40,305.10]
     upper_age = 80
 end
 
 function weeklyise!( wfp :: WinterFuelPayment; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-    wfp.income_limit /= wpy
+    if wpf.income_limit < 999_999_999 # don't mess with some default upper limit
+        wfp.income_limit /= wpy
+    end
     wfp.amounts ./= wpy
 end
 
