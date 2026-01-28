@@ -11,26 +11,26 @@
 IMA 2026 Congress Proposals
 
 - #link( "mailto:graham.stark@notrthumbria.ac.uk.")[Graham Stark] University of Northumbria
-- #link( "mailto:howard.reed@northumbria.ac.uk")[Howard Reed]
+- #link( "mailto:howard.reed@northumbria.ac.uk")[Howard Reed] University of Northumbria and Landman Economics
 - #link( "mailto:juan-pedro@futureeconomy.scot")[Juan-Pedro Castro] Future Economy Scotland
 - #link( "mailto:")[Daniel Mermenstien] University of Northumbria
 
 Here are four proposals ...
 
-= 1: A Static Microsimulation Model of Farming in England And Wales
+= A Static Microsimulation Model of Farming in England And Wales
 
 Graham Stark
 
 == Summary
 
 This talk describes a new static microsimulation model of Farming in England and Wales.
-The model is in the spirit of O'Donahue (XX,chXX). It uses pooled data from the
-Farm Business Survey. 
+The model is in the spirit of O'Donahue@odonoghue_farm-level_2017. It uses pooled data from the
+Farm Business Survey@department_for_environment_food__rural_affairs_farm_2025.
 
 == Objectives
 
 1. To capture the likely effects of the rapidly changing tax and subsidy
-   regime on the farming sector in England and Wales;
+   regime on the farming sector in England and Wales@coe_new_2024;
 2. To explore the effects on rural poverty of direct  
 
 More generally, an independent microsimulation of farms seems a timely thing given the unpredictability
@@ -63,6 +63,8 @@ attendees much of that. Simply getting hold of the FBS data is a saga in itself.
 At present we have no useable results. The intended initial output is an assessment of the static effects of shifting some or all of
 the subsidy regime towards direct payments to farmers and farm workers. This should be ready in good time for the Congress. 
 
+#pagebreak()
+
 =  Modelling Fiscal Options for Scotland
 
 Juan-Pedro Castro
@@ -71,9 +73,9 @@ Graham stark
 
 == Summary
 
-
-The Future Economy Scotland think tank is [...]. They have been funded by #link("xx")[Aberdeen ..] to produce a comprehensive 
-.. "XXX", due to be published in ?? March 2026. This talk describes our experience of producing microsimulation modelling for the whole range 
+#link("https://www.futureeconomy.scot/")[Future Economy Scotland] (FES) is a non-partisan think tank that aims to create a new economy that is democratic, sustainable and just. 
+FES have been funded by #link("https://www.aberdeenplc.com/en-gb/corporate-sustainability/aberdeen-group-charitable-trust")[Aberdeen Group Charitable Trust] to produce a comprehensive 
+report on fiscal options for the devolved Scottish government, due to be published in March 2026. This talk describes our experience of working with FES to produce microsimulation modelling for the whole range 
 of devolved taxes, which a view to finding the fairest and most equitable way of raising significant revenue for funding a 
 just Green Transition. 
 
@@ -85,7 +87,7 @@ as live demonstrations (and sometimes be a disaster, of course).
 
 == Objectives
 
-The report is ... We were tasked with modelling the entire set of taxes and benefits currently devolved to the Scottish Parliament, as well
+We were tasked with modelling the entire set of taxes and benefits currently devolved to the Scottish Parliament, as well
 as hypothetical new taxes such as taxes on Wealth and local-authority level Proportional Property Taxes. 
 
 == Research Questions 
@@ -97,7 +99,6 @@ the measures available.
 
 The models used are predominantly classic static microsimulation models. However, a new module was added to ScotBen to capture behavioural 
 adjustments to income tax changes.
-
 
 == Methods
 
@@ -116,11 +117,11 @@ built around these notebooks
 
 The report will be published in good time for the Congress. 
 
+#pagebreak()
+
 = An API for Microsimulation Models
 
-
 == Summary
-
 
 This talk describes a simple API for interacting with microsimulation models. The initial intended use case for the API is embedding a tax benefit model into an online learning platform; possible other uses include  building 'mashups' of simulations from different providers, integrating realistic simulations into games, and running models from inside Content Management Systems (CMSs) such as WordPress. 
 
@@ -138,7 +139,7 @@ the Institute for Fiscal Studies' #link("https://web.archive.org/web/19970414074
 #link("x")[TriplePC] and the University of Essex's #link("x")[UK Mod].
 
 These online 
-models are implemented in different ways. TriplePC has the underlying simulation model and the web interface written in the same programming language (Julia@bezanson_julia:_2017), integrated into a single package. Older systems, and UKMod, have the public facing 'front end' written in a specialist languages like PHP@bakken_php_2000 or Java@arnold2005java, whilst the actual models are developed seperately and invoked as required by the front-end.
+models are implemented in different ways. TriplePC has the underlying simulation model and the web interface written in the same programming language (Julia@bezanson_julia:_2017), integrated into a single package. Older systems, and UKMod, have the public facing 'front end' written in a specialist languages like PHP@bakken_php_2000 or Java@arnold_java_2005, whilst the actual models are developed seperately and invoked as required by the front-end.
 
 Microsimulation models have a number of common characteristics:
 
@@ -184,5 +185,6 @@ Note: parameters can be divided into policy parameters (e.g. tax rates) and run 
 
 We have 
 
+#pagebreak()
 
-#bibliography("bib.bib"),
+#bibliography("IMA-2026.bib"),
