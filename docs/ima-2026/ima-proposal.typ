@@ -5,31 +5,29 @@
 #show link: set text(blue)
 #show heading: set text(font: "Gill Sans")
 #show raw: set text(font:"JuliaMono",size:8pt,navy)
-#show link: underline
 
-#include "//home/graham_s/etc/standard-typst.typ"
+#include "standard-typst.typ"
 
+IMA 2026 Congress Proposals
 
-=  IMA 2026 Congress Proposals
-
-#link( "mailto:graham.stark@notrthumbria.ac.uk.")[Graham Stark]
-#link( "mailto:")[Howard Reed]
-#link( "mailto:")[Juan-Pedro Castro]
-#link( "mailto:")[Daniel Mermenstien]
+- #link( "mailto:graham.stark@notrthumbria.ac.uk.")[Graham Stark] University of Northumbria
+- #link( "mailto:howard.reed@northumbria.ac.uk")[Howard Reed]
+- #link( "mailto:juan-pedro@futureeconomy.scot")[Juan-Pedro Castro] Future Economy Scotland
+- #link( "mailto:")[Daniel Mermenstien] University of Northumbria
 
 Here are four proposals ...
 
-== 1: A Static Microsimulation Model of Farming in England And Wales
+= 1: A Static Microsimulation Model of Farming in England And Wales
 
 Graham Stark
 
-=== Summary
+== Summary
 
 This talk describes a new static microsimulation model of Farming in England and Wales.
 The model is in the spirit of O'Donahue (XX,chXX). It uses pooled data from the
 Farm Business Survey. 
 
-=== Objectives
+== Objectives
 
 1. To capture the likely effects of the rapidly changing tax and subsidy
    regime on the farming sector in England and Wales;
@@ -38,18 +36,18 @@ Farm Business Survey.
 More generally, an independent microsimulation of farms seems a timely thing given the unpredictability
 of world trade in agriculture, taxes on carbon, etc.,
 
-=== Research Questions 
+== Research Questions 
 
 1. Can we capture the effects of a subsidy regime which was changing radically during the period our micro data was collected?
 2. Can we use an enterprise-level model to say something useful about the distribution of income of households and individuals?   
 
-=== Theoretical Framework
+== Theoretical Framework
 
 This is a static microsimulation model in the spirit of O'Donahue. That is, it doesn't attempt to understand the extent to which
 the new regime is likely to achieve its objectives of improving conservation. However, as with any microsimulation model, good static 
 modelling is the foundation of good behavioural work. 
 
-=== Methods
+== Methods
 
 This is a work in progress. The model is implemented in the #link("x")[Julia] programming language and 
 borrows the structure and some code from the #link("x")[Scotben] household microsimulation model, previously discussed at the IMA conference.
@@ -60,18 +58,18 @@ For assessing policies at the household and individual level, we augment the FBS
 In practice much of the work so far has consisted of ploughing through and reorganising a poorly documented, weirdly arranged dataset but we shall spare
 attendees much of that. Simply getting hold of the FBS data is a saga in itself.
 
-=== Results
+== Results
 
 At present we have no useable results. The intended initial output is an assessment of the static effects of shifting some or all of
 the subsidy regime towards direct payments to farmers and farm workers. This should be ready in good time for the Congress. 
 
-== 2: Modelling Fiscal Options for Scotland
+=  Modelling Fiscal Options for Scotland
 
 Juan-Pedro Castro
 Howard Reed
 Graham stark
 
-=== Summary
+== Summary
 
 
 The Future Economy Scotland think tank is [...]. They have been funded by #link("xx")[Aberdeen ..] to produce a comprehensive 
@@ -85,23 +83,23 @@ prompting many improvements, especially in its outputs and documentation.
 Much of the output from the exercise is in the form of interactive notebooks. Manipulating these can work very well 
 as live demonstrations (and sometimes be a disaster, of course). 
 
-=== Objectives
+== Objectives
 
 The report is ... We were tasked with modelling the entire set of taxes and benefits currently devolved to the Scottish Parliament, as well
 as hypothetical new taxes such as taxes on Wealth and local-authority level Proportional Property Taxes. 
 
-=== Research Questions 
+== Research Questions 
 
 Can a build a comprehensive, internally-consistent, suite of simulation models that capture the effects on Scottish households of all 
 the measures available. 
 
-=== Theoretical Framework
+== Theoretical Framework
 
 The models used are predominantly classic static microsimulation models. However, a new module was added to ScotBen to capture behavioural 
 adjustments to income tax changes.
 
 
-=== Methods
+== Methods
 
 Modelling used Scotben and a variety of smaller custom-built models. Scotben was significantly overhauled for this exercise. 
 
@@ -114,19 +112,19 @@ A lot of work was put in to improve interaction between the modellers and the re
 customised #link("pluto")[Pluto Notebooks] were built that could be manipulated by the report writers. The proposed talk will be 
 built around these notebooks 
 
-=== Results
+== Results
 
 The report will be published in good time for the Congress. 
 
-== 3: An API for Microsimulation Models 
+= An API for Microsimulation Models
 
 
-=== Summary
+== Summary
 
 
 This talk describes a simple API for interacting with microsimulation models. The initial intended use case for the API is embedding a tax benefit model into an online learning platform; possible other uses include  building 'mashups' of simulations from different providers, integrating realistic simulations into games, and running models from inside Content Management Systems (CMSs) such as WordPress. 
 
-=== Objectives
+== Objectives
 
 An API is a set of standardised rules that allow one piece of software to request and receive 
 information or services from another piece of software. Much of the life - online shopping, banking, paying taxes - is built around simple standardised APIs. 
@@ -149,13 +147,13 @@ Microsimulation models have a number of common characteristics:
 - they are typically (though not always) resource-intensive and long running - from a few seconds up to hours or even days. (Even a few seconds is a long time for a typical API service);
 - models typically go through a number of distinct phases - sitting in a job queue, initialising, running calculations, generating output, and so on.
 
-=== Research Questions 
+== Research Questions 
 
 
 
-=== Theoretical Framework
+== Theoretical Framework
 
-=== Methods
+== Methods
 
 This is how the test implementation works currently.
 
@@ -182,9 +180,9 @@ Note: parameters can be divided into policy parameters (e.g. tax rates) and run 
 8. Optionally, the session is destroyed.
 
 
-=== Results
+== Results
 
 We have 
 
 
-
+#bibliography("bib.bib"),
