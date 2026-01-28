@@ -1,3 +1,27 @@
+#import "@preview/charged-ieee:0.1.3": ieee
+
+#show: ieee.with(
+  title: [An API For Microsimulation Models],
+  abstract: [This note describes a simple general Application Programming Interface (API)
+    for controlling microsimulation models.
+  ],
+  authors: (
+    (
+      name: "Graham Stark",
+      department: [Social Work and Social Policy],
+      organization: [University of Northumbria],
+      location: [Newcastle, UK],
+      email: "graham.stark@northumbria.ac.uk",
+    ),
+  ),
+  paper-size: "a4",
+  index-terms: ("Microsimulation", "APIs"),
+  bibliography: bibliography("API.bib"),
+  figure-supplement: [Fig.],
+)
+
+#show link: underline
+
 =  IMA 2026 Congress Proposals
 
 #link( "mailto:graham.stark@notrthumbria.ac.uk.")[Graham Stark]
@@ -112,12 +136,12 @@ The report will be published in good time for the Congress.
 === Summary
 
 
-An API is a set of standardised rules that allow one piece of software to request and receive 
-information or services from another piece of software. Much of the life - online shopping, banking, paying taxes - is built around simple standardised APIs. 
-
 This talk describes a simple API for interacting with microsimulation models. The initial intended use case for the API is embedding a tax benefit model into an online learning platform; possible other uses include  building 'mashups' of simulations from different providers, integrating realistic simulations into games, and running models from inside Content Management Systems (CMSs) such as WordPress. 
 
 === Objectives
+
+An API is a set of standardised rules that allow one piece of software to request and receive 
+information or services from another piece of software. Much of the life - online shopping, banking, paying taxes - is built around simple standardised APIs. 
 
 Standards have been developed for how such APIs should be designed@masse_rest_2011 and described@noauthor_swagger_2025, and the proposed API tries to adhere to these standards.
 
@@ -125,9 +149,10 @@ There have been online, publicly available versions of large Microsimulation mod
 the Institute for Fiscal Studies' #link("https://web.archive.org/web/19970414074226/http://www.ifs.org.uk/DISCLAIM.HTM")[Be Your Own Chancellor]
 (1995) and #link("https://virtual-worlds-research.com/demonstrations/virtual-economy/")[Virtual Economy]
 (1999) were early examples. Contemporary examples include the #link("https://adrs-global.com/")[ADRS suite of South African simulations],
-#link("")[TriplePC] and the University of Essex's #link("")[UK Mod].
+#link("x")[TriplePC] and the University of Essex's #link("x")[UK Mod].
 
-These online models are implemented in different ways. TriplePC has the underlying simulation model and the web interface written in the same programming language (Julia@bezanson_julia:_2017), integrated into a single package. Older systems, and UKMod, have the public facing 'front end' written in a specialist languages like PHP@bakken_php_2000 or Java@arnold2005java, whilst the actual models are developed seperately and invoked as required by the front-end.
+These online 
+models are implemented in different ways. TriplePC has the underlying simulation model and the web interface written in the same programming language (Julia@bezanson_julia:_2017), integrated into a single package. Older systems, and UKMod, have the public facing 'front end' written in a specialist languages like PHP@bakken_php_2000 or Java@arnold2005java, whilst the actual models are developed seperately and invoked as required by the front-end.
 
 Microsimulation models have a number of common characteristics:
 
@@ -137,6 +162,8 @@ Microsimulation models have a number of common characteristics:
 - models typically go through a number of distinct phases - sitting in a job queue, initialising, running calculations, generating output, and so on.
 
 === Research Questions 
+
+
 
 === Theoretical Framework
 
@@ -169,8 +196,7 @@ Note: parameters can be divided into policy parameters (e.g. tax rates) and run 
 
 === Results
 
-We are now able to 
-
+We have 
 
 
 
