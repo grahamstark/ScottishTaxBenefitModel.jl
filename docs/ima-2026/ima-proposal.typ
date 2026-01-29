@@ -15,7 +15,8 @@ IMA 2026 Congress Proposals
 - #link( "mailto:juan-pedro@futureeconomy.scot")[Juan-Pedro Castro] Future Economy Scotland
 - #link( "mailto:")[Daniel Mermenstien] University of Northumbria
 
-Here are four proposals ...
+Here are three proposals for the 2026 IMA conference from our small group at the University of Northumbria, UK. All three are concern current projects that are in development, but
+project 2) below is substantially complete and are confident we will have interesting and substantiative results for the other two in good time for the conference.
 
 = A Static Microsimulation Model of Farming in England And Wales
 
@@ -23,8 +24,8 @@ Graham Stark
 
 == Summary
 
-This talk describes a new static microsimulation model of Farming in England and Wales.
-The model is in the spirit of O'Donahue@odonoghue_farm-level_2017. It uses pooled data from the
+This talk describes a new farm-level microsimulation model of agriculture in England and Wales.
+The model is in the spirit of @odonoghue_farm-level_2017. It uses pooled data from the
 Farm Business Survey@department_for_environment_food__rural_affairs_farm_2025.
 
 == Objectives
@@ -187,4 +188,4 @@ We have
 
 #pagebreak()
 
-#bibliography("IMA-2026.bib"),
+#bibliography("IMA-2026.bib",style:"harvard-cite-them-right"),
