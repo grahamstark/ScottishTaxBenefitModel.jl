@@ -1,12 +1,9 @@
 #set heading(
   numbering: "1.")
-#set text(font:"Palatino Linotype")
-
+#set text(font:"Palatino Linotype", size:10pt,)
 #show link: set text(blue)
 #show heading: set text(font: "Gill Sans")
 #show raw: set text(font:"JuliaMono",size:8pt,navy)
-
-#include "standard-typst.typ"
 
 IMA 2026 Congress Proposals
 
@@ -17,6 +14,8 @@ IMA 2026 Congress Proposals
 
 Here are three proposals for the 2026 IMA conference from our small group at the University of Northumbria, UK. All three are concern current projects that are in development, but
 project 2) below is substantially complete and are confident we will have interesting and substantiative results for the other two in good time for the conference.
+
+#pagebreak()
 
 = A Static Microsimulation Model of Farming in England And Wales
 
