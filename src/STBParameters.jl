@@ -839,7 +839,7 @@ end
 end
 
 function weeklyise!( wfp :: WinterFuelPayment; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PER_YEAR )
-    if wpf.income_limit < 999_999_999 # don't mess with some default upper limit
+    if wfp.income_limit < 999_999_999 # don't mess with some default upper limit
         wfp.income_limit /= wpy
     end
     wfp.amounts ./= wpy
