@@ -28,7 +28,7 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
     post.income=[3,2,1]
     post.bhc_net_income=[3,2,1]
 
-    gl = make_gain_lose( pre, post, :income )
+    gl = make_gain_lose( prehh=pre, posthh=post, incomes_col=:income )
     @test gl.gainers == 1
     @test gl.losers == 1
     @test gl.nc == 1

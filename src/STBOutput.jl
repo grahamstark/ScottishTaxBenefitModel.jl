@@ -903,9 +903,9 @@ end
 const GL_MIN = 0.10
 const MAX_EXAMPLES = 50
 
-function make_gain_lose( 
-    prehh :: DataFrame, 
-    posthh :: DataFrame, 
+function make_gain_lose( ;
+    posthh :: DataFrame,
+    prehh  :: DataFrame,
     incomes_col :: Symbol ) :: NamedTuple
 
     dhh = DataFrame( 
@@ -981,10 +981,12 @@ function make_gain_lose(
         popn = popn)
 end
 
-function make_gain_lose( post :: DataFrame, pre :: DataFrame, settings :: Settings )::NamedTuple
+#=
+function make_gain_lose(; prehh :: DataFrame, posthh :: DataFrame, settings :: Settings )::NamedTuple
     income = income_measure_as_sym( settings.ineq_income_measure )
-    return make_gain_lose( post, pre, income )
+    return make_gain_lose( prehh=prehh, posthh=posthh, incomes_col=income )
 end
+=#
 
 """
 Produce data for Metrs as a bar chart, plus mean, median
@@ -1429,9 +1431,9 @@ function summarise_frames!(
         for sysno in 1:ns 
             push!( gain_lose,
                 make_gain_lose( 
-                    frames.hh[1], # FIXME add setting for comparison system
-                    frames.hh[sysno],
-                    income_measure )) 
+                    posthh=frames.hh[sysno],
+                    prehh=frames.hh[1], # FIXME add setting for comparison system
+                    incomes_col=income_measure ))
         end
         println( "gain lose")
     end    

@@ -55,7 +55,7 @@ function basic_run( ; print_test :: Bool, mtrouting :: MT_Routing )
     println( "poverty line = $(settings.poverty_line)")
     summaries = summarise_frames!( results, settings )
     dump_summaries( settings, summaries )
-    gl = make_gain_lose( results.hh[1], results.hh[2], settings )
+    gl = make_gain_lose(; prehh=results.hh[1], posthh=results.hh[2], incomes_col=Symbol(settings.ineq_income_measure))
     return (summaries,gl)
 end 
 

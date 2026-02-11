@@ -114,7 +114,7 @@ The report will be published in good time for the Congress.
 
 = An API for Microsimulation Models
 
-presenters: Daniel Mermenstien, Graham Stark
+presenters: Daniel Mermelstein, Graham Stark
 
 == Summary
 
