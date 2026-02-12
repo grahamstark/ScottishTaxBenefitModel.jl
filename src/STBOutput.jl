@@ -772,6 +772,9 @@ function make_gain_lose_static(
     (; ten_gl, children_gl )
 end
 
+vmean(x,y) = mean(x,Weights(y))
+pmean(x,weight,count) = mean(x,Weights(weight.*count))
+
 """
 Convoluted approach to making an IFS style Gain-Lose table
 @param dhh - a little frame with a bunch of categories and a net-income field (change)
@@ -826,16 +829,18 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: Tuple{DataFrame,Dat
     ns = Symbol.(colnames)
     select!( sort!(vhh, col), ns... )
     # average change table, grouped by col 
+    # FIXME refactor to get rid of using weighted_xx cols
     gavch = combine( groupby( dhh, [col]),
         (:people_weighted_change=>sum), # changes in selected income var * hhweight * people count
         (:weighted_people=>sum), # hh weight * people count
         (:weight=>sum),          # sum of hh weights
         (:weighted_bhc_change=>sum ),
         (:weighted_pre_income=>sum ),
-        (:weighted_post_income=>sum ))     # sum of bhc changes 
+        ([:pct_change,:weight,:hh_type]=>pmean=>:pct_change),
+        (:weighted_post_income=>sum ))     # sum of bhc changes
     gavch.avch = gavch.people_weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group per person
     gavch.total_transfer = WEEKS_PER_YEAR.*gavch.weighted_bhc_change_sum./1_000_000 # total moved to/from that group £spa
-    gavch.pct_change = 100.0 .* ((gavch.weighted_post_income_sum .- gavch.weighted_pre_income_sum)./gavch.weighted_pre_income_sum)
+    # gavch.pct_change = 100.0 .* ((gavch.weighted_post_income_sum .- gavch.weighted_pre_income_sum)./gavch.weighted_pre_income_sum)
     # ... put av changes in the right order
     sort!( gavch, col )
     vhh.avch = gavch.avch
@@ -903,11 +908,26 @@ end
 const GL_MIN = 0.10
 const MAX_EXAMPLES = 50
 
+
+function pct_change( post::Number, pre::Number)::Number
+    den = if ! (pre ≈ 0)
+        pre
+    elseif ! (post ≈ 0)
+        post
+    else
+        1.0
+    end
+    return 100*(post-pre)/den
+end
+
 function make_gain_lose( ;
     posthh :: DataFrame,
     prehh  :: DataFrame,
     incomes_col :: Symbol ) :: NamedTuple
 
+    # FIXME refactor this, since the sums above can cope with summing using the weights column:
+    # e.g this from FarmSim:
+    # ghh = combine( groupby( dhh, [breakdown,:gainlose] ),:weight=>sum)
     dhh = DataFrame( 
         hid = prehh.hid,
         data_year  = prehh.data_year,
@@ -923,6 +943,7 @@ function make_gain_lose( ;
         change = posthh[:, incomes_col] - prehh[:,incomes_col],
         pre_income = prehh[:,incomes_col],
         post_income = posthh[:,incomes_col],
+        pct_change = pct_change.( posthh[:,incomes_col], prehh[:,incomes_col] ),
         weighted_pre_income = prehh.weight.*prehh[:,incomes_col],
         weighted_post_income = prehh.weight.*posthh[:,incomes_col])
     dhh.people_weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 

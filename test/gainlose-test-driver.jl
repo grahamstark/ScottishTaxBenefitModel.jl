@@ -26,13 +26,9 @@ sys2.loctax.ppt.local_bands = []
 sys2.loctax.ppt.local_rates = [0.7]
 weeklyise!(sys2)
 
-frames = Runner.do_one_run( settings, [sys1,sys2] ,obs )
-fill_in_deciles_and_poverty!(
-        frames,
-        settings,
-        poverty_lines,
-        deciles )
-summary = summarise_frames!( frames, settings )
+frames = Runner.do_one_run( settings, [sys1,sys2] ,obs );
+summary = summarise_frames!( frames, settings );
+
 
 gls2=STBOutput.make_gain_lose(;
     prehh=frames.hh[1],
