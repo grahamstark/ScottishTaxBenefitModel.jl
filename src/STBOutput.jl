@@ -837,6 +837,8 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: Tuple{DataFrame,Dat
         (:weighted_bhc_change=>sum ),
         (:weighted_pre_income=>sum ),
         ([:pct_change,:weight,:hh_type]=>pmean=>:pct_change),
+        (:people_weighted_pre_income=>sum ),
+        (:people_weighted_post_income=>sum ),
         (:weighted_post_income=>sum ))     # sum of bhc changes
     gavch.avch = gavch.people_weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group per person
     gavch.total_transfer = WEEKS_PER_YEAR.*gavch.weighted_bhc_change_sum./1_000_000 # total moved to/from that group
@@ -948,7 +950,9 @@ function make_gain_lose( ;
         post_income = posthh[:,incomes_col],
         pct_change = pct_change.( posthh[:,incomes_col], prehh[:,incomes_col] ),
         weighted_pre_income = prehh.weight.*prehh[:,incomes_col],
-        weighted_post_income = prehh.weight.*posthh[:,incomes_col])
+        weighted_post_income = prehh.weight.*posthh[:,incomes_col],
+        people_weighted_pre_income = prehh.weighted_people.*prehh[:,incomes_col],
+        people_weighted_post_income = prehh.weighted_people.*posthh[:,incomes_col] )
     dhh.people_weighted_change = (dhh.change .* dhh.weighted_people) # for average gains 
     ten_gl, ten_examples = one_gain_lose( dhh, :tenure )
     dec_gl, dec_examples = one_gain_lose( dhh, :decile )
