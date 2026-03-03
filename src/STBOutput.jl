@@ -1151,6 +1151,31 @@ function income_hists_to_df( incs :: Vector )::DataFrame
 end
 
 """
+FIXME copy of `income_hists_to_df
+"""
+function metrs_to_df( metrs :: Vector )::DataFrame
+    # 'Any' so we can add strings at the bottom
+    v = Any[copy(metrs[1].hist.edges[1][2:end])... ]
+    push!(v,"mean" )
+    push!(v,"median")
+    push!(v,"min")
+    push!(v,"max")
+    d = DataFrame( edges_upper_limit=v )
+    n = length(metrs)
+    for i in 1:n
+        v = copy( metrs[i].hist.weights )
+        push!(v,metrs[i].mean )
+        push!(v,metrs[i].median)
+        push!(v,metrs[i].min)
+        push!(v,metrs[i].max)
+        sy = Symbol( "population_$i")
+        d[!,sy] = v
+    end
+    return d
+end
+
+
+"""
 Overall summary table made from summary.income_summary tables, with 1 being the base.
 Transpose the 1st three rows of that table. Assumes there's a col `label` at the end
 and that the totals are in the 1st 3 rows. This will break badly
@@ -1500,6 +1525,11 @@ function summarise_frames!(
             metrs2 ))
     end
     income_hists_df = income_hists_to_df( income_hists )
+    metrs_df = if settings.do_marginal_rates
+        metrs_to_df( metrs )
+    else
+       DataFrame()
+    end
     return ( ;
         headline_figures,
         quantiles, 
@@ -1510,6 +1540,7 @@ function summarise_frames!(
         poverty, 
         inequality, 
         metrs, 
+        metrs_df,
         child_poverty,
         gain_lose,
         poverty_lines,
@@ -1611,6 +1642,9 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
     close(io)
     if settings.do_legal_aid
         LegalAidOutput.dump_tables( summary.legalaid, settings; num_systems=nc )            
+    end
+    if settings.do_marginal_rates
+        CSV.write( joinpath( outdir, "metrs-histogram-df.csv"), summary.metrs_df )
     end
 end
 
