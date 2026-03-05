@@ -39,7 +39,7 @@ function printbcs(
         settings, 
         wage )
     println(f, "Legacy Case")
-    pretty_table(f, bc[!,COLS]; backend=Val(:html),allow_html_in_cells=true)
+    pretty_table(f, bc[!,COLS]; backend=:html,allow_html_in_cells=true)
 
     settings.means_tested_routing = uc_full 
     bcu = BCCalcs.makebc(
@@ -48,7 +48,7 @@ function printbcs(
         settings, 
         wage )
     println( f, "UC CASE ")
-    pretty_table(f,bcu[!,COLS];allow_html_in_cells=true, backend=Val(:html) )
+    pretty_table(f,bcu[!,COLS];allow_html_in_cells=true, backend=:html )
 end
 
 settings = Settings()
@@ -57,7 +57,9 @@ settings.means_tested_routing = uc_full
 sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
 
 @testset "Single Pers bc" begin
-    f = open("tmp/test-bcs.html","w")
+    tmp = tempdir()
+    println( "writing to $tmp")
+    f = open("$(tmp)/test-bcs.html","w")
     println(f,"<!DOCTYPE html><html><head></head><body>")
     hh = crude_construct_hh( 
         "private", 

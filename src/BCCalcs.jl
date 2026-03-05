@@ -5,6 +5,7 @@ module BCCalcs
 #
 using BudgetConstraints
 using DataFrames
+using Format
 
 using ScottishTaxBenefitModel
 using .Definitions
@@ -20,6 +21,8 @@ export makebc, recensor
 
 # character labels for charts; lower roman, greek, then upper 
 const LABELS = collect(union('a':'z','α':'ω','A':'Z','Α':'Ω'))
+
+fm(x) = Format.format(float(x);commas=true,precision=2)
 
 """
 return up to 102 1 chars from Roman and Greek, upper then lower. Repeat once if n>102 die if > 204.
@@ -65,28 +68,28 @@ function to_md_list( r :: DataFrameRow, hres :: HouseholdResult )::String
     s = """
 
     """
-    m = md_format(r.net)
+    m = fm(r.net)
     s *= s *= "* **Net Income (after housing costs)** = $m\n"
     for i in instances(Incomes)
         if hres.income[i] != 0
-            m = md_format(hres.income[i])
+            m = fm(hres.income[i])
             n = iname(i)
             s *= "* **$n** = $m\n"
         end
     end
     s *= "\n"
     if r.reduction > 0
-        m = md_format(r.cap)
+        m = fm(r.cap)
         s *= "* **Benefit Cap** = $m\n"    
-        m = md_format(r.reduction)
+        m = fm(r.reduction)
         s *= "* **Benefits Reduced By:** = $m\n"    
     end
-    m = md_format(hres.net_housing_costs)
+    m = fm(hres.net_housing_costs)
     s *= "* **Net Housing Costs** = $m\n"
     if abs(r.mr) < 9999
-        m = md_format(r.mr*100)
+        m = fm(r.mr*100)
         s *= "* **Marginal Tax Rate** = $(m)%\n"
-        m = md_format(r.credit)
+        m = fm(r.credit)
         s *= "* **Tax Credit** = $m\n"
     else
         s *= "* **Discontinuity**"
@@ -107,28 +110,28 @@ function tosimplelabel(
     hres :: HouseholdResult ) :: String
     
     s = "<br>"
-    m = md_format(r.net)
+    m = fm(r.net)
     s *= s *= "<b>Net Income (after housing costs)</b> = <b>$m</b><br><br>"
     for i in instances(Incomes)
         if hres.income[i] != 0
-            m = md_format(hres.income[i])
+            m = fm(hres.income[i])
             n = iname(i)
             s *= "<b>$n</b> = $m<br>"
         end
     end
     s *= "<br>"
     if r.reduction > 0
-        m = md_format(r.cap)
+        m = fm(r.cap)
         s *= "<b>Benefit Cap</b> = $m<br>"    
-        m = md_format(r.reduction)
+        m = fm(r.reduction)
         s *= "<b>Benefits Reduced By:</b> = $m<br>"    
     end
-    m = md_format(hres.net_housing_costs)
+    m = fm(hres.net_housing_costs)
     s *= "<b>Net Housing Costs</b> = $m<br>"
     if abs(r.mr) < 9999
-        m = md_format(r.mr*100)
+        m = fm(r.mr*100)
         s *= "<b>Marginal Tax Rate</b> = $(m)%<br>"
-        m = md_format(r.credit)
+        m = fm(r.credit)
         s *= "<b>Tax Credit</b> = $m<br>"
     else
         s *= "<b>Discontinuity</b><br>"
@@ -145,28 +148,28 @@ function tohtmltable(
     hres :: HouseholdResult ) :: String
     
     s = "<table class='table'>"
-    m = md_format(r.net)
+    m = fm(r.net)
     s *= s *= "<tr><th>Net Income (after housing costs)</th><td>$m</td></tr>"
     for i in instances(Incomes)
         if hres.income[i] != 0
-            m = md_format(hres.income[i])
+            m = fm(hres.income[i])
             n = iname(i)
             s *= "<b>$n</b> = $m<br>"
         end
     end
     s *= "<br>"
     if r.reduction > 0
-        m = md_format(r.cap)
+        m = fm(r.cap)
         s *= "<b>Benefit Cap</b> = $m<br>"    
-        m = md_format(r.reduction)
+        m = fm(r.reduction)
         s *= "<b>Benefits Reduced By:</b> = $m<br>"    
     end
-    m = md_format(hres.net_housing_costs)
+    m = fm(hres.net_housing_costs)
     s *= "<b>Net Housing Costs</b> = $m<br>"
     if abs(r.mr) < 9999
-        m = md_format(r.mr*100)
+        m = fm(r.mr*100)
         s *= "<b>Marginal Tax Rate</b> = $(m)%<br>"
-        m = md_format(r.credit)
+        m = fm(r.credit)
         s *= "<b>Tax Credit</b> = $m<br>"
     else
         s *= "<b>Discontinuity</b><br>"
