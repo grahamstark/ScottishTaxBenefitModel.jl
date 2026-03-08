@@ -47,20 +47,24 @@ settings = Settings()
     enable!( head )
 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test hres.ahc_net_income ≈ 179.60
+    wfp = hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS]
+    @test hres.ahc_net_income ≈ 179.60 + wfp
     println( to_md_table(hres.bus[1].legacy_mtbens ))
     println( "Age 68; \n"*inctostr(  hres.bus[1].pers[head.pid].income ))
 
     head.age = 80
 
     hres = do_one_calc( hh, sys21_22, settings )
-    @test hres.ahc_net_income ≈  (137.60*1.1) + 25.74
+    wfp = hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS]
+    @test hres.ahc_net_income ≈  (137.60*1.1) + 25.74 + wfp
+
     println( "Age 80; old pension x 1.1 \n"*inctostr(  hres.bus[1].pers[head.pid].income ))
 
     head.benefit_ratios[state_pension] = 154.0/137.60 # just qualify for savings credit
     hres = do_one_calc( hh, sys21_22, settings )
+    wfp = hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS]
     # pen / pen credit / savings credit
-    @test hres.ahc_net_income ≈ 154 + 23.10 + 0.18
+    @test hres.ahc_net_income ≈ 154 + 23.10 + 0.18 + wfp
     println( "Age 80; old pension x 1.119 so qualify for savings credit \n"*inctostr(  hres.bus[1].pers[head.pid].income ))
       
     head.benefit_ratios[state_pension] = 1
@@ -69,11 +73,14 @@ settings = Settings()
 
     # £98.76 = 52.10PC + 10.00 SCP + 15.51 CTR + 21.15 CB + 179.60PENS
     hres = do_one_calc( hh, sys21_22, settings )
-    @test hres.bhc_net_income ≈ (179.60 + 98.76-15.55) atol=0.05 # FIXME check weird rounding 
+    wfp = hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS]
+    @test hres.bhc_net_income ≈ (179.60 + 98.76-15.55 + wfp ) atol=0.05 # FIXME check weird rounding
 
     hh.gross_rent = 100
     hres = do_one_calc( hh, sys21_22, settings )
-    @test hres.bhc_net_income ≈ (179.60 + 198.76-15.55) atol=0.05 # FIXME check weird rounding 
+    wfp = hres.bus[1].pers[head.pid].income[WINTER_FUEL_PAYMENTS]
+
+    @test hres.bhc_net_income ≈ (179.60 + 198.76-15.55 +wfp ) atol=0.05 # FIXME check weird rounding
     println( to_md_table(hres.bus[1].legacy_mtbens ))
     println( "Age 68; + 1 chld no rent \n"*inctostr(  hres.bus[1].income ))
 
