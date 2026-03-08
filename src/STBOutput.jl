@@ -153,7 +153,7 @@ end
 
 
 # count of the aggregates added to the income_frame - total benefits and so on, plus 8 indirect fields
-const EXTRA_INC_COLS = 30
+const EXTRA_INC_COLS = 31
 
 
 function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
@@ -191,6 +191,8 @@ function make_incomes_frame( RT :: DataType, n :: Int; id = 1 ) :: DataFrame
     frame.it_savings_taxable = zeros( n )
     frame.it_non_savings_taxable = zeros( n )
     frame.it_dividends_taxable  = zeros( n )
+    frame.it_pension_relief_at_source = zeros(n)
+
     # tax end bands 
     frame.it_dividend_band = zeros(Int,n) # kinda sorta - not normally expressed like this.
     frame.it_savings_band = zeros(Int,n)
@@ -524,6 +526,7 @@ function fill_inc_frame_row!(
     ir.it_savings_taxable = pres.it.savings_taxable
     ir.it_non_savings_taxable = pres.it.non_savings_taxable
     ir.it_dividends_taxable  = pres.it.dividends_taxable 
+    ir.it_pension_relief_at_source = ir.pension_relief_at_source
 
     ir.it_dividend_band = pres.it.dividend_band
     ir.it_savings_band = pres.it.savings_band
@@ -541,7 +544,7 @@ function fill_inc_frame_row!(
     ir.age_band = age_range( pers.age )
     ir.is_child = from_child_record
     ir.employers_ni = pres.ni.class_1_secondary
-    ir.net_cost = isum( pres.income, NET_COST ) + ir.pension_relief_at_source
+    ir.net_cost = isum( pres.income, NET_COST )
     
 end
 
