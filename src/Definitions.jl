@@ -26,6 +26,7 @@ export
    PROJECT_DIR,
    RAW_DATA,
    SCRIPTS_DIR,
+   SKIPPED_CALCULATION,
    SRC_DIR,
    TEST_DIR
 
@@ -94,7 +95,7 @@ function annualise( weekly_amount :: Number )
    round( weekly_amount*WEEKS_PER_YEAR, digits=2)
 end
 
-
+const SKIPPED_CALCULATION = -123456789.0
 
 #
 # update this every time you add data, update prices, etc.

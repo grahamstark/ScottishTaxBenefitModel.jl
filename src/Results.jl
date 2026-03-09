@@ -351,7 +351,7 @@ module Results
        ni = NIResult{RT}()
        it = ITResult{RT}()
        wealth = WealthTaxResult{RT}()
-       metr :: RT = -12345.0
+       metr = SKIPPED_CALCULATION
        replacement_rate :: RT = zero(RT)
        income = STBIncomes.make_a( RT );
     end

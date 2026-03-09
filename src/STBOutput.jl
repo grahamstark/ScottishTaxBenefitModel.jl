@@ -265,6 +265,7 @@ function make_individual_results_frame( RT :: DataType, n :: Int ) :: DataFrame
         ni_class_2  = zeros(RT,n),
         ni_class_3  = zeros(RT,n),
         ni_class_4  = zeros(RT,n),
+        # these 2 are set to missing by default so we can easily skip children, oaps ..
         assumed_gross_wage = Vector{Union{Real,Missing}}(missing, n),         
         metr = Vector{Union{Real,Missing}}(missing, n),
         tax_credit = zeros(RT,n),
@@ -589,7 +590,7 @@ function fill_pers_frame_row!(
     pr.ni_class_3  = pres.ni.class_3
     pr.ni_class_4  = pres.ni.class_4
     pr.assumed_gross_wage = pres.ni.assumed_gross_wage
-    if pres.metr != -12345.0 # missing indicator
+    if pres.metr != SKIPPED_CALCULATION # missing indicator - keep underyling value at 'missing' otherwise.
         pr.metr = pres.metr
     end
     pr.replacement_rate = pres.replacement_rate        
