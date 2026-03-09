@@ -1282,7 +1282,8 @@ function make_headline_figures(
     income_hists2 :: NamedTuple,
     metrs1 :: Union{Nothing,NamedTuple},
     metrs2 :: Union{Nothing,NamedTuple},
-     )::NamedTuple
+    child_poverty1 :: GroupPoverty,
+    child_poverty2 :: GroupPoverty )::NamedTuple
     r1 = income_summary1[1,:]
     r2 = income_summary2[1,:]
     net1 = r1.net_inc_indirect
@@ -1314,6 +1315,7 @@ function make_headline_figures(
     end
     Δtax = tax2 - tax1
     Δben = ben2 - ben1
+
     return (; 
         gainers = gain_lose.gainers,
         losers = gain_lose.losers,
@@ -1348,7 +1350,10 @@ function make_headline_figures(
         net_direct = Δtax - Δben, 
         Δpalma = palma2 - palma1,
         Δgini = gini2 - gini1,
-        Δpov_headcount = pov_headcount2 - pov_headcount1 )
+        Δpov_headcount = pov_headcount2 - pov_headcount1,
+        child_poverty1 = child_poverty1.prop,
+        child_poverty2 = child_poverty2.prop,
+        Δchild_poverty = child_poverty2.prop - child_poverty1.prop )
 end
 
 function decs_to_df( onedec :: Matrix )::DataFrame
@@ -1528,7 +1533,9 @@ function summarise_frames!(
             income_hists[1],
             income_hists[sysno],
             metrs1,
-            metrs2 ))
+            metrs2,
+            child_poverty[1],
+            child_poverty[sysno]))
     end
     income_hists_df = income_hists_to_df( income_hists )
     metrs_df = if settings.do_marginal_rates
