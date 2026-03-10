@@ -48,6 +48,6 @@ if IS_LOCAL
     include( "legal_aid_calculations_tests.jl")
     include( "weighting_tests.jl")
     include( "behavioural_tests.jl")
-    
+    include( "metr-tests.jl")
     # include( "indirect_taxes_tests.jl")
 end

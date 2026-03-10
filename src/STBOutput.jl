@@ -45,7 +45,10 @@ export
     make_gain_lose,
     make_poverty_line,
     summarise_frames!,
-    DUMP_FILE_DESCRIPTION
+    DUMP_FILE_DESCRIPTION,
+    METR_TABLE_BREAKS,
+    METR_TABLE_BREAK_LABELS
+
 
 const DUMP_FILE_DESCRIPTION = 
 """
@@ -1020,10 +1023,28 @@ function make_gain_lose(; prehh :: DataFrame, posthh :: DataFrame, settings :: S
 end
 =#
 
+const METR_TABLE_BREAKS = [-Inf, 0.0000, 0.0001, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.001, Inf]
+const METR_TABLE_BREAK_LABELS = [
+    "Less than zero",
+    "Zero",
+    "0.01-9.99",
+    "10-19.99",
+    "20-29.99",
+    "30-39.99",
+    "40-49.99",
+    "50-59.99",
+    "60-69.99",
+    "70-79.99",
+    "80-89.99",
+    "90-99.99",
+    "100",
+    "Above 100"
+    ]
+
 """
 Produce data for Metrs as a bar chart, plus mean, median
 """
-function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
+function metrs_to_hist( indiv :: DataFrame; breaks=METR_TABLE_BREAKS ) :: NamedTuple
     # these 2 convoluted lines make this draw only
     # over the non-missing (children, retired)
     p = collect(keys(skipmissing( indiv.metr )))
@@ -1033,11 +1054,11 @@ function metrs_to_hist( indiv :: DataFrame ) :: NamedTuple
     # skip near-infinite mrs mwhen averaging
     maxmtr = maximum(indp.metr)
     minmtr = minimum(indp.metr)
-    sensible = indp[(indp.metr.<150),:]
+    sensible = indp[(abs.(indp.metr) .< 200),:]
     if size(sensible)[1] > 0
         medmtr = median( sensible.metr, Weights(sensible.weight))
         meanmtr = mean( sensible.metr, Weights(sensible.weight))
-        hist = fit( Histogram, indp.metr, Weights( indp.weight ), [-Inf, 0.0000, 10.0, 20.0, 30.0, 50.0, 80.0, 100.0, Inf], closed=:left )
+        hist = fit( Histogram, indp.metr, Weights( indp.weight ), breaks, closed=:left )
     end
     return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist)
 end

@@ -127,6 +127,7 @@ function getSystem(; scotland::Bool ) :: TaxBenefitSystem
    return sys
 end
 
+# FIXME USED?
 function get_uk_system(; year = 2023 ) :: TaxBenefitSystem
    sys = nothing
    if year == 2023
