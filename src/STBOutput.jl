@@ -1735,7 +1735,7 @@ function dump_frames(
     frames :: NamedTuple;
     append :: Bool = false )
     outdir = joinpath( settings.output_dir, basiccensor( settings.run_name ))
-    dump_frames( outdir, frames; append=append ])
+    dump_frames( outdir, frames; append=append )
 end
 
 end # Module STBOutput
