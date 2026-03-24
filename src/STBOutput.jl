@@ -44,6 +44,7 @@ export
     irdiff,
     make_gain_lose,
     make_poverty_line,
+    restore_frames,
     summarise_frames!,
     DUMP_FILE_DESCRIPTION,
     METR_TABLE_BREAKS,
@@ -1683,26 +1684,58 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
 end
 
 """
-Dump the raw dataframes to a directory make from settings.output dir and the run name.
+Restore the main output frames saved with `dump_frames`.
 """
+function restore_frames( dir :: AbstractString, num_systems :: Integer )::NamedTuple
+    frames = (;
+        hh = DataFrame[],
+        bu = DataFrame[],
+        indiv = DataFrame[],
+        income = DataFrame[],
+        behavioural_results = DataFrame[])
+    for fno in 1:num_systems
+        fname = joinpath( dir, "hh_$(fno).csv")
+        push!(frames.hh, CSV.read( fname, delim=',') |> DataFrame )
+        fname = joinpath( dir, "bu_$(fno).csv")
+        push!( frames.bu, CSV.read( fname; delim=',') |> DataFrame )
+        fname = joinpath( dir, "indiv_$(fno).csv")
+        push!( frames.indiv, CSV.read( fname; delim=',') |> DataFrame )
+        fname = joinpath( dir, "income_$(fno).csv")
+        push!( frames.income, CSV.read( fname; delim=',') |> DataFrame )
+        fname = joinpath( dir, "sfc-behavioural_adjustments-$(fno)-vs-1.csv")
+        push!(frames.behavioural_results, CSV.read( fname; delim=',') |> DataFrame )
+    end
+    return frames;
+end
+
 function dump_frames(
-    settings :: Settings,
+    outdir :: AbstractString,
     frames :: NamedTuple;
     append :: Bool = false )
     ns = size( frames.indiv )[1] # num systems
-    outdir = joinpath( settings.output_dir, basiccensor( settings.run_name )) 
     mkpath( outdir )
     for fno in 1:ns
         fname = joinpath( outdir, "hh_$(fno).csv")
         CSV.write( fname, frames.hh[fno] ; append=append,delim=',')
         fname = joinpath( outdir, "bu_$(fno).csv")
-        CSV.write( fname, frames.bu[fno]; append=append,delim=',' )
+        frames.bu[fno] = CSV.read( fname; delim=',') |> DataFrame
         fname = joinpath( outdir, "indiv_$(fno).csv")
         CSV.write( fname, frames.indiv[fno];append=append,delim=',' )
         fname = joinpath( outdir, "income_$(fno).csv")
-        CSV.write( fname, frames.income[fno]; append=append,delim=',' )        
+        frames.income[fno] = CSV.read( fname; delim=',') |> DataFrame
         CSV.write( joinpath( outdir, "sfc-behavioural_adjustments-$(fno)-vs-1.csv"), frames.behavioural_results[fno] )        
     end
+end
+
+"""
+Dump the raw output dataframes to a directory made from settings.output dir and the run name.
+"""
+function dump_frames(
+    settings :: Settings,
+    frames :: NamedTuple;
+    append :: Bool = false )
+    outdir = joinpath( settings.output_dir, basiccensor( settings.run_name ))
+    dump_frames( outdir, frames; append=append ])
 end
 
 end # Module STBOutput
