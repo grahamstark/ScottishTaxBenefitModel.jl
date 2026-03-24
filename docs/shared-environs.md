@@ -28,7 +28,9 @@ make_shared_package( "GGPU", [
     "AMDGPU", 
     "GPUArrays", 
     "KernelAbstractions",
-    "oneAPI"])
+    "oneAPI",
+    "KernelForge",
+    "KernelIntrinsics"])
 
 make_shared_package( "GMaths", [
     "SIMD",

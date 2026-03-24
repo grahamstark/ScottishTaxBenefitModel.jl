@@ -1695,19 +1695,32 @@ function restore_frames( dir :: AbstractString, num_systems :: Integer )::NamedT
         behavioural_results = DataFrame[])
     for fno in 1:num_systems
         fname = joinpath( dir, "hh_$(fno).csv")
-        push!(frames.hh, CSV.read( fname, delim=',') |> DataFrame )
+        push!(frames.hh, CSV.File( fname, delim=',') |> DataFrame )
         fname = joinpath( dir, "bu_$(fno).csv")
-        push!( frames.bu, CSV.read( fname; delim=',') |> DataFrame )
+        push!( frames.bu, CSV.File( fname; delim=',') |> DataFrame )
         fname = joinpath( dir, "indiv_$(fno).csv")
-        push!( frames.indiv, CSV.read( fname; delim=',') |> DataFrame )
+        push!( frames.indiv, CSV.File( fname; delim=',') |> DataFrame )
         fname = joinpath( dir, "income_$(fno).csv")
-        push!( frames.income, CSV.read( fname; delim=',') |> DataFrame )
+        push!( frames.income, CSV.File( fname; delim=',') |> DataFrame )
         fname = joinpath( dir, "sfc-behavioural_adjustments-$(fno)-vs-1.csv")
-        push!(frames.behavioural_results, CSV.read( fname; delim=',') |> DataFrame )
+        push!(frames.behavioural_results, CSV.File( fname; delim=',') |> DataFrame )
     end
     return frames;
 end
 
+"""
+Write the main disaggregated dataframes to files in `outdir` in CSV format.
+Files currently are:
+
+* hh_<fno>.csv
+* bu_<fno>.csv (not really used)
+* indiv<fno>.csv
+* income<fno>.csv
+* "sfc-behavioural_adjustments-<fno>-vs-1.csv
+
+where `fno` is 1 ... num systems
+
+"""
 function dump_frames(
     outdir :: AbstractString,
     frames :: NamedTuple;
@@ -1716,13 +1729,13 @@ function dump_frames(
     mkpath( outdir )
     for fno in 1:ns
         fname = joinpath( outdir, "hh_$(fno).csv")
-        CSV.write( fname, frames.hh[fno] ; append=append,delim=',')
+        CSV.write( fname, frames.hh[fno]; append=append,delim=',')
         fname = joinpath( outdir, "bu_$(fno).csv")
-        frames.bu[fno] = CSV.read( fname; delim=',') |> DataFrame
+        CSV.write( fname, frames.bu[fno]; append=append, delim=',')
         fname = joinpath( outdir, "indiv_$(fno).csv")
-        CSV.write( fname, frames.indiv[fno];append=append,delim=',' )
+        CSV.write( fname, frames.indiv[fno];append=append, delim=',')
         fname = joinpath( outdir, "income_$(fno).csv")
-        frames.income[fno] = CSV.read( fname; delim=',') |> DataFrame
+        CSV.write( fname, frames.income[fno]; delim=',')
         CSV.write( joinpath( outdir, "sfc-behavioural_adjustments-$(fno)-vs-1.csv"), frames.behavioural_results[fno] )        
     end
 end
