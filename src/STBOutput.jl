@@ -1059,25 +1059,41 @@ const SHORT_METR_TABLE_BREAK_LABELS = [
     ]
 
 """
-Produce data for Metrs as a bar chart, plus mean, median
+Produce data for Metrs as a bar chart, plus mean, median, transmat (MR Transition Matrix)
 """
-function metrs_to_hist( indiv :: DataFrame; breaks=METR_TABLE_BREAKS ) :: NamedTuple
+
+"""
+Produce data for Metrs as a bar chart, plus mean, median, transmat (MR Transition Matrix)
+transmat has pre in rows and post in cols
+"""
+function metrs_to_hist( indiv_pre::DataFrame, indiv_post::DataFrame; breaks=METR_TABLE_BREAKS ) :: NamedTuple
     # these 2 convoluted lines make this draw only
     # over the non-missing (children, retired)
-    p = collect(keys(skipmissing( indiv.metr )))
-    indp = indiv[p,[:metr, :weight]] # just non missing
-    indp.metr = Float64.(indp.metr) # median doesn't like union{missing,..}
+    p = intersect( collect(keys(skipmissing( indiv_pre.metr ))), collect(keys(skipmissing( indiv_post.metr ))))
+    indpre = indiv_pre[p,[:metr, :weight]] # just non missing
+    indpre.metr = Float64.(indpre.metr) # median doesn't like union{missing,..}
+    indpost = indiv_post[p,[:metr, :weight]] # just non missing
+    indpost.metr = Float64.(indpost.metr) # median doesn't like union{missing,..}
     # so .. <=0, >0 <=10, >10<=20 and so on
     # skip near-infinite mrs mwhen averaging
-    maxmtr = maximum(indp.metr)
-    minmtr = minimum(indp.metr)
-    sensible = indp[(abs.(indp.metr) .< 200),:]
+    maxmtr = maximum(indpost.metr)
+    minmtr = minimum(indpost.metr)
+    sensible = indpost[(abs.(indpost.metr) .< 200),:]
     if size(sensible)[1] > 0
         medmtr = median( sensible.metr, Weights(sensible.weight))
         meanmtr = mean( sensible.metr, Weights(sensible.weight))
-        hist = fit( Histogram, indp.metr, Weights( indp.weight ), breaks, closed=:left )
+        hist = fit( Histogram, indpost.metr, Weights( indpost.weight ), breaks, closed=:left )
+        # Same but in 2d pre- post : see Historgram in StatsBase documentation.
+        transmat = fit( Histogram, (indpre.metr,indpost.metr), Weights( indpost.weight ), (breaks, breaks), closed=:left )
+        # add row & col totals to transitions matrix
+        m = transmat.weights
+        m = hcat(m,sum(m,dims=2))
+        m = vcat(m,sum(m,dims=1))
+        # idiot check I've got dimensions right
+        @assert m[end,1:end-1] ≈ hist.weights "hist.weights $(hist.weights)  ≈ m col totals $(m[end,1:end-1])"
+
     end
-    return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist)
+    return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist, transmat_histogram = transmat, transmat=m )
 end
 
 """
@@ -1457,7 +1473,7 @@ function summarise_frames!(
             poverty_line = make_poverty_line( frames.hh[sysno], settings )
         end
         if settings.do_marginal_rates
-            push!( metrs, metrs_to_hist( frames.indiv[sysno] ))
+            push!( metrs, metrs_to_hist( frames.indiv[1], frames.indiv[sysno] ))
             println( "metrs to hist done")
         end
         push!( income_hists, incomes_to_hist(
