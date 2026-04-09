@@ -896,7 +896,7 @@ function make_povtrans_matrix(
     end
 
     @assert size(indiv1) == size(indiv2)
-    @assert indiv1.weight ≈ indiv1.weight
+    @assert indiv1.weight ≈ indiv2.weight
     nrows, ncols = size( indiv1 )
     trans = zeros(6,6)
     isym = income_measure_as_sym( settings.ineq_income_measure )
@@ -914,6 +914,13 @@ function make_povtrans_matrix(
         trans[6,p2]+= weight
         trans[6,6]+= weight
     end
+    return trans
+end
+
+function make_mrate_matrix( indiv1::DataFrame, indiv2::DataFrame )
+    trans = zeros(6,6)
+
+
     return trans
 end
 
@@ -1040,6 +1047,15 @@ const METR_TABLE_BREAK_LABELS = [
     "90-99.99",
     "100",
     "Above 100"
+    ]
+
+const SHORT_METR_TABLE_BREAKS = [-Inf, 0.0001, 20.0, 50.0, 90.0, Inf]
+const SHORT_METR_TABLE_BREAK_LABELS = [
+    "Zero/Below Zero",
+    "0.01-19.99",
+    "20-49.99",
+    "50-89.99",
+    "90 and above"
     ]
 
 """
