@@ -94,7 +94,8 @@ make_shared_package( "GWebIO", [
     "PlutoHooks",
     "Observables", 
     "PlutoTeachingTools",
-    "PlutoSliderServer"])
+    "PlutoSliderServer",
+    "Typstry"])
 make_shared_package( "GTest", [
     "BenchmarkTools", 
     "Chairmarks", 
