@@ -51,7 +51,7 @@ export
     METR_TABLE_BREAK_LABELS,
     POVERTY_LABELS
 
-const POVERTY_TABLES = ["V.Deep (<=30%)",
+const POVERTY_LABELS = ["V.Deep (<=30%)",
                 "Deep (<=40%)",
                 "In Poverty (<=60%)",
                 "Near Poverty (<=80%)",
@@ -1429,8 +1429,8 @@ end
 
 
 function povtrans_matrix_to_df( pmat :: Matrix )::DataFrame
-    d = DataFrame( pmat, POVERTY_TABLES )
-    insertcols!(d,1,:""=> POVERTY_TABLES )
+    d = DataFrame( pmat, POVERTY_LABELS )
+    insertcols!(d,1,:""=> POVERTY_LABELS )
     metadata!(d, "caption", "Movements in and out of poverty (counts of individuals) (Before in cols, after in rows).")
     return d
 end
