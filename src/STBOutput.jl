@@ -48,8 +48,15 @@ export
     summarise_frames!,
     DUMP_FILE_DESCRIPTION,
     METR_TABLE_BREAKS,
-    METR_TABLE_BREAK_LABELS
+    METR_TABLE_BREAK_LABELS,
+    POVERTY_LABELS
 
+const POVERTY_TABLES = ["V.Deep (<=30%)",
+                "Deep (<=40%)",
+                "In Poverty (<=60%)",
+                "Near Poverty (<=80%)",
+                "Not in Poverty",
+            "Total"]
 
 const DUMP_FILE_DESCRIPTION = 
 """
@@ -1420,15 +1427,10 @@ function decs_to_df( onedec :: Matrix )::DataFrame
     return d
 end
 
+
 function povtrans_matrix_to_df( pmat :: Matrix )::DataFrame
-    labels = ["V.Deep (<=30%)",
-                "Deep (<=40%)",
-                "In Poverty (<=60%)",
-                "Near Poverty (<=80%)",
-                "Not in Poverty",
-            "Total"]
-    d = DataFrame( pmat, labels )
-    insertcols!(d,1,:""=> labels )
+    d = DataFrame( pmat, POVERTY_TABLES )
+    insertcols!(d,1,:""=> POVERTY_TABLES )
     metadata!(d, "caption", "Movements in and out of poverty (counts of individuals) (Before in cols, after in rows).")
     return d
 end
