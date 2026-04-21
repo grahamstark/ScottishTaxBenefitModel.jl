@@ -1053,7 +1053,8 @@ const METR_TABLE_BREAK_LABELS = [
     "80-89.99",
     "90-99.99",
     "100",
-    "Above 100"
+    "Above 100",
+    "TOTAL"
     ]
 
 const SHORT_METR_TABLE_BREAKS = [-Inf, 0.0001, 20.0, 50.0, 90.0, Inf]
@@ -1062,7 +1063,8 @@ const SHORT_METR_TABLE_BREAK_LABELS = [
     "0.01-19.99",
     "20-49.99",
     "50-89.99",
-    "90 and above"
+    "90 and above",
+    "TOTAL"
     ]
 
 """
