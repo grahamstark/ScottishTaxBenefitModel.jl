@@ -72,10 +72,25 @@ settings = Settings()
                     bures,
                     bu,
                     bint,
-                    sys.scottish_child_payment 
+                    sys.scottish_child_payment
                 )
                 aggregate!( bures )
                 @test bures.income[SCOTTISH_CHILD_PAYMENT] == 10
+                # child limit: all age-qualifying but capped at 1
+                if ncs >= 2
+                    ages = fill( 3, ncs )
+                    set_childrens_ages!( hh, ages... )
+                    limited_scp = deepcopy( sys.scottish_child_payment )
+                    limited_scp.child_limit = 1
+                    calc_scottish_child_payment!(
+                        bures,
+                        bu,
+                        bint,
+                        limited_scp
+                    )
+                    aggregate!( bures )
+                    @test bures.income[SCOTTISH_CHILD_PAYMENT] == 10
+                end
             end # with children
         end
     end
