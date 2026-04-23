@@ -91,8 +91,9 @@ function apply_allowance( allowance::Real, income::Real )::Tuple
     allowance,r
 end
 
+
 """
-  from Melville, ch13.
+  from Melville, ch13.(14 in 2023- editions)
   Changes are in itres: add to pension fields and extend bands
   notes:
   Melville talks of "earned income" - using non-savings income
@@ -126,13 +127,15 @@ function calculate_pension_taxation!(
             sys.pension_contrib_annual_allowance - excess*sys.pension_contrib_withdrawal_rate )
     end
     # # println( "total_income $total_income max_relief $max_relief eligible_contribs $eligible_contribs" )
+    # FIXME replace with basic rate!
+    addto_thresh = sys.non_savings_rates[1] == 0 ? 2 : 1
     eligible_contribs = min( eligible_contribs, max_relief );
     pres.it.pension_eligible_for_relief = eligible_contribs
     basic_rate = sys.non_savings_rates[ sys.non_savings_basic_rate ]
     # # println("total_income=$total_income max_relief=$max_relief eligible_contribs=$eligible_contribs basic_rate=$basic_rate sys.pension_contrib_withdrawal_rate=$(sys.pension_contrib_withdrawal_rate)")
     gross_contribs = eligible_contribs/(1-basic_rate)
     pres.it.pension_relief_at_source = gross_contribs - eligible_contribs
-    pres.it.non_savings_thresholds .+= gross_contribs
+    pres.it.non_savings_thresholds[addto_thresh:end] .+= gross_contribs
     pres.it.property_thresholds .+= gross_contribs
     pres.it.savings_thresholds .+= gross_contribs
     pres.it.dividend_thresholds .+= gross_contribs

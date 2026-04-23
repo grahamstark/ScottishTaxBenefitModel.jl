@@ -499,8 +499,8 @@ end
     head = scot.people[SCOT_HEAD]
     spouse = scot.people[SCOT_SPOUSE]
     bu = make_benefit_unit( PeopleArray([head,spouse]), head.pid, spouse.pid ) 
-    head_ages = [75,91,91,70] # after 1935
-    spouse_ages = [91,70,70,91]
+    head_ages = [75,99,99,70] # after 1935
+    spouse_ages = [99,70,70,99]
     head_incomes = [19_100.0, 29_710.0,41_080.0,0.0]
     spouse_incomes = [12_450.0,0,13_950.0,49_300.0]
     for i in 1:4
