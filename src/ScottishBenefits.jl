@@ -37,10 +37,11 @@ function calc_scottish_child_payment!(
     scp = 0.0
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
-    # nkids = count( bu, le_age, scpsys.maximum_age )   
-    if( length(bu.children) > 0 ) && has_any( bur, scpsys.qualifying_benefits... )
+    # apply a SCP-only child number limit
+    num_applicable_children = min(scpsys.child_limit, length(bu.children))
+    if( num_applicable_children > 0 ) && has_any( bur, scpsys.qualifying_benefits... )
         scp = 0.0
-        for p in bu.children[1:min(scpsys.child_limit, length(bu.children))]
+        for p in bu.children[1:num_applicable_children]
             ch = bu.people[p]
             scp += do_stepped_tax_calculation(;
             taxable=ch.age,
