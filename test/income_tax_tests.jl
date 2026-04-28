@@ -557,11 +557,10 @@ end
     calc_income_tax!( brscot, alana, nothing, itsys_scot );
     @test bruk.pers[alana.pid].it.pension_relief_at_source ≈ 960.0
     @test bruk.pers[alana.pid].it.pension_eligible_for_relief ≈ 400.0*12*0.8
-    @test brscot.pers[alana.pid].it.non_savings_thresholds[1] ≈ itsys_scot.non_savings_thresholds[1]+400.0*12
+    @test brscot.pers[alana.pid].it.non_savings_thresholds[1] ≈ itsys_scot.non_savings_thresholds[1] # +400.0*12
     @test brscot.pers[alana.pid].it.non_savings_thresholds[2] ≈ itsys_scot.non_savings_thresholds[2]+400.0*12
     @test brscot.pers[alana.pid].it.pension_relief_at_source ≈ 960.0
     @test brscot.pers[alana.pid].it.pension_eligible_for_relief ≈ 400.0*12*0.8
-
 end
 
 @testset "pension: Tax Relief Minima - Melville ch14 ex1(a)"  begin

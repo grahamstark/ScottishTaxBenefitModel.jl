@@ -136,7 +136,7 @@ function calculate_pension_taxation!(
     gross_contribs = eligible_contribs/(1-basic_rate)
     pres.it.pension_relief_at_source = gross_contribs - eligible_contribs
     pres.it.non_savings_thresholds[sys.non_savings_basic_rate:end] .+= gross_contribs
-    pres.it.property_thresholds .+= gross_contribs
+    pres.it.property_thresholds[sys.non_savings_basic_rate:end] .+= gross_contribs
     pres.it.savings_thresholds .+= gross_contribs
     pres.it.dividend_thresholds .+= gross_contribs
 end
