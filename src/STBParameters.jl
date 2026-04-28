@@ -647,7 +647,7 @@ end
     abolished = false
     amounts = [RT(10.0),RT(0)]
     maximum_ages = [5,99]
-    child_limit :: Int = 99
+    max_num_children = 99
     qualifying_benefits = [
         CHILD_TAX_CREDIT,
         UNIVERSAL_CREDIT,
