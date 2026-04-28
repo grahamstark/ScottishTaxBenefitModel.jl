@@ -81,7 +81,7 @@ settings = Settings()
                     ages = fill( 3, ncs )
                     set_childrens_ages!( hh, ages... )
                     limited_scp = deepcopy( sys.scottish_child_payment )
-                    limited_scp.child_limit = 1
+                    limited_scp.max_num_children = 1
                     calc_scottish_child_payment!(
                         bures,
                         bu,
