@@ -38,7 +38,7 @@ function calc_scottish_child_payment!(
     bu = benefit_unit
     bur = benefit_unit_result # shortcuts 
     # apply a SCP-only child number limit
-    num_applicable_children = min(scpsys.child_limit, length(bu.children))
+    num_applicable_children = min(scpsys.max_num_children, length(bu.children))
     if( num_applicable_children > 0 ) && has_any( bur, scpsys.qualifying_benefits... )
         scp = 0.0
         for p in bu.children[1:num_applicable_children]
