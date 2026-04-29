@@ -1,6 +1,7 @@
 using ScottishTaxBenefitModel
 using Observables
 using .STBOutput
+using .Definitions
 using .RunSettings
 using .GeneralTaxComponents
 using .STBParameters
@@ -37,12 +38,18 @@ end
     weighted_people = w .* people
     weighted_bhc_change = w .* change_bhc
     people_weighted_change = weighted_people .* change
-    d = DataFrame( 
+    people_weighted_pre_income = weighted_people .* change # FIXME not really
+    people_weighted_post_income = weighted_people .* change # FIXME not really
+    d = DataFrame(
         weight                 = w,
         change                 = change,
         i                      = [1,1,2,2,2],
+        pct_change             = zeros(5),
         people_weighted_change = people_weighted_change,
         weighted_bhc_change    = weighted_bhc_change,
+        hh_type                 = people,
+        people_weighted_pre_income = people_weighted_pre_income,
+        people_weighted_post_income = people_weighted_post_income,
         weighted_people        = weighted_people )
     nrows,ncols = size(d)
     d.data_year .= 888

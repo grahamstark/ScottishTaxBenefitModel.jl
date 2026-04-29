@@ -851,7 +851,7 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: Tuple{DataFrame,Dat
         (:weight=>sum),          # sum of hh weights
         (:weighted_bhc_change=>sum ),
         (:weighted_pre_income=>sum ),
-        ([:pct_change,:weight,:hh_type]=>pmean=>:pct_change),
+        ([:pct_change,:weight,:hh_type]=>pmean=>:pct_change), # hhtype here is just the count of people
         (:people_weighted_pre_income=>sum ),
         (:people_weighted_post_income=>sum ),
         (:weighted_post_income=>sum ))     # sum of bhc changes
