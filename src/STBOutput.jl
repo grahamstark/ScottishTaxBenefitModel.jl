@@ -725,6 +725,29 @@ end
 vmean(x,y) = mean(x,Weights(y))
 pmean(x,weight,count) = mean(x,Weights(weight.*count))
 
+
+"""
+In-place add a totals row and a population column to a gain/lose table (see below).
+FIXME are pct_change and avchange totals consistent? - we use weighted values of the cols
+"""
+function add_totals_to_gl!( gld :: AbstractDataFrame )
+    nrows,ncols = size(gld)
+    # 1st row is sometimes and enum or int - coerce into String
+    gld[!,1] = string.(gld[!,1])
+    v = ["Totals",zeros( ncols-1)...]
+    for c in 2:ncols-4
+        v[c] = sum( gld[!,c])
+    end
+    tt = sum( gld.total_transfer )
+    tp = sum( gld.population )
+    v[ncols-2] = mean( gld.avch, Weights( gld.population )) # avch = 1000000*tt/(tp*WEEKS_PER_YEAR)
+    v[ncols-3] = tp
+    v[ncols-1] = mean( gld.pct_change, Weights( gld.population ))
+    v[ncols] = tt
+    push!( gld, v )
+end
+
+
 """
 Convoluted approach to making an IFS style Gain-Lose table
 @param dhh - a little frame with a bunch of categories and a net-income field (change)
@@ -798,11 +821,13 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: Tuple{DataFrame,Dat
     # gavch.pct_change = 100.0 .* ((gavch.weighted_post_income_sum .- gavch.weighted_pre_income_sum)./gavch.weighted_pre_income_sum)
     # ... put av changes in the right order
     sort!( gavch, col )
+    vhh.population = gavch.weighted_people_sum
     vhh.avch = gavch.avch
     vhh.pct_change = gavch.pct_change
     vhh.total_transfer = gavch.total_transfer
     # remove missing: Do we need this?
     glf = coalesce.( vhh, 0.0)
+    add_totals_to_gl!( glf )
     # add an average change column
     colstr = pretty(string(col))
 
