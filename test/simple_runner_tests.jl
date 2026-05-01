@@ -46,6 +46,7 @@ end
 
 const SYSTEMS = make_systems()
 
+settings = getSet()
 @time settings.num_households, settings.num_people, nhh2 = FRSHouseholdGetter.initialise( settings; reset=true )
 
 # observer = Observer(Progress("",0,0,0))

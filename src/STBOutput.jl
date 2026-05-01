@@ -1675,15 +1675,26 @@ function restore_frames( dir :: AbstractString, num_systems :: Integer )::NamedT
         behavioural_results = DataFrame[])
     for fno in 1:num_systems
         fname = joinpath( dir, "hh_$(fno).csv")
-        push!(frames.hh, CSV.File( fname, delim=',') |> DataFrame )
+        hf = CSV.File( fname, delim=',') |> DataFrame
+        hf.hid = BigInt.(hf.hid ) # force indexes to be bigints
+        push!(frames.hh, hf )
         fname = joinpath( dir, "bu_$(fno).csv")
-        push!( frames.bu, CSV.File( fname; delim=',') |> DataFrame )
+        bf = CSV.File( fname; delim=',') |> DataFrame
+        push!( frames.bu, bf )
         fname = joinpath( dir, "indiv_$(fno).csv")
-        push!( frames.indiv, CSV.File( fname; delim=',') |> DataFrame )
+        idf = CSV.File( fname; delim=',') |> DataFrame
+        idf.hid = BigInt.(idf.hid)
+        idf.pid = BigInt.(idf.pid)
+        push!( frames.indiv, idf )
         fname = joinpath( dir, "income_$(fno).csv")
-        push!( frames.income, CSV.File( fname; delim=',') |> DataFrame )
+        iif = CSV.File( fname; delim=',') |> DataFrame
+        iif.hid = BigInt.(iif.hid)
+        iif.pid = BigInt.(iif.pid)
+        push!( frames.income, iif )
         fname = joinpath( dir, "sfc-behavioural_adjustments-$(fno)-vs-1.csv")
         push!(frames.behavioural_results, CSV.File( fname; delim=',') |> DataFrame )
+        # empty reference here
+        frames.legalaid = nothing
     end
     return frames;
 end
