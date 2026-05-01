@@ -1562,7 +1562,7 @@ function summarise_frames!(
         taxable_income_hists,
         povtrans_matrix,
         povtrans_matrix_df,
-        legalaid = frames.legalaid )
+        legalaid = frames.legalaid ) # FIXME remove LegalAid hard-wired here
 end
 
 function fm(v, r,c) 
@@ -1672,7 +1672,8 @@ function restore_frames( dir :: AbstractString, num_systems :: Integer )::NamedT
         bu = DataFrame[],
         indiv = DataFrame[],
         income = DataFrame[],
-        behavioural_results = DataFrame[])
+        behavioural_results = DataFrame[],
+        legalaid = [])
     for fno in 1:num_systems
         fname = joinpath( dir, "hh_$(fno).csv")
         hf = CSV.File( fname, delim=',') |> DataFrame
@@ -1694,7 +1695,7 @@ function restore_frames( dir :: AbstractString, num_systems :: Integer )::NamedT
         fname = joinpath( dir, "sfc-behavioural_adjustments-$(fno)-vs-1.csv")
         push!(frames.behavioural_results, CSV.File( fname; delim=',') |> DataFrame )
         # empty reference here
-        frames.legalaid = nothing
+        push!(frames.legalaid, nothing ) # just needed for summaries
     end
     return frames;
 end
