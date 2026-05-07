@@ -1666,6 +1666,7 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
             CSV.write( joinpath( outdir, "gain-lose-by-num-children-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].children_examples)
             CSV.write( joinpath( outdir, "gain-lose-by-household Type-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].hhtype_examples)
             CSV.write( joinpath( outdir, "gain-lose-by-region-examples-$(fno)-vs-1.csv"), summary.gain_lose[fno].reg_examples)
+            CSV.write( joinpath( outdir, "poverty-transition-matrix-$(fno)-vs-1.csv"), summary.povtrans_matrix_df[fno])
         end
         
         CSV.write( joinpath( outdir, "deciles-$(fno).csv"), summary.deciles_df[fno])
