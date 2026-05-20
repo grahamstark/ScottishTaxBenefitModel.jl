@@ -17,7 +17,7 @@ using .STBIncomes
 using .Results
 using .Utils
 
-export makebc, recensor
+export makebc, recensor, row_to_detail_frame
 
 # character labels for charts; lower roman, greek, then upper 
 const LABELS = collect(union('a':'z','α':'ω','A':'Z','Α':'Ω'))
@@ -140,44 +140,82 @@ function tosimplelabel(
 end
 
 """
-Non-table html version of the point labelling thing for plotlyjs labels, since pjs only 
+Table html version of the point labelling thing for plotlyjs labels, since pjs only
 accepts br,b,i and a few others html tags. FIXME FINISH THIS
 """
 function tohtmltable( 
     r :: DataFrameRow,
     hres :: HouseholdResult ) :: String
     
-    s = "<table class='table'>"
+    s = "<table class='table table-sm'><tbody>"
     m = fm(r.net)
-    s *= s *= "<tr><th>Net Income (after housing costs)</th><td>$m</td></tr>"
+    s *= "<tr><th></th><th>£s pw</th></tr>"
+    s *= s *= "<tr><th>Net Income</th><td>$m</td></tr>"
     for i in instances(Incomes)
         if hres.income[i] != 0
             m = fm(hres.income[i])
             n = iname(i)
-            s *= "<b>$n</b> = $m<br>"
+            s *= "<tr><th>$n</th><td>$m</td></tr>"
         end
     end
-    s *= "<br>"
     if r.reduction > 0
         m = fm(r.cap)
-        s *= "<b>Benefit Cap</b> = $m<br>"    
+        s *= "<tr class='total'><th>Benefit Cap</th><td>$m</td><tr>"
         m = fm(r.reduction)
-        s *= "<b>Benefits Reduced By:</b> = $m<br>"    
+        s *= "<tr class='total'><th>Benefits Reduced By:</th><td>$m</td></tr>"
     end
     m = fm(hres.net_housing_costs)
-    s *= "<b>Net Housing Costs</b> = $m<br>"
+    s *= "<tr class='total'><th>Net Housing Costs</th><td>$m</td></tr>"
     if abs(r.mr) < 9999
         m = fm(r.mr*100)
-        s *= "<b>Marginal Tax Rate</b> = $(m)%<br>"
+        s *= "<tr class='total'><th>Marginal Tax Rate</th><td>$(m)%</td></tr>"
         m = fm(r.credit)
-        s *= "<b>Tax Credit</b> = $m<br>"
+        s *= "<tr class='total'><th>Tax Credit</th><td>$m</td></tr>"
     else
-        s *= "<b>Discontinuity</b><br>"
+        s *= "<tr class='total'><th>Discontinuity</td></td></td></tr>>"
     end
-    s *= "</table>"
+    s *= "</tbody></table>"
     return s
 end
 
+"""
+All the components at the end of the main dataframe into a mini-dataframe, plus MR, cap info.
+"""
+function row_to_detail_frame( r :: DataFrameRow )::DataFrame
+    n = 0
+    d = DataFrame( name=fill("",100), value=fill(0.0,100))
+    for lv in 1:30
+        lk = Symbol( "item_$(lv)")
+        vk = Symbol( "value_$(lv)")
+        key = r[lk]
+        val = r[vk]
+        if key != ""
+            n += 1
+            d[n,:name] = key
+            d[n,:value] = val
+        end
+    end
+    if r.reduction > 0
+        n += 1
+        d[n,:name] = "Benefit Cap"
+        d[n,:value] = r.cap
+        n += 1
+        d[n,:name] = "Benefits Reduced By:"
+        d[n,:value] = r.reduction
+    end
+    n += 1
+    if abs(r.mr) < 9999
+        d[n,:name] = "Marginal Tax Rate"
+        d[n,:value] = r.mr
+        n += 1
+        d[n,:name] = "Marginal Tax Rate"
+        d[n,:value] = r.credit
+    else
+        d[n,:name] = "Discontinuity"
+        d[n,:value] = 0
+    end
+    return d[1:n,:]
+end
 
 function makebc(
     hh         :: Household,
@@ -187,6 +225,7 @@ function makebc(
     pid        :: BigInt = BigInt(-1),
     bcsettings :: BCSettings = BudgetConstraints.DEFAULT_SETTINGS;
     to_html = true ) :: DataFrame
+
     max_gross = wage*120
     lbcset = BCSettings(
         bcsettings.mingross,
@@ -214,6 +253,8 @@ function makebc(
         cap = zeros(N),
         reduction = zeros(N), 
         label=Array{String}(undef,N),
+        # components = fill( makelabeldf(), N ),
+
         simplelabel=fill("",N),
         label_p1 = fill("",N),
         label_pch = Array{Any}(undef,N))
@@ -250,10 +291,11 @@ function makebc(
             end
         end
         # FIXME aggregate this to HH Level
+        # FIXME push the benefit cap stuff onto components
         r.cap = hres.bus[1].bencap.cap
         r.reduction = hres.bus[1].bencap.reduction
         if to_html 
-            r.simplelabel = tosimplelabel( r, hres )
+            r.simplelabel = tohtmltable( r, hres )
         else
             r.simplelabel = to_md_list(r, hres )
         end
@@ -265,7 +307,6 @@ function makebc(
     out.char_labels = get_char_labels(N)
     return out
 end
-
 
 """
 Re-censor the data, since permissive in BCCalcs
