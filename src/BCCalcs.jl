@@ -172,7 +172,7 @@ function tohtmltable(
         m = fm(r.credit)
         s *= "<tr class='total'><th>Tax Credit</th><td>$m</td></tr>"
     else
-        s *= "<tr class='total'><th>Discontinuity</td></td></td></tr>>"
+        s *= "<tr class='total'><th>Discontinuity</td></td></td></tr>"
     end
     s *= "</tbody></table>"
     return s
