@@ -5,6 +5,7 @@
 
 using Test
 using DataFrames
+using CSV
 using PrettyTables
 using Dates
 using Format
@@ -70,7 +71,7 @@ function printbcs(
     hh :: Household,
     sys :: TaxBenefitSystem, 
     wage::Real,
-    settings::Settings )
+    settings::Settings )::DataFrame
 
     settings.means_tested_routing = lmt_full 
     bc = BCCalcs.makebc(
@@ -119,7 +120,7 @@ sys21_22 = get_default_system_for_date( Date( 2021, 12, 1 ))
     hres = do_one_calc(hh, sys21_22, settings )
     println( f, "<pre>$(hres.bus[1].uc)</pre>")
     bc = printbcs( f, hh, sys21_22, 12, settings)
-    CSV.write( joinpath( tmpdir, "bc-example.csv"), bc )
+    CSV.write( joinpath( tmp, "bc-example.csv"), bc )
     println( f, "<h2>6 bedrooms; 6 kids; 300 hcost</h2>")
     hh = crude_construct_hh( 
         "council", 
