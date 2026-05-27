@@ -58,17 +58,19 @@ end
     d.weighted_post_income = d.weight.*d.i
     ogl,exgl = STBOutput.one_gain_lose( d, :i )
     println(ogl)
-    @test ogl.total_transfer ≈ [sum(weighted_bhc_change[1:2])*WEEKS_PER_YEAR/1_000_000, sum(weighted_bhc_change[3:5])*WEEKS_PER_YEAR/1_000_000]
-    @test ogl.avch ≈ [5.2,4.0]
-    @test sum( ogl."No Change") == 0
-    @test sum( ogl."Gain £1.01-£10" ) == sum(d.weighted_people)
+    # NOTE the 1:end-1 stuff here is beacuse I've added an extra totals row & can't be bothered changing the tests,
+    # whicb were pre-totals
+    @test ogl.total_transfer[1:2] ≈ [sum(weighted_bhc_change[1:2])*WEEKS_PER_YEAR/1_000_000, sum(weighted_bhc_change[3:5])*WEEKS_PER_YEAR/1_000_000]
+    @test ogl.avch[1:end-1] ≈ [5.2,4.0]
+    @test sum( ogl."No Change"[1:end-1]) == 0
+    @test sum( ogl."Gain £1.01-£10"[1:end-1] ) == sum(d.weighted_people)
     @show exgl 
 
     d.change = [-20,-10,0,9,88]
     ogl,exgl = STBOutput.one_gain_lose( d, :i )
-    @test sum( ogl."No Change") == 400
-    @test sum( ogl."Lose £10.01+") == 400
-    @test sum( ogl."Gain £10.01+") == 200
+    @test sum( ogl."No Change"[1:end-1]) == 400 # skip totals row
+    @test sum( ogl."Lose £10.01+"[1:end-1]) == 400
+    @test sum( ogl."Gain £10.01+"[1:end-1]) == 200
     println(ogl)
     @show exgl 
 end
