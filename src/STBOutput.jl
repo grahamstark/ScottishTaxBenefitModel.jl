@@ -1624,10 +1624,8 @@ Write everything from the summaries into a directory
 constructed from the settings output filename and the run name.
 Writes CSV for the income summaries and quantiles and markdown for the rest.
 """
-function dump_summaries( settings :: Settings, summary :: NamedTuple )
+function dump_summaries( outdir :: AbstractString, settings :: Settings, summary :: NamedTuple )
     ns = length( summary.income_summary ) # num systems
-    outdir = joinpath( settings.output_dir, basiccensor( settings.run_name )) 
-    mkpath( outdir )
     open(joinpath( outdir, "index.md"), "w") do lio
         println( lio, DUMP_FILE_DESCRIPTION )
     end
@@ -1689,6 +1687,12 @@ function dump_summaries( settings :: Settings, summary :: NamedTuple )
     end
 end
 
+function dump_summaries( settings :: Settings, summary :: NamedTuple )
+    outdir = joinpath( settings.output_dir, basiccensor( settings.run_name ))
+    mkpath( outdir )
+    dump_summaries( outdir, settings, summary )
+end
+
 """
 Restore the main output frames saved with `dump_frames`.
 """
@@ -1744,7 +1748,6 @@ function dump_frames(
     frames :: NamedTuple;
     append :: Bool = false )
     ns = size( frames.indiv )[1] # num systems
-    mkpath( outdir )
     for fno in 1:ns
         fname = joinpath( outdir, "hh_$(fno).csv")
         CSV.write( fname, frames.hh[fno]; append=append,delim=',')
@@ -1766,6 +1769,7 @@ function dump_frames(
     frames :: NamedTuple;
     append :: Bool = false )
     outdir = joinpath( settings.output_dir, basiccensor( settings.run_name ))
+    mkpath( outdir )
     dump_frames( outdir, frames; append=append )
 end
 

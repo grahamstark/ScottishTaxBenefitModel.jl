@@ -28,7 +28,7 @@ using .Runner: do_one_run
 using .Definitions
 import .ExampleHouseholdGetter
 using .STBOutput: make_poverty_line, summarise_inc_frame, 
-    dump_frames, summarise_frames!, make_gain_lose
+    dump_frames, summarise_frames!, make_gain_lose, dump_summaries
 
 using .RunSettings: Settings, get_all_uk_settings_2023
 
