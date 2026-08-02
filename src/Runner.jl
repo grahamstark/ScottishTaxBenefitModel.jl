@@ -133,7 +133,9 @@ module Runner
                 nation = nation_from_region( hh.region )
                 if nation in settings.included_nations
                     if hno % 100 == 0
-                        observer[] =Progress( settings.uuid, "run",thread, hno, 100, settings.num_households )
+                        thread_size = stop[thread] - start[thread] + 1
+                        pos_in_thread = hhno - start[thread]
+                        observer[] =Progress( settings.uuid, "run", thread, pos_in_thread, 100, thread_size )
                     end
                     for sysno in 1:num_systems
                         res = do_one_calc( hh, params[sysno], settings )
