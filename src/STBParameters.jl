@@ -1093,6 +1093,7 @@ function weeklyise!( uc :: UniversalCreditSys; wpm=WEEKS_PER_MONTH, wpy=WEEKS_PE
     uc.work_allowance_no_housing /= wpm
 
 end
+
 @with_kw mutable struct UBISys{RT}
     # numbers from "horizon 3; 2019 values"
     abolished :: Bool = true
