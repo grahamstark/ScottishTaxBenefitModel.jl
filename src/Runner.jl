@@ -134,7 +134,7 @@ module Runner
                 if nation in settings.included_nations
                     if hno % 100 == 0
                         thread_size = stop[thread] - start[thread] + 1
-                        pos_in_thread = hhno - start[thread]
+                        pos_in_thread = hho - start[thread] + 1
                         observer[] =Progress( settings.uuid, "run", thread, pos_in_thread, 100, thread_size )
                     end
                     for sysno in 1:num_systems
