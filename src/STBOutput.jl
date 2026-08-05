@@ -884,7 +884,7 @@ function make_povtrans_matrix(
     return trans
 end
 
-const GL_MIN = 1.0
+const GL_MIN = 1.01
 const MAX_EXAMPLES = 50
 
 
@@ -936,8 +936,8 @@ function make_gain_lose( ;
     # FIXME this is vvv problematic
     poverty_gl, poverty_examples = one_gain_lose( dhh, :in_poverty )
     # some overall changes - easier way?
-    gainers = sum( dhh[dhh.change .> GL_MIN, :weighted_people] )
-    losers = sum( dhh[dhh.change .< -GL_MIN, :weighted_people] )
+    gainers = sum( dhh[dhh.change .>= GL_MIN, :weighted_people] )
+    losers = sum( dhh[dhh.change .<= -GL_MIN, :weighted_people] )
     # sample gain/lose
     ex_gainers = Array{OneIndex}(undef,MAX_EXAMPLES)
     n_gainers = 0
