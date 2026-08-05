@@ -884,7 +884,7 @@ function make_povtrans_matrix(
     return trans
 end
 
-const GL_MIN = 0.10
+const GL_MIN = 1.0
 const MAX_EXAMPLES = 50
 
 
