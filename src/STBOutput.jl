@@ -815,11 +815,8 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: Tuple{DataFrame,Dat
         (:weighted_post_income=>sum ))     # sum of bhc changes
     # gavch.avch = gavch.people_weighted_change_sum ./ gavch.weighted_people_sum # => average change for each group per person
     gavch.total_transfer = WEEKS_PER_YEAR.*gavch.weighted_bhc_change_sum./1_000_000 # total moved to/from that group
-    # TEMP overwrite the new pct_change for JP -
-
     gavch.avch = (gavch.people_weighted_post_income_sum .- gavch.people_weighted_pre_income_sum) ./ gavch.weighted_people_sum # => average change for each group per person
     gavch.pct_change = 100.0 .* ((gavch.people_weighted_post_income_sum .- gavch.people_weighted_pre_income_sum)./gavch.people_weighted_pre_income_sum)
-    # £spa
     # gavch.pct_change = 100.0 .* ((gavch.weighted_post_income_sum .- gavch.weighted_pre_income_sum)./gavch.weighted_pre_income_sum)
     # ... put av changes in the right order
     sort!( gavch, col )
@@ -832,7 +829,6 @@ function one_gain_lose( dhh :: DataFrame, col :: Symbol ) :: Tuple{DataFrame,Dat
     add_totals_to_gl!( glf )
     # add an average change column
     colstr = pretty(string(col))
-
     metadata!( glf, "caption", "Table of Gainers and Losers by $colstr - Counts of Individuals."; style=:note)
     colmetadata!( glf, :pct_change,"label", "% Change In Income."; style=:note)
     colmetadata!( glf, :avch,"label", "Average Change In £s pw."; style=:note)
