@@ -157,6 +157,12 @@ export BereavementType,
    bereavement_support = 3 # old style 1 off payment. Only recorded in 2015 FRS I think
 end
 
+
+@enum PovertyState very_deep_poverty deep_poverty in_poverty near_poverty not_in_poverty
+export PovertyState, very_deep_poverty, deep_poverty, in_poverty, near_poverty, not_in_poverty
+
+
+
 export Illness_Length  # mapped from limitl
 export Less_than_six_months, Between_six_months_and_12_months, v_12_months_or_more
 export Missing_Illness_Length, RT

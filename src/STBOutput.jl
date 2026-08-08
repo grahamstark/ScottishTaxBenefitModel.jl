@@ -1032,7 +1032,7 @@ transmat has pre in rows and post in cols
 function metrs_to_hist( indiv_pre::DataFrame, indiv_post::DataFrame; breaks=METR_TABLE_BREAKS, labels=METR_TABLE_BREAK_LABELS ) :: NamedTuple
     # these 5 convoluted lines make this draw only
     # over the non-missing (children, retired excluded from MR calcutatioin, but working age non-employed are in)
-    p = intersect( collect(keys(skipmissing( indiv_pre.metr ))), collect(keys(skipmissing( indiv_post.metr ))))
+    p = union( collect(keys(skipmissing( indiv_pre.metr ))), collect(keys(skipmissing( indiv_post.metr ))))
     indpre = indiv_pre[p,[:metr, :weight]] # just non missing
     indpre.metr = Float64.(indpre.metr) # median doesn't like union{missing,..}
     indpost = indiv_post[p,[:metr, :weight]] # just non missing
@@ -1041,7 +1041,7 @@ function metrs_to_hist( indiv_pre::DataFrame, indiv_post::DataFrame; breaks=METR
     # skip near-infinite mrs mwhen averaging
     maxmtr = maximum(indpost.metr)
     minmtr = minimum(indpost.metr)
-    sensible = indpost[(abs.(indpost.metr) .< 200),:] # cut infinite MRs for means - keep in for tge transition matric
+    sensible = indpost[(abs.(indpost.metr) .< 200),:] # cut infinite MRs for means - keep in for the transition matrix
     m = zeros(0,0)
     m_df = DataFrame()
     if size(sensible)[1] > 0
