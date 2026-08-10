@@ -11,6 +11,8 @@ using ScottishTaxBenefitModel.GeneralTaxComponents
 using ScottishTaxBenefitModel.STBParameters
 using ScottishTaxBenefitModel.Runner: do_one_run
 using ScottishTaxBenefitModel.RunSettings
+using ScottishTaxBenefitModel.Definitions
+
 using .STBOutput
 using .Utils
 using .Monitor: Progress
@@ -55,4 +57,18 @@ end
     @test t[t.label .== "100",:metr][1] == 100
     @test t[t.label .== "10-19.99",:metr][1] == 0
     =#
+end
+
+@testset "MR Classifications" begin
+    @test METR_TABLE_BREAK_LABELS[get_metr_band(0)] == "Zero"
+    @test METR_TABLE_BREAK_LABELS[get_metr_band(missing)] == "Not Computed"
+    @test METR_TABLE_BREAK_LABELS[get_metr_band(100)] == "100"
+    @test METR_TABLE_BREAK_LABELS[get_metr_band(101)] == "Above 100"
+    @test METR_TABLE_BREAK_LABELS[get_metr_band(-101)] == "Less than zero"
+    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(0)] == "Zero/Below Zero"
+    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(missing)] == "Not Computed"
+    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(100)] ==  "90 and above"
+    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(101)] ==  "90 and above"
+    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(-101)] == "Zero/Below Zero"
+
 end

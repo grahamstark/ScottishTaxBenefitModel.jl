@@ -158,40 +158,146 @@ export BereavementType,
 end
 
 
-@enum PovertyState very_deep_poverty deep_poverty in_poverty near_poverty not_in_poverty
+@enum PovertyState begin
+   very_deep_poverty = 1
+   deep_poverty = 2
+   in_poverty = 3
+   near_poverty = 4
+   not_in_poverty = 5
+end
 export PovertyState, very_deep_poverty, deep_poverty, in_poverty, near_poverty, not_in_poverty
-
+export get_poverty_state, POVERTY_LABELS, POVERTY_BREAKS
 const POVERTY_LABELS = ["V.Deep (<=30%)",
                         "Deep (<=40%)",
                         "In Poverty (<=60%)",
                         "Near Poverty (<=80%)",
                         "Not in Poverty",
                         "Total"]
-const POVERTY_BREAKS = [
+const POVERTY_BREAKS = [ 0.3, 0.4, 0.6, 0.8 ]
 
-    ]
+function get_poverty_state( inc :: Number, median :: Number ) :: PovertyState
+   ms = POVERTY_BREAKS .* median
+   i = 1
+   for m in ms
+      if inc <= m
+         return PovertyState(i)
+      end
+      i += 1
+   end
+   return not_in_poverty
+end
 
-@enum MetrBands = metr_lt_zero metr_zero metr_0_9 metr_10_19 metr_20_29 metr_30_39 metr_40_49 metr_50_59 metr_60_69 metr_70_79 metr_80_89 metr_90_99 metr_100 metr_above_100 metr_not_computed
+@enum MetrBands begin
+   metr_not_computed = 1
+   metr_above_100 = 2
+   metr_100 = 3
+   metr_90_99 = 4
+   metr_80_89 = 5
+   metr_70_79 = 6
+   metr_60_69 = 7
+   metr_50_59 = 8
+   metr_40_49 = 9
+   metr_30_39 = 10
+   metr_20_29 = 11
+   metr_10_19 = 12
+   metr_0_9 = 13
+   metr_zero = 14
+   metr_lt_zero = 15
+end
 
-const METR_TABLE_BREAKS = [-Inf, 0.0000, 0.0001, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.001, Inf]
+export MetrBands,
+   metr_not_computed,
+   metr_above_100,
+   metr_100,
+   metr_90_99,
+   metr_80_89,
+   metr_70_79,
+   metr_60_69,
+   metr_50_59,
+   metr_40_49,
+   metr_30_39,
+   metr_20_29,
+   metr_10_19,
+   metr_0_9,
+   metr_zero,
+   metr_lt_zero
+export get_metr_band, METR_TABLE_BREAKS, METR_TABLE_BREAK_LABELS
+
+const METR_TABLE_BREAKS = [100.001, 100.0, 90.0, 80.0, 70.0, 60.0, 50.0, 40.0, 30.0, 20.0, 10.0, 0.0001, 0.0, -Inf]
+
 const METR_TABLE_BREAK_LABELS = [
-    "Less than zero",
-    "Zero",
-    "0.01-9.99",
-    "10-19.99",
-    "20-29.99",
-    "30-39.99",
-    "40-49.99",
-    "50-59.99",
-    "60-69.99",
-    "70-79.99",
-    "80-89.99",
-    "90-99.99",
-    "100",
+    "Not Computed",
     "Above 100",
-    "Not Computed"]
+    "100",
+    "90-99.99",
+    "80-89.99",
+    "70-79.99",
+    "60-69.99",
+    "50-59.99",
+    "40-49.99",
+    "30-39.99",
+    "20-29.99",
+    "10-19.99",
+    "0.01-9.99",
+    "Zero",
+    "Less than zero"]
 
+function get_metr_band( metr :: Union{Number,Missing})::MetrBands
+   if ismissing( metr )
+      return metr_not_computed
+   end
+   i = 1
+   for b in METR_TABLE_BREAKS
+      i += 1
+      if metr >= b
+         return MetrBands(i)
+      end
+   end
+   @assert false "unmapped metr " metr
+end
 
+@enum ShortMetrBands begin
+   sh_metr_not_computed = 1
+   sh_metr_90_and_above = 2
+   sh_metr_50_89 = 3
+   sh_metr_20_49 = 4
+   sh_metr_0_19 = 5
+   sh_metr_0_19 = 6
+   sh_metr_lt_zero = 7
+end
+
+const SHORT_METR_TABLE_BREAKS = [90, 50.0, 20.0, 0.00001, -Inf]
+const SHORT_METR_TABLE_BREAK_LABELS = [
+    "Not Computed",
+    "90 and above",
+    "50-89.99",
+    "20-49.99",
+    "0.01-19.99",
+    "Zero/Below Zero"]
+
+export sh_get_metr_band, SHORT_METR_TABLE_BREAK_LABELS, SHORT_METR_TABLE_BREAKS
+export ShortMetrBands,
+   sh_metr_not_computed,
+   sh_metr_90_and_above,
+   sh_metr_50_89,
+   sh_metr_20_49,
+   sh_metr_0_19,
+   sh_metr_0_19,
+   sh_metr_lt_zero
+
+function sh_get_metr_band( metr :: Union{Number,Missing})::ShortMetrBands
+   if ismissing( metr )
+      return sh_metr_not_computed
+   end
+   i = 1
+   for b in SHORT_METR_TABLE_BREAKS
+      i += 1
+      if metr >= b
+         return ShortMetrBands(i)
+      end
+   end
+   @assert false "unmapped metr " metr
+end
 
 export Illness_Length  # mapped from limitl
 export Less_than_six_months, Between_six_months_and_12_months, v_12_months_or_more

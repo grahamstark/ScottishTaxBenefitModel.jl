@@ -974,35 +974,6 @@ function make_gain_lose( ;
         popn = popn)
 end
 
-const METR_TABLE_BREAKS = [-Inf, 0.0000, 0.0001, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 100.001, Inf]
-const METR_TABLE_BREAK_LABELS = [
-    "Less than zero",
-    "Zero",
-    "0.01-9.99",
-    "10-19.99",
-    "20-29.99",
-    "30-39.99",
-    "40-49.99",
-    "50-59.99",
-    "60-69.99",
-    "70-79.99",
-    "80-89.99",
-    "90-99.99",
-    "100",
-    "Above 100",
-    "TOTAL"
-    ]
-
-const SHORT_METR_TABLE_BREAKS = [-Inf, 0.0001, 20.0, 50.0, 90.0, Inf]
-const SHORT_METR_TABLE_BREAK_LABELS = [
-    "Zero/Below Zero",
-    "0.01-19.99",
-    "20-49.99",
-    "50-89.99",
-    "90 and above",
-    "TOTAL"
-    ]
-
 function trans_mat_to_df( m :: Matrix, labels :: Vector ) :: DataFrame
     df = DataFrame( m, labels )
     insertcols!(df,1,""=>METR_TABLE_BREAK_LABELS)
