@@ -46,10 +46,7 @@ export
     make_poverty_line,
     restore_frames,
     summarise_frames!,
-    DUMP_FILE_DESCRIPTION,
-    METR_TABLE_BREAKS,
-    METR_TABLE_BREAK_LABELS,
-    POVERTY_LABELS
+    DUMP_FILE_DESCRIPTION
 
 const DUMP_FILE_DESCRIPTION = 
 """
@@ -1162,7 +1159,6 @@ function metrs_to_df( metrs :: Vector )::DataFrame
     return d
 end
 
-
 """
 Overall summary table made from summary.income_summary tables, with 1 being the base.
 Transpose the 1st three rows of that table. Assumes there's a col `label` at the end
@@ -1398,11 +1394,18 @@ function summarise_frames!(
         -1.0 # make sure we crash if not set
     end
 
+    median_income_1 = median( frames.indiv[1][!,income_measure], Weights(frames.indiv[1].weight))
+
     for sysno in 1:ns
         # poverty relative to current system median
         if settings.poverty_line_source == pl_current_sys
             poverty_line = make_poverty_line( frames.hh[sysno], settings )
         end
+
+        frames.indiv[sysno].metr_band = get_metr_band.( frames.indiv[sysno][!,income_measure] )
+        frames.indiv[sysno].short_metr_band = sh_get_metr_band.( frames.indiv[sysno][!,income_measure] )
+        frames.indiv[sysno].poverty_state = get_poverty_state.( frames.indiv[sysno][!,income_measure], median_income_1 )
+
         if settings.do_marginal_rates
             push!( metrs, metrs_to_hist( frames.indiv[1], frames.indiv[sysno] ))
             println( "metrs to hist done")
