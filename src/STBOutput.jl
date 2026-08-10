@@ -51,13 +51,6 @@ export
     METR_TABLE_BREAK_LABELS,
     POVERTY_LABELS
 
-const POVERTY_LABELS = ["V.Deep (<=30%)",
-                "Deep (<=40%)",
-                "In Poverty (<=60%)",
-                "Near Poverty (<=80%)",
-                "Not in Poverty",
-            "Total"]
-
 const DUMP_FILE_DESCRIPTION = 
 """
 # Dump Directory Contents
