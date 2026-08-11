@@ -285,7 +285,7 @@ function make_crosstab(
    cols::AbstractVector{<:Enum}; 
    weights :: AbstractWeights = Weights(ones(length(rows))),
    add_totals = true,
-   max_examples = 0 )
+   max_examples = 0 )::Tuple
    # just hack into Categorical version and use that
    rv = CategoricalArray( string.(rows))
    cv = CategoricalArray( string.(cols))

@@ -5,13 +5,16 @@ using DataFrames
 using StatsBase
 using BenchmarkTools
 using PrettyTables
+using StatsBase
 using Observables
+
 using ScottishTaxBenefitModel
-using ScottishTaxBenefitModel.GeneralTaxComponents
-using ScottishTaxBenefitModel.STBParameters
-using ScottishTaxBenefitModel.Runner: do_one_run
-using ScottishTaxBenefitModel.RunSettings
-using ScottishTaxBenefitModel.Definitions
+using .GeneralTaxComponents
+using .STBParameters
+using .Runner: do_one_run
+using .RunSettings
+using .Definitions
+using .Utils
 
 using .STBOutput
 using .Utils
@@ -21,7 +24,7 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
     dump_frames, summarise_frames!, make_gain_lose,
     dump_summaries
 
-
+#=
 @testset "MR test" begin
 
     settings = Settings()
@@ -32,21 +35,36 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
     sys = [
         get_default_system_for_fin_year(2026; scotland=true),
         get_default_system_for_fin_year( 2026; scotland=true )]
-
+    sys[2].it.non_savings_rates .+= 1
     @time begin
-        sys = [get_system(year=2026, scotland=true), get_system( year=2026, scotland=true )]
         summary, results, settings = do_basic_run( settings, sys, reset=false )
         println( summary.metrs[1] )
     end
 end
+=#
 
 @testset "hist tests " begin
-
-    d = DataFrame( hid = collect(1:400), metr = vcat(fill(100.0,100),fill(20.0,50), fill(50.01,25), fill(49.999,25), zeros(200)), weight=ones(400))
+    d = DataFrame(
+        hid = collect(1:400),
+        metr = vcat(fill(100.0,100),fill(20.0,50), fill(50.01,25), fill(49.999,25), zeros(100), fill(missing,100)),
+        weight=ones(400))
+    #=
     histd = STBOutput.metrs_to_hist( d,d; breaks=METR_TABLE_BREAKS )
     @show histd
     histd2 = STBOutput.metrs_to_hist( d,d; )
     @show histd2
+    =#
+    d.metr_band = get_metr_band.( d.metr )
+    d.short_metr_band = sh_get_metr_band.( d.metr )
+    # median_income = median( d.metr, Weights( d.weight ))
+    # just for devilment
+    # d.poverty_state = get_poverty_state.( d.metr, median_income )
+
+    m, row_levs, col_levs, examples = make_crosstab( d.metr_band, d.metr_band; weights=Weights(d.weight), max_examples = 3)
+    @show m row_levs col_levs examples size(m)[1]
+    # @test length( examples ) == 3
+    @test size(m)[1] == length( row_levs )
+
     #=
     t = DataFrame( metr=histd2.hist.weights, label=METR_TABLE_BREAK_LABELS )
     pretty_table( t )

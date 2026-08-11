@@ -262,8 +262,7 @@ end
    sh_metr_50_89 = 3
    sh_metr_20_49 = 4
    sh_metr_0_19 = 5
-   sh_metr_0_19 = 6
-   sh_metr_lt_zero = 7
+   sh_metr_lt_zero = 6
 end
 
 const SHORT_METR_TABLE_BREAKS = [90, 50.0, 20.0, 0.00001, -Inf]
