@@ -78,15 +78,15 @@ end
 end
 
 @testset "MR Classifications" begin
-    @test METR_TABLE_BREAK_LABELS[get_metr_band(0)] == "Zero"
-    @test METR_TABLE_BREAK_LABELS[get_metr_band(missing)] == "Not Computed"
-    @test METR_TABLE_BREAK_LABELS[get_metr_band(100)] == "100"
-    @test METR_TABLE_BREAK_LABELS[get_metr_band(101)] == "Above 100"
-    @test METR_TABLE_BREAK_LABELS[get_metr_band(-101)] == "Less than zero"
-    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(0)] == "Zero/Below Zero"
-    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(missing)] == "Not Computed"
-    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(100)] ==  "90 and above"
-    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(101)] ==  "90 and above"
-    @test SHORT_METR_TABLE_BREAK_LABELS[sh_get_metr_band(-101)] == "Zero/Below Zero"
+    @test METR_TABLE_BREAK_LABELS[Int(get_metr_band(0))] == "Zero"
+    @test METR_TABLE_BREAK_LABELS[Int(get_metr_band(missing))] == "Not Computed"
+    @test METR_TABLE_BREAK_LABELS[Int(get_metr_band(100))] == "100"
+    @test METR_TABLE_BREAK_LABELS[Int(get_metr_band(101))] == "Above 100"
+    @test METR_TABLE_BREAK_LABELS[Int(get_metr_band(-101))] == "Less than zero"
+    @test SHORT_METR_TABLE_BREAK_LABELS[Int(sh_get_metr_band(0))] == "Zero/Below Zero"
+    @test SHORT_METR_TABLE_BREAK_LABELS[Int(sh_get_metr_band(missing))] == "Not Computed"
+    @test SHORT_METR_TABLE_BREAK_LABELS[Int(sh_get_metr_band(100))] ==  "90 and above"
+    @test SHORT_METR_TABLE_BREAK_LABELS[Int(sh_get_metr_band(101))] ==  "90 and above"
+    @test SHORT_METR_TABLE_BREAK_LABELS[Int(sh_get_metr_band(-101))] == "Zero/Below Zero"
 
 end

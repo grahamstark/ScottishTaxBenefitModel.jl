@@ -1010,6 +1010,10 @@ function metrs_to_hist( indiv_pre::DataFrame, indiv_post::DataFrame; breaks=METR
         meanmtr = mean( sensible.metr, Weights(sensible.weight))
         hist = fit( Histogram, indpost.metr, Weights( indpost.weight ), breaks, closed=:left )
         # Same but in 2d pre- post : see Historgram in StatsBase documentation.
+
+        m, row_levs, col_levs, examples = make_crosstab( indiv_pre.metr_band, indiv_post.metr_band; weights=Weights(indiv_pre.weight), max_examples = 3)
+        @show m labels row_levs
+        #=
         transmat = fit( Histogram, (indpre.metr,indpost.metr), Weights( indpost.weight ), (breaks, breaks), closed=:left )
         # add row & col totals to transitions matrix
         m = transmat.weights
@@ -1017,9 +1021,10 @@ function metrs_to_hist( indiv_pre::DataFrame, indiv_post::DataFrame; breaks=METR
         m = vcat(m,sum(m,dims=1))
         # idiot check I've got dimensions right
         @assert m[end,1:end-1] ≈ hist.weights "hist.weights $(hist.weights)  ≈ m col totals $(m[end,1:end-1])"
+        =#
         m_df = trans_mat_to_df( m, labels )
     end
-    return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist, transmat_histogram = transmat, transmat=m, transmat_df=m_df )
+    return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist, transmat_histogram = nothing, transmat=m, transmat_df=m_df )
 end
 
 
@@ -1402,11 +1407,12 @@ function summarise_frames!(
             poverty_line = make_poverty_line( frames.hh[sysno], settings )
         end
 
-        frames.indiv[sysno].metr_band = get_metr_band.( frames.indiv[sysno][!,income_measure] )
-        frames.indiv[sysno].short_metr_band = sh_get_metr_band.( frames.indiv[sysno][!,income_measure] )
+        frames.indiv[sysno].metr_band = get_metr_band.( frames.indiv[sysno][!,:metr] )
+        frames.indiv[sysno].short_metr_band = sh_get_metr_band.( frames.indiv[sysno][!,:metr] )
         frames.indiv[sysno].poverty_state = get_poverty_state.( frames.indiv[sysno][!,income_measure], median_income_1 )
 
         if settings.do_marginal_rates
+            @show sysno names(frames.indiv[sysno])
             push!( metrs, metrs_to_hist( frames.indiv[1], frames.indiv[sysno] ))
             println( "metrs to hist done")
         end

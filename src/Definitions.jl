@@ -240,7 +240,8 @@ const METR_TABLE_BREAK_LABELS = [
     "10-19.99",
     "0.01-9.99",
     "Zero",
-    "Less than zero"]
+    "Less than zero",
+    "Total"]
 
 function get_metr_band( metr :: Union{Number,Missing})::MetrBands
    if ismissing( metr )
@@ -272,7 +273,8 @@ const SHORT_METR_TABLE_BREAK_LABELS = [
     "50-89.99",
     "20-49.99",
     "0.01-19.99",
-    "Zero/Below Zero"]
+    "Zero/Below Zero",
+    "Total"]
 
 export sh_get_metr_band, SHORT_METR_TABLE_BREAK_LABELS, SHORT_METR_TABLE_BREAKS
 export ShortMetrBands,
