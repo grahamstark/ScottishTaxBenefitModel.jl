@@ -248,6 +248,7 @@ function get_metr_band( metr :: Union{Number,Missing})::MetrBands
       return metr_not_computed
    end
    i = 1
+   metr = round(metr; digits=3) # 0.5 vs 0.4999999 funnies
    for b in METR_TABLE_BREAKS
       i += 1
       if metr >= b

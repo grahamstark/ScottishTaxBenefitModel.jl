@@ -1024,7 +1024,7 @@ function metrs_to_hist( indiv_pre::DataFrame, indiv_post::DataFrame; breaks=METR
         =#
         m_df = trans_mat_to_df( m, labels )
     end
-    return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist, transmat_histogram = nothing, transmat=m, transmat_df=m_df )
+    return ( max=maxmtr, min=minmtr, median=medmtr, mean=meanmtr, hist=hist, transmat_histogram = nothing, transmat=m, transmat_df=m_df, examples )
 end
 
 

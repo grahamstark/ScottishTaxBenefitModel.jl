@@ -24,24 +24,6 @@ using .STBOutput: make_poverty_line, summarise_inc_frame,
     dump_frames, summarise_frames!, make_gain_lose,
     dump_summaries
 
-#=
-@testset "MR test" begin
-
-    settings = Settings()
-    settings.do_marginal_rates = true
-    settings.dump_frames = true
-    @time settings.num_households, settings.num_people, nhh2 = FRSHouseholdGetter.initialise( settings; reset=false )
-
-    sys = [
-        get_default_system_for_fin_year(2026; scotland=true),
-        get_default_system_for_fin_year( 2026; scotland=true )]
-    sys[2].it.non_savings_rates .+= 1
-    @time begin
-        summary, results, settings = do_basic_run( settings, sys, reset=false )
-        println( summary.metrs[1] )
-    end
-end
-=#
 
 @testset "hist tests " begin
     d = DataFrame(
@@ -89,4 +71,30 @@ end
     @test SHORT_METR_TABLE_BREAK_LABELS[Int(sh_get_metr_band(101))] ==  "90 and above"
     @test SHORT_METR_TABLE_BREAK_LABELS[Int(sh_get_metr_band(-101))] == "Zero/Below Zero"
 
+end
+
+
+@testset "MR test" begin
+
+    settings = Settings()
+    settings.do_marginal_rates = true
+    settings.dump_frames = true
+    settings.requested_threads = 4
+    @time settings.num_households, settings.num_people, nhh2 = FRSHouseholdGetter.initialise( settings; reset=false )
+
+    sys = [
+        get_default_system_for_fin_year(2026; scotland=true),
+        get_default_system_for_fin_year( 2026; scotland=true )]
+    sys[2].it.non_savings_rates[1:2] .+= 0.001
+    @time begin
+        summary, results, settings = do_basic_run( settings, sys, reset=false )
+        pretty_table(summary.metrs[2].transmat_df)
+        @show "mr increase examples " summary.metrs[2].examples[9,8]
+        @show "mr decrease examples " summary.metrs[2].examples[8,9]
+        funnies = vcat(summary.metrs[2].examples[9,8], summary.metrs[2].examples[8,9])
+        @show funnies
+        inds = innerjoin( results.indiv[1], results.indiv[2], on=[:hid,:pid,:data_year], makeunique=true, renamecols="_pre"=>"_post" )[funnies,:]
+        CSV.write(joinpath(settings.output_dir,"funny-ind-mrs.tab"), inds; delim='\t')
+        println( "written to $(settings.output_dir)")
+    end
 end
