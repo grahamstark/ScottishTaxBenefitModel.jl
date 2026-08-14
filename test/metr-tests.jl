@@ -94,6 +94,7 @@ end
         funnies = vcat(summary.metrs[2].examples[9,8], summary.metrs[2].examples[8,9])
         @show funnies
         inds = innerjoin( results.indiv[1], results.indiv[2], on=[:hid,:pid,:data_year], makeunique=true, renamecols="_pre"=>"_post" )[funnies,:]
+
         CSV.write(joinpath(settings.output_dir,"funny-ind-mrs.tab"), inds; delim='\t')
         println( "written to $(settings.output_dir)")
     end
