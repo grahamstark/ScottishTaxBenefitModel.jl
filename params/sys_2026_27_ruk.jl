@@ -355,11 +355,14 @@ function load_sys_2026_27_ruk!( sys :: TaxBenefitSystem{T} ) where T
 
   # UBI
   sys.ubi.abolished = true
-  sys.ubi.adult_amount = 4_800.0
-  sys.ubi.child_amount= 3_000.0
-  sys.ubi.universal_pension = 8_780.0
+  # this is scheme 2 in https://www.researchgate.net/publication/365024969_Universal_Basic_Income_is_affordable_and_feasible_evidence_from_UK_economic_microsimulation_modelling1
+  sys.ubi.adult_amount = 7_540.0
+  sys.ubi.child_amount= 3_276.0
+  sys.ubi.universal_pension = 9_880.0
   sys.ubi.adult_age = 17
   sys.ubi.retirement_age = 66
+
+
 
   # Council Tax
   # TODO - Update with 26/27 figures. Post SG budget?
