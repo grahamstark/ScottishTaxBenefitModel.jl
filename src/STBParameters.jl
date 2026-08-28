@@ -1102,7 +1102,7 @@ end
     universal_pension :: RT = 8_780.0
     adult_age :: Int = 17
     retirement_age :: Int = 66
-    mt_bens_treatment :: UBIMTBenTreatment = ub_abolish
+    mt_bens_treatment :: UBIMTBenTreatment = ub_as_is
     abolish_sickness_bens :: Bool = false
     abolish_pensions :: Bool = true
     abolish_jsa_esa :: Bool = true
@@ -1331,6 +1331,9 @@ function make_ubi_pre_adjustments!( sys :: TaxBenefitSystem )
         sys.nmt_bens.maternity.abolished = true
         sys.nmt_bens.bereavement.abolished = true
         sys.nmt_bens.widows_pension.abolished = true
+        sys.nmt_bens.smp = 0.0
+        # sys.nmt_bens.scdp.abolished = true
+        sys.nmt_bens.winter_fuel.abolished  = true
     end
 end
 
