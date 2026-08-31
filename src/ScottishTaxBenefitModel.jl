@@ -13,6 +13,8 @@ using Pkg
 #
 Random.seed!( 1 )
 
+include( "EnumeratedArrays.jl" )
+export EnumeratedArrays
 
 include("Utils.jl" )
 export Utils

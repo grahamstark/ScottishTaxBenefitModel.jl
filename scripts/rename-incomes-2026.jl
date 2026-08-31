@@ -1,0 +1,85 @@
+using ScottishTaxBenefitModel
+
+using .Definitions
+using .STBIncomes
+
+s1 = SortedSet{String}()
+s2 = SortedSet{String}()
+
+for i in instances( Definitions.Incomes_Type )
+    push!( s1, uppercase(string(i)))
+end
+
+for i in instances( STBIncomes.Incomes )
+    push!( s2, uppercase(string(i)))
+end
+
+renames = intersect( s1, s2 )
+missing_in_old = setdiff( s2, s1 )
+missing_in_new = setdiff( s1, s2 )
+
+open( "income-renames.sed", "w") do io
+    for i in renames
+        println( io, "1,\$s/$i/$(lowercase(i))/g")
+    end
+
+    println( io, "missing in old")
+    for i in missing_in_old
+        println( io, "$i")
+    end
+
+    println( io, "missing in new")
+    for i in missing_in_new
+        println( io, "$i")
+    end
+
+end
+
+#=
+
+BEREAVEMENT_ALLOWANCE => BEREAVEMENT_ALLOWANCE_OR_WIDOWED_PARENTS_ALLOWANCE_OR_BEREAVEMENT
+DLA_MOBILITY => DLAMOBILITY
+DLA_SELF_CARE => DLASELF_CARE
+FUNERAL_GRANT => FUNERAL_GRANT_FROM_SOCIAL_FUND
+INDUSTRIAL_INJURY_BENEFIT => INDUSTRIAL_INJURY_DISABLEMENT_BENEFIT
+MATERNITY_GRANT => MATERNITY_GRANT_FROM_SOCIAL_FUND
+
+
+missing in old
+
+BASIC_INCOME
+CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+CONTRIB_JOBSEEKERS_ALLOWANCE
+COUNCIL_TAX_BENEFIT
+
+
+NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+NON_CONTRIB_JOBSEEKERS_ALLOWANCE
+OTHER_SCOTTISH_BENEFITS
+OTHER_TAX
+SAVINGS_CREDIT
+SOCIAL_FUND_LOAN_REPAYMENT
+WAR_WIDOWS_OR_WIDOWERS_PENSION => WAR_WIDOWS_PENSION
+
+TROUBLES_PERMANENT_DISABLEMENT
+
+missing in new
+
+CHILD_TAX_CREDIT_LUMP_SUM
+CHILD_WINTER_HEATING_ASSISTANCE_PAYMENT
+DWP_THIRD_PARTY_PAYMENTS_IS_OR_PC
+DWP_THIRD_PARTY_PAYMENTS_JSA_OR_ESA
+EMPLOYMENT_AND_SUPPORT_ALLOWANCE
+EXTENDED_HB
+JOBSEEKERS_ALLOWANCE
+JOB_START_PAYMENT
+PUPIL_DEVELOPMENT_GRANT
+SELF_EMPLOYMENT_EXPENSES
+SELF_EMPLOYMENT_LOSSES
+SOCIAL_FUND_LOAN_REPAYMENT_FROM_IS_OR_PC
+SOCIAL_FUND_LOAN_REPAYMENT_FROM_JSA_OR_ESA
+
+WORKING_TAX_CREDIT_LUMP_SUM
+
+
+=#
