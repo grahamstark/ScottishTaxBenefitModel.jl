@@ -1026,7 +1026,7 @@ function process_benefits!( model_adult::DataFrameRow, a_benefits::DataFrame)
         if !(bno in [46, 47]) # 2015 receipt in last 6 months of tax credits
             btype = Benefit_Type(bno)
             # println( "bno=$bno BenefitType=$btype")
-            if btype <= Personal_Independence_Payment_Mobility
+            if(btype <= Personal_Independence_Payment_Mobility) || (btype >= adp_daily_living) # Scottish Benefits
                 ikey = make_sym_for_frame("income", btype)
                 # println( "ikey=$ikey")
                 model_adult[ikey] = safe_inc(model_adult[ikey], a_benefits[b, :benamt])

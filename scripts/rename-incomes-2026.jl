@@ -11,7 +11,7 @@ using .STBIncomes
    child_benefit = 3
    pension_credit = 4
    state_pension = 5
-   bereavement_allowance_or_widowed_parents_allowance_or_bereavement = 6
+   bereavement_allowance = 6
    armed_forces_compensation_scheme = 8
    war_widows_or_widowers_pension = 9
    severe_disability_allowance = 10
@@ -84,6 +84,7 @@ using .STBIncomes
    carers_allowance_supplement = 999
    carers_support_payment = 997 # fixme not yet in data - numbers wrong
    pension_age_disability = 998 # fixme not yet in data - numbers wrong
+
 end
 
 
