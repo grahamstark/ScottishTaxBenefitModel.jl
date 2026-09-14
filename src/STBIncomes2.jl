@@ -33,55 +33,57 @@ end
 #=
 *** missing_in_stb_incomes
 
+s/BEREAVEMENT_ALLOWANCE bereavement_allowance//g
+s/DLA_MOBILITY/dla_mobility/g
+s/DLA_SELF_CARE/dla_self_care/g
+s/CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE/contrib_employment_and_support_allowance/g
+s/NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE/non_contrib_employment_and_support_allowance/g
+s/SAVINGS_CREDIT/savings_credit/g
+s/CONTRIB_JOBSEEKERS_ALLOWANCE/contrib_job_seekers_allowance/g
+s/NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE non_contrib_job_seekers_allowance//g
+s/COUNCIL_TAX_BENEFIT /council_tax_benefit/g
+s/OTHER_TAX/other_tax/g
+s/INDUSTRIAL_INJURY_BENEFIT/industrial_injury_disablement_benefit/g
+s/maternity_grant_from_social_fund/maternity_grant/g
+s/MATERNITY_GRANT/maternity_grant/g
+s/war_widows_or_widowers_pension/war_widows_pension/g
+s/WAR_WIDOWS_PENSION/war_widows_pension/g
+s/OTHER_SCOTTISH_BENEFITS/other_scottish_benefits/g
+s/BASIC_INCOME/basic_income/g
+s/FUNERAL_GRANT/funeral_grant/g
 
-BEREAVEMENT_ALLOWANCE bereavement_allowance 
-child_tax_credit_lump_sum
-child_winter_heating_assistance_payment
-DLA_MOBILITY dla_mobility
-DLA_SELF_CARE dla_self_care
-dwp_third_party_payments_is_or_pc
-dwp_third_party_payments_jsa_or_esa
+** OTHER BENEFITS TO DICT**
+const BEN_NAME_HACKS = Dict([
+   :maternity_grant_from_social_fund=>:maternity_grant,
+   :war_widows_or_widowers_pension=>:war_widows_pension,
+   :dwp_third_party_payments_is_or_pc => :other_benefits,
+   :dwp_third_party_payments_jsa_or_esa => :other_benefits,
+   :extended_hb => :other_benefits,
+   :funeral_grant_from_social_fund => :other_benefits,
+   :child_tax_credit_lump_sum => :other_benefits,
+   :child_winter_heating_assistance_payment => :other_benefits,
+   :job_start_payment => :other_benefits,
+   :pupil_development_grant => :other_benefits,
+   :self_employment_expenses => :other_benefits,
+   :self_employment_losses => :other_benefits,
+   :social_fund_loan_repayment_from_is_or_pc => :other_benefits,
+   :social_fund_loan_repayment_from_jsa_or_esa => :other_benefits,
+   :troubles_permanent_disablement => :other_benefits,
+   :working_tax_credit_lump_sum => :other_benefits,
+])
 
-CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE contrib_employment_and_support_allowance
-NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE non_contrib_employment_and_support_allowance
-SAVINGS_CREDIT savings_credit
-CONTRIB_JOBSEEKERS_ALLOWANCE contrib_job_seekers_allowance
-NON_CONTRIB_EMPLOYMENT_AND_SUPPORT_ALLOWANCE non_contrib_job_seekers_allowance 
-COUNCIL_TAX_BENEFIT  council_tax_benefit
-OTHER_TAX other_tax
-
-
-
-extended_hb other_benefits
-funeral_grant_from_social_fund other_benefits
-industrial_injury_disablement_benefit
-
-job_start_payment
-MATERNITY_GRANT maternity_grant_from_social_fund 
-pupil_development_grant
-self_employment_expenses
-self_employment_losses
-social_fund_loan_repayment_from_is_or_pc
-social_fund_loan_repayment_from_jsa_or_esa
-troubles_permanent_disablement
-war_widows_or_widowers_pension
-working_tax_credit_lump_sum
-
-OTHER_SCOTTISH_BENEFITS other_scottish_benefits
 
 
 *** missing_in_def_incomes
 
 
-BASIC_INCOME
 
 
 
-FUNERAL_GRANT
-INDUSTRIAL_INJURY_BENEFIT
 
 
-WAR_WIDOWS_PENSION
+
+
 
 =#
 
@@ -196,7 +198,6 @@ end
     any_other_ni_or_state_benefit = 2019
     friendly_society_benefits = 2020
     government_training_allowances = 2021
-    
     
     guardians_allowance = 2022
     widows_payment = 2023

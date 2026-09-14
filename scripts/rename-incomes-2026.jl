@@ -4,7 +4,7 @@ using .Definitions
 using .STBIncomes
 
 
-include( "src/STBIncomes2.jl")
+include( "../src/STBIncomes2.jl")
 
 @enum Benefit_Type_ED begin  # mapped from benefit
    missing_benefit_type = -1
@@ -111,7 +111,7 @@ renames = intersect( def_incomes_as_set, stb_incomes_as_set )
 missing_in_def_incomes = setdiff( stb_incomes_as_set, def_incomes_as_set )
 missing_in_stb_incomes = setdiff( def_incomes_as_set, stb_incomes_as_set )
 
-open( "income-renames.sed", "w") do io
+open( "income-renames-2.sed", "w") do io
     for i in renames
         println( io, "1,\$s/$i/$(lowercase(i))/g")
     end
