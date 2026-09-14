@@ -90,3 +90,7 @@
 1,$s/WINTER_FUEL_PAYMENTS/winter_fuel_payments/g
 1,$s/WORKING_TAX_CREDIT/working_tax_credit/g
 1,$s/WORK_EXPENSES/work_expenses/g
+
+:write
+:quit
+
