@@ -130,268 +130,269 @@ s/FUNERAL_GRANT/funeral_grant/g
 
 ** TARGETS **
 
-src/SFCBehavioural.jl
-src/HealthRegressions.jl
-src/BCCalcs.jl
-src/MatchingLibs.jl
-src/WebModelLibsOldVersion.jl
-src/UniversalCredit.jl
-src/IndirectTaxes.jl
-src/ConsumptionData.jl
-src/BenefitGenerosity.jl
-src/STBParameters.jl
-src/legal_aid_costs_runner.jl
-src/CrudeTakeup.jl
-src/matching/SHS.jl
-src/matching/Common.jl
-src/matching/LCF.jl
-src/matching/Model.jl
-src/matching/old_code.jl
-src/matching/WAS.jl
-src/LocalTaxRunner.jl
-src/LegalAidData.jl
-src/MiniTB.jl
-src/Monitor.jl
-src/FRSHouseholdGetter.jl
-src/targets/scotland-2025.jl
-src/targets/scotland-localities-2024.jl
-src/targets/scotland-2020.jl
-src/targets/scotland-2026.jl
-src/targets/scotland-2021.jl
-src/targets/scotland-2022.jl
-src/targets/wales-longterm.jl
-src/targets/wales-2023.jl
-src/SingleHouseholdCalculations.jl
-src/UCTransition.jl
-src/CTR.jl
-src/Pensions.jl
-src/HouseholdMappingFRS_Only.jl
-src/Weighting.jl
-src/LocalLevelCalculations.jl
-src/ExampleTable.jl
-src/RunSettings.jl
-src/Intermediate.jl
-src/WealthData.jl
-src/DataUtils.jl
-src/DataSummariser.jl
-src/WeightingData.jl
-src/STBIncomes2.jl
-src/NationalInsuranceCalculations.jl
-src/Affordability.jl
-src/HTMLLibs.jl
-src/ScottishBenefits.jl
-src/other_scottish_benefits.jl
-src/Uprating.jl
-src/BenefitCap.jl
-src/HouseholdAdjuster.jl
-src/GeneralTaxComponents.jl
-src/LegalAidCostsModel.jl
-src/EquivalenceScales.jl
-src/Runner.jl
-src/NonMeansTestedBenefits.jl
-src/HistoricBenefits.jl
-src/server.jl
-src/WebModelLibs.jl
-src/ScottishTaxBenefitModel.jl
-src/OtherTaxes.jl
-src/ModelHousehold.jl
-src/UBI.jl
-src/STBUnits.jl
-src/ExampleHelpers.jl
-src/TheEqualiser.jl
-src/Expenditure.jl
-src/IncomeTaxCalculations.jl
-src/LegalAidCalculations.jl
-src/LegalAidOutput.jl
-src/Results.jl
-src/HouseholdFromFrame.jl
-src/Utils.jl
-src/LocalWeightGeneration.jl
-src/IncomeTypeSketch.jl
-src/LegalAidRunner.jl
-src/LegacyMeansTestedBenefits.jl
-src/Randoms.jl
-src/STBIncomes.jl
-src/EnumeratedArrays.jl
-src/STBOutput.jl
-src/ExampleHouseholdGetter.jl
-src/SHSData.jl
-src/legal_aid_parameters.jl
-src/Incomes_New_Start.jl
-src/Definitions.jl
-src/SimplePovertyCounts.jl
-src/TimeSeriesUtils.jl
-src/ParamsIO.jl
-src/frs_hbai_creation_libs.jl
-test/simple_runner_tests.jl
-test/quikietest.jl
-test/equivence_scale_tests.jl
-test/expenditure_tests.jl
-test/behavioural_tests.jl
-test/historic_benefits_tests-with-pip-transitions.jl
-test/gainlose-test-driver.jl
-test/metr-tests.jl
-test/income_tax_tests.jl
-test/ni_tests.jl
-test/ctr_tests.jl
-test/scottish_benefits_tests.jl
-test/stboutput_tests.jl
-test/html_libs_tests.jl
-test/results_tests.jl
-test/ubi_tests.jl
-test/test_load_parameters.jl
-test/general_tests.jl
-test/all_uk_runner_tests.jl
-test/synthetic_data_tests.jl
-test/universal_credit_tests.jl
-test/social_security_age_tests.jl
-test/new_style_matching_tests.jl
-test/root_finding_demo.jl
-test/test_utils_tests.jl
-test/complete_calc_tests.jl
-test/legacy_mt_tests.jl
-test/equaliser_tests.jl
-test/consumption_data_tests.jl
-test/testutils.jl
-test/runtests.jl
-test/local_level_calculations_tests.jl
-test/minimum_wage_tests.jl
-test/health_regressions_tests.jl
-test/randoms_tests.jl
-test/legal_aid_calculations_tests.jl
-test/affordability_tests.jl
-test/pensions_tests.jl
-test/income_tax_tests_2023-24.jl
-test/incomes_tests.jl
-test/vs_policy_in_practice_tests.jl
-test/vs_age_uk_tests.jl
-test/wierd_results_replication.jl
-test/household_adjuster_tests.jl
-test/wealth_tests.jl
-test/complete_mt_bens_tests.jl
-test/uprating_tests.jl
-test/non_means_tested_bens_tests.jl
-test/utils_tests.jl
-test/weighting_tests.jl
-test/household_tests.jl
-test/historic_benefits_tests.jl
-test/output_tests.jl
-test/bc_tests.jl
-test/uc_transition_tests.jl
-test/parameter_tests.jl
-test/benefit_generosity_tests.jl
-test/matching_tests.jl
-test/benefit_cap_tests.jl
-test/crude_takeup_tests.jl
-test/enumerated_arrays_tests.jl
-scripts/essex-sb-bc-compares.jl
-scripts/was-hacks.jl
-scripts/artifacts-bulk-upload.jl
-scripts/dump_hhlds_t_json.jl
-scripts/check-old-new-pers.jl
-scripts/la_costs_sketch.jl
-scripts/wrangle-2025-statxplore-files.jl
-scripts/code_snippets.jl
-scripts/sa_merger.jl
-scripts/landman-scotben-compares.jl
-scripts/income_editor.jl
-scripts/scottish-local-runs-2024.jl
-scripts/dla_pluto.jl
-scripts/correlations-with-durations-hack.jl
-scripts/make-minidata.jl
-scripts/pluto_experminents.jl
-scripts/ct-calculations-draft.jl
-scripts/pluto-importing-stb-example.jl
-scripts/hbai-20245.jl
-scripts/comparisons_skeleton.jl
-scripts/add_source_path.jl
-scripts/income_enum.jl
-scripts/synth_file_libs.jl
-scripts/pluto_get_hh backup 1.jl
-scripts/create_all_disability_regressions.jl
-scripts/fixup_synth_data.jl
-scripts/create_full_artifacts_set.jl
-scripts/hbai-scotben-compares.jl
-scripts/wb_get_data.jl
-scripts/create_wales_subset.jl
-scripts/problem_generation.jl
-scripts/run_skel.jl
-scripts/lorenz_example.jl
-scripts/lcf_handler.jl
-scripts/add_one_random_field.jl
-scripts/retriever_notebook.jl
-scripts/parse_income.jl
-scripts/hack_regions_to_councils.jl
-scripts/rent-hb-calculations.jl
-scripts/pluto_get_hh.jl
-scripts/reload_all_packages.jl
-scripts/pluto_tb_runner.jl
-scripts/plotter.jl
-scripts/retriever.jl
-scripts/on_activate.jl
-scripts/kernel_tests.jl
-scripts/performance_experiments.jl
-scripts/create_scottish_subset.jl
-scripts/fes-script-1.jl
-scripts/fixup_synth_data_v2.jl
-scripts/julcon.jl
-scripts/generate_bcs_for_essex.jl
-scripts/legal_aid_pluto_2.jl
-scripts/infer_wealth.jl
-scripts/holy_traits.jl
-scripts/essexsummary.jl
-scripts/microsim_notebook_01.jl
-scripts/create_longterm_welsh_weights.jl
-scripts/create-scottish-la-weights.jl
-scripts/walestax.jl
-scripts/simd_example.jl
-scripts/panddocker.jl
-scripts/create_welsh_weights.jl
-scripts/retriever_web.jl
-scripts/stboutput-cairo-plots-drafts.jl
-scripts/create_data.jl
-scripts/budget-2026-calcs.jl
-scripts/simple_runner.jl
-scripts/serialisation_experiments.jl
-scripts/performance/hhld_example.jl
-scripts/performance/structs.jl
-scripts/performance/stability.jl
-scripts/performance/globals.jl
-scripts/performance/getters.jl
-scripts/create_enums.jl
-scripts/frs_subset_creation.jl
-scripts/bulk-upload-windows-hack.jl
-scripts/add-house-prices-to-indexs.jl
-scripts/la-admin-stats.jl
-scripts/testinit.jl
-scripts/tidier_legalaid_expenses.jl
-scripts/rename-incomes-2026.jl
-scripts/lcfexample2.jl
-scripts/sugar.jl
-scripts/wales-longterm.jl
-scripts/frs_subset_creation_2020.jl
-scripts/makehtml.jl
-params/sys_2022-23.jl
-params/sys_2021a.jl
-params/sys_2019_20_ruk.jl
-params/sys_2024_25_scotland.jl
-params/sys_2023_24_ruk.jl
-params/sys_2021_22.jl
-params/ni_rates_jan_2024.jl
-params/sys_2022-23-july-ni.jl
-params/sys_2023_24_scotland.jl
-params/sys_2020_21_ruk.jl
-params/sys_2025_26_scotland.jl
-params/budget_2021_uc_changes.jl
-params/ni_rates_april_2024.jl
-params/sys_2020_21.jl
-params/sys_2021-uplift-removed.jl
-params/sys_2026_27_ruk.jl
-params/sys_2025_26_ruk.jl
-params/sys_2026_27_scotland.jl
-params/sys_2024_25_ruk.jl
-params/sys_2022-23_ruk.jl
-params/sys_2021_22_ruk.jl
+# vim -e [file] < m2pas.vim
+# vim -e src/STBIncomes.jl < etc/incomes-edits.vim
+# vim -e src/STBIncomes2.jl < etc/incomes-edits.vim
+vim -e params/budget_2021_uc_changes.jl < etc/incomes-edits.vim
+vim -e params/ni_rates_april_2024.jl < etc/incomes-edits.vim
+vim -e params/ni_rates_jan_2024.jl < etc/incomes-edits.vim
+vim -e params/sys_2019_20_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2020_21_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2020_21.jl < etc/incomes-edits.vim
+vim -e params/sys_2021_22_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2021_22.jl < etc/incomes-edits.vim
+vim -e params/sys_2021-uplift-removed.jl < etc/incomes-edits.vim
+vim -e params/sys_2021a.jl < etc/incomes-edits.vim
+vim -e params/sys_2022-23_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2022-23-july-ni.jl < etc/incomes-edits.vim
+vim -e params/sys_2022-23.jl < etc/incomes-edits.vim
+vim -e params/sys_2023_24_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2023_24_scotland.jl < etc/incomes-edits.vim
+vim -e params/sys_2024_25_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2024_25_scotland.jl < etc/incomes-edits.vim
+vim -e params/sys_2025_26_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2025_26_scotland.jl < etc/incomes-edits.vim
+vim -e params/sys_2026_27_ruk.jl < etc/incomes-edits.vim
+vim -e params/sys_2026_27_scotland.jl < etc/incomes-edits.vim
+vim -e scripts/add_one_random_field.jl < etc/incomes-edits.vim
+vim -e scripts/add_source_path.jl < etc/incomes-edits.vim
+vim -e scripts/add-house-prices-to-indexs.jl < etc/incomes-edits.vim
+vim -e scripts/artifacts-bulk-upload.jl < etc/incomes-edits.vim
+vim -e scripts/budget-2026-calcs.jl < etc/incomes-edits.vim
+vim -e scripts/bulk-upload-windows-hack.jl < etc/incomes-edits.vim
+vim -e scripts/check-old-new-pers.jl < etc/incomes-edits.vim
+vim -e scripts/code_snippets.jl < etc/incomes-edits.vim
+vim -e scripts/comparisons_skeleton.jl < etc/incomes-edits.vim
+vim -e scripts/correlations-with-durations-hack.jl < etc/incomes-edits.vim
+vim -e scripts/create_all_disability_regressions.jl < etc/incomes-edits.vim
+vim -e scripts/create_data.jl < etc/incomes-edits.vim
+vim -e scripts/create_enums.jl < etc/incomes-edits.vim
+vim -e scripts/create_full_artifacts_set.jl < etc/incomes-edits.vim
+vim -e scripts/create_longterm_welsh_weights.jl < etc/incomes-edits.vim
+vim -e scripts/create_scottish_subset.jl < etc/incomes-edits.vim
+vim -e scripts/create_wales_subset.jl < etc/incomes-edits.vim
+vim -e scripts/create_welsh_weights.jl < etc/incomes-edits.vim
+vim -e scripts/create-scottish-la-weights.jl < etc/incomes-edits.vim
+vim -e scripts/ct-calculations-draft.jl < etc/incomes-edits.vim
+vim -e scripts/dla_pluto.jl < etc/incomes-edits.vim
+vim -e scripts/dump_hhlds_t_json.jl < etc/incomes-edits.vim
+vim -e scripts/essex-sb-bc-compares.jl < etc/incomes-edits.vim
+vim -e scripts/essexsummary.jl < etc/incomes-edits.vim
+vim -e scripts/fes-script-1.jl < etc/incomes-edits.vim
+vim -e scripts/fixup_synth_data_v2.jl < etc/incomes-edits.vim
+vim -e scripts/fixup_synth_data.jl < etc/incomes-edits.vim
+vim -e scripts/frs_subset_creation_2020.jl < etc/incomes-edits.vim
+vim -e scripts/frs_subset_creation.jl < etc/incomes-edits.vim
+vim -e scripts/generate_bcs_for_essex.jl < etc/incomes-edits.vim
+vim -e scripts/hack_regions_to_councils.jl < etc/incomes-edits.vim
+vim -e scripts/hbai-20245.jl < etc/incomes-edits.vim
+vim -e scripts/hbai-scotben-compares.jl < etc/incomes-edits.vim
+vim -e scripts/holy_traits.jl < etc/incomes-edits.vim
+vim -e scripts/income_editor.jl < etc/incomes-edits.vim
+vim -e scripts/income_enum.jl < etc/incomes-edits.vim
+vim -e scripts/infer_wealth.jl < etc/incomes-edits.vim
+vim -e scripts/julcon.jl < etc/incomes-edits.vim
+vim -e scripts/kernel_tests.jl < etc/incomes-edits.vim
+vim -e scripts/la_costs_sketch.jl < etc/incomes-edits.vim
+vim -e scripts/la-admin-stats.jl < etc/incomes-edits.vim
+vim -e scripts/landman-scotben-compares.jl < etc/incomes-edits.vim
+vim -e scripts/lcf_handler.jl < etc/incomes-edits.vim
+vim -e scripts/lcfexample2.jl < etc/incomes-edits.vim
+vim -e scripts/legal_aid_pluto_2.jl < etc/incomes-edits.vim
+vim -e scripts/lorenz_example.jl < etc/incomes-edits.vim
+vim -e scripts/make-minidata.jl < etc/incomes-edits.vim
+vim -e scripts/makehtml.jl < etc/incomes-edits.vim
+vim -e scripts/microsim_notebook_01.jl < etc/incomes-edits.vim
+vim -e scripts/on_activate.jl < etc/incomes-edits.vim
+vim -e scripts/panddocker.jl < etc/incomes-edits.vim
+vim -e scripts/parse_income.jl < etc/incomes-edits.vim
+vim -e scripts/performance_experiments.jl < etc/incomes-edits.vim
+vim -e scripts/performance/getters.jl < etc/incomes-edits.vim
+vim -e scripts/performance/globals.jl < etc/incomes-edits.vim
+vim -e scripts/performance/hhld_example.jl < etc/incomes-edits.vim
+vim -e scripts/performance/stability.jl < etc/incomes-edits.vim
+vim -e scripts/performance/structs.jl < etc/incomes-edits.vim
+vim -e scripts/plotter.jl < etc/incomes-edits.vim
+vim -e scripts/pluto_experminents.jl < etc/incomes-edits.vim
+vim -e scripts/pluto_get_hh backup 1.jl < etc/incomes-edits.vim
+vim -e scripts/pluto_get_hh.jl < etc/incomes-edits.vim
+vim -e scripts/pluto_tb_runner.jl < etc/incomes-edits.vim
+vim -e scripts/pluto-importing-stb-example.jl < etc/incomes-edits.vim
+vim -e scripts/problem_generation.jl < etc/incomes-edits.vim
+vim -e scripts/reload_all_packages.jl < etc/incomes-edits.vim
+vim -e scripts/rename-incomes-2026.jl < etc/incomes-edits.vim
+vim -e scripts/rent-hb-calculations.jl < etc/incomes-edits.vim
+vim -e scripts/retriever_notebook.jl < etc/incomes-edits.vim
+vim -e scripts/retriever_web.jl < etc/incomes-edits.vim
+vim -e scripts/retriever.jl < etc/incomes-edits.vim
+vim -e scripts/run_skel.jl < etc/incomes-edits.vim
+vim -e scripts/sa_merger.jl < etc/incomes-edits.vim
+vim -e scripts/scottish-local-runs-2024.jl < etc/incomes-edits.vim
+vim -e scripts/serialisation_experiments.jl < etc/incomes-edits.vim
+vim -e scripts/simd_example.jl < etc/incomes-edits.vim
+vim -e scripts/simple_runner.jl < etc/incomes-edits.vim
+vim -e scripts/stboutput-cairo-plots-drafts.jl < etc/incomes-edits.vim
+vim -e scripts/sugar.jl < etc/incomes-edits.vim
+vim -e scripts/synth_file_libs.jl < etc/incomes-edits.vim
+vim -e scripts/testinit.jl < etc/incomes-edits.vim
+vim -e scripts/tidier_legalaid_expenses.jl < etc/incomes-edits.vim
+vim -e scripts/wales-longterm.jl < etc/incomes-edits.vim
+vim -e scripts/walestax.jl < etc/incomes-edits.vim
+vim -e scripts/was-hacks.jl < etc/incomes-edits.vim
+vim -e scripts/wb_get_data.jl < etc/incomes-edits.vim
+vim -e scripts/wrangle-2025-statxplore-files.jl < etc/incomes-edits.vim
+vim -e src/Affordability.jl < etc/incomes-edits.vim
+vim -e src/BCCalcs.jl < etc/incomes-edits.vim
+vim -e src/BenefitCap.jl < etc/incomes-edits.vim
+vim -e src/BenefitGenerosity.jl < etc/incomes-edits.vim
+vim -e src/ConsumptionData.jl < etc/incomes-edits.vim
+vim -e src/CrudeTakeup.jl < etc/incomes-edits.vim
+vim -e src/CTR.jl < etc/incomes-edits.vim
+vim -e src/DataSummariser.jl < etc/incomes-edits.vim
+vim -e src/DataUtils.jl < etc/incomes-edits.vim
+vim -e src/Definitions.jl < etc/incomes-edits.vim
+vim -e src/EnumeratedArrays.jl < etc/incomes-edits.vim
+vim -e src/EquivalenceScales.jl < etc/incomes-edits.vim
+vim -e src/ExampleHelpers.jl < etc/incomes-edits.vim
+vim -e src/ExampleHouseholdGetter.jl < etc/incomes-edits.vim
+vim -e src/ExampleTable.jl < etc/incomes-edits.vim
+vim -e src/Expenditure.jl < etc/incomes-edits.vim
+# vim -e src/frs_hbai_creation_libs.jl < etc/incomes-edits.vim
+vim -e src/FRSHouseholdGetter.jl < etc/incomes-edits.vim
+vim -e src/GeneralTaxComponents.jl < etc/incomes-edits.vim
+vim -e src/HealthRegressions.jl < etc/incomes-edits.vim
+vim -e src/HistoricBenefits.jl < etc/incomes-edits.vim
+vim -e src/HouseholdAdjuster.jl < etc/incomes-edits.vim
+vim -e src/HouseholdFromFrame.jl < etc/incomes-edits.vim
+# vim -e src/HouseholdMappingFRS_Only.jl < etc/incomes-edits.vim
+vim -e src/HTMLLibs.jl < etc/incomes-edits.vim
+vim -e src/Incomes_New_Start.jl < etc/incomes-edits.vim
+vim -e src/IncomeTaxCalculations.jl < etc/incomes-edits.vim
+vim -e src/IncomeTypeSketch.jl < etc/incomes-edits.vim
+vim -e src/IndirectTaxes.jl < etc/incomes-edits.vim
+vim -e src/Intermediate.jl < etc/incomes-edits.vim
+vim -e src/LegacyMeansTestedBenefits.jl < etc/incomes-edits.vim
+vim -e src/legal_aid_costs_runner.jl < etc/incomes-edits.vim
+vim -e src/legal_aid_parameters.jl < etc/incomes-edits.vim
+vim -e src/LegalAidCalculations.jl < etc/incomes-edits.vim
+vim -e src/LegalAidCostsModel.jl < etc/incomes-edits.vim
+vim -e src/LegalAidData.jl < etc/incomes-edits.vim
+vim -e src/LegalAidOutput.jl < etc/incomes-edits.vim
+vim -e src/LegalAidRunner.jl < etc/incomes-edits.vim
+vim -e src/LocalLevelCalculations.jl < etc/incomes-edits.vim
+vim -e src/LocalTaxRunner.jl < etc/incomes-edits.vim
+vim -e src/LocalWeightGeneration.jl < etc/incomes-edits.vim
+vim -e src/matching/Common.jl < etc/incomes-edits.vim
+vim -e src/matching/LCF.jl < etc/incomes-edits.vim
+vim -e src/matching/Model.jl < etc/incomes-edits.vim
+vim -e src/matching/old_code.jl < etc/incomes-edits.vim
+vim -e src/matching/SHS.jl < etc/incomes-edits.vim
+vim -e src/matching/WAS.jl < etc/incomes-edits.vim
+vim -e src/MatchingLibs.jl < etc/incomes-edits.vim
+vim -e src/MiniTB.jl < etc/incomes-edits.vim
+vim -e src/ModelHousehold.jl < etc/incomes-edits.vim
+vim -e src/Monitor.jl < etc/incomes-edits.vim
+vim -e src/NationalInsuranceCalculations.jl < etc/incomes-edits.vim
+vim -e src/NonMeansTestedBenefits.jl < etc/incomes-edits.vim
+vim -e src/other_scottish_benefits.jl < etc/incomes-edits.vim
+vim -e src/OtherTaxes.jl < etc/incomes-edits.vim
+vim -e src/ParamsIO.jl < etc/incomes-edits.vim
+vim -e src/Pensions.jl < etc/incomes-edits.vim
+vim -e src/Randoms.jl < etc/incomes-edits.vim
+vim -e src/Results.jl < etc/incomes-edits.vim
+vim -e src/Runner.jl < etc/incomes-edits.vim
+vim -e src/RunSettings.jl < etc/incomes-edits.vim
+vim -e src/ScottishBenefits.jl < etc/incomes-edits.vim
+vim -e src/ScottishTaxBenefitModel.jl < etc/incomes-edits.vim
+vim -e src/server.jl < etc/incomes-edits.vim
+vim -e src/SFCBehavioural.jl < etc/incomes-edits.vim
+vim -e src/SHSData.jl < etc/incomes-edits.vim
+vim -e src/SimplePovertyCounts.jl < etc/incomes-edits.vim
+vim -e src/SingleHouseholdCalculations.jl < etc/incomes-edits.vim
+vim -e src/STBOutput.jl < etc/incomes-edits.vim
+vim -e src/STBParameters.jl < etc/incomes-edits.vim
+vim -e src/STBUnits.jl < etc/incomes-edits.vim
+vim -e src/targets/scotland-2020.jl < etc/incomes-edits.vim
+vim -e src/targets/scotland-2021.jl < etc/incomes-edits.vim
+vim -e src/targets/scotland-2022.jl < etc/incomes-edits.vim
+vim -e src/targets/scotland-2025.jl < etc/incomes-edits.vim
+vim -e src/targets/scotland-2026.jl < etc/incomes-edits.vim
+vim -e src/targets/scotland-localities-2024.jl < etc/incomes-edits.vim
+vim -e src/targets/wales-2023.jl < etc/incomes-edits.vim
+vim -e src/targets/wales-longterm.jl < etc/incomes-edits.vim
+vim -e src/TheEqualiser.jl < etc/incomes-edits.vim
+vim -e src/TimeSeriesUtils.jl < etc/incomes-edits.vim
+vim -e src/UBI.jl < etc/incomes-edits.vim
+vim -e src/UCTransition.jl < etc/incomes-edits.vim
+vim -e src/UniversalCredit.jl < etc/incomes-edits.vim
+vim -e src/Uprating.jl < etc/incomes-edits.vim
+vim -e src/Utils.jl < etc/incomes-edits.vim
+vim -e src/WealthData.jl < etc/incomes-edits.vim
+vim -e src/WebModelLibs.jl < etc/incomes-edits.vim
+vim -e src/WebModelLibsOldVersion.jl < etc/incomes-edits.vim
+vim -e src/Weighting.jl < etc/incomes-edits.vim
+vim -e src/WeightingData.jl < etc/incomes-edits.vim
+vim -e test/affordability_tests.jl < etc/incomes-edits.vim
+vim -e test/all_uk_runner_tests.jl < etc/incomes-edits.vim
+vim -e test/bc_tests.jl < etc/incomes-edits.vim
+vim -e test/behavioural_tests.jl < etc/incomes-edits.vim
+vim -e test/benefit_cap_tests.jl < etc/incomes-edits.vim
+vim -e test/benefit_generosity_tests.jl < etc/incomes-edits.vim
+vim -e test/complete_calc_tests.jl < etc/incomes-edits.vim
+vim -e test/complete_mt_bens_tests.jl < etc/incomes-edits.vim
+vim -e test/consumption_data_tests.jl < etc/incomes-edits.vim
+vim -e test/crude_takeup_tests.jl < etc/incomes-edits.vim
+vim -e test/ctr_tests.jl < etc/incomes-edits.vim
+vim -e test/enumerated_arrays_tests.jl < etc/incomes-edits.vim
+vim -e test/equaliser_tests.jl < etc/incomes-edits.vim
+vim -e test/equivence_scale_tests.jl < etc/incomes-edits.vim
+vim -e test/expenditure_tests.jl < etc/incomes-edits.vim
+vim -e test/gainlose-test-driver.jl < etc/incomes-edits.vim
+vim -e test/general_tests.jl < etc/incomes-edits.vim
+vim -e test/health_regressions_tests.jl < etc/incomes-edits.vim
+vim -e test/historic_benefits_tests-with-pip-transitions.jl < etc/incomes-edits.vim
+vim -e test/historic_benefits_tests.jl < etc/incomes-edits.vim
+vim -e test/household_adjuster_tests.jl < etc/incomes-edits.vim
+vim -e test/household_tests.jl < etc/incomes-edits.vim
+vim -e test/html_libs_tests.jl < etc/incomes-edits.vim
+vim -e test/income_tax_tests_2023-24.jl < etc/incomes-edits.vim
+vim -e test/income_tax_tests.jl < etc/incomes-edits.vim
+vim -e test/incomes_tests.jl < etc/incomes-edits.vim
+vim -e test/legacy_mt_tests.jl < etc/incomes-edits.vim
+vim -e test/legal_aid_calculations_tests.jl < etc/incomes-edits.vim
+vim -e test/local_level_calculations_tests.jl < etc/incomes-edits.vim
+vim -e test/matching_tests.jl < etc/incomes-edits.vim
+vim -e test/metr-tests.jl < etc/incomes-edits.vim
+vim -e test/minimum_wage_tests.jl < etc/incomes-edits.vim
+vim -e test/new_style_matching_tests.jl < etc/incomes-edits.vim
+vim -e test/ni_tests.jl < etc/incomes-edits.vim
+vim -e test/non_means_tested_bens_tests.jl < etc/incomes-edits.vim
+vim -e test/output_tests.jl < etc/incomes-edits.vim
+vim -e test/parameter_tests.jl < etc/incomes-edits.vim
+vim -e test/pensions_tests.jl < etc/incomes-edits.vim
+vim -e test/quikietest.jl < etc/incomes-edits.vim
+vim -e test/randoms_tests.jl < etc/incomes-edits.vim
+vim -e test/results_tests.jl < etc/incomes-edits.vim
+vim -e test/root_finding_demo.jl < etc/incomes-edits.vim
+vim -e test/runtests.jl < etc/incomes-edits.vim
+vim -e test/scottish_benefits_tests.jl < etc/incomes-edits.vim
+vim -e test/simple_runner_tests.jl < etc/incomes-edits.vim
+vim -e test/social_security_age_tests.jl < etc/incomes-edits.vim
+vim -e test/stboutput_tests.jl < etc/incomes-edits.vim
+vim -e test/synthetic_data_tests.jl < etc/incomes-edits.vim
+vim -e test/test_load_parameters.jl < etc/incomes-edits.vim
+vim -e test/test_utils_tests.jl < etc/incomes-edits.vim
+vim -e test/testutils.jl < etc/incomes-edits.vim
+vim -e test/ubi_tests.jl < etc/incomes-edits.vim
+vim -e test/uc_transition_tests.jl < etc/incomes-edits.vim
+vim -e test/universal_credit_tests.jl < etc/incomes-edits.vim
+vim -e test/uprating_tests.jl < etc/incomes-edits.vim
+vim -e test/utils_tests.jl < etc/incomes-edits.vim
+vim -e test/vs_age_uk_tests.jl < etc/incomes-edits.vim
+vim -e test/vs_policy_in_practice_tests.jl < etc/incomes-edits.vim
+vim -e test/wealth_tests.jl < etc/incomes-edits.vim
+vim -e test/weighting_tests.jl < etc/incomes-edits.vim
+vim -e test/wierd_results_replication.jl < etc/incomes-edits.vim
 
 *** missing_in_def_incomes
 
