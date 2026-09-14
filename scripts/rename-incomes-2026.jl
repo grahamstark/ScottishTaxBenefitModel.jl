@@ -4,6 +4,8 @@ using .Definitions
 using .STBIncomes
 
 
+include( "src/STBIncomes2.jl")
+
 @enum Benefit_Type_ED begin  # mapped from benefit
    missing_benefit_type = -1
    dlaself_care = 1
@@ -17,9 +19,15 @@ using .STBIncomes
    severe_disability_allowance = 10
    attendance_allowance = 12
    carers_allowance = 13
-   jobseekers_allowance = 14
+   
+   contrib_jobseekers_allowance = 14
+   non_contrib_jobseekers_allowance = 1114 # me split
+
    industrial_injury_disablement_benefit = 15
-   employment_and_support_allowance = 16
+   
+   contrib_employment_and_support_allowance = 16
+   non_contrib_employment_and_support_allowance = 1116 # me
+   
    incapacity_benefit = 17
    income_support = 19
    maternity_allowance = 21
@@ -88,34 +96,34 @@ using .STBIncomes
 end
 
 
-s1 = SortedSet{String}()
-s2 = SortedSet{String}()
+def_incomes_as_set = SortedSet{String}()
+stb_incomes_as_set = SortedSet{String}()
 
 for i in instances( Definitions.Incomes_Type )
-    push!( s1, uppercase(string(i)))
+    push!( def_incomes_as_set, uppercase(string(i)))
 end
 
-for i in instances( STBIncomes.Incomes )
-    push!( s2, uppercase(string(i)))
+for i in instances( STBIncomes2.Incomes_Type_2 )
+    push!( stb_incomes_as_set, uppercase(string(i)))
 end
 
-renames = intersect( s1, s2 )
-missing_in_old = setdiff( s2, s1 )
-missing_in_new = setdiff( s1, s2 )
+renames = intersect( def_incomes_as_set, stb_incomes_as_set )
+missing_in_def_incomes = setdiff( stb_incomes_as_set, def_incomes_as_set )
+missing_in_stb_incomes = setdiff( def_incomes_as_set, stb_incomes_as_set )
 
-open( "income-renames2.sed", "w") do io
+open( "income-renames.sed", "w") do io
     for i in renames
         println( io, "1,\$s/$i/$(lowercase(i))/g")
     end
 
-    println( io, "missing in old")
-    for i in missing_in_old
+    println( io, "\n\n*** missing_in_stb_incomes\n\n")
+    for i in missing_in_stb_incomes
         println( io, "$(lowercase(i))")
     end
 
-    println( io, "missing in new")
-    for i in missing_in_new
-        println( io, "$i")
+    println( io, "\n\n*** missing_in_def_incomes\n\n")
+    for i in missing_in_def_incomes
+       println( io, "$i")        
     end
 end
 
